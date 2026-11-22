@@ -194,13 +194,13 @@ function sprayPat(w, i){
 // ловит тайминг, когда враг прошёл; тот, кто не замечен, бьёт в спину во время выхода (docs/PRO_PLAY.md). Правило общее, для обеих сторон.
 //  · начало: меня не видит ни один враг, а я воспринимаю врагов рядом (вижу или слышу ≤ AMB_HEAR с), и они идут не на меня (их ход и взгляд
 //    отвёрнуты от меня больше AMB_AWAY) — «проходят мимо»;
-//  · двое и больше — «пропускаю» (задача ambush): стою укрыто, не стреляю, пока они не уйдут дальше AMB_PASS от меня / не скроются ≥ AMB_GONE с /
+//  · двое и больше — «пропускаю» (задача ambush): стою укрыто, не стреляю, пока они не уйдут дальше AMB_PASS от меня / не скроются и не сойдётся ситуация (ниже, 22.11) /
 //    колл сайта; потом — «в спину» (backstab): иду шагом за ними, стреляю в спины;
 //  · один — сразу «в спину»: иду шагом за ним; не стреляю, пока он меня не видит и не повернулся ко мне и он ближе AMB_SHOOT; вплотную со
 //    спины (≤ KNIFE_REACH) — нож;
 //  · конец: меня увидели (обычный бой), все цели мертвы, мало HP, задача выше; потерял — не по времени: дошёл до места звука, их нет — к сайту, куда шли, со спины (22.11).
 // Числа — проектные
-var AMB_HEAR = 1.5, AMB_AWAY = Math.PI/3, AMB_PASS = 380, AMB_GONE = [1, 6], AMB_SHOOT = 260, AMB_R = 700, AMB_MIN = 90;
+var AMB_HEAR = 1.5, AMB_AWAY = Math.PI/3, AMB_PASS = 380, AMB_SHOOT = 260, AMB_R = 700, AMB_MIN = 90;
 function ambSeenBy(b){ return knowSeenByAny(b); }   // (22.11, Ж23) по своему восприятию (220 knowSeenByFoe), не по зрению врага
 // кого из врагов я сейчас воспринимаю сам: вижу или слышал (звук с источником) недавно, в AMB_R
 // (22.11, Ж23) где враг по моему восприятию: вижу — где он есть; слышу — место звука (с ошибкой «на слух»), а не его настоящее место
@@ -302,15 +302,11 @@ function ambushTick(b){
     }
   }
   if(A.ph === "wait"){
-    // выхожу, когда пропущенные ушли из восприятия (не вижу и не слышу случайно AMB_GONE с — сколько ждать, у каждого по-своему) или колл сайта (начался выход): пока они рядом и могут
-    // обернуться — сижу (было: выходил, как только отошли на AMB_PASS, — его видели, м1 р1, T Roof)
-    var call = teamTac[b.team] && teamTac[b.team].call;
-    if(A.gone == null) A.gone = AMB_GONE[0] + (AMB_GONE[1]-AMB_GONE[0])*hashRand(tick*31 + b.id.charCodeAt(b.id.length-1)*13);   // (владелец 19.11: «сколько сидеть — рандомно»)
-    // (22.11, Ж23, сравнение по просьбе владельца; BAL.ambSit — временно) «по ситуации», без таймера (тактик: ждать, пока не сойдётся счёт,
+    // (22.11, Ж23, владелец: «без таймеров — по ситуации»; сравнение со случайными 1–6 с — разницы не увидел, оставлен этот) «по ситуации», без таймера (тактик: ждать, пока не сойдётся счёт,
     // не затихнут шаги или T не займутся делом): сейчас никого из них не воспринимаю И (все живые учтены: прошли мимо + свои видят /
     // уверенно знают в другом месте ≥ живых | слышали плант | свой уже в бою | бомба стоит | свои идут на этот сайт)
     var goSit = false;
-    if(BAL.ambSit){
+    {
       var foesAlive = bots.filter(function(o){ return o.alive && o.team !== b.team; }), passed = A.ids.filter(function(id){ var o = teamBot(id); return o && o.alive; }).length;
       var elsewhere = foesAlive.filter(function(o){ if(A.ids.indexOf(o.id) >= 0) return false; return (knowEnemySpots(b.team, o.id) || []).some(function(q){ return q.w >= 0.5 && Math.hypot(q.x-b.x, q.y-b.y) > AMB_R; }); }).length;
       var PHs = teamIntel[b.team] && teamIntel[b.team].plantHeard, busy = !!(PHs && tick - PHs.tick < 5*TICK_HZ) || (bomb && bomb.state === "planted") ||
@@ -318,7 +314,7 @@ function ambushTick(b){
       var goT = teamTac[b.team] && teamTac[b.team].go, mates = !!(goT && goT.ids && Object.keys(goT.ids).length && SITES[goT.site] && nearP(SITES[goT.site].x, SITES[goT.site].y, null, b.x, b.y, b.z, AMB_R));
       goSit = !seenNow.length && (passed + elsewhere >= foesAlive.length || busy || mates);
     }
-    if(BAL.ambSit ? goSit : (tick - A.seen > A.gone*TICK_HZ || (call && !seenNow.some(function(o){ var q = ambAt(b, o); return Math.hypot(q.x-b.x, q.y-b.y) < AMB_PASS; }) && tick - A.t0 > TICK_HZ))){ A.ph = "go"; dlog(b, "засада", "прошли — иду в спину"); }
+    if(goSit){ A.ph = "go"; dlog(b, "засада", "прошли — иду в спину"); }
     else {
       // стою, где меня не видно: место — здесь, если оно укрыто от них; иначе ближайшее укрытое (общий выбор укрытия, 470)
       // (19.11, м3 р4, CT1: укрытие выбрал к Palace Exit — ближе к ним, там увидели) укрытие — не ближе к врагам, чем стою сейчас

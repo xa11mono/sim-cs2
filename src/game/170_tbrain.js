@@ -138,7 +138,7 @@ function tBrain(){
     // в тот же тик «на A стак — перекол на B») бомба лежит у нашего сайта — перекол на другой не идёт: без неё там нечего делать, а нести её
     // через полкарты из-под огня — это не перекол. Сначала бомба (за ней идут — fetch), потом решение
     var bombHere = bomb && bomb.state === "dropped" && Math.hypot(bomb.x-SITES[tt.site].x, bomb.y-SITES[tt.site].y) < BOMB_HERE_R;
-    if(!bombHere && pickOther && carOK && aliveT >= (lateOK ? 2 : 3) && beliefCount("T", BZ.siteNear[other]||[]) < 0.9 && there < 1.5 && iglReads(tt, "po") && iglTake(tt, poSig ? poSig.tick : tick)){
+    if(!bombHere && pickOther && carOK && !tSiteTaking(tt) && aliveT >= (lateOK ? 2 : 3) && beliefCount("T", BZ.siteNear[other]||[]) < 0.9 && there < 1.5 && iglReads(tt, "po") && iglTake(tt, poSig ? poSig.tick : tick)){
       tt.rebound = true;
       voiceLog("T", "reb"+other, "IGL", lateOK ? "ПЕРЕКОЛЛ "+tt.site+" → "+other+": на "+tt.site+" их больше, на "+other+" сняли опорника — бомба на "+other+"!" : "минус на "+other+", там пусто — все на "+other+"!");
       logEvent("IGL: перекол → "+other+" (сняли CT, сайт пустой)");
@@ -150,7 +150,7 @@ function tBrain(){
                                          : (here - there >= 2 && (here >= 3.5 || deathsHere >= 2));
     // стак = минимум двое реально замечены/услышаны у сайта сейчас (или минус там)
     if(stackRead && (freshC[tt.site]||0) < 2 && deathsHere < 1) stackRead = false;
-    if(!bombHere && aliveT >= needAlive && stackRead && iglReads(tt, "st") && iglTake(tt, tick)){
+    if(!bombHere && aliveT >= needAlive && stackRead && !tSiteTaking(tt) && iglReads(tt, "st") && iglTake(tt, tick)){
       tt.rebound = true;
       logEvent("IGL: на "+tt.site+" стак (~"+Math.round(here)+"), перепривязка → "+other);
       // (v324) перекол говорится в войс — раньше был только в консоли, и в войсе потом звучало «бомба на B», хотя все шли на A
@@ -173,7 +173,7 @@ function tBrain(){
     // (v519, пак 09.11 п.12; А-6: на раше в первые секунды «B пустой, бомба рядом — ставим B!») «там пусто» — по знанию команды (siteAssess, 150: каждый
     // живой CT где-то замечен, и не у того сайта), а не «по карте вероятностей меньше 0,9» — в начале раунда о CT ещё ничего не знают, и отсутствие
     // информации считалось пустым сайтом
-    if(dOe < dHe && bOe < 0.9 && bOe < bHe && eOe.n < 1.5 && siteAssess("T", other).level === "empty" && iglTake(tt, tick)){
+    if(dOe < dHe && bOe < 0.9 && bOe < bHe && eOe.n < 1.5 && siteAssess("T", other).level === "empty" && !tSiteTaking(tt) && iglTake(tt, tick)){
       tt._exReb = true;
       voiceLog("T", "exreb"+other, "IGL", other+" пустой, бомба рядом — ставим "+other+"!");
       logEvent("IGL: на выходе перекол → "+other+" (носителю ближе, там пусто)");
@@ -193,7 +193,7 @@ function tBrain(){
       // команды (beliefCount: гипотезы врагов с направлением хода, уже со смертью своего), и другой сайт по знанию не полнее нашего: у него
       // меньше ждём врагов, или столько же, а носителю туда ближе. Было: «меньше одного врага» (0,69 < 0,9) и никого не видели и не слышали
       // за 6 с — знание о karrigan (0,69 на B против 0,57 на A) не учитывалось, и перекол уводил всех на сайт, где их ждали больше
-      if(bO < 0.9 && (bO < bH || (bO <= bH && dOc < dHc)) && secLeft > dOc/SPEED + PLANT_TICKS/TICK_HZ + 8 && iglTake(tt, tick)){
+      if(bO < 0.9 && (bO < bH || (bO <= bH && dOc < dHc)) && secLeft > dOc/SPEED + PLANT_TICKS/TICK_HZ + 8 && !tSiteTaking(tt) && iglTake(tt, tick)){   // (22.11, Ж16) сайт берётся — доигрываем
         tt._clrReb = true; tt.rebound = true;
         // (ответ владельца 2) подтверждённо пуст (позиции и подходы проверены / закрыты) — выход и плант сразу; только вероятно пуст (все CT
         // замечены в другом месте) — переколл, но занимать осторожно: сетап (занять и прочекать сайт), выход — по таймингу
@@ -235,7 +235,8 @@ function tBrain(){
     if(aCT <= 2 && aT > aCT){ tt.fewGo = true; tFastGo(tt, function(){
       var seenHere = intelEstimate("T", site.x, site.y, 600, 8*TICK_HZ).seen, seenOther = intelEstimate("T", SITES[other].x, SITES[other].y, 600, 8*TICK_HZ).seen;
       var was = tt.site;
-      if(seenHere > 0 && seenOther === 0){ tSetSite(tt, other); site = SITES[tt.site]; g = GEO[tt.site]; other = tt.site === "A" ? "B" : "A"; }
+      if(seenHere > 0 && seenOther === 0 && !tSiteTaking(tt)){ tSetSite(tt, other);   // (22.11, Ж16) последних видели у нас, но сайт берётся — добиваем здесь
+        site = SITES[tt.site]; g = GEO[tt.site]; other = tt.site === "A" ? "B" : "A"; }
       tt.fewGo = true; tt.phase = "execute"; tt.execStart = tick; siteHeatPending[tt.site] = 1;
       voiceLog("T", "few"+roundNum, "IGL", was !== tt.site ? "ПЕРЕКОЛЛ "+was+" → "+tt.site+": их осталось "+aCT+", на "+was+" видели — заходим сейчас!"
                                                            : "их осталось "+aCT+" — заходим сейчас, бомба на "+tt.site+"!");
