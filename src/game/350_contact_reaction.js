@@ -309,6 +309,7 @@ function delayTarget(b){
 function ctDelayNade(b){
   if(b.team !== "CT" || !b.alive || !b.nades || b.nadeTask || b.planting || b.defusing || (bomb && bomb.state === "planted")) return;
   if(tick - (b._delayT == null ? -1e9 : b._delayT) < DELAY_GAP*TICK_HZ || !delaySafe(b)) return;
+  if(!nadeRevealOk(b)) return;   // (22.11, Ж23-П4) не нашли — задержка гранатой только с толком: свои идут, срываю плант (380)
   var t = delayTarget(b); if(!t) return;
   var type = null, inSmoke = smokeCovered(t.x, t.y);
   if(inSmoke || smokeBlocks(b.x, b.y, t.x, t.y)){

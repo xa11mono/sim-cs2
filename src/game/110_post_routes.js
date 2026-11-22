@@ -194,6 +194,7 @@ var TASK_PROP = {
   escape:           /^repos:(hurt|back|rlcover)/,   // (v583a, Д26) уход из-под линии: «держит угол» не останавливает, пока не дошёл (535)
   dangerWalkSkip:   /^(tradeR|flee|fetch|stopplant|antidefuse|repos|plantspot|lineup|defuse|smokeWait|pickup|retake|save|trade)/,   // опасное место: задачи, на которых не идут шагом (470)
   holdsSite:        /^(anchor|stack|set:|cts:|clutch|retake)/,   // дабл-пик: держит сайт — не бросает (480)
+  earAmbush:        /^(probeHide|probeInfo|lurk|flank)/,   // (22.11, Ж23-П4) засел нарочно: засада по одному звуку (480 ambushTick; было — регулярка там)
   tradeUrgent:      /^(retake|defuse|plantspot|antidefuse|endhunt|tradeR)/,   // размен: задачи, где «есть кому разменять» не проверяется (490)
   shiftHoldBusy:    /^(save|repos|defuse|plantspot|lineup|pickup|endhunt|retake|gather|stopplant|antidefuse)/,   // смена угла на посту: задачи, которые не трогают (500)
   cautiousEnd:      /^(retake|rotate|defuse)$/,   // шаг: последние метры ретейка / ротации / дефуза (535)

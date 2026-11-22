@@ -302,6 +302,7 @@ function throwNadeTry(b, type, tx, ty, lob, why, trusted, from){
     bots.forEach(function(o){ if(o.alive && o !== b && (Math.hypot(o.x-b.x, o.y-b.y) < 450 || hasVision(o.x, o.y, b.x, b.y))) nd.aware[o.id] = true; });
   }
   nadesInAir.push(nd); soundEv("sndNade", "throw", b.x, b.y);
+  b._thrownT = tick;   // (22.11, Ж23-П4) бросок слышно — бот знает, что мог себя выдать (220 knowMeRevealed)
   // (00_PLAN п.14) флешка под чужой пик (nadeTask.peekFor, 390) — выглядывающий ждёт её хлопка (540: _waitPopKey), до срабатывания по полёту
   var pkT = b.nadeTask && b.nadeTask.type === type && b.nadeTask.peekFor, pkB = pkT && bots.filter(function(o){ return o.id === pkT && o.alive; })[0];
   if(pkB && type === "flash"){ moveWaitPop(pkB, nd.etaDet + 1, "pop:"+nd.why, "peek-flash"); voiceLog(b.team, "pkfl"+b.id+roundNum, b.id, "флешу под пик "+pkB.id+" — выходи на хлопок"); }
@@ -396,6 +397,19 @@ function assignNadeDo(b, type, target, why, opts){
   var here = !!(opts && opts.here);
   b.nadeTask = {type:type, x:target.x, y:target.y, until: tick + (here ? 2 : 10)*64, why:why||"", start:tick, lob:true, range:(opts && opts.range) || NADE_THROW_RANGE, now:!!(opts && opts.now), here:here, npm:npm, eid:(opts && opts.eid) || null, forC:(opts && opts.forC) || null};
   return true;
+}
+// (22.11, Ж23-П4, разбор м271222 р6: опорник, о котором не знали, кинул флешку, потом молотов «выкурить по инфе» — помощи не шло,
+// а себя выдал) граната, которая выдаёт того, кого ещё не нашли (knowMeRevealed, 220), — только когда от неё есть толк: обо мне и так
+// знают; бомба стоит (ретейк / пост-плант); CT — слышим плант (сорвать) или свои уже идут ротацией на этот сайт; T — идёт выход команды
+// (не лёркер). Иначе спрятанный не выдаёт себя гранатой
+function nadeRevealOk(b){
+  if(knowMeRevealed(b) || (bomb && bomb.state === "planted")) return true;
+  if(b.team === "CT"){
+    var PH = teamIntel.CT && teamIntel.CT.plantHeard; if(PH && tick - PH.tick < 5*TICK_HZ) return true;
+    var go = teamTac.CT && teamTac.CT.go;
+    return !!(go && go.ids && Object.keys(go.ids).length && SITES[go.site] && ctNearSite(b, SITES[go.site], 700));
+  }
+  return !!(teamTac.T && teamTac.T.phase === "execute" && b.tRole !== "lurker");
 }
 // (22.11, Ж23) заказчик гранаты: «под мой / его выход на врага» — {by, cid}: жива, пока у заказчика контакт с этим врагом (_contact, 350);
 // «под его пробу» — {by, tag}: пока заказчик на той же задаче (тег поста при заказе). Только свойства задачи заказчика, без списков имён

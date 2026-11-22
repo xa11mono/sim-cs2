@@ -248,10 +248,13 @@ function ambushTick(b){
   if(!A){
     // (19.11, скан м3: «пропускаю» на каждый услышанный шаг у обеих сторон) по одному звуку — засада только у того, кто засел нарочно (засел на
     // пробе / лёркает / заходит); остальные — только если видят врага, идущего мимо спиной
-    var lurkNow = b.post && /^(probeHide|probeInfo|lurk|flank)/.test(b.post.tag || "");
+    // (22.11, Ж23-П4, владелец по м271222 р6: «он мог бы пойти за типом, которого слышали, — у него была топовая позиция в спину») по звуку —
+    // и тот, кто держит сайт, если его не нашли (knowMeRevealed, 220: не стрелял, не кидал, не ранен, врага не видел): пропускает и заходит в спину
+    var hideSite = !!(b.post && taskProp(b.post.tag, "holdsSite") && !knowMeRevealed(b));
+    var lurkNow = !!(b.post && taskProp(b.post.tag, "earAmbush")) || hideSite;
     if(!lurkNow && !F.some(function(o){ return b._visible && b._visible.indexOf(o) >= 0; })) return false;
     if(!F.length || ambSeenBy(b) || b.hp <= LOW_HP || b._fc || !F.every(function(o){ return !(b._visible && b._visible.indexOf(o) >= 0) || ambPassing(b, o); }) || !F.some(function(o){ return !(b._visible && b._visible.indexOf(o) >= 0) || o.curSpeed > 40*SPD_K; })) return false;   // идут мимо (видимые — не стоят; слышу — значит идут)
-    if(b.post && taskProp(b.post.tag, "holdsSite") && F.some(function(o){ return nearP(o.x, o.y, o.z, b.x, b.y, b.z, AMB_PASS); })) return false;   // идут на мой сайт рядом — держу
+    if(b.post && taskProp(b.post.tag, "holdsSite") && !hideSite && F.some(function(o){ return nearP(o.x, o.y, o.z, b.x, b.y, b.z, AMB_PASS); })) return false;   // идут на мой сайт рядом — держу (меня уже нашли; не нашли — пропускаю, 22.11)
     // один — «иду за ним», только если вижу его и других рядом не знаю (владелец: «он точно должен увидеть, что он один»); слышу / их больше — жду
     var solo = F.length === 1 && b._visible && b._visible.indexOf(F[0]) >= 0 && !bots.some(function(o){ var q = (beliefLast[b.team] || {})[o.id];
       return o !== F[0] && o.alive && o.team !== b.team && q && tick - q.tick < 3*TICK_HZ && Math.hypot(q.x-b.x, q.y-b.y) < AMB_R; });
