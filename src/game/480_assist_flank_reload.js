@@ -198,13 +198,15 @@ function sprayPat(w, i){
 //    колл сайта; потом — «в спину» (backstab): иду шагом за ними, стреляю в спины;
 //  · один — сразу «в спину»: иду шагом за ним; не стреляю, пока он меня не видит и не повернулся ко мне и он ближе AMB_SHOOT; вплотную со
 //    спины (≤ KNIFE_REACH) — нож;
-//  · конец: меня увидели (обычный бой), все цели мертвы / потеряны ≥ AMB_LOST с, мало HP.
+//  · конец: меня увидели (обычный бой), все цели мертвы, мало HP, задача выше; потерял — не по времени: дошёл до места звука, их нет — к сайту, куда шли, со спины (22.11).
 // Числа — проектные
-var AMB_HEAR = 1.5, AMB_AWAY = Math.PI/3, AMB_PASS = 380, AMB_GONE = [1, 6], AMB_LOST = 5, AMB_TRAIL = 12, AMB_SHOOT = 260, AMB_R = 700, AMB_MIN = 90;
+var AMB_HEAR = 1.5, AMB_AWAY = Math.PI/3, AMB_PASS = 380, AMB_GONE = [1, 6], AMB_SHOOT = 260, AMB_R = 700, AMB_MIN = 90;
 function ambSeenBy(b){ return knowSeenByAny(b); }   // (22.11, Ж23) по своему восприятию (220 knowSeenByFoe), не по зрению врага
 // кого из врагов я сейчас воспринимаю сам: вижу или слышал (звук с источником) недавно, в AMB_R
 // (22.11, Ж23) где враг по моему восприятию: вижу — где он есть; слышу — место звука (с ошибкой «на слух»), а не его настоящее место
 function ambAt(b, o){ var hs = b.heardSound; return (b._visible && b._visible.indexOf(o) >= 0) || !(hs && hs.src === o.id) ? {x: o.x, y: o.y, z: o.z} : {x: hs.x, y: hs.y, z: hs.z}; }
+// (22.11, Ж23) к какому сайту ведёт место (по пути: граф зон, 340 ctSiteD) — куда шли те, кого слышал
+function ambGoalSite(p){ if(!p || !BZ.ids.length) return null; var z = bzOf(p.x, p.y); if(z < 0) return null; var D = ctSiteD(); return D.A[z] <= D.B[z] ? "A" : "B"; }
 function ambFoes(b){
   var out = [];
   bots.forEach(function(o){ if(!o.alive || o.team === b.team) return;
@@ -285,12 +287,19 @@ function ambushTick(b){
       var at = function(o){ return ambAt(b, o); };
       var c = P.sort(function(p, q){ var a = at(p), d = at(q); return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(d.x-b.x, d.y-b.y); })[0], ca = at(c);
       A.last = {x: ca.x, y: ca.y, z: ca.z, id: c.id}; A.lastT = tick; } }
-  else if(!A.via && tick - A.seen > AMB_LOST*TICK_HZ){
-    // потерял — но команда знает, где они: иду туда (знание команды, не своё восприятие). (22.11, Ж23, разбор м271222 р6: потеряв magixx у B,
-    // karrigan пошёл к Pillars — свежайшая запись о ЛЮБОМ враге за 12 с, другой T у A) — только про тех, за кем иду (A.ids), и только
-    // уверенное место (вес ≥ 0,5 в знании команды, knowEnemySpots); нет — засада кончена, бот возвращается к своей задаче
+  else if(!A.via && !A.goal && b.atPost && b.post && b.post.tag === "backstab"){
+    // (22.11, Ж23, владелец: «он уже сказал инфу и должен доигрывать ситуацию… у таких действий нет таймера — всё ситуационно») дошёл до
+    // места, где их слышал, а их тут нет: куда они шли — знание команды (только про тех, за кем иду, уверенное место ≥ 0,5); нет — к сайту, к
+    // которому это место ведёт по пути (раз шли спокойно туда, где никого, — скорее всего, остальные уже там, будет плант): захожу к сайту
+    // с их стороны (проход T на сайт), в спину, и доигрываю там. Было: 5 с без звука — засада кончена, на пост; потом — к чужой старой записи
     var kn = null; A.ids.forEach(function(id){ (knowEnemySpots(b.team, id) || []).forEach(function(q){ if(q.w >= 0.5 && (!kn || q.w > kn.w)) kn = q; }); });
-    if(kn){ A.seen = tick; A.last = {x: kn.x, y: kn.y}; } else return ambEnd(b, "потерял");
+    var far = kn && Math.hypot(kn.x-b.x, kn.y-b.y) > 60;
+    if(far){ A.seen = tick; A.last = {x: kn.x, y: kn.y}; }
+    else {
+      var gk = ambGoalSite(A.last); if(!gk || !GEO[gk]) return ambEnd(b, "потерял");
+      A.goal = gk; A.last = {x: GEO[gk].tEntry.x, y: GEO[gk].tEntry.y};
+      voiceLog(b.team, "ambgo"+b.id+roundNum, b.id, "ушли на "+gk+" — захожу им в спину");
+    }
   }
   if(A.ph === "wait"){
     // выхожу, когда пропущенные ушли из восприятия (не вижу и не слышу случайно AMB_GONE с — сколько ждать, у каждого по-своему) или колл сайта (начался выход): пока они рядом и могут
@@ -322,6 +331,6 @@ function ambushTick(b){
       tg.heardSound = {x: b.x, y: b.y, z: b.z, tick: tick, team: b.team, src: b.id, kind: "hit"};
     }
   }
-  setPost(b, A.last, A.last, true, "backstab");
+  setPost(b, A.last, A.goal && SITES[A.goal] ? SITES[A.goal] : A.last, true, "backstab");   // доигрываю у сайта — взгляд на сайт
   return ambOn(b) || ambEnd(b, "задача выше");
 }

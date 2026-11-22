@@ -42,7 +42,11 @@ function moveWalkWhy(bot){
   if(bot.role === "roamer" && !bot.post && !bot.roamChecking && bot.roamTarget && bot.state === "patrol" &&
      Math.hypot(bot.roamTarget.x-bot.baseX, bot.roamTarget.y-bot.baseY) < ROAM_QUIET_RADIUS) return "роумер у точки чека";
   // заход на занятый врагом сайт (ретейк/ротация) — последние метры шагом
-  if(bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "flankTask")) return "фланг";
+  // (22.11, Ж23, разбор м271222 р6: karrigan шёл в спину шагом 9 с и не успел к планту) фланг / засада / в спину — шагом, только если по моему
+  // знанию враг может услышать мой бег: место, куда иду (где их слышал), или куда смотрю — ближе 1,5 слышимости бега (то же правило, что
+  // у звука и инфы выше). Было — шагом всегда, сколько бы до них ни было
+  if(bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "flankTask")){ var fp = bot.post, fl = fp.look, hr = 1.5*STEP_HEAR_R();
+    if(Math.hypot(fp.x-bot.baseX, fp.y-bot.baseY) <= hr || (fl && Math.hypot(fl.x-bot.baseX, fl.y-bot.baseY) <= hr)) return "фланг"; }
   // (v583a, ретейк как у про: сходятся на ходу, не стоят на точке) CT на сборе ушёл вперёд своего больше чем на RT_GAP по пути — идёт шагом,
   // пока тот не подтянется (расстояния — хозяин ретейка, 180: bomb.retake.apDist)
   if(bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "gatherTask") && bomb && bomb.retake && bomb.retake.apDist){ var AD = bomb.retake.apDist, me = AD[bot.id];
