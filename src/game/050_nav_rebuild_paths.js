@@ -299,6 +299,11 @@ var NAV_JUMP_COST = 120, NAV_DROP_COST = 60;
 // LAND_DELAY — время полёта при запрыгивании (CS2: прыжок ~0,6 с вверх-вниз; вверх на уступ — короче) — проектное число. Звук приземления
 // через столько после прыжка (540); с v546 — и цена прыжка в пути (navJumpCost; здесь, потому что путь ищут уже при загрузке)
 var LAND_DELAY = 0.35;
+// (22.11, аудит 049) запрыг на уступ — полёт с толчком sv_jump_impulse 301,993 ед./с и гравитацией sv_gravity 800 (CS2; движение — 370
+// navFollowFloor). Время до приземления на уступ высотой dz — второй корень z(t) = v0·t − g·t²/2 = dz; выше вершины (v0²/2g ≈ 57) — время
+// вершины. Одно место для цены пути и движения: числа здесь, потому что путь ищут уже при загрузке
+var JUMP_V0 = 301.993, FALL_G = 800;
+function jumpUpAirT(dz){ return (JUMP_V0 + Math.sqrt(Math.max(0, JUMP_V0*JUMP_V0 - 2*FALL_G*dz)))/FALL_G; }
 // (v469, п.5 владельца 29.10: «спрыгивают со звуком с любого уступа») UNVERIFIED: project heuristic, not confirmed CS2 threshold — проектное
 // число. Ответ про-аналитика 29.10: маленькое падение события приземления не даёт (спецификация CS2-демок), порога в единицах Valve не
 // публикует; 48 ед. — начальная настройка до проверки по демкам с player_footstep (land). Спуск ниже — тихо и шагом, и бегом (шаги —
@@ -356,7 +361,7 @@ function navJumpCost0(a, edge, q){
   if(edge.gap) return tJ + (q && !edge.gap.walkOk ? NAV_JUMP_COST : 0);   // (v549) на шифте тихо — только время
   if(NAV_LAD[a.id+">"+edge.to]) return Math.abs(b.z - a.z)/LADDER_SPEED*SPEED/(q ? WALK_SPEED_FRAC : 1);   // лестница
   var dz = navEdgeDz(a, edge);
-  if(dz > 18) return tJ;
+  if(dz > 18) return jumpUpAirT(dz)*SPEED;   // (аудит 049) запрыг — время полёта по физике
   if(dz < -LAND_SOUND_DROP) return tJ + (q ? NAV_DROP_COST : 0);
   return 0;   // (v469) тихий спуск (≤ LAND_SOUND_DROP) — без цены
 }

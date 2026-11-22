@@ -373,14 +373,18 @@ function navNearestFall(x, y, tol, z){
 // (владелец 18.11: «сделай нормальное падение — инерция и т. п.») сошёл с края вниз (ниже ступеньки) — падает с ускорением CS2 (sv_gravity 800
 // ед./с²), ход по пути продолжается (инерция), приземление — когда высота дошла до пола под ногами: тогда звук приземления, пересчёт пути.
 // Было: высота менялась за тик (128 ед. — мгновенно), звук — в момент схода
-var FALL_G = 800;
+// (22.11, аудит 049, владелец Ж21: «при запрыге как будто переносятся на вышку, не тратя времени на запрыг») прыжок вверх на уступ — тот же
+// полёт, что падение, с толчком вверх: sv_jump_impulse CS2 = 301,993 ед./с (исходники; то же число — прыжок в полёте гранат, 385 JUMP_V),
+// гравитация sv_gravity 800 (числа — 050 JUMP_V0 / FALL_G): высота по параболе, приземление — когда уже опускается и дошёл до пола уступа (звук — там). Было: высота уступа
+// за один тик, звук — через LAND_DELAY
 function navFollowFloor(bot){
   var FA = bot._fall;
-  if(FA){ var tf = (tick - FA.t0)/TICK_HZ, zf = FA.z0 - 0.5*FALL_G*tf*tf, g = navAt(bot.baseX, bot.baseY, FA.zt) || navArea(FA.area), gz = g ? navFloorZ(g, bot.baseX, bot.baseY) : FA.zt;
+  if(FA){ var tf = (tick - FA.t0)/TICK_HZ, zf = FA.z0 + (FA.v0 || 0)*tf - 0.5*FALL_G*tf*tf, g = navAt(bot.baseX, bot.baseY, FA.zt) || navArea(FA.area), gz = g ? navFloorZ(g, bot.baseX, bot.baseY) : FA.zt;
     bot._flx = bot.baseX; bot._fly = bot.baseY;
-    if(zf > gz){ bot.z = zf; return; }
+    if(zf > gz || (FA.v0 && FA.v0 - FALL_G*tf > 0)){ bot.z = zf; return; }   // летит; прыжок вверх — пока поднимается, не приземляется
     bot._fall = null; bot.z = gz; if(g) bot._area = g.id;
-    if(FA.z0 - gz > LAND_SOUND_DROP){ bot._jump = {t:tick, up:false}; if(roundState === "live") landSound(bot); }
+    if(FA.v0){ if(roundState === "live") landSound(bot, false, "up"); }   // запрыгнул — приземление на уступе
+    else if(FA.z0 - gz > LAND_SOUND_DROP){ bot._jump = {t:tick, up:false}; if(roundState === "live") landSound(bot); }
     if(FA.z0 - gz > JUMP_UP && bot.path && bot.pathIdx < bot.path.length){ bot.path = []; bot.pathIdx = 0; }
     return; }
   if(bot._flx === bot.baseX && bot._fly === bot.baseY) return;
@@ -412,6 +416,8 @@ function navFollowFloor(bot){
     // а не по центрам участков: ступени и пандусы Mirage (Stairs, Palace, рампы) больше не «прыжок» со звуком
     var djz = (a0z && naz !== a0z) ? navStepDz(a0z, naz, bot.baseX, bot.baseY) : (naz === a0z ? 0 : dzz);
     if(bot.z != null && djz < -18 && dzz < -18){ bot._fall = {z0: bot.z, t0: tick, area: naz.id, zt: naz.z}; bot._area = naz.id; return; }   // падение (выше)
+    // (22.11, аудит 049) запрыг на уступ (выше ступеньки, не выше прыжка) — полёт с толчком вверх (выше)
+    if(bot.z != null && djz > 18 && dzz > 18 && dzz <= JUMP_UP){ bot._jump = {t:tick, up:true}; bot._fall = {z0: bot.z, t0: tick, area: naz.id, zt: naz.z, v0: JUMP_V0}; bot._area = naz.id; return; }
     if(djz > 18) bot._jump = {t:tick, up:true}; else if(djz < -LAND_SOUND_DROP) bot._jump = {t:tick, up:false};
     // (v322, М29) прыжок / приземление слышно и при тихом шаге, далеко (csdb.gg: «громкий звук приземления, слышно
     // издалека», без числа) — радиус как у бега: проектное число
