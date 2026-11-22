@@ -419,10 +419,14 @@ function tBrain(){
         // перекола на другой сайт группы тактики (пути к старому сайту — Рамп, Палас) — уже не район места: место дефолта — по долям про
         // у нового сайта. И выбор мест (_defZ) — заново под новый сайт: было — раз на раунд, и после перекола A → B носитель шёл в Палас
         var gOf = function(b){ var r = null; if(tac.site && tac.site !== tt.site) return null; (tac.groups || []).forEach(function(G){ if(!r && G.roles.indexOf(b.tRole) >= 0) r = G; }); return r; };
+        var laneOf = function(G){ var V = G.via || [], si = G.stage ? V.indexOf(G.stage) : -1; return si >= 0 ? V.slice(0, si + 1) : V.concat(G.stage ? [G.stage] : []); };
         var gPts = function(G){ var P = [];
           if(!G) return P;
           if(G.stage === "TMID"){ var tm = tt.tMidPt || GEO.tMid; if(tm) P.push(tm); return P; }
-          (G.via || []).concat(G.stage ? [G.stage] : []).forEach(function(n){ var q = zonePoint(n, SITES[tt.site]); if(q) P.push(q); });
+          // (22.11, Ж15, разбор м5 р3: игрок Palace получил дефолт у Tetris — путь группы Palace кончается Pillars / Palace Exit у сайта A, рядом
+          // с выходом Ramp) район группы на дефолте — своя дорожка ДО стадии: что после стадии — уже выход, там дорожки групп сходятся у сайта.
+          // Было: все точки пути группы
+          laneOf(G).forEach(function(n){ var q = zonePoint(n, SITES[tt.site]); if(q) P.push(q); });
           return P; };
         var defPick = function(b, used, seed){ var P = gPts(gOf(b));
           // (п.28 владельца 29.10, м1 р8: группа Ramp получила места Mid Boxes / Chair / Connector — по прямой ≤ 450 сквозь стены) район
@@ -447,7 +451,11 @@ function tBrain(){
         // (Г3, 04.11, пп. 27/29 и ответ владельца: «в реальности нет таймера — место меняют по ситуации, по геймсенсу») смена места дефолта
         // через DEF_STAND (13 с стояния) убрана: место меняется по событиям — контакт (350), перестановки (470/480), план IGL (160)
         dm.forEach(function(b){
-          var zn0 = tt._defZ.z[b.id], P = gPts(gOf(b)), tgt = SITES[tt.site];
+          var zn0 = tt._defZ.z[b.id], G0 = gOf(b), P = gPts(G0), tgt = SITES[tt.site];
+          // (22.11, Ж15, владелец: «путь в якорь в Паласе — с T-спавна в Palace Entry, Palace, потом Palace Exit, а не через рампу, через врагов»)
+          // к месту дефолта — по дорожке своей группы до стадии (последовательность зон тактики, маршрут 110: пост роли — его конец). Было:
+          // маршрут группы на дефолте не запускался (`if(!tt.defUntil)` ниже), к месту — кратчайшим путём (якорь у Palace Exit — через T Ramp)
+          if(G0 && G0.stage !== "TMID") startRoute(b, laneOf(G0), tac.id + ":lane:" + tt.site);
           var Zp = zn0 ? zonePoint(zn0, P[P.length-1] || tgt) : (P[P.length-1] || null), tag = zn0 ? "default:"+zn0 : "default:group";
           if(!Zp) return;
           var lk = [GEO.A.tEntry, GEO.B.tEntry, GEO.tMidLook].filter(Boolean).sort(function(a, c){ return Math.hypot(a.x-Zp.x, a.y-Zp.y) - Math.hypot(c.x-Zp.x, c.y-Zp.y); })[0];
