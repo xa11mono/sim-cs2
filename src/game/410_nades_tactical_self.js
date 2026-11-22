@@ -153,7 +153,7 @@ function selfExitFlash(b){
   if(!best) return false;
   var c = best.c, ex = best.ex, dE = Math.hypot(c.x-ex.x, c.y-ex.y), kf = Math.min(1, 140/Math.max(1, dE));
   b._selfDone[c.key] = true;
-  return assignNade(b, "flash", {x: ex.x + (c.x-ex.x)*kf, y: ex.y + (c.y-ex.y)*kf}, "флешка под выход — " + (c.info ? "по знанию " : "типичное место ") + calloutName(c.x, c.y), {now:true, range:700});
+  return assignNade(b, "flash", {x: ex.x + (c.x-ex.x)*kf, y: ex.y + (c.y-ex.y)*kf}, "флешка под выход — " + (c.info ? "по знанию " : "типичное место ") + calloutName(c.x, c.y), {forC: nadeOwnerOf(b, undefined, true), now:true, range:700});
 }
 function selfNadeTick(){
   if(roundState !== "live") return;

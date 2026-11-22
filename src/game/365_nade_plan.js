@@ -208,7 +208,9 @@ var FLASH_ASK_WAIT = 3.5, FLASH_ASK_R = 700;   // с, ед. — те же про
 // (владелец 05.11: «за шесть раундов хотя бы в трёх-четырёх, не при каждом случае») — одна просьба на команду за раунд: проектное число из
 // слов владельца (замер облака до предела: м7 — 10 просьб в 6 раундах из 10, м11 — 18 в 8 из 8; из 28 хлопнули 9)
 var FLASH_ASK_PER_ROUND = 1, FLASH_ASK_N = {};
-function nadeAskFlash(b, pt, why, type, forC){   // (22.11, Ж23) forC — заказ под задачу просящего (380 nadeOwnerOk): умерла задача — флешку не кидают
+function nadeAskFlash(b, pt, why, type, forC){
+  // (22.11, доделка 028) без явного заказчика — заказ под текущую задачу просящего (пик, ранний пик, разогнать смок): кончилась задача — не кидают
+  if(forC === undefined) forC = nadeOwnerOf(b);   // (22.11, Ж23) forC — заказ под задачу просящего (380 nadeOwnerOk): умерла задача — флешку не кидают
   // (v554) type — «he»: HE в смок (smokeHeTick, 290) просит того, у кого она есть; лимит на раунд — свой у каждого типа
   type = type || "flash"; var fl = type === "flash";
   var nk = matchNum+":"+roundNum+":"+b.team+(fl ? "" : ":"+type); if((FLASH_ASK_N[nk]||0) >= FLASH_ASK_PER_ROUND) return null;
