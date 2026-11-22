@@ -341,33 +341,74 @@ function ppCheckStep(members, bp){
       logEvent(best.id + ": после планта — шаг, посмотреть " + calloutName(z.c.x, z.c.y).replace(/^на /,"")); }
   });
 }
+// (22.11, аудит 050, решение владельца: «вариант 1 — контекстное командное распределение без вероятностного выбора по частотам про») было: жадно
+// по одной паре «бот — место», лучшая доля про всегда первой — каждый постплант те же места (повтор места игроком 30 % против 10 % у про,
+// командой 38 % против 17 %; tools: pp_repeat_*.py). Стало — распределение всей команды: оценка набора мест = произведение оценок игроков ×
+// попарных множителей, набор улучшается перестановками, пока улучшается (детерминированно; R9 — случая нет).
+// Оценка игрока на месте: доля про при такой бомбе × успеет (по пути, как было) × ожидаемый ретейк (ppCtDir: по карте команды T о CT, belief —
+// своё знание, не правда) — место в стороне, откуда ждут CT (±PP_CT_A от направления на них от бомбы), у про занято реже: 11 % против 15 %,
+// ×PP_CT_SIDE = 0,73 (демки Mirage, 86, pp_ctx_pro.py; фактор, не запрет; доля по массе ожидания) × роль: насколько этот игрок с этим оружием
+// чаще остальных своих стоит на этой позиции про (posTable — демки по игроку и оружию; кто из нас куда — не какие места).
+// Попарно: двое на одном месте — доля «вдвоём» у про (two); кто с кем стоит у про (pair, демки); та же сторона от бомбы — PP_SIDE_K; тот же угол
+// рядом — PP_DUP. Гибели на месте в прошлом постпланте и обязательной смены места нет: у про место снова занимают 19 % после гибели там против
+// 17 % (не значимо), от прошлого раунда почти не зависят (17 % при обычных 13 %). PP_CT_A — то же окно ±60°, что в замере
+var PP_CT_SIDE = 0.73, PP_CT_A = Math.PI/3;
+function ppCtDir(bp){
+  var W = [], tot = 0;
+  BZ.cent.forEach(function(c, j){ if(!c) return; var w = beliefZoneKnown("T", j); if(w <= 0) return; W.push({a: Math.atan2(c.y-bp.y, c.x-bp.x), w: w}); tot += w; });
+  return tot > 0 ? {W: W, tot: tot} : null;
+}
+function ppCtSideP(D, bp, s){
+  if(!D) return 0; var a = Math.atan2(s.y-bp.y, s.x-bp.x), w = 0;
+  D.W.forEach(function(e){ if(_angOff(e.a, a) < PP_CT_A) w += e.w; }); return w/D.tot;
+}
+// роль: posTable игрока на позиции про под местом / среднее по живым своим (0,05 — сглаживание пустых, проектное), в пределах ×0,5…2, как pair
+function ppRoleK(b, s, mates){
+  var q = posAt("T", s.x, s.y); if(!q) return 1;
+  var v = function(o){ return posTable(o.team, nick(o.id), posWeaponClass(o))[q.id] || 0; }, m = 0;
+  mates.forEach(function(o){ m += v(o); }); m /= mates.length || 1;
+  return Math.max(0.5, Math.min(2, (v(b) + 0.05)/(m + 0.05)));
+}
+function ppPairK(Z, i, j){
+  var s = Z.spots[i], c = Z.spots[j], k = 1;
+  if(i === j) return s.two || 0;
+  var r = function(x, y){ return Math.max(0.25, Math.min(2, (((Z.spots[x].pair || {})[y] || 0) + 0.02)/(Z.spots[y].share || 1))); };
+  if(s.pair && c.pair) k *= Math.sqrt(r(i, j)*r(j, i));
+  if(_angOff(Math.atan2(c.y-Z.y, c.x-Z.x), Math.atan2(s.y-Z.y, s.x-Z.x)) < PP_SIDE) k *= PP_SIDE_K;
+  var a0 = s.look && s.look[0] ? s.look[0][0] : null;
+  if(a0 !== null && Math.hypot(c.x-s.x, c.y-s.y) < 120 && c.look && c.look[0] && _angOff(c.look[0][0], a0) < 0.52) k *= PP_DUP;
+  return k;
+}
 function ppProGroup(members, bp, site, tag){
   var Z = ppProZone(bp, site); if(!Z) return null;
   var key = roundNum + ":" + Math.round(Z.x) + "," + Math.round(Z.y);
-  var taken = {}, chosen = [];
-  members.forEach(function(b){ var A = b._ppPro; if(A && A.key === key){ taken[A.i] = (taken[A.i] || 0) + 1; chosen.push(Z.spots[A.i]); } });
+  var fixed = members.filter(function(b){ return b._ppPro && b._ppPro.key === key; });
   var free = members.filter(function(b){ return !(b._ppPro && b._ppPro.key === key); });
-  var T = {};
-  free.forEach(function(b){ T[b.id] = Z.spots.map(function(s){ return pathLenTo(b, s.x, s.y)/(SPEED*weaponSpeedMul(b)); }); });   // один раз на раздачу
-  while(free.length){
-    var bb = null, bi = -1, bs = -1;
-    free.forEach(function(b){ Z.spots.forEach(function(s, i){
-      var sc = s.share*Math.exp(-Math.max(0, T[b.id][i] - (s.tArr || 0))/PP_LATE);
-      if(taken[i]) sc *= Math.pow(s.two || 0, taken[i]);
-      var a0 = s.look && s.look[0] ? s.look[0][0] : null;
-      if(a0 !== null && chosen.some(function(c){ return c !== s && Math.hypot(c.x-s.x, c.y-s.y) < 120 && c.look && c.look[0] && _angOff(c.look[0][0], a0) < 0.52; })) sc *= PP_DUP;
-      // (отметка владельца 18.11, м5 р1: «все пошли в рампу — одной гранатой закроешь; лучше распределять, как на B — каждый своё») кто с кем
-      // стоит у про (pair, демки): множитель — во сколько раз место чаще занято при уже выбранном, чем вообще; и разведение: место с той же
-      // стороны от бомбы (направление от бомбы ближе PP_SIDE), что уже занятое, — ×PP_SIDE_K
-      var bs0 = Math.atan2(s.y-Z.y, s.x-Z.x);
-      chosen.forEach(function(c){ var j = Z.spots.indexOf(c); if(c === s || j < 0) return;
-        if(c.pair && s.share > 0) sc *= Math.max(0.25, Math.min(2, ((c.pair[i] || 0) + 0.02)/s.share));
-        if(_angOff(Math.atan2(c.y-Z.y, c.x-Z.x), bs0) < PP_SIDE) sc *= PP_SIDE_K; });
-      if(sc > bs){ bs = sc; bb = b; bi = i; } }); });
-    if(!bb || bs <= 0) break;
-    bb._ppPro = {key: key, i: bi}; taken[bi] = (taken[bi] || 0) + 1; chosen.push(Z.spots[bi]);
-    free = free.filter(function(o){ return o !== bb; });
-    voiceLog("T", "pppro"+bb.id, bb.id, "после планта встаю " + calloutName(Z.spots[bi].x, Z.spots[bi].y).replace(/^на /,""));
+  if(free.length){
+    var D = ppCtDir(bp), side = Z.spots.map(function(s){ return ppCtSideP(D, bp, s); });
+    var U = {};   // оценка игрока на каждом месте — один раз на раздачу (путь — один раз на пару «бот — место»)
+    free.forEach(function(b){ U[b.id] = Z.spots.map(function(s, i){
+      var t = pathLenTo(b, s.x, s.y)/(SPEED*weaponSpeedMul(b));
+      return s.share*Math.exp(-Math.max(0, t - (s.tArr || 0))/PP_LATE)*(1 - (1 - PP_CT_SIDE)*side[i])*ppRoleK(b, s, members); }); });
+    var asg = {}; fixed.forEach(function(b){ asg[b.id] = b._ppPro.i; });
+    var all = fixed.concat(free);
+    var total = function(){ var v = 1, ids = all.map(function(b){ return b.id; });
+      free.forEach(function(b){ v *= U[b.id][asg[b.id]]; });
+      for(var x = 0; x < ids.length; x++) for(var y = x+1; y < ids.length; y++) v *= ppPairK(Z, asg[ids[x]], asg[ids[y]]);
+      return v; };
+    // начало — по очереди лучшее место с учётом уже поставленных; дальше — переставить одного / поменять двоих, пока набор становится лучше
+    free.forEach(function(b){ var bi = 0, bs = -1; Z.spots.forEach(function(s, i){ asg[b.id] = i;
+      var v = U[b.id][i]; all.forEach(function(o){ if(o !== b && asg[o.id] != null) v *= ppPairK(Z, i, asg[o.id]); }); if(v > bs){ bs = v; bi = i; } }); asg[b.id] = bi; });
+    var cur = total();
+    for(var pass = 0; pass < 20; pass++){ var better = false;
+      free.forEach(function(b){ var i0 = asg[b.id]; Z.spots.forEach(function(s, i){ if(i === i0) return; var keep = asg[b.id]; asg[b.id] = i; var v = total();
+        if(v > cur*(1 + 1e-9)){ cur = v; better = true; } else asg[b.id] = keep; }); });
+      for(var x = 0; x < free.length; x++) for(var y = x+1; y < free.length; y++){ var A = free[x], B = free[y], ia = asg[A.id], ib = asg[B.id]; if(ia === ib) continue;
+        asg[A.id] = ib; asg[B.id] = ia; var v = total(); if(v > cur*(1 + 1e-9)){ cur = v; better = true; } else { asg[A.id] = ia; asg[B.id] = ib; } }
+      if(!better) break; }
+    free.forEach(function(b){ var i = asg[b.id]; if(!(U[b.id][i] > 0)) return;
+      b._ppPro = {key: key, i: i, u: U[b.id][i], ub: Math.max.apply(null, U[b.id]), side: side[i], ctKnown: D ? 1 : 0};
+      voiceLog("T", "pppro"+b.id, b.id, "после планта встаю " + calloutName(Z.spots[i].x, Z.spots[i].y).replace(/^на /,"")); });
   }
   ppCheckStep(members, bp);
   members.forEach(function(b){ var A = b._ppPro; if(!A || A.key !== key){ return; }
