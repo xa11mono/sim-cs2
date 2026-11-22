@@ -174,8 +174,8 @@ function teamDeath(att, vic){
   // (00_PLAN, аудит 2.2) не видел убийцу — по попаданиям / звуку выстрела понятно, откуда стреляли, примерно (±90 px, как было в 190):
   // «стреляли с …» — фраза «слышу» (как шаги), доходит до команды, когда договорена
   if(!B || !B.visible){
-    var jx = (hashRand(tick*31 + (vic.id.charCodeAt(vic.id.length-1)||0)) - 0.5) * 180, jy = (hashRand(tick*57 + 7) - 0.5) * 180;
-    var zS = knowZoneAt(att.x + jx, att.y + jy); if(!zS) return;
+    // (22.11, доделка 004) точка — по звуку выстрела с ошибкой «на слух» (hearPoint, 460), а не настоящее место ±90
+    var hp = hearPoint(vic, att.x, att.y, tick*31 + (vic.id.charCodeAt(vic.id.length-1)||0)), zS = knowZoneAt(hp.x, hp.y); if(!zS) return;
     vic.voice.diedAt = tick; teamPropose(vic, {kind: "hear", zone: zS, sound: "shots", count: 1}); return;
   }
   vic.voice.diedAt = tick;
