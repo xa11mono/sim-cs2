@@ -201,6 +201,23 @@ function computeApproaches(){
 function gTag(b, R){ var i = R.assign[b.id]||0, a = R.approaches[i];
   if(bots.filter(function(o){ return o.team === "CT" && o.alive && !o._saveSpot; }).length <= 1) return "gatherSolo"+i;
   return (a && bomb && Math.hypot(a.x-bomb.x, a.y-bomb.y) < 300 ? "gatherSite" : "gather")+i; }
+// RT_ENTRY — последний отрезок пути к бомбе, где заход виден с постплант-мест (то же, что вход у T, 280 PP_ENTRY); RT_EXP_EPS — меньше
+// десятой доли игрока простреливаемость считается равной — проектное число
+var RT_ENTRY = 300, RT_EXP_EPS = 0.1;
+// простреливаемость захода с точки сбора a: по каждому T из знания команды CT (TEAMK, knowEnemySpots — своё знание) — вес его мест, откуда
+// видна хоть одна точка последних RT_ENTRY пути от a к бомбе (шаг 60); сумма по T (каждый не больше 1)
+function rtExposure(a){
+  var bp = ctBombPos(), P = pathPts(a.x, a.y, bp.x, bp.y); if(!P || P.length < 2) return 0;
+  var pts = [], acc = 0;
+  for(var i = P.length-1; i > 0 && acc <= RT_ENTRY; i--){ var sl = Math.hypot(P[i][0]-P[i-1][0], P[i][1]-P[i-1][1]);
+    for(var t = 0; t < sl && acc + t <= RT_ENTRY; t += 60){ var q = t/(sl || 1); pts.push([P[i][0] + (P[i-1][0]-P[i][0])*q, P[i][1] + (P[i-1][1]-P[i][1])*q]); }
+    acc += sl; }
+  var K = TEAMK.CT && TEAMK.CT.know, e = 0; if(!K || !K.enemies) return 0;
+  for(var id in K.enemies){ var o = teamBot(id); if(!o || !o.alive) continue;
+    var w = 0; knowEnemySpots("CT", id).forEach(function(h){ if(pts.some(function(q){ return hasLOS(h.x, h.y, q[0], q[1]) && !smokeBlocks(h.x, h.y, q[0], q[1]); })) w += h.w; });
+    e += Math.min(1, w); }
+  return e;
+}
 var RT_WAIT = 3, RT_GAP = 400;   // RT_GAP, ед.: второй CT от первого при заходе у про — медиана 411 (322 ретейка Mirage)
 var _rtw = 0;   // с — у про второй заходит через ~3 с после первого (комментарий «need» ниже; демки)
 function updateRetake(cts){
@@ -214,23 +231,26 @@ function updateRetake(cts){
   // если людей 3+ и точек сбора больше одной; остальные — прикрытие
   var alive = cts.filter(function(b){ return !b._saveSpot; });
   if(!alive.length) return;
-  var main = R.approaches[0];
+  // (22.11, аудит 060, владелец: «учитывать известные позиции T, время подхода, входы, синхронизацию; не заставлять заходить с двух сторон — у про
+  // двусторонний ~15 %») точка сбора каждого CT — из тех, откуда он успевает дойти и дефузнуть до взрыва (путь + дефуз + 1,5 с на заход — тот же
+  // запас, что у «need» ниже), с наименьшей простреливаемостью захода (rtExposure: сколько T по знанию команды CT видят последние RT_ENTRY пути
+  // от точки к бомбе); равные (разница меньше RT_EXP_EPS) — ближайшая по пути (как было, v518c: путь, а не прямая). Нет знания о T — у всех 0:
+  // ближайшая, как было. Было ещё: при 3+ CT, все с одной точки, — самый дальний принудительно на вторую («фланг»); убрано — две стороны получаются,
+  // только когда выгодно по знанию. Пересмотр — раз в 32 тика, пока CT не подошёл к своей точке (дальше RT_GAP по пути): знание о T поменялось —
+  // поменялась и точка; подошедший — не переставляется
+  if(!R.exp || tick % 32 === 0) R.exp = R.approaches.map(function(a){ return rtExposure(a); });
   alive.forEach(function(b){
-    if(R.assign[b.id] !== undefined) return;
-    var bi = 0, bd = Infinity;
-    // (v518c, пак 09.11 п.8; владелец Р-31: «могли пройти в Маркет … зачем перебивать, когда уже почти дошли» — точка сбора была ближайшей по прямой,
-    // путь к ней — через Geyser, мид и Short) ближайшая по пути от того места, где бот сейчас (путь на пару «бот — точка» — один раз, при назначении)
-    R.approaches.forEach(function(a, i){ var d = pathLenTo(b, a.x, a.y); if(d < bd){ bd = d; bi = i; } });
-    R.assign[b.id] = bi;
+    var cur = R.assign[b.id];
+    if(cur !== undefined && (tick % 32 || (R.apDist && R.apDist[b.id] != null && R.apDist[b.id] <= RT_GAP/PX_UNITS) || R.phase !== "gather")) return;
+    var tL = bombTimeLeftTicks()/TICK_HZ, best = -1, bE = Infinity, bD = Infinity, nn = -1, nd = Infinity;
+    R.approaches.forEach(function(a, i){ var d = pathLenTo(b, a.x, a.y); if(d < nd){ nd = d; nn = i; }
+      if(d/SPEED + defuseEta(b, a) + 1.5 > tL) return;
+      var e = R.exp[i];
+      if(e < bE - RT_EXP_EPS || (Math.abs(e - bE) <= RT_EXP_EPS && d < bD)){ best = i; bE = e; bD = d; } });
+    var pick = best >= 0 ? best : nn;
+    if(cur !== undefined && pick !== cur) logEvent("CT: ретейк — " + b.id + " меняет точку сбора (знание о T: заход простреливают " + R.exp[cur].toFixed(1) + " → " + R.exp[pick].toFixed(1) + ")");
+    R.assign[b.id] = pick;
   });
-  if(alive.length >= 3 && R.approaches.length > 1 && !R.flankSet){
-    R.flankSet = true;
-    var onMain = alive.filter(function(b){ return R.assign[b.id] === 0; });
-    if(onMain.length === alive.length){
-      var far = onMain.slice().sort(function(a,b){ return Math.hypot(b.baseX-main.x,b.baseY-main.y) - Math.hypot(a.baseX-main.x,a.baseY-main.y); })[0];
-      R.assign[far.id] = 1;
-    }
-  }
   // (v464, владелец: «почему дефузит не ближайший?») дефузер — тот, кто раньше всех снимет бомбу: время дойти по карте
   // (по зонам, а не по прямой — сквозь стены «близко» не считается) + сам дефуз 5 с с китом / 10 без. Раньше выбирался
   // один раз в начале ретейка и оставался, пока жив: в m17 р27 (облако) sh1ro стоял в 100 ед. от бомбы с китом, а дефузер
