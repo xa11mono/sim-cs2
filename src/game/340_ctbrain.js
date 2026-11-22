@@ -72,9 +72,10 @@ function ctBrain(){
     // куда бы он ни шёл. Бомба выбита и лежит — где лежит. «Скорее всего» — больше половины веса гипотез
     var ko2 = k === "A" ? "B" : "A";
     var carS = ct.bombDown ? [{x:ct.bombDown.x, y:ct.bombDown.y, w:1}] : (teamIntel.CT.carrierId ? knowEnemySpots("CT", teamIntel.CT.carrierId) : []);
-    var wHere = 0, wTo = 0;
-    carS.forEach(function(q){ var dk = Math.hypot(q.x-SITES[k].x, q.y-SITES[k].y);
-      if(dk < 400) wHere += q.w; else if(dk < 900 && dk + 250 < Math.hypot(q.x-SITES[ko2].x, q.y-SITES[ko2].y)) wTo += q.w; });
+    // (22.11, аудит 013) «у сайта» / «идёт к нему» — по пути (граф зон: bzNearD от сайта), было — по прямой (через стену «у сайта»); пороги те же
+    var wHere = 0, wTo = 0, DK = bzNearD(SITES[k].x, SITES[k].y), DO = bzNearD(SITES[ko2].x, SITES[ko2].y);
+    carS.forEach(function(q){ var zq = bzOf(q.x, q.y), dk = DK && zq >= 0 ? DK[zq] : Math.hypot(q.x-SITES[k].x, q.y-SITES[k].y), dO = DO && zq >= 0 ? DO[zq] : Math.hypot(q.x-SITES[ko2].x, q.y-SITES[ko2].y);
+      if(dk < 400) wHere += q.w; else if(dk < 900 && dk + 250 < dO) wTo += q.w; });
     var carrierHere = wHere > 0.5, carrierTo = !carrierHere && wHere + wTo > 0.5;
     // войс: "минус на A" — тиммейта убили у сайта за последние 8с
     var deathsHere = intelDeathsNear("CT", SITES[k].x, SITES[k].y, 450, 8*64);
@@ -649,7 +650,7 @@ function ctBrain(){
       // на миде слышно/видно двоих+ — отходит на глубокую точку (Red Room/
       // Connector сторона), откуда их встретит вместе с тиммейтами
       if(!b._sawEnemy){
-        var nMid = intelEstimate("CT", GEO.ctMid, 750, 4*TICK_HZ).n;
+        var nMid = intelEstimate("CT", GEO.ctMid.x, GEO.ctMid.y, 750, 4*TICK_HZ).n;
         var midCare = rmemRecent(RMEM.midDeath, 3).length >= 2;   // (10) рано умирал — отходит уже от одного
         if(nMid >= (midCare ? 1 : 2) || (b._midBack && b._midBack.round === roundNum && tick < b._midBack.until)){
           if(!b._midBack || b._midBack.round !== roundNum){
