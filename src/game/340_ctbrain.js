@@ -1,5 +1,35 @@
 // (v469, п.18 владельца 29.10, р8 м1: в войсе «ПЕРЕКОЛЛ A → B: бомба замечена (~2)», а бомбу никто не видел) сайт планта выведен
 // исключением («никто у A не услышал писк — значит B», 220 knowPlant, plantGuess) — так и говорится, а не «замечена»
+// (22.11, аудит 002/003, владелец: «одно согласованное командное решение по сайту… позиции T, известная информация, время подхода каждого CT, кит,
+// оружие, гранаты») шанс ретейка / защиты сайта — оценка, а не пороги по числу живых. Силы — закон Ланчестера: P = 1/(1 + e^(−K·(Sct² − A·St²))),
+// A = 1,4 (преимущество обороняющих бомбу), K = 0,18 — подобраны по исходам после планта у про (Mirage, 86 демок, 1016 плантов: 2v2 — CT выиграли
+// 47 %, 3v3 — 27 %, 4v4 — 21 %, 2v3 — 3 %, 1v3 — 0 %; модель 43 / 34 / 24 / 18 / 11 %). Sct — CT, которые успевают (путь до сайта + дефуз
+// дефузера ≤ сколько осталось), × HP/100 × оружие (время убийства с АК / с его оружием — duelTTK, та же модель, что в бою); кто уже стянулся к
+// сайту — успевает раньше (связь с ротацией, 003). St — каждый живой T (табло), кроме тех, кого команда CT свежо (≤ 10 с) знает далеко от сайта
+// (вне siteRing; доля массы карты), × HP по своему урону (журнал «тапнул»). Гранаты CT: каждая флешка / смок у тех, кто успевает, — +RT_UTIL_W к силе
+// (проектное число, кандидат на замер). site — сайт бомбы (или колла до планта), secs — сколько есть времени
+var RT_A = 1.4, RT_K = 0.18, RT_UTIL_W = 0.1, RT_SAVE_P = 0.15;   // RT_SAVE_P: ниже — сейв (у про при шансе ≤ 0,11–0,18 сейв в 35–47 % раундов, при 0,24+ — ≤ 18 %)
+var RT_WF = {};
+function ctWeaponK(b){ var k = (b.weapon && b.weapon.key) || "none"; if(RT_WF[k] != null) return RT_WF[k];
+  var ref = {x:0, y:0, px:0, py:0, weapon:WEAPONS.AK, crouching:false}, tg = {x:400, y:0, px:400, py:0, crouching:false};
+  var t0 = duelTTK(ref, tg, 400, 100, true, 0.6).t, w = b.weapon && WEAPONS[b.weapon.key], t1 = w ? duelTTK({x:0, y:0, px:0, py:0, weapon:w, crouching:false}, tg, 400, 100, true, 0.6).t : Infinity;
+  return RT_WF[k] = t1 < Infinity && t0 < Infinity ? Math.min(1.5, t0/t1) : 0.2; }
+function ctRetakeOdds(cts, site, secs, bombPos){
+  var S = SITES[site]; if(!S) return {p: 0, ct: 0, t: 0, can: false};
+  var bp = bombPos || S, can = false, sct = 0, st = 0;
+  var tDef = Infinity; cts.forEach(function(b){ var t = bombPos ? defuseEta(b) + 1.0 : pathLenTo(b, bp.x, bp.y)/SPEED + (b.kit ? DEFUSE_KIT_TICKS : DEFUSE_TICKS)/TICK_HZ + 1.0; if(t < tDef) tDef = t; });
+  can = tDef <= secs;
+  cts.forEach(function(b){ var arr = pathLenTo(b, bp.x, bp.y)/(SPEED*weaponSpeedMul(b)); if(arr > secs - 1) return;
+    var u = b.nades ? (b.nades.flash || 0) + (b.nades.smoke || 0) : 0;
+    sct += (b.hp/100)*ctWeaponK(b) + RT_UTIL_W*u; });
+  var ring = (BZ.siteRing && BZ.siteRing[site]) || BZ.siteNear[site] || [], HT = teamIntel.CT && teamIntel.CT.hurt;
+  bots.forEach(function(o){ if(o.team !== "T" || !o.alive) return;
+    var P = belief.CT && belief.CT[o.id], fresh = beliefSeen.CT[o.id] != null && tick - beliefSeen.CT[o.id] < 10*TICK_HZ, w = 1;
+    if(P && fresh){ var inR = 0, all = 0; for(var i = 0; i < P.length; i++){ all += P[i]; if(ring.indexOf(i) >= 0) inR += P[i]; } if(all > 0) w = inR/all; }
+    var h = HT && HT[o.id]; st += w*((h && tick - h.tick < 20*TICK_HZ) ? h.hp/100 : 1); });
+  var p = 1/(1 + Math.exp(-RT_K*(sct*sct - RT_A*st*st)));
+  return {p: can ? p : 0, ct: sct, t: st, can: can, need: tDef};
+}
 function ctPlantGuessOnly(){
   if(!bomb || bomb.state !== "planted") return false;
   var cts = bots.filter(function(o){ return o.team === "CT" && o.alive && o.know; });
@@ -373,17 +403,18 @@ function ctBrain(){
     // подберёт по пути: лучшее оружие ≤ 450 ед. карты от CT, где врага по инфе нет, — в цену сейва
     cts.forEach(function(b){ var add = 0; groundWeapons.forEach(function(G){ if(Math.hypot(G.x-b.x, G.y-b.y) < 450 && weaponValue(G.key) > weaponValue(b.primary) &&
       intelEstimate("CT", G.x, G.y, 450, 5*TICK_HZ).n === 0) add = Math.max(add, WEAPONS[G.key].price); }); equip += add/Math.max(1, cts.length); });
-    var hopeless = (cts.length === 1 && tsAlive >= BAL.saveGap) || (cts.length <= tsAlive - BAL.saveGap) || needSecs > secs;
-    // (v158) у про после взрыва живы 2,1 CT, у ботов было 1,2: сейвят раньше
-    hopeless = hopeless || (cts.length >= 2 && cts.length <= tsAlive - 2) || (cts.length === 1 && tsAlive >= 3) ||
-      (cts.length === 1 && tsAlive === 2 && !(cts[0].kit && needSecs + 8 < secs)); // 2v4 — ещё пробуем, 1v3/1v4/2v5 — сейв
+    // (22.11, аудит 002/003) было: пороги «1 против 3+», «меньше на saveGap», «2v4 — пробуем», подогнанные под среднюю цифру про. Стало — оценка шанса
+    // (ctRetakeOdds: кто успевает, HP, оружие, гранаты; T — по знанию команды, кто у сайта / далеко) против RT_SAVE_P; не успеть — сейв, как было
+    var RO = ctRetakeOdds(cts, bomb.site, secs, {x:bomb.x, y:bomb.y});
+    var hopeless = needSecs > secs || RO.p < RT_SAVE_P;
     if(ct._noResave && !(needSecs > secs)) hopeless = false;
     // (v530, отметка владельца 10.11 «не идёт дефузить»: все T мертвы, до взрыва 10,9 с, дефуз 6,4 с — а оба CT шли «на сейв», включённый раньше)
     // врагов не осталось (видно по табло) — сохранять не от кого: решает только «успеть ли дефузнуть» (снятие уже включённого сейва — ниже)
     if(tsAlive === 0) hopeless = needSecs > secs;   // после «сейв → ретейк» — снова сейв только если не успеть
     if(cts.length && hopeless && ((equip >= 1800 && saveWorth("CT")) || needSecs > secs)){   // (v434) сохранять — если оружие перейдёт в следующий раунд (saveWorth); не успеть — сейв всё равно
       ct.saving = true; saveCancelTrades("CT");
-      logEvent("CT: сейв — ретейк "+cts.length+"v"+tsAlive+(needSecs > secs ? ", не успеть" : "")+", сохраняем оружие");
+      ct._saveN = cts.length + ":" + tsAlive;
+      logEvent("CT: сейв — ретейк "+cts.length+"v"+tsAlive+(needSecs > secs ? ", не успеть" : ", шанс " + Math.round(RO.p*100) + " % (силы " + RO.ct.toFixed(1) + " на " + RO.t.toFixed(1) + ")")+", сохраняем оружие");
     }
   }
   // (8) сейв → ретейк: на сейве сняли T и расклад выровнялся (1v1, 2v2, 1v2 при
@@ -393,7 +424,8 @@ function ctBrain(){
     if(planted){
       var secsS = bombTimeLeftTicks()/TICK_HZ, needS = Infinity;
       cts.forEach(function(b){ var t = defuseEta(b) + 1.0; if(t < needS) needS = t; });
-      var evenS = cts.length >= tsS || (cts.length === tsS - 1 && needS + 7 < secsS);
+      // (аудит 002) снять сейв — та же оценка, после события (кто-то погиб — расклад изменился), было — «поровну или на одного меньше при запасе 7 с»
+      var evenS = (cts.length + ":" + tsS) !== ct._saveN && ctRetakeOdds(cts, bomb.site, secsS, {x:bomb.x, y:bomb.y}).p >= RT_SAVE_P;
       // (v530) врагов не осталось (tsS = 0, видно по табло) — сохранять не от кого: сейв снимается, если просто успеть дефузнуть (было: при tsS = 0
       // сейв не снимался вовсе — оба CT уходили от бомбы при мёртвых T)
       if(tsS > 0 ? (evenS && needS + 2 < secsS) : needS < secsS){
@@ -401,7 +433,7 @@ function ctBrain(){
         logEvent("CT: сейв → ретейк — теперь "+cts.length+"v"+tsS+", успеваем ("+Math.round(secsS)+"с)");
         voiceLog("CT", "sv2rt", cts[0].id, cts.length+" на "+tsS+" — успеваем, идём ретейкать!");
       }
-    } else if(ct.preSave && cts.length >= tsS){
+    } else if(ct.preSave && (cts.length + ":" + tsS) !== ct._saveN && ct.call && ctRetakeOdds(cts, ct.call.site, ROUND_TIME_SEC - (simTime - roundStartTime) + BOMB_TICKS/TICK_HZ, null).p >= RT_SAVE_P){   // (аудит 002) та же оценка после события
       ct.saving = false; ct.preSave = false; ct._noResave = true; cts.forEach(function(b){ b._saveSpot = null; });
       logEvent("CT: сейв → ретейк — теперь "+cts.length+"v"+tsS+", играем раунд");
     }
@@ -410,8 +442,10 @@ function ctBrain(){
   if(!planted && !ct.saving && !ct._noResave && ct.call && ct.call.count >= 3 && cts.length){
     var tsA2 = aliveCount("T"), eq2 = cts.reduce(function(a,b){ return a + (b.primary ? WEAPONS[b.primary].price : 0); }, 0)/cts.length;
     var secL2 = ROUND_TIME_SEC - (simTime - roundStartTime);
-    if(((cts.length === 1 && tsA2 >= 3) || (cts.length === 2 && tsA2 >= 5)) && eq2 >= 2700 && secL2 > 25 && saveWorth("CT")){
-      ct.saving = true; ct.preSave = true; saveCancelTrades("CT");
+    // (аудит 002/003) было: «1v3+ / 2v5». Стало — та же оценка на сайт колла: время — до конца раунда + горение бомбы (ретейк потом)
+    var RO2 = ctRetakeOdds(cts, ct.call.site, secL2 + BOMB_TICKS/TICK_HZ, null);
+    if(RO2.p < RT_SAVE_P && eq2 >= 2700 && secL2 > 25 && saveWorth("CT")){
+      ct.saving = true; ct.preSave = true; saveCancelTrades("CT"); ct._saveN = cts.length + ":" + tsA2;
       logEvent("CT: сейв до планта — "+cts.length+"v"+tsA2+", выход на "+ct.call.site+" — сохраняем оружие");
       voiceLog("CT", "presave", cts[0].id, cts.length+" против "+tsA2+", они уже на "+ct.call.site+" — сейв");
     }

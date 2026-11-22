@@ -31,8 +31,7 @@ var BAL = {
   flashMax: 1.8,      // макс. ослепление флешкой, сек
   smokeLife: 18,      // сек
   mollyLife: 7,       // сек
-  freeze: 15,         // freeze-тайм в начале раунда, сек (как в CS2)
-  saveGap: 3          // сейв, если CT меньше на столько (или 1 против 3+, или не успеть)
+  freeze: 15          // freeze-тайм в начале раунда, сек (как в CS2)
 };
 try{ if(window.BAL_OVERRIDE) for(var bk in window.BAL_OVERRIDE) BAL[bk] = window.BAL_OVERRIDE[bk]; }catch(e){}
 // (3) "слишком спешат": скорость была 150px/с = 375 юнитов/с (1px ≈ 2.5 юнита),
