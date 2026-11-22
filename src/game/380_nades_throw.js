@@ -224,8 +224,10 @@ function throwNadeDo(b, type, tx, ty, lob, why, trusted, from){
   return ok;
 }
 // (17.11, перестройка — модули) запись в журнал решений (645) — здесь, у хозяина (было: 645 подменял функцию обёрткой)
+// засада: граната только с толком (nadeRevealOk); одна проверка — и в заказе (assignNadeDo), и в самом броске (прямые броски 320, 365, 410, 420)
+function nadeAmbushBlock(b){ if(b && typeof ambOn === "function" && ambOn(b) && !nadeRevealOk(b)){ NADE_FAIL = "выдаст засаду"; return true; } return false; }
 function throwNade(b, type, tx, ty, lob, why){
-  var r = throwNadeDo.apply(this, arguments);
+  var r = nadeAmbushBlock(b) ? false : throwNadeDo.apply(this, arguments);
   if(b) dlog(b, "граната", (r ? "кинул " : "не кинул ") + type + " — " + (why || "") + (r ? "" : ": " + (NADE_FAIL || "?")));
   return r;
 }
@@ -380,6 +382,10 @@ function assignNadeDo(b, type, target, why, opts){
   // (v560, В98, разбор владельца 11.11: «зачем он кинул молотов» — молотов выхода «в любимый угол» кинул последний живой T, шедший за бомбой)
   // граната плана команды (bkey) — тоже с проверкой пользы и времени, кроме смока (он закрывает обзор и без известного врага)
   if(!(opts && opts.bkey) || type !== "smoke"){ var wn = nadeSelfWhyNot(b, type, target); if(wn){ NADE_FAIL = wn; return false; } }
+  // (22.11, проверка 034 на 8 матчах: гранат CT из засады 11 → 28 — флешки «под выход», HE в смок, комбо; проверка была только у «по инфе» (420) и
+  // задержки (350)) засада (ждёт / заходит в спину) — граната любой механики только с толком: та же проверка nadeRevealOk (свои идут, плант слышен,
+  // бомба стоит, меня уже нашли); одно место — заказ гранаты
+  if(nadeAmbushBlock(b)) return false;
   if(nadeFailedHere(b, type, target.x, target.y)){ NADE_FAIL = "отсюда уже не долетела"; return false; }
   if(opts && opts.bkey && !builtinAllowed(opts.bkey)) return false; // встроенная выключена или заменена своим лайнапом
   // (v428) план гранат команды (365): граната, отложенная на более поздний момент (выход, после планта, ретейк), сейчас не тратится;
