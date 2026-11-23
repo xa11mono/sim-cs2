@@ -58,7 +58,15 @@ function navSnap(bot){
   // (18 ед.): раньше брался пол в ±JUMP_UP, и бота закидывало на уступ, куда не залезть; вниз — как было
   // (v347, отметка владельца: magixx «с Short провалился в Underpass» — перенос с края Short опустил на 196 ед.) вниз — не больше
   // JUMP_UP (v341 разрешало любую высоту — ошибка), вверх — только ступенька (18 ед.)
-  NAVAREAS.forEach(function(a){ if(NAV_BLOCKED[a.id] || (bot.z != null && (a.z - bot.z > 18 || bot.z - a.z > JUMP_UP))) return;
+  // (23.11, прогон 308: Mirage — 3161 вызов за 8 матчей у одного места, где ближе 40 пола нет; каждый перебирал весь навмеш) кандидаты — участки из
+  // клеток сетки навмеша в квадрате ±40 (сетка — по рамкам участков: край ближе 40 лежит в одной из них), в прежнем порядке — результат тот же
+  if(!NAV_GRID) navGridBuild();
+  var gi = {}, CAND = [];
+  for(var gx = Math.floor((bot.baseX-nbd)/NAV_GRID_C); gx <= Math.floor((bot.baseX+nbd)/NAV_GRID_C); gx++)
+    for(var gy = Math.floor((bot.baseY-nbd)/NAV_GRID_C); gy <= Math.floor((bot.baseY+nbd)/NAV_GRID_C); gy++)
+      (NAV_GRID[gx+","+gy] || []).forEach(function(i){ if(!gi[i]){ gi[i] = 1; CAND.push(i); } });
+  CAND.sort(function(p, q){ return p - q; });
+  CAND.map(function(i){ return NAVAREAS[i]; }).forEach(function(a){ if(NAV_BLOCKED[a.id] || (bot.z != null && (a.z - bot.z > 18 || bot.z - a.z > JUMP_UP))) return;
     a.points.forEach(function(p, k){ var q = a.points[(k+1)%a.points.length], ex = q.x-p.x, ey = q.y-p.y, L2 = ex*ex+ey*ey || 1;
       var t = Math.max(0, Math.min(1, ((bot.baseX-p.x)*ex + (bot.baseY-p.y)*ey)/L2)), px = p.x+ex*t, py = p.y+ey*t, d = Math.hypot(px-bot.baseX, py-bot.baseY);
       if(d < nbd){ var cx = 0, cy = 0; a.points.forEach(function(r){ cx += r.x; cy += r.y; }); cx /= a.points.length; cy /= a.points.length;
