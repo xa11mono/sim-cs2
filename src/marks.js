@@ -7,18 +7,45 @@
   // ключ sim_marks: массив записей; снимок момента — поле snap, снимок за 15 с до — pre (оба упакованы mkPack в строку).
   // Ни базы страницы (claude.use("db")), ни вложений (claude.use("assets")) — забрать их может Playwright.
   var MK_KEY = "sim_marks";
-  function mkLoadMarks(){
-    try{ var a = JSON.parse(localStorage.getItem(MK_KEY) || "[]"); return Array.isArray(a) ? a : []; }catch(e){ return []; }
+  // (v585, 24.11) где живут отметки — одно место: mkStoreKind выбирает хранилище, mkLoadMarks читает, mkStoreMarks пишет.
+  //   1) "local" — файл страницы в обычном браузере: localStorage, синхронно, ~5 МБ;
+  //   2) "artifact" — страница внутри артефакта dsh: браузер запрещает localStorage постороннему источнику (песочница без
+  //      своего источника), зато у артефакта есть window.storage — 5 МБ на значение, 20 МБ на артефакт, живёт между версиями.
+  //      Только когда страница правда внутри панели (window.dsh.embedded): открытая отдельной вкладкой та же страница
+  //      получает хранилище-пустышку в памяти, и молча терять отметки нельзя;
+  //   3) "memory" — хранилища нет вовсе: отметки живут до перезагрузки, об этом говорим сразу, а не молча теряем снимки.
+  var MK_BACK = null, MK_MEM = [];
+  function mkStoreKind(){
+    if(MK_BACK) return MK_BACK;
+    try{ localStorage.setItem(MK_KEY + "_probe", "1"); localStorage.removeItem(MK_KEY + "_probe"); return (MK_BACK = "local"); }catch(e){}
+    if(typeof window !== "undefined" && window.dsh && window.dsh.embedded === true && window.storage && typeof window.storage.set === "function") return (MK_BACK = "artifact");
+    return (MK_BACK = "memory");
   }
-  // localStorage тесен (~5 МБ): не влезло — сначала теряем «до» у самой тяжёлой отметки, потом сам снимок, потом старую отметку
-  function mkStoreMarks(list){
-    var arr = (list || []).slice();
+  async function mkLoadMarks(){
+    var kind = mkStoreKind();
+    if(kind === "local"){
+      try{ var a = JSON.parse(localStorage.getItem(MK_KEY) || "[]"); return Array.isArray(a) ? a : []; }catch(e){ return []; }
+    }
+    if(kind === "artifact"){
+      try{ var r = await window.storage.get(MK_KEY), b = JSON.parse((r && r.value) || "[]"); return Array.isArray(b) ? b : []; }catch(e){ return []; }
+    }
+    mkToast("Хранилища нет: отметки не сохранятся после перезагрузки — открой файл страницы локально");
+    return MK_MEM.slice();
+  }
+  // хранилище тесно (localStorage ~5 МБ, артефакт 5 МБ на значение): не влезло — сначала теряем «до» у самой тяжёлой отметки, потом сам снимок, потом старую отметку
+  async function mkStoreMarks(list){
+    var kind = mkStoreKind(), arr = (list || []).slice();
     for(var guard = 0; guard < 500; guard++){
-      try{ localStorage.setItem(MK_KEY, JSON.stringify(arr)); return true; }
+      try{
+        if(kind === "local") localStorage.setItem(MK_KEY, JSON.stringify(arr));
+        else if(kind === "artifact") await window.storage.set(MK_KEY, JSON.stringify(arr));
+        else { MK_MEM = arr; return true; }
+        return true;
+      }
       catch(e){
         var big = -1, bi = -1;
         arr.forEach(function(d, i){ var w = (d.snap ? d.snap.length : 0) + (d.pre ? d.pre.length : 0); if(w > big){ big = w; bi = i; } });
-        if(bi < 0){ mkToast("Отметки не сохранились: localStorage переполнен"); return false; }
+        if(bi < 0){ mkToast("Отметки не сохранились: хранилище переполнено"); return false; }
         if(arr[bi].pre){ arr[bi].pre = null; arr[bi].preTick = null; mkToast("Мало места: у отметки " + arr[bi].id + " убран снимок «до»"); }
         else if(arr[bi].snap){ arr[bi].snap = null; mkToast("Мало места: у отметки " + arr[bi].id + " убран снимок игры"); }
         else { var gone = arr.splice(bi, 1)[0]; mkToast("Мало места: удалена старая отметка " + (gone && gone.id)); }
@@ -26,7 +53,7 @@
     }
     return false;
   }
-  // снимок (2 МБ текста) в квоту localStorage не влезает: храним сжатым — "gz:" + base64(gzip).
+  // снимок (2 МБ текста) в квоту хранилища не влезает: храним сжатым — "gz:" + base64(gzip).
   // Записи без префикса читаются как есть (старые/без CompressionStream)
   async function mkPackStored(text){
     try{
@@ -347,7 +374,7 @@ async function mkSave(m, status){
     snap: m.snap ? await mkPackStored(mkPack(m.snap)) : null, pre: m.pre ? await mkPackStored(mkPack(m.pre.data)) : null };
   doc.id = "m" + doc.created;
   MK.list = (MK.list || []).concat([doc]);
-  var ok = mkStoreMarks(MK.list); mkRenderList();
+  var ok = await mkStoreMarks(MK.list); mkRenderList();
   if(!ok) return false;
   return true;
 }
@@ -463,8 +490,8 @@ function mkShowCopy(t){ var a = mkEl("mkCopyBox"); a.value = t; a.style.display 
   });
   mkEl("btnRestartRound").addEventListener("click", function(){ MK.cps = []; });
   mkEl("btnFreshMatch").addEventListener("click", function(){ MK.cps = []; });
-  // (23.11, владелец: «никаких скачиваний и серверов») отметки читаются и пишутся только в localStorage
-  // страницы ключом MK_KEY — базы страницы (claude.use("db")) и вложений (claude.use("assets")) больше нет
-  MK.list = mkLoadMarks();
-  mkRenderList();
+  // (23.11, владелец: «никаких скачиваний и серверов»; v585 — ещё и без localStorage там, где браузер его запрещает)
+  // отметки читаются и пишутся через mkLoadMarks / mkStoreMarks: файл страницы в браузере — localStorage, страница внутри
+  // артефакта dsh — window.storage артефакта; базы страницы (claude.use("db")) и вложений (claude.use("assets")) нет
+  mkLoadMarks().then(function(L){ MK.list = L || []; mkRenderList(); });
 })();
