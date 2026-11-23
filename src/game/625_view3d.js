@@ -450,8 +450,10 @@ function d3World(gl){
     }
   }
   // (v589, владелец: «чтобы выглядело не перегруженной») микро-рёбра (короче 1,5 px сцены) не рисуем: на экране это дрожащая рябь, а не форма
-  var rl2 = 1.5, rcount = 0;
-  Em.forEach(function(r){ if(r.c !== 1 && !r.crease) return; var dx = P[r.b]-P[r.a], dy = P[r.b+1]-P[r.a+1], dz = P[r.b+2]-P[r.a+2]; if(Math.hypot(dx, dy, dz) < rl2) return; rcount++; E.push(P[r.a], P[r.a+1], P[r.a+2], P[r.b], P[r.b+1], P[r.b+2]); });
+  var rl2 = 1.5, rcount = 0, nB = 0, nC = 0, nIn = 0, vset = new Set();
+  Em.forEach(function(r){ if(r.c !== 1 && !r.crease) return; var dx = P[r.b]-P[r.a], dy = P[r.b+1]-P[r.a+1], dz = P[r.b+2]-P[r.a+2]; if(Math.hypot(dx, dy, dz) < rl2) return; rcount++; if(r.c === 1){ nB++; var ax = P[r.a]/M.cell/F.BS, ay = P[r.a+2]/M.cell/F.BS; if(ax > 0 && ay > 0 && ax < F.BN && ay < F.BN && F.L[(ay|0)*F.BN + (ax|0)]) nIn++; } else nC++; E.push(P[r.a], P[r.a+1], P[r.a+2], P[r.b], P[r.b+1], P[r.b+2]); });
+  for(var vi = 0; vi < P.length; vi += 3) vset.add(Math.round(P[vi]*2) + "," + Math.round(P[vi+1]*2) + "," + Math.round(P[vi+2]*2));
+  ST.edgesBoundary = nB; ST.edgesCrease = nC; ST.openInside = nIn; ST.uniqVerts = vset.size; ST.totalVerts = P.length/3;
   try{ window.__d3edges = rcount; }catch(e){}
   var buf = function(a){ var b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, a, gl.STATIC_DRAW); return b; };
   return {p: buf(new Float32Array(P)), k: buf(new Float32Array(K)), cnt: P.length/3, e: buf(new Float32Array(E)), ecnt: E.length/3, ftex: d3FloorTex(gl, M),
