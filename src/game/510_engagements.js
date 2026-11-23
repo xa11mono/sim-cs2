@@ -7,6 +7,7 @@ function duckDecide(b, p, salt){   // присед на ближайшее ре�
   var cvp = duck && e && b._sawEnemy ? visParts(b.x, b.y, true, e.x, e.y, e.crouching, true, b.z, e.z) : null;
   placeStance(b, duck && (!cvp || !!(cvp.head || cvp.body || cvp.side)), "duck"); b._duckT = tick;
 }
+var FIGHT_MOVE_NEAR = 10;
 function resolveEngagements(){
   var pairs = [];
   bots.forEach(function(b){ b._sawEnemy = false; b._nearestEnemyDist = Infinity; b._nearestEnemyBot = null; b._visible = []; });
@@ -95,7 +96,11 @@ function resolveEngagements(){
       // значит скорость 0 и путь не идёт) задача в другом месте (пост не достигнут) и перестрелка кончилась (_fc снят) — «держу» снимается
       // (v560, В82, разбор владельца 11.11: «почему встал, если никого не увидел» — видел врага 1 тик, «держит угол» на всю паузу перестрелки,
       // хотя задача — выйти на него) задача «выйти на врага» уводит с угла и во время перестрелки, пока врага не видно
-      var taskAway = (!b._fc || (b.post && taskProp(b.post.tag, "fightMove"))) && b.post && !b.atPost && Math.hypot(b.post.x-b.baseX, b.post.y-b.baseY) > 40;
+      // (отметка владельца 18.11, м5 р2 т6916, CT1: «почему не залезет на бортик — зелёный квадрат на бортике») точка выхода на врага была в 33 ед.
+      // (на бортике Catwalk, оттуда враг весь), порог «далеко» 40 — бот держал угол, не дойдя, и видел одну голову. Задача выхода — до точки
+      // (FIGHT_MOVE_NEAR, проектное число), остальные — как было (40)
+      var fmv = b.post && taskProp(b.post.tag, "fightMove");
+      var taskAway = (!b._fc || fmv) && b.post && !b.atPost && Math.hypot(b.post.x-b.baseX, b.post.y-b.baseY) > (fmv ? FIGHT_MOVE_NEAR : 40);
       // (v450, док владельца 28.10 №5; м3 р1: носитель T4 с задачей «плант» в 270 ед. 14 с ходил «линия / укрытие» по слуху, ни разу не видя
       // врага) носитель в выходе, врага не видит — перестрелка по памяти кончилась, идёт ставить
       // (v450) и любой T в выходе, кто не видит врага дольше паузы про в перестрелке (PEEK_PRO.T.pause, верхний край — 2,7 с): перестрелка

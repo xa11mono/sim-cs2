@@ -501,3 +501,8 @@
   IGL ([hotspawn](https://www.hotspawn.com/counter-strike/news/falcons-sign-karrigan)). Spirit: magixx — IGL с конца 2025
   ([kda.live](https://kda.live/counter-strike/news/roster-changes-in-team-spirit)); роли остальных прямо не названы.
 - Итог для набора (`tactics.json`, `playerRoles`): NiKo T — lurker (было support), TeSeS T — support (было lurker); Spirit — без изменений.
+
+## CT на Mirage: когда мидер уходит с мида (18.11)
+- «Ключ CT на Mirage — когда ротейтиться. Никогда не ротейтиться на одиночный контакт»; ждать гранат или нескольких T, прежде чем идти на сайт
+  ([bo3.gg — гайд по Mirage](https://bo3.gg/articles/guide-to-mirage)). Игрок Window — главный по инфе (Top Mid); Connector — быстро на любой сайт.
+- Владелец 18.11: мидер уходит помогать, когда выход начался или бомба обнаружена.

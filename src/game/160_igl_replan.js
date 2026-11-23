@@ -93,7 +93,7 @@ function tIglReplan(tt, site, other, secLeft){
         var dS0 = Math.hypot(a0.x-site.x, a0.y-site.y), dS1 = Math.hypot(a1.x-site.x, a1.y-site.y);
         var dO0 = Math.hypot(a0.x-SITES[other].x, a0.y-SITES[other].y), dO1 = Math.hypot(a1.x-SITES[other].x, a1.y-SITES[other].y);
         if(dS0 - dS1 > 120 && dO1 - dO0 > 80 && dS1 < 1400) toward.push(rid); }
-      if(toward.length >= (aliveCT <= 3 ? 1 : 2) && iglTake(tt, tick)){
+      if(toward.length >= (aliveCT <= 3 ? 1 : 2) && !tSiteTaking(tt) && iglTake(tt, tick)){   // (22.11, Ж16) сайт берётся — не уходим
         tt._rotDone = tick;
         if(hashRand(roundNum*389 + matchNum*23 + 7) < 0.6){
           tt.rebound = true;
@@ -120,7 +120,7 @@ function tIglReplan(tt, site, other, secLeft){
       var ctr = {x:0, y:0}, tsA = bots.filter(function(b){ return b.team === "T" && b.alive; });
       tsA.forEach(function(b){ ctr.x += b.x/tsA.length; ctr.y += b.y/tsA.length; });
       var travel = Math.hypot(ctr.x-SITES[other].x, ctr.y-SITES[other].y)*1.4/SPEED;
-      var goOther = otherB < 1.2 && secLeft > travel + 15;
+      var goOther = otherB < 1.2 && secLeft > travel + 15 && !tSiteTaking(tt);   // (22.11, Ж16)
       tsA.forEach(function(b){ b._route = null; b._routeDone = null; b._stageInfo = null; });
       tt.takeAssign = null; tt.plantPick = null; tt.wave2 = null; tt.w1Contact = null; tt._popDone = false; tt._waitLog = false;
       nadeFlags.tExec = false; nadeFlags.tExecSm = false; nadeFlags.peekFlashPlanned = false;
@@ -186,6 +186,18 @@ function stagePost(mem, k){
 // (аудит 11.10) смена сайта плана T — одно место. Раньше из пяти мест смены только два снимали маршруты к старому сайту,
 // и ни одно — гранаты-задания туда: через 5 с после смены у кого-то из T в 37 % смен ещё был маршрут, а в части смен —
 // граната в сторону старого сайта. Снимается то, что T делали под старый сайт; фаза и тайминг выхода — у вызывающего
+// (22.11, Ж16, владелец: «терры убили двоих на сайте и сделали перекол на другой сайт»; прогон v583n Mirage: 4 эпизода, м13 р7 — 4 убийства у A,
+// один CT с 13 HP у A, двое T → «B вероятно пустой — идём») «сайт берётся»: в этом раунде мы убили CT у нашего сайта (sig «kill» — свои
+// видели / киллфид), у сайта есть наши живые (не лёркер, по пути ≤ BOMB_HERE_R), и по знанию команды CT там не больше, чем нас там. Тогда
+// реактивного перекола нет — доигрываем этот сайт (добить, поставить). Стак больше нас — перекол как раньше. Плановый фейк и «успеваем
+// поставить» на сейве / в одиночку это не трогает. Было: ветки перекола не знали, что защитники сняты и мы уже здесь
+function tSiteTaking(tt){
+  var S = tt && SITES[tt.site]; if(!S) return false;
+  var kills = (teamIntel.T.sig || []).filter(function(sg){ return sg.type === "kill" && sg.tick >= roundStartTick && nearP(sg.x, sg.y, null, S.x, S.y, null, BOMB_HERE_R); }).length;
+  if(!kills) return false;
+  var tNear = bots.filter(function(b){ return b.team === "T" && b.alive && b.tRole !== "lurker" && nearP(b.x, b.y, b.z, S.x, S.y, null, BOMB_HERE_R); }).length;
+  return tNear > 0 && beliefCount("T", BZ.siteNear[tt.site] || []) <= tNear;
+}
 function tSetSite(tt, site){
   var old = tt.site;
   // (v450, владелец 28.10: «в экономике после главной тактики писать перекол») — для показа (630): откуда и куда перекол

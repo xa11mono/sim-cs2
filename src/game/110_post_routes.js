@@ -187,11 +187,14 @@ var TASK_PROP = {
   teamMove:         /^(rotate|gather|retake)/,
   fightMove:        /^contact:swing/,   // (v560, В82) задача «выйти на врага»: идёт к точке выхода и во время перестрелки, когда врага не видно (510)   // контакт: идёт по задаче команды — на одиночного врага не отвлекается (350)
   fireCommit:       /^(plantspot|defuse|antidefuse|stopplant|retake|gather|flee|fetch)/,   // огонь: задачи бомбы, ради которых идут через огонь (370)
+  fireIfLate:       /^(gather|retake)/,   // (v583a) из них — только когда времени мало: сбор под ретейк и заход на ретейк (370 fireCommit)
   nadeFight:        /^(contact:swing|tradeR|retakeEntry|retake|clear)/,   // гранаты себе: идёт в бой (420)
   blindCoverBusy:   /^(defuse|plantspot|lineup|flee|save|tradeR)/,   // ослеплён: кого из своих не зовут прикрыть (460)
   holdsGround:      /^(anchor|stack|set:|cts:|clutch|midcover)/,   // мало HP: CT держит позицию (470)
+  escape:           /^repos:(hurt|back|rlcover)/,   // (v583a, Д26) уход из-под линии: «держит угол» не останавливает, пока не дошёл (535)
   dangerWalkSkip:   /^(tradeR|flee|fetch|stopplant|antidefuse|repos|plantspot|lineup|defuse|smokeWait|pickup|retake|save|trade)/,   // опасное место: задачи, на которых не идут шагом (470)
   holdsSite:        /^(anchor|stack|set:|cts:|clutch|retake)/,   // дабл-пик: держит сайт — не бросает (480)
+  earAmbush:        /^(probeHide|probeInfo|lurk|flank)/,   // (22.11, Ж23-П4) засел нарочно: засада по одному звуку (480 ambushTick; было — регулярка там)
   tradeUrgent:      /^(retake|defuse|plantspot|antidefuse|endhunt|tradeR)/,   // размен: задачи, где «есть кому разменять» не проверяется (490)
   shiftHoldBusy:    /^(save|repos|defuse|plantspot|lineup|pickup|endhunt|retake|gather|stopplant|antidefuse)/,   // смена угла на посту: задачи, которые не трогают (500)
   cautiousEnd:      /^(retake|rotate|defuse)$/,   // шаг: последние метры ретейка / ротации / дефуза (535)
@@ -204,7 +207,7 @@ var TASK_PROP = {
   // (17.11, владелец к видео CT4: «бежит, не добегая разворачивается — туда-сюда»; дубль №5) короткая остановка своего — бросок с лайнапа,
   // подбор, точка маршрута — не занимает чужое место (spotTaken «post» и личное место по посту, 350); сам свой, стоящий там, — занимает
   briefStop:        /^(lineup|pickup|fetch|route)/,
-  exactSpot:        /^(plantspot|defuse|lineup|pickup|fetch|stopplant|antidefuse|ladder|smokeWait|route|sbGo)/,   // (v552) приказ песочницы — точно   // точное место: точку не сдвигают от своего (110)
+  exactSpot:        /^(plantspot|defuse|lineup|pickup|fetch|stopplant|antidefuse|ladder|smokeWait|route|sbGo|ambush$|probeHide$)/,   // (19.11, К1) засада / засел — точка укрытия как есть (сдвиг уводил на балкон к врагу, м3 р4)   // (v552) приказ песочницы — точно   // точное место: точку не сдвигают от своего (110)
   // (v529) проверки чужой задачи по ОДНОМУ имени (механика смотрит на задачу, которую ставит не она) — 19 мест в 10 файлах, без изменений:
   midTask:          /^tmid$/,        // пробы / «проверено — пусто»: задача мида T (150)
   waitsAhead:       /:ahead$/,       // IGL: стадия «жду впереди» (160)
@@ -215,7 +218,7 @@ var TASK_PROP = {
   plantGo:          /^plantspot/,    // бой: носитель идёт ставить — перестрелка по памяти кончилась (510)
   pickupTask:       /^pickup$/,      // CT: идёт подбирать — не переставлять (340)
   reposMove:        /^repos/,        // шаг: перестановка в бою — бегом, угол не режет (535)
-  flankTask:        /^(flank1|flank2)$/,   // шаг: фланг (535)
+  flankTask:        /^(flank1|flank2|ambush|backstab)$/,   // шаг: фланг; засада / заход в спину — тихо (535, К1)
   gatherTask:       /^gather/,       // шаг: сбор на ретейк — последние метры (535)
   probeTask:        /^probe/,        // шаг: проба — последние метры (535)
   shiftTask:        /^shift$/,       // шаг: перестановка — последние метры (535)
@@ -240,11 +243,11 @@ var TASK_LEVEL = [   // сверху — важнее; первая подход
   {lv:12, kind:"приказ песочницы",   re:/^sbGo$/},   // (v536) только в песочнице (677): владелец сказал боту «иди сюда»
   {lv:11, kind:"бомба",              re:/^(flee|defuse|stopplant|antidefuse|plantspot)$/},
   {lv:10, kind:"выжить",             re:/^save/},
-  {lv:9,  kind:"бой",                re:/^(contact|tradeR$|repos:killmove|repos:finish)/},   // (v469, п.25) добить раненого — тоже бой, контакт его не перебивает
+  {lv:9,  kind:"бой",                re:/^(contact|tradeR$|repos:killmove|repos:finish|ambush$|backstab$)/},   // (К1/К2, 18.11) засада / заход в спину — ход боя: в тылу у врага ротация сквозь него хуже (480)   // (v469, п.25) добить раненого — тоже бой, контакт его не перебивает
   {lv:8,  kind:"ретейк/сбор/ротация",re:/^(retake|gather|rotate$|rotate:|bombwatch|postplant|fetch$)/},
   {lv:7,  kind:"эндгейм/клатч",      re:/^(endhunt|hunt$|clutch)/},   // охота на последних — общий план команды, как и было (замок эндгейма)
-  {lv:6,  kind:"перестановка в бою", re:/^repos/},
-  {lv:5,  kind:"команда",            re:/^(fill$|rotateHold|fetchCover|bombEscort|bombWait|coverplant|flank\d$)/},   // (п.20 владельца 29.10: фланг CT
+  {lv:6,  kind:"перестановка в бою", re:/^(repos|probeHide$)/},   // (К1/К2, 18.11) засел на пробе и слушает (320)
+  {lv:5,  kind:"команда",            re:/^(fill$|rotateHold|fetchCover|bombEscort|bombWait|coverplant|flank\d$|probeInfo$)/},   // (19.11) проба вглубь CT — её перебивала перестановка на сайте (rebal, 3) через 1,5 с (м3 р7)   // (п.20 владельца 29.10: фланг CT
   // «из-за частого перебивания путей… нет захода в спину» — был уровнем 1, его перебивало и ожидание у дыма) фланг — задача команды
   {lv:4,  kind:"гранаты/ожидания",   re:/^(lineup|smokeWait|smokeLine|utilWait|utilHold)$/},
   {lv:3,  kind:"личная перестановка",re:/^(pickup$|probe|rebal|shift$|earlyPeek|midcover)/},
@@ -342,7 +345,7 @@ var POST_DWELL = 96;   // (v375) 1,5 с — проектное число
 // бот вставал раньше точки, приказ песочницы снимался) «дошёл» — в самой точке (≈ 20 ед. игры, меньше ширины игрока); точка, до которой
 // не дойти (в углу, за краем), — как раньше: не приближается 1,4 с — встал (arriveNear). Было 34 (у места про — 9) — проектное число
 var POST_ARRIVE = 8;
-var POST_EXACT = TASK_PROP.exactSpot;   // (v527) список — в таблице свойств задач
+// (19.11) «точное место» — спрашивать таблицу свойств (taskProp): копия списка в переменной попадала в снимок и со старого снимка была старой
 var POST_VIEW_R = 120, POST_VIEW = {k: null, m: {}};   // px — насколько можно сдвинуть пост ради обзора (проектное число)
 function postViewPoint(pt, look){
   var kk = matchNum+":"+roundNum; if(POST_VIEW.k !== kk){ POST_VIEW.k = kk; POST_VIEW.m = {}; }
@@ -392,6 +395,9 @@ function setPostDo(b, pt, look, hold, tag, spreadIdx){
   // (824,857) → (838,867), Mid виден → не виден) место про — только если оттуда точка взгляда поста видна не хуже, чем с выбранной
   if(psn && look && hasLOS(pt.x, pt.y, look.x, look.y) && !hasLOS(psn.pt.x, psn.pt.y, look.x, look.y)) psn = null;
   if(psn){ pt = psn.pt; spreadIdx = 0; }
+  // (владелец 18.11: «чинить механику целиком») место про (из демок: пост-плант, места CT — pt0.pro; привязка к месту про — psn) — точное: сдвиги
+  // «ради обзора» и «от своего» его не трогают (кто где стоит — решает раздача мест про). Было: только пост-плант (тег postplant:pro)
+  var exact = taskProp(tag, "exactSpot") || !!(pt0 && pt0.pro) || !!psn;
   // (00_PLAN п.3а, 05.11, прогон 173: Mirage — «держать бомбу» / «мало HP» у Vent на (845, 807), за краем пола, — бот упирался или его
   // переносило по кругу) точка поста — на полу: вне навмеша — ближайшая точка ближайшего участка (в 40 ед., как перенос navSnap)
   if(pt && !navAt(pt.x, pt.y)){ var naP = navFloorNear(pt.x, pt.y, 40, function(a){ return b.z == null || Math.abs(a.z - b.z) <= JUMP_UP; });
@@ -401,14 +407,19 @@ function setPostDo(b, pt, look, hold, tag, spreadIdx){
   // Мидер вставал за стену Window, NiKo — в Hole, откуда Top Mid не виден) одно место для всех: пост с точкой взгляда, откуда её не видно, —
   // на ближайшую точку рядом (≤ POST_VIEW_R, тот же этаж), откуда видно; нет такой — как выбрано. Точные места (бомба, лайнап, подбор,
   // маршрут) — как есть
-  if(hold && look && pt && !POST_EXACT.test(String(tag)) && !hasLOS(pt.x, pt.y, look.x, look.y)){ var pv = postViewPoint(pt, look); if(pv) pt = Object.assign({}, pt, {x:pv.x, y:pv.y}); }
-  var id = tag + "|" + Math.round(pt.x) + "," + Math.round(pt.y);
+  if(hold && look && pt && !exact && !hasLOS(pt.x, pt.y, look.x, look.y)){ var pv = postViewPoint(pt, look); if(pv) pt = Object.assign({}, pt, {x:pv.x, y:pv.y}); }
+  // (v583a, шаг 2, «прыгающие посты»: 80 эпизодов на 4 матча, 61 — та же задача и та же точка задачи, место сдвигалось само) пост — это
+  // задача и её точка (pt0), а не итоговое место: итоговое сдвигают взгляд (место про, «откуда видно точку взгляда»), и каждый новый взгляд
+  // давал «новый пост» — бот перебегал. Живой игрок, получив тот же приказ, остаётся на месте и только поворачивает голову; переставляется,
+  // если туда встал свой (ниже, v570). Проверено 17.11: «остаться, только если с места видна точка взгляда» — прыжков 37 вместо 19:
+  // точка взгляда таких задач (сигнал команды) часто не видна ни с какого места, и каждое её обновление снова двигало бота
+  var id = tag + "|" + Math.round(pt0.x) + "," + Math.round(pt0.y);
   if(!b._task || b._task.tb !== tagB || b._task.round !== roundNum || !taskAlive(b)) b._task = {tag:String(tag), tb:tagB, lv:lv, t0:tick, t:tick, round:roundNum};
   else { b._task.t = tick; b._task.tag = String(tag); }
   // (v260, В3) та же точка и задача — путь не сбрасываем, но новое направление взгляда принимаем
   // (v570) та же точка — пост держится, но если после сдвига туда же встал свой (его пост поставлен позже — сдвиг считался без него), один
   // из двоих (у кого id больше) считает место заново: было — двое CT на охоте в одной точке (1026, 1493) до конца раунда
-  var ownL = hold && taskProp(String(tag), "ownLine") && !POST_EXACT.test(String(tag));
+  var ownL = hold && taskProp(String(tag), "ownLine") && !exact;
   if(b.post && b.post.id === id && !(ownL && bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o.id < b.id && o.post && Math.hypot(o.post.x-b.post.x, o.post.y-b.post.y) < SPOT_PERSONAL; }))){ b.post.look = look || null; return true; }
   var x = pt.x, y = pt.y;
   // (v370, владелец: «не стоят в толпе») точка, где уже стоит / куда идёт свой (≤ SPOT_PERSONAL), — встаём рядом поперёк взгляда,
@@ -433,7 +444,7 @@ function setPostDo(b, pt, look, hold, tag, spreadIdx){
   }
   // (v570) держит угол — точку не сдвигает свой, который сейчас проходит мимо (было: точку пост-планта, выбранную в 161 ед. от соседа, сдвигало
   // на 80 к нему — соседи сходились до 81 ед.): только места своих, кто держит (spotTaken «line»); их нет рядом / уже сдвинута — личное место
-  if((spreadIdx || (ownL ? !got && spotTaken(b, {x:x, y:y}, "line") && spotTaken(b, {x:x, y:y}, "post") : spotTaken(b, {x:x, y:y}))) && !POST_EXACT.test(String(tag))){
+  if((spreadIdx || (ownL ? !got && spotTaken(b, {x:x, y:y}, "line") && spotTaken(b, {x:x, y:y}, "post") : spotTaken(b, {x:x, y:y}))) && !exact){
     // (v570, отметки владельца м1 р3 15,7 с и р4 57,3 с: «все по 1-3-1 стоят в одной точке», «слишком кучно стоят снова») — было: только
     // 4 точки на 80 ед.; в тесном месте все 4 заняты / за стеной — бот вставал прямо в точку своего (двое CT в (1014, 1577)). Теперь — кольца
     // дальше (до SPREAD_MAX), сначала поперёк взгляда; та же проверка: пол, без стены, не занято, виден прежний пост, обзор не отнимается
@@ -455,6 +466,22 @@ function setPostDo(b, pt, look, hold, tag, spreadIdx){
   return true;
 }
 // (17.11, перестройка — модули) запись в журнал решений (645) — здесь, у хозяина (было: 645 подменял функцию обёрткой)
+// (владелец 18.11 м1 р2: «опять не дошёл до пробы»; «чинить механику целиком») срок задачи «дойти и сделать» — одно место: от расчётного прихода
+// (путь по навмешу / скорость по режиму: шагом — WALK_SPEED_FRAC), а не от выдачи. Было: у пробы T — так (Г3, 04.11), у пробы CT (8 с от выдачи)
+// и выхода на контакт — нет: на полпути задача истекала
+// (владелец 18.11: «пробы не надо отменять за какое-то время») идёт ли бот к точке задачи: за последние TASK_STUCK_SEC с путь до неё стал короче
+// лучшего замера хотя бы на 10 ед. (проектные числа: 3 с — обход, лестница, подъём; 10 ед. — шаг). Одно место для задач «дойти и посмотреть»
+// (проба T, проверка CT): снимается не по часам, а тот, кто не идёт (застрял / стоит). R — запись задачи (лучший замер); путь — раз в секунду
+var TASK_STUCK_SEC = 3;
+function taskWalkOn(b, pt, R){
+  if(!R.prT || tick - R.prT >= TICK_HZ){ var d = pathLenTo(b, pt.x, pt.y); R.prT = tick;
+    if(R.prD == null || d < R.prD - 10){ R.prD = d; R.prBest = tick; } }
+  return tick - (R.prBest || tick) < TASK_STUCK_SEC*TICK_HZ;
+}
+function taskDeadline(b, pt, holdSec, walking){
+  var v = SPEED*(walking ? WALK_SPEED_FRAC : 1)*(typeof weaponSpeedMul === "function" ? weaponSpeedMul(b) : 1);
+  return tick + Math.ceil((pathLenTo(b, pt.x, pt.y)/Math.max(1, v) + holdSec)*TICK_HZ);
+}
 function setPost(b, pt, look, hold, tag){
   var was = b && b.post ? b.post.tag : null, r = setPostDo.apply(this, arguments);
   if(!b) return r;

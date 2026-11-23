@@ -11,6 +11,8 @@ function mkSnapList(){
   if(MK.snap) return MK.snap;
   MK.snap = __SNAP.filter(function(e){
     if(/^(SND|HUD_)/.test(e[0])) return false;
+    // (18.11) таблицы кода — не состояние игры: снимок старой версии не подменяет их в новой (свойства задач TASK_PROP, уровни TASK_LEVEL)
+    if(/^(TASK_PROP|TASK_LEVEL)$/.test(e[0])) return false;
     // (v445, скрин владельца 28.10: «Ошибка игры… HTMLImageElement object could not be cloned», м1 тик 1280) кэши картинок (KF_IMG — иконки
     // киллфида, NADE_IMG — силуэты гранат, v437) — показ, не игра; список снимка собирается один раз, когда кэш ещё пуст, — поэтому по имени
     if(/IMG$/.test(e[0])) return false;   // (v324) звук и (v430) HUD_* — только показ (AudioContext, элементы страницы) — в снимок не идут
@@ -34,7 +36,16 @@ function mkSnapshot(){
     }
   }
 }
-function mkRestore(data){ var c = structuredClone(data); mkSnapList().forEach(function(e){ if(e[0] in c) e[2](c[e[0]]); }); }
+function mkRestore(data){ var c = structuredClone(data); mkSnapList().forEach(function(e){ if(e[0] in c) e[2](c[e[0]]); }); mkRebaseShow(); }
+// (18.11) показ (трассеры, круги звука) помнит время рождения по часам страницы (nowTs), а часы в снимок не входят: после открытия снимка
+// «возраст» выходил отрицательным — вспышка выстрела на весь экран (оранжевый кадр), круг звука с отрицательным радиусом ронял кадр.
+// Сдвиг: самое свежее из снимка — «сейчас» по часам этой страницы, остальные — на тот же сдвиг
+function mkRebaseShow(){
+  var L = [typeof tracers !== "undefined" ? tracers : null, typeof soundPings !== "undefined" ? soundPings : null].filter(Boolean), mx = -Infinity;
+  L.forEach(function(A){ A.forEach(function(o){ if(o && o.born > mx) mx = o.born; }); });
+  if(!(mx > nowTs)) return; var sh = nowTs - mx;
+  L.forEach(function(A){ A.forEach(function(o){ if(o && o.born != null) o.born += sh; }); });
+}
 // (v175) снимок → текст и обратно, чтобы хранить его в отметке файлом. В снимке
 // объекты ссылаются друг на друга (бот → цель → бот), поэтому каждый объект
 // записывается один раз, а ссылки — номером. Сохраняются Map/Set, массивы чисел,

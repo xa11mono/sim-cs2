@@ -35,14 +35,26 @@ function moveWalkWhy(bot){
   if(bot.post && taskProp(bot.post.tag, "reposMove") && taskKeepUntil(bot, "repos") > tick) return null;
   // (v438, док 27.10) свежая инфа / звук — шагом, только если этот враг сам может услышать мой бег (≤ 1,5 слышимости бега — проектное
   // число: враг мог подойти). Было — любой звук: выстрелы за 2000 px давали 6 с шифта по всей карте
-  if(bot.lastIntel && tick - bot.lastIntel.tick < CAUTION_TICKS && Math.hypot(bot.lastIntel.x-bot.baseX, bot.lastIntel.y-bot.baseY) <= 1.5*STEP_HEAR_R()) return "видел врага рядом";
-  if(bot.heardSound && tick - bot.heardSound.tick < SOUND_CAUTION_TICKS && Math.hypot(bot.heardSound.x-bot.baseX, bot.heardSound.y-bot.baseY) <= 1.5*STEP_HEAR_R()) return "слышал врага рядом";
+  // (22.11, Ж17, владелец: «после убийства игроки шифтят, смысла нет»; прогон v583n Mirage: после убийства шагом 24 % времени, главные
+  // причины — «видел / слышал врага рядом» про того, кого только что убил) враг из инфы / звука убит (киллфид знают все) или в том месте
+  // только труп (220 knowCorpseOnly: убили, после — тихо, живых по знанию нет) — не повод идти тихо. Другие враги рядом — свои причины ниже
+  var deadSrc = function(id, p){ if(id){ var o = teamBot(id); if(o && !o.alive) return true; } return !!(p && knowCorpseOnly(bot.team, p)); };
+  if(bot.lastIntel && tick - bot.lastIntel.tick < CAUTION_TICKS && Math.hypot(bot.lastIntel.x-bot.baseX, bot.lastIntel.y-bot.baseY) <= 1.5*STEP_HEAR_R() && !deadSrc(bot.lastIntel.id, bot.lastIntel)) return "видел врага рядом";
+  if(bot.heardSound && tick - bot.heardSound.tick < SOUND_CAUTION_TICKS && Math.hypot(bot.heardSound.x-bot.baseX, bot.heardSound.y-bot.baseY) <= 1.5*STEP_HEAR_R() && !deadSrc(bot.heardSound.src, bot.heardSound)) return "слышал врага рядом";
   // роумер подходит к точке чека тихо (v560, В104: только пока он роумит — без задачи, как в stepTick → updateRoamer; было — и на чужой
   // задаче по старой точке чека: ротирующий шёл шагом «роумер у точки чека»)
   if(bot.role === "roamer" && !bot.post && !bot.roamChecking && bot.roamTarget && bot.state === "patrol" &&
      Math.hypot(bot.roamTarget.x-bot.baseX, bot.roamTarget.y-bot.baseY) < ROAM_QUIET_RADIUS) return "роумер у точки чека";
   // заход на занятый врагом сайт (ретейк/ротация) — последние метры шагом
-  if(bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "flankTask")) return "фланг";
+  // (22.11, Ж23, разбор м271222 р6: karrigan шёл в спину шагом 9 с и не успел к планту) фланг / засада / в спину — шагом, только если по моему
+  // знанию враг может услышать мой бег: место, куда иду (где их слышал), или куда смотрю — ближе 1,5 слышимости бега (то же правило, что
+  // у звука и инфы выше). Было — шагом всегда, сколько бы до них ни было
+  if(bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "flankTask")){ var fp = bot.post, fl = fp.look, hr = 1.5*STEP_HEAR_R();
+    if(Math.hypot(fp.x-bot.baseX, fp.y-bot.baseY) <= hr || (fl && Math.hypot(fl.x-bot.baseX, fl.y-bot.baseY) <= hr)) return "фланг"; }
+  // (v583a, ретейк как у про: сходятся на ходу, не стоят на точке) CT на сборе ушёл вперёд своего больше чем на RT_GAP по пути — идёт шагом,
+  // пока тот не подтянется (расстояния — хозяин ретейка, 180: bomb.retake.apDist)
+  if(bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "gatherTask") && bomb && bomb.retake && bomb.retake.apDist){ var AD = bomb.retake.apDist, me = AD[bot.id];
+    if(me != null && Object.keys(AD).some(function(id){ return id !== bot.id && AD[id] - me > RT_GAP/PX_UNITS; })) return "ретейк — свой отстаёт, иду шагом"; }
   if(bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "gatherTask") && Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 500) return "сбор на ретейк — последние метры";
   if(bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "probeTask") && Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 420) return "проба — последние метры";
   if(bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "shiftTask") && Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 450) return "перестановка — последние метры";
@@ -66,6 +78,8 @@ function moveWalkWhy(bot){
 function moveRunWhy(bot){
   // (v257, К3) врагов живых нет (видно по табло) — шагом идти не от кого
   if(aliveCount(bot.team === "CT" ? "T" : "CT") === 0) return "врагов не осталось";
+  // (v583a, Д26) уходит из-под линии раненым — бегом: шаг «видел / слышал врага рядом» держал его на линии (прогон 274: 30 из 149 погибших так)
+  if(bot.post && !bot.atPost && taskProp(bot.post.tag, "escape")) return "ухожу из-под линии — бегом";
   // (v299, И43, владелец 14.10: T0 стрелялся на A, лёркер T4 шёл к бою на шифте) тиммейт рядом уже в перестрелке (видит врага ≥ 0,3 с,
   // как у дабл-пика, или стрелял / по нему стреляли за 2 с) в 900 px от меня, а моя точка — не дальше 600 px от него: иду к бою — бегом, тишина уже ничего не даёт
   if(bot.post && !taskProp(bot.post.tag, "bombSpot") && bots.some(function(m){ return m !== bot && m.alive && m.team === bot.team &&
@@ -102,7 +116,9 @@ function moveSpeedTick(bot, runSpeed, BRAKE_RADIUS, maxDelta){
   var waitPop = (bot._waitPopUntil > tick && nadeFlags[bot._waitPopKey] === undefined && !bot._sawEnemy) || (bot._ppWaitUntil > tick && !bot._sawEnemy);
   if(bot._pie && bot._pie.slice && tick - bot._pie.t < 16 && !bot._sawEnemy) runSpeed *= 0.75; // режет угол
   var targetSpeed = runSpeed;
-  if(waitPop){ targetSpeed = 0; why = "ждёт флешку своего"; } else if(bot.holding){ targetSpeed = 0; why = "держит угол"; } else if(bot.roamChecking){ targetSpeed = 0; why = "роумер проверяет точку"; }
+  // (v583a, Д26, прогон 274: раненый CT с задачей «уйти из-под линии» погиб, стоя «держу угол», в 68 из 149 случаев — снова увидел врага, режим
+  // боя «держать» останавливал ноги на линии) уходит из-под линии — «держит угол» не останавливает, пока не дошёл до укрытия
+  if(waitPop){ targetSpeed = 0; why = "ждёт флешку своего"; } else if(bot.holding && !(bot.post && !bot.atPost && taskProp(bot.post.tag, "escape"))){ targetSpeed = 0; why = "держит угол"; } else if(bot.roamChecking){ targetSpeed = 0; why = "роумер проверяет точку"; }
   else if(bot.atPost){ targetSpeed = 0; why = "на посту"; } else if(bot.planting){ targetSpeed = 0; why = "ставит бомбу"; } else if(bot.defusing){ targetSpeed = 0; why = "дефузит"; }
   else if(tick < (bot.throwUntil||0)){ targetSpeed = 0; why = "бросает гранату"; } else if(bot.state === "engage" && bot._sawEnemy){ targetSpeed = 0; why = "стреляет по врагу"; }
   // (v375, владелец: «в 4 раунде все по одному выходили из T Ramp и умирали») демки Mirage: первый T, входящий на сайт (≤ 250

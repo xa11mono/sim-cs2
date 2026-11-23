@@ -15,6 +15,7 @@ var OBS_K = {
   fightLock: 2, fightScore: 1, fightUrgent: 0.5,   // «бой был» за последние N с — для «не уходить», для очков, для «срочно»
   glimpse: 6,                     // видит врага не меньше glimpse тиков подряд — бой (мелькнул в щели на тик — ещё нет)
   focusR: 900, siteR: 700,        // фокус (выход, плант, дефуз) — кто ближе focusR; в кадре — все ближе siteR
+  soon: 7,                        // (Д24) счёт «бой вот-вот» (база 1 + враг рядом видит его 6) — переключать заранее; проектное число
   nearR: 450, losR: 900,          // враг ближе nearR смотрит на игрока — скоро бой; линию видимости проверять ближе losR
   bombLast: 10, bombNearR: 380,   // последние bombLast с бомбы при CT рядом — фокус на бомбе; (v569) CT ближе bombNearR к бомбе — тоже
   closeR: 800, closeV: 150,       // (v461) сближение: ближе closeR и навстречу быстрее closeV ед. карты/с — скоро бой
@@ -196,7 +197,9 @@ function obsFrame(ts){
         var tr = null; bots.forEach(function(o){ if(!tr && o.alive && o.team === cur.team && ((o._sawEnemy && o._nearestEnemyBot === kb) || (o._shotAtBy && o._shotAtBy.id === kb.id && tick - o._shotAtT < TICK_HZ))) tr = o; });
         best = tr || kb; bs = Infinity; } }
       // бой начался у другого, а у выбранного боя нет — сразу, без выдержки (но не чаще urgentGap и не сразу после его боя)
-      var urgent = !!(best && best !== cur && obsFight(best, OBS_K.fightUrgent) && !obsFight(cur, OBS_K.fightUrgent));
+      // (v583a, Д24, владелец 18.11: «поздно переключается — непонятно, кто кого убивает») срочно — и до первого выстрела: у другого бой вот-вот
+      // (счёт ≥ OBS_K.soon: враг рядом уже видит его / смотрит на него, сближаются с открытой линией), а у текущего боя нет
+      var urgent = !!(best && best !== cur && (obsFight(best, OBS_K.fightUrgent) || bs >= OBS_K.soon) && !obsFight(cur, OBS_K.fightUrgent));
       if(urgent && cur && cur.alive && (held < obsT(OBS_K.urgentGap) || obsFight(cur, OBS_K.quietGap))) urgent = false;
       var far = !!(F && cur && cur.alive && Math.hypot(cur.x-F.x, cur.y-F.y) > OBS_K.focusR);
       if(far && !curFight) urgent = true;   // (v321, М10) начался выход — к нему (не посреди дуэли — v330)

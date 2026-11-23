@@ -211,8 +211,9 @@ function nadeBrains(){
     if(dd > NADE_THROW_RANGE || dd < 120) return;
     if(fires.some(function(f){ return Math.hypot(f.x-L.x, f.y-L.y) < 100; })) return;
     if(bots.some(function(o){ return o.alive && o.team === b.team && Math.hypot(o.x-L.x, o.y-L.y) < 130; })) return;
+    if(!nadeRevealOk(b)) return;   // (22.11, Ж23-П4) не нашли — себя гранатой не выдаёт без толку (380)
     b._nadeCd = tick + 8*TICK_HZ;
-    assignNade(b, type, {x:L.x, y:L.y}, "по инфе — выкурить", {now:true});
+    assignNade(b, type, {x:L.x, y:L.y}, "по инфе — выкурить", {now:true, eid:L.id || null});
   });
   nadeReact();
   selfNadeTick();

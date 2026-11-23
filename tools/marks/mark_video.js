@@ -38,8 +38,9 @@ const { chromium } = require("playwright"); const fs = require("fs"), path = req
         // (15.11, владелец: «надо видеть всю картину взгляда») куда смотрит: луч взгляда (жёлтый, 160 px), точка взгляда (lookTarget —
         // голубой пунктир и кружок), пост (зелёный квадрат и пунктир от бота), причина взгляда — в подписи
         if (b && b.alive) { var X = function (v) { return v * zoom + view.panX; }, Y = function (v) { return v * zoom + view.panY; };
-          ctx.save(); ctx.lineWidth = 3; ctx.strokeStyle = "rgba(255,214,102,.95)"; ctx.beginPath(); ctx.moveTo(X(b.x), Y(b.y));
-          ctx.lineTo(X(b.x + Math.cos(b.facing) * 160), Y(b.y + Math.sin(b.facing) * 160)); ctx.stroke();
+          // (18.11, владелец: «не вижу трассеров из-за жёлтой линии») луч взгляда короче и тоньше — трассеры видны
+          ctx.save(); ctx.lineWidth = 2; ctx.strokeStyle = "rgba(255,214,102,.75)"; ctx.beginPath(); ctx.moveTo(X(b.x), Y(b.y));
+          ctx.lineTo(X(b.x + Math.cos(b.facing) * 70), Y(b.y + Math.sin(b.facing) * 70)); ctx.stroke();
           if (b.lookTarget) { ctx.setLineDash([4, 5]); ctx.lineWidth = 1.5; ctx.strokeStyle = "rgba(120,200,255,.9)"; ctx.beginPath(); ctx.moveTo(X(b.x), Y(b.y)); ctx.lineTo(X(b.lookTarget.x), Y(b.lookTarget.y)); ctx.stroke();
             ctx.setLineDash([]); ctx.beginPath(); ctx.arc(X(b.lookTarget.x), Y(b.lookTarget.y), 7, 0, Math.PI * 2); ctx.stroke(); }
           if (b.post) { ctx.setLineDash([2, 4]); ctx.lineWidth = 1.5; ctx.strokeStyle = "rgba(120,230,140,.9)"; ctx.beginPath(); ctx.moveTo(X(b.x), Y(b.y)); ctx.lineTo(X(b.post.x), Y(b.post.y)); ctx.stroke();

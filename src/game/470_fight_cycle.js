@@ -32,18 +32,22 @@ function fightPathFree(b, x0, y0, x1, y1){
 var FIGHT_MATE_R = 30;   // px — проектное число (укрытие одного человека)
 function fightMateAt(b, x, y){ return bots.some(function(o){ return o !== b && o.alive && o.team === b.team && (Math.hypot(o.baseX-x, o.baseY-y) < FIGHT_MATE_R || (o._fc && o._fc.ph === "off" && Math.hypot(o._fc.cx-x, o._fc.cy-y) < FIGHT_MATE_R)); }); }
 function fightCover(b, e, R, toward){
-  var others = exposedTo(b, 1200, 4*TICK_HZ, true).filter(function(o){ return Math.hypot(o.x-e.x, o.y-e.y) > 60; });
+  // (отметка владельца 18.11, м1 р1 т2754, kyousuke: «опять ушёл за укрытие, но стоит в открытом») стрелок проверялся в 3D, остальные известные
+  // враги — плоской линией: три укрытия подряд были на виду у T1 / T0 / T4. Теперь — общая проверка coverSafe (стрелок + известные, с шагом)
+  var T0 = coverThreats(b, [e]), others = T0.filter(function(o){ return Math.hypot(o.x-e.x, o.y-e.y) > 60; });
   for(var pass = others.length ? 0 : 1; pass < 2; pass++){
+    var C = [];
     for(var k=1;k<=3;k++){
-      var r = R*k/3, best = null, bd = -Infinity;
+      var r = R*k/3, Ck = [];
       for(var i=0;i<16;i++){
         var a = i*Math.PI/8, x = b.baseX + Math.cos(a)*r, y = b.baseY + Math.sin(a)*r;
         if(insideSolidWall(x, y) || !fightPathFree(b, b.baseX, b.baseY, x, y) || fightSeen(e, x, y, b.z) || fightMateAt(b, x, y)) continue;
-        if(pass === 0 && others.some(function(o){ return hasLOS(x, y, o.x, o.y, b.z); })) continue;
-        var de = toward ? -Math.hypot(x-toward.x, y-toward.y) : Math.hypot(x-e.x, y-e.y); if(de > bd){ bd = de; best = {x:x, y:y}; }
+        Ck.push({x:x, y:y, z:b.z, de: toward ? -Math.hypot(x-toward.x, y-toward.y) : Math.hypot(x-e.x, y-e.y)});
       }
-      if(best) return best;
+      Ck.sort(function(p, q){ return q.de - p.de; }); C = C.concat(Ck);
     }
+    var T = pass === 0 ? [e].concat(others) : [e]; T.exp = T0.exp;
+    var q = coverPick(C, coverZ(b), T); if(q) return {x:q.x, y:q.y};
   }
   return null;
 }
@@ -99,9 +103,20 @@ function fightShoulderPt(b, e, cx, cy, ax, ay){
 var CS_ACCEL = 5.5, CS_FRIC = 5.2, CS_STOP = 80;
 // шаг стрейфа, ед. игры: сдвиг вбок от взгляда между очередями у про (пауза 0,5–1,5 с; 79 + 85 демок, квантили 10/25/50/75/90 %) —
 // tools/measure/engine/b4_strafe.py
-var STRAFE_PRO = [3.0, 10.6, 34.9, 73.7, 118.6];
+// (v583a, Д29, владелец 18.11, демка Furia — Falcons, T на T Ramp: «на демке короткие быстрые стрейфы, у нас долгие и длинные») было — сдвиг
+// между очередями (3 / 11 / 35 / 74 / 119 ед.: туда входил и переход на другое место). Теперь — само нажатие A / D, после которого в 0,4 с
+// жмут противоположную (джиггл / стрейф): демки Mirage с каждым тиком (_motion.csv, 12 демок, 15,3 тыс. нажатий, винтовки) — сдвиг за
+// нажатие 0 / 2 / 6 / 15 / 32 ед., длительность 4 / 5 / 9 / 15 / 22 тика (tools/motion/jig_pro.py)
+var STRAFE_PRO = [0.5, 2, 6, 15, 32], STRAFE_PRO_T = [4, 5, 9, 15, 22];
+var PEEK_KIND = {CT: [0.44, 0.47, 0.09], T: [0.12, 0.66, 0.23]};   // (Д30) доли короткий / средний / широкий в начале дуэли у про
+var PEEK_SHORT_DWELL = 9, PEEK_WIDE_EXTRA = 60;   // тики (медиана нажатия A/D у про), ед. — проектное (у про широкий — дальше 80 ед. от стойки)
 function csDecel(v, vmax){ return CS_FRIC*Math.max(v, CS_STOP/PX_UNITS) + CS_ACCEL*vmax; }   // px/с²
 function csTicksTo(v, vT, vmax){ var n = 0; while(v > vT + 0.5 && n < 30){ v -= csDecel(v, vmax)/TICK_HZ; n++; } return n; }
+// в перестрелке идёт по пути к задаче: выйти на врага (fightMove), пока его не видно (не «держит» — F.own), и уйти из-под линии (escape: укрытие
+// на перезарядку, отход раненого — отметка владельца 18.11 №7: TeSeS с пустым магазином 2,3 с «стоял за укрытием» на открытом, к укрытию не шёл)
+function fcSwingGo(b){ var F = b._fc; if(!F || !b.post || b.atPost) return false;
+  if(taskProp(b.post.tag, "escape")) return true;
+  return !F.own && !b._sawEnemy && taskProp(b.post.tag, "fightMove"); }
 function fightStrafe(b, F, dtSec){
   if(b._boost){ F.sv = 0; moveSpeed(b, 0, "strafe"); return; }   // (v575, В144) на подсадке / под ней — не стрейфится
   var e = F.e, fr = b._fire, fresh = fr && tick - fr.t <= 1;
@@ -111,7 +126,7 @@ function fightStrafe(b, F, dtSec){
   if(F.sv === undefined){   // скорость, с которой вошёл в перестрелку, — дальше она (её гасит или продолжает стрейфом)
     var TR = b._trail || [], tp = TR.length >= 2 ? TR[TR.length-2] : {x:b.baseX, y:b.baseY};   // куда шёл последние ~0,25–0,5 с
     var pr = (b.baseX - tp.x)*ax + (b.baseY - tp.y)*ay;
-    F.sdir = pr >= 0 ? 1 : -1; F.sv = F.sdir*Math.min(vmax, Math.max(b.curSpeed || 0, Math.abs((b._keys || {}).v || 0))); F.leg = 0;   // (v575) и ход качания A / D (540) — дальше он у перestrелки
+    F.sdir = pr >= 0 ? 1 : -1; F.sv = F.sdir*Math.min(vmax, Math.max(b.curSpeed || 0, Math.abs((b._keys || {}).v || 0))); F.legT = 0;   // (v575) и ход качания A / D (540) — дальше он у перestrелки
     if(b._keys) b._keys.v = 0;
   }
   if(b.lastShotTick >= F.t) F.started = true;
@@ -121,10 +136,13 @@ function fightStrafe(b, F, dtSec){
   if(stop || (!F.started && v < 1)){ v = Math.max(0, v - csDecel(v, vmax)*dtSec); F.sv = (F.sv < 0 ? -1 : 1)*v; }
   else {
     var so = (b.baseX - F.ax)*ax + (b.baseY - F.ay)*ay;
-    if(!F.leg) F.leg = Math.max(1, peekQ(STRAFE_PRO, fightRand(b, 7))/PX_UNITS);
+    // (v583a, Д29) нажатие A / D — по времени, как у про (STRAFE_PRO_T, тики), а не «до сдвига»: разгон и торможение — физика CS2 ниже; ушёл от точки
+    // начала дальше верха сдвигов про (STRAFE_PRO[4]) — следующее нажатие обратно к ней. Было: до сдвига STRAFE_PRO от точки начала — бот разгонялся
+    // до полного хода, и между разворотами выходило 19–21 ед. за 16–17 тиков против 6 ед. за 9 тиков у про (облако, снимок м1)
+    if(!F.legT) F.legT = tick + Math.max(2, Math.round(peekQ(STRAFE_PRO_T, fightRand(b, 7))));
     // (v575, В140) до первого выстрела вышедший с ходу продолжает выход, а гасит ход встречной клавишей прямо перед выстрелом (stop выше):
     // у про первая пуля винтовки при выходе — на 69 ед./с (медиана; 25/75 % — 32/103), у бота разворот на первом шаге стрейфа гасил ход до 0
-    if(F.started && F.sdir*so >= F.leg){ F.sdir = -F.sdir; F.leg = Math.max(1, peekQ(STRAFE_PRO, fightRand(b, 8))/PX_UNITS); }
+    if(F.started && (tick >= F.legT || F.sdir*so >= STRAFE_PRO[4]/PX_UNITS)){ F.sdir = -F.sdir; F.legT = tick + Math.max(2, Math.round(peekQ(STRAFE_PRO_T, fightRand(b, 8 + (tick & 7))))); }
     if(F.sv*F.sdir < 0){ var d = csDecel(v, vmax)*dtSec; F.sv = v <= d ? 0 : F.sv - (F.sv < 0 ? -1 : 1)*d; }
     else F.sv = F.sdir*Math.min(vmax, v + Math.max(0, CS_ACCEL*vmax - CS_FRIC*v)*dtSec);
   }
@@ -133,9 +151,9 @@ function fightStrafe(b, F, dtSec){
     // (v521, дуэли, замечание владельца 09.11 «2–3 выстрела и оба за стену» — разбор 57 расставаний: 16 — стрейф уводил за край укрытия, врага
     // больше не видно) стрейф — в пределах линии: шаг, после которого врага, видного сейчас, уже не видно, — разворот (как упор в стену)
     // (v575, В140) у края видимости — встречная клавиша: ход гаснет физикой CS2 (как контрстрейф), бот за край не шагает; в стену — стоп сразу
-    if(stepBlocked(b.baseX, b.baseY, nx, ny, b)){ F.sv = 0; F.sdir = -F.sdir; F.leg = 0; }
+    if(stepBlocked(b.baseX, b.baseY, nx, ny, b)){ F.sv = 0; F.sdir = -F.sdir; F.legT = 0; }
     else if(b._sawEnemy && hasLOS(b.baseX, b.baseY, e.x, e.y, b.z, e.z) && !hasLOS(nx, ny, e.x, e.y, b.z, e.z)){
-      var sg = F.sv < 0 ? -1 : 1, dE = csDecel(Math.abs(F.sv), vmax)*dtSec; F.sdir = -sg; F.leg = 0; F.sv = Math.abs(F.sv) <= dE ? 0 : F.sv - sg*dE; }
+      var sg = F.sv < 0 ? -1 : 1, dE = csDecel(Math.abs(F.sv), vmax)*dtSec; F.sdir = -sg; F.legT = 0; F.sv = Math.abs(F.sv) <= dE ? 0 : F.sv - sg*dE; }
     else { b.baseX = nx; b.baseY = ny; }
   }
   moveSpeed(b, Math.abs(F.sv), "strafe"); moveWalk(b, false, "strafe");
@@ -274,6 +292,7 @@ function fightCycleTick(b, dtSec, busy){
       var c0 = null, DV = duelEval(b, F, null);
       if(DV && DV.sees && !DV.win){ c0 = fightCover(b, e, peekQ(D.shift, fightRand(b, 2)), tw) || fightCover(b, e, D.shift[4], tw); DV = duelEval(b, F, c0); }
       // размен выигрываю (или до укрытия дольше, чем меня убьют — уйти не успею) — стреляю дальше; следующая оценка — через время реакции
+      if(DV && !DV.sees && F.pk === "short" && F.cx != null){ F.pk = null; F.ph = "off"; F.mv = 0; F.until = tick + Math.round(peekQ(D.pause, fightRand(b, 14))*TICK_HZ); fcWhy(b, "короткий пик: врага не видно — назад"); return; }   // (Д30)
       if(DV && !DV.sees){ F.until = tick + 4; return; }   // врага не видно — стрелять не в кого: держит угол на линии (где появится), не отходит; бой кончится по «враг пропал» выше
       if(DV && DV.sees && (DV.win || (DV.trapped && !b._reloading && b.ammo > 0))){ F.until = tick + Math.max(b.reactionTicks || 1, 8); fcWhy(b, DV.win ? "остался: размен мой" : "остался: уйти не успею");
         if(!b._fcD || tick - b._fcD > 4*TICK_HZ){ b._fcD = tick; logEvent(b.id+": "+(DV.win ? "размен мой" : "уйти не успею")+" (мне до фрага "+DV.mine.toFixed(2)+" с, им "+DV.theirs.toFixed(2)+" с, до укрытия "+(DV.ret < 99 ? DV.ret.toFixed(2) : "—")+" с) — стреляю дальше"); }
@@ -282,7 +301,11 @@ function fightCycleTick(b, dtSec, busy){
         F.until = tick + Math.max(b.reactionTicks || 1, Math.round(peekQ(D.dur, fightRand(b, 9))*TICK_HZ)); fcWhy(b, "остался: давлю по задаче");
         if(!b._fcP || tick - b._fcP > 4*TICK_HZ){ b._fcP = tick; logEvent(b.id+": давлю по задаче — остаюсь на линии"); }
         return; }
-      var c = c0 || fightCover(b, e, peekQ(D.shift, fightRand(b, 2)), tw) || fightCover(b, e, D.shift[4], tw);
+      // (v583a, владелец 17.11: «раненый боец потом стоит и ничего не делает»; демки про, 9,3 тыс. раненых CT на сайте до планта, Mirage + Ancient:
+      // за 3 с отходят от врага 21 %, стоят 9–11 %; у ботов — отходят 10–13 %, стоят 16–22 %) уже ранен в этой перестрелке — уходит не на шаг
+      // за угол, а глубже: дальнее кольцо укрытия (D.shift[4] — верх сдвигов про), от врага. Проектное: правило «ранен → глубже»
+      var hurtNow = duelHits(b._hitIn, F.t0, null) > 0;
+      var c = (hurtNow ? fightCover(b, e, D.shift[4], tw) : null) || c0 || fightCover(b, e, peekQ(D.shift, fightRand(b, 2)), tw) || fightCover(b, e, D.shift[4], tw);
       if(!c){ F.until = 0; F.t = tick; fcWhy(b, "остался: укрыться негде"); return; }   // укрыться негде — остаётся на линии
       F.ph = "off"; F.mv = 0; F.cx = c.x; F.cy = c.y; F.ax = b.baseX; F.ay = b.baseY; F.own = false;
       F.until = tick + Math.round(peekQ(D.pause, fightRand(b, 3))*TICK_HZ);
@@ -295,8 +318,13 @@ function fightCycleTick(b, dtSec, busy){
   // (шага не сделал) — уход отменялся (подпись v414 на м3: 160 снимков за 45 с). Теперь уход доходит до укрытия; на линию — только если
   // и у укрытия враг виден (укрытие не спасает). Уходя от выстрелов в плечо (retreat) — как раньше, не останавливается
   var atCover = F.ph === "off" && Math.hypot(F.cx-b.baseX, F.cy-b.baseY) < 2;
-  if(b._sawEnemy && !(F.ph === "off" && (F.retreat || !atCover))){ if(F.ph === "off") b._fcSnap = tick;   // у укрытия видно врага — для подписи «почему»
+  // (v583a, Д29 п.3, владелец 18.11 по видео 1: «по нему стреляют — не отвечает, уходит за укрытие, плечо видно — добивают») CT2 ушёл «стреляют в
+  // плечо, стрелка не видно» (стрелял другой T), дошёл до укрытия и 1 с стоял там, видя T1 целиком (голова + тело, тот его тоже), с одним выстрелом:
+  // уход от выстрелов в плечо (retreat) не возвращал на линию и у укрытия. Теперь у укрытия враг виден — укрытие не спасает: на линию, стрелять
+  if(b._sawEnemy && !(F.ph === "off" && !atCover)){ if(F.ph === "off") b._fcSnap = tick;   // у укрытия видно врага — для подписи «почему»
     F.ph = "line"; F.ax = b.baseX; F.ay = b.baseY; F.t = tick; F.until = 0; F.retreat = false; F.better = null; F.sv = undefined; return; }   // снова вижу врага — на линии (уходя от выстрелов в плечо — не останавливается)
+  // (отметка владельца 18.11 №7) за укрытием перезаряжается — на линию не выходит, пока не перезарядился (было: с пустым магазином шёл выглядывать)
+  if(F.ph === "off" && b._reloading) F.until = Math.max(F.until || 0, tick + 1);
   if(F.ph === "off" && tick >= F.until && (!F.retreat || Math.hypot(F.cx-b.baseX, F.cy-b.baseY) < 2)){
     F.retreat = false;
     // раненого мной врага (в обмене впереди) — выглядывает добить (ответ нейросети: пик становится дуэлью, если «можно добить раненого»);
@@ -321,15 +349,27 @@ function fightCycleTick(b, dtSec, busy){
     // размена выше (duelOdds)
     else if(F.nPeek >= 1 && F.e && fightRand(b, 11) >= Math.pow(0.5, F.samePk || 1)){ var nb = fightBetterAway(b, F.e, F.cx, F.cy, D.shift[4], F.ax, F.ay, D.shift[2]); if(nb){ F.ax = nb.x; F.ay = nb.y; F.samePk = 0; } }
     F.samePk = (F.samePk || 0) + 1;
+    // (v583a, Д30, владелец 18.11: «в перестрелке — разные пики, не один вид под одну ситуацию») вид выхода — жребий с весами про: каким пиком
+    // начиналась перестрелка (12 демок Mirage с каждым тиком, tools/motion/peek_types_pro.py; ≈ 93 дуэли — доли примерные): CT короткий 44 % /
+    // средний 47 % / широкий 9 %, T — 12 / 66 / 23 %. Короткий — выглянул и сразу назад, если размен не мой (оценка — через PEEK_SHORT_DWELL);
+    // средний — на место выхода, как было; широкий — дальше места выхода от укрытия на PEEK_WIDE_EXTRA (если там пол и не упёрся)
+    var PW = PEEK_KIND[b.team] || PEEK_KIND.T, ur = fightRand(b, 13); F.pk = ur < PW[0] ? "short" : ur < PW[0] + PW[1] ? "mid" : "wide";
+    if(F.pk === "wide"){ var wdx = F.ax - F.cx, wdy = F.ay - F.cy, wl = Math.hypot(wdx, wdy);
+      if(wl > 0.5){ var wx = F.ax + wdx/wl*PEEK_WIDE_EXTRA/PX_UNITS, wy = F.ay + wdy/wl*PEEK_WIDE_EXTRA/PX_UNITS;
+        if(!stepBlocked(F.ax, F.ay, wx, wy, b) && navNearLevel(wx, wy, 0, b.z) && !inFire(wx, wy, b.z)){ F.ax = wx; F.ay = wy; } else F.pk = "mid"; } else F.pk = "mid"; }
     // (ответ 4) против AWP (оружие врага видно) — сначала плечо: выстрелил — выглядывает целиком, пока он перезаряжается; нет — через паузу про
     if(F.e && F.e.primary === "AWP"){ var shp = fightShoulderPt(b, F.e, F.cx, F.cy, F.ax, F.ay); if(shp) F.sh = {x:shp.x, y:shp.y, t0:0, shot:F.e.lastShotTick || -1, done:false}; }
   }
+  // (отметка владельца 18.11 №7) уходит из-под линии по задаче (escape: укрытие на перезарядку, отход раненого) — ноги ведёт путь задачи (540,
+  // fcSwingGo), цикл свою точку укрытия не тянет: было — путь к укрытию и цикл к своему гасили друг друга, бот стоял на открытом
+  // дошёл — его укрытие и есть место задачи (у цикла было своё — то, откуда ушёл, на открытом)
+  if(b.post && taskProp(b.post.tag, "escape")){ if(F.ph === "off"){ F.cx = b.post.x; F.cy = b.post.y; } if(!b.atPost){ F.mv = 0; return; } }
   var shOn = F.ph === "back" && F.sh && !F.sh.done;
   if(shOn && F.e && (F.e.lastShotTick || -1) > F.sh.shot){ F.sh.done = true; shOn = false; }   // AWP выстрелил (слышно) — выглядывает целиком
   var tx = F.ph === "off" ? F.cx : shOn ? F.sh.x : F.ax, ty = F.ph === "off" ? F.cy : shOn ? F.sh.y : F.ay;
   var d = Math.hypot(tx-b.baseX, ty-b.baseY);
   if(d < 2 && shOn){ if(!F.sh.t0) F.sh.t0 = tick; if(tick - F.sh.t0 >= peekQ(D.pause, fightRand(b, 7))*TICK_HZ) F.sh.done = true; return; }   // плечо показано — ждёт выстрела до паузы про
-  if(d < 2){ F.mv = 0; if(F.ph === "back"){ F.ph = "line"; F.t = tick; F.until = 0; F.sv = undefined; } return; }
+  if(d < 2){ F.mv = 0; if(F.ph === "back"){ F.ph = "line"; F.t = tick; F.until = F.pk === "short" ? tick + PEEK_SHORT_DWELL : 0; F.sv = undefined; } return; }   // (Д30) короткий — оценка размена сразу: не мой — назад
   // (v524, владелец 10.11: «резко уходят влево-вправо и встают») за укрытие и обратно — той же физикой, что стрейф на линии (разгон CS_ACCEL,
   // трение CS_FRIC, остановка csDecel): с места набирает скорость, перед точкой гасит её; не медленнее CS_STOP, пока не дошёл
   var vmax = SPEED*weaponSpeedMul(b), mv = F.mv || 0;
@@ -394,16 +434,55 @@ function exposedTo(b, maxD, maxAge, anyLos){
      !out.some(function(q){ return Math.hypot(q.x-hs.x, q.y-hs.y) < 60; })) out.push({x:hs.x, y:hs.y});
   return out;
 }
+var RL_PEEK_R = 80, RL_PATH_FREE = 30;   // проектные числа: ед. карты — шаг врага из-за угла (выглянуть); начало пути к укрытию, которое и так на виду
+// (владелец 18.11: «причина должна фиксить все подобные проблемы с этой механикой») ОДНА проверка «место видно врагу» для всех укрытий от врага
+// (цикл боя fightCover, перезарядка coverForReload, отход раненого 350, отход после фрага и findCover 500, фоллбэк 300): игра видит через visParts
+// (3D: голова / тело) — от точки врага (все её полы, если высота не известна) и, с peek, от мест в шаг от неё (RL_PEEK_R), куда он выйдет.
+// Было: в каждом месте своя — плоская линия (hasLOS без высоты), только от одного врага, без шага; укрытие оказывалось на виду
+function spotSeen(q, qz, f, peek){
+  var P = [{x:f.x, y:f.y}];
+  if(peek) for(var k = 0; k < 8; k++){ var a = k*Math.PI/4, p = {x:f.x + Math.cos(a)*RL_PEEK_R, y:f.y + Math.sin(a)*RL_PEEK_R}; if(navAt(p.x, p.y) && !crossesWall(f.x, f.y, p.x, p.y)) P.push(p); }
+  return P.some(function(p, i){
+    var A = []; if(i === 0 && f.z != null) A = [{z: f.z}];
+    else { var a0 = navAt(p.x, p.y), lo = navAt(p.x, p.y, -9999), hi = navAt(p.x, p.y, 9999); [a0, lo, hi].forEach(function(x){ if(x && A.indexOf(x) < 0) A.push(x); }); }
+    return A.some(function(ar){ var v = visParts(p.x, p.y, false, q.x, q.y, false, true, ar.z, qz); return v.head || v.body; }); });
+}
+// от кого прячется укрытие: заданные (стрелок, враг перед ним) + все, кого команда знает рядом (exposedTo: ≤ 4 с, ≤ 1200); T.exp — входы рядом,
+// откуда команда ждёт врага (threatEntrances, вес ≥ RL_THREAT_W; 300 ед., 3 входа — проектные). (отметка владельца 18.11, м1 р1 т1912, kyousuke:
+// «стоит возле кона открыто» — «рядом погиб свой — в укрытие» прятался только от T Ramp, а место открыто под Catwalk, откуда ждут.) Было: входы
+// учитывала одна перезарядка (v555), остальные укрытия — только известных врагов
+function coverThreats(b, extra){
+  var T = (extra || []).filter(Boolean).map(function(f){ return {x:f.x, y:f.y, z:f.z}; });
+  exposedTo(b, 1200, 4*TICK_HZ, true).forEach(function(o){ if(!T.some(function(t){ return Math.hypot(t.x-o.x, t.y-o.y) < 60; })) T.push(o); });
+  T.exp = threatEntrances(b.team, {x:b.x, y:b.y}, 300).filter(function(e){ return e.w >= RL_THREAT_W && !T.some(function(t){ return Math.hypot(t.x-e.pt.x, t.y-e.pt.y) < 120; }); })
+    .slice(0, 3).map(function(e){ return e.pt; });
+  return T;
+}
+// укрыто от известных (обязательно)
+function coverSafe(q, qz, threats){ return threats.every(function(f){ return !spotSeen(q, qz, f, true); }); }
+// выбор укрытия — одно правило для всех мест (бой, ранен, после фрага, отход, перезарядка, «рядом погиб свой», мало HP): из подходящих (по порядку
+// вызывающего) — первое, укрытое и от известных, и от входов, где ждут (T.exp); такого нет — первое, укрытое от известных
+var COVER_CANDS = 12;   // проектное число: мест-кандидатов для выбора укрытия (м1 р1 т1912: из 6 лучших по pickSpots все были открыты под Catwalk, скрытое — 12-е)
+function coverPick(cands, zf, T){
+  var ok = cands.filter(function(q){ return coverSafe(q, zf(q), T); });
+  return ok.filter(function(q){ return coverSafe(q, zf(q), T.exp || []); })[0] || ok[0] || null;
+}
+function coverZ(b){ return function(q){ if(q.z != null) return q.z; var z = navOnlyZ(q.x, q.y); return z != null ? z : b.z; }; }
+function rlSeen(q, z, f){ return spotSeen(q, z, f, true); }
 var RL_THREAT_W = 0.2;   // (v555) проектное число: вход, где команда ждёт врага с таким весом, — укрытие на перезарядку прячет и от него
 function coverForReload(b, from){
   if(b._rlCoverT && tick - b._rlCoverT < 3*TICK_HZ) return true;
   b._rlCoverT = tick;
-  // (v555, отметка владельца м298 р1: «ушёл за укрытие — а не открыт ли он с другой позиции, откуда могут убить») прятаться и от входов, где
-  // команда ждёт врага (threatEntrances: ожидание зон рядом), а не только от известных: укрытие, открытое туда, — хуже (но не запрещено)
-  var thr = threatEntrances(b.team, {x:b.x, y:b.y}, 300).filter(   // 300 ед., 3 входа — проектные
-    function(e){ return e.w >= RL_THREAT_W; }).slice(0, 3).map(function(e){ return e.pt; });
-  var sp = pickSpots("rlcov"+tick+b.id, {x:b.x, y:b.y}, 3, {rMin:30, rMax:150, minGap:30, hideFrom:from.concat(thr)})
-    .filter(function(q){ return from.every(function(f){ return !hasLOS(q.x, q.y, f.x, f.y); }); })[0];
+  // (v555, отметка владельца м298 р1: «а не открыт ли он с другой позиции») прятаться и от входов, где команда ждёт врага, — общий выбор coverPick
+  // (отметка владельца 18.11, м5 р2 т8227, TeSeS: «открыт под игрока 4 с Palace») проверка — 3D с шагом врага (spotSeen)
+  var T = coverThreats(b, from), qz = coverZ(b);
+  var sp = coverPick(pickSpots("rlcov"+tick+b.id, {x:b.x, y:b.y}, COVER_CANDS, {rMin:30, rMax:150, minGap:30, hideFrom:T.concat(T.exp)})
+    .filter(function(q){
+      // и дорога туда не на виду (первые RL_PATH_FREE ед. — он и так стоит на виду): было — укрытие закрыто, а путь к нему шёл по открытому к A
+      var P = pathPts(b.x, b.y, q.x, q.y, b.z), Lp = polyLen(P);
+      for(var dd = RL_PATH_FREE; dd < Lp - 8; dd += 24){ var s = pointAtDist(P, dd), sz = navOnlyZ(s.x, s.y); if(sz == null) sz = b.z;
+        if(T.some(function(f){ return rlSeen(s, sz, f); })) return false; }
+      return true; }), qz, T);
   if(!sp) return false;
   taskKeep(b, 0, "fight");
   setPost(b, sp, from[0], true, "repos:rlcover");
@@ -455,7 +534,7 @@ function lowHpBack(b){
       if(mates.some(function(o){ return o.lookTarget && Math.hypot(o.lookTarget.x-E.pt.x, o.lookTarget.y-E.pt.y) < 220; })) return false;
       var pe = pathPts(b.x, b.y, E.pt.x, E.pt.y, b.z); return pe.length && polyLen(pe) <= 1000; });   // 1000 px — проектное число (как у фланга)
     var E0 = ents[0];
-    var spE = E0 ? pickSpots("lowhpE"+tick+b.id, E0.pt, 2, {rMin:120, rMax:280, minGap:40, must:[E0.pt], hideFrom:threat.slice(0, 3)})[0] : null;
+    var TE = coverThreats(b, threat.slice(0, 3)), spE = E0 ? coverPick(pickSpots("lowhpE"+tick+b.id, E0.pt, COVER_CANDS, {rMin:120, rMax:280, minGap:40, must:[E0.pt], hideFrom:TE.concat(TE.exp)}), coverZ(b), TE) : null;
     if(spE){
       taskKeep(b, 0, "fight"); b._probeLock = 0;
       setPost(b, spE, E0.pt, true, "repos:lowhp");
@@ -474,7 +553,7 @@ function lowHpBack(b){
   // перестановки держится _reposUntil). Раньше — та же задача «мало HP» и «остался один — иду к своим» через пол-карты (сторож: 214 из 242
   // «мало HP» — при полном HP)
   if(!low){
-    var spC = pickSpots("matedown"+tick+b.id, {x:b.x, y:b.y}, 1, {rMin:30, rMax:200, minGap:30, hideFrom:threat.slice(0, 3)})[0];
+    var TC = coverThreats(b, threat.slice(0, 3)), spC = coverPick(pickSpots("matedown"+tick+b.id, {x:b.x, y:b.y}, COVER_CANDS, {rMin:30, rMax:200, minGap:30, hideFrom:TC.concat(TC.exp)}), coverZ(b), TC);
     if(!spC) return;
     taskKeep(b, 0, "fight"); b._probeLock = 0;
     setPost(b, spC, threat[0], true, "repos:mateDown");
@@ -493,8 +572,9 @@ function lowHpBack(b){
     var bad = pts.some(function(q, k){ return k > 0 && threat.some(function(t){ return Math.hypot(q[0]-t.x, q[1]-t.y) < 250; }); });
     if(!bad){ m = o; mL = L; }
   });
-  var sp = m ? (pickSpots("lowhp"+tick+b.id, {x:m.x, y:m.y}, 2, {rMin:40, rMax:180, minGap:40, hideFrom:threat.slice(0, 3)})[0] || {x:m.x, y:m.y})
-             : pickSpots("lowhpc"+tick+b.id, {x:b.x, y:b.y}, 1, {rMin:30, rMax:200, minGap:30, hideFrom:threat.slice(0, 3)})[0];
+  var TL = coverThreats(b, threat.slice(0, 3));
+  var sp = m ? (coverPick(pickSpots("lowhp"+tick+b.id, {x:m.x, y:m.y}, COVER_CANDS, {rMin:40, rMax:180, minGap:40, hideFrom:TL.concat(TL.exp)}), coverZ(b), TL) || {x:m.x, y:m.y})
+             : coverPick(pickSpots("lowhpc"+tick+b.id, {x:b.x, y:b.y}, COVER_CANDS, {rMin:30, rMax:200, minGap:30, hideFrom:TL.concat(TL.exp)}), coverZ(b), TL);
   if(!sp) return;
   taskKeep(b, 0, "fight"); b._probeLock = 0;
   setPost(b, sp, threat[0], true, "repos:lowhp");

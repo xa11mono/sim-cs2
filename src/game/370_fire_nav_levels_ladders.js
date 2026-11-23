@@ -4,11 +4,18 @@ function fireDamageFor(sec){ var n = Math.floor(sec/FIRE_HIT_SEC), d = 0; for(va
 // (v450, док владельца 28.10 №5: «раш через Рампу, а идут через Палас»; м19 р1: CT кинули молотов на T Ramp, путь T0 к Tetris построился
 // в обход через Palace Entry и после того, как огонь погас, остался тем же — T0 вернулся на спавн и пошёл через Палас) огонь погас / потушен
 // — пути, построенные, пока он горел (обход, v438), строятся заново: обход больше не нужен
+var FIRE_GONE_GAIN = 1;   // (v583a) с: новый путь после огня берётся, если короче старого хотя бы на секунду бега — проектное число
 var FIRE_GONE_R = 1500;   // (v450) ед. карты: кто мог идти в обход этого огня — проектное число
 function fireGoneRepath(fr){
   // (путь, построенный при огне, отметить нельзя: маршрут тактики склеивает свои куски) — пути всех, кто в FIRE_GONE_R от огня
-  bots.forEach(function(b){ if(!b.alive || !b.path || !b.path.length || b.planting || b.defusing || Math.hypot(b.baseX-fr.x, b.baseY-fr.y) > FIRE_GONE_R) return;
-    b.path = []; b.pathIdx = 0; });
+  // (v583a, владелец 17.11: «огонь погас — это не всегда повод менять путь»; м302, CT1 у Connector развернулся назад, когда догорел молотов у входа
+  // на B в 977 px от него) путь меняет только тот, кому новый путь от его места заметно короче оставшегося старого (обходил огонь); остальные идут
+  // как шли. И радиус — в px (было: FIRE_GONE_R в единицах сравнивался с px — сбрасывались пути почти всей карты)
+  bots.forEach(function(b){ if(!b.alive || !b.path || !b.path.length || b.planting || b.defusing || b.pathIdx >= b.path.length || Math.hypot(b.baseX-fr.x, b.baseY-fr.y) > FIRE_GONE_R/PX_UNITS) return;
+    var P = b.path, e = P[P.length-1], old = 0, px = b.baseX, py = b.baseY;
+    for(var i = b.pathIdx; i < P.length; i++){ old += Math.hypot(P[i][0]-px, P[i][1]-py); px = P[i][0]; py = P[i][1]; }
+    var np = pathPts(b.baseX, b.baseY, e[0], e[1], b.z, e[2]); if(!np || !np.length) return;
+    if(old - polyLen(np) >= SPEED*FIRE_GONE_GAIN){ movePath(b, [], "огонь погас — путь короче"); b.pathIdx = 0; } });
 }
 function fireRepath(fx, fy){
   var R = NADE.molly.radius + FIRE_BODY;
@@ -22,6 +29,7 @@ function fireRepath(fx, fy){
       if(Math.hypot(px + dx*t - fx, py + dy*t - fy) <= R){ b.path = []; b.pathIdx = 0; return; }
       px = q[0]; py = q[1]; } });
 }
+var FIRE_GATHER_LEFT = 17;   // (v583a) с
 function fireCommit(b){
   if(!b) return false;
   if(b.planting || b.defusing) return b.hp > fireDamageFor(((b.planting ? b.plantUntil : b.defuseUntil) - tick)/TICK_HZ) + 10;
@@ -31,6 +39,11 @@ function fireCommit(b){
   // не ждёт, пока он прогорит: бомба (плант, дефуз, сбить плант / дефуз, ретейк и сбор под него, убежать от взрыва, поднять бомбу).
   // Остальные ждут у края (fireSafe) или идут в обход (путь, FIRE_DETOUR). Было — любой, у кого хватало HP
   if(!(b.post && taskProp(b.post.tag, "fireCommit"))) return false;
+  // (v583a, владелец 18.11: «разбери огонь полностью, чтобы не стояли в нём»; снимок м5 т46080: CT2 «сбор под ретейк» пошёл через молотов к
+  // середине, получил 87 урона за 1,8 с; потом тот же CT на ретейке — 52 урона за 2,1 с) сбор и заход на ретейк ждут, пока огонь прогорит, если время
+  // есть: сквозь огонь — только когда до взрыва
+  // меньше, чем горит молотов и дефуз без кита (FIRE_GATHER_LEFT, проектное: 7 + 10 с)
+  if(taskProp(b.post.tag, "fireIfLate") && !(bomb && bomb.state === "planted" && bombTimeLeftTicks() < FIRE_GATHER_LEFT*TICK_HZ)) return false;
   return b.hp > fireDamageFor(2*NADE.molly.radius/(SPEED*weaponSpeedMul(b))) + FIRE_MARGIN;
 }
 // (v321) высота шага: без связи в навмеше нельзя подняться выше прыжка (JUMP_UP), и нельзя залезть туда, откуда есть
@@ -172,6 +185,11 @@ function ladderFor(x, y, z, zTo, r){
     var d = Math.hypot(e[0].x - x, e[0].y - y); if(d < bd){ bd = d; best = {near: e[0], far: e[1], sec: L.sec, mid: L.up ? L.mid : null, jump: !!L.up, Y: L.up ? L.Y : null}; } }); });
   return best;
 }
+function navDropTo(a, b){
+  var ok = function(x){ return (zoneGraph[x.id] || []).some(function(e){ return e.to === b.id && !NAV_LAD[x.id+">"+b.id]; }); };
+  if(ok(a)) return true;
+  return (zoneGraph[a.id] || []).some(function(e){ var m = navArea(e.to); return m && Math.abs(m.z - a.z) <= 18 && ok(m); });
+}
 // true — бот в этот тик на лестнице (обычный шаг не делается)
 function ladderTick(bot){
   var C = bot._climb;
@@ -227,6 +245,11 @@ function ladderTick(bot){
   // перепад 57 — это прыжок по связи навмеша, а не лестница: раньше в путь вставлялся подъём из демок в 100 ед. от ящика, бот шёл к нему и падал
   // (путь после натяжки пропускает соседний участок своего уровня — связь ищется и через него, как navLinked2)
   var ca = navArea(bot._area); if(ca && navJumpLinked(ca, wp[2])) return false;
+  // (владелец 18.11, м5 р1: «у тиммейта рядом почему путь повёл на лестницу») путь задуман спуском по связи навмеша (спрыгнуть с края, 050) к
+  // участку следующей точки — с этого участка или соседнего своего уровня, и это не связь лестницы (NAV_LAD): лестница не подставляется. Было:
+  // низ лестницы в 105 ед. от точки приземления — «путь через лестницу», бот разворачивался к ней от самого края
+  var aw = navAt(wp[0], wp[1], wp[2]);
+  if(ca && aw && Math.abs(aw.z - wp[2]) <= JUMP_UP && navDropTo(ca, aw)) return false;
   var L = ladderFor(bot.baseX, bot.baseY, bot.z, wp[2], LADDER_SEEK); if(!L) return false;
   // путь действительно идёт через лестницу: эта точка (или следующая за точкой у лестницы) — у другого конца лестницы. Высота
   // конечной точки пути бывает «не знаю» (0) — по ней одной на лестницу не лезть (бот лез вверх-вниз)
@@ -347,7 +370,19 @@ function navNearestFall(x, y, tol, z){
   }
   return best;
 }
+// (владелец 18.11: «сделай нормальное падение — инерция и т. п.») сошёл с края вниз (ниже ступеньки) — падает с ускорением CS2 (sv_gravity 800
+// ед./с²), ход по пути продолжается (инерция), приземление — когда высота дошла до пола под ногами: тогда звук приземления, пересчёт пути.
+// Было: высота менялась за тик (128 ед. — мгновенно), звук — в момент схода
+var FALL_G = 800;
 function navFollowFloor(bot){
+  var FA = bot._fall;
+  if(FA){ var tf = (tick - FA.t0)/TICK_HZ, zf = FA.z0 - 0.5*FALL_G*tf*tf, g = navAt(bot.baseX, bot.baseY, FA.zt) || navArea(FA.area), gz = g ? navFloorZ(g, bot.baseX, bot.baseY) : FA.zt;
+    bot._flx = bot.baseX; bot._fly = bot.baseY;
+    if(zf > gz){ bot.z = zf; return; }
+    bot._fall = null; bot.z = gz; if(g) bot._area = g.id;
+    if(FA.z0 - gz > LAND_SOUND_DROP){ bot._jump = {t:tick, up:false}; if(roundState === "live") landSound(bot); }
+    if(FA.z0 - gz > JUMP_UP && bot.path && bot.pathIdx < bot.path.length){ bot.path = []; bot.pathIdx = 0; }
+    return; }
   if(bot._flx === bot.baseX && bot._fly === bot.baseY) return;
   bot._flx = bot.baseX; bot._fly = bot.baseY;
   var naz = navAt(bot.baseX, bot.baseY, bot.z) || navNearestFall(bot.baseX, bot.baseY, NAV_STEP_TOL, bot.z);
@@ -376,6 +411,7 @@ function navFollowFloor(bot){
     // (v336, владелец: «прыгают на рандом, где не нужно, и палятся») прыжок и приземление — по полу у края (navStepDz),
     // а не по центрам участков: ступени и пандусы Mirage (Stairs, Palace, рампы) больше не «прыжок» со звуком
     var djz = (a0z && naz !== a0z) ? navStepDz(a0z, naz, bot.baseX, bot.baseY) : (naz === a0z ? 0 : dzz);
+    if(bot.z != null && djz < -18 && dzz < -18){ bot._fall = {z0: bot.z, t0: tick, area: naz.id, zt: naz.z}; bot._area = naz.id; return; }   // падение (выше)
     if(djz > 18) bot._jump = {t:tick, up:true}; else if(djz < -LAND_SOUND_DROP) bot._jump = {t:tick, up:false};
     // (v322, М29) прыжок / приземление слышно и при тихом шаге, далеко (csdb.gg: «громкий звук приземления, слышно
     // издалека», без числа) — радиус как у бега: проектное число
@@ -415,11 +451,16 @@ function offNavStep(x1, y1, x2, y2, b){
       if(aw) return false; } }
   return true;
 }
+// (18.11, «чинить механику целиком») пол под ботом — одно место: участок в (x, y) на его уровне (± прыжок); в щели у края, где под точкой только
+// пол другого этажа, — участок, где он стоял (b._area). Было: navAt по высоте брал и чужой этаж (T4 на краю Balcony «стоял» на земле)
+function navOwnArea(b, x, y){ var a = navAt(x, y, b.z); return (!a || (b.z != null && Math.abs(a.z - b.z) > JUMP_UP)) ? (navArea(b._area) || a) : a; }
 function heightBlocked(x1, y1, x2, y2, b){
   if(!b || b.z == null) return false;
   // (v323, М38) стоит в щели между участками навмеша — берётся участок, где был (bot._area); раньше щель пропускала проверку,
   // и бот «залезал» на этаж выше без лестницы (102 раза за 6 раундов Mirage, отметка владельца: из-под Palace на Palace)
-  var a1 = navAt(x1, y1, b.z) || navArea(b._area); if(!a1) return false;
+  // (отметка владельца 18.11, м5 р1 т2567, T4 на краю Balcony) участок под ногами — только своего уровня: стоя в щели у края, navAt давал
+  // землю внизу (−164 при ногах на −36), и каждый шаг обратно на балкон считался прыжком на 128 вверх — бот 1,5 с дёргался на краю
+  var a1 = navOwnArea(b, x1, y1); if(!a1) return false;
   // (v333, владелец: «через Ladder Room спускаются в Underpass», «застрял в Palace», стрельба сквозь стену нижнего этажа) у
   // этажа под другим этажом своих стен на радаре нет (стены — по всем этажам сразу): шаг туда, где своего пола нет, а ниже
   // есть чужой, — со стены вниз; можно только по связи навмеша (спуск, лестница), иначе это стена своего этажа
@@ -461,6 +502,9 @@ function floorCover(x, y, z){
 // плавная смена на экране: доля «под этажом / над этажом» тянется к посчитанной за ~0,25 с (проектное число), без скачков
 function floorViewTick(b){
   var c = floorCover(b.x, b.y, b.z), k = 0.25;
+  // (отметка владельца 18.11, м5 р1, лестница с Balcony: «стал серым, как будто под этажом») лестница в данных — в 4–5 ед. внутри контура пола
+  // над ней, в игре она висит на краю, снаружи: на лестнице «под полом» не считается
+  if(b._climb) c.under = 0;
   b._underV = b._underV == null ? c.under : b._underV + (c.under - b._underV)*k;
   b._overV = b._overV == null ? c.over : b._overV + (c.over - b._overV)*k;
 }
@@ -471,7 +515,7 @@ function floorViewTick(b){
 var NAV_UNLINKED = [];
 function navUnlinkBlocked(bot, pw){
   if(bot.z == null || !pw) return;
-  var a1 = navAt(bot.baseX, bot.baseY, bot.z) || navArea(bot._area); if(!a1) return;
+  var a1 = navOwnArea(bot, bot.baseX, bot.baseY); if(!a1) return;
   var d = Math.hypot(pw[0]-bot.baseX, pw[1]-bot.baseY); if(d < 1) return;
   var px = bot.baseX + (pw[0]-bot.baseX)/d*6, py = bot.baseY + (pw[1]-bot.baseY)/d*6;
   if(!heightBlocked(bot.baseX, bot.baseY, px, py, bot)) return;

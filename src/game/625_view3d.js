@@ -194,7 +194,9 @@ function d3NadeCam(){
   var fid = OBS.lock || OBS.id || plSelected, L = nadesInAir.filter(function(n){ return n.z != null; }), n = null;
   if(fid) n = L.filter(function(q){ return q.thrower && q.thrower.id === fid; }).slice(-1)[0];
   if(!n) n = L.slice(-1)[0];
-  if(n){ var tr = n.trail || [], pr = tr.length ? tr[tr.length-1] : [n.x - 1, n.y, n.z];
+  // (v583a, Д25, владелец 18.11: «граната летит — камера очень быстро дёргается») направление — по следу за ~8 точек, а не по последнему
+  // шагу (на отскоке разворачивалось за кадр), камера догоняет медленнее (k3 «nade» — ниже)
+  if(n){ var tr = n.trail || [], pr = tr.length ? tr[Math.max(0, tr.length-8)] : [n.x - 1, n.y, n.z];
     var dx = n.x - pr[0], dy = n.y - pr[1], l = Math.hypot(dx, dy); if(l < 0.01){ dx = 1; dy = 0; l = 1; }
     var P = [n.x, n.z*D3_KZ, n.y], eye = [P[0] - dx/l*55, P[1] + 22, P[2] - dy/l*55];
     D3.nadeLast = {eye: eye, p: P, t: tick}; return {eye: eye, tgt: [P[0] + dx/l*30, P[1] - 4, P[2] + dy/l*30]}; }
@@ -209,19 +211,26 @@ function d3NadeCam(){
 //   закупка / конец раунда — облёт команды на спавне (по очереди T и CT, D3_SPAWN_SEC); тактическая пауза — пролёт по карте;
 //   раунд — от первого лица: в перестрелке — тот, кто стреляется (следимый обсервером, если он в бою), иначе — следимый обсервером;
 //   граната следимого — за гранатой; раз в D3_OVER_EVERY с — общий вид на D3_OVER_SEC с
-var D3_FP_HOLD = 4, D3_SPAWN_SEC = 8, D3_OVER_EVERY = 25, D3_OVER_SEC = 5;   // проектные числа, с
+var D3_FP_HOLD = 1.5, D3_SPAWN_SEC = 8, D3_OVER_EVERY = 25, D3_OVER_SEC = 5;   // проектные числа, с
 function d3Fighting(b){ return b && b.alive && (b._visible || []).some(function(o){ return o.alive && o.team !== b.team; }); }
 function d3AutoCam(){
-  if(typeof TO_NOW !== "undefined" && TO_NOW) return "flythru";
+  // (v583a, Д24, владелец 18.11: «включается пролёт — летает по карте бесконечно») TO_NOW держится до конца следующего раунда (130), пролёт —
+  // только пока идёт пауза (закупка этого раунда); было: весь раунд после паузы
+  if(typeof TO_NOW !== "undefined" && TO_NOW && roundState === "freeze" && TO_NOW.round === roundNum) return "flythru";
   if(roundState === "freeze" || roundState === "ending"){ D3.autoFp = null; D3.overT = tick; return "spawn"; }
   var oid = OBS.lock || OBS.id, ob = oid && bots.filter(function(o){ return o.id === oid; })[0];
   if(nadesInAir.some(function(n){ return n.z != null && n.thrower && n.thrower.id === (D3.autoFp ? D3.autoFp.id : oid); }) || (D3.nadeLast && tick - D3.nadeLast.t < 1.2*TICK_HZ)) return "nade";
   if(D3.overT == null) D3.overT = tick;
   var anyFight = bots.some(d3Fighting);
+  if(!anyFight && obsPickBest(null).s >= OBS_K.soon) anyFight = true;   // (Д24) бой вот-вот — общий вид не включать
   if(!anyFight && tick - D3.overT > D3_OVER_EVERY*TICK_HZ){ if(tick - D3.overT < (D3_OVER_EVERY + D3_OVER_SEC)*TICK_HZ) return "view"; D3.overT = tick; }
+  // (v583a, Д24, владелец 18.11: «поздно переключается, непонятно, кто кого убивает — переключать заранее») от первого лица — тот же игрок, что
+  // выбрал обсервер (670: счёт obsScore — «скоро бой»: враг рядом смотрит на него, сближаются, выход на сайт), а не первый, кто уже увидел врага;
+  // обсервер выключен — лучший по тому же счёту. Держать не меньше D3_FP_HOLD с, если игрок жив (было: 4 с — бой в другом месте пропускали)
   var A = D3.autoFp, cur = A && bots.filter(function(o){ return o.id === A.id; })[0];
-  if(cur && cur.alive && tick - A.t0 < D3_FP_HOLD*TICK_HZ) return "fp";
-  var nb = d3Fighting(ob) ? ob : (bots.filter(d3Fighting)[0] || (ob && ob.alive ? ob : bots.filter(function(o){ return o.alive; })[0]));
+  var nb = OBS.on && ob && ob.alive ? ob : obsPickBest(null).b;
+  if(cur && cur.alive && nb && nb !== cur && tick - A.t0 < D3_FP_HOLD*TICK_HZ && !(OBS.on && ob === nb)) nb = cur;
+  if(!OBS.on && cur && cur.alive && nb && nb !== cur && obsScore(nb) < obsScore(cur)*OBS_K.more) nb = cur;
   if(nb){ if(!A || A.id !== nb.id) D3.autoFp = {id: nb.id, t0: tick}; return "fp"; }
   return "view";
 }
@@ -499,7 +508,14 @@ function d3Frame(opt){
     var en = (fpb._visible || []).filter(function(o){ return o.alive && o.team !== fpb.team; })
       .filter(function(o){ var da = Math.atan2(o.y - fy, o.x - fx) - ff; da = Math.atan2(Math.sin(da), Math.cos(da)); return Math.abs(da) < D3_FP_AIM; })[0], ty, hd;
     if(en){ ty = ((en.z || 0) + (en.crouching ? 46 : 62))*D3_KZ; hd = Math.max(8, Math.hypot(en.x - fx, en.y - fy)); }
-    else { var ax = fx + Math.cos(ff)*80, ay = fy + Math.sin(ff)*80; ty = d3FloorBelow(ax, ay, (fpb.z || 0) + 60)*D3_KZ + eh; hd = 80; }
+    // (v583a, Д9, владелец 17.11: «в 3D смотрит в стенку рядом с окном») прицел на точке взгляда (lookTarget, ± D3_FP_AIM) — наклон к ней на высоте
+    // головы (пол у точки + 62; пол — ниже глаз бота + 200 ед., окно Mid → Window выше на 105): окно выше / ниже бота видно в проёме, а не стена
+    // под ним. Было: всегда горизонт на высоте глаз (у игры взгляд — только поворот)
+    else if(fpb.lookTarget && Math.abs(Math.atan2(Math.sin(Math.atan2(fpb.lookTarget.y - fy, fpb.lookTarget.x - fx) - ff), Math.cos(Math.atan2(fpb.lookTarget.y - fy, fpb.lookTarget.x - fx) - ff))) < D3_FP_AIM && Math.hypot(fpb.lookTarget.x - fx, fpb.lookTarget.y - fy) > 40){
+      // (v583a, Д25, владелец 18.11: «мимо возвышенности — прицел слишком высоко») пол у точки — ближайший по высоте к полу бота (d3FloorNear), а не
+      // высший до +200 (верх ящика / уступа рядом с точкой поднимал прицел); окно выше бота без пола внизу — по-прежнему его пол
+      var lt3 = fpb.lookTarget; ty = (d3FloorNear(lt3.x, lt3.y, fpb.z || 0) + 62)*D3_KZ; hd = Math.hypot(lt3.x - fx, lt3.y - fy); }
+    else { var ax = fx + Math.cos(ff)*80, ay = fy + Math.sin(ff)*80; ty = d3FloorNear(ax, ay, fpb.z || 0)*D3_KZ + eh; hd = 80; }
     var pD = Math.atan2(ty - ez, hd), nowP = performance.now(), FP = D3.fpP;
     if(!FP || FP.id !== fpb.id || nowP - FP.t > 500) FP = D3.fpP = {id: fpb.id, p: pD, t: nowP};
     var dtP = Math.min(0.1, (nowP - FP.t)/1000), stP = D3_FP_PRATE*dtP, dP = (pD - FP.p)*Math.min(1, dtP*D3_FP_PEASE);
@@ -526,7 +542,7 @@ function d3Frame(opt){
   if(mode === "nade"){ var NC = d3NadeCam(); if(NC){ eye = NC.eye; tgt = NC.tgt; fov = 60*Math.PI/180; near = 1; far = 3000; dist = 260; } }
   // (владелец 13.11: «сразу переключается на убийство, непонятно за кем смотришь», «камера за гранатой дёргается») камера не прыгает:
   // глаз, цель и угол обзора плавно догоняют нужные (обзор с мышью — без задержки)
-  if(!opt.w){ var CS = D3.cs, k3 = (mode === "view" && D3.cam === "view") ? 1 : (mode === "nade" ? 0.12 : mode === "flythru" ? 0.15 : mode === "spawn" ? 0.05 : mode === "fp" ? 1 : 0.08);   // (14.11) от первого лица — взгляд бота как есть (плавность — у прицела, выше)
+  if(!opt.w){ var CS = D3.cs, k3 = (mode === "view" && D3.cam === "view") ? 1 : (mode === "nade" ? 0.06 : mode === "flythru" ? 0.15 : mode === "spawn" ? 0.05 : mode === "fp" ? 1 : 0.08);   // (14.11) от первого лица — взгляд бота как есть (плавность — у прицела, выше)
     if(!CS || CS.mode !== mode && k3 === 1){ CS = D3.cs = {eye: eye.slice(), tgt: tgt.slice(), fov: fov, mode: mode}; }
     else { for(var ci = 0; ci < 3; ci++){ CS.eye[ci] += (eye[ci] - CS.eye[ci])*k3; CS.tgt[ci] += (tgt[ci] - CS.tgt[ci])*k3; } CS.fov += (fov - CS.fov)*k3; CS.mode = mode; }
     eye = CS.eye.slice(); tgt = CS.tgt.slice(); fov = CS.fov; }

@@ -7,10 +7,10 @@
 // пол и уступы, потолки, дым на радаре сейчас. Esc — убрать точки.
 // Состояние в снимок игры не попадает (src/build.py, список UI).
 var chkVis = document.getElementById("chkVis");
-var VT = {a: null, b: null, img: null, key: null, step: 6, ms: 0};
+var VT = {a: null, b: null, img: null, key: null, step: 6, ms: 0}, VT_PICK_R = 14;   // ед. карты: клик ближе к игроку — точка в нём
 function vtOn(){ return !!(chkVis && chkVis.checked); }
-function vtSees(ax, ay, aC, bx, by, bC){
-  var p = visParts(ax, ay, aC, bx, by, bC);
+function vtSees(ax, ay, aC, bx, by, bC, az, bz){
+  var p = visParts(ax, ay, aC, bx, by, bC, true, az, bz);
   if((p.head || p.body) && smokeBlocks(ax, ay, bx, by)) return {head: false, body: false};
   return p;
 }
@@ -25,7 +25,7 @@ function vtCompute(){
     if(M){ if(m3FloorKinds(M, x, y).indexOf(1) < 0) continue; }   // (А5) не пол, куда можно дойти пешком (этажи геометрии)
     else { var k = Math.floor(y / VIS_CELL)*W + Math.floor(x / VIS_CELL);
       if(F[k] === -Infinity || S[k] > F[k] + VIS_FLOOR_EPS + 1) continue; }   // не пол (стена, пустота; верх укрытия — пол, если на нём навмеш)
-    var s = vtSees(A.x, A.y, false, x, y, false), c = vtSees(A.x, A.y, true, x, y, false);
+    var s = vtSees(A.x, A.y, false, x, y, false, A.z), c = vtSees(A.x, A.y, true, x, y, false, A.z);
     var vs = s.head || s.body, vc = c.head || c.body; if(!vs && !vc) continue;
     var col = vs && vc ? [70, 220, 90] : (vs ? [250, 205, 40] : [70, 170, 250]), o = (j*n + i)*4;
     D[o] = col[0]; D[o+1] = col[1]; D[o+2] = col[2]; D[o+3] = 150;
@@ -34,14 +34,14 @@ function vtCompute(){
   VT.img = cnv; VT.ms = Math.round(performance.now() - t0);
   VT.key = vtKey();
 }
-function vtKey(){ return VIS_GEN + "|" + WALLS_SIG + "|" + smokes.length + "|" + (VT.a ? VT.a.x + "," + VT.a.y : ""); }
+function vtKey(){ return VIS_GEN + "|" + WALLS_SIG + "|" + smokes.length + "|" + (VT.a ? VT.a.x + "," + VT.a.y + "," + VT.a.z : ""); }
 // строка для пары A–B: что A видит у B при каждой стойке
 function vtPairText(){
   var A = VT.a, B = VT.b; if(!A || !B) return null;
-  function t(aC, bC){ return visPartsText(vtSees(A.x, A.y, aC, B.x, B.y, bC)); }
+  function t(aC, bC){ return visPartsText(vtSees(A.x, A.y, aC, B.x, B.y, bC, A.z, B.z)); }
   return ["A видит B (B стоит): A стоя — " + t(false, false) + " · A присев — " + t(true, false),
           "A видит B (B присел): A стоя — " + t(false, true) + " · A присев — " + t(true, true),
-          "B видит A (A стоит): B стоя — " + visPartsText(vtSees(B.x, B.y, false, A.x, A.y, false)) + " · B присев — " + visPartsText(vtSees(B.x, B.y, true, A.x, A.y, false))];
+          "B видит A (A стоит): B стоя — " + visPartsText(vtSees(B.x, B.y, false, A.x, A.y, false, B.z, A.z)) + " · B присев — " + visPartsText(vtSees(B.x, B.y, true, A.x, A.y, false, B.z, A.z))];
 }
 function visToolDraw(){
   if(!vtOn()) return;
@@ -66,7 +66,7 @@ function visToolDraw(){
   ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
   var lines = VT.a ? ["Кто кого видит: из A виден стоящий человек (голова или тело)",
                       "■ зелёный — видно и стоя, и присев   ■ жёлтый — только стоя   ■ голубой — только присев",
-                      "A: пол " + Math.round(visFloorAt(VT.a.x, VT.a.y)) + " · считалось " + VT.ms + " мс · Shift+клик — точка B, Esc — убрать"]
+                      "A: " + (VT.a.id ? "игрок " + VT.a.id + " · " : "") + "пол " + Math.round(visFloorAt(VT.a.x, VT.a.y, VT.a.z)) + " · считалось " + VT.ms + " мс · Shift+клик — точка B, Esc — убрать"]
                    : ["Кто кого видит: клик по радару — точка A (откуда смотрим), Shift+клик — точка B"];
   var pt = vtPairText(); if(pt) lines = lines.concat(pt);
   ctx.font = "12px 'IBM Plex Sans',sans-serif";
@@ -89,6 +89,10 @@ function visToolDraw(){
 cv.addEventListener("mousedown", function(e){
   if(!vtOn() || e.button !== 0 || mapEdOn()) return;
   var w0 = navScreenToWorld(e.clientX, e.clientY), w = snapToWalkable(w0.x, w0.y), p = {x: Math.round(w.x*10)/10, y: Math.round(w.y*10)/10};   // клик в стену — к ближайшему полу
+  // (отметка владельца 18.11, м33 р1 т2937: «не видит игрока 2 на Short, хотя инструмент показывает, что должен») клик по игроку — точка ровно в
+  // нём (его место и этаж): было — где кликнули, а маркер шире точки; от точки в 10 ед. правее kyousuke угол Mid открыт, от него самого — нет
+  var pb = null, pd = VT_PICK_R; bots.forEach(function(o){ if(!o.alive) return; var d = Math.hypot(o.x - w0.x, o.y - w0.y); if(d < pd){ pd = d; pb = o; } });
+  if(pb) p = {x: pb.x, y: pb.y, z: pb.z, id: pb.id};
   if(e.shiftKey && VT.a) VT.b = p; else { VT.a = p; VT.b = null; }
   e.stopImmediatePropagation(); e.preventDefault(); draw();
 }, true);

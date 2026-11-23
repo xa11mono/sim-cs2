@@ -59,6 +59,11 @@ function lookTick(){
         // в перестрелке — разница 45–81 %). AIM_LAG остаётся в расчёте попадания (490)
         // большой поворот к врагу (≥ HAND_FIGHT, 45°) — рукой с промахом и паузой; меньше — ведение цели (ниже). Рука на каждый уход ≥ 1,7°
         // давала прицел неподвижен 70 % против 50 % у про и первую пулю с места 75 % против 33 % (run.sh 14.11)
+        // (отметка владельца 18.11, м5 р2 т8883, CT3) рывок, начатый к другой точке, — враг появился в стороне больше HAND_FIGHT от того, куда
+        // рывок довезёт: рывок прерывается (человек доводит руку к новой цели), а не довозится до конца — было: CT3 вёл прицел на 183°,
+        // враг на 347°, рука ещё 20 тиков уводила взгляд от врага
+        if(b._sawEnemy && b._hand && tick < b._hand.t0 + b._hand.T){ var rem = 0; b._hand.segs.forEach(function(g){ rem += g.A*(1 - (g.s || 0)); });
+          if(_angOff(b.facing + rem, want) > HAND_FIGHT){ b._hand = null; dd = want - b.facing; dd = ((dd + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI; } }
         var hA = b._hand && b._hand.f && tick < b._hand.t0 + b._hand.T + b._hand.gap;
         if(Math.abs(dd) >= HAND_FIGHT || hA){ b._aimFix = true; handTurn(b, dd, "f"); if(b._hand) b._hand.f = true; }
         else {

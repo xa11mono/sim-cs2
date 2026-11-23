@@ -138,7 +138,7 @@ function tBrain(){
     // в тот же тик «на A стак — перекол на B») бомба лежит у нашего сайта — перекол на другой не идёт: без неё там нечего делать, а нести её
     // через полкарты из-под огня — это не перекол. Сначала бомба (за ней идут — fetch), потом решение
     var bombHere = bomb && bomb.state === "dropped" && Math.hypot(bomb.x-SITES[tt.site].x, bomb.y-SITES[tt.site].y) < BOMB_HERE_R;
-    if(!bombHere && pickOther && carOK && aliveT >= (lateOK ? 2 : 3) && beliefCount("T", BZ.siteNear[other]||[]) < 0.9 && there < 1.5 && iglReads(tt, "po") && iglTake(tt, poSig ? poSig.tick : tick)){
+    if(!bombHere && pickOther && carOK && !tSiteTaking(tt) && aliveT >= (lateOK ? 2 : 3) && beliefCount("T", BZ.siteNear[other]||[]) < 0.9 && there < 1.5 && iglReads(tt, "po") && iglTake(tt, poSig ? poSig.tick : tick)){
       tt.rebound = true;
       voiceLog("T", "reb"+other, "IGL", lateOK ? "ПЕРЕКОЛЛ "+tt.site+" → "+other+": на "+tt.site+" их больше, на "+other+" сняли опорника — бомба на "+other+"!" : "минус на "+other+", там пусто — все на "+other+"!");
       logEvent("IGL: перекол → "+other+" (сняли CT, сайт пустой)");
@@ -150,7 +150,7 @@ function tBrain(){
                                          : (here - there >= 2 && (here >= 3.5 || deathsHere >= 2));
     // стак = минимум двое реально замечены/услышаны у сайта сейчас (или минус там)
     if(stackRead && (freshC[tt.site]||0) < 2 && deathsHere < 1) stackRead = false;
-    if(!bombHere && aliveT >= needAlive && stackRead && iglReads(tt, "st") && iglTake(tt, tick)){
+    if(!bombHere && aliveT >= needAlive && stackRead && !tSiteTaking(tt) && iglReads(tt, "st") && iglTake(tt, tick)){
       tt.rebound = true;
       logEvent("IGL: на "+tt.site+" стак (~"+Math.round(here)+"), перепривязка → "+other);
       // (v324) перекол говорится в войс — раньше был только в консоли, и в войсе потом звучало «бомба на B», хотя все шли на A
@@ -173,7 +173,7 @@ function tBrain(){
     // (v519, пак 09.11 п.12; А-6: на раше в первые секунды «B пустой, бомба рядом — ставим B!») «там пусто» — по знанию команды (siteAssess, 150: каждый
     // живой CT где-то замечен, и не у того сайта), а не «по карте вероятностей меньше 0,9» — в начале раунда о CT ещё ничего не знают, и отсутствие
     // информации считалось пустым сайтом
-    if(dOe < dHe && bOe < 0.9 && bOe < bHe && eOe.n < 1.5 && siteAssess("T", other).level === "empty" && iglTake(tt, tick)){
+    if(dOe < dHe && bOe < 0.9 && bOe < bHe && eOe.n < 1.5 && siteAssess("T", other).level === "empty" && !tSiteTaking(tt) && iglTake(tt, tick)){
       tt._exReb = true;
       voiceLog("T", "exreb"+other, "IGL", other+" пустой, бомба рядом — ставим "+other+"!");
       logEvent("IGL: на выходе перекол → "+other+" (носителю ближе, там пусто)");
@@ -193,7 +193,7 @@ function tBrain(){
       // команды (beliefCount: гипотезы врагов с направлением хода, уже со смертью своего), и другой сайт по знанию не полнее нашего: у него
       // меньше ждём врагов, или столько же, а носителю туда ближе. Было: «меньше одного врага» (0,69 < 0,9) и никого не видели и не слышали
       // за 6 с — знание о karrigan (0,69 на B против 0,57 на A) не учитывалось, и перекол уводил всех на сайт, где их ждали больше
-      if(bO < 0.9 && (bO < bH || (bO <= bH && dOc < dHc)) && secLeft > dOc/SPEED + PLANT_TICKS/TICK_HZ + 8 && iglTake(tt, tick)){
+      if(bO < 0.9 && (bO < bH || (bO <= bH && dOc < dHc)) && secLeft > dOc/SPEED + PLANT_TICKS/TICK_HZ + 8 && !tSiteTaking(tt) && iglTake(tt, tick)){   // (22.11, Ж16) сайт берётся — доигрываем
         tt._clrReb = true; tt.rebound = true;
         // (ответ владельца 2) подтверждённо пуст (позиции и подходы проверены / закрыты) — выход и плант сразу; только вероятно пуст (все CT
         // замечены в другом месте) — переколл, но занимать осторожно: сетап (занять и прочекать сайт), выход — по таймингу
@@ -235,7 +235,8 @@ function tBrain(){
     if(aCT <= 2 && aT > aCT){ tt.fewGo = true; tFastGo(tt, function(){
       var seenHere = intelEstimate("T", site.x, site.y, 600, 8*TICK_HZ).seen, seenOther = intelEstimate("T", SITES[other].x, SITES[other].y, 600, 8*TICK_HZ).seen;
       var was = tt.site;
-      if(seenHere > 0 && seenOther === 0){ tSetSite(tt, other); site = SITES[tt.site]; g = GEO[tt.site]; other = tt.site === "A" ? "B" : "A"; }
+      if(seenHere > 0 && seenOther === 0 && !tSiteTaking(tt)){ tSetSite(tt, other);   // (22.11, Ж16) последних видели у нас, но сайт берётся — добиваем здесь
+        site = SITES[tt.site]; g = GEO[tt.site]; other = tt.site === "A" ? "B" : "A"; }
       tt.fewGo = true; tt.phase = "execute"; tt.execStart = tick; siteHeatPending[tt.site] = 1;
       voiceLog("T", "few"+roundNum, "IGL", was !== tt.site ? "ПЕРЕКОЛЛ "+was+" → "+tt.site+": их осталось "+aCT+", на "+was+" видели — заходим сейчас!"
                                                            : "их осталось "+aCT+" — заходим сейчас, бомба на "+tt.site+"!");
@@ -419,10 +420,14 @@ function tBrain(){
         // перекола на другой сайт группы тактики (пути к старому сайту — Рамп, Палас) — уже не район места: место дефолта — по долям про
         // у нового сайта. И выбор мест (_defZ) — заново под новый сайт: было — раз на раунд, и после перекола A → B носитель шёл в Палас
         var gOf = function(b){ var r = null; if(tac.site && tac.site !== tt.site) return null; (tac.groups || []).forEach(function(G){ if(!r && G.roles.indexOf(b.tRole) >= 0) r = G; }); return r; };
+        var laneOf = function(G){ var V = G.via || [], si = G.stage ? V.indexOf(G.stage) : -1; return si >= 0 ? V.slice(0, si + 1) : V.concat(G.stage ? [G.stage] : []); };
         var gPts = function(G){ var P = [];
           if(!G) return P;
           if(G.stage === "TMID"){ var tm = tt.tMidPt || GEO.tMid; if(tm) P.push(tm); return P; }
-          (G.via || []).concat(G.stage ? [G.stage] : []).forEach(function(n){ var q = zonePoint(n, SITES[tt.site]); if(q) P.push(q); });
+          // (22.11, Ж15, разбор м5 р3: игрок Palace получил дефолт у Tetris — путь группы Palace кончается Pillars / Palace Exit у сайта A, рядом
+          // с выходом Ramp) район группы на дефолте — своя дорожка ДО стадии: что после стадии — уже выход, там дорожки групп сходятся у сайта.
+          // Было: все точки пути группы
+          laneOf(G).forEach(function(n){ var q = zonePoint(n, SITES[tt.site]); if(q) P.push(q); });
           return P; };
         var defPick = function(b, used, seed){ var P = gPts(gOf(b));
           // (п.28 владельца 29.10, м1 р8: группа Ramp получила места Mid Boxes / Chair / Connector — по прямой ≤ 450 сквозь стены) район
@@ -447,7 +452,11 @@ function tBrain(){
         // (Г3, 04.11, пп. 27/29 и ответ владельца: «в реальности нет таймера — место меняют по ситуации, по геймсенсу») смена места дефолта
         // через DEF_STAND (13 с стояния) убрана: место меняется по событиям — контакт (350), перестановки (470/480), план IGL (160)
         dm.forEach(function(b){
-          var zn0 = tt._defZ.z[b.id], P = gPts(gOf(b)), tgt = SITES[tt.site];
+          var zn0 = tt._defZ.z[b.id], G0 = gOf(b), P = gPts(G0), tgt = SITES[tt.site];
+          // (22.11, Ж15, владелец: «путь в якорь в Паласе — с T-спавна в Palace Entry, Palace, потом Palace Exit, а не через рампу, через врагов»)
+          // к месту дефолта — по дорожке своей группы до стадии (последовательность зон тактики, маршрут 110: пост роли — его конец). Было:
+          // маршрут группы на дефолте не запускался (`if(!tt.defUntil)` ниже), к месту — кратчайшим путём (якорь у Palace Exit — через T Ramp)
+          if(G0 && G0.stage !== "TMID") startRoute(b, laneOf(G0), tac.id + ":lane:" + tt.site);
           var Zp = zn0 ? zonePoint(zn0, P[P.length-1] || tgt) : (P[P.length-1] || null), tag = zn0 ? "default:"+zn0 : "default:group";
           if(!Zp) return;
           var lk = [GEO.A.tEntry, GEO.B.tEntry, GEO.tMidLook].filter(Boolean).sort(function(a, c){ return Math.hypot(a.x-Zp.x, a.y-Zp.y) - Math.hypot(c.x-Zp.x, c.y-Zp.y); })[0];
@@ -1018,7 +1027,11 @@ function tBrain(){
     // (v145) пост-плант у бомбы = "держать район вокруг бомбы": бомбу видеть
     // обязательно (снять дефузера), встать под главный вход ретейка, от
     // остальных закрыться, не стоять кучей, по возможности кроссфаер
-    holdGroup(group, {key:"pp"+bomb.site+Math.round(bp0.x/30), center:bp0, rArea: 420, rMin: 180, rMax: 520, must:[bp0], anyFrom:true,   // (v520, владелец 09.11: «занимают позиции, с которых видна бомба») бомбу видят все, не только первый (было mustFirst, до 680 px — встали в Hole)
+    // (v583a, Д14) места про при такой бомбе (MAP.postplant) — ppProGroup (280); нет данных о зоне бомбы — держать район вокруг бомбы
+    // (отметка владельца 18.11, м5 р1: место про сдвигали «ради обзора» / «от своего» — T3 со Stairs на открытый Cross, T2 на открытую часть T Ramp)
+    // место про — точное (exactSpot, 110): «postplant:pro»
+    var ppRest = ppProGroup(group, bp0, bomb.site, "postplant:pro"); if(ppRest && !ppRest.length) return;
+    holdGroup(ppRest || group, {key:"pp"+bomb.site+Math.round(bp0.x/30), center:bp0, rArea: 420, rMin: 180, rMax: 520, must:[bp0], anyFrom:true,   // (v520, владелец 09.11: «занимают позиции, с которых видна бомба») бомбу видят все, не только первый (было mustFirst, до 680 px — встали в Hole)
       // (v442, док владельца 27.10: «войс спамится» — «держу бомбу, смотрю X» каждый игрок при каждой смене угла, 3–4 строки в секунду) — один
       // раз за раунд на игрока: куда смотрит дальше, видно на радаре
       voice:function(b, r){ if(r.main && b._ppSaid !== roundNum && (b._ppSaid = roundNum)) voiceLog("T", "pphold"+b.id, b.id, "смотрю бомбу "+calloutName(r.main.pt.x, r.main.pt.y).replace(/^на /,"")); }}, "postplant:hold");
