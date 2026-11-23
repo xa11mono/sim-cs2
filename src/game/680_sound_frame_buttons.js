@@ -20,10 +20,13 @@ function sndLoad(){
     SND.ctx.decodeAudioData(u.buffer, function(b){ SND.buf[k] = b; }, function(){});
   });
 }
+// (v518d) повтор идёт и в начале нового раунда (675, RP_K.live): звуки живой игры под ним молчат, звучит только повтор — одно условие для записей
+// (sndPlay) и запасного синтеза (sndNoise / sndTone: шаг, лестница… без записи — синтез «тук-тук», он и звучал в повторах)
+function sndRpMuted(){ return typeof RP !== "undefined" && RP.on && !RP.sndOwn; }
 // запись с громкостью g; вдали глуше (фильтр по расстоянию: far 0..1)
 function sndPlay(key, g, far, delay){
   // (v518d) повтор идёт и в начале нового раунда (675, RP_K.live): звуки живой игры под ним молчат, звучит только повтор
-  if(typeof RP !== "undefined" && RP.on && !RP.sndOwn) return false;
+  if(sndRpMuted()) return false;
   var B = SND.buf[key]; if(!B) return false;
   var c = SND.ctx, t0 = c.currentTime + (delay||0), src = c.createBufferSource(); src.buffer = B;
   var fl = c.createBiquadFilter(); fl.type = "lowpass"; fl.frequency.value = 18000 - 15000*Math.min(1, far||0);
@@ -67,12 +70,14 @@ function sndGain(x, y, R, cat){
   return g;
 }
 function sndNoise(g, dur, type, f, q, delay){
+  if(sndRpMuted()) return;   // (23.11, владелец п.6: «старый звук шагов в повторах») под повтором молчит и запасной синтез живой игры, не только записи
   var c = SND.ctx, t0 = c.currentTime + (delay||0), src = c.createBufferSource(); src.buffer = SND.noise;
   var fl = c.createBiquadFilter(); fl.type = type; fl.frequency.value = f; fl.Q.value = q || 1;
   var gn = c.createGain(); gn.gain.setValueAtTime(g, t0); gn.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
   src.connect(fl); fl.connect(gn); gn.connect(SND.master); src.start(t0, Math.random()*0.5); src.stop(t0 + dur + 0.02);
 }
 function sndTone(g, dur, f, type, delay, f2){
+  if(sndRpMuted()) return;   // (23.11, владелец п.6: «старый звук шагов в повторах») под повтором молчит и запасной синтез живой игры, не только записи
   var c = SND.ctx, t0 = c.currentTime + (delay||0), o = c.createOscillator(); o.type = type || "sine"; o.frequency.setValueAtTime(f, t0);
   if(f2) o.frequency.exponentialRampToValueAtTime(f2, t0 + dur);
   var gn = c.createGain(); gn.gain.setValueAtTime(g, t0); gn.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
