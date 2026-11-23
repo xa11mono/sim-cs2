@@ -36,7 +36,7 @@ function mkSnapshot(){
     }
   }
 }
-function mkRestore(data){ var c = structuredClone(data); mkSnapList().forEach(function(e){ if(e[0] in c) e[2](c[e[0]]); }); mkRebaseShow(); }
+function mkRestore(data){ var c = structuredClone(data); mkSnapList().forEach(function(e){ if(e[0] in c) e[2](c[e[0]]); }); mkRebaseShow(); mkJrRewind(); }
 // (18.11) показ (трассеры, круги звука) помнит время рождения по часам страницы (nowTs), а часы в снимок не входят: после открытия снимка
 // «возраст» выходил отрицательным — вспышка выстрела на весь экран (оранжевый кадр), круг звука с отрицательным радиусом ронял кадр.
 // Сдвиг: самое свежее из снимка — «сейчас» по часам этой страницы, остальные — на тот же сдвиг
@@ -123,6 +123,7 @@ function mkCheckpoint(){
 }
 // вызывается из frame() после шагов симуляции
 function mkAfterTicks(){
+  if(!MK.busy) mkJrTick();
   if(MK.busy || paused) return;
   // снимок для перемотки не должен останавливать игру: не получился — пропуск (перемотка возьмёт предыдущий), в консоль — причина
   if(MK.cpMatch !== matchNum || tick - MK.lastCpTick >= MK.CP_EVERY || tick < MK.lastCpTick){
@@ -142,7 +143,7 @@ function mkGoTo(match, target, done){
   function step(){
     var t0 = performance.now();
     while(tick < target && matchNum === match && performance.now() - t0 < 60){
-      stepTick();
+      stepTick(); mkJrTick();
       if(tick % MK.CP_EVERY === 0 && tick !== MK.lastCpTick) mkCheckpoint();
     }
     if(tick < target && matchNum === match){
@@ -161,6 +162,65 @@ function mkBack10(){
   var to = Math.max(0, tick - 10*TICK_HZ);
   mkGoTo(matchNum, to, function(ok){ mkToast(ok ? "Назад на 10 с: матч " + matchNum + ", тик " + tick : "Не удалось перемотать"); });
 }
+
+// ---------- журнал решений (23.11, владелец: «журнал решений за промежуток прямо в отметке») ----------
+// страница пишет, что менялось у ботов: задача (с местом и причиной), гибель (кто убил), войс. Хранит последние MK_JR_SEC с. Перемотка записи не
+// стирает: игра детерминирована — пересчёт даёт те же записи, повтор отбрасывается по совпадению (матч, тик, бот, текст). В отметку — кусок за
+// промежуток (для скрина — за MK_PRE_SEC до момента)
+var MK_JR_SEC = 75;
+MK.jr = []; MK.jrS = new Set(); MK.jrP = {}; MK.jrV = null;
+function mkJrRewind(){ MK.jrP = {}; MK.jrV = voiceLines[0] || null; }
+function mkJrAdd(id, txt){ var key = matchNum + "|" + tick + "|" + id + "|" + txt; if(MK.jrS.has(key)) return; MK.jrS.add(key);
+  MK.jr.push({m: matchNum, k: tick, r: roundNum, b: id, e: txt}); MK.jrSort = true; }
+function mkJrTick(){
+  if(typeof WARM !== "undefined" && WARM.on) return;
+  try{
+    bots.forEach(function(b){
+      var tg = b.alive ? (b.post ? String(b.post.tag) : "(без задачи)") : "†", P = MK.jrP[b.id];
+      if(P === undefined){ MK.jrP[b.id] = tg; return; }
+      if(P === tg) return; MK.jrP[b.id] = tg;
+      if(tg === "†"){ var kf = (typeof killfeed !== "undefined" ? killfeed : []).filter(function(f){ return f.kind === "kill" && f.vic === nick(b.id); })[0];
+        mkJrAdd(b.id, "погиб" + (kf ? " — убил " + (kf.att || "?") + (kf.w ? " (" + kf.w + ")" : "") : "")); return; }
+      mkJrAdd(b.id, "задача: " + tg + (b.post ? " → " + mkPlace(b.post.x, b.post.y) : "") + " · стоит " + mkPlace(b.x, b.y) + (whyText(b) ? " · " + whyText(b) : ""));
+    });
+    var nv = []; for(var i = 0; i < voiceLines.length && voiceLines[i] !== MK.jrV; i++) nv.push(voiceLines[i]);
+    if(MK.jrV !== null || !voiceLines.length) nv.reverse().forEach(function(v){ mkJrAdd(null, "войс " + v.team + " · " + v.who + ": " + v.text); });
+    MK.jrV = voiceLines[0] || null;
+  }catch(e){}
+  if(MK.jrSort){ MK.jrSort = false; MK.jr.sort(function(a, c){ return a.m - c.m || a.k - c.k; }); }
+  var lim = tick - MK_JR_SEC*TICK_HZ; if(MK.jr.length > 3000 || (MK.jr.length && (MK.jr[0].m !== matchNum || MK.jr[0].k < lim - 600*TICK_HZ))){
+    MK.jr = MK.jr.filter(function(e){ return e.m === matchNum && e.k >= lim - 600*TICK_HZ; }).slice(-3000); MK.jrS = new Set(MK.jr.map(function(e){ return e.m + "|" + e.k + "|" + e.b + "|" + e.e; })); }
+}
+function mkJrText(from, to, ids){
+  return MK.jr.filter(function(e){ return e.m === matchNum && e.k >= from && e.k <= to && (!ids || !ids.length || !e.b || ids.indexOf(e.b) >= 0); })
+    .map(function(e){ return (e.k - to >= 0 ? "+" : "") + Math.round((e.k - to)/TICK_HZ*10)/10 + " с · " + (e.b ? e.b + " (" + pnum(e.b) + ")" : "—") + " · " + e.e; });
+}
+// ---------- промежуток (23.11, владелец: «отметку промежутком, а не скрином; чтобы я мог выбирать, когда скрин, а когда промежуток») ----------
+// шкала — последние MK_RANGE_SEC с до момента нажатия (не раньше самого раннего снимка этого матча); отпустил ползунок — игра пересчитывается до
+// этого тика (детерминированно, из ближайшего снимка) и показывает его; при сохранении / отмене — возврат в момент нажатия
+var MK_RANGE_SEC = 30;
+function mkRangeLo(hi){ var fp = mkFp(), lo = hi; MK.cps.forEach(function(c){ if(c.fp === fp && c.match === matchNum && c.tick < lo) lo = c.tick; });
+  return Math.max(lo, hi - MK_RANGE_SEC*TICK_HZ); }
+function mkPreSnapAt(t){ var fp = mkFp(), best = null;
+  MK.cps.forEach(function(c){ if(c.fp === fp && c.match === matchNum && c.tick <= t && (!best || c.tick > best.tick)) best = c; });
+  return best ? {tick: best.tick, data: best.data} : null; }
+function mkRangeUi(){
+  var m = MK.cur; if(!m) return; var R = m.range, on = m.mode === "range";
+  mkEl("mkRange").style.display = on ? "block" : "none"; if(!on || !R) return;
+  var a = mkEl("mkRFrom"), b = mkEl("mkRTo");
+  a.min = b.min = R.lo; a.max = b.max = R.hi; a.value = R.from; b.value = R.to;
+  var sec = function(t){ return (t - R.hi === 0 ? "0" : Math.round((t - R.hi)/TICK_HZ*10)/10) + " с"; };
+  mkEl("mkRLbl").textContent = "начало " + sec(R.from) + " · конец " + sec(R.to) + " · длина " + Math.round((R.to - R.from)/TICK_HZ*10)/10 + " с (0 — момент нажатия)";
+}
+function mkRangeSet(which){
+  var m = MK.cur; if(!m || !m.range || MK.busy) return; var R = m.range;
+  var v = +mkEl(which === "from" ? "mkRFrom" : "mkRTo").value;
+  if(which === "from"){ R.from = Math.min(v, R.to - TICK_HZ); } else { R.to = Math.max(v, R.from + TICK_HZ); }
+  R.from = Math.max(R.lo, R.from); R.to = Math.min(R.hi, R.to); mkRangeUi();
+  var t = which === "from" ? R.from : R.to;
+  mkGoTo(m.match, t, function(ok){ mkToast(ok ? "Показан тик " + tick + (which === "from" ? " (начало)" : " (конец)") : "Не удалось перемотать"); });
+}
+function mkBackToMark(done){ var m = MK.cur; if(m && tick !== m.tick && !MK.busy) mkGoTo(m.match, m.tick, function(){ if(done) done(); }); else if(done) done(); }
 
 // ---------- состояние момента ----------
 function mkDeg(a){ return Math.round(((a*180/Math.PI)%360+360)%360); }
@@ -215,8 +275,8 @@ function mkBotIdAt(wx, wy){
 // ---------- кадр: вся карта (v401, владелец 22.10 — «скриншот со всей карты, а не участка») ----------
 // радар 2048×2048 целиком в MK_FRAME px: названия зон, номера всех игроков (рисует draw), дым и огонь; отмеченный — красный круг
 var MK_FRAME = 1400, MK_FRAME_PAD = 140;   // px кадра по длинной стороне; запас от центров крайних зон (ед. радара) — проектные числа
-function mkFrame(botId){
-  var b = bots.filter(function(o){ return o.id === botId; })[0];
+function mkFrame(ids, wantPt){
+  ids = ids ? [].concat(ids) : []; var B = bots.filter(function(o){ return ids.indexOf(o.id) >= 0; });
   // рамка — по зонам карты (центры ± MK_FRAME_PAD ед. радара), чтобы пустые края радара не съедали кадр
   var x0 = 2048, y0 = 2048, x1 = 0, y1 = 0, PAD = MK_FRAME_PAD;
   for(var zid in ZONE_CENTROIDS){ var c = ZONE_CENTROIDS[zid]; if(!c) continue; x0 = Math.min(x0, c.x); y0 = Math.min(y0, c.y); x1 = Math.max(x1, c.x); y1 = Math.max(y1, c.y); }
@@ -233,7 +293,11 @@ function mkFrame(botId){
       var sx = p.x*K + view.panX, sy = p.y*K + view.panY;
       var nm = mkPlace(p.x, p.y); if(!nm || nm === "?" || seen[nm]) return; seen[nm] = 1;
       ctx.lineWidth = 3; ctx.strokeStyle = "rgba(0,0,0,0.75)"; ctx.strokeText(nm, sx, sy); ctx.fillStyle = "#f3efe4"; ctx.fillText(nm, sx, sy); });
-    if(b){ ctx.setLineDash([6, 4]); ctx.lineWidth = 3; ctx.strokeStyle = "#ff5a4f"; ctx.beginPath(); ctx.arc(b.x*K + view.panX, b.y*K + view.panY, 20, 0, Math.PI*2); ctx.stroke(); }
+    B.forEach(function(b){ ctx.setLineDash([6, 4]); ctx.lineWidth = 3; ctx.strokeStyle = "#ff5a4f"; ctx.beginPath(); ctx.arc(b.x*K + view.panX, b.y*K + view.panY, 20, 0, Math.PI*2); ctx.stroke(); });
+    // (23.11) «куда должен был» — зелёный крест (владелец ставит точку на радаре)
+    if(wantPt){ var wx = wantPt.x*K + view.panX, wy = wantPt.y*K + view.panY; ctx.setLineDash([]); ctx.lineWidth = 4; ctx.strokeStyle = "#b3cd63";
+      ctx.beginPath(); ctx.moveTo(wx-14, wy-14); ctx.lineTo(wx+14, wy+14); ctx.moveTo(wx+14, wy-14); ctx.lineTo(wx-14, wy+14); ctx.stroke();
+      ctx.beginPath(); ctx.arc(wx, wy, 20, 0, Math.PI*2); ctx.stroke(); }
     ctx.restore();
     url = cv.toDataURL("image/jpeg", 0.86);
   } finally {
@@ -279,17 +343,20 @@ function mkStart(){
   if(MK.cur){ mkEl("mkText").focus(); return; }
   clockPause(true); mkPauseLabel();
   MK.cur = { snap: mkSnapshot(), state: mkState(), match: matchNum, tick: tick, round: roundNum, roundTime: Math.round((simTime - roundStartTime)*10)/10,
-             fp: mkFp(), bot: null, text: "", want: "", category: "Взгляд", priority: "normal", pre: mkPreSnap() };
+             fp: mkFp(), bot: null, bots: [], wantPt: null, mode: "moment", text: "", want: "", category: "Взгляд", priority: "normal", pre: mkPreSnap() };
+  MK.cur.range = {hi: tick, lo: mkRangeLo(tick), to: tick}; MK.cur.range.from = Math.max(MK.cur.range.lo, tick - 10*TICK_HZ);
+  mkEl("mkModeM").checked = true; mkEl("mkPt").textContent = "не поставлена"; MK.pickPt = false; mkRangeUi();
   MK.cur.screenP = mkScreen();   // (v385) весь экран — до того, как открылась панель отметки
   MK.pick = true;
   mkEl("mkMoment").textContent = "Матч " + MK.cur.match + " · раунд " + MK.cur.round + " · " + mkClock(MK.cur.roundTime) + " раунда · тик " + MK.cur.tick;
-  mkEl("mkText").value = ""; mkEl("mkWant").value = ""; mkEl("mkBot").textContent = "не выбран — кликни по боту на радаре (необязательно)";
+  mkEl("mkText").value = ""; mkEl("mkWant").value = ""; mkEl("mkBot").textContent = "не выбран — кликни по ботам на радаре (необязательно, можно несколько)";
   mkEl("mkCat").value = "Взгляд"; mkEl("mkPrioN").checked = true;
   mkEl("mkErr").textContent = "";
   mkEl("mkPanel").style.display = "block"; mkEl("mkText").focus();
 }
 function mkClock(s){ s = Math.max(0, Math.round(s)); return Math.floor(s/60) + ":" + ("0" + (s%60)).slice(-2); }
-function mkClose(){ MK.cur = null; MK.pick = false; mkEl("mkPanel").style.display = "none"; }
+function mkClose(){ var m = MK.cur; MK.pick = false; MK.pickPt = false; mkEl("mkPanel").style.display = "none";
+  if(m && m.mode === "range" && tick !== m.tick) mkBackToMark(function(){ MK.cur = null; }); else MK.cur = null; }
 // (v397, М147) отметка сохраняется сразу — без разбора нейросетью на странице; разбор — в чате по снимку (tools/marks/mark_open.js)
 async function mkSubmit(){
   var m = MK.cur; if(!m) return;
@@ -297,13 +364,25 @@ async function mkSubmit(){
   if(!m.text){ mkEl("mkErr").textContent = "Напиши, что не так"; return; }
   mkEl("mkErr").textContent = "";
   MK.pick = false;
-  m.frameUrl = mkFrame(m.bot);
-  mkClose(); mkToast("Сохраняю отметку…");
+  m.bot = m.bots[0] || null;
+  if(m.mode === "range"){
+    var R = m.range; m.tickFrom = R.from; m.tickTo = R.to; m.pre = mkPreSnapAt(R.from);
+    mkEl("mkPanel").style.display = "none"; mkToast("Промежуток: пересчитываю конец…");
+    // журнал — после пересчёта до конца: перемотка к началу стёрла записи после него, пересчёт пишет их заново
+    await new Promise(function(ok){ if(tick >= R.to) mkGoTo(m.match, R.from, function(){ mkGoTo(m.match, R.to, function(){ ok(); }); }); else mkGoTo(m.match, R.to, function(){ ok(); }); });
+    m.journal = mkJrText(R.from, R.to, null);
+    m.snap = mkSnapshot(); m.state = mkState(); m.tick = tick; m.roundTime = Math.round((simTime - roundStartTime)*10)/10; m.screenP = mkScreen();
+  } else m.journal = mkJrText(m.tick - MK_PRE_SEC*TICK_HZ, m.tick, null);
+  m.frameUrl = mkFrame(m.bots, m.wantPt);
+  var hi = m.range ? m.range.hi : m.tick; MK.cur = null; MK.pick = false; MK.pickPt = false; mkEl("mkPanel").style.display = "none";
+  mkToast("Сохраняю отметку…");
   if(await mkSave(m, "new")) mkToast("Отметка сохранена");
+  if(m.mode === "range" && tick !== hi) mkGoTo(m.match, hi, function(){});
 }
 async function mkSave(m, status){
   var doc = { match: m.match, tick: m.tick, round: m.round, roundTime: m.roundTime, category: m.category, priority: m.priority,
-    text: m.text, want: m.want || "", bot: m.bot || null, principle: null, status: status, version: null,
+    text: m.text, want: m.want || "", bot: m.bot || null, bots: m.bots || [], wantPt: m.wantPt || null, mode: m.mode || "moment",
+    tickFrom: m.tickFrom != null ? m.tickFrom : null, journal: m.journal || [], principle: null, status: status, version: null,
     fp: m.fp, state: m.state, frameAsset: null, created: Date.now(), updated: Date.now() };
   if(MK.assets && m.frameUrl){ try{ var up = await MK.assets.upload(mkUrlToBlob(m.frameUrl)); doc.frameAsset = up.id; }catch(e){} }
   doc.screenAsset = null;   // (v385) весь экран
@@ -340,7 +419,7 @@ function mkRenderList(){
       '<span class="mk-st mk-st-' + mkEsc(d.status) + '">' + mkEsc(mkStatusText(d)) + '</span></div>' +
       '<div class="mk-t">' + mkEsc(d.text) + '</div>' + (d.want ? '<div class="mk-q">Как должно быть: ' + mkEsc(d.want) + '</div>' : "") +
       (d.understood ? '<div class="mk-q">Понял: ' + mkEsc(d.understood) + '</div>' : "") +
-      '<div class="mk-q">матч ' + d.match + ', тик ' + d.tick + ' · раунд ' + d.round + ', ' + mkClock(d.roundTime) + (d.bot ? ' · ' + mkEsc(d.bot) : "") + '</div>' +
+      '<div class="mk-q">матч ' + d.match + ', ' + (d.mode === "range" && d.tickFrom != null ? 'тики ' + d.tickFrom + '–' + d.tick + ' (' + Math.round((d.tick - d.tickFrom)/TICK_HZ) + ' с)' : 'тик ' + d.tick) + ' · раунд ' + d.round + ', ' + mkClock(d.roundTime) + ((d.bots && d.bots.length) ? ' · ' + mkEsc(d.bots.join(", ")) : (d.bot ? ' · ' + mkEsc(d.bot) : "")) + '</div>' +
       (d.status === "fixed" ? '<button data-ok="' + i + '">Подтверждаю</button>' : "") + '</div>';
   }).join("");
 }
@@ -352,12 +431,12 @@ function mkJump(d){
   // (15.11, замечание владельца: «кликнул отметку — тот же раунд, приходится мотать назад 10 с, чтобы пересчитался») снимок в момент
   // отметки уже несёт принятое (ошибочное) решение — новый код его не пересматривает. Есть снимок за MK_PRE_SEC до — открываем его и
   // пересчитываем до момента отметки кодом этой страницы (решения принимаются заново); нет — как раньше, снимок момента.
-  var pre = !!d.preSnapAsset && d.preTick != null && d.preTick < d.tick;
+  var pre = !!d.preSnapAsset && d.preTick != null && d.preTick < d.tick, goal = d.mode === "range" && d.tickFrom != null ? d.tickFrom : d.tick;   // (23.11) промежуток — с начала
   fetch("/_blob/" + (pre ? d.preSnapAsset : d.snapAsset)).then(function(r){ if(!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
     .then(function(t){ mkOpenSnap(t); MK.busy = false;
       var msg = "Отметка: матч " + d.match + ", раунд " + d.round + ", " + mkClock(d.roundTime);
       if(!pre){ mkPauseLabel(); mkToast(msg + " — открыта из снимка момента (снимка до нет — пересчёта нет)"); return; }
-      mkGoTo(matchNum, d.tick, function(ok){ mkToast(msg + (ok ? " — пересчитана этой версией с " + Math.round((d.tick - d.preTick)/TICK_HZ) + " с до отметки" : " — пересчёт не удался")); }); })
+      mkGoTo(matchNum, goal, function(ok){ mkToast(msg + (d.mode === "range" ? " — начало промежутка (" + Math.round((d.tick - goal)/TICK_HZ) + " с до конца)" : "") + (ok ? " — пересчитана этой версией" : " — пересчёт не удался")); }); })
     .catch(function(e){ MK.busy = false; mkToast("Не удалось открыть снимок отметки: " + (e && e.message)); });
 }
 function mkCopyAll(){
@@ -383,12 +462,18 @@ function mkShowCopy(t){ var a = mkEl("mkCopyBox"); a.value = t; a.style.display 
     '<div id="mkPanel" class="mk-panel" style="display:none">' +
       '<div class="mk-head"><b>Отметка момента</b><button id="mkX">✕</button></div>' +
       '<div class="mk-q" id="mkMoment"></div>' +
+      '<div class="mk-row2"><label><input type="radio" name="mkMode" id="mkModeM" checked> скрин (момент)</label><label><input type="radio" name="mkMode" id="mkModeR"> промежуток</label></div>' +
+      '<div id="mkRange" style="display:none"><div class="mk-lbl">Промежуток — отпусти ползунок, игра покажет этот момент</div>' +
+        '<div class="mk-row2"><span class="mk-q">начало</span><input type="range" id="mkRFrom" step="16" style="flex:1"></div>' +
+        '<div class="mk-row2"><span class="mk-q">конец</span><input type="range" id="mkRTo" step="16" style="flex:1"></div>' +
+        '<div class="mk-q" id="mkRLbl"></div></div>' +
       '<div id="mkForm">' +
         '<div class="mk-lbl">Что не так</div><textarea id="mkText" rows="3" placeholder="Что не так — своими словами (Ctrl+Enter — сохранить)"></textarea>' +
         '<div class="mk-lbl">Как должно быть (можно пусто)</div><textarea id="mkWant" rows="2" placeholder="Как должен был сыграть — своими словами"></textarea>' +
         '<div class="mk-row2"><select id="mkCat">' + MK_CATS.map(function(c){ return '<option>' + c + '</option>'; }).join("") + '</select>' +
         '<label><input type="radio" name="mkPrio" id="mkPrioN" checked> обычно</label><label><input type="radio" name="mkPrio" id="mkPrioU"> срочно</label></div>' +
         '<div class="mk-q">О ком: <span id="mkBot"></span></div>' +
+        '<div class="mk-row2"><button id="mkPtBtn" title="Кликни на радаре, куда бот должен был пойти / смотреть">Точка «куда должен был»</button><span class="mk-q">точка: <span id="mkPt"></span></span></div>' +
         '<div class="mk-err" id="mkErr"></div>' +
         '<div class="mk-row2"><button id="mkGo" class="active">Сохранить</button><button id="mkCancel">Отмена</button></div>' +
       '</div>' +
@@ -404,6 +489,13 @@ function mkShowCopy(t){ var a = mkEl("mkCopyBox"); a.value = t; a.style.display 
   mkEl("mkLX").addEventListener("click", function(){ mkEl("mkList").style.display = "none"; });
   mkEl("mkX").addEventListener("click", mkClose); mkEl("mkCancel").addEventListener("click", mkClose);
   mkEl("mkGo").addEventListener("click", mkSubmit);
+  mkEl("mkModeM").addEventListener("change", function(){ if(MK.cur){ MK.cur.mode = "moment"; mkRangeUi(); mkBackToMark(); } });
+  mkEl("mkModeR").addEventListener("change", function(){ if(MK.cur){ MK.cur.mode = "range"; mkRangeUi(); } });
+  mkEl("mkRFrom").addEventListener("change", function(){ mkRangeSet("from"); });
+  mkEl("mkRTo").addEventListener("change", function(){ mkRangeSet("to"); });
+  mkEl("mkRFrom").addEventListener("input", function(){ if(MK.cur && MK.cur.range){ MK.cur.range.from = Math.min(+mkEl("mkRFrom").value, MK.cur.range.to - TICK_HZ); mkRangeUi(); } });
+  mkEl("mkRTo").addEventListener("input", function(){ if(MK.cur && MK.cur.range){ MK.cur.range.to = Math.max(+mkEl("mkRTo").value, MK.cur.range.from + TICK_HZ); mkRangeUi(); } });
+  mkEl("mkPtBtn").addEventListener("click", function(){ if(!MK.cur) return; MK.pickPt = true; mkEl("mkPt").textContent = "кликни на радаре…"; });
   mkEl("mkText").addEventListener("input", function(){ mkEl("mkErr").textContent = ""; });
   ["mkText", "mkWant"].forEach(function(id){ mkEl(id).addEventListener("keydown", function(e){ if(e.key === "Enter" && (e.ctrlKey || e.metaKey)){ e.preventDefault(); mkSubmit(); } }); });
   mkEl("mkCopy").addEventListener("click", mkCopyAll);
@@ -417,10 +509,14 @@ function mkShowCopy(t){ var a = mkEl("mkCopyBox"); a.value = t; a.style.display 
   // клик по боту, пока открыта отметка
   cv.addEventListener("mousedown", function(e){
     if(!MK.pick || !MK.cur || e.button !== 0) return;
-    var w = navScreenToWorld(e.clientX, e.clientY), id = mkBotIdAt(w.x, w.y);
+    var w = navScreenToWorld(e.clientX, e.clientY);
+    if(MK.pickPt){ MK.pickPt = false; MK.cur.wantPt = {x: Math.round(w.x), y: Math.round(w.y), place: mkPlace(w.x, w.y)};
+      mkEl("mkPt").textContent = MK.cur.wantPt.place || (MK.cur.wantPt.x + ", " + MK.cur.wantPt.y); e.stopImmediatePropagation(); e.preventDefault(); return; }
+    var id = mkBotIdAt(w.x, w.y);
     if(!id) return;
-    MK.cur.bot = id; var s = MK.cur.state.bots.filter(function(o){ return o.id === id; })[0];
-    mkEl("mkBot").textContent = id + " (номер " + (s ? s.num : "?") + (s && s.place ? ", " + s.place : "") + ")";
+    // (23.11) несколько ботов: клик — добавить / убрать
+    var L = MK.cur.bots, at = L.indexOf(id); if(at >= 0) L.splice(at, 1); else L.push(id);
+    mkEl("mkBot").textContent = L.length ? L.map(function(i){ var o = bots.filter(function(q){ return q.id === i; })[0]; return i + " (номер " + pnum(i) + (o ? ", " + mkPlace(o.x, o.y) : "") + ")"; }).join(", ") : "не выбран — кликни по ботам на радаре (необязательно, можно несколько)";
     e.stopImmediatePropagation(); e.preventDefault();
   }, true);
   window.addEventListener("keydown", function(e){
