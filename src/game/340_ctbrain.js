@@ -12,7 +12,14 @@ var RT_A = 1.4, RT_K = 0.18, RT_UTIL_W = 0.1, RT_SAVE_P = 0.07;   // RT_SAVE_P: 
 // оружие — ценность оружия в игре (weaponValue, 450: уровень, AWP и АК выше) относительно АК; было — время убийства duelTTK (AWP выходил 0,27: темп стрельбы,
 // а не убийство с выстрела) — прогон 298: сейвы 3v3 с MP9 и 4v4 с FAMAS сразу после планта
 function ctWeaponK(b){ var k = b.primary || (b.weapon && b.weapon.key); return Math.max(0.15, weaponValue(k) / weaponValue("AK")); }
+// (общий прогон: 2105 поисков пути на 8000 тиков — оценка каждый тик) решение команды пересматривается раз в BELIEF_STEP (0,25 с, как карта команды):
+// в пределах шага — тот же ответ для того же сайта и того же вида (ретейк / до планта)
+var RT_ODDS_C = {t: -1, m: {}};
 function ctRetakeOdds(cts, site, secs, bombPos){
+  var tq = tick - tick % BELIEF_STEP, ck = site + (bombPos ? "b" : "c") + cts.length; if(RT_ODDS_C.t !== tq) RT_ODDS_C = {t: tq, m: {}};
+  return RT_ODDS_C.m[ck] || (RT_ODDS_C.m[ck] = ctRetakeOdds0(cts, site, secs, bombPos));
+}
+function ctRetakeOdds0(cts, site, secs, bombPos){
   var S = SITES[site]; if(!S) return {p: 0, ct: 0, t: 0, can: false};
   var bp = bombPos || S, can = false, sct = 0, st = 0;
   var tDef = Infinity; cts.forEach(function(b){ var t = bombPos ? defuseEta(b) + 1.0 : pathLenTo(b, bp.x, bp.y)/SPEED + (b.kit ? DEFUSE_KIT_TICKS : DEFUSE_TICKS)/TICK_HZ + 1.0; if(t < tDef) tDef = t; });
