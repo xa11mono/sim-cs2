@@ -427,6 +427,11 @@ function stepTick(){
           // бота (спрыгнуть); точка выше — как раньше (запрыгивает по пути к следующей)
           var lvlA = bot.z == null || wpA[2] == null || bot.z - wpA[2] <= 40;
           if(wdCur < 6 && !lvlA && navDropAt(bot, wpA)) lvlA = true;   // над точкой спрыгивания — спрыгивает по переходу (370)
+          // (23.11, прогон 308: B Mirage — с ящика (−40) не слезали, «стена» на −40 2 → 288) перехода с участка, где бот сейчас, нет (ящик — несколько
+          // участков, переход — с одного), а свой пол в сторону следующей точки кончается — бот у края: сходит и падает, как до Ж2. Над Underpass
+          // (B Short) свой пол в ту сторону продолжается — точка по-прежнему не засчитывается
+          if(wdCur < 6 && !lvlA && wpB && bot.z != null){ var edx = wpB[0]-bot.baseX, edy = wpB[1]-bot.baseY, edl = Math.hypot(edx, edy) || 1, a0e = navArea(bot._area);
+            if(!navAtLevel(bot.baseX + edx/edl*NAV_GAP_TOL*2, bot.baseY + edy/edl*NAV_GAP_TOL*2, a0e ? a0e.z : bot.z)) lvlA = true; }
           if((wdCur < 6 && lvlA) || (lvlOk && wdCur < ARRIVE_RADIUS && !crossesWall(bot.baseX, bot.baseY, wpB[0], wpB[1]) && navSegOnLevel(bot.baseX, bot.baseY, bot.z, wpB[0], wpB[1], wpB[2]) &&
               !(fires.length && fireOnSeg(bot.baseX, bot.baseY, wpB[0], wpB[1], bot.z) && !fireOnSeg(bot.baseX, bot.baseY, wpA[0], wpA[1], bot.z)))) bot.pathIdx++;
           else break;
