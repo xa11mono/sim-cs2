@@ -506,3 +506,19 @@
 - «Ключ CT на Mirage — когда ротейтиться. Никогда не ротейтиться на одиночный контакт»; ждать гранат или нескольких T, прежде чем идти на сайт
   ([bo3.gg — гайд по Mirage](https://bo3.gg/articles/guide-to-mirage)). Игрок Window — главный по инфе (Top Mid); Connector — быстро на любой сайт.
 - Владелец 18.11: мидер уходит помогать, когда выход начался или бомба обнаружена.
+
+## T на Mirage: захват мида и заход через сторону CT (22.11, аудит 021)
+- **Пути** (источники + демки сходятся): мид берут дымами на Window (иногда Short / Connector), через Top Mid / Underpath; дальше к A — по
+  Connector в Jungle (дым на Stairs отрезает Jungle), к B — по Catwalk на Short (нужен дым на Connector, иначе CT с A расстреливают Catwalk).
+  Общего прохода, как Red Room на Ancient, нет — путь по сайту. [Liquipedia](https://liquipedia.net/counterstrike/Mirage/csgo),
+  [bo3.gg](https://bo3.gg/articles/guide-to-mirage), [Dignitas: mid control](https://dignitas.gg/articles/taking-mid-control-on-mirage-and-how-to-execute-from-it),
+  [Dignitas: split B](https://dignitas.gg/articles/news/CSGO/11497/csgo-tips-how-to-split-b-like-team-dignitas-on-mirage),
+  [win.gg: smoke Connector](https://win.gg/news/this-saucy-mirage-lineup-lets-you-smoke-out-connector-from-top-mid/) (гайды второго ряда; HLTV-разборов не найдено).
+- **Сколько:** источники — на A трое берут мид, двое Ramp + Palace; на B 3–4 давят Short, лёркер из Apartments. Демки (86, `midtake_pro.py`):
+  плант A — через мид на сторону CT хоть один T в 52 % раундов (1 — 21 %, 2 — 12 %, 3+ — 19 %), путь Mid → Mid Bench → Connector; плант B — 69 %
+  (1 — 28 %, 2 — 22 %, 3+ — 18 %), путь Top Mid → Catwalk.
+- **Где стоят и куда смотрят** (демки): A — Connector (реже Stairs), взгляд на A Site / Cross / Tetris; B — Catwalk / B Short, взгляд на Connector
+  (спина) и B Short.
+- **Когда:** конкретного события («мидер убит») в источниках нет — сначала мид берут дымами. Риски: AWP в Window по Top Mid без дыма; Connector
+  без дыма — по Catwalk стреляют с A; из Connector выходят под кроссфайр Jungle / Stairs. Многие команды фейкуют через Connector — контроль мида
+  ≠ всегда заход.
