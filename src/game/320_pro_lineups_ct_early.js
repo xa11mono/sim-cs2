@@ -175,7 +175,8 @@ function ctEarlyPeek(b, ct){
     voiceLog("CT", "early"+b.id, b.id, "выгляну за инфой "+calloutName(E.pt.x, E.pt.y));
     // (00_PLAN п.14, владелец 05.11) под ранний пик — сначала «накиньте флешку» (365: nadeAskFlash); некому — флешка себе (если есть и не эко у соперника)
     if(roundGoal("CT") !== "keepGuns" && nadeAskFlash(b, stg, "флешу под ранний пик "+b.id)){}
-    else if(b.nades && b.nades.flash > 0 && roundGoal("CT") !== "keepGuns" && hashRand(roundNum*97 + b.id.charCodeAt(2)*5) < 0.6){
+    // (22.11, аудит 044) было «в 60 % раундов» — жребий; стало: флешка себе, если у точки, куда выглядывает, по карте команды скорее T (≥ 0,5)
+    else if(b.nades && b.nades.flash > 0 && roundGoal("CT") !== "keepGuns" && bzOf(stg.x, stg.y) >= 0 && beliefZoneKnown("CT", bzOf(stg.x, stg.y)) >= 0.5){
       var whyF = "себе под ранний пик "+b.id;
       throwNade(b, "flash", stg.x, stg.y, true, whyF);
       moveWaitPop(b, tick + Math.round(1.1*TICK_HZ), "pop:"+whyF, "ct-early");
