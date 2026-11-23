@@ -1,0 +1,35 @@
+{
+ "par": 8,
+ "jobs": [
+  {
+   "label": "perf_mir",
+   "ref": "5d44b5e8bea3199611f94659a9396ae21378469a",
+   "map": "mirage",
+   "matches": [
+    3,
+    7,
+    11,
+    13,
+    17,
+    19,
+    23,
+    29
+   ]
+  },
+  {
+   "label": "perf_anc",
+   "ref": "5d44b5e8bea3199611f94659a9396ae21378469a",
+   "map": "ancient",
+   "matches": [
+    3,
+    7,
+    11,
+    13,
+    17,
+    19,
+    23,
+    29
+   ]
+  }
+ ]
+}
