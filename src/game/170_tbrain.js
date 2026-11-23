@@ -874,7 +874,7 @@ function tBrain(){
     // 60 раз на 100 раундов) раньше все уходили за 6 с, кто бы где ни стоял; у про последний раз в 520 px от бомбы — медиана за
     // 5,9 с до взрыва (демки Ancient, 1194 игрока). Теперь каждый — когда до своей точки ухода идти столько, сколько осталось,
     // + запас 2 с (проектное число), но не позже 6 с
-    var leftS = bombTimeLeftTicks()/TICK_HZ, defusingNow = bots.some(function(o){ return o.defusing; });
+    var leftS = bombTimeLeftTicks()/TICK_HZ, defusingNow = !!tDefuseKnown();   // (23.11) по знанию T (звук / видят), было — настоящее состояние
     // (v519, пак 09.11 п.13; Р-17: «частое перебитие путей flee и postplant») решил уходить — уходит до взрыва (защёлка b._flee), точка ухода —
     // одна (b._fleePt), а не пересчёт каждый тик: «оставшийся путь / скорость + 2 с» убывал, пока бот шёл, и он возвращался на пост-плант.
     // Снимает уход только событие — начали дефуз (анти-дефуз важнее)
@@ -891,7 +891,9 @@ function tBrain(){
       var fp = bombFleePoint(b) || gs.tStage;
       if(leftS < 6 || leftS < pathLenTo(b, fp.x, fp.y)/(SPEED*weaponSpeedMul(b)) + 2){ b._flee = fleeKey; b._fleePt = fp; return true; }
       return false; });
-    if(defusingNow) ts.forEach(function(b){ b._flee = null; });
+    // (23.11, прогон 309, м7 р7: 2 на 1, оба T с постом «flee» ушли, CT спокойно дефузнул) снимался только флаг ухода, пост «flee» оставался —
+    // бот продолжал уходить от бомбы. Узнали о дефузе — уход снят целиком (как при «CT успевает дефузнуть» выше)
+    if(defusingNow) ts.forEach(function(b){ b._flee = null; if(b.post && b.post.tag === "flee") clearPost(b); });
     if(fleeing.length){
       if(!tt.fleeLogged){ tt.fleeLogged = true; logEvent("T: уходим от бомбы — сейчас рванёт"); }
       fleeing.forEach(function(b){ setPost(b, b._fleePt || gs.tStage, {x:bomb.x, y:bomb.y}, true, "flee"); });
@@ -901,7 +903,7 @@ function tBrain(){
     // решили "не успеваем на дефуз — сейв": держим сейв, пока кто-то дефузит
     // (если дефуз оборвался — фейк/убили — через 2с снова играем бомбу)
     if(tt._defLate){
-      if(bots.some(function(o){ return o.defusing && o.alive; })) tt._defLateSeen = tick;
+      if(tDefuseKnown()) tt._defLateSeen = tick;
       if(tick - (tt._defLateSeen || tt._defLate) > 2*TICK_HZ) tt._defLate = null;
       else { ts.forEach(function(b){ if(!b._saveSpot) b._saveSpot = pickSaveSpotT(b); if(!b.planting) setPost(b, b._saveSpot, null, true, "save"); }); return; }
     }
@@ -910,7 +912,7 @@ function tBrain(){
     // (v296, владелец 14.10: «фейк-дефуз и обычный — его туда-сюда перенаправляет», отметка: раунд 1, тик 5848 — T2 за 10 тиков
     // «на время» → «на бомбу» → «на время» → «сейв») одно решение на одну попытку дефуза: кто пошёл на бомбу — идёт, пока дефуз
     // идёт, и ещё 2 с после того, как он стих (выглядывает на бомбу, а не разворачивается); «не успеваем — сейв» держит блок выше
-    var dfNow = bots.filter(function(o){ return o.defusing && o.alive; })[0], AC = tt._adCommit;
+    var dfNow = tDefuseKnown(), AC = tt._adCommit;
     if(AC && (AC.round !== roundNum || (!dfNow && tick - AC.last > 2*TICK_HZ))) AC = tt._adCommit = null;
     if(AC){ if(dfNow) AC.last = tick;
       antiDef = ts.filter(function(b){ return AC.ids.indexOf(b.id) >= 0 && !b.planting; });
@@ -929,9 +931,8 @@ function tBrain(){
       if(dfGo === "bait" && antiDef.length && tt._baitV !== tt._baitH0){ tt._baitV = tt._baitH0; voiceLog("T", "bait"+tt._baitH0, antiDef[0].id, "звук дефуза — выгляну проверить, прикройте"); }
       // (S6) не успеть — не бежать на троих: сколько осталось дефузить (кит
       // не знаем — считаем, что есть, если у CT был фулл-бай), и сколько бежать
-      var dfz = bots.filter(function(o){ return o.defusing && o.alive; })[0];
-      var remT = dfz ? Math.max(0, (dfz.defuseUntil||tick) - tick) : 0;
-      if(dfz && !(dfz.defuseUntil) ) remT = (teamEco.CT.roundType === "full" ? DEFUSE_KIT_TICKS : DEFUSE_TICKS);
+      // (23.11) сколько осталось дефузить — с услышанного начала (120 tDefuseLeftTicks), а не настоящий таймер дефузера
+      var dfz = tDefuseKnown(), remT = tDefuseLeftTicks(dfz);
       // (п.17 владельца 29.10, м1 р4 т30711: «могли пикнуть через зону B Short, откуда отлично видно бомбу, и убить дефузера издалека») успеть —
       // дойти до первой точки по пути, откуда бомбу видно (оттуда и стреляют), а не до самой бомбы
       var late = antiDef.filter(function(b){ return bombSightLen(b, bpA)/SPEED*TICK_HZ > remT + 24; });

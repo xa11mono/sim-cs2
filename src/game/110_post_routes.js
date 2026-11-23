@@ -308,7 +308,7 @@ var DETOUR_MAX = {help: 4, pickup: 3, hurt: 3, seek: 4};   // (v547) seek — к
 function taskSlackSec(b){
   if(!bomb || bomb.state !== "planted") return Infinity;
   var left = bombTimeLeftTicks()/TICK_HZ;
-  if(b.team === "T") return bots.some(function(o){ return o.alive && o.defusing; }) ? 0 : Infinity;
+  if(b.team === "T") return tDefuseKnown() ? 0 : Infinity;   // (23.11) что дефузят — по знанию T (120), не по настоящему состоянию
   if(teamTac.CT && teamTac.CT.saving) return b._saveSpot ? left - pathLenTo(b, b._saveSpot.x, b._saveSpot.y)/SPEED - 2 : left - 4;
   return left - defuseEta(b) - 3;
 }

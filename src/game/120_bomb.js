@@ -128,6 +128,19 @@ function defuseSound(ct){
     if(Math.hypot(o.x-bomb.x, o.y-bomb.y) < DEFUSE_HEAR){ o._defuseHeard = tick; o.heardSound = hearReal(o, {x:ct.x, y:ct.y, z:ct.z, tick:tick, team:"CT", kind:"defuse"}); }
   });
 }
+// (23.11, прогон 309: T «уходили от взрыва», пока CT дефузил, — 2 на 1 без выстрела; решения T читали настоящее «кто-то дефузит») что T знают
+// о дефузе — одно место: слышали звук дефуза (начало или продолжение, ≤ 110 тиков, как tDefuseGo) или видят дефузящего. Возвращает
+// {t0: когда услышали начало} или null
+function tDefuseKnown(){
+  var h0 = -9999, last = -9999, seen = false;
+  bots.forEach(function(b){ if(!b.alive || b.team !== "T") return;
+    if((b._defuseHeard||-9999) > h0) h0 = b._defuseHeard;
+    last = Math.max(last, b._defuseHeard||-9999, b._defuseCont||-9999);
+    if(!seen && (b._visible || []).some(function(o){ return o.alive && o.defusing; })) seen = true; });
+  return (seen || tick - last < 110) ? {t0: h0 > -9999 ? h0 : tick} : null;
+}
+// сколько, по знанию T, осталось дефузить: с услышанного начала; кит не видно — считают худшее, если у CT был полный закуп
+function tDefuseLeftTicks(K){ var tot = teamEco.CT.roundType === "full" ? DEFUSE_KIT_TICKS : DEFUSE_TICKS; return K ? Math.max(0, tot - (tick - K.t0)) : 0; }
 // (6) звук дефуза длится, пока дефузят: T рядом слышат, что он продолжается
 // (фейк — короткий "тап" и тишина). По этому и отличают фейк от настоящего
 function defuseContTick(){
