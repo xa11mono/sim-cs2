@@ -89,6 +89,11 @@ function nadeBetter(type, a, b){
   if(type === "smoke" && a.e3 <= 32 && b.e3 <= 32) return b.t < a.t ? b : a;
   return b.e3 < a.e3 ? b : a;
 }
+// (23.11, лаг владельца м1 т24531–24589: 60 тиков по 0,7–0,95 с) высота точки лайнапа — пол самой точки (уровень бота — только чтобы выбрать
+// этаж, если под точкой их несколько), а не высота бота: идущий к точке по рампе бот менял её на сотые каждый тик — ключ подсказки каждый раз
+// новый, подбор заново. Одно место — и для предрасчёта (nadePrecalcTick), и для броска (throwNadeTry)
+// точка вне участков навмеша (у стены, на краю) — пол карты высот в этой точке (visFloorAt — ближайший к уровню бота пол; полы дискретны)
+function nadeFromZ(from, bz){ var na = (bz != null ? navAtLevel(from.x, from.y, bz) : null) || navAt(from.x, from.y, null); return na ? na.z : (bz != null ? visFloorAt(from.x, from.y, bz) : null); }
 function nadeGuessKey(type, x, y, z, tx, ty, duck, wide){ return type+"|"+x+","+y+","+z+"|"+tx+","+ty+(duck ? "d" : "")+(wide ? "w" : ""); }
 var NADE_GUESS_PAID = {};   // (v570) подсказки, цена которых уже списана в лимит тика (переменная — в снимке)
 function nadeGuess(type, x, y, z, tx, ty, duck, wide){
@@ -118,9 +123,9 @@ function nadePrecalcTick(){
   var L = allLineups(), n = 0;
   while(NADE_PRECALC_I < L.length){
     var lu = L[NADE_PRECALC_I++]; if(!lu || !lu.from || !lu.to || !NADE[lu.type]) continue;
-    var na = navAt(lu.from.x, lu.from.y, null); if(!na) continue;
-    var gk = nadeGuessKey(lu.type, lu.from.x, lu.from.y, na.z, lu.to.x, lu.to.y, false, true), had = nadeGuessStore(gk) !== undefined && !NADE_GUESS_RT[gk];   // (В86) посчитанная в игре — как новая
-    nadeGuess(lu.type, lu.from.x, lu.from.y, na.z, lu.to.x, lu.to.y, false, true);
+    var fz0 = nadeFromZ(lu.from, null); if(fz0 == null) continue;
+    var gk = nadeGuessKey(lu.type, lu.from.x, lu.from.y, fz0, lu.to.x, lu.to.y, false, true), had = nadeGuessStore(gk) !== undefined && !NADE_GUESS_RT[gk];   // (В86) посчитанная в игре — как новая
+    nadeGuess(lu.type, lu.from.x, lu.from.y, fz0, lu.to.x, lu.to.y, false, true);
     if(!had && ++n >= NADE_PRECALC_N) break;
   }
 }   // ед.: уточнённый бросок из места бойца не хуже решения точки лайнапа + столько — принят (проектное число)
@@ -255,7 +260,9 @@ function throwNadeTry(b, type, tx, ty, lob, why, trusted, from){
   // (guess), с которой начинается подбор из места бойца. Не нашлось броска отсюда — отказ с причиной (задание снимается, назад не идёт)
   var bz = b.z != null ? b.z : visFloorAt(b.x, b.y), guess = null;
   if(from){   // (v493) и стоя ровно в точке: решение точки лайнапа — с прицелом про (luAimFor), подбор с нуля его не находит
-    var na = navAtLevel(from.x, from.y, bz), fz = na ? na.z : bz;
+    var fz = nadeFromZ(from, bz);
+    // подсказки ещё нет — её подбор тоже в счёт лимита тика (было: считалась до проверки лимита — 2 подбора каждый тик, бросок — «пауза»)
+    if(nadeGuessStore(nadeGuessKey(type, from.x, from.y, fz, tx, ty, b.crouching, !!trusted)) === undefined && !nadeBudgetLeft()){ NADE_FAIL = "пауза: подбор броска — в следующем тике"; return false; }
     guess = nadeGuess(type, from.x, from.y, fz, tx, ty, b.crouching, !!trusted);
   }
   // (разбег) бросок на ходу — подсказка подбора: эталон броска про (поворот, наклон, сила, прыжок на бинде), уточняется с фактической скоростью
