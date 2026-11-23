@@ -1,0 +1,20 @@
+const { chromium } = require('playwright'); const path = require('path'); const fs = require('fs');
+(async () => { const [sim, m, N, outp] = process.argv.slice(2);
+  const br = await chromium.launch(); const pg = await br.newPage(); await pg.route(/^https?:/, r => r.abort());
+  await pg.goto('file://' + path.resolve(sim)); await pg.waitForFunction(() => typeof window.__ev === 'function', null, {timeout: 60000});
+  await pg.evaluate((m) => window.__ev('freshMatch('+m+')'), +m);
+  const cdp = await pg.context().newCDPSession(pg); await cdp.send('Profiler.enable'); await cdp.send('Profiler.setSamplingInterval', {interval: 500}); await cdp.send('Profiler.start');
+  const t0 = Date.now(); await pg.evaluate((N) => { for(let i = 0; i < N; i++) window.__ev('stepTick()'); }, +N); const wall = Date.now() - t0;
+  const {profile} = await cdp.send('Profiler.stop');
+  const byId = {}; profile.nodes.forEach(n => byId[n.id] = n);
+  const parent = {}; profile.nodes.forEach(n => (n.children||[]).forEach(c => parent[c] = n.id));
+  const cnt = {}; profile.samples.forEach(id => cnt[id] = (cnt[id]||0) + 1);
+  const self = {}, total = {}, stacks = {};
+  const nm = n => (n.callFrame.functionName || '(anon)');
+  profile.nodes.forEach(n => { const c = cnt[n.id] || 0; if(!c) return; self[nm(n)] = (self[nm(n)]||0) + c;
+    const seen = new Set(); let cur = n.id, chain = [];
+    while(cur !== undefined){ const f = nm(byId[cur]); if(!seen.has(f)){ seen.add(f); total[f] = (total[f]||0) + c; } chain.push(f); cur = parent[cur]; }
+    const key = chain.slice(0, 6).join(' < '); stacks[key] = (stacks[key]||0) + c; });
+  const tot = profile.samples.length;
+  fs.writeFileSync(outp, JSON.stringify({wall, tot, self, total, stacks}));
+  await br.close(); console.log('wall ms', wall, 'samples', tot); })();
