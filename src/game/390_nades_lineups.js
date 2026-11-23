@@ -24,6 +24,16 @@ var LU_TYPE = {smoke:"смок", flash:"флешка", molly:"молотов", h
 // а смок ещё летел или его вообще не успевали кинуть
 // (v428) запас гранат на выход / после планта / ретейк — в плане гранат команды (365_nade_plan, npCanUse в assignNade и лайнапах);
 // было отдельное правило «смоки на выход — последние два не тратить» (tSmokeReserveOk)
+// (v583a, Д27, владелец 18.11: «как поступали бы живые игроки» — за 5–10 с до выхода тот, кто кидает смок, уже стоит на точке лайнапа и ждёт колл)
+// гранаты выхода раздаются за PRE_EXEC_WALK с до тайминга: бросающий идёт на точку броска и ждёт там (задание notBefore — 380), кидает — как
+// раньше, с preExecNow (за 4 с). Прогон 276: «не дошёл до точки броска за срок» — смок выхода давали T в 250–800 ед. от точки в момент выхода.
+// PRE_EXEC_WALK — проектное число: EXEC_REACH (1000 ед.) бегом ≈ 4 с + запас
+var PRE_EXEC_WALK = 9;
+function preExecWalk(tt){
+  if(!tt || tt.phase !== "setup" || !tt.execTick || tt.rebound && tick - (tt._rbT||0) < 2*TICK_HZ) return false;
+  var secLeft = ROUND_TIME_SEC - (simTime - roundStartTime);
+  return tick >= tt.execTick - PRE_EXEC_WALK*TICK_HZ && secLeft > 30 && !(tt.tac && (tt.tac.style === "rush" || tt.tac.style === "fake"));
+}
 function preExecNow(tt){
   if(!tt || tt.phase !== "setup" || !tt.execTick || tt.rebound && tick - (tt._rbT||0) < 2*TICK_HZ) return false;
   var secLeft = ROUND_TIME_SEC - (simTime - roundStartTime);
@@ -96,7 +106,7 @@ function lineupTick(){
     else if(L.trigger === "timed") go = bomb.state !== "planted" && since >= (L.at||0)*TICK_HZ && since < ((L.at||0)+12)*TICK_HZ;
     else if(L.pro && L.team === "T" && L.trigger === "setup") go = tt.phase === "setup" && since >= Math.max(1, (L.at||12)-1)*TICK_HZ && siteOk(tt.site);
     else if(L.team === "T" && L.trigger === "setup") go = tt.phase === "setup" && since > 12*TICK_HZ && siteOk(tt.site);
-    else if(L.team === "T" && L.trigger === "exec") go = (tt.phase === "execute" || preExecNow(tt)) && siteOk(tt.site);
+    else if(L.team === "T" && L.trigger === "exec") go = (tt.phase === "execute" || preExecNow(tt) || preExecWalk(tt)) && siteOk(tt.site);
     else if(L.team === "T" && L.trigger === "postplant") go = bomb.state === "planted" && siteOk(bomb.site);
     else if(L.team === "CT" && L.trigger === "call") go = ct && ct.call && ct.call.count >= 2 && siteOk(ct.call.site);
     else if(L.team === "CT" && L.trigger === "retake") go = bomb.state === "planted" && siteOk(bomb.site);
@@ -134,7 +144,10 @@ function lineupTick(){
     // (v150) про-лайнапы кидает тот, кто и так рядом: сетап — в пределах ~7 м,
     // "по времени" — ~4 м (не бросать позицию ради гранаты)
     if(L.pro && L.trigger === "setup") maxD = 1100;
-    if(L.pro && L.trigger === "timed"){ maxD = 850; hot = true; }
+    // (v583a, Д29 п.2, владелец 18.11 по видео: CT1 с Triple Box на 10-й с пошёл через сайт на Mid Bench (571 ед.) кидать молотов «Mid Boxes» и встретил
+    // T посреди сайта) гранату на тайминг кидает тот, кто рядом: у про бросающий за 8 с до броска — в 165 ед. от точки (медиана), дальше 500 — 6 %
+    // (см. ниже, док 6 п.1/15). Было 850 — шли через полкарты
+    if(L.pro && L.trigger === "timed"){ maxD = 500; hot = true; }
     // (v438, док владельца 27.10: TN1R из Ramp шёл к T Roof «538 по прямой» — 1500 по пути, через спавн) до точки броска — по пути
     // (док 6, п.1/15: kyousuke на B Short получил молотов в Underpass с Connector — путь 704, а с B Short — 239; T1 на T Ramp — смок Stairs
     // с T Roof через спавн, 732, а с T Ramp — 50; у про за 8 с до броска сетапа бросающий в 165 ед. от точки, дальше 500 — 6 %) у цели про
@@ -185,7 +198,8 @@ function lineupTick(){
         nadeFlags[key] = true; nadeFlags["luok"+L.id] = true; proGroupDone(L);
         if(!solo.nadeTask){
           var sP = Math.max(7, Math.ceil(pathLenTo(solo, L.from.x, L.from.y)/SPEED + LU_REACH_PAD));
-          solo.nadeTask = {type:L.type, x:L.to.x, y:L.to.y, from:{x:L.from.x, y:L.from.y}, until: tick + sP*TICK_HZ, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»", start:tick, lob:true, range:4000, now:true, lineup:true, exec:L.type === "smoke", npm:luM};
+          var sNB = tt.phase === "setup" && !preExecNow(tt) ? tt.execTick - 4*TICK_HZ : 0; if(sNB) sP = Math.max(sP, Math.ceil((sNB - tick)/TICK_HZ) + LU_REACH_PAD);   // (Д27)
+          solo.nadeTask = {notBefore: sNB,type:L.type, x:L.to.x, y:L.to.y, from:{x:L.from.x, y:L.from.y}, until: tick + sP*TICK_HZ, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»", start:tick, lob:true, range:4000, now:true, lineup:true, exec:L.type === "smoke", npm:luM};
           logEvent(solo.id+": раскид — идёт на «"+(L.name||LU_TYPE[L.type])+"»");
         } else {
           (solo.nadeQueue = solo.nadeQueue || []).push({type:L.type, x:L.to.x, y:L.to.y, from:{x:L.from.x, y:L.from.y}, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»", lineup:true, exec:true, npm:luM});
@@ -245,7 +259,9 @@ function lineupTick(){
     var luBase = hot ? ((L.trigger === "timed") ? 12 : 7) : 20, luP = buildWaypointPath(cand.baseX, cand.baseY, cand.z, LS.from.x, LS.from.y, 0), luLen = 0, luX = cand.baseX, luY = cand.baseY;
     luP.forEach(function(q){ luLen += Math.hypot(q[0]-luX, q[1]-luY); luX = q[0]; luY = q[1]; });
     var luSec = Math.max(luBase, Math.ceil(luLen/(SPEED*weaponSpeedMul(cand)) + LU_REACH_PAD));
-    cand.nadeTask = {type:L.type, x:LS.to.x, y:LS.to.y, from:{x:LS.from.x, y:LS.from.y}, until: tick + luSec*TICK_HZ, why:"лайнап «"+(LS.name||LU_TYPE[L.type])+"»",
+    var luNB = execT && tt.phase === "setup" && !preExecNow(tt) ? tt.execTick - 4*TICK_HZ : 0;   // (Д27) раздали заранее — ждёт на точке до preExecNow
+    if(luNB) luSec = Math.max(luSec, Math.ceil((luNB - tick)/TICK_HZ) + LU_REACH_PAD);
+    cand.nadeTask = {notBefore: luNB,type:L.type, x:LS.to.x, y:LS.to.y, from:{x:LS.from.x, y:LS.from.y}, until: tick + luSec*TICK_HZ, why:"лайнап «"+(LS.name||LU_TYPE[L.type])+"»",
                      start:tick, lob:true, range:4000, now:true, lineup:true, exec:execT && L.type === "smoke", npm:luM, luL: L.pro && L.grp ? L : null, luId: LS.id};
     // (п.14) флешка CT на тайминг — под конкретного выглядывающего (не бросающего): он выйдет на хлопок (380)
     if(L.pro && L.team === "CT" && L.trigger === "timed" && L.type === "flash"){ var pkr = npPeekReady("CT", L.to, cand); if(pkr) cand.nadeTask.peekFor = pkr.id; }

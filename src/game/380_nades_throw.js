@@ -218,6 +218,7 @@ function throwNadeDo(b, type, tx, ty, lob, why, trusted, from){
   var M0 = b._tnMiss;
   if(M0 && M0.r === roundNum && M0.type === type && M0.tx === tx && M0.ty === ty && M0.lob === !!lob && Math.hypot(b.baseX-M0.x, b.baseY-M0.y) < NADE_RETRY_D &&
      b.nades && b.nades[type] > 0 && nadeReady(b)){ NADE_FAIL = M0.why; return false; }
+  if(type !== "smoke" && type !== "decoy" && roundState === "live" && knowCorpseOnly(b.team, {x: tx, y: ty})){ NADE_FAIL = "в труп — врага там уже нет"; return false; }   // (22.11, Ж18) и прямые броски мимо задачи
   var ok = throwNadeTry(b, type, tx, ty, lob, why, trusted, from);
   b._tnMiss = (!ok && /долетит|стена|потолок/.test(NADE_FAIL || "")) ? {r: roundNum, type: type, tx: tx, ty: ty, lob: !!lob, x: b.baseX, y: b.baseY, why: NADE_FAIL} : null;
   return ok;
@@ -302,6 +303,7 @@ function throwNadeTry(b, type, tx, ty, lob, why, trusted, from){
     bots.forEach(function(o){ if(o.alive && o !== b && (Math.hypot(o.x-b.x, o.y-b.y) < 450 || hasVision(o.x, o.y, b.x, b.y))) nd.aware[o.id] = true; });
   }
   nadesInAir.push(nd); soundEv("sndNade", "throw", b.x, b.y);
+  b._thrownT = tick;   // (22.11, Ж23-П4) бросок слышно — бот знает, что мог себя выдать (220 knowMeRevealed)
   // (00_PLAN п.14) флешка под чужой пик (nadeTask.peekFor, 390) — выглядывающий ждёт её хлопка (540: _waitPopKey), до срабатывания по полёту
   var pkT = b.nadeTask && b.nadeTask.type === type && b.nadeTask.peekFor, pkB = pkT && bots.filter(function(o){ return o.id === pkT && o.alive; })[0];
   if(pkB && type === "flash"){ moveWaitPop(pkB, nd.etaDet + 1, "pop:"+nd.why, "peek-flash"); voiceLog(b.team, "pkfl"+b.id+roundNum, b.id, "флешу под пик "+pkB.id+" — выходи на хлопок"); }
@@ -370,7 +372,7 @@ function nadeSelfWhyNot(b, type, pt){
   // флешка / молотов / HE — туда, где по знанию команды враг сейчас может быть: свежая инфа рядом с точкой или вес карты команды в её зоне
   var BL = beliefLast[b.team] || {};
   for(var e in BL){ var q = BL[e], o = teamBot(e); if(o && o.alive && tick - q.tick <= 6*TICK_HZ && Math.hypot(q.x-pt.x, q.y-pt.y) < NADE_FOE_R) return null; }
-  if(BZ.ids.length){ var j = bzOf(pt.x, pt.y); if(j >= 0 && [j].concat(BZ.nbr[j] || []).some(function(k){ return reachPossible(b.team, k) && beliefZoneKnown(b.team, k) >= NADE_FOE_P; })) return null; }
+  if(BZ.ids.length){ var j = bzOf(pt.x, pt.y); if(j >= 0 && [j].concat(BZ.nbr[j] || []).some(function(k){ return reachPossible(b.team, k) && beliefZoneKnownB(b, k) >= NADE_FOE_P; })) return null; }
   return "там врага быть не может";
 }
 function assignNadeDo(b, type, target, why, opts){
@@ -394,8 +396,29 @@ function assignNadeDo(b, type, target, why, opts){
      bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o.nadeTask && o.nadeTask.type === type && Math.hypot(o.nadeTask.x-target.x, o.nadeTask.y-target.y) < 120; }))) return false;
   // (v419) here — бросок только с места (задержать гранатой, 350): срок 2 с, на точку броска не идёт
   var here = !!(opts && opts.here);
-  b.nadeTask = {type:type, x:target.x, y:target.y, until: tick + (here ? 2 : 10)*64, why:why||"", start:tick, lob:true, range:(opts && opts.range) || NADE_THROW_RANGE, now:!!(opts && opts.now), here:here, npm:npm};
+  b.nadeTask = {type:type, x:target.x, y:target.y, until: tick + (here ? 2 : 10)*64, why:why||"", start:tick, lob:true, range:(opts && opts.range) || NADE_THROW_RANGE, now:!!(opts && opts.now), here:here, npm:npm, eid:(opts && opts.eid) || null, forC:(opts && opts.forC) || null};
   return true;
+}
+// (22.11, Ж23-П4, разбор м271222 р6: опорник, о котором не знали, кинул флешку, потом молотов «выкурить по инфе» — помощи не шло,
+// а себя выдал) граната, которая выдаёт того, кого ещё не нашли (knowMeRevealed, 220), — только когда от неё есть толк: обо мне и так
+// знают; бомба стоит (ретейк / пост-плант); CT — слышим плант (сорвать) или свои уже идут ротацией на этот сайт; T — идёт выход команды
+// (не лёркер). Иначе спрятанный не выдаёт себя гранатой
+function nadeRevealOk(b){
+  if(knowMeRevealed(b) || (bomb && bomb.state === "planted")) return true;
+  if(b.team === "CT"){
+    var PH = teamIntel.CT && teamIntel.CT.plantHeard; if(PH && tick - PH.tick < 5*TICK_HZ) return true;
+    var go = teamTac.CT && teamTac.CT.go;
+    return !!(go && go.ids && Object.keys(go.ids).length && SITES[go.site] && ctNearSite(b, SITES[go.site], 700));
+  }
+  return !!(teamTac.T && teamTac.T.phase === "execute" && b.tRole !== "lurker");
+}
+// (22.11, Ж23) заказчик гранаты: «под мой / его выход на врага» — {by, cid}: жива, пока у заказчика контакт с этим врагом (_contact, 350);
+// «под его пробу» — {by, tag}: пока заказчик на той же задаче (тег поста при заказе). Только свойства задачи заказчика, без списков имён
+function nadeOwnerOf(o, cid){ return cid !== undefined ? {by: o.id, cid: cid} : {by: o.id, tag: o.post ? o.post.tag : null}; }
+function nadeOwnerOk(F){
+  var o = teamBot(F.by); if(!o || !o.alive) return false;
+  if(F.cid !== undefined) return !!(o._contact && tick < o._contact.until && (F.cid == null || o._contact.id === F.cid));
+  return !!(o.post && o.post.tag === F.tag);
 }
 // (17.11, перестройка — модули) запись в журнал решений (645) — здесь, у хозяина (было: 645 подменял функцию обёрткой)
 function assignNade(b, type, target, why){
@@ -533,6 +556,14 @@ function updateNadeTask1(b){
       if(b.post && b.post.tag === "lineup") clearPost(b);
       return; }
     if(b.planting || b.defusing) return;
+    // (v583a, Д20, владелец 17.11: «почему кидают гранаты на труп») граната по конкретному врагу (комбо, добить HE, выкурить по инфе) — он
+    // убит (киллфид знают все) — бросать незачем: задание снимается
+    if(t.eid && !bots.some(function(o){ return o.id === t.eid && o.alive; })){ b.nadeTask = null; return; }
+    // (22.11, Ж23, разбор м271222 р6: karrigan вышел на звук с флешкой «под выход», выход отменился в 48 с, а флешка брошена в 50,5 с в
+    // старую точку и раскрыла его) граната ПОД ЧЬЮ-ТО ЗАДАЧУ (свой выход на врага, проба тиммейта, просьба «накиньте флешку») живёт, пока жива
+    // та задача: заказчик жив и всё ещё в ней (nadeOwnerOk). Гранаты плана команды и лайнапы без заказчика это не трогает
+    if(t.type !== "smoke" && knowCorpseOnly(b.team, t)){ b.nadeTask = null; b.nadeQueue = null; if(b.post && b.post.tag === "lineup") clearPost(b); return; }   // (22.11, Ж18) в труп — незачем
+    if(t.forC && !nadeOwnerOk(t.forC)){ b.nadeTask = null; if(b.post && b.post.tag === "lineup") clearPost(b); return; }
     if(t.here && !delaySafe(b)){ b.nadeTask = null; return; }   // (v419) враг виден / в упор — граната убирается, в руках оружие
     // (v359, р7) T уже на сайте выхода, а точка броска позади — задание снимается: с взятого сайта назад за гранатой не уходят
     if(t.lineup && t.from && b.team === "T" && teamTac.T && SITES[teamTac.T.site] && bomb.state !== "planted"){
@@ -563,7 +594,8 @@ function updateNadeTask1(b){
         // (v570, отметка владельца м1 р3 15,7 с, CT1: «назначается лайнап, который он может кинуть и с текущего места») — было: к точке
         // лайнапа шёл всегда (3+ с через мид). Сначала — одна попытка броска отсюда: подбор считает полёт из места бойца (лайнап —
         // подсказкой), граната ложится туда же — летит сразу; не долетает / стена — идёт на точку. Пауза подбора — попробует в следующем тике
-        if(!t._hereTried && (b.state === "patrol" || b.state === "hold") && nadeReady(b)){
+        var nbWait = t.notBefore && tick < t.notBefore && teamTac.T && teamTac.T.phase === "setup";   // (v583a, Д27) раздали заранее — сначала встать на точку
+        if(!nbWait && !t._hereTried && (b.state === "patrol" || b.state === "hold") && nadeReady(b)){
           if(throwNade(b, t.type, t.x, t.y, true, t.why, false, t.from)){ b.nadeTask = null; if(b.post && b.post.tag === "lineup") clearPost(b); return; }
           if(!/пауза/.test(NADE_FAIL || "")) t._hereTried = 1; }
         if(b.state === "hold" && !b._sawEnemy) leaveHold(b);
@@ -578,13 +610,14 @@ function updateNadeTask1(b){
         // (v560, В106, разбор владельца 11.11: «куча гранат, но не кидают» — флешка ретейка 10 с ждала, пока боец встанет в точку броска, а он
         // в 18 ед. от неё шёл по ретейку — задача важнее, к точке не пускала) задача важнее не даёт дойти, а точка рядом (≤ LU_NEAR) — бросок
         // отсюда: подбор считает его из места бойца (лайнап — подсказкой), как свою гранату — тем же броском ниже (here), без ожидания остановки
-        if(lu || Math.hypot(t.from.x-b.baseX, t.from.y-b.baseY) > LU_NEAR){
+        if(lu || t._nearFail || Math.hypot(t.from.x-b.baseX, t.from.y-b.baseY) > LU_NEAR){   // (Д27) «отсюда» не долетел — только из точки
           if(!lu){ if(!t.int) t.int = {d: pathLenTo(b, t.from.x, t.from.y)}; }
           else if(t.int){ var dI = t.int.d; t.int = null;
             if(pathLenTo(b, t.from.x, t.from.y) > dI + 36){ logEvent(b.id+": граната отменена — после другой задачи точка броска позади ("+t.why+")");
               b.nadeTask = null; b.nadeQueue = null; clearPost(b); return; } }
           return; } }
       if(!here) postKeep(b);   // стоит на точке броска — затея ещё идёт
+      if(t.notBefore && tick < t.notBefore && teamTac.T && teamTac.T.phase === "setup") return;   // (v583a, Д27) стоит на точке и ждёт колла (preExecNow)
       if(!nadeReady(b)) return;   // (v340) только что кинул другую — задание ждёт
       // (Г3, 04.11, п.19: молотов «по инфе» 4 с ждал остановки, а ретейк вёл бойца к киту — сгорел) стоя — только лайнап (точный бросок про);
       // своя точка броска (gen) — и на ходу: подбор считает бросок со скоростью бойца (nadeBotVel → nadeSolve)
@@ -592,6 +625,9 @@ function updateNadeTask1(b){
       // не вышло на время (пауза между гранатами, свой в зоне огня) — задание остаётся, попробует снова; раньше снималось молча
       if(!throwNade(b, t.type, t.x, t.y, true, t.why, !t.gen && !here, t.from) && NADE_FAIL && /пауза|свой/.test(NADE_FAIL)) return;   // своя точка (gen) — дуга проверяется
       if(t.gen && b.nadeTask === t && /долетит/.test(NADE_FAIL||"") && nadeRunPlan(b, t)) return;   // (v504) с места не долетает — с разбега
+      // (v583a, Д27, прогоны 282–285: смок выхода «Cross» — 11 отказов «не долетит» в 15–39 ед. от точки броска) бросок не из самой точки лайнапа
+      // (задача важнее не пускала дойти — бросок «отсюда», LU_NEAR) не долетел — задание не снимается: дойдёт до точки и кинет оттуда (срок — прежний)
+      if(here && !t.gen && b.nadeTask === t && /долетит|стена|потолок|этаж/.test(NADE_FAIL||"")){ t._nearFail = 1; return; }
       b.nadeTask = null; if(b.post && b.post.tag === "lineup") clearPost(b); return;
     }
     if(d <= t.range && hasLOS(b.x, b.y, t.x, t.y, b.z)){

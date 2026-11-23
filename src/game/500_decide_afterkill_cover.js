@@ -201,9 +201,9 @@ function postKillDecide(sh, tg, vp, here){
   if(!ctMust && ((known.length >= 2 && known.length > mates) || sh.hp <= 45)){
     var dvx = here.x - vp.x, dvy = here.y - vp.y, dvl = Math.max(1, Math.hypot(dvx, dvy));
     var back = walk({x: here.x + dvx/dvl*170, y: here.y + dvy/dvl*170});
-    var hide = [vp].concat(known.map(function(k){ return {x:k.x, y:k.y}; }));
+    var hide = [vp].concat(known.map(function(k){ return {x:k.x, y:k.y}; })), akT = coverThreats(sh, hide);
     var np = pickSpots("pkb"+tick+sh.id, back, 4, {rMin:0, rMax:200, minGap:50, see: sh.post && sh.post.look ? [sh.post.look] : [], hideFrom:hide})
-      .filter(function(p){ return Math.hypot(p.x-here.x, p.y-here.y) > 70 && !hasLOS(p.x, p.y, vp.x, vp.y); })[0];
+      .filter(function(p){ return Math.hypot(p.x-here.x, p.y-here.y) > 70; }); np = coverPick(np, coverZ(sh), akT);   // (18.11) общая проверка укрытия (470)
     if(np){
       taskKeep(sh, 0, "afterkill"); sh._probeLock = 0;
       setPost(sh, np, vp, true, "repos:back");
@@ -342,19 +342,21 @@ function shiftHold(sh, vp, exceptId, why){
 function findCover(b, foe){
   var dFoe = Math.hypot(foe.x-b.baseX, foe.y-b.baseY);
   var fa = Math.atan2(foe.y-b.baseY, foe.x-b.baseX);
-  var best = null, bd = Infinity;
+  var C = [];
   NAVAREAS.forEach(function(z){
     if(NAV_BLOCKED[z.id] || !(zoneGraph[z.id]||[]).length) return;
     var c = zoneCentroid(z);
     var d = Math.hypot(c.x-b.baseX, c.y-b.baseY);
     if(d < 40 || d > 420) return;
     if(Math.hypot(c.x-foe.x, c.y-foe.y) <= dFoe + 20) return;
-    if(hasLOS(c.x, c.y, foe.x, foe.y)) return;
     var ca = Math.atan2(c.y-b.baseY, c.x-b.baseX);
     var dA = Math.abs(((ca - fa + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
     if(dA < 1.3) return;
-    if(d < bd){ bd = d; best = c; }
+    C.push({x:c.x, y:c.y, z:z.z, d:d});
   });
-  return best;
+  // (18.11) общий выбор укрытия (470): от этого врага + известных + входов, где ждут; 3D, с шагом. Ближайшие 12 — проектное число (цена проверки)
+  C.sort(function(p, q){ return p.d - q.d; });
+  var best = coverPick(C.slice(0, 12), coverZ(b), coverThreats(b, [foe]));
+  return best ? {x:best.x, y:best.y} : null;
 }
 function seenRecently(b, e){ var s = b._seenAt && b._seenAt[e.id]; return s != null && tick - s >= 0 && tick - s <= 8; }

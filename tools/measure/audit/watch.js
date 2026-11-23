@@ -1,3 +1,4 @@
+var FIRE_LONG = 80, FIRE_STILL = 48;   // (v583a) тики: в огне дольше 1,25 с или стоит в огне 0,75 с (не выходит) — проектные
 // Сторож устройства (v373, этап 1 плана владельца 16.10). Не список ситуаций, а проверки того, КАК бот решает — ловят и то,
 // чего ещё не видели. Подключается в замер матча (rec2.js → REC.watch) и в прогон снимков отметок (watch_snaps.py).
 // Использование: eval(этот файл); WATCH.tick() — после каждого stepTick(); WATCH.report() — итог (JSON-объект).
@@ -109,9 +110,14 @@
       var s = S[b.id]; if(!b.alive) return;
       s.pos.push([b.x, b.y, tick]); if(s.pos.length > 21) s.pos.shift();
       // огонь
-      var inF = !!inFire(b.x, b.y), pp = s.pos.length >= 3 ? s.pos[s.pos.length-3] : null;   // огонь — как в игре (inFire); стоит — за 0,5 с < 10 px
-      s.fireT = inF && pp && Math.hypot(b.x-pp[0], b.y-pp[1]) < 10 ? s.fireT + 16 : 0;
-      if(s.fireT === 32){ W.n.danger++; inc(W.dangerBy, "стоит в огне"); if(W.ev.danger.length < EVMAX) W.ev.danger.push([tick, b.id, "стоит в огне", b.post ? b.post.tag : "-"]); }
+      // (v583a, владелец 18.11: «почини счётчик огня») огонь — с высотой, как урон в игре (inFire(x, y, z): этажом выше / ниже — не в огне); «стоит в
+      // огне» — в огне дольше FIRE_LONG тиков подряд, кроме выхода из огня, который идёт (выбегает и сдвинулся за 0,25 с больше 3 px). Было: огонь без
+      // высоты и «< 10 px за 0,5 с» — бот этажом ниже и бот, разгоняющийся из только что упавшего молотова, считались «стоит»
+      var inF = !!inFire(b.x, b.y, b.z), pp = s.pos.length >= 2 ? s.pos[s.pos.length-2] : null;
+      var escaping = b._burning && pp && Math.hypot(b.x-pp[0], b.y-pp[1]) > 3;
+      s.fireT = inF ? s.fireT + 16 : 0; s.fireStill = inF && !escaping ? (s.fireStill || 0) + 16 : 0;
+      if(!inF) s.fireCnt = 0;
+      if(inF && !s.fireCnt && (s.fireT >= FIRE_LONG || s.fireStill >= FIRE_STILL)){ s.fireCnt = 1; W.n.danger++; inc(W.dangerBy, "стоит в огне"); if(W.ev.danger.length < EVMAX) W.ev.danger.push([tick, b.id, "стоит в огне", b.post ? b.post.tag : "-"]); }
       // (v407) перетягивание, застой, перенос — одно место в игре: PROB (src/game/545_problem_watch.js); здесь только отчёт
       // ожидание без выхода
       if(b.post && b.atPost && WAIT_RE.test(b.post.tag)){ s.waitT += 16;

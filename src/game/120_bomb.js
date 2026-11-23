@@ -27,9 +27,9 @@ function bombDamageAt(x, y){
 // (v381, М134, владелец 16.10: «игроки недостаточно далеко отходят от бомбы и умирают от взрыва») по замеру (2 матча, Mirage и
 // Ancient): все 7 смертей от взрыва — T с задачей «уход» на выбранной точке (11–62 px от неё), урон там 80–89 при HP 3–67. Точка
 // выбиралась раз за раунд при полном HP с запасом всего 10 HP — потом бота ранили, а до самой точки он не доходит ровно. Теперь:
-// запас FLEE_HP_MARGIN, точка пересчитывается, если HP упало и она больше не спасает, дальше 900 px тоже ищем (до досягаемости
+// запас FLEE_HP_MARGIN (v583a: заменено — наименьший урон, куда успеваю), точка пересчитывается, если HP упало, дальше 900 px тоже ищем (до досягаемости
 // взрыва), а если не спасает ни одна — берём ту, где урон меньше всего (раньше — точка сбора, путь через сам взрыв)
-var FLEE_HP_MARGIN = 30, FLEE_MOVE = 300;   // проектное число: урон в точке ухода не больше HP − 30 (бот встаёт не ровно в точку)
+var FLEE_MOVE = 300, FLEE_SPARE = 1.5, FLEE_DMG_STEP = 10, FLEE_SPOT = 16;   // проектные: запас времени, с; почти равный урон, HP; вокруг точки, px   // проектное число: урон в точке ухода не больше HP − 30 (бот встаёт не ровно в точку)
 // (п.17 владельца 29.10) сколько идти до первой точки по своему пути к бомбе, откуда бомбу видно (оттуда сбивают дефуз выстрелом); шаг 16 ед.
 function bombSightLen(b, bp){
   if(hasLOS(b.x, b.y, bp.x, bp.y, b.z)) return 0;
@@ -47,28 +47,28 @@ function bombFleePoint(b){
   var F = b._flee;
   // (док 6, п.16: zont1x р11 — точку ухода посчитали, когда он был на TV (House), а уходить пришлось с T Ramp: 1305 ед. через всю карту вместо 154)
   // точка держится, пока боец рядом с местом, откуда её считали (FLEE_MOVE — проектное число); ушёл дальше — считается заново
-  if(F && F.round === roundNum && F.m === matchNum && Math.hypot(b.x-F.x0, b.y-F.y0) <= FLEE_MOVE &&
-     (!F.pt || F.hp <= b.hp || bombDamageAt(F.pt.x, F.pt.y) <= Math.max(0, b.hp - FLEE_HP_MARGIN))) return F.pt;
-  var R = BOMB_DMG.sigma, best = null, bs = Infinity, low = null, ls = Infinity;   // R — «внутри волны»: путь не должен туда заходить
+  if(F && F.round === roundNum && F.m === matchNum && Math.hypot(b.x-F.x0, b.y-F.y0) <= FLEE_MOVE) return F.pt;
+  // (v583a, Д6, владелец 17.11: «зачем терять HP, если можно встать туда, где урона меньше — а вдруг пикнут, а ты избит бомбой; "лишь бы выжить" —
+  // только когда HP мало») точка — с наименьшим уроном среди тех, куда успеваю до взрыва (с запасом FLEE_SPARE), из почти равных (ступень
+  // FLEE_DMG_STEP HP) — ближе по пути; урон — худший в FLEE_SPOT px вокруг точки (бот встаёт не ровно в неё; было: в точке 47, в 11 px — 71).
+  // Было: ближайшая точка, где урон ≤ HP − 30 (при 100 HP — соглашался на 70). Путь — не через сам взрыв, подальше от известного врага
+  var R = BOMB_DMG.sigma, best = null, bs = Infinity, leftS = bombTimeLeftTicks()/TICK_HZ, v = SPEED*weaponSpeedMul(b);
   if(!BZ.ids.length) beliefBuild();
+  var dNow = Math.hypot(b.x-bomb.x, b.y-bomb.y);
   BZ.cent.forEach(function(c, i){
     if(!c) return;
-    var dB = Math.hypot(c.x-bomb.x, c.y-bomb.y);
-    if(dB > BOMB_DMG.reach + 100) return;
-    var q = walk(c), dq = bombDamageAt(q.x, q.y);
-    var ok = dq <= Math.max(0, b.hp - FLEE_HP_MARGIN);   // там взрыв не добьёт и с запасом
+    if(Math.hypot(c.x-bomb.x, c.y-bomb.y) > BOMB_DMG.reach + 100) return;
+    var q = walk(c), dq = 0;
+    [[0, 0], [FLEE_SPOT, 0], [-FLEE_SPOT, 0], [0, FLEE_SPOT], [0, -FLEE_SPOT]].forEach(function(o){ dq = Math.max(dq, bombDamageAt(q.x + o[0], q.y + o[1])); });
     var pts = pathPts(b.x, b.y, q.x, q.y, b.z);
     if(pts.length < 1) return;
-    var L = polyLen(pts), minD = Infinity;
+    var L = polyLen(pts); if(L/v > leftS - FLEE_SPARE) return;   // не успеваю — не вариант
+    var minD = Infinity;
     for(var k=1;k<pts.length;k++){ var dd = distToSeg(bomb.x, bomb.y, [pts[k-1][0], pts[k-1][1], pts[k][0], pts[k][1]]); if(dd < minD) minD = dd; }
-    // старт уже внутри радиуса — путь неизбежно начинается в нём; штрафуем
-    // только если путь уходит к бомбе ближе, чем бот стоит сейчас
-    var dNow = Math.hypot(b.x-bomb.x, b.y-bomb.y);
-    var sc = L + (minD < Math.min(R*0.75, dNow - 30) ? 900 : 0) + 600*beliefZoneKnown(b.team, i);
-    if(ok && sc < bs){ bs = sc; best = q; }
-    if(!ok && L < 1400 && dq*20 + sc < ls){ ls = dq*20 + sc; low = q; }   // запасной: меньше урона, потом ближе
+    // старт уже внутри радиуса — путь неизбежно начинается в нём; штрафуем только если путь уходит к бомбе ближе, чем бот стоит сейчас
+    var sc = Math.round(dq/FLEE_DMG_STEP)*1e5 + L + (minD < Math.min(R*0.75, dNow - 30) ? 900 : 0) + 600*beliefZoneKnownB(b, i);
+    if(sc < bs){ bs = sc; best = q; }
   });
-  if(!best) best = low;
   b._flee = {round:roundNum, m:matchNum, pt:best, hp:b.hp, x0:b.x, y0:b.y};
   if(best && b._fleeLog !== roundNum){ b._fleeLog = roundNum; logEvent(b.id+": уходит от бомбы — "+calloutName(best.x, best.y)); }
   return best;

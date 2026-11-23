@@ -25,6 +25,25 @@ function pmWeight(team, e, pt){
   if(!e || !pt) return 1; var R = pmBook(team, e); if(R.n < PM_MIN) return 1;
   return 1 + PM_GAIN * R[pmRegion(pt)] / R.n;
 }
+// раскладка знания (гипотез) m о враге eid по зонам: held — точка, moved — где бегущий был бы сейчас на маршруте, moved_unknown — по типичным
+// местам, куда уже мог дойти (проверенные — ноль). Для карты команды (m = teamAgent) и для своей головы бота (b._belOwn)
+function beliefKnowQ(team, m, eid, e, n){
+  var Q = new Float32Array(n), H = m.know.enemies[eid]; if(!H) return Q;
+  H.hyps.forEach(function(h){
+    if(h.type === "moved_unknown"){
+      // доля на место — от ВСЕХ мест, куда враг уже мог дойти: проверенные (закрытые) свою долю
+      // просто теряют, а не перекладывают на непроверенные (иначе вес «где не смотрел» рос бы сам)
+      var S = m.know.spots.filter(function(p){ return knowSpotReach(p) && BZ.idx[p.zone] !== undefined; });
+      // (v354, владелец: «по никам должны понимать, где примерно игрок — жив kyousuke, а он игрок B, значит скорее всего он там»)
+      // доля места — по памяти матча: где этого игрока видели/слышали в прошлых раундах за эту сторону (pmWeight)
+      var WS = S.map(function(p){ return pmWeight(team, e, BZ.cent[BZ.idx[p.zone]]); }), WT = WS.reduce(function(a, c){ return a + c; }, 0) || 1;
+      S.forEach(function(p, si){ if(p.open) Q[BZ.idx[p.zone]] += h.weight*WS[si]/WT; });
+      return;
+    }
+    knowHypSpread(h, H).forEach(function(q){ Q[q[0]] += q[1]; });
+  });
+  return Q;
+}
 function beliefTick(){
   if(roundState !== "live" || tick % BELIEF_STEP !== 0 || !BZ.ids.length) return;
   // (этап 2) карта команды = гипотезы знания команды (teamAgent; раньше, с v240, — среднее по живым тиммейтам): held — точка,
@@ -39,24 +58,7 @@ function beliefTick(){
     Object.keys(B).forEach(function(eid){
       var e = bots.filter(function(o){ return o.id === eid; })[0];
       if(!e || !e.alive){ delete B[eid]; delete beliefLast[team][eid]; return; } // смерть врага видна в киллфиде; (v519, пак 09.11 п.10) и его «где видели последний раз» — тоже
-      var Q = new Float32Array(n), k = 0;
-      mates.forEach(function(m){
-        var H = m.know.enemies[eid]; if(!H) return; k++;
-        H.hyps.forEach(function(h){
-          if(h.type === "moved_unknown"){
-            // доля на место — от ВСЕХ мест, куда враг уже мог дойти: проверенные (закрытые) свою долю
-            // просто теряют, а не перекладывают на непроверенные (иначе вес «где не смотрел» рос бы сам)
-            var S = m.know.spots.filter(function(p){ return knowSpotReach(p) && BZ.idx[p.zone] !== undefined; });
-            // (v354, владелец: «по никам должны понимать, где примерно игрок — жив kyousuke, а он игрок B, значит скорее всего он там»)
-            // доля места — по памяти матча: где этого игрока видели/слышали в прошлых раундах за эту сторону (pmWeight)
-            var WS = S.map(function(p){ return pmWeight(team, e, BZ.cent[BZ.idx[p.zone]]); }), WT = WS.reduce(function(a, c){ return a + c; }, 0) || 1;
-            S.forEach(function(p, si){ if(p.open) Q[BZ.idx[p.zone]] += h.weight*WS[si]/WT; });
-            return;
-          }
-          knowHypSpread(h, H).forEach(function(q){ Q[q[0]] += q[1]; });
-        });
-      });
-      if(k > 1) for(var i=0;i<n;i++) Q[i] /= k;
+      var Q = beliefKnowQ(team, mates[0], eid, e, n);
       B[eid] = Q;
       // «слышали здесь» — только сказанное в войс (h.voice): вес гипотезы ≥ 0,35 (порог v166 beliefMassNear) —
       // последняя реальная инфа по этому врагу; «кто» — вывод знания (какой враг это объясняет), не подсказка игры.
@@ -72,6 +74,17 @@ function beliefTick(){
         reachOpen(team, hb.x, hb.y, eid); lkpSet(team, eid, hb.x, hb.y, "sound");
       }
     });
+    // (владелец 18.11: «что ещё должно идти в угрозу, кроме войса?» — своя голова) у каждого бота — своё знание (что сам слышал / видел / откуда
+    // по нему попали): по врагу, о котором его инфа свежее, чем у команды (не сказал / ещё не дошло), — его раскладка по зонам (b._belOwn), для
+    // его взгляда (260: beliefZoneKnown при LOOK_BEL_BOT). Стареет по той же кривой про (knowAge), что и знание команды
+    var TA = mates[0];
+    bots.forEach(function(b){ if(b.team !== team) return; b._belOwn = null; if(!b.alive || !b.know || b.know.key !== key) return;
+      for(var eid in B){ var Ho = b.know.enemies[eid], Ht = TA.know.enemies[eid]; if(!Ho || !Ho.last || Ho.visible) continue;
+        var to = Ho.last.tick, tt = Ht && Ht.last ? Ht.last.tick : -1e9;
+        Ho.hyps.forEach(function(h){ if(h.heard && h.htick > to) to = h.htick; });
+        if(Ht) Ht.hyps.forEach(function(h){ if(h.heard && h.htick > tt) tt = h.htick; });
+        if(to <= tt) continue;
+        (b._belOwn || (b._belOwn = {}))[eid] = beliefKnowQ(team, b, eid, bots.filter(function(o){ return o.id === eid; })[0], n); } });
     // что видят живые тиммейты — тайминги REACH (может ли там уже кто-то быть)
     var clearAll = [];
     bots.forEach(function(b){

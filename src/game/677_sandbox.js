@@ -36,7 +36,7 @@ function sbPlace(b, x, y){
   b.x = b.baseX = b.px = w.x; b.y = b.baseY = b.py = w.y;
   if(a){ b.z = navFloorZ(a, w.x, w.y); b._area = a.id; }
   movePath(b, [], "sandbox"); b.pathIdx = 0; b._climb = null; b._fc = null; b._hold = null; b._trail = []; moveSpeed(b, 0, "sandbox");
-  b._underV = null; b._overV = null; floorViewTick(b);
+  b._underV = null; b._overV = null; b._fall = null; floorViewTick(b);
 }
 function sbRevive(b, x, y){
   b.alive = true; b.hp = 100; fightReset(b); clearPost(b); b._contact = null;

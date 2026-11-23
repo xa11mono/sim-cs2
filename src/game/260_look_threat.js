@@ -5,9 +5,22 @@
 // (Г2, 04.11, разбор отметок «угроза»: веса 0,3 «ни разу не видели» и пол 0,5 «старая инфа не забывается» — без источника, второй раз
 // занижали врага поверх гипотез: на старте раунда 5 живых CT весили 1,5; старая инфа держалась 0,5 навсегда) враг весит, сколько
 // говорят его гипотезы: устаревание — уже в них (вес «стоит, где видели» тает, переходя в «ушёл» — 210, KNOW.heldStill … heldFloor)
+// (владелец 18.11) пока считаются углы одного бота (lookCands, 270: LOOK_BEL_BOT) — по врагу, о котором его своё знание свежее, чем у
+// команды, берётся его раскладка (240: b._belOwn)
+var LOOK_BEL_BOT = null;
+function beliefAsBot(b, fn){ LOOK_BEL_BOT = b; try { return fn(); } finally { LOOK_BEL_BOT = null; } }
 function beliefZoneKnown(team, i){
+  if(LOOK_BEL_BOT && LOOK_BEL_BOT.team === team) return beliefZoneKnownB(LOOK_BEL_BOT, i);
   var B = belief[team], t = 0;
   for(var eid in B) t += B[eid][i];
+  return t;
+}
+// (18.11, «чинить механику целиком») угроза зоны для решений ОДНОГО бота (взгляд, пики, отход от бомбы, эндгейм, контакт, гранаты, «шумлю ли
+// я»): по врагу, о котором его своё знание свежее, чем у команды, — его раскладка (240: b._belOwn), иначе — карта команды. Командные решения
+// (коллы, план) — beliefZoneKnown / beliefMass по карте команды
+function beliefZoneKnownB(b, i){
+  var B = belief[b.team], O = b._belOwn, t = 0;
+  for(var eid in B) t += (O && O[eid] ? O[eid][i] : B[eid][i]);
   return t;
 }
 // в этой зоне (или рядом, ≤400) есть враг, которого видели/слышали ≤3с назад
@@ -93,6 +106,14 @@ function uncheckedW(team, j){
 // так тылом становились Triple, T Upper, Sniper Nest — откуда шли T), а то, куда враг ещё не мог дойти по таймингу
 // (REACH — знание команды) или что держит свой (свой в зоне / ≤ 400 px от её центра). Остальное позади — обычный вариант
 // взгляда с ослаблением «за спиной» (LOOK.behindHold / behindMove)
+// (v583a, Д1 / Д5) свой «смотрит туда»: точка у него в поле зрения и видна ему (направление своего видно на радаре — это знает и живой игрок).
+// Одно правило для «зону держит свой» (isRearZone) и «спину прикрывает свой» (270, lookCands)
+// (владелец 17.11, р4: «выход из B Apps помечен "держит T1", а T1 ни разу туда не повернулся»; «у T1 на Short смок — он не видит Short») держит —
+// смотрит прямо туда (≤ MATE_AIM от его взгляда, проектное число ≈ 25°) и линия не закрыта стеной и дымом; было — точка в поле зрения 110°
+var MATE_AIM = 0.45;
+function mateWatches(o, pt){
+  return !!o && o.alive && o.facing !== undefined && _angOff(Math.atan2(pt.y-o.y, pt.x-o.x), o.facing) <= MATE_AIM && hasLOS(o.x, o.y, pt.x, pt.y, o.z) && !smokeBlocks(o.x, o.y, pt.x, pt.y);
+}
 function isRearZone(team, zb, j, b){
   // сам слышал/видел врага в этой зоне за последние 3 с — не тыл, даже если команда ещё не знает
   var c0 = BZ.cent[j];
@@ -104,7 +125,12 @@ function isRearZone(team, zb, j, b){
   // (v280) по таймингу — тыл, только если враг не успеет туда дольше LOOK.timingSec (раньше — «не успел прямо сейчас»:
   // выкидывался угол, куда враг выйдет через 0,1 с); держит — другой тиммейт, не сам бот (игрок 8 «держал» Donut сам)
   if(!REACH[team] || REACH[team][j] - tick > LOOK.timingSec*TICK_HZ){ REAR_WHY = "тыл: по таймингу враг не успеет туда " + LOOK.timingSec + "+ с"; return true; }
-  var c = BZ.cent[j], m = c ? bots.filter(function(o){ return o !== b && o.alive && o.team === team && (bzOf(o.x, o.y) === j || Math.hypot(o.x-c.x, o.y-c.y) <= 400); })[0] : null;
+  // (v583a, Д5, владелец 17.11) «держит» — свой стоит в этой зоне (враг встретит его первым) или рядом (400 px) и смотрит туда: зона в его
+  // поле зрения и видна ему (направление своего видно на радаре). Было: просто «свой в 400 px» — T1 в B Apartments смотрел на Van, а B Short,
+  // B Site, Drop, Arches считались его и выпадали из взгляда T3
+  var c = BZ.cent[j], m = c ? bots.filter(function(o){ if(o === b || !o.alive || o.team !== team) return false;
+    if(bzOf(o.x, o.y) === j) return true;
+    return Math.hypot(o.x-c.x, o.y-c.y) <= 400 && mateWatches(o, c); })[0] : null;
   if(m){ REAR_WHY = "тыл: держит " + m.id; return true; }
   return false;
 }
@@ -206,12 +232,18 @@ function bzWalk(){
     return D; });
   return BZ_WALK;
 }
+// (отметка владельца 18.11, м33 р1: «у игроков 5 и 7 растёт угроза в Jungle, когда там тиммейты») враг из зоны k входит в nn через соседа p
+// (последний шаг его пути: W[k][p] + W[p][nn] = W[k][nn]); этот проход видит свой (PORTAL_W — как у входа в зону бота) — встретит его первым:
+// доля × LOOK.watchedNbr. Было: «вход видит свой» проверялся только у самого входа в зону бота — угроза из A Site текла в Jungle через Cross,
+// хотя проход A Site → Cross держал CT1 с Triple Box
 function nbrThreat(team, j, nn, zb){
-  var W = bzWalk(), t = 0;
+  var W = bzWalk(), t = 0, PW = PORTAL_W[team] || {};
   for(var k=0;k<W.length;k++){ if(k === j || k === zb) continue;
     var dn = W[k][nn]; if(!(dn < W[k][j])) continue;
     if(k !== nn && !reachPossible(team, k)) continue;
-    var bk = beliefZoneKnown(team, k); if(bk > 0) t += bk * Math.exp(-dn / LOOK.nearPx); }
+    var bk = beliefZoneKnown(team, k); if(bk > 0){
+      var seen = k !== nn && BZ.nbr[nn].some(function(p){ return PW[p+","+nn] && W[k][p] + W[p][nn] <= dn + 1; });
+      t += bk * Math.exp(-dn / LOOK.nearPx) * (seen ? LOOK.watchedNbr : 1); } }
   return t;
 }
 // (v261, В5) шум слышен, а видимого угла, откуда выйдет враг, нет (стоит в углу за ящиком) — игрок всё равно

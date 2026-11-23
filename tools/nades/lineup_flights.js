@@ -23,9 +23,11 @@
       var ox = lu.from.x + Math.cos(oa)*LF_OFF.d, oy = lu.from.y + Math.sin(oa)*LF_OFF.d; if(navAt(ox, oy, null)){ b.x = b.baseX = ox; b.y = b.baseY = oy; } }
     var na = navAt(b.x, b.y, null); b.z = na ? na.z : visFloorAt(b.x, b.y);
     b.crouching = false; b.nades = emptyNades(); b.nades[lu.type] = 1; b._nadeT = null; b.nadeTask = null;
-    tick = 1000 + 7*out.length; walls = 0;   // свой tick у каждого лайнапа — свой разброс исполнения (с LF_ERR), прогон тот же
+    clockSet(1000 + 7*out.length); walls = 0;   // (17.11, модули) tick — переменная модуля: прямая запись из кода сюда её не меняла (подбор «пауза» у всех после первого)
+      // свой tick у каждого лайнапа — свой разброс исполнения (с LF_ERR), прогон тот же
     mates.forEach(function(o){ o._wasAlive = o.alive; o.alive = false; });
-    var ok = throwNade(b, lu.type, lu.to.x, lu.to.y, true, "тест", true, lu.from);
+    // «пауза: подбор броска — в следующем тике» (бюджет подборов за тик, 380) — в игре задание остаётся и бросок идёт тиком позже; тут так же
+    var ok = false; for(var tr = 0; tr < 4; tr++){ ok = throwNade(b, lu.type, lu.to.x, lu.to.y, true, "тест", true, lu.from); if(ok || !/пауза/.test(NADE_FAIL || "")) break; clockSet(tick + 1); }
     mates.forEach(function(o){ o.alive = o._wasAlive; });
     var r = {id: lu.id, team: lu.team, type: lu.type, from: [lu.from.x, lu.from.y], to: [lu.to.x, lu.to.y]};
     if(!ok){ r.how = "fail"; r.why = NADE_FAIL; out.push(r); return; }
@@ -33,7 +35,7 @@
     if(n.p) n.p0 = n.p.map(function(v){ return +v.toFixed(1); });   // точка вылета (ед. игры)
     for(var k = 0; k < 64*30 && nadesInAir.indexOf(n) >= 0; k++){
       if(k % 4 === 0) path.push([+n.x.toFixed(1), +n.y.toFixed(1), n.z != null ? +n.z.toFixed(1) : null]);
-      tick++; nadesTick();
+      clockSet(tick + 1); nadesTick();
     }
     r.ticks = tick - t0; r.end = [+n.x.toFixed(1), +n.y.toFixed(1), n.z != null ? +n.z.toFixed(1) : null];
     r.err = +Math.hypot(n.x - lu.to.x, n.y - lu.to.y).toFixed(1);
