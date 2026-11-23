@@ -1,0 +1,14 @@
+const { chromium } = require('playwright'); const path = require('path');
+(async () => { const [sim, m, N] = process.argv.slice(2);
+  const br = await chromium.launch(); const pg = await br.newPage(); await pg.route(/^https?:/, r => r.abort());
+  await pg.goto('file://' + path.resolve(sim)); await pg.waitForFunction(() => typeof window.__ev === 'function', null, {timeout: 60000});
+  await pg.evaluate((m) => window.__ev('freshMatch('+m+')'), +m);
+  const cdp = await pg.context().newCDPSession(pg); await cdp.send('Profiler.enable'); await cdp.send('Profiler.setSamplingInterval', {interval: 1000}); await cdp.send('Profiler.start');
+  await pg.evaluate((N) => { for(let i = 0; i < N; i++) window.__ev('stepTick()'); }, +N);
+  const {profile} = await cdp.send('Profiler.stop');
+  const self = {}, byId = {}; profile.nodes.forEach(n => byId[n.id] = n);
+  const cnt = {}; profile.samples.forEach(id => cnt[id] = (cnt[id]||0) + 1);
+  profile.nodes.forEach(n => { const k = n.callFrame.functionName || '(anon)'; self[k] = (self[k]||0) + (cnt[n.id]||0); });
+  const tot = profile.samples.length;
+  require('fs').writeFileSync(process.argv[5], JSON.stringify({tot, self}));
+  await br.close(); })();
