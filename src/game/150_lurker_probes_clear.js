@@ -185,7 +185,9 @@ function tProbes(tt, ts){
           var uFp = {x: to.x + (look.x-to.x)*0.3, y: to.y + (look.y-to.y)*0.3};
           var uFl = ts.filter(function(o){ return o !== pb && !o.nadeTask && o.nades && o.nades.flash > 0 && Math.hypot(o.x-pb.x, o.y-pb.y) < 500; })[0];
           var uSm = ts.filter(function(o){ return !o.nadeTask && o.nades && o.nades.smoke > 0 && Math.hypot(o.x-pb.x, o.y-pb.y) < 600; })[0];
-          if(uFl && (P.needUtil || P.n === 1 || hashRand(tick + 3) < 0.6)){ assignNade(uFl, "flash", uFp, "под пробу", {now:true, forC: nadeOwnerOf(pb)}); P.util = "flash"; }
+          // (22.11, аудит 044) было ещё «в 60 % случаев» — жребий; стало: флешка, если там, куда смотрит проба, по карте команды скорее кто-то есть (≥ 0,5)
+          var zLk = bzOf(look.x, look.y), sbW = zLk >= 0 ? beliefZoneKnown("T", zLk) : 0;
+          if(uFl && (P.needUtil || P.n === 1 || sbW >= 0.5)){ assignNade(uFl, "flash", uFp, "под пробу", {now:true, forC: nadeOwnerOf(pb)}); P.util = "flash"; }
           else if(uSm && (key === "M" || P.needUtil)){ var smP = {x: to.x + (look.x-to.x)*0.5, y: to.y + (look.y-to.y)*0.5}; if(assignNade(uSm, "smoke", smP, "смок под пробу", {now:true, forC: nadeOwnerOf(pb)})) P.util = "smoke"; }
         }
         // со второго раза — глубже, за фрагом, но только парой (есть кому

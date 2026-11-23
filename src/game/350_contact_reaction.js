@@ -178,7 +178,9 @@ function contactTick(b){
   // по своему знанию: T — фаза своей тактики «сетап»; CT — бомба не стоит (ретейк, срыв планта — свои моменты). Было: фаза плана T
   // для обеих сторон — CT знал внутренний план соперника
   var quiet = bomb && bomb.state !== "planted" && (b.team === "T" ? !!(teamTac.T && teamTac.T.phase === "setup") : true);
-  if((fought || quiet) && swing){
+  // (22.11, аудит 033) скрытность — довод: меня не нашли (knowMeRevealed, 220) — выход на врага, как после своей перестрелки, только с преимуществом
+  var hiddenMe = !knowMeRevealed(b);
+  if((fought || quiet || hiddenMe) && swing){
     var HR = b._heardReload, PHc = teamIntel[b.team] && teamIntel[b.team].plantHeard;
     var adv = !!contactMateFight(b, C)
       || bots.some(function(o){ return o !== b && o.alive && o.team === b.team && !o._sawEnemy && nearP(o.x, o.y, o.z, b.x, b.y, b.z, TRADE_R); })   // размен рядом
@@ -324,11 +326,14 @@ function ctDelayNade(b){
     // какая граната — жребий из тех, что есть, с весами про: гранаты CT до планта, сработавшие рядом с T (≤ 350 ед.; демки Mirage,
     // tools/motion/nade_react_pro.py): смоков 2,6 тыс., молотовов 2,6 тыс., HE 1,65 тыс.; T рядом двое и больше — у HE 61 %, у молотова 56 %, у смока
     // 48 % — для группы веса HE и молотова × (доля / 0,5). Было (v580): видели — HE, иначе молотов, смок, HE по порядку
-    var WN = {smoke: 2605, molly: 2585, he: 1650}, grp = (t.n || 1) >= 2, wsum = 0, wl = [];
-    ["smoke", "molly", "he"].forEach(function(k){ if(b.nades[k] > 0){ var w = WN[k]*(grp ? ({smoke: 0.96, molly: 1.12, he: 1.22})[k] : 1); wl.push([k, w]); wsum += w; } });
-    var ru = hashRand(tick*59 + b.id.charCodeAt(b.id.length-1)*23 + roundNum*3)*wsum;
-    for(var wi = 0; wi < wl.length && !type; wi++){ ru -= wl[wi][1]; if(ru <= 0) type = wl[wi][0]; }
-    if(!type && wl.length) type = wl[wl.length-1][0];
+    // (22.11, аудит 044, по указанию владельца Д30 «подходящую») было: жребий с весами про. Стало — по тому, что бот знает о врагах у точки (своё знание:
+    // последнее увиденное, движение): видел группу (≥ 2 рядом) — HE (урон по группе); идут (движутся) — молотов (перекрывает проход); стоят / держат
+    // место — смок (закрывает вид надолго); нет нужной — следующая по пригодности. Доли про (смок 2,6 / молотов 2,6 / HE 1,65 тыс.) — для сверки
+    var K = b.know && b.know.enemies, moving = false;
+    if(K) for(var eidD in K){ var Ld = K[eidD] && K[eidD].last; if(Ld && Ld.x != null && tick - Ld.tick < 3*TICK_HZ && Math.hypot(Ld.x-t.x, Ld.y-t.y) < DELAY_GROUP_R &&
+      Math.hypot(Ld.vx || 0, Ld.vy || 0) > SPEED*0.3) moving = true; }
+    var order = (t.seen && (t.n || 1) >= 2) ? ["he", "molly", "smoke"] : moving ? ["molly", "he", "smoke"] : ["smoke", "molly", "he"];
+    for(var oi = 0; oi < order.length && !type; oi++) if(b.nades[order[oi]] > 0) type = order[oi];
   }
   if(!type || !assignNade(b, type, t, "задержать: "+t.why, {now:true, here:true})) return;
   b._delayT = tick;
@@ -365,6 +370,11 @@ function hurtReactTick(b){
     return;
   }
   var F = miss ? {x:hs.x, y:hs.y, z:hs.z} : b._hurtFrom; if(!F || contactCritical(b)) return;
+  // (22.11, аудит 032: «событие обновляет картину, а не назначает действие»; PRINCIPLES: не «получил HE — уйти») урон гранатой — не значит, что меня
+  // видят: знание обновлено (откуда кинули), шага нет; стреляли, а с места стрелка меня уже не видно (прострел стены, уже ушёл за угол) — оставаться
+  // можно. Иначе — укрытие, как было (терпит ли задача — detourOk)
+  if(kind === "hurt" && b._hurtSrc === "HE") return;
+  if(!hasLOS(F.x, F.y, b.x, b.y, F.z, b.z)) return;
   // (v560, В101) задача бомбы (несёт ставить) больше не запрет сама по себе: терпит ли она шаг за укрытие — решает её правило отклонения
   // (detourOk ниже, 110: ставит / дефузит / убегает от взрыва — нет; несёт на точку и время есть — да)
   var fz = F.z != null ? F.z : null, hurtT = coverThreats(b, [{x:F.x, y:F.y, z:fz}]);
