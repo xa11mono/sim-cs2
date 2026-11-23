@@ -45,7 +45,7 @@ function pickSaveSpot(b){
 function tPlantOdds(ts, secLeft){
   if(!bomb || (bomb.state !== "carried" && bomb.state !== "dropped")) return {p: 0, site: null};
   var src = bomb.state === "carried" ? bomb.carrier : null; if(src && !src.alive) return {p: 0, site: null};
-  var st2 = 0; ts.forEach(function(b){ var s1 = (b.hp/100)*ctWeaponK(b); st2 += s1*s1; }); var st = Math.sqrt(st2);
+  var st = 0; ts.forEach(function(b){ st += (b.hp/100)*ctWeaponK(b); });   // сила — сумма (Ланчестер), как у CT
   var HT = teamIntel.T && teamIntel.T.hurt, ctS = 0; bots.forEach(function(o){ if(o.team !== "CT" || !o.alive) return; var h = HT && HT[o.id]; ctS += (h && tick - h.tick < 20*TICK_HZ) ? h.hp/100 : 1; });
   var best = {p: 0, site: null};
   ["A","B"].forEach(function(k){ var S = SITES[k];
