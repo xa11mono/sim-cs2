@@ -305,6 +305,24 @@ function navFloorNear(x, y, tol, pred){
   }
   return null;
 }
+// (22.11, Ж2) спрыгнуть по переходу навмеша, когда под ботом ещё свой пол (верхний участок перекрывает точку внизу: B Short над Underpass) — бот над
+// точкой пути, она ниже прыжка, и от участка своего уровня рядом есть переход на участок под точкой: падение на него (тот же полёт, что любое падение)
+function navDropAt(bot, wp){
+  if(bot._fall || bot.z == null || wp[2] == null || wp[2] > bot.z - JUMP_UP) return false;
+  var lvl0 = navArea(bot._area) ? navArea(bot._area).z : bot.z, low = navAt(wp[0], wp[1], wp[2]); if(!low) return false;
+  var curs = [navArea(bot._area)].concat(navFloorsNear(bot.baseX, bot.baseY, NAV_GAP_TOL, lvl0)).filter(Boolean);
+  if(!curs.some(function(c){ return navLinked2(c, low); })) return false;
+  bot._fall = {z0: bot.z, t0: tick, area: low.id, zt: low.z}; bot._area = low.id; return true;
+}
+// (22.11, Ж2) все участки своего уровня (± JUMP_UP от lvl) в радиусе tol — соседние полы у края
+function navFloorsNear(x, y, tol, lvl){
+  if(!NAV_GRID) navGridBuild(); var out = [];
+  for(var r = 0; r <= tol; r += Math.max(1, tol/3)){ var D = r ? NAV_NEAR_DIRS : [[0,0]];
+    for(var k = 0; k < D.length; k++){ var px = x+D[k][0]*r, py = y+D[k][1]*r, L = NAV_GRID[Math.floor(px/NAV_GRID_C)+","+Math.floor(py/NAV_GRID_C)]; if(!L) continue;
+      for(var i = 0; i < L.length; i++){ var a = NAVAREAS[L[i]]; if(NAV_BLOCKED[a.id] || out.indexOf(a) >= 0 || (lvl != null && Math.abs(a.z - lvl) > JUMP_UP) || !pointInPoly(px, py, a.points)) continue; out.push(a); } }
+    if(!tol) break; }
+  return out;
+}
 // (v336) шаг с пола навмеша туда, где пола нет. Навмеш — где может стоять игрок (его считает сама игра), а стены радара
 // местами с дырами: через них боты заходили в ящики и щели у стен, «застревали в стене», а через 0,5 с navSnap выкидывал
 // их на ближайший пол. Теперь с пола уходить нельзя — кроме щели к связанному участку (прыжок на уступ, спрыгнуть:
@@ -376,7 +394,11 @@ function navNearestFall(x, y, tol, z){
 var FALL_G = 800;
 function navFollowFloor(bot){
   var FA = bot._fall;
-  if(FA){ var tf = (tick - FA.t0)/TICK_HZ, zf = FA.z0 - 0.5*FALL_G*tf*tf, g = navAt(bot.baseX, bot.baseY, FA.zt) || navArea(FA.area), gz = g ? navFloorZ(g, bot.baseX, bot.baseY) : FA.zt;
+  if(FA){ var tf = (tick - FA.t0)/TICK_HZ, zf = FA.z0 - 0.5*FALL_G*tf*tf, g = navAt(bot.baseX, bot.baseY, FA.zt) || navArea(FA.area);
+    // (22.11, Ж2) приземлиться можно только на пол не выше, чем бот сейчас: падая, он вышел из-под нижнего участка — navAt дал верхний пол (502 над
+    // Underpass), и бот «приземлялся» вверх, на тот же этаж, откуда спрыгнул
+    if(g && bot.z != null && navFloorZ(g, bot.baseX, bot.baseY) > bot.z + 2 && navArea(FA.area)) g = navArea(FA.area);
+    var gz = g ? navFloorZ(g, bot.baseX, bot.baseY) : FA.zt;
     bot._flx = bot.baseX; bot._fly = bot.baseY;
     if(zf > gz){ bot.z = zf; return; }
     bot._fall = null; bot.z = gz; if(g) bot._area = g.id;
@@ -447,7 +469,10 @@ function offNavStep(x1, y1, x2, y2, b){
   // шире NAV_GAP_TOL: шаг по пути прямо к следующей точке, под которой пол связанного участка, — это задуманный переход
   var wp = b.path && b.path[b.pathIdx];
   if(wp){ var dx = wp[0]-x1, dy = wp[1]-y1, sx = x2-x1, sy = y2-y1, L = Math.hypot(dx, dy)*Math.hypot(sx, sy);
-    if(L > 0 && (dx*sx + dy*sy)/L > 0.9){ var aw = navFloorNear(wp[0], wp[1], NAV_STEP_TOL, function(a){ return a !== cur && navLinked2(cur, a); });
+    // (22.11, Ж2) переход вниз — от участка, где бот стоит, или от соседнего участка своего уровня рядом (у края полы участков соприкасаются: спуск 502 → 610
+    // начинается с 502, а бот уже на 503 — шаг вниз был «краем пола»)
+    var curs = [cur].concat(navFloorsNear(x1, y1, NAV_GAP_TOL, lvl0));
+    if(L > 0 && (dx*sx + dy*sy)/L > 0.9){ var aw = navFloorNear(wp[0], wp[1], NAV_STEP_TOL, function(a){ return curs.indexOf(a) < 0 && curs.some(function(c){ return navLinked2(c, a); }); });
       if(aw) return false; } }
   return true;
 }
