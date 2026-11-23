@@ -29,21 +29,38 @@ function fireRepath(fx, fy){
       if(Math.hypot(px + dx*t - fx, py + dy*t - fy) <= R){ b.path = []; b.pathIdx = 0; return; }
       px = q[0]; py = q[1]; } });
 }
-var FIRE_GATHER_LEFT = 17;   // (v583a) с
+// (22.11, аудит 061, владелец: «связать молотов с HP, задачей, плантом/дефузом, временем до взрыва и возможностью покинуть опасную зону; ожидание
+// выхода из огня не учитывается в цене решения») было: сквозь огонь — только задачи из списка (TASK_PROP fireCommit), сбор и ретейк — ещё и только
+// когда до взрыва меньше 17 с (FIRE_GATHER_LEFT, проектное); ждать или нет — не сравнивалось. Стало — сравнение цены ожидания с запасом задачи:
+// ждать у края — столько, сколько ещё горит огонь на пути (fireAheadLeft: огонь виден, длительность молотова игрок знает); запас задачи (fireSlack) —
+// сколько времени у её цели остаётся сверх «дойти и сделать» (часы бомбы или раунда; дефуз / плант; кто дефузит — свой путь и дефуз, прикрывает —
+// только путь). Ждать дольше запаса — задача сорвётся: идёт сквозь, если переживёт (HP против урона за проход + FIRE_MARGIN). Запас есть — ждёт
+// (или обход, 050). У задачи без срока (не бомба: TASK_PROP fireCommit — задачи бомбы) запас бесконечен — ждёт, как было. Сбить плант / дефуз —
+// запас 0 (действие врага идёт сейчас). Плант / дефуз в огне — как было: доделать, если переживёт до конца
+function fireAheadLeft(b){
+  var t = 0, f0 = inFire(b.baseX, b.baseY, b.z); if(f0) t = (f0.until - tick)/TICK_HZ;
+  if(!b.path || b.pathIdx >= b.path.length || !fires.length) return t;
+  var px = b.baseX, py = b.baseY;
+  for(var i = b.pathIdx; i < b.path.length && i < b.pathIdx + 4; i++){ var q = b.path[i];
+    fires.forEach(function(f){ if(fireOnSegF(f, px, py, q[0], q[1], b.z)) t = Math.max(t, (f.until - tick)/TICK_HZ); });
+    px = q[0]; py = q[1]; }
+  return t;
+}
+function fireSlack(b){
+  var tg = b.post && b.post.tag; if(!tg || !taskProp(tg, "fireCommit")) return Infinity;
+  if(taskProp(tg, "fireNow")) return 0;
+  var planted = bomb && bomb.state === "planted", avail = planted ? bombTimeLeftTicks()/TICK_HZ : ROUND_TIME_SEC - (simTime - roundStartTime);
+  var go = pathLenTo(b, b.post.x, b.post.y)/(SPEED*weaponSpeedMul(b));
+  if(b.team === "CT" && planted) return avail - (b.retakeRole === "defuser" || taskProp(tg, "fireDefuse") ? defuseEta(b) : go);
+  if(b.team === "T" && !planted && taskProp(tg, "firePlant")) return avail - go - PLANT_TICKS/TICK_HZ;
+  return avail - go;
+}
 function fireCommit(b){
   if(!b) return false;
   if(b.planting || b.defusing) return b.hp > fireDamageFor(((b.planting ? b.plantUntil : b.defuseUntil) - tick)/TICK_HZ) + 10;
   var going = b.path && b.pathIdx < b.path.length;
   if(!going || b.holding || (b.post && inFire(b.post.x, b.post.y, b.post.z))) return false;   // держит угол — не идёт насквозь, а стоит в огне
-  // (v438, док владельца 27.10: «боты часто идут в молик»; замер: 224 захода «сам» на 8 матчей) сквозь огонь — только задача, которая
-  // не ждёт, пока он прогорит: бомба (плант, дефуз, сбить плант / дефуз, ретейк и сбор под него, убежать от взрыва, поднять бомбу).
-  // Остальные ждут у края (fireSafe) или идут в обход (путь, FIRE_DETOUR). Было — любой, у кого хватало HP
-  if(!(b.post && taskProp(b.post.tag, "fireCommit"))) return false;
-  // (v583a, владелец 18.11: «разбери огонь полностью, чтобы не стояли в нём»; снимок м5 т46080: CT2 «сбор под ретейк» пошёл через молотов к
-  // середине, получил 87 урона за 1,8 с; потом тот же CT на ретейке — 52 урона за 2,1 с) сбор и заход на ретейк ждут, пока огонь прогорит, если время
-  // есть: сквозь огонь — только когда до взрыва
-  // меньше, чем горит молотов и дефуз без кита (FIRE_GATHER_LEFT, проектное: 7 + 10 с)
-  if(taskProp(b.post.tag, "fireIfLate") && !(bomb && bomb.state === "planted" && bombTimeLeftTicks() < FIRE_GATHER_LEFT*TICK_HZ)) return false;
+  if(fireAheadLeft(b) <= fireSlack(b)) return false;   // огонь прогорит раньше, чем кончится запас задачи — ждёт / обходит
   return b.hp > fireDamageFor(2*NADE.molly.radius/(SPEED*weaponSpeedMul(b))) + FIRE_MARGIN;
 }
 // (v321) высота шага: без связи в навмеше нельзя подняться выше прыжка (JUMP_UP), и нельзя залезть туда, откуда есть
