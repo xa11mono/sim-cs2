@@ -16,6 +16,11 @@
 // («перекол на B», «не спешим», «заходим сразу») в соседних тиках — команда слышала противоречивые коллы.
 // Теперь событие (фраг / смерть / инфа) двигает план не больше одного раза: первое сработавшее решение
 // забирает событие; решения по более старым событиям не принимаются. Решает и говорит IGL.
+// (22.11, аудит 019) решение IGL «раз за раунд» — до смены ситуации: живых T, живых CT и сайта плана. Было — флаг до конца раунда: после новых смертей
+// / перекола ветка больше не пересматривалась. iglOnce(tt, k) — решение k ещё не принято в этой ситуации; iglDone(tt, k) — принято
+function iglSit(tt){ return roundNum + ":" + aliveCount("T") + ":" + aliveCount("CT") + ":" + tt.site; }
+function iglOnce(tt, k){ return !(tt._once && tt._once[k] === iglSit(tt)); }
+function iglDone(tt, k){ (tt._once || (tt._once = {}))[k] = iglSit(tt); }
 function iglTake(tt, evTick){ if(evTick <= (tt._evDone||-1)) return false; tt._evDone = evTick; return true; }
 function carrierAtSite(tt){
   if(bomb.state !== "carried" || !bomb.carrier || !bomb.carrier.alive) return false;
@@ -84,7 +89,7 @@ function tIglReplan(tt, site, other, secLeft){
     // (S8) слышим ротацию CT на наш сайт — можно перейти на другой. Но это
     // только чтение, не гарантия: IGL верит ему не всегда (~60%), и другой сайт
     // НЕ считается пустым — заходим туда обычным выходом, с гранатами и чеком углов
-    if(!tt.rebound && !tt._rotDone && aliveT >= 3 && secLeft > 45 && tick % 16 === 0){
+    if(!tt.rebound && iglOnce(tt, "rot") && aliveT >= 3 && secLeft > 45 && tick % 16 === 0){
       var RH = tt._rotH || (tt._rotH = {});
       teamIntel.T.sig.forEach(function(sg){ if((sg.type !== "spotted" && sg.type !== "sound") || !sg.id || sg.id === "?" || tick - sg.tick > 16) return;
         var h = RH[sg.id] || (RH[sg.id] = []); if(!h.length || sg.tick - h[h.length-1].tick >= TICK_HZ){ h.push({x:sg.x, y:sg.y, tick:sg.tick}); if(h.length > 3) h.shift(); } });
@@ -94,7 +99,7 @@ function tIglReplan(tt, site, other, secLeft){
         var dO0 = Math.hypot(a0.x-SITES[other].x, a0.y-SITES[other].y), dO1 = Math.hypot(a1.x-SITES[other].x, a1.y-SITES[other].y);
         if(dS0 - dS1 > 120 && dO1 - dO0 > 80 && dS1 < 1400) toward.push(rid); }
       if(toward.length >= (aliveCT <= 3 ? 1 : 2) && !tSiteTaking(tt) && iglTake(tt, tick)){   // (22.11, Ж16) сайт берётся — не уходим
-        tt._rotDone = tick;
+        iglDone(tt, "rot");
         if(hashRand(roundNum*389 + matchNum*23 + 7) < 0.6){
           tt.rebound = true;
           var ctrR = {x:0, y:0}, tsR = bots.filter(function(b){ return b.team === "T" && b.alive; });
@@ -110,12 +115,12 @@ function tIglReplan(tt, site, other, secLeft){
     }
     return false;
   }
-  if(tt.phase === "execute" && !tt.aborted && tt.execStart != null && tick - tt.execStart < 10*TICK_HZ && secLeft > 40){
+  if(tt.phase === "execute" && iglOnce(tt, "abort") && tt.execStart != null && tick - tt.execStart < 10*TICK_HZ && secLeft > 40){
     var tD = DL.filter(function(e){ return e.t === "T" && e.tick >= tt.execStart; }).length;
     var cD = DL.filter(function(e){ return e.t === "CT" && e.tick >= tt.execStart; }).length;
     var lastD = DL.length ? DL[DL.length-1].tick : tick;
     if(tD - cD >= 2 && aliveT <= 3 && aliveCT >= aliveT && iglTake(tt, lastD)){
-      tt.aborted = tick;
+      tt.aborted = tick; iglDone(tt, "abort");
       var otherB = beliefCount("T", BZ.siteNear[other]||[]);
       var ctr = {x:0, y:0}, tsA = bots.filter(function(b){ return b.team === "T" && b.alive; });
       tsA.forEach(function(b){ ctr.x += b.x/tsA.length; ctr.y += b.y/tsA.length; });

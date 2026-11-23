@@ -167,14 +167,14 @@ function tBrain(){
   // (док 6, п.3: р3 3 на 3 — носитель в 213 от B и 1193 от A, по знанию на B 0,01, на A 0,94; правило требовало «нас больше» и не сработало,
   // носитель пошёл через карту на A) на выходе другой сайт берётся по знанию, а не по счёту: носителю туда ближе и врагов там по знанию меньше,
   // чем у нашего сайта; раз за раунд
-  if(tt.phase === "execute" && !tt._exReb && bomb.state === "carried" && bomb.carrier && bomb.carrier.alive && !carrierAtSite(tt)){
+  if(tt.phase === "execute" && iglOnce(tt, "exReb") && bomb.state === "carried" && bomb.carrier && bomb.carrier.alive && !carrierAtSite(tt)){
     var crE = bomb.carrier, dHe = polyLen(pathPts(crE.x, crE.y, SITES[tt.site].x, SITES[tt.site].y, crE.z)), dOe = polyLen(pathPts(crE.x, crE.y, SITES[other].x, SITES[other].y, crE.z));
     var eOe = intelEstimate("T", SITES[other].x, SITES[other].y, 400, 6*TICK_HZ), bOe = beliefCount("T", BZ.siteNear[other]||[]), bHe = beliefCount("T", BZ.siteNear[tt.site]||[]);
     // (v519, пак 09.11 п.12; А-6: на раше в первые секунды «B пустой, бомба рядом — ставим B!») «там пусто» — по знанию команды (siteAssess, 150: каждый
     // живой CT где-то замечен, и не у того сайта), а не «по карте вероятностей меньше 0,9» — в начале раунда о CT ещё ничего не знают, и отсутствие
     // информации считалось пустым сайтом
     if(dOe < dHe && bOe < 0.9 && bOe < bHe && eOe.n < 1.5 && siteAssess("T", other).level === "empty" && !tSiteTaking(tt) && iglTake(tt, tick)){
-      tt._exReb = true;
+      iglDone(tt, "exReb");
       voiceLog("T", "exreb"+other, "IGL", other+" пустой, бомба рядом — ставим "+other+"!");
       logEvent("IGL: на выходе перекол → "+other+" (носителю ближе, там пусто)");
       tSetSite(tt, other); tt.execStart = tick;
@@ -184,7 +184,7 @@ function tBrain(){
   // (v355, владелец: «zont1x чекнул Market, Window, Short, B Site, Bench, Car — пусто, но перекола нет», 4 на 1 стояли у A)
   // (v490) другой сайт «вероятно пуст» — все живые CT недавно замечены в другом месте (siteAssess, 150; было: 2+ / 6 прочеканных зон), и носи-
   // успевает дойти и поставить: идём туда. Повод — либо CT по знанию у нашего сайта, либо носитель ближе к другому. Раз за раунд
-  if(!tt._clrReb && bomb.state === "carried" && bomb.carrier && bomb.carrier.alive && !carrierAtSite(tt) && aliveCount("T") >= 2){
+  if(iglOnce(tt, "clrReb") && bomb.state === "carried" && bomb.carrier && bomb.carrier.alive && !carrierAtSite(tt) && aliveCount("T") >= 2){
     var So = SITES[other], CR = siteAssess("T", other);   // (v490) «вероятно пуст» — все живые CT недавно замечены в другом месте
     if(CR.level === "empty"){
       var crC = bomb.carrier, dHc = polyLen(pathPts(crC.x, crC.y, site.x, site.y, crC.z)), dOc = polyLen(pathPts(crC.x, crC.y, So.x, So.y, crC.z));
@@ -194,7 +194,7 @@ function tBrain(){
       // меньше ждём врагов, или столько же, а носителю туда ближе. Было: «меньше одного врага» (0,69 < 0,9) и никого не видели и не слышали
       // за 6 с — знание о karrigan (0,69 на B против 0,57 на A) не учитывалось, и перекол уводил всех на сайт, где их ждали больше
       if(bO < 0.9 && (bO < bH || (bO <= bH && dOc < dHc)) && secLeft > dOc/SPEED + PLANT_TICKS/TICK_HZ + 8 && !tSiteTaking(tt) && iglTake(tt, tick)){   // (22.11, Ж16) сайт берётся — доигрываем
-        tt._clrReb = true; tt.rebound = true;
+        iglDone(tt, "clrReb"); tt.rebound = true;
         // (ответ владельца 2) подтверждённо пуст (позиции и подходы проверены / закрыты) — выход и плант сразу; только вероятно пуст (все CT
         // замечены в другом месте) — переколл, но занимать осторожно: сетап (занять и прочекать сайт), выход — по таймингу
         var conf = CR.confirmed;
