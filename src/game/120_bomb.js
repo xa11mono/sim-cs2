@@ -31,16 +31,29 @@ function bombDamageAt(x, y){
 // взрыва), а если не спасает ни одна — берём ту, где урон меньше всего (раньше — точка сбора, путь через сам взрыв)
 var FLEE_MOVE = 300, FLEE_SPARE = 1.5, FLEE_DMG_STEP = 10, FLEE_SPOT = 16;   // проектные: запас времени, с; почти равный урон, HP; вокруг точки, px   // проектное число: урон в точке ухода не больше HP − 30 (бот встаёт не ровно в точку)
 // (п.17 владельца 29.10) сколько идти до первой точки по своему пути к бомбе, откуда бомбу видно (оттуда сбивают дефуз выстрелом); шаг 16 ед.
-function bombSightLen(b, bp){
-  if(hasLOS(b.x, b.y, bp.x, bp.y, b.z)) return 0;
-  var P = buildWaypointPath(b.baseX, b.baseY, b.z, bp.x, bp.y, 0, b.team, botLane(b)) || [], L = 0, px = b.baseX, py = b.baseY;
+function bombSightLen(b, bp){ return bombSightLenAt(b.baseX, b.baseY, b.z, b.team, botLane(b), bp, b.x, b.y); }
+// (23.11) то же от любой точки (место пост-планта): путь до первой точки, откуда видно бомбу. lx, ly — откуда смотреть сразу (бот — b.x, b.y)
+function bombSightLenAt(x0, y0, z0, team, lane, bp, lx, ly){
+  if(hasLOS(lx != null ? lx : x0, ly != null ? ly : y0, bp.x, bp.y, z0)) return 0;
+  var P = buildWaypointPath(x0, y0, z0, bp.x, bp.y, 0, team, lane) || [], L = 0, px = x0, py = y0;
   for(var i = 0; i < P.length; i++){
     var qx = P[i][0], qy = P[i][1], sl = Math.hypot(qx-px, qy-py), n = Math.max(1, Math.ceil(sl/16));
     for(var k = 1; k <= n; k++){ var x = px + (qx-px)*k/n, y = py + (qy-py)*k/n;
-      if(hasLOS(x, y, bp.x, bp.y, P[i][2] != null ? P[i][2] : b.z)) return L + sl*k/n; }
+      if(hasLOS(x, y, bp.x, bp.y, P[i][2] != null ? P[i][2] : z0)) return L + sl*k/n; }
     L += sl; px = qx; py = qy;
   }
   return L;
+}
+// (23.11, пост-плант T, разбор тактика: «позиция видит бомбу или подход к ней; решать заранее, а не бежать на звук») шанс сорвать дефуз с места s:
+// услышал начало дефуза → реакция DEF_REACT → дойти до точки, откуда видно бомбу; дефуз — 5 с с китом, 10 без; кит T не видит — гипотеза
+// DEF_KIT_P (владелец 23.11: не считать кит «есть» по полному закупу). Числа 1 с и 0,5 — проектные. Кэш — на плант (место и бомба не меняются)
+var DEF_REACT = 1, DEF_KIT_P = 0.5, DEF_STOP_C = {};
+function defStopP(s, bp, team){
+  var k = (bomb && bomb.plantTick) + "|" + Math.round(s.x) + "," + Math.round(s.y);
+  if(DEF_STOP_C[k] == null){ var z = s.z != null ? s.z : visFloorAt(s.x, s.y, null);
+    var need = DEF_REACT + bombSightLenAt(s.x, s.y, z, team || "T", 0.5, bp)/SPEED;
+    DEF_STOP_C[k] = (need <= DEFUSE_KIT_TICKS/TICK_HZ ? DEF_KIT_P : 0) + (need <= DEFUSE_TICKS/TICK_HZ ? 1 - DEF_KIT_P : 0); }
+  return DEF_STOP_C[k];
 }
 function bombFleePoint(b){
   if(!bomb || bomb.state !== "planted") return null;
@@ -138,6 +151,22 @@ function tDefuseKnown(){
     last = Math.max(last, b._defuseHeard||-9999, b._defuseCont||-9999);
     if(!seen && (b._visible || []).some(function(o){ return o.alive && o.defusing; })) seen = true; });
   return (seen || tick - last < 110) ? {t0: h0 > -9999 ? h0 : tick} : null;
+}
+// (23.11, пост-плант T, разбор тактика: «уход с поста — пересмотр: что получу против того, что потеряю») через сколько секунд, по картине T,
+// ближайший CT может быть у бомбы: для каждого живого CT — зоны его раскладки (belief.T, полная масса) от ближних по пути к бомбе к дальним,
+// пока набранная масса не дойдёт до PP_ETA_Q — «с такой вероятностью он уже может быть там через столько»; берётся ближайший из CT.
+// PP_ETA_Q = 0,2 — проектное число (насколько маловероятный подход T ещё учитывает)
+var PP_ETA_Q = 0.2, PP_ETA_C = null;
+function tCtEtaKnown(){
+  if(!bomb || bomb.state !== "planted") return Infinity;
+  if(PP_ETA_C && PP_ETA_C.t === tick) return PP_ETA_C.v;
+  var D = bzNearD(bomb.x, bomb.y), B = belief.T || {}, best = Infinity;
+  if(D) for(var eid in B){ var o = teamBot(eid); if(!o || !o.alive || o.team !== "CT") continue;
+    var M = B[eid], Z = []; for(var i = 0; i < M.length; i++) if(M[i] > 0 && D[i] < 1e8) Z.push(i);
+    var tot = 0; Z.forEach(function(i){ tot += M[i]; }); if(tot <= 0) continue;
+    Z.sort(function(p, q){ return D[p] - D[q]; });
+    var acc = 0; for(var k = 0; k < Z.length; k++){ acc += M[Z[k]]/tot; if(acc >= PP_ETA_Q){ best = Math.min(best, D[Z[k]]/SPEED); break; } } }
+  PP_ETA_C = {t: tick, v: best}; return best;
 }
 // сколько, по знанию T, осталось дефузить: с услышанного начала; кит не видно — считают худшее, если у CT был полный закуп
 function tDefuseLeftTicks(K){ var tot = teamEco.CT.roundType === "full" ? DEFUSE_KIT_TICKS : DEFUSE_TICKS; return K ? Math.max(0, tot - (tick - K.t0)) : 0; }

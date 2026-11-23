@@ -239,6 +239,15 @@ function holdCands(center, rMin, rMax, team){
   HOLD_CANDS[k] = out; return out;
 }
 // T: {key, center, rArea, rMin, rMax, must:[pt], mates:[{pt, see}]}
+// (23.11, пост-плант T) тактическая оценка точки — одно место для «держать район» (holdSpot) и мест про после планта (ppProGroup): вижу главный
+// вход (× его доля опасности по знанию команды, × дальность оружия), каждый лишний открытый вход — штраф, открытость по карте — штраф (HOLD.*)
+function holdTac(b, c, E){
+  var main = 0, mainE = null, open = 0;
+  E.forEach(function(e){ if(!hasLOS(c.x, c.y, e.pt.x, e.pt.y)) return; var v = e.wn; open += v; if(v > main){ main = v; mainE = e; } });
+  var s = HOLD.seeMain*main*(mainE ? wpnRangeFit(b, Math.hypot(c.x-mainE.pt.x, c.y-mainE.pt.y)) : 1) - HOLD.extraOpen*(open - main);   // (док 6) вход дальше дальности оружия — виден, но держать его хуже
+  var ex = spotExposure(b.team, c.x, c.y); if(ex > 1) s -= HOLD.staticOpen*(ex - 1);
+  return {s: s, main: main, mainE: mainE, open: open};
+}
 function holdSpot(b, T){
   var team = b.team, center = T.center;
   // (v520, отметка владельца 09.11 м200 р2: после планта трое T пошли держать Hole — знание о единственном живом CT далеко, веса входов ~0,
@@ -262,10 +271,7 @@ function holdSpot(b, T){
     // линии» OWN_LINE_GAP (110): одно место можно держать вдвоём, но с разных позиций, а не плечом к плечу; нет таких — личное место, как было
     if((T.mates||[]).some(function(m){ return Math.hypot(m.pt.x-c.x, m.pt.y-c.y) < (T.gap || SPOT_PERSONAL); })) return null;
     if(useMust && !mustPts.every(function(m){ return hasLOS(c.x, c.y, m.x, m.y); })) return null;
-    var main = 0, mainE = null, open = 0;
-    E.forEach(function(e){ if(!hasLOS(c.x, c.y, e.pt.x, e.pt.y)) return; var v = e.wn; open += v; if(v > main){ main = v; mainE = e; } });
-    var s = HOLD.seeMain*main*(mainE ? wpnRangeFit(b, Math.hypot(c.x-mainE.pt.x, c.y-mainE.pt.y)) : 1) - HOLD.extraOpen*(open - main), why = [];   // (док 6) вход дальше дальности оружия — виден, но держать его хуже
-    var ex = spotExposure(team, c.x, c.y); if(ex > 1) s -= HOLD.staticOpen*(ex - 1);
+    var H = holdTac(b, c, E), main = H.main, mainE = H.mainE, open = H.open, s = H.s, why = [];
     if(tick - (b.lastShotTick||-1e9) < HOLD.burnSec*TICK_HZ && Math.hypot(c.x-b.x, c.y-b.y) < HOLD.burnR){ s -= HOLD.burned; why.push("засвечен"); }
     if(intelDeathsNear(team, c.x, c.y, HOLD.burnR, 10*TICK_HZ) > 0){ s -= HOLD.burned; why.push("тут убили своего"); }
     (T.mates||[]).forEach(function(m){
