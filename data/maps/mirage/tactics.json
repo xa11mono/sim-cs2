@@ -1537,6 +1537,35 @@
     ]
    },
    "stage": {}
+  },
+  "midTake": {
+   "_src": "22.11, аудит 021: путь и проход — демки Mirage (86, tools: midtake_pro.py — плант A: через мид на сторону CT ≥ 1 T в 52 % раундов, путь Mid → Mid Bench → Connector; плант B: 69 %, путь Top Mid → Catwalk) + Liquipedia / bo3.gg / dignitas (PRO_PLAY.md, «Mirage: захват мида»); stage/look — где про стоят и куда смотрят в демках (A: Connector, взгляд A Site; B: Catwalk, взгляд Connector — спина)",
+   "mid": "Mid",
+   "route": {
+    "A": [
+     "Top Mid",
+     "Mid",
+     "Connector"
+    ],
+    "B": [
+     "Top Mid",
+     "Catwalk"
+    ]
+   },
+   "via": {
+    "A": "Connector",
+    "B": "Catwalk"
+   },
+   "ctSide": {
+    "A": {
+     "stage": "Connector",
+     "look": "A Site"
+    },
+    "B": {
+     "stage": "Catwalk",
+     "look": "Connector"
+    }
+   }
   }
  },
  "geoMid": {

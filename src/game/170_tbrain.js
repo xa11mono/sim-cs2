@@ -224,10 +224,10 @@ function tBrain(){
       tsM.sort(function(a, b2){ return Math.hypot(a.x-mp.x, a.y-mp.y) - Math.hypot(b2.x-mp.x, b2.y-mp.y); });
       var fl2 = tsM.slice(0, 2);
       fl2.forEach(function(b){ b._midFlank = {round:roundNum, site:tt.site}; b._route = null; b._routeDone = null;
-        startRoute(b, MT.route, "midct"+roundNum); });
+        startRoute(b, (MT.route && MT.route[tt.site]) || MT.route, "midct"+roundNum); });   // (аудит 021) маршрут по сайту (Mirage: к A — Connector, к B — Catwalk)
       tt.execTick = Math.max(tick + 18*TICK_HZ, Math.min(tt.execTick, tick + 30*TICK_HZ));
-      voiceLog("T", "midtake", midKill.by, "мид наш! "+fl2.map(function(b){ return b.id; }).join(" и ")+" — через "+MT.via+", "+tt.site+" с двух сторон");
-      logEvent("IGL: мид взят — заход на "+tt.site+" с двух сторон (через "+MT.via+")");
+      voiceLog("T", "midtake", midKill.by, "мид наш! "+fl2.map(function(b){ return b.id; }).join(" и ")+" — через "+((MT.via && MT.via[tt.site]) || MT.via)+", "+tt.site+" с двух сторон");
+      logEvent("IGL: мид взят — заход на "+tt.site+" с двух сторон (через "+((MT.via && MT.via[tt.site]) || MT.via)+")");
     }
   }
   // (v321, М11, отметка владельца) CT осталось мало (по киллфиду знают все) и нас больше — не ждём тайминга сбора:
