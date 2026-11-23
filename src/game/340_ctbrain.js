@@ -206,7 +206,7 @@ function ctBrain(){
   // второй опорник — только на большой стак и если на его сайте никого.
   ct.rot = {};
   if(!ct.call || planted0) ct.playRetake = null;
-  if(ct.call && !planted0){
+  if(ct.call && !planted0 && !ctHuntOn()){   // (аудит 025) охота на последних (330) — одно командное решение, ротация не спорит с ней
     var ks = ct.call.site, ko = ks === "A" ? "B" : "A", sc0 = SITES[ks];
     var need = Math.max(1, Math.ceil(ct.call.count - 0.25));
     var defenders = cts.filter(function(b){ return ctNearSite(b, sc0, 450); }).length;
