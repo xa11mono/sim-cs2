@@ -79,7 +79,7 @@ function bombPassTick(){
   }
   if(!pool || !pool.length) return;
   var to = pool.filter(function(b){ return Math.hypot(b.x-c.x, b.y-c.y) < 180 && !b._sawEnemy; })
-    .sort(function(a, b2){ return Math.hypot(a.x-c.x, a.y-c.y) - Math.hypot(b2.x-c.x, b2.y-c.y); })[0];
+    .sort(byPathCmp(c))[0];
   if(!to || c._passTried === roundNum+"|"+to.id) return;
   c._passTried = roundNum+"|"+to.id;
   // бросает под ноги тиммейту — тот подбирает (как дроп в CS)
@@ -152,7 +152,7 @@ function awpSmokeTick(){
       var ap = {x:lo.x, y:lo.y};
       var th = bots.filter(function(b){ return b.alive && b.team === team && b.nades && b.nades.smoke > 0 && !b.nadeTask && !b._sawEnemy && b.post &&
         Math.hypot(b.post.x-ap.x, b.post.y-ap.y) > 300 && Math.hypot(b.post.x-ap.x, b.post.y-ap.y) < 1500 && hasLOS(b.post.x, b.post.y, ap.x, ap.y); })
-        .sort(function(a, c){ return Math.hypot(a.x-ap.x, a.y-ap.y) - Math.hypot(c.x-ap.x, c.y-ap.y); })[0];
+        .sort(byPathCmp(ap))[0];
       if(!th) continue;
       var sp = {x: ap.x + (th.post.x-ap.x)*0.35, y: ap.y + (th.post.y-ap.y)*0.35};
       if(Math.hypot(sp.x-th.x, sp.y-th.y) > NADE_THROW_RANGE*1.1 || smokeCovered(sp.x, sp.y)) continue;
@@ -187,7 +187,7 @@ function onBlind(b, threat){
   var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === b.team && !o._sawEnemy && tick >= (o.blindUntil||0) && nearP(o.x, o.y, o.z, b.x, b.y, b.z, 260) && !o.planting && !o.defusing; });
   mates.forEach(function(o){ o.heardSound = {x:threat.x, y:threat.y, tick:tick, team:b.team === "CT" ? "T" : "CT", src:"?", kind:"call"}; o.lastIntel = {x:threat.x, y:threat.y, tick:tick, src:"call"}; });
   var cov = mates.filter(function(o){ return o.hp > 50 && !(o.post && taskProp(o.post.tag, "blindCoverBusy")); })
-    .sort(function(a, c){ return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(c.x-b.x, c.y-b.y); })[0];
+    .sort(byPathCmp(b))[0];
   if(cov){
     // (v151) раньше точка бралась вплотную к ослеплённому — а он в это время
     // отходит по тому же проходу: оба упирались друг в друга и дёргались.

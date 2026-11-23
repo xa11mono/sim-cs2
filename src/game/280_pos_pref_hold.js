@@ -282,7 +282,7 @@ function holdSpot(b, T){
     // (v246) где этот игрок с этим оружием обычно стоит (и не туда, где только что не сработало); после планта — тепловая карта
     if(!(bomb && bomb.state === "planted")){ var qp = c.pos !== undefined ? c.pos : (c.pos = posAt(team, c.x, c.y)); s += HOLD.pro * posPref(b, qp); }
     else s += HOLD.pro * proAt(team, c.x, c.y);
-    s -= HOLD.travel * Math.hypot(c.x-b.x, c.y-b.y)*1.2/1000;
+    s -= HOLD.travel * pathLenTo(b, c.x, c.y)/1000;   // (аудит 037) по пути, было — прямая × 1,2
     s -= HOLD.objDist * c.d / (T.rMax || 340);
     if(b._hTask && b._hTask.key === T.key && Math.hypot(c.x-b._hTask.pt.x, c.y-b._hTask.pt.y) < 40) s += HOLD.keep;
     return {pt:{x:c.x, y:c.y}, s:s, main:mainE, open:open, why:why};

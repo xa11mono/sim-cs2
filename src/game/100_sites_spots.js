@@ -23,6 +23,9 @@ function pathPts(ax, ay, bx, by, az, bz){
 // между двумя точками в паре шагов дорогу почти не удлиняет). Путь — общий (без цены команды), высота — если известна. Одно место для всех
 var NEAR_P_SAME = 40;   // px — проектное число
 function nearP(ax, ay, az, bx, by, bz, R){ var d = Math.hypot(bx-ax, by-ay); if(d >= R) return false; if(d < NEAR_P_SAME) return true; return polyLen(pathPts(ax, ay, bx, by, az, bz)) < R; }
+// (22.11, аудит 038) исполнитель «кто дойдёт быстрее» — по пути (pathLenTo: путь на пару «бот — точка» один раз), а не по прямой; гранаты (дальность
+// броска), звук, видимость — по прямой, как было. сравнитель для sort: по длине пути до точки p
+function byPathCmp(p){ var M = {}, L = function(b){ return M[b.id] != null ? M[b.id] : (M[b.id] = pathLenTo(b, p.x, p.y)); }; return function(a, c){ return L(a) - L(c); }; }
 function polyLen(pts){ var L=0; for(var i=1;i<pts.length;i++) L += Math.hypot(pts[i][0]-pts[i-1][0], pts[i][1]-pts[i-1][1]); return L; }
 function pointAtDist(pts, d){ // точка на ломаной на расстоянии d от начала
   var acc = 0;

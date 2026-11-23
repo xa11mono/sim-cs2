@@ -227,7 +227,7 @@ function duelEval(b, F, cover){
   var eHp = Math.max(1, 100 - duelHits(b._hitOut, roundStartTick, e.id));
   var B = duelBalance(b, e, Math.hypot(e.x-b.x, e.y-b.y), eHp, vis.length ? vis : [e]);
   var canShoot = !b._reloading && b.ammo > 0;
-  var ret = cover ? Math.hypot(cover.x-b.baseX, cover.y-b.baseY)/(SPEED*weaponSpeedMul(b)) : Infinity;
+  var ret = cover ? pathLenTo(b, cover.x, cover.y)/(SPEED*weaponSpeedMul(b)) : Infinity;   // (аудит 037) успеть за укрытие — по пути
   return {sees: seesE, mine: B.mineT, theirs: B.theirs, ret: ret, ammoOk: canShoot, win: canShoot && !B.lose, trapped: ret >= B.theirs, bal: B.r0 > 0 && B.mineT < Infinity ? (B.theirs/B.mineT)/B.r0 : 0};
 }
 // (v523) причина последнего решения перестрелки — только запись (подпись на экране, запись матча rec2): почему ушёл с линии / остался / бой кончился
@@ -566,7 +566,7 @@ function lowHpBack(b){
   // врагов; иначе бежать через полкарты к далёкому тиммейту — подставиться. Тогда — укрытие рядом,
   // скрытое от врагов: играть от него и ждать своих (раньше шёл к ближайшему тиммейту на любом расстоянии).
   var m = null, mL = Infinity;
-  mates.sort(function(a, c){ return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(c.x-b.x, c.y-b.y); }).slice(0, 2).forEach(function(o){
+  mates.sort(byPathCmp(b)).slice(0, 2).forEach(function(o){
     var pts = pathPts(b.x, b.y, o.x, o.y, b.z, o.z); if(!pts.length) return;
     var L = polyLen(pts); if(L > LOWHP_MATE_PATH || L >= mL) return;
     var bad = pts.some(function(q, k){ return k > 0 && threat.some(function(t){ return Math.hypot(q[0]-t.x, q[1]-t.y) < 250; }); });
@@ -602,7 +602,7 @@ function dangerWalk(b){
     if(secLeft < 30 && bomb.state !== "planted") return false;
     if(tt && tt.phase === "execute" && b.tRole !== "lurker" && tick - (tt.execStart != null ? tt.execStart : tick) < 15*TICK_HZ) return false; // выход — быстро
     if(tt && tt.phase === "setup" && b.post){ // шифтом не успеть к выходу — бегом
-      var dP = Math.hypot(b.post.x-b.baseX, b.post.y-b.baseY)*1.3;
+      var dP = pathLenTo(b, b.post.x, b.post.y);   // (аудит 037) по пути, было — прямая × 1,3
       if((tt.execTick - tick)/TICK_HZ < dP/(SPEED*WALK_SPEED_FRAC) + 2) return false;
     }
   } else {

@@ -177,7 +177,7 @@ function tProbes(tt, ts){
         // (v423, Mirage м1 р2: AWP и саппорт со стадии A уходили напарником пробы B) напарник — из той же группы (стадии), не любой ближайший
         var bud = gr.filter(function(o){ return o !== pb && o.alive && o.tRole !== "lurker" && !(bomb.state === "carried" && bomb.carrier === o) &&
           !(o._probeLock && o._probeLock >= tick-1) && Math.hypot(o.x-pb.x, o.y-pb.y) < 500; })
-          .sort(function(a, c){ return Math.hypot(a.x-pb.x, a.y-pb.y) - Math.hypot(c.x-pb.x, c.y-pb.y); })[0];
+          .sort(byPathCmp(pb))[0];
         P.buddy = bud ? bud.id : null;
         // гранаты под пробу: флешка от напарника/тиммейта (на мид — смок на линию
         // CT, если флешки нет); раньше — только на глубокую пробу, чаще на сухую
@@ -404,7 +404,7 @@ function soloMayWalk(b){
   if(secLeft < 22) return false;
   var site = teamTac.T && SITES[teamTac.T.site]; if(!site) return false;
   // время на шаг до точки: скорость шифта ~ SPEED*WALK_SPEED_FRAC
-  var d = Math.hypot(site.x-b.x, site.y-b.y) * 1.3;
+  var d = pathLenTo(b, site.x, site.y);   // (аудит 037) по пути, было — прямая × 1,3
   if(d / (SPEED*WALK_SPEED_FRAC) > secLeft - 12) return false;
   var cts = bots.filter(function(o){ return o.team === "CT" && o.alive; });
   var allKnownFar = cts.every(function(o){ var e = beliefLast.T[o.id]; return e && tick - e.tick < 5*TICK_HZ && Math.hypot(e.x-site.x, e.y-site.y) > 1100; });

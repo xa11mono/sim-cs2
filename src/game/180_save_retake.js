@@ -12,7 +12,8 @@ function pickSaveSpot(b){
     // (v381, М134: по замеру v381 после правки ухода T от бомбы от взрыва гибли только CT на сейве — один в 923 px, где проверки урона
     // не было, второй не успел дойти) сейв — там, куда взрыв не достаёт (на любом расстоянии) и куда успеть дойти до взрыва
     if(bomb.state === "planted" && bombDamageAt(c.x, c.y) > 0) return;
-    if(bomb.state === "planted" && Math.hypot(c.x-b.baseX, c.y-b.baseY)*1.3/SPEED > bombTimeLeftTicks()/TICK_HZ - 1) return;   // 1,3 — путь длиннее прямой: проектное число
+    var tLeftS = bombTimeLeftTicks()/TICK_HZ - 1;   // (аудит 037) успеть дойти — по пути (прямая — только отсеять заведомо далёкие), было — прямая × 1,3
+    if(bomb.state === "planted" && (Math.hypot(c.x-b.baseX, c.y-b.baseY)/SPEED > tLeftS || pathLenTo(b, c.x, c.y)/SPEED > tLeftS)) return;   // 1,3 — путь длиннее прямой: проектное число
     var dT = Infinity, seen = false;
     ts.forEach(function(t){ dT = Math.min(dT, Math.hypot(c.x-t.x, c.y-t.y)); if(hasLOS(c.x,c.y,t.x,t.y)) seen = true; });
     if(seen || dT < 500) return;
@@ -433,7 +434,7 @@ function retakePost(b, cts){
 function retakeKitFor(b, bp){
   var left = bombTimeLeftTicks()/TICK_HZ, tNo = pathLenTo(b, bp.x, bp.y)/SPEED + 10, best = null, bt = tNo;
   groundItems.forEach(function(G){ if(G.kind !== "kit") return;
-    var t = (pathLenTo(b, G.x, G.y) + Math.hypot(G.x-bp.x, G.y-bp.y)*1.3)/SPEED + 5;   // 1,3 — путь длиннее прямой, как в ретейке выше
+    var t = (pathLenTo(b, G.x, G.y) + polyLen(pathPts(G.x, G.y, bp.x, bp.y)))/SPEED + 5;   // (аудит 037) от кита до бомбы — по пути, было — прямая × 1,3
     if(t < bt && t + 1.5 < left){ bt = t; best = G; } });
   return best;
 }
