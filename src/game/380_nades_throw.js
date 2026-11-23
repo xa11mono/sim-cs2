@@ -561,7 +561,7 @@ function runupTick(b, t){
 function updateNadeTask1(b){
     if(!b.nadeTask && b.nadeQueue && b.nadeQueue.length) nadeQueueNext(b);
     var t = b.nadeTask; if(!t) return;
-    if(!b.alive || tick > t.until || !b.nades || b.nades[t.type] <= 0){
+    if(!b.alive || exuTaskExpired(t) || !b.nades || b.nades[t.type] <= 0){   // (аудит 051) смок выхода — пока нужен (366)
       b.nadeTask = null;
       // задание сгорело, а пост "лайнап" остался — снять, иначе стоит на точке броска весь раунд
       if(b.post && b.post.tag === "lineup") clearPost(b);
