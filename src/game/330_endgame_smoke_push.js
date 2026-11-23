@@ -42,6 +42,20 @@ var EG_BOMB_SITE_R = 700;   // (v555) проектное число: ед. — �
 // на последних — то же условие, что ниже в endgameBrain (бомба не стоит, T ≤ 2, CT больше, не сейв); ротация (340) в это время не назначается
 function ctHuntOn(){ if(roundState !== "live" || (bomb && bomb.state === "planted") || (teamTac.CT && teamTac.CT.saving)) return false;
   var nT = aliveCount("T"), nC = aliveCount("CT"); return nT > 0 && nT <= 2 && nC > nT; }
+// тот же район: та же или соседняя зона знания (BZ — зоны карты команды)
+function egSameArea(a, c){ var za = bzOf(a.x, a.y), zc = bzOf(c.x, c.y); if(za < 0 || zc < 0) return Math.hypot(a.x-c.x, a.y-c.y) < 250; return za === zc || (BZ.nbr[za] || []).indexOf(zc) >= 0; }
+// (23.11, ответ тактика: «игрок встаёт на линию, через которую враг выйдет к его цели, а не бежит к точке звука») точка для T, когда враг известен
+// по звуку / старому виду: рядом с собой (≤ EG_LINE_R) — откуда видно выходы района врага в нашу сторону (входы threatEntrances вокруг него,
+// ближе к нам, чем он сам); оценка — та же, что «держать вход» (holdTac). Нет такой — null (как было)
+var EG_LINE_R = 200;   // проектное число — насколько далеко от себя ищет линию (как rMax точки «рядом» ниже)
+function egLineSpot(b, kp){
+  var E = threatEntrances(b.team, kp, 260).filter(function(e){ return Math.hypot(e.pt.x-b.x, e.pt.y-b.y) < Math.hypot(kp.x-b.x, kp.y-b.y); });
+  if(!E.length) return null; var wm = E[0].w || 1; E.forEach(function(e){ e.wn = (e.w || 0)/wm; });
+  var best = null, bs = -Infinity;
+  pickSpots("egline:" + b.id + ":" + Math.round(kp.x/80) + "," + Math.round(kp.y/80), {x:b.x, y:b.y}, 6, {rMax: EG_LINE_R, minGap: 30}).forEach(function(c){
+    var H = holdTac(b, c, E); if(H.main > 0 && H.s > bs){ bs = H.s; best = {spot: {x:c.x, y:c.y}, look: {x:H.mainE.pt.x, y:H.mainE.pt.y}}; } });
+  return best;
+}
 function endgameBrain(){
   // (v146) после планта охоты нет: у T — пост-плант, у CT — ретейк/сейв
   if(bomb && bomb.state === "planted") bots.forEach(function(o){ if(o.alive && o.post && o.post.tag === "endhunt"){ o._egC = null; clearPost(o); } });
@@ -85,10 +99,16 @@ function endgameBrain(){
     // тик (свежий сигнал то от одного, то от другого) — и все дёргались между
     // двумя точками, не доходя ни до одной
     var TT = teamTac[team] || {}, ST = TT._egStick;
-    if(ST && tick < ST.until && bots.some(function(o){ return o.id === ST.id && o.alive; })){
-      if(K.id === ST.id){ ST.x = K.x; ST.y = K.y; }
-      K = {id:ST.id, x:ST.x, y:ST.y, type:K.type};
-    } else if(teamTac[team]) teamTac[team]._egStick = {id:K.id, x:K.x, y:K.y, until: tick + 2*TICK_HZ};
+    // (23.11, разбор владельца м1 р5 п.7, ответ тактика: «звук — это район, а не точка; новый звук того же врага рядом — та же цель, точнее;
+    // менять решение — когда звук с другого направления или второй враг») тот же враг: точка цели переносится, только если его видят или новый
+    // сигнал — в другом районе (не та же и не соседняя зона знания); иначе цель держится и продлевается. Было: точка — каждый новый звук (с ошибкой
+    // слуха) — цель прыгала Connector ↔ Chair каждые 4 тика, бот дёргался на месте
+    var stAlive = ST && bots.some(function(o){ return o.id === ST.id && o.alive; });
+    if(stAlive && K.id === ST.id){
+      if(K.type === "spotted" || !egSameArea(ST, K)){ ST.x = K.x; ST.y = K.y; }
+      ST.until = tick + 2*TICK_HZ; K = {id:ST.id, x:ST.x, y:ST.y, type:K.type};
+    } else if(stAlive && tick < ST.until){ K = {id:ST.id, x:ST.x, y:ST.y, type:K.type}; }
+    else if(teamTac[team]) teamTac[team]._egStick = {id:K.id, x:K.x, y:K.y, until: tick + 2*TICK_HZ};
     var kp = {x:K.x, y:K.y}, gk = Math.round(kp.x/80)+","+Math.round(kp.y/80);
     var egId = K.id + "|" + nFoe;
     if(teamTac[team] && teamTac[team]._egKey !== egId){
@@ -160,6 +180,10 @@ function endgameBrain(){
           voiceLog(team, "egbs"+b.id+roundNum, b.id, "бомба "+bSite+", иду"); }
         return;
       }
+      // (23.11, ответ тактика: «до планта главное — плант; каждый, кто ушёл охотиться, — минус прикрытие плантующего») T, пока свой несёт бомбу:
+      // добивать — только врага, которого видят сейчас (≤ 1 с); по звуку — держит свою задачу (линию), охоту не начинает
+      var tCarry = team === "T" && bomb && bomb.state === "carried" && bomb.carrier && bomb.carrier.alive && bomb.carrier !== b;
+      if(tCarry && !hunting && !(K.type === "spotted" && kAge <= TICK_HZ)) return;
       if(kAge > (hunting ? 6 : 3)*TICK_HZ && !(bSite && b === hunter) || (d > 700 && b !== hunter)){
         if(hunting){
           var sp0 = b.post, nearSp = Math.hypot(sp0.x-b.x, sp0.y-b.y) < 100;
@@ -176,7 +200,11 @@ function endgameBrain(){
       // заново от текущей позиции бота — иначе пост менялся на ходу
       // (v292, И33, владелец 14.10: раунд 1, тик 3865 — игрок 6 стоял в Connector и ждал пика, пока игрок 9 стрелялся с T2 в
       // 200 px от него) тиммейт уже в перестрелке с целью — не ждать пика, а заходить с другой стороны (та же точка, что у flankAssist)
-      var mC = d < 650 && b.hp > LOW_HP ? mine.filter(function(m){ return m !== b && m._sawEnemy && m._nearestEnemyBot && m._nearestEnemyBot.id === K.id && (m.contactStreak||0) >= 20; })[0] : null;
+      // (23.11, разбор владельца м1 р5 п.7: место охотника мигало «заход с фланга» ↔ обычное каждые 4–8 тиков) «свой уже в бою с ним» — по его
+      // перестрелке (_fc: длится и между выглядываниями), а не по кадру «вижу врага» (_sawEnemy мигает, пока тот выглядывает и прячется)
+      // начатый заход держится, пока свой в бою с ним: 650 — только чтобы начать (враг ходил вокруг порога 641 ↔ 657 — заход включался и выключался)
+      var flK = b._egC && b._egC.round === roundNum && b._egC.fl === K.id;
+      var mC = (d < 650 || flK) && b.hp > LOW_HP ? mine.filter(function(m){ return m !== b && ((m._fc && m._fc.e && m._fc.e.id === K.id) || (m._sawEnemy && m._nearestEnemyBot && m._nearestEnemyBot.id === K.id && (m.contactStreak||0) >= 20)); })[0] : null;
       if(mC && !(b._egC && b._egC.round === roundNum && b._egC.fl === K.id) && !flankClaim(b, K.id)) mC = null;
       // (v359, «упал FPS»: точки захода не нашлось — раньше искал заново каждый тик, по пути до каждой точки) повтор через 0,5 с
       if(mC && b._fsFail && b._fsFail.id === K.id && tick - b._fsFail.t < 32 && b._fsFail.t <= tick) mC = null;
@@ -188,6 +216,9 @@ function endgameBrain(){
           voiceLog(team, "flank"+b.id, b.id, "захожу с фланга на "+K.id); }
       }
       if(b._egC && b._egC.round === roundNum && b._egC.fl === K.id && mC){ setPost(b, b._egC.spot, {x:kp.x, y:kp.y}, true, "endhunt"); return; }
+      if(team === "T" && !(K.type === "spotted" && kAge <= TICK_HZ) && (!b._egC || b._egC.gk !== gk || b._egC.round !== roundNum || b._egC.fl)){
+        var LS = egLineSpot(b, kp); if(LS) b._egC = {gk:gk, round:roundNum, spot:LS.spot, look:LS.look, line:1};
+      }
       if(!b._egC || b._egC.gk !== gk || b._egC.round !== roundNum || b._egC.fl){
         // (v521, отметка владельца 10.11: двое стояли на Tetris — «рядом» с врагом (490 px по прямой), точка «держать угол на него» бралась рядом с
         // собой и без вида на него) рядом — точка рядом, только если оттуда его видно; нет такой — подтягивается к нему, как дальний
