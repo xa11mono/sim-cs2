@@ -208,6 +208,7 @@ function tBrain(){
     }
   }
   if(tIglReplan(tt, site, other, secLeft)) return;
+  tSpaceTick(tt, site);   // (22.11, аудит 021, тест) занять освободившееся пространство (160)
   // ---- мид наш: сняли мидера CT → двое идут через мид на сторону CT (набор карты: tactics.plays.midTake;
   // на Ancient — через Red Room) и заходят на наш сайт оттуда, пока остальные — с обычной стороны ----
   var MT = MAP.tactics.plays.midTake, MID_FREE = 0.5;

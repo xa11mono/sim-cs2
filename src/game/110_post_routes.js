@@ -251,7 +251,7 @@ var TASK_LEVEL = [   // сверху — важнее; первая подход
   {lv:8,  kind:"ретейк/сбор/ротация",re:/^(retake|gather|rotate$|rotate:|bombwatch|postplant|fetch$)/},
   {lv:7,  kind:"эндгейм/клатч",      re:/^(endhunt|hunt$|clutch)/},   // охота на последних — общий план команды, как и было (замок эндгейма)
   {lv:6,  kind:"перестановка в бою", re:/^(repos|probeHide$)/},   // (К1/К2, 18.11) засел на пробе и слушает (320)
-  {lv:5,  kind:"команда",            re:/^(fill$|rotateHold|fetchCover|bombEscort|bombWait|coverplant|flank\d$|probeInfo$)/},   // (19.11) проба вглубь CT — её перебивала перестановка на сайте (rebal, 3) через 1,5 с (м3 р7)   // (п.20 владельца 29.10: фланг CT
+  {lv:5,  kind:"команда",            re:/^(fill$|rotateHold|fetchCover|bombEscort|bombWait|coverplant|flank\d$|probeInfo$|space:)/},   // (22.11, аудит 021, тест) space: — занять освободившуюся зону / прикрыть занимающего (160 tSpaceTick)   // (19.11) проба вглубь CT — её перебивала перестановка на сайте (rebal, 3) через 1,5 с (м3 р7)   // (п.20 владельца 29.10: фланг CT
   // «из-за частого перебивания путей… нет захода в спину» — был уровнем 1, его перебивало и ожидание у дыма) фланг — задача команды
   {lv:4,  kind:"гранаты/ожидания",   re:/^(lineup|smokeWait|smokeLine|utilWait|utilHold)$/},
   {lv:3,  kind:"личная перестановка",re:/^(pickup$|probe|rebal|shift$|earlyPeek|midcover)/},
