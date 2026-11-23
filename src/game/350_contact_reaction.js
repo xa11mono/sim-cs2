@@ -332,6 +332,9 @@ function ctDelayNade(b){
     var K = b.know && b.know.enemies, moving = false;
     if(K) for(var eidD in K){ var Ld = K[eidD] && K[eidD].last; if(Ld && Ld.x != null && tick - Ld.tick < 3*TICK_HZ && Math.hypot(Ld.x-t.x, Ld.y-t.y) < DELAY_GROUP_R &&
       Math.hypot(Ld.vx || 0, Ld.vy || 0) > SPEED*0.3) moving = true; }
+    // (прогон 304: смок 63 % / молотов 28 % / HE 8 % при про 38 / 38 / 24) услышан, а не увиден — значит идёт (шаги слышно только у идущего, бегом):
+    // было — нет движения в увиденном → «стоит» → смок
+    if(!t.seen) moving = true;
     var order = (t.seen && (t.n || 1) >= 2) ? ["he", "molly", "smoke"] : moving ? ["molly", "he", "smoke"] : ["smoke", "molly", "he"];
     for(var oi = 0; oi < order.length && !type; oi++) if(b.nades[order[oi]] > 0) type = order[oi];
   }

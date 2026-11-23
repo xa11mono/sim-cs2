@@ -199,6 +199,7 @@ var TASK_PROP = {
   earAmbush:        /^(probeHide|probeInfo|lurk|flank)/,   // (22.11, Ж23-П4) засел нарочно: засада по одному звуку (480 ambushTick; было — регулярка там)
   hideAmbush:       /^(anchor|stack|set:|cts:)/,   // (22.11, проверка 030/Ж23-П4: засад CT 102 → 384, убийств из засады 10 → 5) держит сайт ДО планта — может
                                                   // пропустить и зайти в спину по звуку; не ретейк и не клатч (у них цель — бомба по часам, 480 ambushTick)
+  spaceOk:          /^default/,   // (тест 021) с дефолтной точки можно занять освободившуюся зону (160 tSpaceTick); со сбора / маршрута — нет   // (22.11, Ж23-П4) засел нарочно: засада по одному звуку (480 ambushTick; было — регулярка там)
   tradeUrgent:      /^(retake|defuse|plantspot|antidefuse|endhunt|tradeR)/,   // размен: задачи, где «есть кому разменять» не проверяется (490)
   shiftHoldBusy:    /^(save|repos|defuse|plantspot|lineup|pickup|endhunt|retake|gather|stopplant|antidefuse)/,   // смена угла на посту: задачи, которые не трогают (500)
   cautiousEnd:      /^(retake|rotate|defuse)$/,   // шаг: последние метры ретейка / ротации / дефуза (535)
