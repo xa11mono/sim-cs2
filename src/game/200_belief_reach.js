@@ -42,8 +42,12 @@ function beliefBuild(){
   });
   BZ.midZ = [];
   if(GEO.ctMid) BZ.cent.forEach(function(c,i){ if(Math.hypot(c.x-GEO.ctMid.x, c.y-GEO.ctMid.y) < 260) BZ.midZ.push(i); });
-  BZ.DT = null; if(typeof OUTWARD_CACHE !== "undefined") OUTWARD_CACHE = {};
+  BZ.DT = null; BZ.NEAR = {}; if(typeof OUTWARD_CACHE !== "undefined") OUTWARD_CACHE = {};
 }
+// (22.11, аудит 013/014) «рядом с точкой» для знания — по пути между зонами (граф зон, bzDist от зоны точки; один раз на зону, кэш до перестройки
+// зон), а не по прямой: зона за стеной не «рядом». bzNearD(x, y)[i] — путь от зоны точки до зоны i (ед. карты)
+function bzNearD(x, y){ var z = bzOf(x, y); if(z < 0) return null; BZ.NEAR = BZ.NEAR || {}; return BZ.NEAR[z] || (BZ.NEAR[z] = bzDist([z])); }
+function bzNearR(x, y, px, py, r){ var D = bzNearD(x, y), z = bzOf(px, py); return D && z >= 0 ? D[z] <= r : Math.hypot(px-x, py-y) <= r; }
 function bzDist(src){
   var n = BZ.ids.length, D = new Float32Array(n).fill(1e9), done = new Uint8Array(n);
   src.forEach(function(i){ D[i] = 0; });
@@ -175,7 +179,7 @@ function reachStepOne(R, clearList){
 }
 function beliefMassNear(team, eid, x, y, r){
   var P = belief[team] && belief[team][eid]; if(!P) return 0;
-  var t = 0, z0 = bzOf(x, y);
-  for(var i=0;i<P.length;i++){ if(!P[i]) continue; var c = BZ.cent[i]; if(i === z0 || (c && Math.hypot(c.x-x, c.y-y) <= r)) t += P[i]; }
+  var t = 0, z0 = bzOf(x, y), D = bzNearD(x, y);   // (аудит 014) по пути между зонами
+  for(var i=0;i<P.length;i++){ if(!P[i]) continue; var c = BZ.cent[i]; if(i === z0 || (D ? D[i] <= r : (c && Math.hypot(c.x-x, c.y-y) <= r))) t += P[i]; }
   return t;
 }

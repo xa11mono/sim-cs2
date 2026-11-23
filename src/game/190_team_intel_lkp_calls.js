@@ -65,7 +65,7 @@ function lkpTick(){
 }
 function lkpNear(team, x, y, r){
   if(BZ.ids.length && belief[team]){ var n1 = 0, S = beliefSeen[team]; Object.keys(belief[team]).forEach(function(eid){ if(S[eid] != null && beliefMassNear(team, eid, x, y, r) >= 0.35) n1++; }); return n1; }
-  var n = 0, L = beliefLast[team]; for(var id in L){ if(Math.hypot(L[id].x-x, L[id].y-y) < r) n++; } return n; }
+  var n = 0, L = beliefLast[team]; for(var id in L){ if(bzNearR(x, y, L[id].x, L[id].y, r)) n++; } return n; }
 function teamInfoTick(){
   if(roundState !== "live") return;
   bots.forEach(function(b){
@@ -105,7 +105,7 @@ function intelEstimate(team, x, y, r, windowTicks){
       if(beliefMassNear(team, eid, x, y, r) < 0.35) return;
       n++;
       var lo = L[eid];
-      if(lo && tick - lo.tick <= windowTicks && Math.hypot(lo.x-x, lo.y-y) <= r){
+      if(lo && tick - lo.tick <= windowTicks && bzNearR(x, y, lo.x, lo.y, r)){   // (аудит 014) по пути, было — по прямой
         if(lo.src === "spotted"){ sN++; cf = 1; } else { hN++; cf = Math.max(cf, 0.5); }
         ls = Math.max(ls, lo.tick);
       } else cf = Math.max(cf, 0.3);
@@ -124,7 +124,7 @@ function intelEstimate(team, x, y, r, windowTicks){
   return {n: Math.max(nSeen, nHeard), seen: nSeen, heard: nHeard, conf: conf, last: last};
 }
 function intelDeathsNear(team, x, y, r, windowTicks){
-  return teamIntel[team].sig.filter(function(s){ return s.type === "died" && tick - s.tick <= windowTicks && Math.hypot(s.x-x, s.y-y) < r; }).length;
+  return teamIntel[team].sig.filter(function(s){ return s.type === "died" && tick - s.tick <= windowTicks && bzNearR(x, y, s.x, s.y, r); }).length;   // (аудит 014) по пути
 }
 // смерть тиммейта — сигнал для всех + реакция ближних: трейд
 // ---- названия зон (редактируются кликом по зоне при включённом слое «зоны») ----
