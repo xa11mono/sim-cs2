@@ -290,6 +290,10 @@ function ambushTick(b){
   F.forEach(function(o){ if(A.ids.indexOf(o.id) < 0) A.ids.push(o.id); });
   var T = A.ids.map(function(id){ return id === "snd" ? (A.sndPos ? {id: "snd", snd: true, alive: aliveCount(b.team === "CT" ? "T" : "CT") > 0, x: A.sndPos.x, y: A.sndPos.y, z: A.sndPos.z} : null) : teamBot(id); }).filter(function(o){ return o && o.alive; });
   if(!T.length) return ambEnd(b, "цели мертвы");
+  // (23.11, прогон 306: «backstab» стоял у входа на сайт и не пускал ретейк / сбор / якорь — 16 эпизодов, в базе 0) цель «звук» (048) жива, пока
+  // жив любой враг, — «цели мертвы» по ней не наступает. Ресурс — время бомбы: после планта у CT цель — ретейк по часам бомбы (как и при начале
+  // засады, hideAmbush); засада, где никого не вижу, кончается
+  if(b.team === "CT" && bomb && bomb.state === "planted" && !T.some(function(o){ return !o.snd && b._visible && b._visible.indexOf(o) >= 0; })) return ambEnd(b, "бомба стоит — ретейк");
   var seenNow = T.filter(function(o){ return F.some(function(f){ return f.id === o.id; }); }).map(function(o){ return o.snd ? F.filter(function(f){ return f.id === "snd"; })[0] : o; });
   // куда идти: увиденного — сразу; услышанного — не чаще раза в секунду (иначе путь пересчитывался на каждый шаг и бот топтался на месте)
   var vis = seenNow.filter(function(o){ return b._visible && b._visible.indexOf(o) >= 0; });
@@ -301,6 +305,9 @@ function ambushTick(b){
       var at = function(o){ return ambAt(b, o); };
       var c = P.sort(function(p, q){ var a = at(p), d = at(q); return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(d.x-b.x, d.y-b.y); })[0], ca = at(c);
       A.last = {x: ca.x, y: ca.y, z: ca.z, id: c.id}; A.lastT = tick; } }
+  // (23.11) дошёл до входа на сайт с их стороны (A.goal), а их не воспринимаю: зайти в спину некому — засада кончена, дальше — задача по ситуации
+  // (арбитр места). Было: стоял у входа, пока живы цели («звук» — пока жив любой враг)
+  else if(A.goal && b.atPost && b.post && b.post.tag === "backstab") return ambEnd(b, "дошёл к сайту с их стороны — пусто");
   else if(!A.via && !A.goal && b.atPost && b.post && b.post.tag === "backstab"){
     // (22.11, Ж23, владелец: «он уже сказал инфу и должен доигрывать ситуацию… у таких действий нет таймера — всё ситуационно») дошёл до
     // места, где их слышал, а их тут нет: куда они шли — знание команды (только про тех, за кем иду, уверенное место ≥ 0,5); нет — к сайту, к
