@@ -14,6 +14,9 @@
 // Отсюда считаются: сколько врагов вероятно у сайта (колл и число ротирующих),
 // куда смотреть, стоя на посту, и не открыта ли точка под два опасных угла.
 var BZ = {ids:[], idx:{}, nbr:[], cent:[], grid:{}, siteZ:{A:[],B:[]}, midZ:[]};
+// SITE_NEAR_P — тот же радиус 400, что был по прямой, теперь по пути; SITE_RING_P — подходы: путь ≤ 700 (у A — Palace 595, T Ramp 606, Jungle 430,
+// Connector 450; у B — Stove 542, Kitchen 548, Short 579, Underpath 616, Vent 692) — проектное число
+var SITE_NEAR_P = 400, SITE_RING_P = 700;
 function beliefBuild(){
   zoneNameCacheReset();   // (v334) кэш «зоны по названию» мог заполниться пустыми ответами до графа зон — на Mirage расстановки CT не находили ни одной зоны
   BZ.ids = ZONEMAP.zones.map(function(z){ return z.id; });
@@ -30,8 +33,12 @@ function beliefBuild(){
     BZ.siteZ[k] = [];
     if(!SITES[k]) return;
     BZ.cent.forEach(function(c,i){ if(Math.hypot(c.x-SITES[k].x, c.y-SITES[k].y) < 240 || bzOf(SITES[k].x, SITES[k].y) === i) BZ.siteZ[k].push(i); });
-    BZ.siteNear = BZ.siteNear || {}; BZ.siteNear[k] = [];
-    BZ.cent.forEach(function(c,i){ if(Math.hypot(c.x-SITES[k].x, c.y-SITES[k].y) < 400) BZ.siteNear[k].push(i); });
+    // (22.11, аудит 012) «у сайта» — по пути до центра сайта (≤ SITE_NEAR_P), а не по прямой < 400: зона за стеной (Kitchen у B: прямая 353, путь 548)
+    // не «на сайте»; «сайт и подходы» (siteRing, ≤ SITE_RING_P по пути) — одно определение для обоих сайтов. Было: подходы — соседи зон сайта
+    // по графу (340), их набор зависел от нарезки зон (у A — Jungle, Connector, Palace, T Ramp; у B — Stove, Short, Hole)
+    BZ.siteNear = BZ.siteNear || {}; BZ.siteNear[k] = []; BZ.siteRing = BZ.siteRing || {}; BZ.siteRing[k] = [];
+    BZ.cent.forEach(function(c,i){ if(!c || Math.hypot(c.x-SITES[k].x, c.y-SITES[k].y) > SITE_RING_P) return; var p = polyLen(pathPts(c.x, c.y, SITES[k].x, SITES[k].y));
+      if(p <= SITE_NEAR_P) BZ.siteNear[k].push(i); if(p <= SITE_RING_P) BZ.siteRing[k].push(i); });
   });
   BZ.midZ = [];
   if(GEO.ctMid) BZ.cent.forEach(function(c,i){ if(Math.hypot(c.x-GEO.ctMid.x, c.y-GEO.ctMid.y) < 260) BZ.midZ.push(i); });
