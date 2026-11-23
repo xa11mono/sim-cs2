@@ -24,9 +24,10 @@ function lookCands0(b, W){
   var hdA = moving ? lookHeading(b) : 0;
   // (v583a, Д1, владелец 17.11: «пока бежит, враг всё время смотрел на него справа — не повернулся»; м302 р2, CT2: Tetris за спиной ×0,15
   // «прикрыт», а свой рядом смотрел в другую сторону) спину прикрывает свой рядом (500 px), только если он смотрит туда (mateWatches, 260)
-  // (22.11, аудит 043, владелец: «свой на другом этаже не считается закрывающим угол») рядом — по пути (nearP) и на том же уровне (перепад ≤ прыжка)
+  // (22.11, аудит 043, владелец: «свой на другом этаже не считается закрывающим угол») рядом (≤ 500) и на том же уровне (перепад ≤ прыжка)
   // (прогон 304: этап 8 — долгих тиков на раунд 74 → 87) кто рядом по пути — один раз на расчёт, а не на каждую точку угрозы
-  var rearMates = moving ? mates.filter(function(o){ return (o.z == null || b.z == null || Math.abs(o.z - b.z) <= JUMP_UP) && nearP(o.x, o.y, o.z, b.x, b.y, b.z, 500); }) : [];
+  // (общий прогон: nearP здесь — 7064 поиска пути на 8000 тиков) для «на другом этаже не прикрывает» хватает прямой 500 и уровня — путь не нужен
+  var rearMates = moving ? mates.filter(function(o){ return (o.z == null || b.z == null || Math.abs(o.z - b.z) <= JUMP_UP) && Math.hypot(o.x-b.x, o.y-b.y) < 500; }) : [];
   var rearCov = function(pt){ return rearMates.some(function(o){ return mateWatches(o, pt); }); };
   var habZ = {};
   bots.forEach(function(o){ if(!o.alive || o.team === team) return; var h = habitTop(o.id, 2); if(h){ var zh = bzOf(h.x, h.y); if(zh >= 0) habZ[zh] = 1; } });
