@@ -420,7 +420,11 @@ function stepTick(){
           var wpA = bot.path[bot.pathIdx], wpB = bot.path[bot.pathIdx+1], lvlOk = bot.z == null || ((wpA[2] == null || Math.abs(wpA[2] - bot.z) <= 40) && (wpB[2] == null || Math.abs(wpB[2] - bot.z) <= 40));
           // (v555, отметка владельца м300 р5: путь обходил молотов на Cross по краю, а срезанный угол вёл прямо в огонь — бот 4,5 с ждал у края)
           // и не срезать, если прямая до следующей точки идёт через огонь (а до этой — нет)
-          if(wdCur < 6 || (lvlOk && wdCur < ARRIVE_RADIUS && !crossesWall(bot.baseX, bot.baseY, wpB[0], wpB[1]) && navSegOnLevel(bot.baseX, bot.baseY, bot.z, wpB[0], wpB[1], wpB[2]) &&
+          // (22.11, Ж2 «Short → Under», эпизод м29 р11 CT3 / песочница: точка спрыгивания в Underpass под B Short засчитывалась «вплотную» по x, y на верхнем
+          // полу — бот шёл к цели поверху и метался) вплотную — только на уровне точки (перепад ≤ 40, тот же порог, что у досрочного пропуска)
+          var lvlA = bot.z == null || wpA[2] == null || Math.abs(wpA[2] - bot.z) <= 40;
+          if(wdCur < 6 && !lvlA && navDropAt(bot, wpA)) lvlA = true;   // над точкой спрыгивания — спрыгивает по переходу (370)
+          if((wdCur < 6 && lvlA) || (lvlOk && wdCur < ARRIVE_RADIUS && !crossesWall(bot.baseX, bot.baseY, wpB[0], wpB[1]) && navSegOnLevel(bot.baseX, bot.baseY, bot.z, wpB[0], wpB[1], wpB[2]) &&
               !(fires.length && fireOnSeg(bot.baseX, bot.baseY, wpB[0], wpB[1], bot.z) && !fireOnSeg(bot.baseX, bot.baseY, wpA[0], wpA[1], bot.z)))) bot.pathIdx++;
           else break;
         }
