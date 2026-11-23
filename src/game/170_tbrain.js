@@ -210,10 +210,14 @@ function tBrain(){
   if(tIglReplan(tt, site, other, secLeft)) return;
   // ---- мид наш: сняли мидера CT → двое идут через мид на сторону CT (набор карты: tactics.plays.midTake;
   // на Ancient — через Red Room) и заходят на наш сайт оттуда, пока остальные — с обычной стороны ----
-  var MT = MAP.tactics.plays.midTake;
+  var MT = MAP.tactics.plays.midTake, MID_FREE = 0.5;
   if(MT && tt.phase === "setup" && !tt.midTaken && aliveCount("T") >= 4 && tick - roundStartTick > 8*TICK_HZ){
-    var midKill = teamIntel.T.sig.filter(function(sg){ return sg.type === "kill" && tick - sg.tick < 3*TICK_HZ && sg.role === "mid"; })[0];
-    if(midKill){
+    // (22.11, аудит 021, владелец: «Space Opportunity Conversion — после отхода противника команда оценивает возможность занять пространство») было:
+    // только «убили CT, которого знают как мидера». Стало: событие (убит CT, 3 с) — повод пересмотреть; решает пространство — мид по карте команды
+    // T скорее пуст (ожидаемых CT в зонах мида < MID_FREE: «скорее пусто, чем занято», проектное) и там за 3 с никого не видели / не слышали
+    var midKill = teamIntel.T.sig.filter(function(sg){ return sg.type === "kill" && tick - sg.tick < 3*TICK_HZ && teamBot(sg.id) && teamBot(sg.id).team === "CT"; })[0];
+    var midSeen = BZ.midZ.length && (teamIntel.T.sig || []).some(function(sg){ return (sg.type === "spotted" || sg.type === "sound") && tick - sg.tick < 3*TICK_HZ && BZ.midZ.indexOf(bzOf(sg.x, sg.y)) >= 0; });
+    if(midKill && BZ.midZ.length && beliefMass("T", BZ.midZ) < MID_FREE && !midSeen){
       tt.midTaken = tick;
       var tsM = bots.filter(function(b){ return b.team === "T" && b.alive && b.tRole !== "lurker" && !(bomb.state === "carried" && bomb.carrier === b); });
       var mp = zonePoint(MT.mid) || GEO.ctMid;
