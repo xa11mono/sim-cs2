@@ -262,3 +262,46 @@ function ppTimeNamed(group, bp0, site, rMax){
   });
   return true;
 }
+
+// ======================= (22.11, аудит 021, владелец: «сделай для теста общее намерение занять пространство»; Space Opportunity Conversion) =======================
+// T до выхода (сетап, бомба не стоит): раз в 0,5 с команда смотрит, какое пространство к сайту открыто, кто может его занять и кто прикрывает.
+// Кандидаты — соседние зоны (граф зон) к зоне, где стоит T, ближе по пути к сайту плана. Зона свободна, если ожидаемых CT по карте команды T в ней и
+// в зонах, откуда она простреливается (ZONE_DANGER, 060: 3D-видимость), меньше SPACE_FREE («скорее пусто, чем занято», проектное). Из всех пар
+// «боец — свободная зона» — наибольшее продвижение к сайту (путь по графу зон); одновременно одна. Боец — не лёркер, не носитель, без контакта и боя,
+// на посту роли / маршруте (уровень задачи ≤ 2). Прикрывает — ближайший свой (≤ TRADE_R по пути): стоит, где стоит, смотрит на занимаемую зону.
+// Конец: зона стала опасной, выход начался, у занимающего бой; дошёл — держит, пока зона безопасна. Задача — space:take / space:cover (уровень 5, 110)
+var SPACE_FREE = 0.5, SPACE_D = {};
+function spaceDanger(zid){
+  var i0 = BZ.idx[zid]; if(i0 === undefined) return Infinity;
+  var m = beliefZoneKnown("T", i0); (ZONE_DANGER[zid] || []).forEach(function(j){ var i = BZ.idx[j]; if(i !== undefined) m += beliefZoneKnown("T", i); }); return m;
+}
+function tSpaceTick(tt, site){
+  var SP = tt._space && tt._space.round === roundNum ? tt._space : null;
+  var stop = function(why){ if(SP){ [SP.id, SP.cov].forEach(function(id){ var o = id && teamBot(id); if(o && o.post && /^space:/.test(o.post.tag)) clearPost(o); });
+    logEvent("T: пространство " + SP.name + " — " + why); } tt._space = null; SP = null; };
+  if(tt.phase !== "setup" || (bomb && bomb.state === "planted")){ if(SP) stop("выход / плант"); return; }
+  if(tick % 32) { if(SP) spaceHold(SP); return; }
+  if(SP){ var tk = teamBot(SP.id);
+    if(!tk || !tk.alive || tk._sawEnemy || tk._fc || spaceDanger(SP.zone) >= SPACE_FREE){ stop(!tk || !tk.alive ? "погиб" : "опасно"); }
+    else { spaceHold(SP); return; } }
+  var zS = bzOf(site.x, site.y); if(zS < 0) return; if(!SPACE_D[zS]) SPACE_D[zS] = bzDist([zS]); var D = SPACE_D[zS];   // путь по графу зон до сайта (один раз на сайт)
+  var ts = bots.filter(function(b){ return b.team === "T" && b.alive && b.tRole !== "lurker" && !(bomb.state === "carried" && bomb.carrier === b) && !b.planting && !b._sawEnemy && !b._fc && !b._contact &&
+    (!b._task || taskLevel(b._task.tag) <= 2); });
+  var best = null;
+  ts.forEach(function(b){ var z0 = bzOf(b.x, b.y); if(z0 < 0) return;
+    (BZ.nbr[z0] || []).forEach(function(j){ var gain = D[z0] - D[j]; if(!(gain > 0) || !BZ.cent[j]) return;
+      var zid = BZ.ids[j]; if(bots.some(function(o){ return o.alive && o.team === "T" && bzOf(o.x, o.y) === j; })) return;   // уже наш
+      if(spaceDanger(zid) >= SPACE_FREE) return;
+      if(!best || gain > best.gain) best = {b: b, j: j, zone: zid, gain: gain}; }); });
+  if(!best) return;
+  var c = BZ.cent[best.j], cov = ts.filter(function(o){ return o !== best.b; }).map(function(o){ return {o: o, L: pathLenTo(o, best.b.x, best.b.y)}; })
+    .filter(function(x){ return x.L <= TRADE_R; }).sort(function(a, d){ return a.L - d.L; })[0];
+  SP = tt._space = {round: roundNum, id: best.b.id, zone: best.zone, pt: walk({x: c.x, y: c.y}), cov: cov ? cov.o.id : null, name: calloutName(c.x, c.y).replace(/^на /, "")};
+  logEvent("T: пространство " + SP.name + " свободно — занимает " + SP.id + (SP.cov ? ", прикрывает " + SP.cov : ""));
+  voiceLog("T", "space" + SP.zone + roundNum, SP.id, "беру " + SP.name + (SP.cov ? ", " + SP.cov + " — прикрой" : ""));
+  spaceHold(SP);
+}
+function spaceHold(SP){
+  var tk = teamBot(SP.id); if(tk && tk.alive) setPost(tk, SP.pt, SITES[teamTac.T.site] || SP.pt, true, "space:take");
+  var cv = SP.cov && teamBot(SP.cov); if(cv && cv.alive && !cv._sawEnemy && !cv._fc) setPost(cv, {x: cv.x, y: cv.y}, SP.pt, true, "space:cover");
+}
