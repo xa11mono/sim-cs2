@@ -222,15 +222,18 @@ function intelDeath(victim, killer){
   // (v519, пак 09.11 п.10; А-38: «убили мид, убили двоих опорников A, а опорник другого сайта до сих пор стоит» — «T у другого сайта» считался
   // по последней позиции уже убитого) смерть видна в киллфиде всем: убитый стирается из памяти команды сразу, одно место, а не в каждом читателе
   ["CT", "T"].forEach(function(t){ if(beliefLast[t]) delete beliefLast[t][victim.id]; });
+  // (22.11, доделка 004: «точка невидимого убийцы» — во всех местах) где стрелял убийца, команда убитого знает: видели — точно, нет — по звуку
+  // выстрела с ошибкой «на слух» (hearPoint, 460: от убитого); было — настоящее место с шумом ±80 (память AWP / агрессии, журнал IGL, подмена)
+  var saw0 = killer && hasVision(victim.x, victim.y, killer.x, killer.y), kpV = killer ? (saw0 ? {x:killer.x, y:killer.y} : hearPoint(victim, killer.x, killer.y, tick*17 + 3)) : null;
   if(killer){
     var secR = (tick - roundStartTick)/TICK_HZ;
-    if(killer.team === "CT" && killer.weapon && killer.weapon.key === "AWP") RMEM.awp.push({x:killer.x, y:killer.y, round:roundNum});
-    if(killer.team === "CT" && victim.team === "T" && secR < 30 && tSideZone(killer.x, killer.y))
-      RMEM.aggro.push({x:killer.x, y:killer.y, round:roundNum, id:killer.id});
+    if(killer.team === "CT" && killer.weapon && killer.weapon.key === "AWP") RMEM.awp.push({x:kpV.x, y:kpV.y, round:roundNum});
+    if(killer.team === "CT" && victim.team === "T" && secR < 30 && tSideZone(kpV.x, kpV.y))
+      RMEM.aggro.push({x:kpV.x, y:kpV.y, round:roundNum, id:killer.id});
     if(victim.team === "CT" && victim.tRole === "mid" && secR < 30) RMEM.midDeath.push({round:roundNum});
     ["awp","aggro","midDeath"].forEach(function(k){ if(RMEM[k].length > 12) RMEM[k].shift(); });
   }
-  var saw = killer && hasVision(victim.x, victim.y, killer.x, killer.y);
+  var saw = saw0;
   intelPush(victim.team, {type:"died", x:victim.x, y:victim.y, id:victim.id, conf:1, kid: killer ? killer.id : null, kx: saw ? killer.x : null, ky: saw ? killer.y : null});   // кто убил — видно в киллфиде
   if(saw) intelPush(victim.team, {type:"spotted", x:killer.x, y:killer.y, id:killer.id, by:victim.id, conf:1});
   // (00_PLAN, аудит 2.2, 05.11) не видел, кто убил, — «убили откуда-то с …» говорит в войс сам погибший (230: teamDeath, с задержкой фразы),
@@ -256,7 +259,7 @@ function intelDeath(victim, killer){
   if(teamTac.T && bomb && bomb.state !== "planted"){
     var TTd = teamTac.T; TTd._dl = TTd._dl || [];
     if(victim.team === "T"){
-      var kx0 = killer ? (saw ? killer.x : killer.x + (hashRand(tick*17+3)-0.5)*160) : null, ky0 = killer ? (saw ? killer.y : killer.y + (hashRand(tick*19+5)-0.5)*160) : null;
+      var kx0 = kpV ? kpV.x : null, ky0 = kpV ? kpV.y : null;
       TTd._dl.push({t:"T", tick:tick, x:victim.x, y:victim.y, kx:kx0, ky:ky0, kid:killer ? killer.id : null, role:victim.tRole, phase:TTd.phase, traded:false});
     } else {
       TTd._dl.push({t:"CT", tick:tick, x:victim.x, y:victim.y, phase:TTd.phase});
@@ -270,7 +273,8 @@ function intelDeath(victim, killer){
   // срывает бота с тактики на ~3.5с). Разменивают 1–2 ближайших ПО ПУТИ.
   var traders = [];
   if(killer && killer.alive){
-    var kp = saw ? {x:killer.x, y:killer.y} : {x:killer.x + (hashRand(tick*31 + 5)-0.5)*160, y:killer.y + (hashRand(tick*57 + 9)-0.5)*160};
+    // (22.11, аудит 004 / 048а) точка убийцы для каждого разменивающего — своя: видели — где он; не видели — где её слышит этот игрок (hearPoint, 460).
+    // Было: настоящая точка убийцы ± 80 для всех
     var cands = [];
     bots.forEach(function(o){
       if(!o.alive || o.team !== victim.team || o === victim || o.planting || o.defusing || o._sawEnemy) return;
@@ -292,7 +296,7 @@ function intelDeath(victim, killer){
     if(cands[1] && cands[1].L <= (450) && aliveCount(victim.team) >= 3) traders.push(cands[1]);
     if(chainK && traders.length < 2) traders = [];   // вдвоём или никак
     traders.forEach(function(T, k){
-      var o = T.b;
+      var o = T.b, kp = saw ? {x:killer.x, y:killer.y} : hearPoint(o, killer.x, killer.y, tick*31 + 5 + k*7);
       if(teamSaving(o.team)) return;   // (v247) команда сейвит — не меняем
       if(BAL.execErr && o.prof && hashRand(tick*29 + o.id.charCodeAt(1)*11) < (1-prof(o, "disc"))*0.12){ noteMistake(o, "не разменял "+victim.id); return; }
       // выходит НЕ в ту же точку, где умер тиммейт (туда у убийцы уже стоит
@@ -322,7 +326,7 @@ function intelDeath(victim, killer){
   // подменяет и в одиночку и при двух живых: дыра у него под боком, его место от этого не открывается
   if(!traders.length && fillPh && !(bomb && bomb.state === "planted") && aliveCount(victim.team) >= 2 && !teamSaving(victim.team)){
     var fc = victim.post && Math.hypot(victim.post.x-victim.x, victim.post.y-victim.y) < 600 ? {x:victim.post.x, y:victim.post.y} : {x:victim.x, y:victim.y};
-    var fl = killer ? {x:killer.x + (saw ? 0 : (hashRand(tick*37+7)-0.5)*160), y:killer.y + (saw ? 0 : (hashRand(tick*41+3)-0.5)*160)} : (victim.post && victim.post.look) || null;
+    var fl = kpV ? {x:kpV.x, y:kpV.y} : (victim.post && victim.post.look) || null;
     var fBest = null, fL = Infinity;
     // решает по тому, что знает команда (владелец 13.10: «умно, а то будут дырки в защите»): место ещё кто-то держит (свой
     // ≤400 px) — подменять незачем; уходит только тот, чьё место остаётся под присмотром (рядом напарник ≤ TRADE_R) и у кого
@@ -355,11 +359,12 @@ function intelDeath(victim, killer){
   // ближайший с флешкой кидает поп-флешку на убийцу, размен идёт под неё
   if(victim.team === "T" && killer && killer.alive && teamTac.T && teamTac.T.phase === "execute" &&
      (victim.tRole === "entry" || !teamTac.T._popDone)){
-    var kpF = {x:killer.x + (saw ? 0 : (hashRand(tick*23+1)-0.5)*140), y:killer.y + (saw ? 0 : (hashRand(tick*29+2)-0.5)*140)};
     var flc = bots.filter(function(o){ return o.alive && o.team === "T" && o !== victim && o.nades && o.nades.flash > 0 && !o.planting &&
       !(bomb.state === "carried" && bomb.carrier === o) && Math.hypot(o.x-victim.x, o.y-victim.y) < 750; })
       .sort(function(a, c){ var ta = traders.some(function(T){ return T.b === a; }) ? 200 : 0, tc = traders.some(function(T){ return T.b === c; }) ? 200 : 0;
         return (Math.hypot(a.x-victim.x, a.y-victim.y) + ta) - (Math.hypot(c.x-victim.x, c.y-victim.y) + tc); })[0];
+    // (22.11, аудит 004 / 048а) куда кидать — где убийцу видели, иначе где его слышит бросающий (hearPoint); было — настоящая точка ± 70 для всех
+    var kpF = !flc ? null : saw ? {x:killer.x, y:killer.y} : hearPoint(flc, killer.x, killer.y, tick*23 + 1);
     if(flc && assignNade(flc, "flash", kpF, "поп на убийцу "+victim.id, {now:true, range:900})){
       teamTac.T._popDone = true;
       voiceLog("T", "pop"+victim.id, flc.id, "даю флешку на "+killer.id+" "+calloutName(kpF.x, kpF.y)+" — меняйте под неё!");

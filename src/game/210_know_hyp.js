@@ -61,6 +61,8 @@ function noticeShooter(b, src){
 // на всё окно события ни контакт, ни взгляд по нему (откуда бы ни пришло знание), пока не увидит сам
 function ignoredShooter(b, id){ var e = id && b._notice && b._notice[id]; return !!e && !e.ok && tick - e.t <= NOTICE_WIN; }
 // звук дошёл до игрока o: v166 кладёт его в o.heardSound, знание — в o.ears (одно место на «услышал»)
+// (22.11, аудит 048в) s.src — id источника ТОЛЬКО для движка (этаж звука здесь, «заметил ли стрелка» noticeShooter): решения его не читают —
+// игрок не знает, какой именно враг шумел; совпадение звука с видимым врагом — по месту (knowHearErr)
 function hearReal(o, s){
   if(roundState === "live"){ var sb = s.src ? teamBot(s.src) : null;   // (v358) этаж слышно (сверху / снизу) — высота источника
     (o.ears || (o.ears = [])).push({x:s.x, y:s.y, z: sb ? sb.z : null, tick:tick, team:s.team, kind:s.kind, occl:!!s.occl});
@@ -306,13 +308,15 @@ function knowVision(b){
 }
 
 // ---------- слух: новые записи b.ears ----------
+// (22.11, аудит 048в) неопределённость «на слух» — одна формула для всех (знание, «меня видят», совпадение звука с видимым врагом)
+function knowHearErr(b, s){ return Math.hypot(s.x-b.x, s.y-b.y)*(s.occl ? 0.3 : 0.15) + 40; }
 function knowHearing(b){
   var K = b.know, E = b.ears || [];
   for(var i = 0; i < E.length; i++){
     var s = E[i];
     if(s.kind === "defuse") K.defuseT = tick;
     if(!(s.kind in KNOW.soundL)) continue;
-    var d = Math.hypot(s.x-b.x, s.y-b.y), err = d*(s.occl ? 0.3 : 0.15) + 40;
+    var err = knowHearErr(b, s);
     var zone = knowZoneAt(s.x, s.y, s.z);
     K.heard.push({x: s.x, y: s.y, zone: zone, kind: s.kind, tick: tick, err: err});
     if(s.kind === "plant" && !K.planted) K.plantHeard = knowNearestSite(s.x, s.y);

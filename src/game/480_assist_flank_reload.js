@@ -204,16 +204,24 @@ var AMB_HEAR = 1.5, AMB_AWAY = Math.PI/3, AMB_PASS = 380, AMB_SHOOT = 260, AMB_R
 function ambSeenBy(b){ return knowSeenByAny(b); }   // (22.11, Ж23) по своему восприятию (220 knowSeenByFoe), не по зрению врага
 // кого из врагов я сейчас воспринимаю сам: вижу или слышал (звук с источником) недавно, в AMB_R
 // (22.11, Ж23) где враг по моему восприятию: вижу — где он есть; слышу — место звука (с ошибкой «на слух»), а не его настоящее место
-function ambAt(b, o){ var hs = b.heardSound; return (b._visible && b._visible.indexOf(o) >= 0) || !(hs && hs.src === o.id) ? {x: o.x, y: o.y, z: o.z} : {x: hs.x, y: hs.y, z: hs.z}; }
+// (22.11, аудит 048в) кого воспринимаю: видимых врагов — как есть; услышанное — одна цель «звук» (id "snd") в месте звука: какой именно враг
+// шумел, игрок не знает. Звук, который объясняет видимый враг (в пределах ошибки на слух, knowHearErr), — это он, не отдельная цель.
+// Было: heardSound.src — id настоящего бота
+function ambHeard(b){
+  var hs = b.heardSound; if(!hs || !hs.team || hs.team === b.team || tick - hs.tick >= AMB_HEAR*TICK_HZ || hs.kind === "call") return null;
+  if(Math.hypot(hs.x-b.x, hs.y-b.y) >= AMB_R) return null;
+  var er = knowHearErr(b, hs); if((b._visible || []).some(function(o){ return o.alive && o.team !== b.team && Math.hypot(o.x-hs.x, o.y-hs.y) <= er; })) return null;
+  return {id: "snd", snd: true, alive: true, team: hs.team, x: hs.x, y: hs.y, z: hs.z};
+}
+function ambAt(b, o){ return {x: o.x, y: o.y, z: o.z}; }   // видимый — где он; «звук» — место звука
 // (22.11, Ж23) к какому сайту ведёт место (по пути: граф зон, 340 ctSiteD) — куда шли те, кого слышал
 function ambGoalSite(p){ if(!p || !BZ.ids.length) return null; var z = bzOf(p.x, p.y); if(z < 0) return null; var D = ctSiteD(); return D.A[z] <= D.B[z] ? "A" : "B"; }
 function ambFoes(b){
   var out = [];
   bots.forEach(function(o){ if(!o.alive || o.team === b.team) return;
-    var seen = b._visible && b._visible.indexOf(o) >= 0, hs = b.heardSound, heard = hs && hs.src === o.id && tick - hs.tick < AMB_HEAR*TICK_HZ;
-    // (22.11, Ж23) услышанный — далеко ли, по месту звука, а не по его настоящему месту
-    var px = seen ? o.x : heard ? hs.x : 0, py = seen ? o.y : heard ? hs.y : 0;
-    if((seen || heard) && Math.hypot(px-b.x, py-b.y) < AMB_R) out.push(o); });
+    var seen = b._visible && b._visible.indexOf(o) >= 0;
+    if(seen && Math.hypot(o.x-b.x, o.y-b.y) < AMB_R) out.push(o); });
+  var H = ambHeard(b); if(H) out.push(H);   // (22.11, аудит 048в) услышанное — цель «звук», не конкретный бот
   return out;
 }
 // враг идёт не на меня. Вижу — по его ходу и взгляду (отвёрнуты от меня); только слышу — по звуку: шаги удаляются (расстояние до услышанного
@@ -270,13 +278,13 @@ function ambushTick(b){
   }
   // услышанные: расстояние до звука раз в секунду (по нему — «удаляются ли»)
   var hs = b.heardSound; A.hd = A.hd || {};
-  if(hs && hs.src && tick - hs.tick < AMB_HEAR*TICK_HZ){ var h = A.hd[hs.src] || (A.hd[hs.src] = {}), dd = Math.hypot(hs.x-b.x, hs.y-b.y);
+  var HS = ambHeard(b); if(HS){ A.sndPos = {x: HS.x, y: HS.y, z: HS.z}; var h = A.hd.snd || (A.hd.snd = {}), dd = Math.hypot(HS.x-b.x, HS.y-b.y);   // (22.11, аудит 048в) замеры — до места звука
     if(!h.t || tick - h.t >= TICK_HZ){ h.d0 = h.d1 != null ? h.d1 : dd; h.d1 = dd; h.t = tick; } }
   // цели: кого воспринимаю из своих целей + новые рядом
   F.forEach(function(o){ if(A.ids.indexOf(o.id) < 0) A.ids.push(o.id); });
-  var T = A.ids.map(teamBot).filter(function(o){ return o && o.alive; });
+  var T = A.ids.map(function(id){ return id === "snd" ? (A.sndPos ? {id: "snd", snd: true, alive: aliveCount(b.team === "CT" ? "T" : "CT") > 0, x: A.sndPos.x, y: A.sndPos.y, z: A.sndPos.z} : null) : teamBot(id); }).filter(function(o){ return o && o.alive; });
   if(!T.length) return ambEnd(b, "цели мертвы");
-  var seenNow = T.filter(function(o){ return F.indexOf(o) >= 0; });
+  var seenNow = T.filter(function(o){ return F.some(function(f){ return f.id === o.id; }); }).map(function(o){ return o.snd ? F.filter(function(f){ return f.id === "snd"; })[0] : o; });
   // куда идти: увиденного — сразу; услышанного — не чаще раза в секунду (иначе путь пересчитывался на каждый шаг и бот топтался на месте)
   var vis = seenNow.filter(function(o){ return b._visible && b._visible.indexOf(o) >= 0; });
   if(seenNow.length){ A.seen = tick; var P = vis.length ? vis : (tick - (A.lastT || 0) >= TICK_HZ ? seenNow : null);
@@ -307,7 +315,7 @@ function ambushTick(b){
     // уверенно знают в другом месте ≥ живых | слышали плант | свой уже в бою | бомба стоит | свои идут на этот сайт)
     var goSit = false;
     {
-      var foesAlive = bots.filter(function(o){ return o.alive && o.team !== b.team; }), passed = A.ids.filter(function(id){ var o = teamBot(id); return o && o.alive; }).length;
+      var foesAlive = bots.filter(function(o){ return o.alive && o.team !== b.team; }), passed = A.ids.filter(function(id){ if(id === "snd") return true; var o = teamBot(id); return o && o.alive; }).length;
       var elsewhere = foesAlive.filter(function(o){ if(A.ids.indexOf(o.id) >= 0) return false; return (knowEnemySpots(b.team, o.id) || []).some(function(q){ return q.w >= 0.5 && Math.hypot(q.x-b.x, q.y-b.y) > AMB_R; }); }).length;
       var PHs = teamIntel[b.team] && teamIntel[b.team].plantHeard, busy = !!(PHs && tick - PHs.tick < 5*TICK_HZ) || (bomb && bomb.state === "planted") ||
         bots.some(function(m){ return m !== b && m.alive && m.team === b.team && m._fc; });

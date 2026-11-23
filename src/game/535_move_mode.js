@@ -40,7 +40,7 @@ function moveWalkWhy(bot){
   // только труп (220 knowCorpseOnly: убили, после — тихо, живых по знанию нет) — не повод идти тихо. Другие враги рядом — свои причины ниже
   var deadSrc = function(id, p){ if(id){ var o = teamBot(id); if(o && !o.alive) return true; } return !!(p && knowCorpseOnly(bot.team, p)); };
   if(bot.lastIntel && tick - bot.lastIntel.tick < CAUTION_TICKS && Math.hypot(bot.lastIntel.x-bot.baseX, bot.lastIntel.y-bot.baseY) <= 1.5*STEP_HEAR_R() && !deadSrc(bot.lastIntel.id, bot.lastIntel)) return "видел врага рядом";
-  if(bot.heardSound && tick - bot.heardSound.tick < SOUND_CAUTION_TICKS && Math.hypot(bot.heardSound.x-bot.baseX, bot.heardSound.y-bot.baseY) <= 1.5*STEP_HEAR_R() && !deadSrc(bot.heardSound.src, bot.heardSound)) return "слышал врага рядом";
+  if(bot.heardSound && tick - bot.heardSound.tick < SOUND_CAUTION_TICKS && Math.hypot(bot.heardSound.x-bot.baseX, bot.heardSound.y-bot.baseY) <= 1.5*STEP_HEAR_R() && !deadSrc(null, bot.heardSound)) return "слышал врага рядом";   // (22.11, аудит 048в) по звуку не знает, кто это — только «там труп» по месту
   // роумер подходит к точке чека тихо (v560, В104: только пока он роумит — без задачи, как в stepTick → updateRoamer; было — и на чужой
   // задаче по старой точке чека: ротирующий шёл шагом «роумер у точки чека»)
   if(bot.role === "roamer" && !bot.post && !bot.roamChecking && bot.roamTarget && bot.state === "patrol" &&

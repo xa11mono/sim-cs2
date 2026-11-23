@@ -371,7 +371,8 @@ function knowMeRevealed(b){
 function knowSeenByFoe(b, o){
   if(!o || !o.alive || o.team === b.team) return false;
   if(b._visible && b._visible.indexOf(o) >= 0 && inFov(o, b.x, b.y)) return true;
-  var hs = b.heardSound; return !!(hs && hs.kind === "hit" && hs.src === o.id && tick - hs.tick <= TICK_HZ);
+  // стрелял в меня — тот видимый враг, который стоит там, откуда пришли пули (в пределах ошибки на слух), а не «знаю, кто это» (было: hs.src)
+  var hs = b.heardSound; return !!(hs && hs.kind === "hit" && tick - hs.tick <= TICK_HZ && b._visible && b._visible.indexOf(o) >= 0 && Math.hypot(hs.x-o.x, hs.y-o.y) <= knowHearErr(b, hs));
 }
 function knowSeenByAny(b){ return bots.some(function(o){ return knowSeenByFoe(b, o); }); }
 // (22.11, Ж18, владелец: «гранаты на труп кидают»; журнал бросков, 2 матча: 6 из 130 — «задержать», лайнап «по времени / выход»,
