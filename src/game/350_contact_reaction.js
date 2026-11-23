@@ -100,8 +100,11 @@ function spotTaken(b, q, how){ return bots.some(function(o){
 function contactMateFight(b, C){
   var BL = beliefLast[b.team] || {};
   return bots.filter(function(o){
-    if(o === b || !o.alive || o.team !== b.team || !o._sawEnemy || !o._fc || !o._nearestEnemyBot || !nearP(o.x, o.y, o.z, b.x, b.y, b.z, 600)) return false;
-    var e = BL[o._nearestEnemyBot.id]; return e && tick - e.tick <= TICK_HZ && nearP(e.x, e.y, e.z, C.x, C.y, C.z, 400); })[0] || null;
+    // (22.11, аудит 022 / «Persistent Team Intent»: короткая потеря вида не отменяет общую задачу) свой в бою — его перестрелка ещё идёт (_fc держится
+    // паузу про между выглядываниями, 470), враг этой перестрелки — где его последний раз знала команда, не дольше паузы перестрелки (PEEK_PRO pause[4]);
+    // было — свой видит врага прямо сейчас и инфа ≤ 1 с: на миг потерял вид — поддержка «отпускала»
+    var fe = o._fc && o._fc.e; if(o === b || !o.alive || o.team !== b.team || !fe || !nearP(o.x, o.y, o.z, b.x, b.y, b.z, 600)) return false;
+    var e = BL[fe.id], P = PEEK_PRO[o.team] || PEEK_PRO.T; return e && tick - e.tick <= P.pause[4]*TICK_HZ && nearP(e.x, e.y, e.z, C.x, C.y, C.z, 400); })[0] || null;
 }
 function contactTick(b){
   if(!b.alive || roundState !== "live") return;
