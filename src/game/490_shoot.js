@@ -400,7 +400,7 @@ function duelContext(bot, enemiesSeen, alliesNear){
   var e = bot._nearestEnemyBot;
   if(e){
     var HT = teamIntel[bot.team] && teamIntel[bot.team].hurt, hk = HT && HT[e.id];
-    o.hurtFoe = !!(hk && hk.hp <= 40 && tick - hk.tick < 8*TICK_HZ) || e.hp <= 40;
+    o.hurtFoe = !!(hk && hk.hp <= 40 && tick - hk.tick < 8*TICK_HZ);   // (22.11, аудит 005) только по своему урону / коллу «тапнул» (было ещё — настоящее HP врага)
     o.awpLine = !!(e.weapon && e.weapon.key === "AWP");
     o.flashed = tick < (e.blindUntil || 0);
   }

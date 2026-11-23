@@ -202,7 +202,7 @@ var DUEL_LOSE_K = 0.6;
 function duelBalance(b, e, d, eHp, vis){
   var sk = b.skill || 1, mine = duelTTK(b, e, d, eHp, true, sk), mine0 = duelTTK(b, e, d, 100, true, sk), theirs0 = duelTTK(e, b, d, 100, !!b.armor, sk);
   var mates = bots.filter(function(m){ return m !== b && m.alive && m.team === b.team; });
-  var sees = function(o){ return mates.filter(function(m){ return (m._visible || []).indexOf(o) >= 0; }); };
+  var sees = function(o){ var id = o && o.id; return mates.filter(function(m){ return (m._visible || []).some(function(v){ return v === o || (id && v.id === id); }); }); };   // (аудит 006) враг может прийти как «знание» (knowFoeView) — по id
   var myRate = mine.t < Infinity ? 1/mine.t : 0;
   sees(e).forEach(function(m){ var r = duelTTK(m, e, Math.hypot(e.x-m.x, e.y-m.y), eHp, true, sk); if(r.t < Infinity) myRate += 1/r.t; });
   var rate = 0;
@@ -215,15 +215,17 @@ function duelBalance(b, e, d, eHp, vis){
 // для повторного пика в бою (fightCycleTick) и для выхода после боя (contactTick). ammoOk — хватает ли патронов на этого врага (мало и есть
 // время — перезарядится за укрытием до выхода; времени нет — выходит с остатком)
 function duelOdds(b, e, x, y){
-  if(!e || !e.alive) return null;
-  var d = Math.hypot(x-b.x, y-b.y), P = {x:x, y:y, px:x, py:y, weapon:e.weapon, crouching:e.crouching, alive:true};
+  var V = knowFoeView(b, e); if(!V) return null;   // (22.11, аудит 006) оружие и стойка — как знает бот, а не настоящие
+  if(x == null){ x = V.x; y = V.y; }
+  var d = Math.hypot(x-b.x, y-b.y), P = {x:x, y:y, px:x, py:y, weapon:V.weapon, crouching:V.crouching, alive:true};
   var B = duelBalance(b, P, d, Math.max(1, 100 - duelHits(b._hitOut, roundStartTick, e.id)), [P]);
   var need = Math.min(B.mine.shots, (b.weapon && b.weapon.mag) || B.mine.shots);
   return {mine: B.mine, theirs: B.theirs, ammoOk: !b._reloading && b.ammo >= need, ok: !b._reloading && b.ammo > 0 && !B.lose};
 }
 function duelEval(b, F, cover){
-  var e = F.e; if(!e || !e.alive) return null;
-  var vis = (b._visible || []).filter(function(o){ return o.alive && o.team !== b.team; }), seesE = vis.indexOf(e) >= 0;
+  var e0 = F.e; if(!e0 || !e0.alive) return null;
+  var vis = (b._visible || []).filter(function(o){ return o.alive && o.team !== b.team; }), seesE = vis.indexOf(e0) >= 0;
+  var e = knowFoeView(b, e0); if(!e) return null;   // (22.11, аудит 006) не вижу — где и с чем он, по своему знанию
   var eHp = Math.max(1, 100 - duelHits(b._hitOut, roundStartTick, e.id));
   var B = duelBalance(b, e, Math.hypot(e.x-b.x, e.y-b.y), eHp, vis.length ? vis : [e]);
   var canShoot = !b._reloading && b.ammo > 0;
@@ -274,7 +276,7 @@ function fightCycleTick(b, dtSec, busy){
     if(!b._sawEnemy && tick - F.seen > D.pause[2]*TICK_HZ){ b._fc = null; fcWhy(b, "конец: врага не видно дольше паузы"); return; }   // враг пропал — перестрелка кончилась
     if(!F.until && b.lastShotTick >= F.t) F.until = b.lastShotTick + Math.max(b.reactionTicks || 1, 8);   // (v520) первая оценка размена — через время реакции после первого выстрела (было: таймер «длительность пика про» ≈ 1 с)
     if(F.until && tick >= F.until){
-      var e = F.e;
+      var e = knowFoeView(b, F.e);   // (22.11, аудит 006) укрытие и оценка — от врага, каким его знает бот (не видит — последнее увиденное)
       if(!e){ b._fc = null; return; }
       var push = fightPush(b), tw = push && b.post ? {x:b.post.x, y:b.post.y} : null;
       // (v530, отметка владельца 10.11 «игра снова лагает»: поиск укрытия — 21 мс, а считался при каждой оценке размена — 68 раз за 10 с) укрытие
@@ -332,7 +334,7 @@ function fightCycleTick(b, dtSec, busy){
     var fin = F.e && F.e.alive && duelHits(b._hitOut, F.t0, F.e.id) > duelHits(b._hitIn, F.t0, null);
     // (v520) выглянуть снова — по той же оценке (с места, где враг был виден): размен мой, добить раненого или задача; патронов на врага мало —
     // сначала перезарядка за укрытием (ждёт, не выходит); проигрываю — не выглядывает, перестрелка для него закончена (жребия 26 % больше нет)
-    var DO = F.e ? duelOdds(b, F.e, F.e.x, F.e.y) : null;
+    var DO = F.e ? duelOdds(b, F.e) : null;   // (аудит 006) с места, где его знает (было — настоящее место F.e)
     // патронов на врага мало — перезаряжается здесь, за укрытием (сам начинает: тактическая перезарядка ниже 35 % магазина могла не включиться —
     // отметка владельца 10.11: karrigan 10/12 ждал перезарядку 4 с и стоял), пока идёт — ждёт
     if(DO && !DO.ammoOk && !b._sawEnemy && !b._reloading && b.weapon && b.ammo < b.weapon.mag && (b.ammo <= 0 || !fightPush(b))){ b._reloading = true; b.reloadUntil = tick + Math.round(b.weapon.reload*TICK_HZ); reloadHeard(b, b.weapon); }
@@ -347,7 +349,7 @@ function fightCycleTick(b, dtSec, busy){
     // второй, можно вообще не пикать — нет конкретного правила») противник видел меня в этой точке и ждёт там же: чем больше раз видел (F.samePk),
     // тем вероятнее выход с другого места (не ближе медианы сдвига про к прошлому) — доля 1 − 0,5^раз (проектное число); выходить ли вообще — оценка
     // размена выше (duelOdds)
-    else if(F.nPeek >= 1 && F.e && fightRand(b, 11) >= Math.pow(0.5, F.samePk || 1)){ var nb = fightBetterAway(b, F.e, F.cx, F.cy, D.shift[4], F.ax, F.ay, D.shift[2]); if(nb){ F.ax = nb.x; F.ay = nb.y; F.samePk = 0; } }
+    else if(F.nPeek >= 1 && F.e && fightRand(b, 11) >= Math.pow(0.5, F.samePk || 1)){ var nb = fightBetterAway(b, knowFoeView(b, F.e) || F.e, F.cx, F.cy, D.shift[4], F.ax, F.ay, D.shift[2]); if(nb){ F.ax = nb.x; F.ay = nb.y; F.samePk = 0; } }
     F.samePk = (F.samePk || 0) + 1;
     // (v583a, Д30, владелец 18.11: «в перестрелке — разные пики, не один вид под одну ситуацию») вид выхода — жребий с весами про: каким пиком
     // начиналась перестрелка (12 демок Mirage с каждым тиком, tools/motion/peek_types_pro.py; ≈ 93 дуэли — доли примерные): CT короткий 44 % /
@@ -358,7 +360,8 @@ function fightCycleTick(b, dtSec, busy){
       if(wl > 0.5){ var wx = F.ax + wdx/wl*PEEK_WIDE_EXTRA/PX_UNITS, wy = F.ay + wdy/wl*PEEK_WIDE_EXTRA/PX_UNITS;
         if(!stepBlocked(F.ax, F.ay, wx, wy, b) && navNearLevel(wx, wy, 0, b.z) && !inFire(wx, wy, b.z)){ F.ax = wx; F.ay = wy; } else F.pk = "mid"; } else F.pk = "mid"; }
     // (ответ 4) против AWP (оружие врага видно) — сначала плечо: выстрелил — выглядывает целиком, пока он перезаряжается; нет — через паузу про
-    if(F.e && F.e.primary === "AWP"){ var shp = fightShoulderPt(b, F.e, F.cx, F.cy, F.ax, F.ay); if(shp) F.sh = {x:shp.x, y:shp.y, t0:0, shot:F.e.lastShotTick || -1, done:false}; }
+    var eV = F.e ? knowFoeView(b, F.e) : null;   // (аудит 006) AWP — если видел у него AWP (было — настоящее оружие)
+    if(eV && eV.weapon && eV.weapon.key === "AWP"){ var shp = fightShoulderPt(b, eV, F.cx, F.cy, F.ax, F.ay); if(shp) F.sh = {x:shp.x, y:shp.y, t0:0, shot:F.e.lastShotTick || -1, done:false}; }
   }
   // (отметка владельца 18.11 №7) уходит из-под линии по задаче (escape: укрытие на перезарядку, отход раненого) — ноги ведёт путь задачи (540,
   // fcSwingGo), цикл свою точку укрытия не тянет: было — путь к укрытию и цикл к своему гасили друг друга, бот стоял на открытом
