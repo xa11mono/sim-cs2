@@ -610,7 +610,10 @@ function tBrain(){
     // числа проектные — по демкам «ждать после последней флешки» разное (0 / 4 / 8 с по вариантам), не правило
     // (v378) за раунд ждёт один раз (v353): ожидание кончилось по любой причине — второй раз в этом раунде не начинается (раньше
     // условие пропадало и появлялось, носитель переключался «ждать гранаты ↔ ставить» каждые ~0,7 с, таймер начинался заново)
-    var utilWait = function(b){ var had = !!(b._utilW && b._utilW.round === roundNum), w = utilWait0(b); if(!w && had) b._utilWDone = roundNum;
+    // (22.11, аудит 019/031) «ждал — больше не ждёт» — пока не появилась новая критичная граната выхода (ситуация изменилась): запоминается, сколько их было
+    var exuN = function(){ var E = exuCur(), n = 0; Object.keys(E.items).forEach(function(k){ var it = E.items[k]; if(it.crit && it.site === tt.site) n++; }); return n; };
+    var utilDone = function(b){ var D = b._utilWDone; return !!(D && D.r === roundNum && D.n >= exuN()); };
+    var utilWait = function(b){ var had = !!(b._utilW && b._utilW.round === roundNum), w = utilWait0(b); if(!w && had) b._utilWDone = {r: roundNum, n: exuN()};
       if(!w && b.post && b.post.tag === "utilWait"){ b._utilW = null; clearPost(b); } return w; };   // (v349) ждать нечего — пост ожидания снять
     var utilWait0 = function(b){
       // (v350, владелец: «теперь они все останавливаются далеко, а не только пикающий») ждёт только энтри — первый на угол; кто сам
@@ -623,12 +626,12 @@ function tBrain(){
       // (не только энтри): у про 75 % смоков выхода встают до того, как первый T зашёл на сайт (демки Mirage, 774 раунда с
       // плантом; флешки — 52 %: их кидают под заход, их не ждут). Размен вдвоём — по-прежнему только энтри
       var secW = ROUND_TIME_SEC - (simTime - roundStartTime);
-      if(!S0 || !atExit || b.nadeTask || b._utilWDone === roundNum || secW < UTIL_MIN_LEFT){ b._utilW = null; return false; }   // (v353) за раунд ждёт один раз
+      if(!S0 || !atExit || b.nadeTask || utilDone(b) || secW < UTIL_MIN_LEFT){ b._utilW = null; return false; }   // (v353) за раунд ждёт один раз
       // (тактика 30.10) и критичный смок выхода, который ещё не встал (идут кидать / летит / раскрывается — 366), а не только граната в воздухе
       // (Г3, 04.11, разбор отметок п.30: T0 и T3 ждали «смок выхода» у T1, который уже стоял на сайте, — exuGate в тот момент: можно) ждать ли
       // гранаты выхода — одно решение, exuGate (366: критичные смоки — назначен / летит / раскрывается / не вышел, замена). Убраны вторые
       // правила здесь: «свой несёт лайнап «(выход, …)»» (v349) и «любой смок T в воздухе у сайта»
-      var inAir = !exuGate(tt).go;
+      var EG = exuGate(tt), inAir = !EG.go;
       var mate = b.tRole !== "entry" || ts.some(function(o){ return o !== b && o.alive && o.tRole !== "lurker" && nearP(o.x, o.y, o.z, b.x, b.y, b.z, TRADE_R); });
       // (v555, отметка владельца м300 р3: «ждёт гранаты, когда он один») размен ждать не от кого — живых своих нет (кроме лёрка): не ждёт
       var anyMate = ts.some(function(o){ return o !== b && o.alive && o.tRole !== "lurker"; });
@@ -646,10 +649,12 @@ function tBrain(){
         b._utilW = {round: roundNum, t: tick, x: cov ? cov.x : b.x, y: cov ? cov.y : b.y}; }
       // (v485) предел UTIL_WAIT — и для критичного смока: без предела (v481) носитель дольше висел «ждать гранаты ↔ ставить» (прогон 133,
       // Ancient: tug с utilWait 8,7 → 12,1 на 100 раундов, «plantspot → utilWait → plantspot» 3,0). Ждёт ли команда смоков — решает exuGate
-      var waitOn = tick - b._utilW.t < (rush ? UTIL_WAIT_RUSH : UTIL_WAIT)*TICK_HZ;
+      // (22.11, аудит 031) известно, когда встанет критичный смок (летит / раскрывается: exuGate.eta) — ждёт до этого момента; срок неизвестен (идут
+      // кидать) — предел UTIL_WAIT (демки: 2,7 / 6,6 с); и не дольше, чем позволяет время раунда (UTIL_MIN_LEFT)
+      var waitOn = (EG.eta > tick ? tick < EG.eta : tick - b._utilW.t < (rush ? UTIL_WAIT_RUSH : UTIL_WAIT)*TICK_HZ) && secW > UTIL_MIN_LEFT;
       // (v353, владелец: «в 351 знали про CT, но чего-то ждали и не выходили») ждал до предела — больше в этом раунде не ждёт: раньше
       // условие то пропадало, то появлялось, таймер начинался заново, и выход откладывался без конца
-      if(!waitOn) b._utilWDone = roundNum;
+      if(!waitOn) b._utilWDone = {r: roundNum, n: exuN()};
       // ждёт — стоит, где начал ждать (прицел на сайт); раньше выданный пост (зачистка угла) иначе вёл его дальше под гранаты
       // (v378) носитель ещё не готов ставить (ждёт гранаты выхода) — свою же задачу плана «ставить» план и снимает: иначе
       // «ставить» (важнее ожидания по таблице арбитра) держала пост, а «готов» не наступало — бот переключался туда-обратно
