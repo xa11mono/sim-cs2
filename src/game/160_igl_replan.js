@@ -282,13 +282,17 @@ function tSpaceTick(tt, site){
   if(tt.phase !== "setup" || (bomb && bomb.state === "planted")){ if(SP) stop("выход / плант"); return; }
   if(tick % 32) { if(SP) spaceHold(SP); return; }
   if(SP){ var tk = teamBot(SP.id);
-    if(!tk || !tk.alive || tk._sawEnemy || tk._fc || spaceDanger(SP.zone) >= SPACE_FREE){ stop(!tk || !tk.alive ? "погиб" : "опасно"); }
+    // (22.11, прогон 302: «space не пускает stageA/B» 58 раз — занятая зона держала бойца, а план звал на сбор; плантов 0,63 → 0,56) пора на сбор:
+    // до выхода осталось не больше, чем ему идти до точки сбора по пути + 3 с — зона отпускает
+    var gS = GEO[tt.site], late = tk && gS && gS.tStage && tt.execTick && (tt.execTick - tick)/TICK_HZ <= pathLenTo(tk, gS.tStage.x, gS.tStage.y)/SPEED + 3;
+    if(!tk || !tk.alive || tk._sawEnemy || tk._fc || late || spaceDanger(SP.zone) >= SPACE_FREE){ stop(!tk || !tk.alive ? "погиб" : late ? "пора на сбор" : "опасно"); }
     else { spaceHold(SP); return; } }
   var zS = bzOf(site.x, site.y); if(zS < 0) return; if(!SPACE_D[zS]) SPACE_D[zS] = bzDist([zS]); var D = SPACE_D[zS];   // путь по графу зон до сайта (один раз на сайт)
   var ts = bots.filter(function(b){ return b.team === "T" && b.alive && b.tRole !== "lurker" && !(bomb.state === "carried" && bomb.carrier === b) && !b.planting && !b._sawEnemy && !b._fc && !b._contact &&
     (!b._task || taskLevel(b._task.tag) <= 2); });
-  var best = null;
+  var best = null, gS0 = GEO[tt.site];
   ts.forEach(function(b){ var z0 = bzOf(b.x, b.y); if(z0 < 0) return;
+    if(gS0 && gS0.tStage && tt.execTick && (tt.execTick - tick)/TICK_HZ <= pathLenTo(b, gS0.tStage.x, gS0.tStage.y)/SPEED + 3) return;   // пора на сбор — не занимать
     (BZ.nbr[z0] || []).forEach(function(j){ var gain = D[z0] - D[j]; if(!(gain > 0) || !BZ.cent[j]) return;
       var zid = BZ.ids[j]; if(bots.some(function(o){ return o.alive && o.team === "T" && bzOf(o.x, o.y) === j; })) return;   // уже наш
       if(spaceDanger(zid) >= SPACE_FREE) return;
