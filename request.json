@@ -1,0 +1,20 @@
+{
+ "par": 8,
+ "jobs": [
+  {
+   "label": "sspace2_mir",
+   "ref": "c50830856c6dcb2d309dffa1b8e58463aa8d2b0e",
+   "map": "mirage",
+   "matches": [
+    3,
+    7,
+    11,
+    13,
+    17,
+    19,
+    23,
+    29
+   ]
+  }
+ ]
+}

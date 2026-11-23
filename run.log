@@ -1,0 +1,21 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin c50830856c6dcb2d309dffa1b8e58463aa8d2b0e
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_75dj3uz9 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_75dj3uz9\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\sspace2_mir.html
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+модули: 110_post_routes.js, 190_team_intel_lkp_calls.js, 220_know_events_tick.js, 275_look_turn.js, 360_nades_buy_smoke_vision.js, 365_nade_plan.js, 366_exec_sync.js, 370_fire_nav_levels_ladders.js, 380_nades_throw.js, 385_nades_flight.js, 390_nades_lineups.js, 400_nades_physics_damage.js, 410_nades_tactical_self.js, 420_nades_brains.js, 470_fight_cycle.js, 480_assist_flank_reload.js, 490_shoot.js, 500_decide_afterkill_cover.js, 510_engagements.js, 535_move_mode.js, 540_step_tick.js — ядро отдаёт 281 имён, берёт 667
+пометок 1737 | полей facing:7 walking:4 curSpeed:5 post:3 _task:4 _reposUntil:1 _waitPopUntil:1 _avoidPeekUntil:1 _tradeUntil:2 _tradeLock:1 state:2 nadeTask:10 holding:4 crouching:1 path:7 phase:2 | функций 1289
+общих переменных 974 из чужих файлов пишут 86
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=sspace2_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\sspace2_mir.html --matches=3,7,11,13,17,19,23,29 --par=8
+матчей в очереди: 8, одновременно: 8
+sspace2_mir match 19  rc 0 8279460 — готово 1/8, 8 мин
+sspace2_mir match 29  rc 0 9316768 — готово 2/8, 9 мин
+sspace2_mir match 7  rc 0 10284472 — готово 3/8, 9 мин
+sspace2_mir match 17  rc 0 10538213 — готово 4/8, 10 мин
+sspace2_mir match 11  rc 0 11630308 — готово 5/8, 10 мин
+sspace2_mir match 23  rc 0 10554146 — готово 6/8, 10 мин
+sspace2_mir match 13  rc 0 11163757 — готово 7/8, 10 мин
+sspace2_mir match 3  rc 0 13466143 — готово 8/8, 11 мин
+done
+all done
