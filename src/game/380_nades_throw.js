@@ -424,11 +424,12 @@ function nadeRevealOk(b){
 }
 // (22.11, Ж23) заказчик гранаты: «под мой / его выход на врага» — {by, cid}: жива, пока у заказчика контакт с этим врагом (_contact, 350);
 // «под его пробу» — {by, tag}: пока заказчик на той же задаче (тег поста при заказе). Только свойства задачи заказчика, без списков имён
-function nadeOwnerOf(o, cid){ return cid !== undefined ? {by: o.id, cid: cid} : {by: o.id, tag: o.post ? o.post.tag : null}; }
+function nadeOwnerOf(o, cid, self){ return cid !== undefined ? {by: o.id, cid: cid} : {by: o.id, tag: o.post ? o.post.tag : null, self: !!self}; }
 function nadeOwnerOk(F){
   var o = teamBot(F.by); if(!o || !o.alive) return false;
   if(F.cid !== undefined) return !!(o._contact && tick < o._contact.until && (F.cid == null || o._contact.id === F.cid));
-  return !!(o.post && o.post.tag === F.tag);
+  // своя граната под свою задачу: встал на точку броска (задача лайнапа) — та же задача
+  return !!(o.post && (o.post.tag === F.tag || (F.self && taskProp(o.post.tag, "lineupTask"))));
 }
 // (17.11, перестройка — модули) запись в журнал решений (645) — здесь, у хозяина (было: 645 подменял функцию обёрткой)
 function assignNade(b, type, target, why){
