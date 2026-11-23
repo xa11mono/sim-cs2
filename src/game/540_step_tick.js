@@ -422,7 +422,10 @@ function stepTick(){
           // и не срезать, если прямая до следующей точки идёт через огонь (а до этой — нет)
           // (22.11, Ж2 «Short → Under», эпизод м29 р11 CT3 / песочница: точка спрыгивания в Underpass под B Short засчитывалась «вплотную» по x, y на верхнем
           // полу — бот шёл к цели поверху и метался) вплотную — только на уровне точки (перепад ≤ 40, тот же порог, что у досрочного пропуска)
-          var lvlA = bot.z == null || wpA[2] == null || Math.abs(wpA[2] - bot.z) <= 40;
+          // (23.11, прогон 307: Mirage «шаг проходит, а стоит» 50 → 101, у T Roof 24 — точка запрыга над ботом не засчитывалась, бот стоял под ней
+          // и не входил на верхний участок, прыжка не было; песочница: база — наверху за 1,5 с, Ж2 — 6 с метания) правило — только для точки НИЖЕ
+          // бота (спрыгнуть); точка выше — как раньше (запрыгивает по пути к следующей)
+          var lvlA = bot.z == null || wpA[2] == null || bot.z - wpA[2] <= 40;
           if(wdCur < 6 && !lvlA && navDropAt(bot, wpA)) lvlA = true;   // над точкой спрыгивания — спрыгивает по переходу (370)
           if((wdCur < 6 && lvlA) || (lvlOk && wdCur < ARRIVE_RADIUS && !crossesWall(bot.baseX, bot.baseY, wpB[0], wpB[1]) && navSegOnLevel(bot.baseX, bot.baseY, bot.z, wpB[0], wpB[1], wpB[2]) &&
               !(fires.length && fireOnSeg(bot.baseX, bot.baseY, wpB[0], wpB[1], bot.z) && !fireOnSeg(bot.baseX, bot.baseY, wpA[0], wpA[1], bot.z)))) bot.pathIdx++;
