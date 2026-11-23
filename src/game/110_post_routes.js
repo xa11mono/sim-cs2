@@ -285,7 +285,7 @@ function taskAlive(b){ var T = b._task; return !!T && T.round === roundNum && (t
 // можно ли сейчас поставить задачу tag (то же решение, что примет setPost) — для механик, которые решают, затевать ли своё
 function taskCanSet(b, tag){
   var D = b._detour;
-  if(D && (D.round !== roundNum || tick >= D.until || !b.alive)) D = b._detour = null;
+  if(D && (D.round !== roundNum || tick >= D.until || !b.alive || detourDone(b, D))) D = b._detour = null;
   if(D){ if(taskTagB(tag) === D.tb) return true;   // (v518a) отклонение уточняет свою точку
     if(taskLevel(tag) <= D.lv) return false; }      // главная задача ждёт конца отклонения (не перебивает его каждый тик)
   var T = b._task; if(!taskAlive(b)) return true;
@@ -314,7 +314,7 @@ function taskSlackSec(b){
 // можно ли отклониться (cost — сколько секунд отнимет отклонение от главной задачи)
 function detourOk(b, kind, cost){
   if(!b.alive || b.planting || b.defusing) return false;
-  if(b._detour && b._detour.round === roundNum && tick < b._detour.until) return false;   // одно отклонение за раз
+  if(b._detour && b._detour.round === roundNum && tick < b._detour.until && !detourDone(b, b._detour)) return false;   // одно отклонение за раз
   var lv = taskAlive(b) ? b._task.lv : 1;
   // (v560, В101) несёт бомбу на точку планта (ещё не ставит), по нему стреляют — шаг за укрытие задача терпит (время — taskSlackSec ниже)
   var plantGo = kind === "hurt" && taskAlive(b) && taskProp(b._task.tag, "plantSpot");
@@ -340,8 +340,10 @@ function taskCanTry(b, tag){ if(taskCanSet(b, tag)) return true; var dk = taskDe
 // начать отклонение: задача tag на sec секунд, главная задача (её уровень) ждёт
 function detourStart(b, kind, tag, sec){
   var lv = taskAlive(b) ? b._task.lv : 1;
-  b._detour = {kind:kind, tb:taskTagB(tag), lv:Math.max(lv, taskLevel(tag)), until: tick + Math.round(sec*TICK_HZ), round:roundNum};
+  b._detour = {kind:kind, tb:taskTagB(tag), lv:Math.max(lv, taskLevel(tag)), until: tick + Math.round(sec*TICK_HZ), round:roundNum, t0:tick};
 }
+// (22.11, аудит 024) отклонение кончилось само: его задача больше не жива (механика не подтверждает — TASK_STALE) или у бота уже другая задача
+function detourDone(b, D){ return tick - (D.t0 || 0) > 2 && !(taskAlive(b) && b._task.tb === D.tb); }
 // механика держит свою текущую задачу (пост не меняется — подтвердить, что затея ещё идёт)
 function postKeep(b){ if(b.post && b._task && b._task.tag === b.post.tag) b._task.t = tick; }
 var POST_DWELL = 96;   // (v375) 1,5 с — проектное число
@@ -392,7 +394,12 @@ function setPostDo(b, pt, look, hold, tag, spreadIdx){
   if(lv === 1 && !/^after:/.test(String(tag))){ var AF = afterTaskPick(b, pt); if(AF) return setPost(b, AF.pt, AF.look, true, "after:hold"); }
   if(!taskCanSet(b, tag)){ var dk = taskDetourKind(b, tag);   // (v547) задача фазы — не отказ, а отклонение, если она терпит это время
     if(!dk || !pt || !detourOk(b, dk, pathLenTo(b, pt.x, pt.y)/SPEED)) return false;
-    detourStart(b, dk, tag, DETOUR_MAX[dk]); }
+    // (22.11, аудит 024) было: отклонение длилось DETOUR_MAX с, потом главная задача возвращала бота на свою точку, даже если угроза осталась.
+    // Стало: помочь / отойти раненым / выйти на врага держится, пока его механика его подтверждает (не подтверждает — кончается через TASK_STALE,
+    // и главная задача пересматривает место); граница — запас времени главной задачи (taskSlackSec: часы бомбы — ресурс), без него — до конца раунда.
+    // Подбор — как было (DETOUR_MAX — цена крюка, а не возврат). DETOUR_MAX остаётся и пределом «далеко ли идти» (detourOk)
+    var dSec = dk === "pickup" ? DETOUR_MAX[dk] : Math.max(1, Math.min(taskSlackSec(b) - CONTACT_HOLD, ROUND_TIME_SEC + BOMB_TICKS/TICK_HZ));
+    detourStart(b, dk, tag, dSec); }
   var tagB = taskTagB(tag);
   var psn = (hold && pt) ? proSnap(b, pt, look, tag) : null;
   // (v520, отметки владельца 09.11 м200 р1/р3: мидер у Window и NiKo у Hole — точку уводило к месту про, откуда не видно того, что держит пост:

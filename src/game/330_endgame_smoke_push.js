@@ -38,6 +38,10 @@ function egCutPoint(b, lead, kp){
   return best ? walk({x: best.x, y: best.y}) : null;
 }
 var EG_BOMB_SITE_R = 700;   // (v555) проектное число: ед. — носитель, замеченный ближе к центру сайта, идёт ставить туда
+// (22.11, аудит 025: арбитр отказал «охоте» из-за «ротации» 2447 раз за 8 матчей — два командных решения CT спорили каждый тик) идёт ли охота CT
+// на последних — то же условие, что ниже в endgameBrain (бомба не стоит, T ≤ 2, CT больше, не сейв); ротация (340) в это время не назначается
+function ctHuntOn(){ if(roundState !== "live" || (bomb && bomb.state === "planted") || (teamTac.CT && teamTac.CT.saving)) return false;
+  var nT = aliveCount("T"), nC = aliveCount("CT"); return nT > 0 && nT <= 2 && nC > nT; }
 function endgameBrain(){
   // (v146) после планта охоты нет: у T — пост-плант, у CT — ретейк/сейв
   if(bomb && bomb.state === "planted") bots.forEach(function(o){ if(o.alive && o.post && o.post.tag === "endhunt"){ o._egC = null; clearPost(o); } });
