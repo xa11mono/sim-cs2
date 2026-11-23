@@ -765,8 +765,18 @@ function tBrain(){
     // бежит на сайт рядом с ним, а стоит у входа с прицелом туда же: убьют
     // энтри — стрелок уже виден ей и она сразу разменивает
     var entryB = ts.filter(function(b){ return b.tRole === "entry"; })[0];
-    if(!rush && entryB && !entryB.atPost && since < 5*TICK_HZ){
-      rest.filter(function(b){ return b.tRole === "support" && !(b._stageInfo && b._stageInfo.round === roundNum && Math.hypot(b._stageInfo.from.x-g.tStage.x, b._stageInfo.from.y-g.tStage.y) > 250); }).forEach(function(b){ setPost(b, g.tEntry, g.anchor, true, "trade"+tt.site, 1); rest = rest.filter(function(o){ return o !== b; }); });
+    // (22.11, аудит 022, владелец: «No Dead Teammate Dependency — поддержка не должна начинаться только после смерти энтри») было: первые 5 с выхода и
+    // только роль support. Стало — по ситуации: энтри прошёл вход на сайт (tEntry) и ещё идёт к своему первому углу — один на размен стоит у входа
+    // с прицелом туда, куда идёт энтри (угол опорника); кто — support, нет его — ближайший к энтри по пути из заходящих (не лёркер, не носитель).
+    // Энтри дошёл до угла или погиб — подготовка кончилась (дальше — размен по смерти, 190)
+    var entryIn = !rush && entryB && entryB.alive && !entryB.atPost && Math.hypot(entryB.x-site.x, entryB.y-site.y) < Math.hypot(g.tEntry.x-site.x, g.tEntry.y-site.y) + 50;
+    if(entryIn){
+      var dE0 = Math.hypot(g.tEntry.x-site.x, g.tEntry.y-site.y);   // кто уже на сайте впереди входа — назад к входу не зовётся
+      var supC = rest.filter(function(b){ return b !== entryB && b.tRole !== "lurker" && b !== carrier && !b.planting && !b._sawEnemy && Math.hypot(b.x-site.x, b.y-site.y) > dE0 - 50 &&
+        !(b._stageInfo && b._stageInfo.round === roundNum && Math.hypot(b._stageInfo.from.x-g.tStage.x, b._stageInfo.from.y-g.tStage.y) > 250); });
+      var sup = supC.filter(function(b){ return b.tRole === "support"; })[0] ||
+        supC.map(function(b){ return {b: b, L: pathLenTo(b, entryB.x, entryB.y)}; }).sort(function(a, c){ return a.L - c.L; }).map(function(x){ return x.b; })[0];
+      if(sup && setPost(sup, g.tEntry, g.anchor, true, "trade"+tt.site, 1)) rest = rest.filter(function(o){ return o !== sup; });
     }
     // занять сайт: энтри, поддержка и IGL — каждый на свою названную позицию
     // (Back Site, Triple Box, 90, Second Lane…), ближайшую к тому, откуда он зашёл
