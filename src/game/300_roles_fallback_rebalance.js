@@ -169,7 +169,7 @@ function infoFallbackTick(){
     var myMate = mateD(b);
     var sp = coverPick(cand.filter(function(q){ var zq = bzOf(q.x, q.y); return zq >= 0 && ED[zq] >= ED[zb] + FB.gainED &&
       mateD(q) < myMate && beliefCount("CT", [zq]) < 0.5; }), coverZ(b), coverThreats(b, th ? [th] : []));   // (18.11) общий выбор укрытия (470)
-    if(!sp && mates.length){ var nm = mates.slice().sort(function(a, c){ return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(c.x-b.x, c.y-b.y); })[0];
+    if(!sp && mates.length){ var nm = mates.slice().sort(byPathCmp(b))[0];
       var nz = bzOf(nm.x, nm.y); if(!(nz >= 0 && beliefCount("CT", [nz]) >= 0.5)) sp = walk({x: nm.x, y: nm.y}); }
     if(!sp) return;
     b._fbRound = roundNum;

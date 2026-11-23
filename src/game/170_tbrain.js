@@ -221,7 +221,7 @@ function tBrain(){
       tt.midTaken = tick;
       var tsM = bots.filter(function(b){ return b.team === "T" && b.alive && b.tRole !== "lurker" && !(bomb.state === "carried" && bomb.carrier === b); });
       var mp = zonePoint(MT.mid) || GEO.ctMid;
-      tsM.sort(function(a, b2){ return Math.hypot(a.x-mp.x, a.y-mp.y) - Math.hypot(b2.x-mp.x, b2.y-mp.y); });
+      tsM.sort(byPathCmp(mp));
       var fl2 = tsM.slice(0, 2);
       fl2.forEach(function(b){ b._midFlank = {round:roundNum, site:tt.site}; b._route = null; b._routeDone = null;
         startRoute(b, (MT.route && MT.route[tt.site]) || MT.route, "midct"+roundNum); });   // (аудит 021) маршрут по сайту (Mirage: к A — Connector, к B — Catwalk)
@@ -344,7 +344,7 @@ function tBrain(){
       var FC = tt.fetchCover;
       if(!FC || FC.round !== roundNum || FC.fid !== fetcher.id || FC.bx !== bomb.x || FC.by !== bomb.y){
         var cands = ts.filter(function(o){ return o !== fetcher && o.alive && o.tRole !== "lurker" && !o.planting && Math.hypot(o.x-fetcher.x, o.y-fetcher.y) < 500; })
-          .sort(function(a, c){ return Math.hypot(a.x-fetcher.x, a.y-fetcher.y) - Math.hypot(c.x-fetcher.x, c.y-fetcher.y); });
+          .sort(byPathCmp(fetcher));
         var lnF = Math.hypot(fetcher.x-bomb.x, fetcher.y-bomb.y) || 1, backF = Math.min(150, lnF*0.6);
         FC = tt.fetchCover = {round: roundNum, fid: fetcher.id, bx: bomb.x, by: bomb.y, id: cands[0] ? cands[0].id : null,
           pt: walk({x: bomb.x + (fetcher.x-bomb.x)/lnF*backF, y: bomb.y + (fetcher.y-bomb.y)/lnF*backF})};
@@ -573,7 +573,7 @@ function tBrain(){
             // бомба не лежит у нашего сайта и время есть; иначе — по плану
             var hereN = siteAssess("T", tt.site).near, fkN = siteAssess("T", fk).near;
             if(hereN >= 2 && fkN <= 1 && secLeft > 35 && !(bomb.state === "dropped" && Math.hypot(bomb.x-SITES[tt.site].x, bomb.y-SITES[tt.site].y) < BOMB_HERE_R)){
-              var trvF = Math.hypot(SITES[fk].x - SITES[tt.site].x, SITES[fk].y - SITES[tt.site].y)*1.2/SPEED;
+              var trvF = polyLen(pathPts(SITES[tt.site].x, SITES[tt.site].y, SITES[fk].x, SITES[fk].y))/SPEED;   // (аудит 037) по пути, было — прямая × 1,2
               tSetSite(tt, fk); tt.phase = "setup"; tt.execTick = tick + Math.round(Math.min(trvF*0.8, 12)*TICK_HZ);
               logEvent("IGL: на "+fk+" не купились, но там один, а у нас их "+hereN+" — фейк становится выходом на "+fk);
               voiceLog("T", "fakereal", "IGL", "на "+fk+" один и не уходит, у нас их "+hereN+" — заходим на "+fk);
@@ -699,7 +699,7 @@ function tBrain(){
       var esc = BE ? cm.filter(function(o){ return o.id === BE.id && !o.planting; })[0] : null;
       if(!esc && !cm.some(function(o){ return ready(o) && nearP(o.x, o.y, o.z, carrier.x, carrier.y, carrier.z, TRADE_R); }) && cLeft >= cWalk){
         esc = cm.filter(function(o){ return !o._sawEnemy && !o.planting && !o.nadeTask && !tradeGoing(o) && !(tick < taskKeepUntil(o, "repos")) && Math.hypot(o.x-ppt.x, o.y-ppt.y) > 350; })
-          .sort(function(a, c){ return Math.hypot(a.x-carrier.x, a.y-carrier.y) - Math.hypot(c.x-carrier.x, c.y-carrier.y); })[0] || null;
+          .sort(byPathCmp(carrier))[0] || null;
         // (v342, отметка владельца: magixx с бомбой ждал у B «сопровождение» с A — через всю карту) сопровождающий — не дальше
         // ESC_MAX_SEC бега до носителя; иначе носитель идёт ставить сам
         if(esc && pathLenTo(esc, carrier.x, carrier.y)/SPEED > ESC_MAX_SEC) esc = null;
