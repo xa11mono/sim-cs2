@@ -11,9 +11,25 @@
 // Камера: цель и приближение — из view (обсервер ведёт её и в 3D), поворот и наклон — свои (D3.yaw / D3.pitch).
 // Цвета — токены :root (--v3-*, DESIGN.md «3D-вид»).
 var D3_FP_AIM = 0.26, D3_FP_PRATE = 87*Math.PI/180, D3_FP_PEASE = 6;   // от первого лица: на врага — если смотрит в ± 15°; наклон ≤ 87°/с (p99 про); плавность 6/с — проектное
+// (v589, владелец 24.11: «повторить полностью движение камеры, как будто кто-то играет и двигает мышкой — без рывков и без притягивания,
+// плавное, но одновременно резкое») поворот от первого лица ведётся «рукой», а не подтягиванием к цели: у поворота есть скорость и
+// ускорение кисти, мёртвая зона 0,15° (мышь не дёргается на микрошумах), скорость растёт к пределу и гасится на подходе, перелёта нет.
+// Шаг — по времени КАДРА (не по тикам), поэтому на стыке тиков камера не прыгает. Числа — проектные (кисть по демкам: пик 1500°/с, 0,1 с до пика)
+var D3_MOUSE = {vmax: 900*Math.PI/180, acc: 5200*Math.PI/180, dead: 0.15*Math.PI/180};
+function d3Mouse(cur, vel, tgt, dt, vmax, acc){
+  var d = Math.atan2(Math.sin(tgt - cur), Math.cos(tgt - cur));
+  if(Math.abs(d) < D3_MOUSE.dead && Math.abs(vel) < D3_MOUSE.dead*2){ return [cur + vel*dt*0.4, vel*0.4]; }   // довороты кончились — рука стоит
+  var want = (d < 0 ? -1 : 1) * Math.min(vmax, Math.sqrt(2*acc*Math.abs(d)));   // хотим такую скорость, чтобы успеть погасить на подходе
+  var dv = want - vel, step = (dv < 0 ? -1 : 1) * Math.min(Math.abs(dv), acc*dt);
+  vel = Math.max(-vmax, Math.min(vmax, vel + step));
+  var np = cur + vel*dt;
+  if((d > 0 && np > tgt) || (d < 0 && np < tgt)){ np = tgt; vel = 0; }   // не перелетаем цель
+  return [np, vel];
+}
 var D3_TR_SHOT = 58, D3_TR_HIT = 50;   // ед. игры: трассер — от оружия у глаз (глаза 64), в грудь цели (проектные)
 var D3 = {on: false, xray: false, sims: true, corpse: {}, mode: "view", tgt: null, nadeLast: null, style: 0, cam: "view", hist: {}, fpId: null, noTags: false, gl: null, built: false, failed: null, yaw: 0, pitch: 0.95, yawT: 0, pitchT: 0.95, top: false, lock: false,
           tz: null, drag: null, tagEls: {}, nadeZ: [], smZ: new WeakMap(), trZ: new WeakMap()};
+try{ window.__d3cam = function(){ return D3.fpP ? {y: D3.fpP.y, yv: D3.fpP.yv, p: D3.fpP.p, pv: D3.fpP.pv, id: D3.fpP.id, tgt: D3.fpTgt || null} : null; }; window.__d3corpse = function(){ var o = {}; for(var k in D3.corpse){ var c = D3.corpse[k]; o[k] = {x: Math.round(c.x*10)/10, z: Math.round(c.zz*10)/10, y: Math.round(c.y*10)/10, landed: !!c.landed, th: Math.round(c.th*100)/100, v: Math.round(Math.hypot(c.v[0], c.v[2])*10)/10}; } return o; }; window.__d3set = function(k, v){ D3[k] = v; }; window.__d3get = function(){ return {cam: D3.cam, mode: D3.mode, fpId: D3.fpId}; }; }catch(e){}
 var D3_KZ = 0.4;               // ед. игры → px радара (высота)
 var D3_CUT = 150;              // проектное число: выше этого над полом геометрия не рисуется (ящик 64, два ящика 128 ед.)
 var D3_FOV = 38 * Math.PI/180;
@@ -113,7 +129,12 @@ function d3FloorBlocks(M){
       for(var dj = -1; dj <= 1; dj++) for(var di = -1; di <= 1; di++){ var x = bi+di, y = bj+dj; if(x < 0 || y < 0 || x >= BN || y >= BN) continue;
         var k = y*BN + x, A = L[k] || (L[k] = []); var dup = false; for(var t = 0; t < A.length; t++) if(Math.abs(A[t] - z) < 6){ dup = true; break; }
         if(!dup) A.push(z); } } }
-  return (D3_FB = {BS: BS, BN: BN, L: L});
+  // (v589) маска «рядом с проходимым» (радиус 2 блока = 8 px): стена или ящик, у которой все вершины чуть за краем навмеша,
+  // раньше выпадала целиком и силуэт рвался (отметка владельца: «оборвана геометрия, дырки»). Далеко от игры — по-прежнему не берём
+  var N = new Uint8Array(BN*BN);
+  for(var b2 = 0; b2 < BN*BN; b2++){ if(!L[b2]) continue; var bi2 = b2 % BN, bj2 = (b2 / BN) | 0;
+    for(var dj2 = -2; dj2 <= 2; dj2++) for(var di2 = -2; di2 <= 2; di2++){ var x2 = bi2+di2, y2 = bj2+dj2; if(x2 < 0 || y2 < 0 || x2 >= BN || y2 >= BN) continue; N[y2*BN + x2] = 1; } }
+  return (D3_FB = {BS: BS, BN: BN, L: L, N: N});
 }
 // пол под точкой для объектов без высоты (дым, огонь, бомба): ближайший к подсказке этаж клетки
 function d3FloorNear(x, y, zh){
@@ -329,6 +350,7 @@ function d3Build(){
   D3.capsule = d3Shape(gl, "capsule"); D3.ring = d3Shape(gl, "ring"); D3.sphere = d3Shape(gl, "sphere"); D3.disc = d3Shape(gl, "disc"); D3.box = d3Shape(gl, "box"); D3.cone = d3Shape(gl, "cone");
   D3.lines = {p: gl.createBuffer(), c: gl.createBuffer()};
   D3.built = true; D3.stat = {tri: nT, edges: Wd.ecnt/2, ms: Math.round(performance.now() - t0)};
+  try{ window.__d3scene = D3.stat; }catch(e){}
 }
 // мир: вся геометрия (треугольники и выпуклые блоки), что может попасть ниже среза; пол под ней, совпадающий с навмешем, — нет
 // (его рисует навмеш). Срез — в шейдере по таблице этажей: у каждого фрагмента пол «пешком» под ним (высший не выше фрагмента),
@@ -352,14 +374,17 @@ function d3FloorTex(gl, M){
 function d3World(gl){
   var M = m3(); if(!M) return {cnt: 0, ecnt: 0};
   var F = d3FloorBlocks(M), X0 = M.X0, Y0 = M.Y0, mats = M.mats || [], cutU = D3_CUT;
+  var ST = (window.__d3stat = {droppedNav: 0, droppedCut: 0, hiddenMat: 0, tri: 0, hull: 0, hullSkip: 0, floor: 0, area1: 0, area2: 0, area8: 0, areaBig: 0});
   var P = [], K = [], E = [], G = [], GK = [];
   var blk = function(x, y){ var i = Math.floor(x / M.cell / F.BS), j = Math.floor(y / M.cell / F.BS); return (i < 0 || j < 0 || i >= F.BN || j >= F.BN) ? null : F.L[j*F.BN + i]; };
+  var nearW = function(x, y){ var i = Math.floor(x / M.cell / F.BS), j = Math.floor(y / M.cell / F.BS); return (i < 0 || j < 0 || i >= F.BN || j >= F.BN) ? 0 : F.N[j*F.BN + i]; };
   var near = function(A, z, d){ if(A) for(var t = 0; t < A.length; t++) if(Math.abs(A[t] - z) < d) return true; return false; };
   var under = function(A, z){ var b = null; if(A) for(var t = 0; t < A.length; t++) if(A[t] <= z + 8 && (b === null || A[t] > b)) b = A[t]; return b; };
   // a, b, c — ед. игры (x, y, z); kind — 1 природный рельеф; edgeOk — рёбра искать
   var push = function(a, b, c, kind){
     var ra = m3Radar(M, a[0], a[1]), rb = m3Radar(M, b[0], b[1]), rc = m3Radar(M, c[0], c[1]);
-    var Aa = blk(ra[0], ra[1]), Ab = blk(rb[0], rb[1]), Ac = blk(rc[0], rc[1]); if(!Aa && !Ab && !Ac) return;   // вне проходимой части карты
+    var Aa = blk(ra[0], ra[1]), Ab = blk(rb[0], rb[1]), Ac = blk(rc[0], rc[1]);
+    if(!Aa && !Ab && !Ac && !nearW(ra[0], ra[1]) && !nearW(rb[0], rb[1]) && !nearW(rc[0], rc[1])){ ST.droppedNav++; return; }   // далеко от проходимой части
     var zmin = Math.min(a[2], b[2], c[2]), zmax = Math.max(a[2], b[2], c[2]);
     var ux = b[0]-a[0], uy = b[1]-a[1], uz = b[2]-a[2], vx = c[0]-a[0], vy = c[1]-a[1], vz = c[2]-a[2];
     var nx = uy*vz - uz*vy, ny = uz*vx - ux*vz, nz = ux*vy - uy*vx, l = Math.hypot(nx, ny, nz); if(l < 1e-6) return;
@@ -368,17 +393,20 @@ function d3World(gl){
       var cc = m3Cell(M, (ra[0] + rb[0] + rc[0])/3, (ra[1] + rb[1] + rc[1])/3);
       if(cc >= 0){ for(var fq = M.floors.st[cc]; fq < M.floors.st[cc+1]; fq++){ var dz = M.floors.z[fq] - zmax; if(dz > 8 && dz < 110) return; } }
       G.push(ra[0], a[2]*D3_KZ, ra[1], rb[0], b[2]*D3_KZ, rb[1], rc[0], c[2]*D3_KZ, rc[1]); GK.push(2, 2, 2); return; }
-    var r0 = under(Aa || Ab || Ac, zmin); if(r0 !== null && zmin - r0 > cutU + 8) return;   // целиком выше среза
+    var r0 = under(Aa || Ab || Ac, zmin); if(r0 !== null && zmin - r0 > cutU + 8){ ST.droppedCut++; return; }   // целиком выше среза
+    var e1x = rb[0]-ra[0], e1y = rb[1]-ra[1], e2x = rc[0]-ra[0], e2y = rc[1]-ra[1], ar2 = Math.abs(e1x*e2y - e1y*e2x);
+    if(ar2 < 0.5) ST.area1++; else if(ar2 < 2) ST.area2++; else if(ar2 < 8) ST.area8++; else ST.areaBig++;
     P.push(ra[0], a[2]*D3_KZ, ra[1], rb[0], b[2]*D3_KZ, rb[1], rc[0], c[2]*D3_KZ, rc[1]); K.push(kind, kind, kind);
   };
-  var T = M.tri, tf = M.triFlag, tm = M.triMat, nt = tf.length;
+  var T = M.tri, tf = M.triFlag, tm = M.triMat, nt = tf.length; ST.tri = nt;
   for(var k = 0; k < nt; k++){ if(!(tf[k] & 1)) continue; var o = k*9;
-    if(D3_HIDE[mats[tm[k]]]) continue;
+    var mn = mats[tm[k]] || ("#" + tm[k]); ST.mats = ST.mats || {}; ST.mats[mn] = (ST.mats[mn] || 0) + 1;
+    if(D3_HIDE[mats[tm[k]]]){ ST.hiddenMat++; continue; }
     push([T[o], T[o+1], T[o+2]], [T[o+3], T[o+4], T[o+5]], [T[o+6], T[o+7], T[o+8]], D3_SOFT[mats[tm[k]]] ? 1 : 0); }
   // выпуклые блоки: вершины — пересечения троек плоскостей внутри блока, грань — вершины на её плоскости по кругу (наружу)
   var hn = M.hullN, hp = M.hullP, ho = M.hullOff, hfl = M.hullFlag, hm = M.hullMat;
   for(var h = 0; h < hn.length; h++){
-    if(!(hfl[h] & 1) || hn[h] > 26) continue;
+    if(!(hfl[h] & 1) || hn[h] > 26){ ST.hullSkip++; continue; } ST.hull++;
     var pl = [], n = hn[h]; for(var q = 0; q < n; q++){ var b4 = (ho[h] + q)*4; pl.push([hp[b4], hp[b4+1], hp[b4+2], hp[b4+3]]); }
     var V = [];
     for(var i1 = 0; i1 < n; i1++) for(var i2 = i1+1; i2 < n; i2++) for(var i3 = i2+1; i3 < n; i3++){
@@ -418,10 +446,13 @@ function d3World(gl){
       var ka = Math.round(P[ia]*8) + "," + Math.round(P[ia+1]*8) + "," + Math.round(P[ia+2]*8), kb = Math.round(P[ib]*8) + "," + Math.round(P[ib+1]*8) + "," + Math.round(P[ib+2]*8);
       var kk = ka < kb ? ka + "|" + kb : kb + "|" + ka, r = Em.get(kk);
       if(!r) Em.set(kk, {a: ia, b: ib, t: ti, c: 1, crease: false});
-      else { r.c++; if(Math.abs(NN[r.t*3]*NN[ti*3] + NN[r.t*3+1]*NN[ti*3+1] + NN[r.t*3+2]*NN[ti*3+2]) < 0.8) r.crease = true; }
+      else { r.c++; if(Math.abs(NN[r.t*3]*NN[ti*3] + NN[r.t*3+1]*NN[ti*3+1] + NN[r.t*3+2]*NN[ti*3+2]) < 0.55) r.crease = true; }   // (v589, владелец: «не перегруженной») излом — от 57°, а не от 37°: мелкие складки давали 39 тыс. линий и вид «рябью»
     }
   }
-  Em.forEach(function(r){ if(r.c === 1 || r.crease) E.push(P[r.a], P[r.a+1], P[r.a+2], P[r.b], P[r.b+1], P[r.b+2]); });
+  // (v589, владелец: «чтобы выглядело не перегруженной») микро-рёбра (короче 1,5 px сцены) не рисуем: на экране это дрожащая рябь, а не форма
+  var rl2 = 1.5, rcount = 0;
+  Em.forEach(function(r){ if(r.c !== 1 && !r.crease) return; var dx = P[r.b]-P[r.a], dy = P[r.b+1]-P[r.a+1], dz = P[r.b+2]-P[r.a+2]; if(Math.hypot(dx, dy, dz) < rl2) return; rcount++; E.push(P[r.a], P[r.a+1], P[r.a+2], P[r.b], P[r.b+1], P[r.b+2]); });
+  try{ window.__d3edges = rcount; }catch(e){}
   var buf = function(a){ var b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, a, gl.STATIC_DRAW); return b; };
   return {p: buf(new Float32Array(P)), k: buf(new Float32Array(K)), cnt: P.length/3, e: buf(new Float32Array(E)), ecnt: E.length/3, ftex: d3FloorTex(gl, M),
           g: buf(new Float32Array(G)), gk: buf(new Float32Array(GK)), gcnt: G.length/3};
@@ -500,6 +531,7 @@ function d3Frame(opt){
   if(fpb){
     var al0 = Math.max(0, Math.min(1, accumulator / TICK_MS)), fx = fpb.px + (fpb.x - fpb.px)*al0, fy = fpb.py + (fpb.y - fpb.py)*al0;
     var ff = fpb._visFacing !== undefined ? fpb._visFacing : (fpb.facing || 0);
+    D3.fpTgt = ff;   // (замер: во что целится камера — чтобы отличать рывок цели от рывка сглаживания)
     var eh = (fpb.crouching ? 46 : 64)*D3_KZ, ez = (fpb.z || 0)*D3_KZ + eh;
     // (владелец 14.11: «камера резко прыгает», «взгляд — плавно, как в демках») поворот — взгляд бота из игры (_visFacing: прицел с запаздыванием,
     // 510); наклон по высоте — к голове врага, только если бот смотрит на него (± D3_FP_AIM рад), иначе — к полу впереди на высоте глаз;
@@ -517,10 +549,17 @@ function d3Frame(opt){
       var lt3 = fpb.lookTarget; ty = (d3FloorNear(lt3.x, lt3.y, fpb.z || 0) + 62)*D3_KZ; hd = Math.hypot(lt3.x - fx, lt3.y - fy); }
     else { var ax = fx + Math.cos(ff)*80, ay = fy + Math.sin(ff)*80; ty = d3FloorNear(ax, ay, fpb.z || 0)*D3_KZ + eh; hd = 80; }
     var pD = Math.atan2(ty - ez, hd), nowP = performance.now(), FP = D3.fpP;
-    if(!FP || FP.id !== fpb.id || nowP - FP.t > 500) FP = D3.fpP = {id: fpb.id, p: pD, t: nowP};
-    var dtP = Math.min(0.1, (nowP - FP.t)/1000), stP = D3_FP_PRATE*dtP, dP = (pD - FP.p)*Math.min(1, dtP*D3_FP_PEASE);
-    FP.p += Math.max(-stP, Math.min(stP, dP)); FP.t = nowP;
-    tgt = [fx + Math.cos(ff)*Math.cos(FP.p)*100, ez + Math.sin(FP.p)*100, fy + Math.sin(ff)*Math.cos(FP.p)*100];
+    if(!FP || FP.id !== fpb.id || nowP - FP.t > 500) FP = D3.fpP = {id: fpb.id, p: pD, pv: 0, y: ff, yv: 0, t: nowP};
+    var dtP = Math.min(0.1, (nowP - FP.t)/1000); FP.t = nowP;
+    // (v589) поворот и наклон — «рукой»: тот же d3Mouse, что для мыши; yaw без предела про (это поворот корпуса), наклон — не быстрее про
+    // подшаги ≤ 1/60 с: длинный кадр (просадка) не превращается в один рывок — рука ведёт так же, просто несколько шагов за кадр
+    var nSub = Math.max(1, Math.min(8, Math.ceil(dtP/0.0167))), dtS = dtP/nSub;
+    for(var si = 0; si < nSub; si++){
+      var rY = d3Mouse(FP.y, FP.yv, ff, dtS, D3_MOUSE.vmax, D3_MOUSE.acc); FP.y = rY[0]; FP.yv = rY[1];
+      var rP = d3Mouse(FP.p, FP.pv, pD, dtS, D3_FP_PRATE, D3_MOUSE.acc); FP.p = rP[0]; FP.pv = rP[1];
+    }
+    var ffC = FP.y, pcC = FP.p;
+    tgt = [fx + Math.cos(ffC)*Math.cos(pcC)*100, ez + Math.sin(pcC)*100, fy + Math.sin(ffC)*Math.cos(pcC)*100];
     eye = [fx, ez, fy];
     if(mode === "chase"){   // за спиной: сзади и чуть сверху; стена между игроком и камерой — камера ближе (не уходит в текстуры)
       var M3c = m3(), back = 70, up2 = 18;
