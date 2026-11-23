@@ -358,7 +358,9 @@ function tBrain(){
       setPost(fetcher, withCov ? {x:bomb.x, y:bomb.y} : FC.pt, withCov ? null : {x:bomb.x, y:bomb.y}, false, "fetch");
     }
   }
-  var isMF = function(b){ return (b._midFlank && b._midFlank.round === roundNum) || (tt.phase === "setup" && b._shift && b._shift.round === roundNum); };
+  // (23.11, разбор владельца м1 р5, п.7: после планта игрок 2 «без задачи», игрок 1 шёл по маршруту через мид — оба с пометкой захода через мид)
+  // заход через мид / смещение — до планта (как зайти на сайт); бомба стоит — они на пост-планте вместе со всеми (было: исключены из раздачи мест)
+  var isMF = function(b){ if(bomb && bomb.state === "planted") return false; return (b._midFlank && b._midFlank.round === roundNum) || (tt.phase === "setup" && b._shift && b._shift.round === roundNum); };
   if(tt.phase === "setup") ts.forEach(function(b){ if(b._shift && b._shift.round === roundNum && !b.planting && !(tt.fetchId === b.id)) setPost(b, b._shift.pt, b._shift.look, true, "shift"); });
   // перегруппировка IGL: лёркер больше не лёркер — идёт с основной группой как поддержка
   // (В142, владелец 13.11 «да»: лёрк — решение раунда, а не роль на каждый раунд) лёрк одной меркой (tools/shadow/lurk_cmp.py): у про — 38 %

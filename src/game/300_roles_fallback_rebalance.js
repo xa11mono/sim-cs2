@@ -21,7 +21,7 @@ function nadeRoleCost(b){
   var r = (PROLE_NADES[b.team]||{})[pRole(b)]; if(r == null) return 0;
   return (2.4 - r) * BAL.utilRoleK;
 }
-var FB = { enemies:2, window:3, deathR:900, back:320, rMax:220, gainED:150, lock:10 };
+var FB = { enemies:2, window:3, deathR:900, mateR:350, back:320, rMax:220, gainED:150, lock:10 };   // deathR — и «враг рядом» (по пути), mateR — «свой рядом»
 function tFallbackTick(){
   if(tick % 8 || roundState !== "live" || (bomb && bomb.state === "planted")) return;
   var tt = teamTac.T; if(!tt || tt.phase !== "setup") return;
@@ -35,8 +35,10 @@ function tFallbackTick(){
     var zb = bzOf(b.x, b.y); if(zb < 0) return;
     var L = beliefLast.T || {}, ids = 0, cx = 0, cy = 0;
     for(var eid in L){ var lo = L[eid]; if(tick - lo.tick > FB.window*TICK_HZ) continue; var eb = bots.filter(function(o){ return o.id === eid; })[0]; if(!eb || !eb.alive) continue;
-      if(Math.hypot(lo.x-b.x, lo.y-b.y) > 900) continue; ids++; cx += lo.x; cy += lo.y; }
-    var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === "T" && Math.hypot(o.x-b.x, o.y-b.y) <= 350; }).length;
+      // (23.11, разбор владельца м1 р5, игрок 2: шёл по Catwalk, «их 2 — отхожу» — CT на Van и на A Site: 767 и 619 по прямой, 960 и 971 по пути)
+      // «рядом» — по пути (nearP), как смерть своего рядом (intelDeathsNear); было — по прямой сквозь стены
+      if(!nearP(lo.x, lo.y, lo.z, b.x, b.y, b.z, FB.deathR)) continue; ids++; cx += lo.x; cy += lo.y; }
+    var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === "T" && nearP(o.x, o.y, o.z, b.x, b.y, b.z, FB.mateR); }).length;
     var died = intelDeathsNear("T", b.x, b.y, FB.deathR, FB.window*TICK_HZ) > 0;
     // повод: их больше, чем нас тут; погиб свой рядом без размена. (v518a, пак 09.11 п.6) «ранен» — не здесь: одна реакция на урон в любом
     // состоянии — hurtReactTick (350); было три частных правила (тут только фаза setup до планта, у CT — только впереди сайтов, 250 — только на посту)
@@ -149,7 +151,7 @@ function infoFallbackTick(){
     // повод откатиться: 2+ разных врага рядом за 3с, погиб свой рядом, или ранен
     var L = beliefLast.CT || {}, ids = 0, cx = 0, cy = 0;
     for(var eid in L){ var lo = L[eid]; if(tick - lo.tick > FB.window*TICK_HZ) continue; var eb = bots.filter(function(o){ return o.id === eid; })[0]; if(!eb || !eb.alive) continue;
-      if(Math.hypot(lo.x-b.x, lo.y-b.y) > 900) continue; ids++; cx += lo.x; cy += lo.y; }
+      if(!nearP(lo.x, lo.y, lo.z, b.x, b.y, b.z, FB.deathR)) continue; ids++; cx += lo.x; cy += lo.y; }   // (23.11) враг рядом — по пути, как смерть своего ниже
     // (v291, И31, владелец 14.10: раунд 1, тик 2858 — игрок 6 на Mid «минус рядом» от смерти на Back Site: 926 px по прямой,
     // 1150 пешком, другой конец карты) смерть рядом — по длине пути, а не по прямой
     var died = teamIntel.CT.sig.some(function(sg){ return sg.type === "died" && tick - sg.tick <= FB.window*TICK_HZ && Math.hypot(sg.x-b.x, sg.y-b.y) < FB.deathR &&

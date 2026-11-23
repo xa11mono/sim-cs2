@@ -391,6 +391,16 @@ function setPostDo(b, pt, look, hold, tag, spreadIdx){
     if(lv >= TASK_ROUTE_CANCEL || (bomb && bomb.state === "planted" && b.team === "CT")) b._route = null;
     else if(lv === 1 && R.idx < R.pts.length){
       R.want = [pt, look, hold, tag, spreadIdx];
+      // (23.11, разбор владельца м1 р6, игрок 1: маршрут тактики House → T Apps → Stove, место роли — House: прошёл свою точку до Stove и пошёл
+      // назад) маршрут — путь к месту роли: шаги после того, что ближе всех по пути к месту, не нужны; бот уже ближе к месту, чем любой
+      // оставшийся шаг, — маршрут кончен. Пересчёт — когда меняется место (раз на место, не каждый тик)
+      var wk = pt ? Math.round(pt.x) + "," + Math.round(pt.y) : "";
+      if(pt && R.cutFor !== wk){ R.cutFor = wk;
+        var dW = function(q, z){ return polyLen(pathPts(q.x, q.y, pt.x, pt.y, z)); }, best = dW(b, b.z), bk = R.idx - 1;
+        for(var ri = R.idx; ri < R.pts.length; ri++){ var dr = dW(R.pts[ri]); if(dr < best){ best = dr; bk = ri; } }
+        if(bk < R.pts.length - 1){ R.zones = R.zones.slice(0, bk + 1); R.pts = R.pts.slice(0, bk + 1); R.names = R.names.slice(0, bk + 1); }
+        if(R.idx >= R.pts.length){ b._routeDone = R.key + "|" + roundNum; b._route = null; if(b._task && b._task.lv === 2) b._task = null; return setPost(b, pt, look, hold, tag, spreadIdx); }
+      }
       var cp = R.pts[R.idx], nx = R.pts[R.idx+1] || pt;
       return setPost(b, cp, nx, true, "route:"+R.names[Math.min(R.idx, R.names.length-1)]);
     }
