@@ -341,14 +341,23 @@ function mkStart(){
   if(MK.busy) return;
   if(typeof WARM !== "undefined" && WARM.on){ mkToast("Разминка — отметки только в матче"); return; }   // (v521) снимок разминки не открывается как матч
   if(MK.cur){ mkEl("mkText").focus(); return; }
+  // (23.11, владелец: «отметка из повтора клатча») в повторе — момент повтора (матч, раунд, тик записи), а не живая игра: повтор останавливается;
+  // снимок — начала того раунда (первый снимок раунда страница хранит), отметка пересчитывается до этого тика при открытии
+  var RPm = null;
+  if(typeof RP !== "undefined" && RP.on && RP.P && RP.P.R){ RPm = {match: RP.P.R.m, round: RP.P.R.round, tick: Math.round(RP.P.rt)}; if(typeof rpStop === "function") rpStop(); }
   clockPause(true); mkPauseLabel();
   MK.cur = { snap: mkSnapshot(), state: mkState(), match: matchNum, tick: tick, round: roundNum, roundTime: Math.round((simTime - roundStartTime)*10)/10,
              fp: mkFp(), bot: null, bots: [], wantPt: null, mode: "moment", text: "", want: "", category: "Взгляд", priority: "normal", pre: mkPreSnap() };
+  if(RPm){ var fpR = mkFp(), cpR = null; MK.cps.forEach(function(c){ if(c.fp === fpR && c.match === RPm.match && c.tick <= RPm.tick && (!cpR || c.tick > cpR.tick)) cpR = c; });
+    MK.cur.match = RPm.match; MK.cur.round = RPm.round; MK.cur.tick = RPm.tick; MK.cur.snap = null; MK.cur.fromReplay = true;
+    MK.cur.pre = cpR ? {tick: cpR.tick, data: cpR.data} : null; MK.cur.roundTime = cpR ? null : null; }
   MK.cur.range = {hi: tick, lo: mkRangeLo(tick), to: tick}; MK.cur.range.from = Math.max(MK.cur.range.lo, tick - 10*TICK_HZ);
+  mkEl("mkModeR").disabled = !!RPm; if(RPm) mkEl("mkModeM").checked = true;
   mkEl("mkModeM").checked = true; mkEl("mkPt").textContent = "не поставлена"; MK.pickPt = false; mkRangeUi();
   MK.cur.screenP = mkScreen();   // (v385) весь экран — до того, как открылась панель отметки
   MK.pick = true;
-  mkEl("mkMoment").textContent = "Матч " + MK.cur.match + " · раунд " + MK.cur.round + " · " + mkClock(MK.cur.roundTime) + " раунда · тик " + MK.cur.tick;
+  mkEl("mkMoment").textContent = RPm ? "Из повтора: матч " + MK.cur.match + " · раунд " + MK.cur.round + " · тик " + MK.cur.tick + (MK.cur.pre ? "" : " (снимка этого раунда нет — открыть точно не получится)")
+    : "Матч " + MK.cur.match + " · раунд " + MK.cur.round + " · " + mkClock(MK.cur.roundTime) + " раунда · тик " + MK.cur.tick;
   mkEl("mkText").value = ""; mkEl("mkWant").value = ""; mkEl("mkBot").textContent = "не выбран — кликни по ботам на радаре (необязательно, можно несколько)";
   mkEl("mkCat").value = "Взгляд"; mkEl("mkPrioN").checked = true;
   mkEl("mkErr").textContent = "";
@@ -372,8 +381,9 @@ async function mkSubmit(){
     await new Promise(function(ok){ if(tick >= R.to) mkGoTo(m.match, R.from, function(){ mkGoTo(m.match, R.to, function(){ ok(); }); }); else mkGoTo(m.match, R.to, function(){ ok(); }); });
     m.journal = mkJrText(R.from, R.to, null);
     m.snap = mkSnapshot(); m.state = mkState(); m.tick = tick; m.roundTime = Math.round((simTime - roundStartTime)*10)/10; m.screenP = mkScreen();
-  } else m.journal = mkJrText(m.tick - MK_PRE_SEC*TICK_HZ, m.tick, null);
-  m.frameUrl = mkFrame(m.bots, m.wantPt);
+  } else m.journal = m.fromReplay ? MK.jr.filter(function(e){ return e.m === m.match && e.k >= m.tick - MK_PRE_SEC*TICK_HZ && e.k <= m.tick; }).map(function(e){ return Math.round((e.k - m.tick)/TICK_HZ*10)/10 + " с · " + (e.b ? e.b + " (" + pnum(e.b) + ")" : "—") + " · " + e.e; })
+    : mkJrText(m.tick - MK_PRE_SEC*TICK_HZ, m.tick, null);
+  m.frameUrl = m.fromReplay ? null : mkFrame(m.bots, m.wantPt);
   var hi = m.range ? m.range.hi : m.tick; MK.cur = null; MK.pick = false; MK.pickPt = false; mkEl("mkPanel").style.display = "none";
   mkToast("Сохраняю отметку…");
   if(await mkSave(m, "new")) mkToast("Отметка сохранена");
@@ -382,7 +392,7 @@ async function mkSubmit(){
 async function mkSave(m, status){
   var doc = { match: m.match, tick: m.tick, round: m.round, roundTime: m.roundTime, category: m.category, priority: m.priority,
     text: m.text, want: m.want || "", bot: m.bot || null, bots: m.bots || [], wantPt: m.wantPt || null, mode: m.mode || "moment",
-    tickFrom: m.tickFrom != null ? m.tickFrom : null, journal: m.journal || [], principle: null, status: status, version: null,
+    tickFrom: m.tickFrom != null ? m.tickFrom : null, journal: m.journal || [], fromReplay: !!m.fromReplay, principle: null, status: status, version: null,
     fp: m.fp, state: m.state, frameAsset: null, created: Date.now(), updated: Date.now() };
   if(MK.assets && m.frameUrl){ try{ var up = await MK.assets.upload(mkUrlToBlob(m.frameUrl)); doc.frameAsset = up.id; }catch(e){} }
   doc.screenAsset = null;   // (v385) весь экран
@@ -398,7 +408,7 @@ async function mkSave(m, status){
 }
 
 // ---------- список отметок ----------
-var MK_ST = {new: "новое", unparsed: "не разобрано", added: "добавлено", fixed: "исправлено", confirmed: "подтверждено"};
+var MK_ST = {new: "новое", unparsed: "не разобрано", parsed: "разобрано", added: "добавлено", fixed: "исправлено", confirmed: "подтверждено", reopened: "не исправлено — снова"};
 function mkStatusText(d){
   if(d.status === "added") return "добавлено как " + (d.principle || "?");
   if(d.status === "fixed") return "исправлено в v" + (d.version || "?") + ", проверь";
@@ -406,7 +416,7 @@ function mkStatusText(d){
 }
 function mkSorted(){
   var L = (MK.list || []).concat(MK.local || []);
-  var rank = function(d){ return d.status === "confirmed" ? 3 : (d.priority === "urgent" ? 0 : 1) + (d.status === "new" || d.status === "unparsed" ? 0 : 0.5); };
+  var rank = function(d){ return d.status === "confirmed" ? 3 : d.status === "reopened" ? -1 : (d.priority === "urgent" ? 0 : 1) + (d.status === "new" || d.status === "unparsed" ? 0 : 0.5); };
   return L.slice().sort(function(a, b){ return rank(a) - rank(b) || (b.created||0) - (a.created||0); });
 }
 function mkRenderList(){
@@ -420,18 +430,20 @@ function mkRenderList(){
       '<div class="mk-t">' + mkEsc(d.text) + '</div>' + (d.want ? '<div class="mk-q">Как должно быть: ' + mkEsc(d.want) + '</div>' : "") +
       (d.understood ? '<div class="mk-q">Понял: ' + mkEsc(d.understood) + '</div>' : "") +
       '<div class="mk-q">матч ' + d.match + ', ' + (d.mode === "range" && d.tickFrom != null ? 'тики ' + d.tickFrom + '–' + d.tick + ' (' + Math.round((d.tick - d.tickFrom)/TICK_HZ) + ' с)' : 'тик ' + d.tick) + ' · раунд ' + d.round + ', ' + mkClock(d.roundTime) + ((d.bots && d.bots.length) ? ' · ' + mkEsc(d.bots.join(", ")) : (d.bot ? ' · ' + mkEsc(d.bot) : "")) + '</div>' +
-      (d.status === "fixed" ? '<button data-ok="' + i + '">Подтверждаю</button>' : "") + '</div>';
+      (d.journal && d.journal.length ? '<div class="mk-q">журнал решений: ' + d.journal.length + ' записей</div>' : "") +
+      '<div class="mk-q">клик — открыть и пересчитать этой версией страницы' + (d.fromReplay ? ' (из повтора)' : '') + '</div>' +
+      (d.status === "fixed" ? '<button data-ok="' + i + '">Подтверждаю</button> <button data-no="' + i + '">Не исправлено</button>' : "") + '</div>';
   }).join("");
 }
 function mkJump(d){
   mkEl("mkList").style.display = "none";
-  if(!d.snapAsset){ mkToast("У этой отметки нет снимка игры (сделана до v175) — открыть точно нельзя"); return; }
+  if(!d.snapAsset && !d.preSnapAsset){ mkToast("У этой отметки нет снимка игры — открыть точно нельзя"); return; }
   if(MK.busy) return;
   MK.busy = true; clockPause(true); mkPauseLabel();
   // (15.11, замечание владельца: «кликнул отметку — тот же раунд, приходится мотать назад 10 с, чтобы пересчитался») снимок в момент
   // отметки уже несёт принятое (ошибочное) решение — новый код его не пересматривает. Есть снимок за MK_PRE_SEC до — открываем его и
   // пересчитываем до момента отметки кодом этой страницы (решения принимаются заново); нет — как раньше, снимок момента.
-  var pre = !!d.preSnapAsset && d.preTick != null && d.preTick < d.tick, goal = d.mode === "range" && d.tickFrom != null ? d.tickFrom : d.tick;   // (23.11) промежуток — с начала
+  var pre = !!d.preSnapAsset && d.preTick != null && (d.preTick < d.tick || !d.snapAsset), goal = d.mode === "range" && d.tickFrom != null ? d.tickFrom : d.tick;   // (23.11) промежуток — с начала
   fetch("/_blob/" + (pre ? d.preSnapAsset : d.snapAsset)).then(function(r){ if(!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
     .then(function(t){ mkOpenSnap(t); MK.busy = false;
       var msg = "Отметка: матч " + d.match + ", раунд " + d.round + ", " + mkClock(d.roundTime);
@@ -500,7 +512,10 @@ function mkShowCopy(t){ var a = mkEl("mkCopyBox"); a.value = t; a.style.display 
   ["mkText", "mkWant"].forEach(function(id){ mkEl(id).addEventListener("keydown", function(e){ if(e.key === "Enter" && (e.ctrlKey || e.metaKey)){ e.preventDefault(); mkSubmit(); } }); });
   mkEl("mkCopy").addEventListener("click", mkCopyAll);
   mkEl("mkItems").addEventListener("click", function(e){
-    var L = mkSorted(), ok = e.target.getAttribute && e.target.getAttribute("data-ok");
+    var L = mkSorted(), ok = e.target.getAttribute && e.target.getAttribute("data-ok"), no = e.target.getAttribute && e.target.getAttribute("data-no");
+    if(no != null){ var dn = L[+no]; e.stopPropagation();
+      if(MK.db && dn && !/^local/.test(dn.id||"")) MK.db.collection("marks").doc(dn.id).update({status: "reopened", reopenedAt: Date.now(), updated: Date.now()}).catch(function(){ mkToast("Не удалось сохранить"); });
+      return; }
     if(ok != null){ var d = L[+ok]; e.stopPropagation();
       if(MK.db && d && !/^local/.test(d.id||"")) MK.db.collection("marks").doc(d.id).update({status: "confirmed", confirmedAt: Date.now(), updated: Date.now()}).catch(function(){ mkToast("Не удалось сохранить подтверждение"); });
       return; }
