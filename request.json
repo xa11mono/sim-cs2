@@ -1,0 +1,35 @@
+{
+ "par": 8,
+ "jobs": [
+  {
+   "label": "all5b_mir",
+   "ref": "9554d8ef07a225a560e1675e80ea2134a1c2227f",
+   "map": "mirage",
+   "matches": [
+    31,
+    37,
+    41,
+    43,
+    47,
+    53,
+    59,
+    61
+   ]
+  },
+  {
+   "label": "b1b_mir",
+   "ref": "496860ed359dac127449db079ca1d8cf270a4e09",
+   "map": "mirage",
+   "matches": [
+    31,
+    37,
+    41,
+    43,
+    47,
+    53,
+    59,
+    61
+   ]
+  }
+ ]
+}
