@@ -24,7 +24,8 @@ function lookCands0(b, W){
   var hdA = moving ? lookHeading(b) : 0;
   // (v583a, Д1, владелец 17.11: «пока бежит, враг всё время смотрел на него справа — не повернулся»; м302 р2, CT2: Tetris за спиной ×0,15
   // «прикрыт», а свой рядом смотрел в другую сторону) спину прикрывает свой рядом (500 px), только если он смотрит туда (mateWatches, 260)
-  var rearCov = function(pt){ return moving && mates.some(function(o){ return Math.hypot(o.x-b.x, o.y-b.y) < 500 && mateWatches(o, pt); }); };
+  // (22.11, аудит 043, владелец: «свой на другом этаже не считается закрывающим угол») рядом — по пути (nearP) и на том же уровне (перепад ≤ прыжка)
+  var rearCov = function(pt){ return moving && mates.some(function(o){ return (o.z == null || b.z == null || Math.abs(o.z - b.z) <= JUMP_UP) && nearP(o.x, o.y, o.z, b.x, b.y, b.z, 500) && mateWatches(o, pt); }); };
   var habZ = {};
   bots.forEach(function(o){ if(!o.alive || o.team === team) return; var h = habitTop(o.id, 2); if(h){ var zh = bzOf(h.x, h.y); if(zh >= 0) habZ[zh] = 1; } });
   var Wd = ZONE_DANGER_W[BZ.ids[zb]] || {}, PW = PORTAL_W[team] || {};
@@ -357,7 +358,7 @@ function slVal(b, k){ var c = (b._lkC || []).filter(function(x){ return x.j === 
 function slNew(b, pt){ return (b._sl = {pt: pt ? {x: pt.x, y: pt.y} : null, since: tick, key: pt ? slKey(b) : null, plan: !!pt && b.lookReason === "look" && !!b._lkPick, val: pt && b._lkPick ? (b._lkPick.sc || 0) : 0, lvl: pt ? b._lookLvl : 0}); }
 // (К3) вход за спиной, откуда команда допускает врага, — для того, кто идёт последним: своих позади (в REAR_MATE_R, за линией плеч) нет.
 // REAR_MATE_R, радиус входов 400 — проектные числа
-var REAR_MATE_R = 500, REAR_EVERY = [3, 6];
+var REAR_MATE_R = 500;   // (аудит 042) REAR_EVERY (раз в 3–6 с) убран — назад по новой / выросшей угрозе
 function lookRearThreat(b){
   var hd = lookHeading(b); if(hd == null) return null;
   var behind = function(x, y){ return Math.cos(Math.atan2(y-b.y, x-b.x) - hd) < 0; };
@@ -372,7 +373,9 @@ function smoothLookFilter(b, look, urgent){
   if(!urgent && !moving && b._lkAltPt && look){
     if(b._gl && tick < b._gl.until){ look = b._gl.pt; b.lookReason = "glance"; }
     else if(tick >= (b._glNext||0)){
-      if(b._glNext) { b._gl = {pt:{x:b._lkAltPt.x, y:b._lkAltPt.y}, until: tick + SL.glDur}; look = b._gl.pt; b.lookReason = "glance"; }
+      // (22.11, аудит 041) мельком стоя — только на видимую точку (как на ходу): не видна — откуда враг выйдет на линию (appearFrom / cornerLook), нет — не смотрит
+      var ap = b._lkAltPt; if(ap && !lookVisible(b, ap)){ var av = appearFrom(b, ap) || cornerLook(b, ap); ap = av && lookVisible(b, av) ? av : null; }
+      if(b._glNext && ap) { b._gl = {pt:{x:ap.x, y:ap.y}, until: tick + SL.glDur}; look = b._gl.pt; b.lookReason = "glance"; }
       b._glNext = tick + SL.glEvery[0] + Math.floor(hashRand(tick*13 + b.id.charCodeAt(b.id.length-1)*7)*(SL.glEvery[1]-SL.glEvery[0]));
     }
   }
@@ -391,8 +394,11 @@ function smoothLookFilter(b, look, urgent){
         if(c.sc > bs){ bs = c.sc; best = c.pt; } });
       // (К3, владелец 18.11: «T должны понимать, что их могут обходить») идёт последним (своих за спиной нет) — мельком и назад, на вход сзади,
       // где команда допускает врага (threatEntrances: ожидание зон по таймингам / инфе), если он весомее найденного сбоку
-      // назад — реже, чем вбок: раз в REAR_EVERY с (случайно в диапазоне; проектные числа)
-      var rr = tick >= (b._rearNext || 0) ? lookRearThreat(b) : null; if(rr && rr.w > bs){ bs = rr.w; best = rr.pt; b._rearNext = tick + Math.round((REAR_EVERY[0] + (REAR_EVERY[1]-REAR_EVERY[0])*hashRand(tick*7 + b.id.charCodeAt(b.id.length-1)))*TICK_HZ); }
+      // (22.11, аудит 042, владелец: «назад раз в 3–6 с — не нужен таймер») назад — когда угроза за спиной новая или выросла (знание команды изменилось),
+      // а не по часам: тот же вход с тем же весом уже проверен — второй раз не оборачивается
+      var rr = lookRearThreat(b), rk = rr ? Math.round(rr.pt.x/40) + "," + Math.round(rr.pt.y/40) : null, RC = b._rearChk;
+      if(rr && RC && RC.k === rk && Math.round(rr.w*20) <= Math.round(RC.w*20)) rr = null;
+      if(rr && rr.w > bs){ bs = rr.w; best = rr.pt; b._rearChk = {k: rk, w: rr.w}; }
       // (19.11, владелец, фото 3: «почему взгляд через стенки») точка «мельком» — середина зоны за стеной: как у любого взгляда (lookFilter) — туда, откуда
       // враг выйдет на мою линию (appearFrom / cornerLook); видимой нет — мельком не смотрит
       if(best && !lookVisible(b, best)){ var bv = appearFrom(b, best) || cornerLook(b, best); best = bv && lookVisible(b, bv) ? bv : null; }

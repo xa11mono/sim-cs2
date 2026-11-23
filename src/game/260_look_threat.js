@@ -112,7 +112,7 @@ function uncheckedW(team, j){
 // смотрит прямо туда (≤ MATE_AIM от его взгляда, проектное число ≈ 25°) и линия не закрыта стеной и дымом; было — точка в поле зрения 110°
 var MATE_AIM = 0.45;
 function mateWatches(o, pt){
-  return !!o && o.alive && o.facing !== undefined && _angOff(Math.atan2(pt.y-o.y, pt.x-o.x), o.facing) <= MATE_AIM && hasLOS(o.x, o.y, pt.x, pt.y, o.z) && !smokeBlocks(o.x, o.y, pt.x, pt.y);
+  return !!o && o.alive && o.facing !== undefined && _angOff(Math.atan2(pt.y-o.y, pt.x-o.x), o.facing) <= MATE_AIM && hasLOS(o.x, o.y, pt.x, pt.y, o.z, pt.z != null ? pt.z : null) && !smokeBlocks(o.x, o.y, pt.x, pt.y);   // (аудит 043) с высотой точки, если она известна
 }
 function isRearZone(team, zb, j, b){
   // сам слышал/видел врага в этой зоне за последние 3 с — не тыл, даже если команда ещё не знает
