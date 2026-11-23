@@ -24,13 +24,23 @@ s = _head[:_hs] + _wrap_css + _head[_he:] + '<body>' + ('<style>' + _game_css + 
 s = s.replace('window.__ev=function(src){return eval(src);};', '')
 s = s.replace('/*@@WARM_AUTO@@*/', 'warmStart(1);')
 # (v349, владелец: «обновляй версию в радаре и дату») подпись версии — номер из последней записи docs/DECISIONS.md и дата сборки
-import re as _re, datetime as _dt
+import re as _re, datetime as _dt, subprocess as _sp
+# (v586, владелец 24.11: «в самом радаре в будущем меняй версию и дату на актуальные») версия — из имени ветки
+# (vNNN или vNNNa/b), а не из последней записи DECISIONS: там она отставала (страница v582 при ветке v586)
+def _branch_ver():
+    try:
+        _b = _sp.run(['git', 'rev-parse', '--abbrev-ref', 'HEAD'], cwd=os.path.join(HERE, '..'),
+                     capture_output=True, text=True, timeout=5).stdout.strip()
+    except Exception:
+        return None
+    _mm = _re.match(r'^v(\d{3})[a-z]?$', _b)
+    return int(_mm.group(1)) if _mm else None
 _dec = open(os.path.join(HERE, '..', 'docs', 'DECISIONS.md'), encoding='utf-8').read()
 _h = _re.search(r'^## .*$', _dec, _re.M)   # (В4) в заголовке записи бывает несколько версий — берём наибольшую
 _vs = [int(v) for v in _re.findall(r'\(v(\d{3})', _h.group(0) if _h else _dec)]
-_m = bool(_vs)
-if _m:
-    _lab = 'версия %s, %s' % (max(_vs), _dt.date.today().strftime('%d.%m'))
+_v = _branch_ver() or (max(_vs) if _vs else None)   # не в ветке версии (detached/main) — как было, из DECISIONS
+if _v:
+    _lab = 'версия %s, %s' % (_v, _dt.date.today().strftime('%d.%m'))
     s, _n = _re.subn(r'(id="simVersion"[^>]*>)[^<]*(</div>)', lambda mm: mm.group(1) + _lab + mm.group(2), s, count=1)
     print('  подпись:', _lab if _n else 'не найдена')
 # (v329, М46) звуки — записи из data/sounds/sounds.json (tools/map/sounds_bake.py); в sim.html не нужны

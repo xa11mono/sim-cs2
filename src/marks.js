@@ -14,44 +14,60 @@
   //      Только когда страница правда внутри панели (window.dsh.embedded): открытая отдельной вкладкой та же страница
   //      получает хранилище-пустышку в памяти, и молча терять отметки нельзя;
   //   3) "memory" — хранилища нет вовсе: отметки живут до перезагрузки, об этом говорим сразу, а не молча теряем снимки.
-  var MK_BACK = null, MK_MEM = [];
+  var MK_BACK = null, MK_MEM = {}, MK_MEM_LIST = [];
   function mkStoreKind(){
     if(MK_BACK) return MK_BACK;
     try{ localStorage.setItem(MK_KEY + "_probe", "1"); localStorage.removeItem(MK_KEY + "_probe"); return (MK_BACK = "local"); }catch(e){}
     if(typeof window !== "undefined" && window.dsh && window.dsh.embedded === true && window.storage && typeof window.storage.set === "function") return (MK_BACK = "artifact");
     return (MK_BACK = "memory");
   }
-  async function mkLoadMarks(){
+  // (v587, владелец 24.11 «не могу открыть отметки, пишет что нет снимка») один ключ на все отметки упирался в лимит ОДНОГО
+  // значения (5 МБ), и при сохранении второй отметки у первой вырезался снимок. Теперь снимки — отдельными ключами:
+  // sim_marks (список отметок без снимков, килобайты) + sim_marks|snap|<id> и sim_marks|pre|<id> (по 2 МБ, лимит значения у каждого свой).
+  function mkSnapKey(id, what){ return MK_KEY + "|" + what + "|" + id; }
+  function mkGet(key){
     var kind = mkStoreKind();
-    if(kind === "local"){
-      try{ var a = JSON.parse(localStorage.getItem(MK_KEY) || "[]"); return Array.isArray(a) ? a : []; }catch(e){ return []; }
-    }
-    if(kind === "artifact"){
-      try{ var r = await window.storage.get(MK_KEY), b = JSON.parse((r && r.value) || "[]"); return Array.isArray(b) ? b : []; }catch(e){ return []; }
-    }
-    mkToast("Хранилища нет: отметки не сохранятся после перезагрузки — открой файл страницы локально");
-    return MK_MEM.slice();
+    if(kind === "local"){ try{ return Promise.resolve(localStorage.getItem(key)); }catch(e){ return Promise.resolve(null); } }
+    if(kind === "artifact"){ return Promise.resolve(window.storage.get(key)).then(function(r){ return r && typeof r.value === "string" ? r.value : null; }, function(){ return null; }); }
+    return Promise.resolve(MK_MEM[key] != null ? MK_MEM[key] : null);
   }
-  // хранилище тесно (localStorage ~5 МБ, артефакт 5 МБ на значение): не влезло — сначала теряем «до» у самой тяжёлой отметки, потом сам снимок, потом старую отметку
-  async function mkStoreMarks(list){
-    var kind = mkStoreKind(), arr = (list || []).slice();
-    for(var guard = 0; guard < 500; guard++){
-      try{
-        if(kind === "local") localStorage.setItem(MK_KEY, JSON.stringify(arr));
-        else if(kind === "artifact") await window.storage.set(MK_KEY, JSON.stringify(arr));
-        else { MK_MEM = arr; return true; }
-        return true;
-      }
-      catch(e){
-        var big = -1, bi = -1;
-        arr.forEach(function(d, i){ var w = (d.snap ? d.snap.length : 0) + (d.pre ? d.pre.length : 0); if(w > big){ big = w; bi = i; } });
-        if(bi < 0){ mkToast("Отметки не сохранились: хранилище переполнено"); return false; }
-        if(arr[bi].pre){ arr[bi].pre = null; arr[bi].preTick = null; mkToast("Мало места: у отметки " + arr[bi].id + " убран снимок «до»"); }
-        else if(arr[bi].snap){ arr[bi].snap = null; mkToast("Мало места: у отметки " + arr[bi].id + " убран снимок игры"); }
-        else { var gone = arr.splice(bi, 1)[0]; mkToast("Мало места: удалена старая отметка " + (gone && gone.id)); }
-      }
+  function mkSet(key, val){
+    var kind = mkStoreKind();
+    if(kind === "local"){ try{ localStorage.setItem(key, val); return Promise.resolve(true); }catch(e){ return Promise.resolve(false); } }
+    if(kind === "artifact"){ return Promise.resolve(window.storage.set(key, val)).then(function(){ return true; }, function(){ return false; }); }
+    MK_MEM[key] = val; return Promise.resolve(true);
+  }
+  async function mkLoadMarks(){
+    var raw = await mkGet(MK_KEY), list;
+    try{ list = JSON.parse(raw || "[]"); }catch(e){ list = []; }
+    if(!Array.isArray(list)) list = [];
+    if(mkStoreKind() === "memory") mkToast("Хранилища нет: отметки не сохранятся после перезагрузки — открой файл страницы локально");
+    // снимки — отдельными ключами; у старых отметок они лежали внутри записи — читаются как есть
+    for(var i = 0; i < list.length; i++){
+      var d = list[i];
+      if(!d.snap){ var sn = await mkGet(mkSnapKey(d.id, "snap")); if(sn) d.snap = sn; }
+      if(!d.pre){ var pr = await mkGet(mkSnapKey(d.id, "pre")); if(pr) d.pre = pr; }
     }
-    return false;
+    return list;
+  }
+  // Запись: сначала список (всегда влезает), потом каждый снимок своим ключом. Не влез ОДИН снимок — теряем только его,
+  // остальные отметки не трогаем (было: у самой тяжёлой отметки снимок вырезался при записи чужой)
+  async function mkStoreMarks(list){
+    var arr = (list || []).slice(), meta = [], put = [];
+    for(var i = 0; i < arr.length; i++){
+      var d = arr[i], m = {};
+      for(var k in d) if(d[k] !== undefined) m[k] = d[k];
+      var snap = m.snap, pre = m.pre;
+      delete m.snap; delete m.pre;
+      meta.push(m); put.push({d: d, snap: snap, pre: pre});
+    }
+    if(!(await mkSet(MK_KEY, JSON.stringify(meta)))){ mkToast("Отметки не сохранились: хранилище переполнено"); return false; }
+    for(var j = 0; j < put.length; j++){
+      var p = put[j];
+      if(p.pre && !(await mkSet(mkSnapKey(p.d.id, "pre"), p.pre))){ p.d.pre = null; p.d.preTick = null; mkToast("Мало места: у отметки " + p.d.id + " не сохранён снимок «до»"); }
+      if(p.snap && !(await mkSet(mkSnapKey(p.d.id, "snap"), p.snap))){ p.d.snap = null; mkToast("Мало места: у отметки " + p.d.id + " не сохранён снимок игры"); }
+    }
+    return true;
   }
   // снимок (2 МБ текста) в квоту хранилища не влезает: храним сжатым — "gz:" + base64(gzip).
   // Записи без префикса читаются как есть (старые/без CompressionStream)
