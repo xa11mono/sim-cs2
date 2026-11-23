@@ -1,8 +1,49 @@
 // ======================= v167: «Отметить момент», перемотка (v397: без разбора нейросетью — М147) =======================
 // Инструмент для владельца и Claude, мозг ботов не трогает. Описание — docs/tasks/02-mark-moment.md.
 // Снимки состояния: __SNAP (список переменных симулятора) генерирует src/marks_build.py при сборке (build.py, mkpub.py).
-  var MK = { cps: [], snap: null, cur: null, list: [], db: null, assets: null, busy: false,
+  var MK = { cps: [], snap: null, cur: null, list: [], busy: false,
              lastCpTick: -1, cpMatch: -1, pick: false, CP_EVERY: 640, CP_KEEP: 40 };
+  // (23.11, владелец: «никаких скачиваний и серверов») все отметки — в localStorage страницы под одним ключом
+  // ключ sim_marks: массив записей; снимок момента — поле snap, снимок за 15 с до — pre (оба упакованы mkPack в строку).
+  // Ни базы страницы (claude.use("db")), ни вложений (claude.use("assets")) — забрать их может Playwright.
+  var MK_KEY = "sim_marks";
+  function mkLoadMarks(){
+    try{ var a = JSON.parse(localStorage.getItem(MK_KEY) || "[]"); return Array.isArray(a) ? a : []; }catch(e){ return []; }
+  }
+  // localStorage тесен (~5 МБ): не влезло — сначала теряем «до» у самой тяжёлой отметки, потом сам снимок, потом старую отметку
+  function mkStoreMarks(list){
+    var arr = (list || []).slice();
+    for(var guard = 0; guard < 500; guard++){
+      try{ localStorage.setItem(MK_KEY, JSON.stringify(arr)); return true; }
+      catch(e){
+        var big = -1, bi = -1;
+        arr.forEach(function(d, i){ var w = (d.snap ? d.snap.length : 0) + (d.pre ? d.pre.length : 0); if(w > big){ big = w; bi = i; } });
+        if(bi < 0){ mkToast("Отметки не сохранились: localStorage переполнен"); return false; }
+        if(arr[bi].pre){ arr[bi].pre = null; arr[bi].preTick = null; mkToast("Мало места: у отметки " + arr[bi].id + " убран снимок «до»"); }
+        else if(arr[bi].snap){ arr[bi].snap = null; mkToast("Мало места: у отметки " + arr[bi].id + " убран снимок игры"); }
+        else { var gone = arr.splice(bi, 1)[0]; mkToast("Мало места: удалена старая отметка " + (gone && gone.id)); }
+      }
+    }
+    return false;
+  }
+  // снимок (2 МБ текста) в квоту localStorage не влезает: храним сжатым — "gz:" + base64(gzip).
+  // Записи без префикса читаются как есть (старые/без CompressionStream)
+  async function mkPackStored(text){
+    try{
+      if(typeof CompressionStream === "undefined") return text;
+      var stream = new Blob([text]).stream().pipeThrough(new CompressionStream("gzip"));
+      var buf = new Uint8Array(await new Response(stream).arrayBuffer()), bin = "";
+      for(var i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode.apply(null, buf.subarray(i, i + 0x8000));
+      return "gz:" + btoa(bin);
+    }catch(e){ return text; }
+  }
+  async function mkUnpackStored(stored){
+    if(!stored || stored.slice(0, 3) !== "gz:") return stored;
+    var bin = atob(stored.slice(3)), u = new Uint8Array(bin.length);
+    for(var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+    var stream = new Blob([u]).stream().pipeThrough(new DecompressionStream("gzip"));
+    return await new Response(stream).text();
+  }
   var MK_CATS = ["Взгляд", "Позиция", "Команда", "Гранаты", "Закуп", "Темп", "Войс", "Визуал"];
   var MK_SEC = {"Взгляд":"В", "Позиция":"П", "Команда":"К", "Гранаты":"Г", "Закуп":"Э", "Темп":"Т", "Войс":"Н", "Визуал":"И"};
 
@@ -258,7 +299,6 @@ function mkScreen(){
       .then(function(c){ return c.toDataURL("image/jpeg", 0.8); });
   }).catch(function(){ return plain; });
 }
-function mkUrlToBlob(url){ var p = url.split(","), bin = atob(p[1]), u = new Uint8Array(bin.length); for(var i=0;i<bin.length;i++) u[i] = bin.charCodeAt(i); return new Blob([u], {type: "image/jpeg"}); }
 
 // ---------- интерфейс отметки ----------
 function mkEl(id){ return document.getElementById(id); }
@@ -280,7 +320,6 @@ function mkStart(){
   clockPause(true); mkPauseLabel();
   MK.cur = { snap: mkSnapshot(), state: mkState(), match: matchNum, tick: tick, round: roundNum, roundTime: Math.round((simTime - roundStartTime)*10)/10,
              fp: mkFp(), bot: null, text: "", want: "", category: "Взгляд", priority: "normal", pre: mkPreSnap() };
-  MK.cur.screenP = mkScreen();   // (v385) весь экран — до того, как открылась панель отметки
   MK.pick = true;
   mkEl("mkMoment").textContent = "Матч " + MK.cur.match + " · раунд " + MK.cur.round + " · " + mkClock(MK.cur.roundTime) + " раунда · тик " + MK.cur.tick;
   mkEl("mkText").value = ""; mkEl("mkWant").value = ""; mkEl("mkBot").textContent = "не выбран — кликни по боту на радаре (необязательно)";
@@ -297,25 +336,20 @@ async function mkSubmit(){
   if(!m.text){ mkEl("mkErr").textContent = "Напиши, что не так"; return; }
   mkEl("mkErr").textContent = "";
   MK.pick = false;
-  m.frameUrl = mkFrame(m.bot);
   mkClose(); mkToast("Сохраняю отметку…");
   if(await mkSave(m, "new")) mkToast("Отметка сохранена");
 }
 async function mkSave(m, status){
   var doc = { match: m.match, tick: m.tick, round: m.round, roundTime: m.roundTime, category: m.category, priority: m.priority,
     text: m.text, want: m.want || "", bot: m.bot || null, principle: null, status: status, version: null,
-    fp: m.fp, state: m.state, frameAsset: null, created: Date.now(), updated: Date.now() };
-  if(MK.assets && m.frameUrl){ try{ var up = await MK.assets.upload(mkUrlToBlob(m.frameUrl)); doc.frameAsset = up.id; }catch(e){} }
-  doc.screenAsset = null;   // (v385) весь экран
-  if(MK.assets && m.screenP){ try{ var su = await m.screenP; if(su){ var us0 = await MK.assets.upload(mkUrlToBlob(su)); doc.screenAsset = us0.id; } }catch(e){} }
-  // полный снимок игры в момент нажатия — по нему отметка открывается у владельца и у Claude
-  doc.snapAsset = null;
-  if(MK.assets && m.snap){ try{ var us = await MK.assets.upload(new Blob([mkPack(m.snap)], {type: "application/json"})); doc.snapAsset = us.id; }catch(e){ mkToast("Снимок игры не сохранился: " + (e && (e.code || e.message))); } }
-  doc.preSnapAsset = null; doc.preTick = m.pre ? m.pre.tick : null;   // (v401) снимок до момента — для истории в чате
-  if(MK.assets && m.pre){ try{ var up2 = await MK.assets.upload(new Blob([mkPack(m.pre.data)], {type: "application/json"})); doc.preSnapAsset = up2.id; }catch(e){} }
-  if(!MK.db){ MK.local = MK.local || []; doc.id = "local" + doc.created; MK.local.push(doc); mkRenderList(); mkToast("Базы страницы нет (открыто не в Claude) — отметка только до перезагрузки"); return false; }
-  try{ await MK.db.collection("marks").doc("m" + doc.created).set(doc); return true; }
-  catch(e){ mkToast("Не удалось сохранить отметку: " + (e && (e.code || e.message))); return false; }
+    fp: m.fp, state: m.state, created: Date.now(), updated: Date.now(),
+    preTick: m.pre ? m.pre.tick : null,   // (v401) снимок до момента — для истории в чате
+    snap: m.snap ? await mkPackStored(mkPack(m.snap)) : null, pre: m.pre ? await mkPackStored(mkPack(m.pre.data)) : null };
+  doc.id = "m" + doc.created;
+  MK.list = (MK.list || []).concat([doc]);
+  var ok = mkStoreMarks(MK.list); mkRenderList();
+  if(!ok) return false;
+  return true;
 }
 
 // ---------- список отметок ----------
@@ -326,7 +360,7 @@ function mkStatusText(d){
   return MK_ST[d.status] || d.status;
 }
 function mkSorted(){
-  var L = (MK.list || []).concat(MK.local || []);
+  var L = (MK.list || []);
   var rank = function(d){ return d.status === "confirmed" ? 3 : (d.priority === "urgent" ? 0 : 1) + (d.status === "new" || d.status === "unparsed" ? 0 : 0.5); };
   return L.slice().sort(function(a, b){ return rank(a) - rank(b) || (b.created||0) - (a.created||0); });
 }
@@ -344,21 +378,21 @@ function mkRenderList(){
       (d.status === "fixed" ? '<button data-ok="' + i + '">Подтверждаю</button>' : "") + '</div>';
   }).join("");
 }
-function mkJump(d){
+async function mkJump(d){
   mkEl("mkList").style.display = "none";
-  if(!d.snapAsset){ mkToast("У этой отметки нет снимка игры (сделана до v175) — открыть точно нельзя"); return; }
+  if(!d.snap){ mkToast("У этой отметки нет снимка игры (сделана до v175) — открыть точно нельзя"); return; }
   if(MK.busy) return;
   MK.busy = true; clockPause(true); mkPauseLabel();
   // (15.11, замечание владельца: «кликнул отметку — тот же раунд, приходится мотать назад 10 с, чтобы пересчитался») снимок в момент
   // отметки уже несёт принятое (ошибочное) решение — новый код его не пересматривает. Есть снимок за MK_PRE_SEC до — открываем его и
   // пересчитываем до момента отметки кодом этой страницы (решения принимаются заново); нет — как раньше, снимок момента.
-  var pre = !!d.preSnapAsset && d.preTick != null && d.preTick < d.tick;
-  fetch("/_blob/" + (pre ? d.preSnapAsset : d.snapAsset)).then(function(r){ if(!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
-    .then(function(t){ mkOpenSnap(t); MK.busy = false;
-      var msg = "Отметка: матч " + d.match + ", раунд " + d.round + ", " + mkClock(d.roundTime);
-      if(!pre){ mkPauseLabel(); mkToast(msg + " — открыта из снимка момента (снимка до нет — пересчёта нет)"); return; }
-      mkGoTo(matchNum, d.tick, function(ok){ mkToast(msg + (ok ? " — пересчитана этой версией с " + Math.round((d.tick - d.preTick)/TICK_HZ) + " с до отметки" : " — пересчёт не удался")); }); })
-    .catch(function(e){ MK.busy = false; mkToast("Не удалось открыть снимок отметки: " + (e && e.message)); });
+  var pre = !!d.pre && d.preTick != null && d.preTick < d.tick;
+  try{ mkOpenSnap(await mkUnpackStored(pre ? d.pre : d.snap)); }
+  catch(e){ MK.busy = false; mkToast("Не удалось открыть снимок отметки: " + (e && e.message)); return; }
+  MK.busy = false;
+  var msg = "Отметка: матч " + d.match + ", раунд " + d.round + ", " + mkClock(d.roundTime);
+  if(!pre){ mkPauseLabel(); mkToast(msg + " — открыта из снимка момента (снимка до нет — пересчёта нет)"); return; }
+  mkGoTo(matchNum, d.tick, function(ok){ mkToast(msg + (ok ? " — пересчитана этой версией с " + Math.round((d.tick - d.preTick)/TICK_HZ) + " с до отметки" : " — пересчёт не удался")); });
 }
 function mkCopyAll(){
   var t = mkSorted().map(function(d){
@@ -410,7 +444,7 @@ function mkShowCopy(t){ var a = mkEl("mkCopyBox"); a.value = t; a.style.display 
   mkEl("mkItems").addEventListener("click", function(e){
     var L = mkSorted(), ok = e.target.getAttribute && e.target.getAttribute("data-ok");
     if(ok != null){ var d = L[+ok]; e.stopPropagation();
-      if(MK.db && d && !/^local/.test(d.id||"")) MK.db.collection("marks").doc(d.id).update({status: "confirmed", confirmedAt: Date.now(), updated: Date.now()}).catch(function(){ mkToast("Не удалось сохранить подтверждение"); });
+      if(d){ d.status = "confirmed"; d.confirmedAt = Date.now(); d.updated = Date.now(); mkStoreMarks(MK.list); mkRenderList(); }
       return; }
     var it = e.target.closest && e.target.closest(".mk-item"); if(it) mkJump(L[+it.getAttribute("data-i")]);
   });
@@ -429,12 +463,8 @@ function mkShowCopy(t){ var a = mkEl("mkCopyBox"); a.value = t; a.style.display 
   });
   mkEl("btnRestartRound").addEventListener("click", function(){ MK.cps = []; });
   mkEl("btnFreshMatch").addEventListener("click", function(){ MK.cps = []; });
-  // возможности страницы в Claude: база отметок, картинки кадров и снимки
-  if(window.claude && claude.use){
-    claude.use("db").then(function(db){ if(!db) return; MK.db = db;
-      db.collection("marks").onSnapshot(function(snap){ MK.list = snap.docs.map(function(d){ var o = Object.assign({}, d.data()); o.id = d.id; return o; }); mkRenderList(); },
-        function(){ mkToast("База отметок недоступна"); }); });
-    claude.use("assets").then(function(a){ MK.assets = a || null; });
-  }
+  // (23.11, владелец: «никаких скачиваний и серверов») отметки читаются и пишутся только в localStorage
+  // страницы ключом MK_KEY — базы страницы (claude.use("db")) и вложений (claude.use("assets")) больше нет
+  MK.list = mkLoadMarks();
   mkRenderList();
 })();
