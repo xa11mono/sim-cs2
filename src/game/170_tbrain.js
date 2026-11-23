@@ -250,7 +250,8 @@ function tBrain(){
       voiceLog("T", "setup" + roundNum + "_" + SRd.n, "IGL", sk + " — похоже " + SRd.top[0] + (SRd.E.A >= SRd.E.B + 0.5 ? ", на A плотнее" : SRd.E.B >= SRd.E.A + 0.5 ? ", на B плотнее" : "")); } }
   // раздел 12: проба увидела на нашем сайте ровно одного, и по карте там больше
   // никого — "там соло, заходим" (не ждём тайминга)
-  if(tt.phase === "setup" && tick - roundStartTick > (28)*TICK_HZ && !tt.soloGo && !(hashRand(roundNum*577 + matchNum*41 + 3) < 0.5)){
+  // (22.11, аудит 059) было ещё «IGL смотрит на это в половине раундов» (hashRand < 0,5) — жребий вместо ситуации; ошибка IGL — только модель iglReads (BAL.iglErr)
+  if(tt.phase === "setup" && tick - roundStartTick > (28)*TICK_HZ && !tt.soloGo){
     var eS = intelEstimate("T", site.x, site.y, 420, 5*TICK_HZ);
     var aliveT2 = aliveCount("T");
     // (v381, М132) или по расстановке: на нашем сайте видели одного, и по увиденному в других районах там больше одного не ждут
