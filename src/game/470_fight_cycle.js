@@ -604,15 +604,17 @@ function dangerWalk(b){
   if(b.team === "T"){
     if(secLeft < 30 && bomb.state !== "planted") return false;
     if(tt && tt.phase === "execute" && b.tRole !== "lurker" && tick - (tt.execStart != null ? tt.execStart : tick) < 15*TICK_HZ) return false; // выход — быстро
-    if(tt && tt.phase === "setup" && b.post){ // шифтом не успеть к выходу — бегом
-      var dP = pathLenTo(b, b.post.x, b.post.y);   // (аудит 037) по пути, было — прямая × 1,3
-      if((tt.execTick - tick)/TICK_HZ < dP/(SPEED*WALK_SPEED_FRAC) + 2) return false;
-    }
   } else {
     if(bomb.state === "planted") return false; // ретейк — своя логика подхода
     if(/^rotate/.test(tag) && ct && ct.call && (ct.call.bombSeen || ct.call.count >= 2)) return false; // подтверждённый выход — бегом
   }
   if(b._dwTick && tick - b._dwTick < 8) return !!b._dwVal;
+  // шифтом не успеть к выходу — бегом. (аудит 037) по пути, было — прямая × 1,3; (23.11, прогон 306: путь считался каждый тик до запаса
+  // в 8 тиков ниже — 3859 поисков пути за 24000 тиков) проверка — с тем же шагом 8 тиков, что и остальное решение
+  if(b.team === "T" && tt && tt.phase === "setup" && b.post){
+    var dP = pathLenTo(b, b.post.x, b.post.y);
+    if((tt.execTick - tick)/TICK_HZ < dP/(SPEED*WALK_SPEED_FRAC) + 2){ b._dwTick = tick; b._dwVal = false; return false; }
+  }
   // включился шифт — держим его хотя бы ~1с (иначе на границе порога бот
   // переключался шаг/бег/шаг несколько раз в секунду)
   if(b._dwVal && tick - (b._dwOnT||0) < 64){ b._dwTick = tick; return true; }
