@@ -765,8 +765,21 @@ function segIntersect(ax,ay,bx,by,cx,cy,dx,dy){
 // пол и уступы, крыши — visLine). Раньше — только плоские отрезки стен
 // z1, z2 — высоты концов, если известны (бот): пол — его этаж, а не верхний (М140, Н2: под балконом Shadow, в Underpass
 // взгляд, позиции и «откуда простреливается» считались с глаз на верхнем полу)
+// (23.11, скорость A2 — аудит производительности: 42 % вызовов hasLOS повторяют уже посчитанные — места pickSpots, входы, порталы, места
+// пост-планта) видимость без дыма зависит только от точек и геометрии карты: память по точным аргументам, сброс — при изменении геометрии
+// (VIS_GEN, 040 visInvalidate) и при переполнении. Результат тот же — бит в бит
+var LOS_MB = 19, LOS_MN = 1 << LOS_MB, LOS_MK = new Float64Array(LOS_MN*6), LOS_MV = new Uint8Array(LOS_MN), LOS_MG = -1;   // ключ — 6 чисел, значение: 0 нет, 1 нет вида, 2 вид
+var LOS_HF = new Float64Array(1), LOS_HI = new Int32Array(LOS_HF.buffer);
+function losZ(z){ return z === undefined ? -1.5e308 : z === null ? -1.7e308 : z; }   // «нет высоты»: undefined и null — разные значения ключа
 function hasLOS(x1,y1,x2,y2,z1,z2){
-  return visLine(x1, y1, visFloorAt(x1, y1, z1) + VIS_EYE.stand, x2, y2, visFloorAt(x2, y2, z2) + VIS_EYE.stand, false);
+  if(LOS_MG !== VIS_GEN){ LOS_MG = VIS_GEN; LOS_MV.fill(0); }
+  var a = losZ(z1), c = losZ(z2), h = 0x811c9dc5, vv = [x1, y1, x2, y2, a, c];
+  for(var i = 0; i < 6; i++){ LOS_HF[0] = vv[i]; h = Math.imul(h ^ LOS_HI[0], 0x01000193); h = Math.imul(h ^ LOS_HI[1], 0x01000193); }
+  var j = (h >>> 0) & (LOS_MN - 1), o = j*6;
+  if(LOS_MV[j] && LOS_MK[o] === x1 && LOS_MK[o+1] === y1 && LOS_MK[o+2] === x2 && LOS_MK[o+3] === y2 && LOS_MK[o+4] === a && LOS_MK[o+5] === c) return LOS_MV[j] === 2;
+  var v = visLine(x1, y1, visFloorAt(x1, y1, z1) + VIS_EYE.stand, x2, y2, visFloorAt(x2, y2, z2) + VIS_EYE.stand, false);
+  LOS_MK[o] = x1; LOS_MK[o+1] = y1; LOS_MK[o+2] = x2; LOS_MK[o+3] = y2; LOS_MK[o+4] = a; LOS_MK[o+5] = c; LOS_MV[j] = v ? 2 : 1;
+  return v;
 }
 // (17.11, перестройка) расстояние от точки до отрезка — перенесено из 550 (файл показа): им пользуются бомба (120) и места (140)
 function distToSeg(px,py, s){
