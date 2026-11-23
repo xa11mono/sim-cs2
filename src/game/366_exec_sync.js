@@ -192,9 +192,12 @@ var SLW_R = 1100;   // ед.: места CT дальше — не в счёт (�
 function smokeLinePending(team){
   var L = [];
   bots.forEach(function(o){ if(o.team !== team || !o.alive) return;
-    [o.nadeTask].concat(o.nadeQueue || []).forEach(function(t){ if(t && t.type === "smoke" && t.x != null) L.push({x:t.x, y:t.y, owner:o.id, st:"assigned"}); }); });
+    // (22.11, аудит 026) назначен — только тот смок, который тиммейт кидает сейчас (nadeTask); очередь на потом (выход через полминуты) не держит
+    var t = o.nadeTask; if(t && t.type === "smoke" && t.x != null) L.push({x:t.x, y:t.y, owner:o.id, st:"assigned"}); });
   nadesInAir.forEach(function(n){ if(n.team === team && n.type === "smoke") L.push({x:n.aimX != null ? n.aimX : n.x, y:n.aimY != null ? n.aimY : n.y, owner:n.thrower ? n.thrower.id : null, st:"flying"}); });
-  smokes.forEach(function(s){ if(s.team === team && smokeRadiusNow(s) < NADE.smoke.radius) L.push({x:s.x, y:s.y, owner:null, st:"forming"}); });
+  // (аудит 026) раскрывается — только первые SMOKE_GROW тиков после падения; было «радиус меньше полного» — так же выглядели и тающий смок
+  // (последняя секунда) и дыра от HE: ждали смок, который уже кончается
+  smokes.forEach(function(s){ if(s.team === team && tick - s.born < SMOKE_GROW) L.push({x:s.x, y:s.y, owner:null, st:"forming"}); });
   return L;
 }
 function smokeLineWait(b, P, S){
@@ -202,6 +205,8 @@ function smokeLineWait(b, P, S){
   var R = NADE.smoke.radius, Q = enemyPositions(b.team);
   for(var i = 0; i < Q.length; i++){ var q = Q[i];
     if(Math.hypot(q.x-P.x, q.y-P.y) > SLW_R) continue;
+    // (22.11, аудит 027) место CT — с учётом знания команды: проверено и пусто (posClearValid) или по карте команды там никого быть не может — не в счёт
+    if(posClearValid(b.team, q.id) || !(beliefZoneKnown(b.team, q.z) > 0.01)) continue;
     var s = S.filter(function(s){ return s.owner !== b.id && segPtDist(s.x, s.y, q.x, q.y, P.x, P.y) <= R; })[0]; if(!s) continue;
     if(!hasLOS(q.x, q.y, P.x, P.y) || hasLOS(q.x, q.y, b.x, b.y, null, b.z)) continue;
     return {s:s, q:q};
