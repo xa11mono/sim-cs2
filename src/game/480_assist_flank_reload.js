@@ -264,11 +264,17 @@ function ambushTick(b){
     // пробе / лёркает / заходит); остальные — только если видят врага, идущего мимо спиной
     // (22.11, Ж23-П4, владелец по м271222 р6: «он мог бы пойти за типом, которого слышали, — у него была топовая позиция в спину») по звуку —
     // и тот, кто держит сайт, если его не нашли (knowMeRevealed, 220: не стрелял, не кидал, не ранен, врага не видел): пропускает и заходит в спину
-    var hideSite = !!(b.post && taskProp(b.post.tag, "holdsSite") && !knowMeRevealed(b));
+    // (22.11, проверка исправлений 22.11 на 8 матчах: засад CT 102 → 384 — из anchor 4 → 161, из ретейка 54; длительность медиана 1,5 с, короче 1 с —
+    // 77; убийств из засады 10 → 5, смертей 2 → 6) было — любой «держит сайт» (holdsSite: и ретейк, и клатч). Стало — только держащий ДО планта
+    // (hideAmbush): после планта у CT цель — дефуз по часам бомбы, «пропускаю» без срока срывает ретейк (ресурс — время бомбы, поэтому не вес)
+    var hideSite = !!(b.post && taskProp(b.post.tag, "hideAmbush") && !knowMeRevealed(b) && !(bomb && bomb.state === "planted"));
     var lurkNow = !!(b.post && taskProp(b.post.tag, "earAmbush")) || hideSite;
     if(!lurkNow && !F.some(function(o){ return b._visible && b._visible.indexOf(o) >= 0; })) return false;
     if(!F.length || ambSeenBy(b) || b.hp <= LOW_HP || b._fc || !F.every(function(o){ return !(b._visible && b._visible.indexOf(o) >= 0) || ambPassing(b, o); }) || !F.some(function(o){ return !(b._visible && b._visible.indexOf(o) >= 0) || o.curSpeed > 40*SPD_K; })) return false;   // идут мимо (видимые — не стоят; слышу — значит идут)
     if(b.post && taskProp(b.post.tag, "holdsSite") && !hideSite && F.some(function(o){ return nearP(o.x, o.y, o.z, b.x, b.y, b.z, AMB_PASS); })) return false;   // идут на мой сайт рядом — держу (меня уже нашли; не нашли — пропускаю, 22.11)
+    // (22.11) засада — только если арбитр места её примет (taskCanTry, 110): было — ставилась, арбитр отказывал («задача выше»), засада кончалась
+    // и на следующем тике начиналась заново (77 засад короче 1 с на 8 матчей)
+    if(!taskCanTry(b, "ambush")) return false;
     // один — «иду за ним», только если вижу его и других рядом не знаю (владелец: «он точно должен увидеть, что он один»); слышу / их больше — жду
     var solo = F.length === 1 && b._visible && b._visible.indexOf(F[0]) >= 0 && !bots.some(function(o){ var q = (beliefLast[b.team] || {})[o.id];
       return o !== F[0] && o.alive && o.team !== b.team && q && tick - q.tick < 3*TICK_HZ && Math.hypot(q.x-b.x, q.y-b.y) < AMB_R; });
