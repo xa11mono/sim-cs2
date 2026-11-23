@@ -390,6 +390,32 @@ var ROUTE_PORTAL = 0;   // (v406) цена перехода между учас�
 var FIRE_DETOUR = 600;   // (v438) цена перехода через горящий огонь, ед. карты: обход до ~600 длиннее — лучше, чем сквозь огонь (проектное число)
 var KNOWN_PATH_R = 300, KNOWN_DETOUR = 500;   // (v450) проектные числа: радиус места врага, цена обхода (× вес гипотезы, док 6)
 var ZDJ = {tick: -1, graph: null, s: {}};
+// (23.11, скорость A1 — аудит производительности: поиск пути 54 % времени, Дейкстра 37 %) состояние поиска — на массивах по номеру участка, а не на
+// объектах (dist / prev / visited / entry были {} с ключами-номерами), куча — на двух массивах; массивы — из пула, переиспользуются со следующего
+// тика (ZDJ.s живёт один тик). Порядок раскрытия и сложений тот же — пути бит в бит
+var ZDJ_POOL = {n: 0, free: [], used: []};
+function zdjHeap(){
+  var ids = new Int32Array(256), ds = new Float64Array(256), n = 0;
+  function grow(){ var i2 = new Int32Array(ids.length*2), d2 = new Float64Array(ds.length*2); i2.set(ids); d2.set(ds); ids = i2; ds = d2; }
+  function sw(i, j){ var t = ids[i]; ids[i] = ids[j]; ids[j] = t; var u = ds[i]; ds[i] = ds[j]; ds[j] = u; }
+  function up(i){ while(i>0){ var p=(i-1)>>1; if(!(ds[i] < ds[p])) break; sw(i, p); i=p; } }
+  function down(i){ for(;;){ var l=2*i+1, r=2*i+2, s=i; if(l<n && ds[l] < ds[s]) s=l; if(r<n && ds[r] < ds[s]) s=r; if(s===i) break; sw(s, i); i=s; } }
+  return {
+    push: function(id, d){ if(n >= ids.length) grow(); ids[n] = id; ds[n] = d; n++; up(n-1); },
+    popId: function(){ var top = ids[0]; n--; if(n){ ids[0] = ids[n]; ds[0] = ds[n]; down(0); } return top; },
+    size: function(){ return n; },
+    reset: function(){ n = 0; }
+  };
+}
+function zdjState(){
+  if(ZDJ_POOL.graph !== zoneGraph){ var N = 0; for(var k in zonesById){ var v = +k; if(v + 1 > N) N = v + 1; } ZDJ_POOL = {n: N, graph: zoneGraph, free: [], used: []}; }
+  var N = ZDJ_POOL.n;
+  if(ZDJ_POOL.tick !== tick){ ZDJ_POOL.tick = tick; ZDJ_POOL.free = ZDJ_POOL.free.concat(ZDJ_POOL.used); ZDJ_POOL.used = []; }
+  var S = ZDJ_POOL.free.pop();
+  if(S){ S.has.fill(0); S.prev.fill(-1); S.visited.fill(0); S.entry.fill(undefined); S.heap.reset(); S.relax = null; S.ez = {}; }
+  else S = {dist: new Float64Array(N), has: new Uint8Array(N), prev: new Int32Array(N).fill(-1), visited: new Uint8Array(N), entry: new Array(N), heap: zdjHeap(), relax: null, ez: {}};
+  ZDJ_POOL.used.push(S); return S;
+}
 // (док 6) места врагов по знанию команды для цены пути (zoneDijkstra) — раз в тик на команду; вес < 0,05 не берётся (проектное число: «почти нет»)
 var KPC = {};
 var DZC = {tick: -1};   // (оптимизация 040) общий на команду и тик расчёт прострела по зонам
@@ -441,14 +467,14 @@ function zoneDijkstra(fromId, toId, team){
             (kpKey = KP.map(function(q){ return q.x + "," + q.y + "," + q.w; }).join(";"));
   var DJ = ZDJ.tick === tick && ZDJ.m === matchNum && ZDJ.graph === zoneGraph ? ZDJ.s : (ZDJ.tick = tick, ZDJ.m = matchNum, ZDJ.graph = zoneGraph, ZDJ.s = {});
   var S = DJ[key];
-  if(!S){ S = DJ[key] = {dist: {}, prev: {}, visited: {}, entry: {}, heap: makeHeap(), relax: null, ez: {}}; S.dist[fromId] = 0; if(fx0) S.entry[fromId] = fx0; S.heap.push(fromId, 0); }
+  if(!S){ S = DJ[key] = zdjState(); S.has[fromId] = 1; S.dist[fromId] = 0; if(fx0) S.entry[fromId] = fx0; S.heap.push(fromId, 0); }
   // (оптимизация 040, прогон 304 / профиль: zoneIdAt + pointInPoly + zoneIdxOk — 2,8 с из 8 с замедления на 8000 тиков) зоны мест врагов — на состояние
   // поиска; зона, через которую вошли в участок, — от перехода (edge._zm, постоянна), а не точкой в многоугольнике на каждом раскрытии; штраф прострела
   // зоны — один раз на зону в состоянии поиска (то же сложение в том же порядке — результат бит в бит с контрольной 040)
   // зоны мест врагов и штраф прострела по зоне зависят только от знания команды в этом тике — общие для всех поисков команды в тике (DZC)
   if(nKPz(KP) && !(DZC.tick === tick && DZC.m === matchNum && DZC.k === (team||"") + "|" + kpKey)) DZC = {tick: tick, m: matchNum, k: (team||"") + "|" + kpKey, kpz: KP.map(function(q){ return zoneIdAt(q.x, q.y); }), dz: {}};
   KPZ = DZC.kpz; var EZ = S.ez, DZ = DZC.dz;
-  var dist = S.dist, prev = S.prev, visited = S.visited, entry = S.entry, heap = S.heap;
+  var dist = S.dist, has = S.has, prev = S.prev, visited = S.visited, entry = S.entry, heap = S.heap;
   var relax = function(u){
     // (v406, владелец 22.10: «зачем все идут в одну точку, а не прямо вниз» — спавн T → T Ramp) длина — от точки, через которую в участок
     // вошли (середина перехода; у начала — сама точка старта, zoneDijkstra.from), а не от центра участка: по центрам мелко нарезанная
@@ -473,30 +499,30 @@ function zoneDijkstra(fromId, toId, team){
         if(zmV && zmV !== zmU){ var dzv = DZ[zmV]; if(dzv === undefined){ dzv = []; var DW = ZONE_DANGER_W[zmV]; if(DW) for(var kz = 0; kz < nKP; kz++){ var zq = KPZ[kz]; if(zq && DW[zq]) dzv.push(KNOWN_DETOUR*KP[kz].w*DW[zq]); } DZ[zmV] = dzv; }
           for(var dzi = 0; dzi < dzv.length; dzi++) w += dzv[dzi]; } }
       var alt = dist[u] + w;
-      if(dist[edge.to]===undefined || alt<dist[edge.to]){
-        dist[edge.to] = alt; prev[edge.to] = u; entry[edge.to] = edge.mid; if(nKP) EZ[edge.to] = edge._zm !== undefined ? edge._zm : (edge._zm = zoneIdAt(edge.mid.x, edge.mid.y)); heap.push(edge.to, alt);
+      if(!has[edge.to] || alt<dist[edge.to]){
+        has[edge.to] = 1; dist[edge.to] = alt; prev[edge.to] = u; entry[edge.to] = edge.mid; if(nKP) EZ[edge.to] = edge._zm !== undefined ? edge._zm : (edge._zm = zoneIdAt(edge.mid.x, edge.mid.y)); heap.push(edge.to, alt);
       }
     }
   };
   if(!visited[toId]){
     if(S.relax != null){ relax(S.relax); S.relax = null; }   // прошлый поиск остановился на своей цели, не раскрыв её переходы
     while(heap.size()){
-      var u = heap.pop().id;
+      var u = heap.popId();
       if(visited[u]) continue;
-      visited[u] = true;
+      visited[u] = 1;
       if(u===toId){ S.relax = u; break; }
       relax(u);
     }
   }
-  if(dist[toId]===undefined){
+  if(!has[toId]){
     if(!zoneDijkstra.nearest) return null;
     // (v375) цель недостижима — ближайший к ней участок, до которого путь есть (см. buildWaypointPath)
     var tc = zoneCentroid(zonesById[toId]), bestN = null, bd = Infinity;
-    Object.keys(visited).forEach(function(k){ var c = zoneCentroid(zonesById[k]); if(!c) return; var d = Math.hypot(c.x-tc.x, c.y-tc.y); if(d < bd){ bd = d; bestN = k; } });
-    if(bestN == null) return null; toId = isNaN(+bestN) ? bestN : +bestN;
+    for(var k = 0; k < visited.length; k++){ if(!visited[k]) continue; var c = zoneCentroid(zonesById[k]); if(!c) continue; var d = Math.hypot(c.x-tc.x, c.y-tc.y); if(d < bd){ bd = d; bestN = k; } }   // по возрастанию номера — как Object.keys у числовых ключей
+    if(bestN == null) return null; toId = bestN;
   }
   var path=[toId], cur=toId;
-  while(cur!==fromId){ cur=prev[cur]; if(cur===undefined) return null; path.push(cur); }
+  while(cur!==fromId){ cur=prev[cur]; if(cur===-1) return null; path.push(cur); }
   path.reverse();
   return path;
 }
