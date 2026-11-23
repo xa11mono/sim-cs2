@@ -58,6 +58,10 @@ function exuScan(tt){
   return seen;
 }
 // задание гранаты выхода снято без броска (380: updateNadeTasks) — причина: последняя неудачная попытка броска или срок / смерть / нет гранаты
+// (22.11, аудит 051 / 031 «все состояния смоков»: из 40 критичных смоков выхода 26 не вышли, главная причина — «не дошёл до точки броска за срок»:
+// по пути исполнителя перебивают перестрелка и перестановки, срок истекал, хотя смок ещё нужен) задание смока выхода живёт, пока он нужен: на сетапе —
+// пока не поздно по времени раунда (EXU_LATE); выход начался — по сроку, как было. Остальные гранаты — по сроку
+function exuTaskExpired(t){ var tt = teamTac.T; if(!t.exu || !tt || tt.phase !== "setup") return tick > t.until; return ROUND_TIME_SEC - (simTime - roundStartTime) <= EXU_LATE; }
 function exuTaskGone(t, b){
   var it = exuCur().items[t.exu]; if(!it || it.state !== "assigned") return;
   it.goneWhy = !b.alive ? "исполнитель погиб" : !b.nades || b.nades[t.type] <= 0 ? "нет гранаты" : NADE_FAIL ? "не кинуть: "+NADE_FAIL :
