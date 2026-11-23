@@ -5,8 +5,11 @@
 var DLOG_SEC = 15, DLOG_MAX = 60;
 function dlog(b, kind, text, key){
   if(!b) return;
-  var L = b[key || "_dlog"] || (b[key || "_dlog"] = []), last = L[L.length-1];
-  if(last && last[1] === kind && last[2] === text && tick - last[0] < TICK_HZ) return;   // то же — не чаще раза в секунду
+  var L = b[key || "_dlog"] || (b[key || "_dlog"] = []);
+  // (v586, отметка владельца 24.11 м1 р2 т8119, CT3 «смотрит в стену»: журнал забит отказами «anchor»/«lineup» — 60 записей за 0,4 с
+  // вместо 15 с истории) «то же — не чаще раза в секунду» проверялось только по последней записи, а отказы чередуются (anchor →
+  // lineup → anchor), поэтому проходили оба и вытесняли всю историю. Теперь ищем тот же текст среди записей последней секунды
+  for(var i = L.length - 1; i >= 0 && tick - L[i][0] < TICK_HZ; i--) if(L[i][1] === kind && L[i][2] === text) return;
   L.push([tick, kind, text]);
   while(L.length && (L.length > DLOG_MAX || tick - L[0][0] > DLOG_SEC*TICK_HZ)) L.shift();
 }
