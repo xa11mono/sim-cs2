@@ -28,6 +28,11 @@ function ctUnknownT(k){
   return n + ctHeardToward(k);
 }
 function ctNearSite(b, S, r){ return Math.hypot(b.x-S.x, b.y-S.y) < r && polyLen(pathPts(b.x, b.y, S.x, S.y, b.z)) < r; }
+// (v587, отметка владельца 24.11 м1 р2 т9653: «игрок был рядом всё это время, на Тетрисе — это A, а колл сказал, что на A никого»)
+// CT0 стоял на T Ramp: 393 px от центра A, путь 424 — на 4 px больше порога 420, и сайт посчитали пустым. «Держит сайт» — живой CT
+// по прямой в SITE_HOLD_PX или с путём до сайта ≤ 420 (запас от дребезга на границе пути). 520 — проектное число (T Ramp и Tetris — это A)
+var SITE_HOLD_PX = 520;
+function ctHoldsSite(b, S){ if(!b || !b.alive || !S) return false; return Math.hypot(b.x-S.x, b.y-S.y) < SITE_HOLD_PX || ctNearSite(b, S, 420); }
 var CALL_WEAK = 0.5, CALL_WEAK_QUIET = 10;   // (v560) проектные числа: «слабый» колл, с тишины
 function ctBrain(){
   var ct = teamTac.CT;
@@ -82,7 +87,7 @@ function ctBrain(){
     var PH = teamIntel.CT.plantHeard, plantHere = PH && PH.site === k && tick - PH.tick < 5*TICK_HZ;
     var anchorRole = k==="A" ? "anchorA" : "anchorB";
     var anchorAlive = cts.some(function(b){ return b.tRole===anchorRole; });
-    var holdingHere = cts.some(function(b){ return ctNearSite(b, SITES[k], 420); });
+    var holdingHere = cts.some(function(b){ return ctHoldsSite(b, SITES[k]); });   // (v587) по прямой с запасом, а не только «путь < 420»
     // (v355, владелец: «колл сработал, хотя у него клатч» — 2 на 4, опорника B сняли, колл «B пустой» увёл NiKo с A, где были T) «сайт пустой» —
     // повод для колла только при 3+ живых CT: вдвоём / в одиночку сайт без опорника — не довод бросать свой
     var undefended = !anchorAlive && !holdingHere && !planted0 && cts.length >= 3;

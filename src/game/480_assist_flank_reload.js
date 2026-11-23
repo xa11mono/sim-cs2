@@ -307,8 +307,19 @@ function ambushTick(b){
     // уверенно знают в другом месте ≥ живых | слышали плант | свой уже в бою | бомба стоит | свои идут на этот сайт)
     var goSit = false;
     {
-      var foesAlive = bots.filter(function(o){ return o.alive && o.team !== b.team; }), passed = A.ids.filter(function(id){ var o = teamBot(id); return o && o.alive; }).length;
-      var elsewhere = foesAlive.filter(function(o){ if(A.ids.indexOf(o.id) >= 0) return false; return (knowEnemySpots(b.team, o.id) || []).some(function(q){ return q.w >= 0.5 && Math.hypot(q.x-b.x, q.y-b.y) > AMB_R; }); }).length;
+      // (v587, отметка владельца 24.11 м1 р2 т9653: «игрок 8 стоял в засаде, пропустил всех и не пошёл в спину — стоял, стоял, стоял»)
+      // «прошли» считалось по «цель ещё жива», а «знают в другом месте» — только при весе ≥ 0,5; у CT знание о T было 0,2 / 0,21,
+      // и выход из засады не наступал никогда. Теперь «прошёл» — цель, о которой знают только далеко от места засады (любой вес),
+      // и «в другом месте» — знание от AMB_KNOW_W. Числа — проектные
+      var AMB_KNOW_W = 0.15;
+      var foesAlive = bots.filter(function(o){ return o.alive && o.team !== b.team; });
+      var passed = A.ids.filter(function(id){
+        var o = teamBot(id); if(!o || !o.alive) return false;
+        var sp = knowEnemySpots(b.team, id) || [];
+        if(!sp.length) return false;   // о нём ничего не знаем — «прошёл» не доказано
+        return !sp.some(function(q){ return q.w >= AMB_KNOW_W && Math.hypot(q.x - b.x, q.y - b.y) <= AMB_R; });
+      }).length;
+      var elsewhere = foesAlive.filter(function(o){ if(A.ids.indexOf(o.id) >= 0) return false; return (knowEnemySpots(b.team, o.id) || []).some(function(q){ return q.w >= AMB_KNOW_W && Math.hypot(q.x-b.x, q.y-b.y) > AMB_R; }); }).length;
       var PHs = teamIntel[b.team] && teamIntel[b.team].plantHeard, busy = !!(PHs && tick - PHs.tick < 5*TICK_HZ) || (bomb && bomb.state === "planted") ||
         bots.some(function(m){ return m !== b && m.alive && m.team === b.team && m._fc; });
       var goT = teamTac[b.team] && teamTac[b.team].go, mates = !!(goT && goT.ids && Object.keys(goT.ids).length && SITES[goT.site] && nearP(SITES[goT.site].x, SITES[goT.site].y, null, b.x, b.y, b.z, AMB_R));
