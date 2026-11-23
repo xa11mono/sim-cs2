@@ -331,3 +331,24 @@ document.getElementById("btnRestartRound").addEventListener("click", function(){
 });
 
 })();
+
+// (v588, владелец 24.11: «в самой радар-странице кнопка звука/выстрелы — состояние не запоминается, перезагрузил — снова по умолчанию»)
+// все галочки страницы (звук шагов, трассеры, конусы, стены, высоты, разборы…) запоминаются в localStorage и восстанавливаются при
+// загрузке. Одно место: ключ sim_ui_chk, {id: true/false}; после восстановления шлём change, чтобы механики применили состояние
+(function(){
+  var KEY = "sim_ui_chk", S = {};
+  try{ S = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; }catch(e){ S = {}; }
+  var list = document.querySelectorAll('input[type="checkbox"][id^="chk"]');
+  Array.prototype.forEach.call(list, function(el){
+    if(Object.prototype.hasOwnProperty.call(S, el.id)) el.checked = !!S[el.id];
+  });
+  Array.prototype.forEach.call(list, function(el){
+    el.addEventListener("change", function(){
+      S[el.id] = !!el.checked;
+      try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){}
+      try{ if(typeof draw === "function") draw(); }catch(e){}
+    });
+    // восстановленное состояние применяем тем же событием, каким его ставит клик
+    try{ if(Object.prototype.hasOwnProperty.call(S, el.id)) el.dispatchEvent(new Event("change", {bubbles: true})); }catch(e){}
+  });
+})();
