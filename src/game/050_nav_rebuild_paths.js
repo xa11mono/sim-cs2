@@ -744,7 +744,10 @@ function buildWaypointPath0(fromX, fromY, fromZ, toX, toY, toZ, team, lane){
     for(var k2=0;k2<path.length-1 && !bad;k2++){ if(gapSeg(path[k2], path[k2+1])) continue; var A = path[k2], B = path[k2+1], dd = Math.hypot(B[0]-A[0], B[1]-A[1]), ns = Math.ceil(dd/8);
       for(var j=1;j<ns && !bad;j++){ var t = j/ns, x = A[0]+(B[0]-A[0])*t, y = A[1]+(B[1]-A[1])*t, zz = (A[2]||0)+((B[2]||0)-(A[2]||0))*t;
         var L = NAV_GRID[Math.floor(x/NAV_GRID_C)+","+Math.floor(y/NAV_GRID_C)] || [], hit = false, other = false;
-        for(var q=0;q<L.length;q++){ var ar = NAVAREAS[L[q]]; if(NAV_BLOCKED[ar.id] || !pointInPoly(x, y, ar.points)) continue; if(inR[ar.id]) hit = true; else if(Math.abs(ar.z - zz) > JUMP_UP) other = true; else hit = true; }
+        // (23.11, скорость, бит в бит) «плохо» — только если есть чужой уровень и нет своего: найден свой — точку дальше не смотрим; участок, который
+        // может дать лишь «чужой уровень», когда чужой уже найден, — без проверки многоугольника
+        for(var q=0;q<L.length;q++){ var ar = NAVAREAS[L[q]]; if(NAV_BLOCKED[ar.id]) continue; var mine = inR[ar.id] || !(Math.abs(ar.z - zz) > JUMP_UP);
+          if(!mine && other) continue; if(!pointInPoly(x, y, ar.points)) continue; if(mine){ hit = true; break; } other = true; }
         if(other && !hit) bad = true; } } }
   if(bad){
     var mids = [];
