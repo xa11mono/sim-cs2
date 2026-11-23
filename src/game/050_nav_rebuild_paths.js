@@ -423,6 +423,9 @@ function zoneDijkstra(fromId, toId, team){
   // за переход: сколько ни нарезано участков, пройти круг насквозь стоит KNOWN_DETOUR × вес
   var tp0 = zoneDijkstra.toPt;
   var KP = zoneDijkstra.fire && team ? knownPathSpots(team).filter(function(q){ return !tp0 || Math.hypot(q.x-tp0.x, q.y-tp0.y) > KNOWN_PATH_R; }) : [];
+  // (22.11, аудит 040) и простреливаемость: зона, которую видно с места врага (ZONE_DANGER_W, 060: 3D-видимость, доля пар точек), дороже на
+  // KNOWN_DETOUR × вес × доля — один раз при входе в зону карты (не на каждом участке навмеша — мелкая нарезка не копит штраф, v469)
+  var KPZ = KP.map(function(q){ return zoneIdAt(q.x, q.y); });
   // (док 6, п.6 «зависания»: в тике планта — 1069 поисков пути, 1,08 с; 707 из них — от бомбы к местам-кандидатам сейва, 349 — от бойца к
   // зонам ухода) поиск из одного начала в одной обстановке (тот же тик, команда, точка старта, огонь, известные враги, граф) продолжается
   // с места, где остановился прошлый, а не начинается заново: порядок обхода тот же, что у отдельного поиска до цели, — путь бит в бит
@@ -438,7 +441,7 @@ function zoneDijkstra(fromId, toId, team){
     // вошли (середина перехода; у начала — сама точка старта, zoneDijkstra.from), а не от центра участка: по центрам мелко нарезанная
     // рампа «стоила» дороже бордюра того же пути. Переход между участками — ROUTE_PORTAL (было 40 — проектное число)
     var fromCentroid = entry[u] || zoneCentroid(zonesById[u]);
-    var EL = zoneGraph[u] || [], nKP = KP.length;
+    var EL = zoneGraph[u] || [], nKP = KP.length, zmU = nKP ? zoneIdAt(fromCentroid.x, fromCentroid.y) : null;   // (аудит 040) зона карты, откуда входим
     for(var ei = 0; ei < EL.length; ei++){ var edge = EL[ei];
       if(visited[edge.to]) continue;
       var w = dist2(fromCentroid, edge.mid) + ROUTE_PORTAL + navJumpCost(zonesById[u], edge); // small fixed cost per portal crossing
@@ -452,7 +455,9 @@ function zoneDijkstra(fromId, toId, team){
         var mnx = sax < sbx ? sax : sbx, mxx = sax < sbx ? sbx : sax, mny = say < sby ? say : sby, mxy = say < sby ? sby : say, KR = KNOWN_PATH_R;
         for(var kq = 0; kq < nKP; kq++){ var kqp = KP[kq];
           if(mxx < kqp.x - KR || mnx > kqp.x + KR || mxy < kqp.y - KR || mny > kqp.y + KR) continue;
-          w += knownSegCost(fromCentroid, edge.mid, kqp); } }
+          w += knownSegCost(fromCentroid, edge.mid, kqp); }
+        var zmV = edge._zm !== undefined ? edge._zm : (edge._zm = zoneIdAt(edge.mid.x, edge.mid.y));
+        if(zmV && zmV !== zmU){ var DW = ZONE_DANGER_W[zmV]; if(DW) for(var kz = 0; kz < nKP; kz++){ var zq = KPZ[kz]; if(zq && DW[zq]) w += KNOWN_DETOUR*KP[kz].w*DW[zq]; } } }
       var alt = dist[u] + w;
       if(dist[edge.to]===undefined || alt<dist[edge.to]){
         dist[edge.to] = alt; prev[edge.to] = u; entry[edge.to] = edge.mid; heap.push(edge.to, alt);
