@@ -21,6 +21,9 @@
 function iglSit(tt){ return roundNum + ":" + aliveCount("T") + ":" + aliveCount("CT") + ":" + tt.site; }
 function iglOnce(tt, k){ return !(tt._once && tt._once[k] === iglSit(tt)); }
 function iglDone(tt, k){ (tt._once || (tt._once = {}))[k] = iglSit(tt); }
+// (22.11, аудит 020) фаза плана T и время выхода — один хозяин (IGL): запись только здесь
+function tPhase(tt, ph){ if(tt.phase !== ph) tt._phT = tick; tt.phase = ph; }
+function tExecAt(tt, tk){ tt.execTick = tk; }
 function iglTake(tt, evTick){ if(evTick <= (tt._evDone||-1)) return false; tt._evDone = evTick; return true; }
 function carrierAtSite(tt){
   if(bomb.state !== "carried" || !bomb.carrier || !bomb.carrier.alive) return false;
@@ -58,7 +61,7 @@ function tIglReplan(tt, site, other, secLeft){
     cands.forEach(function(t){ var v = contScore(t);
       if(v > bsC + 1e-9 || (Math.abs(v - bsC) <= 1e-9 && bestC && (since(t) > since(bestC) || (since(t) === since(bestC) && wr(t) > wr(bestC))))){ bsC = v; bestC = t; } });
     if(bestC){
-      tt.open = tt.open || tt.tac; tt.tac = bestC; tt.execTick = Math.max(tt.execTick, tick + CONT_REGROUP*TICK_HZ);
+      tt.open = tt.open || tt.tac; tt.tac = bestC; tExecAt(tt, Math.max(tt.execTick, tick + CONT_REGROUP*TICK_HZ));
       voiceLog("T", "cont"+roundNum, "IGL", "после дефолта — "+bestC.name);
       logEvent("IGL: дефолт → продолжение «"+bestC.name+"» (держим путь: "+Math.max(0, Math.round(bsC))+")");
     }
@@ -76,7 +79,7 @@ function tIglReplan(tt, site, other, secLeft){
        aliveT >= 3 && tt.execTick - tick > 6*TICK_HZ && !last.traded && last.tick > (tt._evDone||-1)){
       if(raceOk(last) && iglTake(tt, last.tick)){
         tt._rpFast = true;
-        tt.execTick = Math.max(tick + 4*TICK_HZ, Math.min(tt.execTick, tick + 6*TICK_HZ));
+        tExecAt(tt, Math.max(tick + 4*TICK_HZ, Math.min(tt.execTick, tick + 6*TICK_HZ)));
         voiceLog("T", "rpfast", "IGL", "их игрок "+calloutName(last.kx, last.ky)+" — на "+tt.site+" без него, заходим раньше!");
         logEvent("IGL: минус в сетапе, но CT далеко от "+tt.site+" — выход раньше");
       }
@@ -88,7 +91,7 @@ function tIglReplan(tt, site, other, secLeft){
       var lastC = cdS[cdS.length-1];
       if(lastC && tick - lastC.tick < 2*TICK_HZ && iglTake(tt, lastC.tick)){
         tt._upSlow = tick; tt._rpFast = true; // и не ускоряемся на следующий минус
-        if(tt.execTick - tick < 8*TICK_HZ) tt.execTick = tick + 8*TICK_HZ;
+        if(tt.execTick - tick < 8*TICK_HZ) tExecAt(tt, tick + 8*TICK_HZ);
         voiceLog("T", "upslow", "IGL", aliveT+" на "+aliveCT+" — не спешим, берём карту и заходим все вместе");
         logEvent("IGL: численный перевес "+aliveT+"v"+aliveCT+" — без спешки, выход всей группой");
       }
@@ -99,7 +102,7 @@ function tIglReplan(tt, site, other, secLeft){
       var lk = bots.filter(function(b){ return b.team === "T" && b.alive && b.tRole === "lurker"; })[0];
       tt.regroup = tick;
       if(lk){ lk._route = null; lk._routeDone = null; }
-      tt.execTick = Math.max(tt.execTick, tick + 5*TICK_HZ); // дать дойти
+      tExecAt(tt, Math.max(tt.execTick, tick + 5*TICK_HZ)); // дать дойти
       voiceLog("T", "regroup", "IGL", "минус два — "+(lk ? lk.id+" к нам, " : "")+"заходим все вместе");
       logEvent("IGL: потеряли двоих без размена — перегруппировка"+(lk ? " (лёркер "+lk.id+" к основной группе)" : ""));
     }
@@ -124,8 +127,8 @@ function tIglReplan(tt, site, other, secLeft){
           tt.rebound = true;
           voiceLog("T", "rotread", "IGL", toward.length+" CT ротируют на "+tt.site+" — идём на "+other+", но углы чекаем, там может кто-то остаться");
           logEvent("IGL: слышим ротацию CT на "+tt.site+" → перекол на "+other+" (не значит, что там пусто)");
-          tSetSite(tt, other); tt.phase = "setup";
-          tt.execTick = tick + Math.round(Math.min(Math.max(4, trvR*0.7), 12)*TICK_HZ);
+          tSetSite(tt, other); tPhase(tt, "setup");
+          tExecAt(tt, tick + Math.round(Math.min(Math.max(4, trvR*0.7), 12)*TICK_HZ));
           return true;
         } else logEvent("IGL: слышим ротацию CT на "+tt.site+", но на "+other+" их не меньше (" + ctOther.toFixed(1) + " против " + ctHere.toFixed(1) + ") или не успеть — играем по плану");
       }
@@ -146,11 +149,11 @@ function tIglReplan(tt, site, other, secLeft){
       tt.takeAssign = null; tt.plantPick = null; tt.wave2 = null; tt.w1Contact = null; tt._popDone = false; tt._waitLog = false;
       nadeFlags.tExec = false; nadeFlags.tExecSm = false; nadeFlags.peekFlashPlanned = false;
       if(goOther){
-        tSetSite(tt, other); tt.phase = "setup"; tt.execTick = tick + Math.round(Math.min(travel*0.8, 14)*TICK_HZ);
+        tSetSite(tt, other); tPhase(tt, "setup"); tExecAt(tt, tick + Math.round(Math.min(travel*0.8, 14)*TICK_HZ));
         voiceLog("T", "abort", "IGL", "выход не прошёл — отходим, все на "+other+"!");
         logEvent("IGL: выход провалился ("+tD+" наших против "+cD+") — отход, перекол на "+other);
       } else {
-        tt.phase = "setup"; tt.execStart = null; tt.execTick = tick + 6*TICK_HZ;
+        tPhase(tt, "setup"); tt.execStart = null; tExecAt(tt, tick + 6*TICK_HZ);
         voiceLog("T", "abort", "IGL", "стоп, отходим — перегруппируемся и заходим вместе");
         logEvent("IGL: выход провалился ("+tD+" наших против "+cD+") — отход и повторный заход на "+tt.site);
       }

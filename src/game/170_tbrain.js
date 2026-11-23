@@ -11,7 +11,7 @@ var BOMB_HERE_R = 700;   // (v560) ед. карты: бомба лежит «у 
 function tBrain(){
   var tt = teamTac.T; if(!tt) return;
   exuTick(tt);   // (тактика 30.10) гранаты выхода: жизненный цикл, провал, резервный исполнитель (366)
-  if(tt.phase === "setup" && tt.minExec && tt.execTick < roundStartTick + tt.minExec*TICK_HZ) tt.execTick = roundStartTick + tt.minExec*TICK_HZ;
+  if(tt.phase === "setup" && tt.minExec && tt.execTick < roundStartTick + tt.minExec*TICK_HZ) tExecAt(tt, roundStartTick + tt.minExec*TICK_HZ);
   bStageFix();
   if(tt.seenCT && tick % 16 === 0 && (tt.phase === "setup" || (tt.execStart != null && tick - tt.execStart < 8*TICK_HZ))){
     ["A","B"].forEach(function(k){ var e = intelEstimate("T", SITES[k].x, SITES[k].y, 450, 4*TICK_HZ); if(e.seen > tt.seenCT[k]) tt.seenCT[k] = e.seen; });
@@ -61,7 +61,7 @@ function tBrain(){
       if(!XG.go){ goNow = false; if(tt._smWaitLog !== XG.why){ tt._smWaitLog = XG.why; logEvent("T: ждём — "+XG.why); exuEv("wait", null, {why:XG.why}); } }
     }
     if(goNow){
-      tt.phase = "execute"; tt.execStart = tick; siteHeatPending[tt.site] = 1;
+      tPhase(tt, "execute"); tt.execStart = tick; siteHeatPending[tt.site] = 1;
       exuEv("exec", null, {site:tt.site, late:secLeft < EXU_LATE});
       logEvent("T: выход на "+tt.site+"!"+(tt._waitLog ? " (все собрались)" : ""));
     }
@@ -78,12 +78,12 @@ function tBrain(){
     // Connector) раннее «не спешим» (proTempo, до 22 с) — не когда наш уже стоит на сайте: сайт взят, заходим
     var ourOnSite = bots.some(function(o){ return o.team === "T" && o.alive && (onSite(site, o.x, o.y) || Math.hypot(o.x-site.x, o.y-site.y) < 450); });
     if(!tt._fastGo && pickSig && aliveCount("T") >= 4 && (tick - roundStartTick > 22*TICK_HZ || ourOnSite) && iglTake(tt, pickSig.tick)){
-      tFastGo(tt, function(){ tt.phase = "execute"; tt.execStart = tick; siteHeatPending[tt.site] = 1;
+      tFastGo(tt, function(){ tPhase(tt, "execute"); tt.execStart = tick; siteHeatPending[tt.site] = 1;
         voiceLog("T", "pick"+tt.site, "IGL", "минус на "+tt.site+", заходим сразу!");
         logEvent("T: выход на "+tt.site+"! (сняли CT на сайте)"); });
     }
   }
-  if(bomb.state === "planted" && tt.phase !== "postplant"){ tt.phase = "postplant";
+  if(bomb.state === "planted" && tt.phase !== "postplant"){ tPhase(tt, "postplant");
     // (v144) фланг через мид и охота имели смысл до планта. После планта у них
     // не было исполнителя — стояли, где оставили. Теперь все в пост-плант
     if(BAL.ppFix === true) bots.forEach(function(o){ if(o.team !== "T") return; o._midFlank = null; o._shift = null; o._egC = null;
@@ -142,7 +142,7 @@ function tBrain(){
       tt.rebound = true;
       voiceLog("T", "reb"+other, "IGL", lateOK ? "ПЕРЕКОЛЛ "+tt.site+" → "+other+": на "+tt.site+" их больше, на "+other+" сняли опорника — бомба на "+other+"!" : "минус на "+other+", там пусто — все на "+other+"!");
       logEvent("IGL: перекол → "+other+" (сняли CT, сайт пустой)");
-      tSetSite(tt, other); tt.phase = "setup"; tt.execTick = tick + 3*TICK_HZ;
+      tSetSite(tt, other); tPhase(tt, "setup"); tExecAt(tt, tick + 3*TICK_HZ);
       return;
     }
     // смерть своего у сайта в сетапе уже повод передумать, если там же видели 2+
@@ -157,7 +157,7 @@ function tBrain(){
       voiceLog("T", "reb"+other+"st", "IGL", "ПЕРЕКОЛЛ "+tt.site+" → "+other+": на "+tt.site+" стак (~"+Math.round(here)+(deathsHere ? ", минус там" : "")+") — все на "+other+"!");
       // перекол не значит "сразу выход": группа переходит и выходит примерно по
       // исходному таймингу (минимум через 8с, чтобы успеть дойти)
-      var exT = tt.execTick; tSetSite(tt, other); tt.phase = "setup"; tt.execTick = Math.max(tick + 8*TICK_HZ, exT - 8*TICK_HZ);
+      var exT = tt.execTick; tSetSite(tt, other); tPhase(tt, "setup"); tExecAt(tt, Math.max(tick + 8*TICK_HZ, exT - 8*TICK_HZ));
       return; // со следующего тика мозг работает уже по новому сайту
     }
   }
@@ -201,8 +201,8 @@ function tBrain(){
         voiceLog("T", "clrreb"+other, "IGL", "ПЕРЕКОЛЛ "+tt.site+" → "+other+": "+(conf ? other+" прочекали — пусто, все на "+other+", ставим там!" : other+" вероятно пустой — идём, заходим аккуратно, чекаем"));
         logEvent("IGL: "+other+(conf ? " прочекан и пуст" : " вероятно пуст")+" — перекол → "+other);
         tSetSite(tt, other); site = SITES[tt.site];
-        if(conf){ tt.phase = "execute"; tt.execStart = tick; tt.fewGo = true; }
-        else { tt.phase = "setup"; tt.execTick = tick + 4*TICK_HZ; }
+        if(conf){ tPhase(tt, "execute"); tt.execStart = tick; tt.fewGo = true; }
+        else { tPhase(tt, "setup"); tExecAt(tt, tick + 4*TICK_HZ); }
         return;
       }
     }
@@ -225,7 +225,7 @@ function tBrain(){
       var fl2 = tsM.slice(0, 2);
       fl2.forEach(function(b){ b._midFlank = {round:roundNum, site:tt.site}; b._route = null; b._routeDone = null;
         startRoute(b, (MT.route && MT.route[tt.site]) || MT.route, "midct"+roundNum); });   // (аудит 021) маршрут по сайту (Mirage: к A — Connector, к B — Catwalk)
-      tt.execTick = Math.max(tick + 18*TICK_HZ, Math.min(tt.execTick, tick + 30*TICK_HZ));
+      tExecAt(tt, Math.max(tick + 18*TICK_HZ, Math.min(tt.execTick, tick + 30*TICK_HZ)));
       voiceLog("T", "midtake", midKill.by, "мид наш! "+fl2.map(function(b){ return b.id; }).join(" и ")+" — через "+((MT.via && MT.via[tt.site]) || MT.via)+", "+tt.site+" с двух сторон");
       logEvent("IGL: мид взят — заход на "+tt.site+" с двух сторон (через "+((MT.via && MT.via[tt.site]) || MT.via)+")");
     }
@@ -241,7 +241,7 @@ function tBrain(){
       var was = tt.site;
       if(seenHere > 0 && seenOther === 0 && !tSiteTaking(tt)){ tSetSite(tt, other);   // (22.11, Ж16) последних видели у нас, но сайт берётся — добиваем здесь
         site = SITES[tt.site]; g = GEO[tt.site]; other = tt.site === "A" ? "B" : "A"; }
-      tt.fewGo = true; tt.phase = "execute"; tt.execStart = tick; siteHeatPending[tt.site] = 1;
+      tt.fewGo = true; tPhase(tt, "execute"); tt.execStart = tick; siteHeatPending[tt.site] = 1;
       voiceLog("T", "few"+roundNum, "IGL", was !== tt.site ? "ПЕРЕКОЛЛ "+was+" → "+tt.site+": их осталось "+aCT+", на "+was+" видели — заходим сейчас!"
                                                            : "их осталось "+aCT+" — заходим сейчас, бомба на "+tt.site+"!");
       logEvent("T: выход на "+tt.site+"! (CT осталось "+aCT+")"); });
@@ -261,7 +261,7 @@ function tBrain(){
     // (v381, М132) или по расстановке: на нашем сайте видели одного, и по увиденному в других районах там больше одного не ждут
     var srS = tt.setupRead && tick - roundStartTick <= 40*TICK_HZ ? tt.setupRead.E[tt.site] : null;
     if(eS.seen === 1 && (beliefCount("T", BZ.siteNear[tt.site]||[]) < 1.4 || srS != null && srS <= 1.2) && aliveT2 >= 4 && iglReads(tt, "so")){
-      tt.soloGo = true; tFastGo(tt, function(){ tt.phase = "execute"; tt.execStart = tick; siteHeatPending[tt.site] = 1;
+      tt.soloGo = true; tFastGo(tt, function(){ tPhase(tt, "execute"); tt.execStart = tick; siteHeatPending[tt.site] = 1;
         voiceLog("T", "solo"+tt.site, "IGL", "на "+tt.site+" один — заходим сейчас!");
         logEvent("T: выход на "+tt.site+"! (по инфе там соло)"); });
     }
@@ -384,7 +384,7 @@ function tBrain(){
       var ks2 = tt.site && (canK(tt.site) || bomb.state !== "carried") ? tt.site : (tt.site === "A" ? "B" : "A");
       tt.soloPlan = ks2;
       if(ks2 !== tt.site){ var exS = tt.execStart; tSetSite(tt, ks2); tt.execStart = exS; site = SITES[ks2]; g = GEO[ks2]; other = ks2 === "A" ? "B" : "A"; plantPt = site.plant || site; }
-      if(tt.phase === "setup"){ tt.phase = "execute"; tt.execStart = tick; }
+      if(tt.phase === "setup"){ tPhase(tt, "execute"); tt.execStart = tick; }
       tt.wave2 = tt.wave2 || tick;
       voiceLog("T", "solo", solo.id, "один, иду ставить "+ks2);
     }
@@ -574,7 +574,7 @@ function tBrain(){
             var hereN = siteAssess("T", tt.site).near, fkN = siteAssess("T", fk).near;
             if(hereN >= 2 && fkN <= 1 && secLeft > 35 && !(bomb.state === "dropped" && Math.hypot(bomb.x-SITES[tt.site].x, bomb.y-SITES[tt.site].y) < BOMB_HERE_R)){
               var trvF = polyLen(pathPts(SITES[tt.site].x, SITES[tt.site].y, SITES[fk].x, SITES[fk].y))/SPEED;   // (аудит 037) по пути, было — прямая × 1,2
-              tSetSite(tt, fk); tt.phase = "setup"; tt.execTick = tick + Math.round(Math.min(trvF*0.8, 12)*TICK_HZ);
+              tSetSite(tt, fk); tPhase(tt, "setup"); tExecAt(tt, tick + Math.round(Math.min(trvF*0.8, 12)*TICK_HZ));
               logEvent("IGL: на "+fk+" не купились, но там один, а у нас их "+hereN+" — фейк становится выходом на "+fk);
               voiceLog("T", "fakereal", "IGL", "на "+fk+" один и не уходит, у нас их "+hereN+" — заходим на "+fk);
             } else logEvent("IGL: на "+fk+" не купились — держит место, играем по плану");
