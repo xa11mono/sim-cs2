@@ -946,7 +946,15 @@ function tBrain(){
     // не видели и не слышали 10с, и их меньше нас — похоже на сейв
     var ctNearB = intelEstimate("T", bomb.x, bomb.y, 1200, 10*TICK_HZ);
     var ctSaving = tick - bomb.plantTick > 15*TICK_HZ && (ctNearB.seen + ctNearB.heard) === 0 && aliveCount("CT") < ts.length;
-    if(ctSaving && bombTimeLeftTicks() > 12*TICK_HZ){
+    // (v587, отметка владельца 24.11 м1 р2 т10711 «побежали на hunt, путь сбросился, опять побежали на сайт, у бомбы 10 секунд»)
+    // охота включалась и выключалась по одному и тому же счёту КАЖДЫЙ тик: как только у бомбы осталось ≤ 12 с, пара разворачивалась
+    // с полдороги — 11,5 с ушло на дорогу туда-обратно, и на ретейк времени не осталось. Теперь — одно решение на раунд (правило
+    // «одно место на решение»): ушли в охоту — идут, пока стоит бомба и живы CT; снимаем только по настоящему признаку ретейка
+    // (CT увидели у бомбы) или если бомба снята/взорвалась
+    var huntNow = !!tt._hunt && tt._hunt.round === roundNum;
+    if(!huntNow && ctSaving && bombTimeLeftTicks() > 12*TICK_HZ){ tt._hunt = {round:roundNum, since:tick}; huntNow = true; }
+    if(huntNow && (!bomb || bomb.state !== "planted" || aliveCount("CT") <= 0 || ctNearB.seen > 0)) huntNow = false;
+    if(huntNow){
       var hunters = group.filter(function(b){ return b.tRole==="entry" || b.tRole==="support"; });
       // где CT вероятнее всего прячутся: раньше было всего 2-3 фиксированные
       // точки вокруг спавна — хантеры весь раунд бегали туда-обратно между
