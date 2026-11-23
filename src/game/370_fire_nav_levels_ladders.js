@@ -60,7 +60,7 @@ function fireCommit(b){
   if(b.planting || b.defusing) return b.hp > fireDamageFor(((b.planting ? b.plantUntil : b.defuseUntil) - tick)/TICK_HZ) + 10;
   var going = b.path && b.pathIdx < b.path.length;
   if(!going || b.holding || (b.post && inFire(b.post.x, b.post.y, b.post.z))) return false;   // держит угол — не идёт насквозь, а стоит в огне
-  if(fireAheadLeft(b) <= fireSlack(b)) return false;   // огонь прогорит раньше, чем кончится запас задачи — ждёт / обходит
+  var fa = fireAheadLeft(b); if(fa <= 0 || fa <= fireSlack(b)) return false;   // огня на пути нет / прогорит раньше, чем кончится запас задачи — ждёт / обходит (запас — путь, считается только при огне на пути)
   return b.hp > fireDamageFor(2*NADE.molly.radius/(SPEED*weaponSpeedMul(b))) + FIRE_MARGIN;
 }
 // (v321) высота шага: без связи в навмеше нельзя подняться выше прыжка (JUMP_UP), и нельзя залезть туда, откуда есть
