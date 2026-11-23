@@ -12,6 +12,8 @@ var RT_A = 1.4, RT_K = 0.18, RT_UTIL_W = 0.1, RT_SAVE_P = 0.07;   // RT_SAVE_P: 
 // оружие — ценность оружия в игре (weaponValue, 450: уровень, AWP и АК выше) относительно АК; было — время убийства duelTTK (AWP выходил 0,27: темп стрельбы,
 // а не убийство с выстрела) — прогон 298: сейвы 3v3 с MP9 и 4v4 с FAMAS сразу после планта
 function ctWeaponK(b){ var k = b.primary || (b.weapon && b.weapon.key); return Math.max(0.15, weaponValue(k) / weaponValue("AK")); }
+// сила CT для решений команды (одна мера для сейва/ретейка 002 и ротации 016): HP / 100 × ценность оружия относительно АК
+function ctStrength(b){ return (b.hp/100)*ctWeaponK(b); }
 function ctRetakeOdds(cts, site, secs, bombPos){
   var S = SITES[site]; if(!S) return {p: 0, ct: 0, t: 0, can: false};
   var bp = bombPos || S, can = false, sct = 0, st = 0;
@@ -19,7 +21,7 @@ function ctRetakeOdds(cts, site, secs, bombPos){
   can = tDef <= secs;
   cts.forEach(function(b){ var arr = pathLenTo(b, bp.x, bp.y)/(SPEED*weaponSpeedMul(b)); if(arr > secs - 1) return;
     var u = b.nades ? (b.nades.flash || 0) + (b.nades.smoke || 0) : 0;
-    sct += (b.hp/100)*ctWeaponK(b) + RT_UTIL_W*u; });
+    sct += ctStrength(b) + RT_UTIL_W*u; });
   var ring = (BZ.siteRing && BZ.siteRing[site]) || BZ.siteNear[site] || [], HT = teamIntel.CT && teamIntel.CT.hurt;
   bots.forEach(function(o){ if(o.team !== "T" || !o.alive) return;
     var P = belief.CT && belief.CT[o.id], fresh = beliefSeen.CT[o.id] != null && tick - beliefSeen.CT[o.id] < 10*TICK_HZ, w = 1;
@@ -163,10 +165,15 @@ function ctBrain(){
   // бомба / плант (проектное правило). «Сайт пустой» — не инфа о T: опорник мог сам уйти на ротацию.
   // Раньше колл скакал между A и B по разнице «счёта» в доли (A1 ↔ B1,1 за 16 тиков), и ротаторы
   // разворачивались туда-обратно.
+  // (22.11, аудит 015, м271222 р6: колл A держался 18→58 с) было: пока ротация бежит, другой сайт перебивал колл только бомбой / плантом / большим
+  // округлённым счётом — слабые копящиеся признаки (звуки на подходе, тишина у сайта колла) не значили ничего. Стало: колл на сайт, куда ушла ротация,
+  // держится, пока там есть наблюдения; другой сайт берёт колл, если там НОВОЕ наблюдение (obs) и его оценка (score: инфа + масса карты) выше, чем
+  // у сайта ротации; у сайта ротации давно тихо (нет наблюдений 6 с — то же «давно», что у отбоя колла) — колл туда, где оценка выше
   var goOn = !!(ct.go && ct.call && ct.go.site === ct.call.site && cts.some(function(o){ return ct.go.ids[o.id]; }));
   if(goOn && best && best.site !== ct.go.site){
-    var fresh = best.est.seen + best.est.heard > 0 || best.carrier || best.plant || best.deaths > 0 || best.nades >= 2;
-    if(!(fresh && (best.carrier || best.plant || Math.round(best.count) > Math.round(ct.call.count)))) best = res[ct.go.site] || null;
+    var OTg = ct._obsT && ct._obsT.r === roundNum ? ct._obsT : {}, cur = res[ct.go.site];
+    var goQuiet = tick - (OTg[ct.go.site] != null ? OTg[ct.go.site] : roundStartTick) > 6*TICK_HZ;
+    if(!(best.carrier || best.plant || goQuiet || (best.obs && (!cur || best.score > cur.score)))) best = cur || null;
   }
   // (Д2, владелец 05.11: «спамился колл отбой… все на B») остался один T до планта — колл снят на весь раунд (эндгейм 330: один на него), а не
   // ставится снова новой инфой на следующем тике (колл ↔ отбой каждый тик, «отбой» каждый раз шёл в войс)
@@ -239,8 +246,10 @@ function ctBrain(){
     var ks = ct.call.site, ko = ks === "A" ? "B" : "A", sc0 = SITES[ks];
     var need = Math.max(1, Math.ceil(ct.call.count - 0.25));
     var defenders = cts.filter(function(b){ return ctNearSite(b, sc0, 450); }).length;
-    // защитников ≈ сколько там врагов (сайт даёт позиционное преимущество)
-    var send = Math.max(0, Math.min(3, need - defenders));
+    // защитников ≈ сколько там врагов (сайт даёт позиционное преимущество). (22.11, аудит 016) защитник — по силе (HP × оружие, ctStrength — та же мера,
+    // что в оценке ретейка), а не по головам: раненый с пистолетом — не полный защитник; врагов — сколько по колл-счёту
+    var defStr = cts.reduce(function(a, b){ return a + (ctNearSite(b, sc0, 450) ? ctStrength(b) : 0); }, 0);
+    var send = Math.max(0, Math.min(3, Math.ceil(need - defStr - 0.25)));
     // (22.11, Ж23-П4, разбор м271222 р6) тишина меняет колл (PRO_PLAY: ротируют по давности и надёжности инфы; «тишина меняет колл»):
     // у этого сайта свежее наблюдение, у другого давно тихо (то же «давно», что у отбоя колла, 6 с), а живых T, о которых команда не знает,
     // где они, ≥ 2 — один ротатор идёт, даже если по счёту «хватает» своих (опорник один против неизвестно скольких). Не всех: может быть фейк
@@ -292,7 +301,7 @@ function ctBrain(){
     // (22.11, аудит 002/003) «не лезем по одному — играем ретейк»: было — «их здесь на 2 больше нас и ≥ 3». Стало — сравнение шансов: держать сейчас
     // (кто уже у сайта против ожидаемых здесь T, преимущество — у держащего сайт, RT_A, то же число, что у T на бомбе: допущение симметрии) против
     // ретейка потом (ctRetakeOdds со всеми, время — до конца раунда + горение бомбы)
-    var defS = cts.reduce(function(a, b){ return a + (ctNearSite(b, sc0, 450) ? (b.hp/100)*ctWeaponK(b) : 0); }, 0);
+    var defS = cts.reduce(function(a, b){ return a + (ctNearSite(b, sc0, 450) ? ctStrength(b) : 0); }, 0);
     var pNow = 1/(1 + Math.exp(-RT_K*(RT_A*defS*defS - here*here))), pLater = ctRetakeOdds(cts, ks, ROUND_TIME_SEC - (simTime - roundStartTime) + BOMB_TICKS/TICK_HZ, null).p;
     var stackIn = here >= 2 && pLater > pNow;
     if(stackIn && cts.length < tAliveN && !ct.call.bombSeen){
