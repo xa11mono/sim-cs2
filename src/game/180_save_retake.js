@@ -89,6 +89,35 @@ function tPlantChance(ts, secLeft){
       return L/SPEED + PLANT_TICKS/TICK_HZ < secLeft; });
   })[0] || null;   // сайт, куда успевают (A раньше B — порядок проверки; оба пусты — редкость)
 }
+// (23.11, пост-плант T, разбор тактика + решение владельца) одиночка / меньшинство после планта: одно решение — играть на победу или сохранить
+// оружие — и держаться его (было: «один — прячусь, выйду на звук дефуза» по одному факту «я один», 170). Шанс T — та же модель ретейка, что у CT
+// (002, ctRetakeOdds: P_CT = 1/(1+e^(−RT_K·(Sct² − RT_A·St²)))), но по знанию T: живые CT (киллфид), их HP — по колам «тапнул» (teamIntel.T.hurt,
+// ≤ 20 с), оружие CT T не видит — как АК; свои — HP × оружие. CT не успевают (по гипотезам T о местах CT — 120 tCtEtaKnown — плюс дефуз: кит —
+// гипотеза DEF_KIT_P) — шанс T 1. Ниже RT_SAVE_P (та же граница, что у CT, из демок про) — сейв, если сохранять есть смысл (как tSaveWant: деньги)
+function tPpOdds(ts){
+  if(!bomb || bomb.state !== "planted") return 1;
+  var left = bombTimeLeftTicks()/TICK_HZ, dEx = DEF_KIT_P*DEFUSE_KIT_TICKS/TICK_HZ + (1 - DEF_KIT_P)*DEFUSE_TICKS/TICK_HZ;
+  if(tCtEtaKnown() + dEx > left) return 1;
+  var HT = teamIntel.T && teamIntel.T.hurt, sct = 0, st = 0;
+  bots.forEach(function(o){ if(o.team !== "CT" || !o.alive) return; var h = HT && HT[o.id]; sct += (h && tick - h.tick < 20*TICK_HZ) ? h.hp/100 : 1; });
+  ts.forEach(function(b){ st += (b.hp/100)*ctWeaponK(b); });
+  return 1 - 1/(1 + Math.exp(-RT_K*(sct*sct - RT_A*st*st)));
+}
+function tPpSaveWant(ts){
+  if(!ts.length || tPpOdds(ts) >= RT_SAVE_P) return false;
+  var aT = ts.length, gunVal = ts.reduce(function(a, b){ return a + (b.primary ? WEAPONS[b.primary].price : 0); }, 0) / aT;
+  var Ts = bots.filter(function(o){ return o.team === "T"; }), inc = nextLossIncome("T");
+  var bank = Ts.reduce(function(a, o){ return a + o.money + inc; }, 0), need = Ts.reduce(function(a, o){ return a + fullNeedU(o); }, 0) + gunVal*aT;
+  return bank < need && gunVal >= 1500 && saveWorth("T");
+}
+// решение держится, пока не изменилась ситуация: расклад живых, узнали о дефузе (пересмотр по событию, а не по часам)
+function tPpPlan(tt, ts){
+  var key = roundNum + ":" + bomb.plantTick + ":" + ts.length + "v" + aliveCount("CT") + ":" + (tDefuseKnown() ? 1 : 0);
+  if(!tt._ppPlan || tt._ppPlan.key !== key){ var sv = tPpSaveWant(ts);
+    if(sv && !(tt._ppPlan && tt._ppPlan.save)) voiceLog("T", "ppsave" + key, ts[0].id, ts.length === 1 ? "один — шансов нет, сохраняю оружие" : "шансов нет — сохраняем оружие");
+    tt._ppPlan = {key: key, save: sv, p: tPpOdds(ts)}; }
+  return tt._ppPlan;
+}
 // сейв T: каждый живой — к своему месту сейва (один раз выбранному), бомбу не ставит
 function tSaveHold(){
   bots.forEach(function(b){ if(b.team !== "T" || !b.alive) return;

@@ -230,6 +230,14 @@ function contactTick(b){
   // яруса, откуда враг виден (то же место, что у помощи своему — assistEdgeSpot, 480)
   if(swing && !cand.length){ var eg = assistEdgeSpot(b, {x:C.x, y:C.y, z:C.z, crouching:false}); if(eg) cand = [eg]; }
   if(swing && !cand.length){ swing = false; cand = contactSpots(false); }
+  // (23.11, пост-плант T, разбор тактика, тип Б: «держу угол» уводил с поста, откуда видно бомбу, — 15 эпизодов) после планта держать угол — так,
+  // чтобы бомбу было видно и дальше: точки с видом на бомбу — первыми; таких нет, а со своего поста бомбу видно — остаётся на посту, смотрит на
+  // контакт (уйти — потерять вид на бомбу, ради которого встал)
+  if(!swing && b.team === "T" && bomb && bomb.state === "planted"){
+    var ppB = cand.filter(function(q){ return hasLOS(q.x, q.y, bomb.x, bomb.y); });
+    if(ppB.length) cand = ppB;
+    else if(b.post && taskProp(b.post.tag, "postPlantPost") && hasLOS(b.post.x, b.post.y, bomb.x, bomb.y)){ b._contact = {x:C.x, y:C.y, id:C.id, until: tick + CONTACT_HOLD*TICK_HZ, lock:false}; b._contactT = tick; return; }
+  }
   if(hasLOS(b.x, b.y, look.x, look.y, b.z, C.z) && !swing) cand.unshift({x:b.x, y:b.y});
   // (v558, В76 ч.3) выход — на дистанцию своего оружия (медиана убийств им у про, wpnKillDist 280): с Five-SeveN / ПП — ближе, с Deagle /
   // AWP — не лезть вплотную; было — всегда ближайшая к врагу точка

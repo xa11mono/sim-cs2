@@ -385,6 +385,21 @@ function ppPairK(Z, i, j){
   if(a0 !== null && Math.hypot(c.x-s.x, c.y-s.y) < 120 && c.look && c.look[0] && _angOff(c.look[0][0], a0) < 0.52) k *= PP_DUP;
   return k;
 }
+// (23.11, пост-плант T, разбор тактика, тип Д: «все с одной стороны — один CT с одной точки снимает 2–3 подряд»; кроссфайр — двое с разных мест на
+// один вход) пара мест: с входа e видны оба под малым углом (< PP_ONE_A) — один пик забирает обоих: × exp(−PP_TAC_K·HOLD.stack·w); оба видят
+// главный для них вход e под углом 50–120° — кроссфайр: × exp(PP_TAC_K·HOLD.cross·w) (углы — как в holdSpot). w — доля опасности входа
+var PP_TAC_K = 0.5, PP_TAC_R = 420, PP_STOP_MIN = 0.15, PP_ONE_A = 0.5;   // проектные: перевод очков HOLD в множитель; радиус входов; нижний предел; угол «одним пиком»
+function ppPairTac(Z, E){
+  var n = Z.spots.length, M = [], V = Z.spots.map(function(s){ return E.map(function(e){ return hasLOS(s.x, s.y, e.pt.x, e.pt.y); }); });
+  for(var i = 0; i < n; i++){ M[i] = []; for(var j = 0; j < n; j++){ if(j < i){ M[i][j] = M[j][i]; continue; } if(i === j){ M[i][j] = 1; continue; }
+    var s = Z.spots[i], c = Z.spots[j], lg = 0;
+    E.forEach(function(e, k){ if(!V[i][k] || !V[j][k]) return;
+      var da = _angOff(Math.atan2(s.y-e.pt.y, s.x-e.pt.x), Math.atan2(c.y-e.pt.y, c.x-e.pt.x));
+      if(da < PP_ONE_A && Math.hypot(c.x-s.x, c.y-s.y) > 30) lg -= HOLD.stack*e.wn;
+      else if(da > 0.87 && da < 2.1) lg += HOLD.cross*e.wn; });
+    M[i][j] = Math.exp(PP_TAC_K*lg); } }
+  return function(i, j){ return M[i][j]; };
+}
 function ppProGroup(members, bp, site, tag){
   var Z = ppProZone(bp, site); if(!Z) return null;
   var key = roundNum + ":" + Math.round(Z.x) + "," + Math.round(Z.y);
@@ -392,19 +407,28 @@ function ppProGroup(members, bp, site, tag){
   var free = members.filter(function(b){ return !(b._ppPro && b._ppPro.key === key); });
   if(free.length){
     var D = ppCtDir(bp), side = Z.spots.map(function(s){ return ppCtSideP(D, bp, s); });
+    // (23.11, пост-плант T, разбор тактика: «пост выбирается под ретейк, который T ожидает: какие входы откроются первыми, что видно с поста, кто
+    // напарник по размену») входы к бомбе — по знанию T о CT (threatEntrances; неизвестный враг может прийти любым — HOLD.anyW, как в holdSpot)
+    var E = threatEntrances("T", bp, PP_TAC_R); E.forEach(function(e){ e.w += HOLD.anyW; }); E = E.filter(function(e){ return e.w > HOLD.minW; });
+    var wmx = E.length ? E[0].w : 1; E.forEach(function(e){ e.wn = e.w/wmx; });
+    var stopP = Z.spots.map(function(s){ return defStopP(s, bp, "T"); });
+    var PK = ppPairTac(Z, E);   // кроссфайр / «оба видны с одного входа» — один раз на раздачу
     var U = {};   // оценка игрока на каждом месте — один раз на раздачу (путь — один раз на пару «бот — место»)
+    // × тактика места (holdTac: вижу главный вход, лишние открытые входы, открытость — те же HOLD.*, что «держать район»; в множитель — exp(PP_TAC_K × очки))
+    // × шанс сорвать дефуз с этого места (120 defStopP: вид на бомбу / успею дойти; не ниже PP_STOP_MIN — фактор, не запрет)
     free.forEach(function(b){ U[b.id] = Z.spots.map(function(s, i){
       var t = pathLenTo(b, s.x, s.y)/(SPEED*weaponSpeedMul(b));
-      return s.share*Math.exp(-Math.max(0, t - (s.tArr || 0))/PP_LATE)*(1 - (1 - PP_CT_SIDE)*side[i])*ppRoleK(b, s, members); }); });
+      return s.share*Math.exp(-Math.max(0, t - (s.tArr || 0))/PP_LATE)*(1 - (1 - PP_CT_SIDE)*side[i])*ppRoleK(b, s, members)*
+        Math.exp(PP_TAC_K*holdTac(b, s, E).s)*Math.max(PP_STOP_MIN, stopP[i]); }); });
     var asg = {}; fixed.forEach(function(b){ asg[b.id] = b._ppPro.i; });
     var all = fixed.concat(free);
     var total = function(){ var v = 1, ids = all.map(function(b){ return b.id; });
       free.forEach(function(b){ v *= U[b.id][asg[b.id]]; });
-      for(var x = 0; x < ids.length; x++) for(var y = x+1; y < ids.length; y++) v *= ppPairK(Z, asg[ids[x]], asg[ids[y]]);
+      for(var x = 0; x < ids.length; x++) for(var y = x+1; y < ids.length; y++) v *= ppPairK(Z, asg[ids[x]], asg[ids[y]])*PK(asg[ids[x]], asg[ids[y]]);
       return v; };
     // начало — по очереди лучшее место с учётом уже поставленных; дальше — переставить одного / поменять двоих, пока набор становится лучше
     free.forEach(function(b){ var bi = 0, bs = -1; Z.spots.forEach(function(s, i){ asg[b.id] = i;
-      var v = U[b.id][i]; all.forEach(function(o){ if(o !== b && asg[o.id] != null) v *= ppPairK(Z, i, asg[o.id]); }); if(v > bs){ bs = v; bi = i; } }); asg[b.id] = bi; });
+      var v = U[b.id][i]; all.forEach(function(o){ if(o !== b && asg[o.id] != null) v *= ppPairK(Z, i, asg[o.id])*PK(i, asg[o.id]); }); if(v > bs){ bs = v; bi = i; } }); asg[b.id] = bi; });
     var cur = total();
     for(var pass = 0; pass < 20; pass++){ var better = false;
       free.forEach(function(b){ var i0 = asg[b.id]; Z.spots.forEach(function(s, i){ if(i === i0) return; var keep = asg[b.id]; asg[b.id] = i; var v = total();

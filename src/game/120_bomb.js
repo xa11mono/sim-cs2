@@ -200,11 +200,14 @@ function tDefuseGo(tt, ts){
   var h0 = Math.max.apply(null, heard.map(function(b){ return b._defuseHeard; }));
   var cont = ts.some(function(b){ return (b._defuseCont||-9999) > h0 + 36; });
   if(cont){ if(tt._dfRead !== h0){ tt._dfRead = h0; voiceLog("T", "dfreal"+h0, heard[0].id, "дефуз не прекращается — настоящий, все на бомбу!"); } return "all"; }
-  var kitGuess = teamEco.CT.roundType === "full" ? DEFUSE_KIT_TICKS : DEFUSE_TICKS;
-  var near = heard.slice().sort(function(a, c){ return pathLenTo(a, bomb.x, bomb.y) - pathLenTo(c, bomb.x, bomb.y); })[0];
-  var travel = pathLenTo(near, bomb.x, bomb.y)/SPEED*TICK_HZ;
-  var canWait = travel + 60 < kitGuess && bombTimeLeftTicks() > kitGuess + 40;
-  if(!canWait) return "all";                                                // если настоящий — иначе не успеть: идут все
+  // (23.11, пост-плант T, разбор тактика: «ждать проверку фейка — только пока дефуз ещё не может закончиться; видишь бомбу — проверять нечего»)
+  // было: кит «есть», если у CT полный закуп, и путь — до самой бомбы. Стало: путь — до первой точки, откуда видно бомбу (bombSightLen); кит T не
+  // видит — гипотеза DEF_KIT_P (как defStopP); ждать ~0,8 с — только если ожидание не уменьшает шанс успеть (сравнить «иду сейчас» и «после проверки»)
+  var near = heard.slice().sort(function(a, c){ return bombSightLen(a, bomb) - bombSightLen(c, bomb); })[0];
+  var travel = DEF_REACT*TICK_HZ + bombSightLen(near, bomb)/SPEED*TICK_HZ, el = tick - h0, leftB = bombTimeLeftTicks();
+  var pIn = function(t){ return (t <= DEFUSE_KIT_TICKS && t <= leftB ? DEF_KIT_P : 0) + (t <= DEFUSE_TICKS && t <= leftB ? 1 - DEF_KIT_P : 0); };
+  var canWait = bombSightLen(near, bomb) > 0 && pIn(el + travel + Math.max(0, 52 - el)) >= pIn(el + travel);
+  if(!canWait) return "all";                                                // видит бомбу или ожидание стоит шанса — идут (стреляют) сразу
   if(tick - h0 < 52){                                                       // слушают ~0,8 с; один может выглянуть проверить
     if(tt._baitH0 === h0) return "bait";
     if((tt._baitN && tt._baitN.round === roundNum ? tt._baitN.n : 0) >= BAIT_MAX) return false;
