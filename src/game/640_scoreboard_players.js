@@ -155,7 +155,8 @@ function plItem(b, key, html){
     var BS = typeof BUY_SHOW !== "undefined" && BUY_SHOW && BUY_SHOW[b.id];
     if(!S.first && roundState === "freeze" && BS && !BS.before[key]) sndPickup(b, /^w:/.test(key) ? "w" : /^(smoke|flash|he|molly)\d/.test(key) ? "nade" : null, true); }
   var age = t - S.have[key];
-  return age < PL_ANIM_MS ? '<span class="pl-it new" style="animation-delay:-'+Math.round(age)+'ms">'+html+'</span>' : '<span class="pl-it">'+html+'</span>';
+  var kc = " k-" + (/^w:/.test(key) ? "w" : key.replace(/\d+$/, ""));   // (v596) вид вещи — стили трансляции раскладывают её по своим местам (PGL: броня — у HP, гранаты — в слотах)
+  return age < PL_ANIM_MS ? '<span class="pl-it new'+kc+'" style="animation-delay:-'+Math.round(age)+'ms">'+html+'</span>' : '<span class="pl-it'+kc+'">'+html+'</span>';
 }
 function plItemsDone(b){
   var S = PL_SEEN[b.id]; if(!S){ return; }
@@ -173,18 +174,22 @@ function plSkel(ids){
         '<div class="pl-stat"><span>'+PL_KILL+'<i class="pk"></i></span><span>'+PL_SKULL+'<i class="pd"></i></span><span class="pl-money">$<i class="pm"></i></span><span class="pl-adr">ADR <i class="pa"></i></span></div></div>'+
       '<div class="pl-ava"></div>'+
       '<div class="pl-side"><div class="pl-top"><span class="pl-wp"></span><span class="pl-hp"></span></div><div class="pl-gear"></div></div>'+
-      '<div class="pl-bar"><b class="tr"></b><b class="hp"></b></div></div>';
+      '<div class="pl-bar"><b class="tr"></b><b class="hp"></b></div>'+
+      // (v596) только в стилях трансляции: фраги за раунд (PGL — снаружи карточки), урон за раунд у погибшего (BLAST)
+      '<span class="pl-rk">'+PL_KILL+'<i class="prk"></i></span><span class="pl-rd">УРОН ЗА РАУНД <i class="prd"></i></span></div>';
   }).join("");
 }
 var PL_MONEY = function(v){ return v.toLocaleString("en-US"); };
 function plCardUpdate(c, b){
   var q = function(s){ return c.querySelector(s); };
   var R = c._r || (c._r = {num:q(".pl-num"), nick:q(".pl-nick"), k:q(".pk"), d:q(".pd"), m:q(".pm"), adr:q(".pa"), ava:q(".pl-ava"), wp:q(".pl-wp"),
-    hp:q(".pl-hp"), gear:q(".pl-gear"), tr:q(".pl-bar .tr"), hb:q(".pl-bar .hp"), hit:q(".pl-hit")});
+    hp:q(".pl-hp"), gear:q(".pl-gear"), tr:q(".pl-bar .tr"), hb:q(".pl-bar .hp"), hit:q(".pl-hit"), rk:q(".prk"), rd:q(".prd")});
   var hp = b.alive ? Math.max(0, Math.round(b.hp)) : 0, low = hp > 0 && hp <= 25;
   var fire = hudFire(b);
-  domClass(c, "pl-card" + (b.alive ? "" : " dead") + (plSelected === b.id ? " sel" : "") + (low ? " low" : "") + (fire ? " fire" : ""));
+  domClass(c, "pl-card" + (b.alive ? "" : " dead") + (plSelected === b.id ? " sel" : "") + (low ? " low" : "") + (fire ? " fire" : "") +
+    (b.alive && (b.armor || b.helmet) ? " arm" : "") + ((b.roundKills || 0) > 0 ? " rk" : ""));
   domText(R.adr, String(Math.round(hudAdr(b))));
+  domText(R.rk, String(b.roundKills || 0)); domText(R.rd, String(Math.round(b.roundDmg || 0)));
   domText(R.num, plNum(b));
   domText(R.nick, nick(b.id));
   hudNum(R.k, b.kills || 0); hudNum(R.d, b.deaths || 0); hudNum(R.m, buyShowMoney(b), PL_MONEY);
@@ -198,6 +203,8 @@ function plCardUpdate(c, b){
     });
   }
   plItemsDone(b);
+  // (v596) пустые слоты гранат (PGL: четыре места под гранаты, занятые — значком); в остальных стилях слоты скрыты
+  if(b.alive){ var nn = (gear.match(/k-(smoke|flash|he|molly)/g) || []).length; for(var si = nn; si < 4; si++) gear += '<i class="pl-slot"></i>'; }
   domHtml(R.wp, wp); domHtml(R.gear, gear);
   domHtml(R.hp, b.alive ? String(hp) : PL_SKULL);
   // HP: полоса сразу, «след» — с задержкой (CSS); стало меньше — красная вспышка, умер — вспышка дольше

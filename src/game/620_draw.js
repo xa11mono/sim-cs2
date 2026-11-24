@@ -672,14 +672,30 @@ function draw(){
   }
   // (v596, владелец 24.11: «на радаре — силуэты оружия и гранат, как у бомбы») вещи на земле — силуэты из набора киллфида (KF_ICON / NADE_ICON),
   // светлые с тёмной тенью; размер в px экрана постоянный (длинное оружие — 22 × 8, пистолет — 14 × 6, граната — 8 в высоту); кит — значок панели
-  var gi = function(G, kind){ var im = radarIcon(kind, G.key); if(!im || !im.complete || !im.naturalWidth) return false;
+  // (v596) выпавшее при смерти лежит ровно там, где крестик погибшего, — силуэты не путаются с крестиком: вещи у крестика (ближе 14 ед.)
+  // выкладываются рядком под ним, по центру; остальные — на своём месте. Только показ: где лежит вещь в игре, не меняется
+  var giSize = function(G, kind){ var im = radarIcon(kind, G.key); if(!im || !im.complete || !im.naturalWidth) return null;
     var H = (kind === "nade" ? 9 : kind === "pistol" ? 6 : 7.5)/view.scale, W = Math.min(H*im._ar, (kind === "w" ? 24 : 15)/view.scale);
-    H = W/im._ar; ctx.save(); ctx.shadowColor = "rgba(0,0,0,.85)"; ctx.shadowBlur = 3; ctx.shadowOffsetY = 1;
-    ctx.drawImage(im, G.x - W/2, G.y - H/2, W, H); ctx.restore(); return true; };
-  groundWeapons.forEach(function(G){ if(!gi(G, "w")){ ctx.save(); ctx.fillStyle = "rgba(225,228,218,.92)"; var w2 = 9/view.scale, h2 = 3/view.scale; ctx.fillRect(G.x-w2, G.y-h2, w2*2, h2*2); ctx.restore(); } });
-  groundItems.forEach(function(G){
-    if(G.kind === "kit"){ ctx.save(); var r = 4/view.scale; ctx.fillStyle = "#5a9bd9"; ctx.fillRect(G.x-r, G.y-r*0.8, r*2, r*1.6); ctx.fillStyle = "#fff"; ctx.fillRect(G.x-r*0.15, G.y-r*0.55, r*0.3, r*1.1); ctx.fillRect(G.x-r*0.55, G.y-r*0.15, r*1.1, r*0.3); ctx.restore(); return; }
-    if(!gi(G, G.kind === "nade" ? "nade" : "pistol")){ ctx.save(); ctx.fillStyle = "rgba(225,228,218,.92)"; ctx.beginPath(); ctx.arc(G.x, G.y, 3/view.scale, 0, Math.PI*2); ctx.fill(); ctx.restore(); }
+    return {im: im, W: W, H: W/im._ar}; };
+  var gi = function(G, kind, P){ var z = giSize(G, kind); if(!z) return false; var x0 = P ? P.x : G.x, y0 = P ? P.y : G.y;
+    ctx.save(); ctx.shadowColor = "rgba(0,0,0,.85)"; ctx.shadowBlur = 3; ctx.shadowOffsetY = 1;
+    ctx.drawImage(z.im, x0 - z.W/2, y0 - z.H/2, z.W, z.H); ctx.restore(); return true; };
+  var GL = [], gKind = function(G){ return G.kind === "kit" ? "kit" : G.kind === "nade" ? "nade" : G.kind ? "pistol" : "w"; };
+  groundWeapons.forEach(function(G){ GL.push({G: G, k: "w"}); });
+  groundItems.forEach(function(G){ GL.push({G: G, k: gKind(G)}); });
+  var dead = bots.filter(function(b){ return !b.alive; });
+  dead.forEach(function(d){
+    var row = GL.filter(function(e){ return !e.P && Math.hypot(e.G.x - d.x, e.G.y - d.y) < 14; }); if(!row.length) return;
+    var gap = 3/view.scale, ws = row.map(function(e){ var z = e.k === "kit" ? null : giSize(e.G, e.k); return z ? z.W : 8/view.scale; });
+    var tot = ws.reduce(function(a, w){ return a + w; }, 0) + gap*(row.length - 1), x = d.x - tot/2, y = d.y + 13/view.scale;
+    row.forEach(function(e, n){ e.P = {x: x + ws[n]/2, y: y}; x += ws[n] + gap; });
+  });
+  GL.forEach(function(e){ var G = e.G, P = e.P, X = P ? P.x : G.x, Y = P ? P.y : G.y;
+    if(e.k === "kit"){ var GG = {x: X, y: Y, kind: "kit"}; (function(G){
+       ctx.save(); var r = 4/view.scale; ctx.fillStyle = "#5a9bd9"; ctx.fillRect(G.x-r, G.y-r*0.8, r*2, r*1.6); ctx.fillStyle = "#fff"; ctx.fillRect(G.x-r*0.15, G.y-r*0.55, r*0.3, r*1.1); ctx.fillRect(G.x-r*0.55, G.y-r*0.15, r*1.1, r*0.3); ctx.restore();
+      })(GG); return; }
+    if(!gi(G, e.k, P)){ ctx.save(); ctx.fillStyle = "rgba(225,228,218,.92)"; if(e.k === "w"){ var w2 = 9/view.scale, h2 = 3/view.scale; ctx.fillRect(X-w2, Y-h2, w2*2, h2*2); }
+      else { ctx.beginPath(); ctx.arc(X, Y, 3/view.scale, 0, Math.PI*2); ctx.fill(); } ctx.restore(); }
   });
   // где погиб игрок — крестик цвета его стороны (до конца раунда)
   bots.forEach(function(bot){

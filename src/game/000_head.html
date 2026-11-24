@@ -174,24 +174,31 @@
   #plFocus #pfNick{font-size:15px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;color:#fff;}
   #plFocus #pfHp{font-family:var(--hud-n);font-size:16px;font-weight:500;color:#fff;}
 
-  /* ===================== (v595) огонёк «в ударе» — за фото игрока в панелях, во всех стилях HUD ===================== */
+  /* ===================== (v595) огонёк «в ударе» — за фото игрока в панелях, во всех стилях HUD =====================
+     (v596, владелец 24.11: «огонёк» — было не видно: пламя пряталось за фото) три языка пламени выходят из-за фото по бокам и сверху,
+     вокруг фото — тёплый ореол; карточка «в ударе» не обрезает пламя (overflow:visible) и лежит над соседями */
+  .pl-rk,.pl-rd,.pl-slot{display:none;}
   .pl-ava{position:relative;}
   .pl-ava img,.pl-ava > svg{position:relative;z-index:1;}
-  .pl-fire{position:absolute;left:-30%;right:-30%;bottom:-4%;height:150%;z-index:0;pointer-events:none;display:none;}
-  .pl-card.fire .pl-ava{background:radial-gradient(ellipse 70% 60% at 50% 100%,rgba(60,14,0,.85),rgba(60,14,0,0) 75%);}
+  .pl-fire{position:absolute;left:-26%;right:-26%;bottom:0;height:150%;z-index:0;pointer-events:none;display:none;}
+  .pl-card.fire{overflow:visible!important;z-index:3;}
   .pl-card.fire .pl-fire{display:block;}
+  .pl-card.fire .pl-ava{overflow:visible;}
   .pl-card.dead .pl-fire{display:none;}
-  .pl-fire::before,.pl-fire::after{content:"";position:absolute;bottom:0;transform-origin:50% 100%;border-radius:50% 50% 35% 35%/70% 70% 30% 30%;}
-  .pl-fire::before{left:6%;right:6%;height:96%;background:radial-gradient(ellipse 52% 72% at 50% 100%,#ffe27a 0%,#ff9a26 32%,rgba(255,72,24,.78) 58%,rgba(255,40,10,0) 76%);
-    filter:blur(2.5px);animation:plFireA .42s ease-in-out infinite alternate;}
-  .pl-fire::after{left:24%;right:24%;height:74%;background:radial-gradient(ellipse 50% 70% at 50% 100%,#fff6c8 0%,#ffc94a 38%,rgba(255,120,30,0) 74%);
-    filter:blur(1.5px);animation:plFireB .58s ease-in-out infinite alternate;}
-  @keyframes plFireA{from{transform:scale(1.04,.86);opacity:.82;}to{transform:scale(.94,1.08) translateY(-3%);opacity:1;}}
-  @keyframes plFireB{from{transform:scale(.9,1.06) translateX(-4%);}to{transform:scale(1.08,.9) translateX(4%);}}
+  .pl-card.fire .pl-ava img,.pl-card.fire .pl-ava > svg{filter:drop-shadow(0 0 5px rgba(255,140,40,.95)) drop-shadow(0 0 2px rgba(255,90,20,.9));}
+  .pl-fire,.pl-fire::before,.pl-fire::after{transform-origin:50% 100%;}
+  .pl-fire{background:radial-gradient(ellipse 34% 62% at 50% 100%,#fff2a8 0%,#ffb22e 30%,#ff5a1a 58%,rgba(255,40,10,0) 80%);
+    border-radius:50% 50% 30% 30%/80% 80% 20% 20%;animation:plFireA .46s ease-in-out infinite alternate;}
+  .pl-fire::before,.pl-fire::after{content:"";position:absolute;bottom:0;width:46%;height:82%;border-radius:50% 50% 30% 30%/85% 85% 15% 15%;
+    background:radial-gradient(ellipse 50% 70% at 50% 100%,#ffe07a 0%,#ff8a1e 40%,rgba(255,50,10,.85) 62%,rgba(255,40,10,0) 82%);}
+  .pl-fire::before{left:-2%;animation:plFireB .38s ease-in-out infinite alternate;}
+  .pl-fire::after{right:-2%;height:70%;animation:plFireB .52s ease-in-out infinite alternate-reverse;}
+  @keyframes plFireA{from{transform:scale(1.04,.88);opacity:.85;}to{transform:scale(.94,1.06);opacity:1;}}
+  @keyframes plFireB{from{transform:scale(.9,1.08) rotate(-5deg);}to{transform:scale(1.06,.86) rotate(5deg);}}
   #hudDiff{display:none;}
   #hudBrand{display:none;}
   #scoreboard .sb-planted{display:none;}
-  @media (prefers-reduced-motion: reduce){ .pl-fire::before,.pl-fire::after{animation:none;} }
+  @media (prefers-reduced-motion: reduce){ .pl-fire,.pl-fire::before,.pl-fire::after{animation:none;} }
 
   /* ===================== (v595, владелец 24.11: «сделать то же самое — те же цвета, формы, расположение, надписи, движение») стили HUD
      трансляции по фото владельца (ESL Pro League S24, IEM Cologne, PGL, BLAST); знаки лиг не рисуем — на их месте знак проекта.
@@ -265,6 +272,7 @@
      строки текста (ник · фраги-смерти · деньги зелёным), фото в белой «полароидной» рамке с наклоном, крупный светлый силуэт оружия,
      большое HP, под ним броня / кит / гранаты; фон строки — полупрозрачный, светлая кромка сверху, тень снизу; зазор 6 */
   html[data-hud=esl],html[data-hud=iem]{--bc-row-gap:6px;}
+  html[data-hud=esl] #voice,html[data-hud=iem] #voice{bottom:calc(16px + 404px*var(--k));}
   html[data-hud=esl] .pl-col,html[data-hud=iem] .pl-col{width:300px;}
   html[data-hud=esl] .pl-tag,html[data-hud=iem] .pl-tag{height:22px;margin-bottom:2px;font-size:13px;font-weight:700;letter-spacing:.03em;border-top:0;align-self:flex-start;
     padding:0 18px 0 10px;color:var(--bc-tag-ink);clip-path:polygon(0 0,calc(100% - 9px) 0,100% 50%,calc(100% - 9px) 100%,0 100%);}
@@ -274,9 +282,9 @@
   html[data-hud=esl] .pl-card,html[data-hud=iem] .pl-card{height:64px;grid-template-rows:20px 18px 18px;row-gap:0;align-content:center;
     box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 6px 14px -8px rgba(0,0,0,.7);text-shadow:0 1px 1px rgba(0,0,0,.45);font-variant-numeric:tabular-nums;}
   html[data-hud=esl] #plT .pl-card,html[data-hud=iem] #plT .pl-card{grid-template-columns:14px 104px 62px 1fr 58px;
-    grid-template-areas:"num nick ava wp hp" "num stat ava wp hp" "num stat ava wp gear";background:var(--bc-t-low);}
+    grid-template-areas:"num nick ava wp hp" "num stat ava wp hp" "num stat ava gear gear";background:var(--bc-t-low);}
   html[data-hud=esl] #plCT .pl-card,html[data-hud=iem] #plCT .pl-card{grid-template-columns:58px 1fr 62px 104px 14px;
-    grid-template-areas:"hp wp ava nick num" "hp wp ava stat num" "gear wp ava stat num";background:var(--bc-ct-low);}
+    grid-template-areas:"hp wp ava nick num" "hp wp ava stat num" "gear gear ava stat num";background:var(--bc-ct-low);}
   html[data-hud=esl] .pl-num,html[data-hud=iem] .pl-num{font-family:var(--hud-f);font-weight:700;font-size:13px;align-items:flex-start;padding-top:6px;text-shadow:none;}
   html[data-hud=esl] #plT .pl-num,html[data-hud=iem] #plT .pl-num{background:var(--bc-t-tag)!important;color:var(--bc-tag-ink)!important;}
   html[data-hud=esl] #plCT .pl-num,html[data-hud=iem] #plCT .pl-num{background:var(--bc-ct-tag)!important;color:var(--bc-tag-ink)!important;}
@@ -301,7 +309,8 @@
   html[data-hud=iem] .pl-top svg.wp{fill:#fff;opacity:1;}
   html[data-hud=esl] #plCT .pl-top svg.wp,html[data-hud=iem] #plCT .pl-top svg.wp{transform:scaleX(-1);}
   html[data-hud=esl] .pl-hp,html[data-hud=iem] .pl-hp{font-family:var(--hud-f);font-weight:700;font-size:30px;line-height:1;text-align:center;align-self:center;}
-  html[data-hud=esl] .pl-gear,html[data-hud=iem] .pl-gear{display:flex;height:14px;gap:3px;align-self:center;}
+  html[data-hud=esl] .pl-gear,html[data-hud=iem] .pl-gear{display:flex;height:14px;gap:4px;align-self:center;justify-self:end;padding-right:8px;}
+  html[data-hud=esl] #plCT .pl-gear,html[data-hud=iem] #plCT .pl-gear{justify-self:start;padding:0 0 0 8px;}
   html[data-hud=esl] .pl-gear svg,html[data-hud=iem] .pl-gear svg{height:12px;fill:#fff;opacity:.85;}
   html[data-hud=esl] .pl-bar,html[data-hud=iem] .pl-bar,html[data-hud=esl] #plCT .pl-bar,html[data-hud=iem] #plCT .pl-bar{inset:0;height:auto;background:none;z-index:1;}
   html[data-hud=esl] .pl-bar b.tr,html[data-hud=iem] .pl-bar b.tr{background:rgba(255,255,255,.18);}
@@ -312,114 +321,183 @@
   html[data-hud=esl] .pl-card.dead .pl-ava img,html[data-hud=iem] .pl-card.dead .pl-ava img{filter:grayscale(1) brightness(.6);}
 
   /* ---------- как PGL (фото 1) ---------- */
-  html[data-hud=pgl]{--bc-card:rgba(52,56,64,.88); --bc-card-line:rgba(255,255,255,.08); --bc-t-fill:#f08c2a; --bc-ct-fill:#2f8cf0; --bc-dim:#aab1bc;}
-  html[data-hud=pgl] #miniMap{top:52px;left:18px;width:288px;height:288px;}
-  html[data-hud=pgl] #hudBrand{left:12px;top:8px;width:300px;height:380px;background:#24272d;border-radius:6px;box-shadow:0 8px 20px -8px rgba(0,0,0,.6);}
+  html[data-hud=pgl]{--bc-card:rgba(44,48,56,.9); --bc-card-hi:rgba(60,65,75,.9); --bc-t-fill:#f08c2a; --bc-ct-fill:#2f8cf0; --bc-dim:#aab1bc; --bc-rail:rgba(236,238,242,.62); --bc-row-gap:6px;}
+  html[data-hud=pgl] #miniMap{top:50px;left:22px;width:256px;height:256px;}
+  html[data-hud=pgl] #hudBrand{left:12px;top:8px;width:276px;height:346px;background:#24272d;border-radius:6px;box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 8px 20px -8px rgba(0,0,0,.6);}
   html[data-hud=pgl] .hb-veto{height:40px;padding:0 12px;font-size:11px;color:#fff;justify-content:flex-start;gap:6px;}
   html[data-hud=pgl] .hb-veto span{color:var(--bc-dim);} html[data-hud=pgl] .hb-veto span.cur{color:#fff;}
-  html[data-hud=pgl] .hb-mark{display:flex;position:absolute;left:0;right:0;bottom:0;height:40px;align-items:center;justify-content:center;gap:10px;color:#fff;
+  html[data-hud=pgl] .hb-mark{display:flex;position:absolute;left:0;right:0;bottom:0;height:38px;align-items:center;justify-content:center;gap:10px;color:#fff;
     font-size:22px;font-weight:700;letter-spacing:.14em;border-top:1px solid rgba(255,255,255,.08);}
   html[data-hud=pgl] .hb-mark svg{width:22px;height:22px;}
   html[data-hud=pgl] .hb-mark span{display:none;}
-  html[data-hud=pgl] #voice{bottom:calc(16px + 400px*var(--k));}
+  html[data-hud=pgl] #voice{bottom:calc(16px + 450px*var(--k));}
+  /* табло — капсула с тонкой светлой кромкой, края подсвечены цветом сторон, счёт цветом стороны, серия — пустые кружки под названием */
   html[data-hud=pgl] #scoreboard{top:8px;}
   html[data-hud=pgl] #scoreboard .sb-head{display:none;}
-  html[data-hud=pgl] #scoreboard .sb-main{background:linear-gradient(90deg,rgba(240,140,42,.42),#1b1d22 22%,#1b1d22 78%,rgba(47,140,240,.42));border-radius:8px;border:1px solid rgba(255,255,255,.1);overflow:hidden;box-shadow:0 8px 20px -8px rgba(0,0,0,.65);}
-  html[data-hud=pgl] #scoreboard .sb-team{background:none;border-top:0;padding:8px 16px;gap:12px;}
-  html[data-hud=pgl] #scoreboard .sb-logo{width:40px;height:40px;}
-  html[data-hud=pgl] #scoreboard .sb-name{color:#fff;font-size:15px;font-weight:700;letter-spacing:.02em;max-width:180px;}
-  html[data-hud=pgl] #scoreboard .sb-score{font-family:var(--hud-f);font-weight:700;font-size:34px;}
+  html[data-hud=pgl] #scoreboard .sb-main{background:linear-gradient(90deg,rgba(240,140,42,.55),rgba(240,140,42,.12) 12%,#1b1d22 24%,#1b1d22 76%,rgba(47,140,240,.12) 88%,rgba(47,140,240,.55));
+    border-radius:10px;border:1px solid rgba(255,255,255,.22);overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 10px 24px -10px rgba(0,0,0,.75);}
+  html[data-hud=pgl] #scoreboard .sb-team{background:none;border-top:0;padding:10px 18px 14px;gap:14px;}
+  html[data-hud=pgl] #scoreboard .sb-logo{width:44px;height:44px;}
+  html[data-hud=pgl] #scoreboard .sb-logo img{filter:grayscale(1) brightness(1.8);}
+  html[data-hud=pgl] #scoreboard .sb-name{color:#fff;font-size:17px;font-weight:700;letter-spacing:0;max-width:190px;text-transform:none;}
+  html[data-hud=pgl] #scoreboard .sb-score{font-family:var(--hud-f);font-weight:700;font-size:40px;min-width:34px;}
   html[data-hud=pgl] #scoreboard .sb-team.t .sb-score{color:var(--bc-t-fill);} html[data-hud=pgl] #scoreboard .sb-team.ct .sb-score{color:var(--bc-ct-fill);}
   html[data-hud=pgl] #scoreboard .sb-mid{background:none;border:0;min-width:84px;}
-  html[data-hud=pgl] #scoreboard .sb-time{order:-1;font-family:var(--hud-f);font-weight:700;font-size:22px;}
-  html[data-hud=pgl] #scoreboard .sb-round{text-transform:none;letter-spacing:0;color:var(--bc-dim);}
+  html[data-hud=pgl] #scoreboard .sb-time{order:-1;font-family:var(--hud-f);font-weight:700;font-size:26px;}
+  html[data-hud=pgl] #scoreboard .sb-round{text-transform:none;letter-spacing:0;color:var(--bc-dim);font-size:12px;}
   html[data-hud=pgl] #scoreboard .sb-prog{display:none;}
-  html[data-hud=pgl] #scoreboard .sb-series{position:absolute;left:0;right:0;bottom:6px;padding:0 70px;}
-  html[data-hud=pgl] #scoreboard .sb-series i{width:6px;height:6px;border-radius:50%;}
+  html[data-hud=pgl] #scoreboard .sb-series{position:absolute;left:0;right:0;bottom:6px;padding:0 82px;}
+  html[data-hud=pgl] #scoreboard .sb-series i{width:8px;height:8px;border-radius:50%;background:none;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.55);}
+  html[data-hud=pgl] #scoreboard .sb-series i.w{background:#fff;box-shadow:none;}
+  /* (v596, владелец 24.11: «боковые топорно») строка PGL по фото крупным планом: слева снаружи — тонкая светлая «рельса» с номером игрока
+     (выбранный — номер в кольце), скруглённая тёмная карточка (кромка светлее сверху, тень снизу): ник + фраги / смерти значками цвета
+     стороны; деньги серым и четыре слота гранат; внизу во всю ширину — полоса HP цвета стороны с числом и щитом (если есть броня), силуэт
+     оружия на ней; погибший — серый ник и «ADR N» вместо полосы; фраги за раунд — справа снаружи карточки (значок над числом).
+     Карточка рисуется ::before (рельса и фраги — снаружи неё, в той же сетке) */
   html[data-hud=pgl] .pl-col{width:262px;}
   html[data-hud=pgl] .pl-tag{display:none;}
-  /* (v596) строка PGL по фото: скруглённая карточка, ник + фраги / смерти синими значками в строку, деньги серым и слоты гранат справа,
-     внизу — полоса HP цвета стороны с числом и щитом, силуэт оружия на ней; погибший — ADR вместо полосы */
-  html[data-hud=pgl] .pl-card{background:linear-gradient(180deg,rgba(58,62,72,.9),rgba(40,43,51,.9));border-radius:6px;padding:5px 0 6px;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 6px 14px -8px rgba(0,0,0,.75);row-gap:3px;font-variant-numeric:tabular-nums;}
-  html[data-hud=pgl] #plT .pl-card{grid-template-columns:20px auto 1fr auto 8px;grid-template-rows:20px 14px 22px;
-    grid-template-areas:"num nick stat stat ." "num money money gear ." "num bar bar bar .";}
-  html[data-hud=pgl] #plCT .pl-card{grid-template-columns:8px auto 1fr auto 20px;grid-template-rows:20px 14px 22px;
-    grid-template-areas:". stat stat nick num" ". gear money money num" ". bar bar bar num";}
-  html[data-hud=pgl] .pl-num{background:transparent!important;color:#fff!important;font-family:var(--hud-f);font-weight:700;font-size:13px;}
+  html[data-hud=pgl] .pl-card{background:none!important;row-gap:0;padding:6px 0 0;height:82px;box-shadow:none;font-variant-numeric:tabular-nums;overflow:visible;height:76px;}
+  html[data-hud=pgl] .pl-card::before{content:"";position:absolute;top:0;bottom:0;left:26px;right:28px;border-radius:8px;z-index:0;
+    background:linear-gradient(180deg,var(--bc-card-hi),var(--bc-card) 60%);box-shadow:inset 0 1px 0 rgba(255,255,255,.09),inset 0 0 0 1px rgba(255,255,255,.05),0 8px 16px -10px rgba(0,0,0,.8);}
+  html[data-hud=pgl] #plCT .pl-card::before{left:28px;right:26px;}
+  html[data-hud=pgl] #plT .pl-card{grid-template-columns:26px 10px auto auto auto 1fr 10px 28px;grid-template-rows:22px 20px 28px;
+    grid-template-areas:"num . nick k d . . rk" "num . money gear gear gear . rk" "num bar bar bar bar bar bar rk";}
+  html[data-hud=pgl] #plCT .pl-card{grid-template-columns:28px 10px 1fr auto auto auto 10px 26px;grid-template-rows:22px 20px 28px;
+    grid-template-areas:"rk . . k d nick . num" "rk . gear gear gear money . num" "rk bar bar bar bar bar bar num";}
+  html[data-hud=pgl] .pl-card .pl-num{background:transparent!important;color:#fff!important;font-family:var(--hud-f);font-weight:700;font-size:15px;align-self:stretch;
+    display:flex;align-items:center;justify-content:center;margin-top:-6px;text-shadow:0 1px 2px rgba(0,0,0,.6);}
+  html[data-hud=pgl] .pl-num::before,html[data-hud=pgl] .pl-num::after{content:"";position:absolute;left:50%;width:2px;margin-left:-1px;background:var(--bc-rail);}
+  html[data-hud=pgl] .pl-num::before{top:calc(-1*var(--bc-row-gap));bottom:calc(50% + 12px);} html[data-hud=pgl] .pl-num::after{top:calc(50% + 12px);bottom:0;}
+  html[data-hud=pgl] .pl-card.sel .pl-num{text-shadow:none;}
+  html[data-hud=pgl] .pl-card.sel .pl-num span,html[data-hud=pgl] .pl-card.sel .pl-num{background:radial-gradient(circle at 50% 50%,transparent 9px,var(--bc-rail) 9.5px,var(--bc-rail) 11px,transparent 11.5px)!important;}
   html[data-hud=pgl] .pl-ava{display:none;}
-  html[data-hud=pgl] .pl-card.fire .pl-ava{display:flex;grid-area:num;}
-  html[data-hud=pgl] .pl-nick{padding:0 6px 0 4px;font-size:16px;font-weight:700;text-transform:none;letter-spacing:0;align-self:center;}
+  html[data-hud=pgl] .pl-card.fire .pl-ava{display:block;grid-area:num;width:26px;height:30px;align-self:center;justify-self:center;margin-top:-6px;background:none;}
+  html[data-hud=pgl] .pl-card.fire .pl-ava img,html[data-hud=pgl] .pl-card.fire .pl-ava > svg{display:none;}
+  html[data-hud=pgl] .pl-card.fire .pl-num{z-index:4;}
+  html[data-hud=pgl] .pl-nick{padding:0 8px 0 0;font-size:17px;font-weight:700;text-transform:none;letter-spacing:0;align-self:end;line-height:22px;max-width:128px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  html[data-hud=pgl] #plCT .pl-nick{padding:0 0 0 8px;}
   html[data-hud=pgl] .pl-stat{display:contents;}
-  html[data-hud=pgl] .pl-stat > span:nth-child(1),html[data-hud=pgl] .pl-stat > span:nth-child(2){grid-area:stat;align-self:center;font-size:13px;font-weight:600;color:#cfd5df;}
-  html[data-hud=pgl] .pl-stat > span:nth-child(2){margin-left:38px;}
-  html[data-hud=pgl] #plCT .pl-stat > span:nth-child(1){justify-self:end;margin-right:44px;} html[data-hud=pgl] #plCT .pl-stat > span:nth-child(2){justify-self:end;margin:0 6px 0 0;}
-  html[data-hud=pgl] .pl-stat svg{width:13px;height:13px;margin-right:3px;fill:#3aa0ff;}
-  html[data-hud=pgl] #plT .pl-stat svg{fill:#f08c2a;}
-  html[data-hud=pgl] .pl-money{grid-area:money;padding:0 4px;font-size:12px;color:#aab1bc;align-self:center;}
+  html[data-hud=pgl] .pl-stat > span:nth-child(1){grid-area:k;} html[data-hud=pgl] .pl-stat > span:nth-child(2){grid-area:d;}
+  html[data-hud=pgl] .pl-stat > span:nth-child(1),html[data-hud=pgl] .pl-stat > span:nth-child(2){align-self:end;line-height:22px;padding-right:8px;font-family:var(--hud-f);font-size:14px;font-weight:600;color:var(--bc-ct-fill);position:relative;z-index:2;}
+  html[data-hud=pgl] #plT .pl-stat > span:nth-child(1),html[data-hud=pgl] #plT .pl-stat > span:nth-child(2){color:var(--bc-t-fill);}
+  html[data-hud=pgl] #plCT .pl-stat > span:nth-child(2){padding-right:0;} html[data-hud=pgl] #plCT .pl-stat > span:nth-child(1){padding-right:8px;}
+  html[data-hud=pgl] .pl-stat svg{width:13px;height:13px;margin-right:3px;fill:#c9cfd8;}
+  html[data-hud=pgl] .pl-money{grid-area:money;font-family:var(--hud-f);font-size:14px;font-weight:500;color:var(--bc-dim);align-self:center;position:relative;z-index:2;}
   html[data-hud=pgl] #plCT .pl-money{justify-self:end;}
-  html[data-hud=pgl] .pl-card.dead .pl-adr{display:inline-flex;grid-area:bar;align-self:center;margin:0 4px;font-size:13px;font-weight:700;color:#fff;}
-  html[data-hud=pgl] .pl-adr i{margin-left:4px;}
-  html[data-hud=pgl] .pl-gear{display:flex;grid-area:gear;gap:4px;align-self:center;padding:0 2px;}
-  html[data-hud=pgl] .pl-gear svg{height:11px;fill:#cfd5df;opacity:.85;}
-  html[data-hud=pgl] .pl-bar,html[data-hud=pgl] #plCT .pl-bar{grid-area:bar;position:relative;inset:auto;height:22px;margin:0 4px;background:rgba(0,0,0,.42);border-radius:3px;overflow:hidden;z-index:1;}
-  html[data-hud=pgl] #plT .pl-bar b.hp{background:linear-gradient(180deg,#f7a44a,#e07e1c);} html[data-hud=pgl] #plCT .pl-bar b.hp{background:linear-gradient(180deg,#4aa9ff,#1f78e0);}
-  html[data-hud=pgl] .pl-card.dead .pl-bar{visibility:hidden;}
-  html[data-hud=pgl] .pl-hp{grid-area:bar;justify-self:start;margin-left:10px;font-family:var(--hud-f);font-weight:700;font-size:15px;color:#fff;z-index:3;text-shadow:0 1px 1px rgba(0,0,0,.35);}
-  html[data-hud=pgl] .pl-hp::after{content:"";display:inline-block;width:10px;height:12px;margin-left:5px;vertical-align:-1px;border:1.5px solid rgba(255,255,255,.9);border-radius:2px 2px 5px 5px;}
-  html[data-hud=pgl] #plCT .pl-hp{justify-self:end;margin:0 10px 0 0;}
+  html[data-hud=pgl] .pl-gear{display:flex;grid-area:gear;gap:5px;align-self:center;justify-self:end;}
+  html[data-hud=pgl] #plCT .pl-gear{justify-self:start;flex-direction:row-reverse;}
+  html[data-hud=pgl] .pl-gear svg{height:13px;fill:#e6e9ee;}
+  html[data-hud=pgl] .pl-gear .k-armor,html[data-hud=pgl] .pl-gear .k-helmet{display:none;}
+  html[data-hud=pgl] .pl-slot{display:block;width:7px;height:7px;margin:0 3px;border-radius:50%;background:rgba(255,255,255,.16);}
+  html[data-hud=pgl] .pl-bar,html[data-hud=pgl] #plCT .pl-bar{grid-area:bar;position:relative;inset:auto;height:auto;align-self:stretch;margin:4px 0 0;background:rgba(120,128,140,.38);border-radius:0 0 8px 8px;overflow:hidden;z-index:1;}
+  html[data-hud=pgl] .pl-bar b.tr{background:rgba(255,255,255,.35);}
+  html[data-hud=pgl] #plT .pl-bar b.hp{background:linear-gradient(180deg,#f7a44a,#e07e1c);} html[data-hud=pgl] #plCT .pl-bar b.hp{background:linear-gradient(180deg,#45a6ff,#1f78e0);}
+  html[data-hud=pgl] .pl-card.dead .pl-bar{background:rgba(12,14,18,.55);}
+  html[data-hud=pgl] .pl-card.dead .pl-bar b{display:none;}
+  html[data-hud=pgl] .pl-hp{grid-area:bar;justify-self:start;align-self:center;margin:4px 0 0 10px;font-family:var(--hud-f);font-weight:700;font-size:17px;line-height:1;color:#fff;z-index:3;text-shadow:0 1px 1px rgba(0,0,0,.35);}
+  html[data-hud=pgl] .pl-card.arm .pl-hp::after{content:"";display:inline-block;width:10px;height:12px;margin-left:5px;vertical-align:-1px;border:1.5px solid rgba(255,255,255,.92);border-radius:2px 2px 6px 6px;}
+  html[data-hud=pgl] #plCT .pl-hp{justify-self:end;margin:4px 10px 0 0;}
   html[data-hud=pgl] .pl-card.dead .pl-hp{display:none;}
-  html[data-hud=pgl] .pl-wp{grid-area:bar;justify-self:end;margin-right:12px;z-index:3;}
-  html[data-hud=pgl] #plCT .pl-wp{justify-self:start;margin:0 0 0 12px;}
-  html[data-hud=pgl] .pl-top svg.wp{height:13px;max-width:60px;fill:#fff;opacity:.95;}
+  html[data-hud=pgl] .pl-adr{grid-area:bar;}
+  html[data-hud=pgl] .pl-card.dead .pl-adr{display:inline-flex;align-self:center;justify-self:start;margin:4px 0 0 10px;gap:4px;font-family:var(--hud-f);font-size:15px;font-weight:600;color:#e8ebef;z-index:3;}
+  html[data-hud=pgl] #plCT .pl-card.dead .pl-adr{justify-self:end;margin:4px 10px 0 0;}
+  html[data-hud=pgl] .pl-card.dead .pl-nick{color:#8b919b;}
+  html[data-hud=pgl] .pl-card.dead .pl-money{opacity:.7;}
+  html[data-hud=pgl] .pl-wp{grid-area:bar;justify-self:end;align-self:center;margin:4px 12px 0 0;z-index:3;}
+  html[data-hud=pgl] #plCT .pl-wp{justify-self:start;margin:4px 0 0 12px;}
+  html[data-hud=pgl] .pl-top svg.wp{height:15px;max-width:72px;fill:#fff;opacity:.95;filter:drop-shadow(0 1px 1px rgba(0,0,0,.35));}
+  html[data-hud=pgl] #plT .pl-top svg.wp{transform:scaleX(-1);}
   html[data-hud=pgl] #plCT .pl-top svg.wp{transform:none;}
-  html[data-hud=pgl] .pl-card.sel{box-shadow:inset 0 0 0 2px #f6f6f2;}
-  html[data-hud=pgl] #hudDiff{position:absolute;left:12px;bottom:calc(20px + 384px*var(--k));z-index:5;pointer-events:none;zoom:var(--k);font-family:var(--hud-f);
-    display:flex;align-items:center;gap:8px;height:24px;padding:0 10px 0 12px;border-radius:12px;background:#16181d;box-shadow:inset 0 0 0 2px #e4502a;color:#fff;
-    font-size:12px;font-weight:700;letter-spacing:.04em;opacity:0;transform:translateY(6px);transition:opacity var(--d3) var(--ease),transform var(--d3) var(--ease);}
+  html[data-hud=pgl] .pl-card.rk .pl-rk{display:flex;grid-area:rk;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;align-self:end;margin-bottom:4px;
+    font-family:var(--hud-f);font-weight:700;font-size:17px;line-height:1;color:#fff;position:relative;z-index:2;text-shadow:0 1px 2px rgba(0,0,0,.6);}
+  html[data-hud=pgl] .pl-rk svg{width:15px;height:15px;padding:2px;border-radius:50%;background:var(--bc-ct-fill);fill:#fff;}
+  html[data-hud=pgl] #plT .pl-rk svg{background:var(--bc-t-fill);}
+  html[data-hud=pgl] .pl-rk i{font-style:normal;}
+  html[data-hud=pgl] .pl-card.sel::before{background:linear-gradient(180deg,rgba(255,236,214,.22),rgba(70,62,54,.92) 55%);box-shadow:inset 0 0 0 2px #f3ece2,0 8px 16px -10px rgba(0,0,0,.8);}
+  html[data-hud=pgl] #plT .pl-card.sel .pl-nick{color:var(--bc-t-fill);} html[data-hud=pgl] #plCT .pl-card.sel .pl-nick{color:var(--bc-ct-fill);}
+  html[data-hud=pgl] .pl-card.sel{box-shadow:none;}
+  html[data-hud=pgl] #hudDiff{position:absolute;left:38px;bottom:428px;z-index:5;pointer-events:none;zoom:var(--k);font-family:var(--hud-f);
+    display:flex;align-items:center;gap:8px;height:28px;padding:0 12px 0 14px;border-radius:14px;background:#16181d;box-shadow:inset 0 0 0 2px #e4502a,0 6px 14px -8px rgba(0,0,0,.7);color:#fff;
+    font-size:14px;font-weight:700;font-style:italic;letter-spacing:.03em;opacity:0;transform:translateY(6px);transition:opacity var(--d3) var(--ease),transform var(--d3) var(--ease);}
   html[data-hud=pgl] #hudDiff.on{opacity:1;transform:none;}
-  html[data-hud=pgl] #hudDiff.ct{left:auto;right:12px;}
-  html[data-hud=pgl] #hudDiff #hdWho{order:2;color:#c9cdd4;text-transform:uppercase;font-weight:600;}
-  html[data-hud=pgl] .hd-fire{order:3;width:12px;height:16px;border-radius:50% 50% 40% 40%/70% 70% 30% 30%;background:radial-gradient(ellipse 50% 70% at 50% 100%,#fff3b0,#ffb12b 50%,#e4502a 80%);
+  html[data-hud=pgl] #hudDiff.ct{left:auto;right:38px;}
+  html[data-hud=pgl] #hudDiff #hdWho{order:2;color:#c9cdd4;text-transform:none;font-style:normal;font-weight:600;}
+  html[data-hud=pgl] .hd-fire{order:3;width:14px;height:18px;border-radius:50% 50% 40% 40%/70% 70% 30% 30%;background:radial-gradient(ellipse 50% 70% at 50% 100%,#fff3b0,#ffb12b 50%,#e4502a 80%);
     animation:plFireA .42s ease-in-out infinite alternate;transform-origin:50% 100%;}
 
   /* ---------- как BLAST (фото 2) ---------- */
-  html[data-hud=blast]{--bc-t-fill:#e3283c; --bc-ct-fill:#2a62e8; --bc-card:#121521; --bc-strip:#0c0e16;}
+  /* (v596, владелец 24.11: «боковые топорно») 10 карточек по низу, по фото крупным планом: у живого — фото на плашке цвета стороны (голова
+     выходит над плашкой), HP крупно справа сверху со значком брони, внизу плашки номер в квадрате и ник; строка ячеек: значок фрага, фраги,
+     череп, смерти, деньги зелёным (ячейки темнее цвета стороны); полоса оружия (силуэт слева, гранаты справа). Погибший — без фото: номер и
+     ник, серые ячейки, «УРОН ЗА РАУНД». Выбранный — белая рамка и светлые строки. Карточки прижаты к низу, игрок обсервера — между сторонами */
+  html[data-hud=blast]{--bc-t-fill:#e3283c; --bc-ct-fill:#2a52e0; --bc-t-cell:#9c1426; --bc-ct-cell:#1a2f96; --bc-cell-dead:#2b2e37; --bc-strip:rgba(14,16,24,.9);}
   html[data-hud=blast] .hb-veto{display:none;}
-  html[data-hud=blast] #miniMap{top:10px;width:260px;height:260px;}
-  html[data-hud=blast] #voice{bottom:calc(16px + 190px*var(--k));}
+  html[data-hud=blast] #miniMap{top:10px;width:270px;height:270px;}
+  html[data-hud=blast] #voice{bottom:calc(16px + 200px*var(--k));}
   html[data-hud=blast] #scoreboard{top:8px;flex-direction:row;align-items:stretch;}
   html[data-hud=blast] #scoreboard .sb-head{display:none;}
-  html[data-hud=blast] #scoreboard .sb-main{background:#14161c;box-shadow:none;}
-  html[data-hud=blast] #scoreboard .sb-team{background:none;border-top:0;padding:4px 12px;gap:12px;}
-  html[data-hud=blast] #scoreboard .sb-team.t{box-shadow:inset 6px 0 0 var(--bc-t-fill);padding-left:18px;} html[data-hud=blast] #scoreboard .sb-team.ct{box-shadow:inset -6px 0 0 var(--bc-ct-fill);padding-right:18px;}
+  html[data-hud=blast] #scoreboard .sb-main{background:#171a21;box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 8px 18px -10px rgba(0,0,0,.8);}
+  html[data-hud=blast] #scoreboard .sb-team{background:none;border-top:0;padding:0;gap:0;}
+  html[data-hud=blast] #scoreboard .sb-team.t{box-shadow:inset 6px 0 0 var(--bc-t-fill);padding-left:6px;} html[data-hud=blast] #scoreboard .sb-team.ct{box-shadow:inset -6px 0 0 var(--bc-ct-fill);padding-right:6px;}
   html[data-hud=blast] #scoreboard .sb-name{display:none;}
-  html[data-hud=blast] #scoreboard .sb-logo{width:32px;height:32px;}
-  html[data-hud=blast] #scoreboard .sb-score{font-family:var(--hud-f);font-weight:700;font-size:28px;}
-  html[data-hud=blast] #scoreboard .sb-mid{background:none;border-color:rgba(255,255,255,.1);min-width:88px;}
-  html[data-hud=blast] #scoreboard .sb-round{color:#c7ccd8;}
+  html[data-hud=blast] #scoreboard .sb-logo{width:60px;height:auto;align-self:stretch;padding:8px 13px;box-sizing:border-box;background:none;}
+  html[data-hud=blast] #scoreboard .sb-score{font-family:var(--hud-f);font-weight:700;font-size:30px;min-width:54px;align-self:stretch;display:flex;align-items:center;justify-content:center;
+    border-left:1px solid rgba(255,255,255,.08);border-right:1px solid rgba(255,255,255,.08);}
+  html[data-hud=blast] #scoreboard .sb-mid{background:none;border:0;min-width:96px;}
+  html[data-hud=blast] #scoreboard .sb-round{color:#e6e9f0;font-weight:700;font-size:11px;letter-spacing:.04em;padding-bottom:3px;border-bottom:1px solid rgba(255,255,255,.08);}
+  html[data-hud=blast] #scoreboard .sb-time{font-family:var(--hud-f);font-weight:700;font-size:16px;}
   html[data-hud=blast] #scoreboard .sb-prog,html[data-hud=blast] #scoreboard .sb-series{display:none;}
-  html[data-hud=blast] body.bomb-on #scoreboard .sb-planted{display:flex;align-items:center;gap:8px;padding:0 16px;background:var(--bc-t-fill);color:#fff;font-family:var(--hud-f);font-weight:700;
-    font-size:14px;letter-spacing:.04em;animation:bcIn var(--d3) var(--ease) both;}
+  html[data-hud=blast] body.bomb-on #scoreboard .sb-planted{display:flex;align-items:center;gap:10px;padding:0 18px 0 0;background:linear-gradient(90deg,var(--bc-t-fill) 0 58px,#171a21 58px);color:#fff;font-family:var(--hud-f);font-weight:700;
+    font-size:15px;letter-spacing:.03em;animation:bcIn var(--d3) var(--ease) both;}
   @keyframes bcIn{from{opacity:0;transform:translateX(-8px);}to{opacity:1;transform:none;}}
-  html[data-hud=blast] #scoreboard .sb-planted svg{width:18px;height:18px;}
-  html[data-hud=blast] .pl-col{flex-direction:row;width:auto;gap:4px;align-items:flex-end;}
+  html[data-hud=blast] #scoreboard .sb-planted svg{width:26px;height:26px;margin:0 16px;fill:#fff;}
+  html[data-hud=blast] .pl-col{flex-direction:row;width:auto;gap:3px;align-items:flex-end;}
   html[data-hud=blast] #plCT{flex-direction:row-reverse;}
   html[data-hud=blast] .pl-tag{display:none;}
-  html[data-hud=blast] .pl-card,html[data-hud=blast] #plCT .pl-card{width:104px;grid-template-columns:18px 1fr;grid-template-rows:84px 18px 18px;grid-template-areas:"ava ava" "num nick" "stat stat";background:var(--bc-card);}
-  html[data-hud=blast] #plT .pl-card .pl-ava{background:linear-gradient(180deg,#2f6ff0,#173a94);} html[data-hud=blast] #plCT .pl-card .pl-ava{background:linear-gradient(180deg,#e8344a,#8f1626);}
-  html[data-hud=blast] .pl-ava img{object-fit:cover;object-position:50% 15%;}
-  html[data-hud=blast] .pl-num{background:var(--bc-strip)!important;color:#fff!important;font-size:11px;}
-  html[data-hud=blast] .pl-nick{padding:0 6px;font-size:12px;font-weight:700;background:var(--bc-strip);align-self:stretch;line-height:18px;}
-  html[data-hud=blast] .pl-stat{padding:0 6px;font-size:11px;gap:6px;justify-content:space-between;}
-  html[data-hud=blast] .pl-hp{grid-area:ava;align-self:start;justify-self:end;font-family:var(--hud-f);font-weight:700;font-size:22px;padding:2px 6px;text-align:right;text-shadow:0 1px 2px rgba(0,0,0,.6);}
-  html[data-hud=blast] .pl-wp{grid-area:ava;align-self:end;justify-self:start;margin:0 0 4px 6px;}
-  html[data-hud=blast] .pl-top svg.wp{height:12px;opacity:1;}
-  html[data-hud=blast] .pl-gear{display:none;}
-  html[data-hud=blast] .pl-bar,html[data-hud=blast] #plCT .pl-bar{left:0;right:0;bottom:0;height:3px;}
-  html[data-hud=blast] #plT .pl-bar b.hp{background:var(--bc-ct-fill);} html[data-hud=blast] #plCT .pl-bar b.hp{background:var(--bc-t-fill);}
-  html[data-hud=blast] .pl-card.dead .pl-ava{background:#1b1e27!important;}
-  html[data-hud=blast] .pl-card.sel{box-shadow:inset 0 0 0 2px #fff;}
+  html[data-hud=blast] .pl-card,html[data-hud=blast] #plCT .pl-card{width:124px;grid-template-columns:1fr;grid-template-rows:80px 22px 24px;grid-template-areas:"ava" "stat" "wp";
+    background:none;overflow:visible;row-gap:2px;margin-top:20px;font-variant-numeric:tabular-nums;filter:drop-shadow(0 6px 8px rgba(0,0,0,.45));}
+  html[data-hud=blast] .pl-ava{display:block;overflow:visible;}
+  html[data-hud=blast] #plT .pl-card .pl-ava{background:linear-gradient(180deg,#f0364c,#c81a30);} html[data-hud=blast] #plCT .pl-card .pl-ava{background:linear-gradient(180deg,#3a64f0,#1f3fc4);}
+  html[data-hud=blast] .pl-ava img,html[data-hud=blast] .pl-ava > svg{position:absolute;left:-2px;bottom:0;width:auto;height:100px;max-width:none;aspect-ratio:1;object-fit:cover;object-position:50% 0;
+    clip-path:inset(-40px 0 0 0);}
+  html[data-hud=blast] .pl-ava > svg{fill:rgba(255,255,255,.35);height:72px;left:8px;}
+  html[data-hud=blast] .pl-card .pl-num{grid-area:ava;align-self:end;justify-self:start;width:16px;height:16px;margin:0 0 5px 5px;background:#0c0e16!important;color:#fff!important;font-family:var(--hud-f);font-weight:700;font-size:11px;
+    display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 1px rgba(255,255,255,.75);z-index:3;}
+  html[data-hud=blast] .pl-nick{grid-area:ava;align-self:end;justify-self:end;max-width:92px;padding:0 6px 3px 0;font-size:14px;font-weight:700;text-transform:none;letter-spacing:.01em;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,.7);z-index:3;}
+  html[data-hud=blast] .pl-hp{grid-area:ava;align-self:start;justify-self:end;font-family:var(--hud-f);font-weight:800;font-size:26px;line-height:1;padding:5px 5px 0 0;text-align:right;
+    text-shadow:0 1px 2px rgba(0,0,0,.45);z-index:3;}
+  html[data-hud=blast] .pl-card.arm .pl-hp::before{content:"";display:inline-block;width:9px;height:11px;margin-right:2px;vertical-align:13px;background:#fff;clip-path:polygon(50% 0,100% 16%,100% 52%,50% 100%,0 52%,0 16%);}
+  html[data-hud=blast] .pl-stat{grid-area:stat;display:flex;gap:2px;padding:0;align-self:stretch;font-family:var(--hud-f);font-size:13px;font-weight:700;color:#fff;}
+  html[data-hud=blast] .pl-stat > span{flex:1 1 auto;justify-content:center;gap:0;background:var(--bc-ct-cell);}
+  html[data-hud=blast] #plT .pl-stat > span{background:var(--bc-t-cell);}
+  html[data-hud=blast] .pl-stat > span:nth-child(1),html[data-hud=blast] .pl-stat > span:nth-child(2){flex:0 0 31px;}
+  html[data-hud=blast] .pl-stat svg{width:11px;height:11px;margin-right:4px;fill:#fff;opacity:.9;}
+  html[data-hud=blast] .pl-money{color:#6dff8a;font-size:12px;}
+  html[data-hud=blast] .pl-stat > span.pl-adr{display:none;}
+  html[data-hud=blast] .pl-wp{grid-area:wp;align-self:stretch;justify-self:stretch;display:flex;align-items:center;padding-left:8px;background:var(--bc-strip);}
+  html[data-hud=blast] .pl-top svg.wp{height:13px;max-width:70px;fill:#fff;opacity:1;}
+  html[data-hud=blast] #plT .pl-top svg.wp{transform:scaleX(-1);}
+  html[data-hud=blast] #plCT .pl-top svg.wp{transform:none;}
+  html[data-hud=blast] .pl-gear{display:flex;grid-area:wp;align-self:stretch;align-items:center;justify-self:end;gap:3px;padding-right:6px;z-index:3;}
+  html[data-hud=blast] .pl-gear svg{height:12px;fill:#fff;opacity:.9;}
+  html[data-hud=blast] .pl-gear .k-armor,html[data-hud=blast] .pl-gear .k-helmet{display:none;}
+  html[data-hud=blast] .pl-gear .k-kit{position:absolute;right:0;top:-130px;width:20px;height:20px;background:#22c55e;display:flex;align-items:center;justify-content:center;}
+  html[data-hud=blast] .pl-gear .k-kit svg{height:11px;fill:#fff;}
+  html[data-hud=blast] .pl-bar,html[data-hud=blast] #plCT .pl-bar{grid-area:ava;position:relative;inset:auto;align-self:end;height:3px;z-index:2;background:rgba(0,0,0,.35);}
+  html[data-hud=blast] .pl-bar b.hp,html[data-hud=blast] #plCT .pl-bar b.hp{background:#fff;}
+  html[data-hud=blast] .pl-card.dead{grid-template-rows:20px 22px 24px;margin-top:0;}
+  html[data-hud=blast] .pl-card.dead .pl-ava{background:none!important;}
+  html[data-hud=blast] .pl-card.dead .pl-ava img,html[data-hud=blast] .pl-card.dead .pl-ava > svg,html[data-hud=blast] .pl-card.dead .pl-hp,html[data-hud=blast] .pl-card.dead .pl-bar,html[data-hud=blast] .pl-card.dead .pl-wp{display:none;}
+  html[data-hud=blast] .pl-card.dead .pl-num{margin:0 0 2px 0;}
+  html[data-hud=blast] .pl-card.dead .pl-nick{padding:0 2px 2px 0;color:#dfe3ea;}
+  html[data-hud=blast] .pl-card.dead .pl-stat > span,html[data-hud=blast] #plT .pl-card.dead .pl-stat > span{background:var(--bc-cell-dead);}
+  html[data-hud=blast] .pl-card.dead .pl-rd{display:flex;grid-area:wp;align-items:center;justify-content:center;gap:8px;background:var(--bc-strip);font-family:var(--hud-f);font-size:10px;font-weight:700;
+    letter-spacing:.04em;color:#8e94a2;}
+  html[data-hud=blast] .pl-rd i{font-style:normal;font-size:15px;color:#c9cdd6;}
+  html[data-hud=blast] .pl-card.sel{outline:2px solid #fff;outline-offset:0;}
+  html[data-hud=blast] .pl-card.sel .pl-wp{background:#f4f5f8;}
+  html[data-hud=blast] .pl-card.sel .pl-top svg.wp,html[data-hud=blast] .pl-card.sel .pl-gear svg{filter:brightness(0);opacity:.85;}   /* у части значков свой цвет — тёмными делает фильтр */
 
   /* ---------- выбранный игрок — «камера игрока» внизу по центру ---------- */
   html.hud-bc #plFocus{width:260px;bottom:12px;}

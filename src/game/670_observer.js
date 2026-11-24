@@ -38,6 +38,7 @@ var OBS_ST = {m: -1, kills: 0, live: 0, sw: 0, late: 0};
 var OBC = null;
 // (v592) задержка эфира (675, bcFrame): кто из игроков через сколько тиков экрана убьёт / погибнет — игра уже это сыграла, экран ещё нет
 var OBS_FUT = null;
+function obsFutSet(f){ OBS_FUT = f; }   // (v596) интерфейс хозяина: «что будет» для обсервера ставит задержка эфира (675) — сборка запрещает писать чужую переменную
 function obsCtx(){
   if(OBC && OBC.tick === tick && OBC.m === matchNum && OBC.rs === roundState) return OBC;
   var C = {tick: tick, m: matchNum, rs: roundState, F: null, shotBy: {}, los: {}, alive: {CT: 0, T: 0}};
@@ -330,8 +331,10 @@ function miniDraw(){
   smokes.forEach(function(sm){ var rr = smokeRadiusNow(sm); if(rr <= 2) return; x.fillStyle = "rgba(210,214,206,.75)"; x.beginPath(); x.arc(sm.x, sm.y, rr, 0, Math.PI*2); x.fill(); });
   fires.forEach(function(f){ x.fillStyle = "rgba(255,120,40,.65)"; x.beginPath(); x.arc(f.x, f.y, NADE.molly.radius, 0, Math.PI*2); x.fill(); });
   nadesInAir.forEach(function(n){ x.fillStyle = n.team === "CT" ? "#a9cdf0" : "#f0cf93"; x.beginPath(); x.arc(n.x, n.y, 4/k, 0, Math.PI*2); x.fill(); });
+  var av = typeof HUD_STYLE !== "undefined" && HUD_STYLE === "blast";   // (v596, фото BLAST) на мини-карте — фото игроков в кружках цвета стороны
   bots.forEach(function(b){
     var col = b.team === "CT" ? "#5a9bd9" : "#d9a24a";
+    if(av){ miniAvatar(x, b, k); return; }
     if(!b.alive){ x.strokeStyle = col; x.lineWidth = 3/k; var q = 5/k; x.beginPath(); x.moveTo(b.x-q,b.y-q); x.lineTo(b.x+q,b.y+q); x.moveTo(b.x+q,b.y-q); x.lineTo(b.x-q,b.y+q); x.stroke(); return; }
     var R = 7/k;
     if(b.facing !== undefined){ x.strokeStyle = col; x.lineWidth = 2/k; x.beginPath(); x.moveTo(b.x, b.y); x.lineTo(b.x+Math.cos(b.facing)*R*1.9, b.y+Math.sin(b.facing)*R*1.9); x.stroke(); }
@@ -346,6 +349,23 @@ function miniDraw(){
     x.fillStyle = bomb.state === "planted" ? (on ? "#ff5a4a" : "#7a2620") : (bomb.state === "dropped" ? "#ffd25a" : "#ffb347");
     x.fillRect(bx-6/k, by-4/k, 12/k, 8/k); x.strokeStyle = "#0b0f0b"; x.lineWidth = 1.5/k; x.strokeRect(bx-6/k, by-4/k, 12/k, 8/k);
   }
+}
+// (v596, владелец 24.11, фото BLAST) игрок на мини-карте — фото в кружке с кольцом цвета стороны и «носиком» по взгляду; погибший — красный
+// крестик; фото — те же, что в панелях (PLAYER_PHOTO), картинки кэшируются один раз на ник
+var MINI_PH = {};
+function miniAvatar(x, b, k){
+  var colA = b.team === "CT" ? "#2a52e0" : "#e3283c";
+  if(!b.alive){ x.strokeStyle = "#e3283c"; x.lineWidth = 3/k; var q = 6/k; x.beginPath(); x.moveTo(b.x-q,b.y-q); x.lineTo(b.x+q,b.y+q); x.moveTo(b.x+q,b.y-q); x.lineTo(b.x-q,b.y+q); x.stroke(); return; }
+  var R = 12/k, nk = nick(b.id), src = PLAYER_PHOTO[nk], im = MINI_PH[nk];
+  if(!im && src){ im = MINI_PH[nk] = new Image(); im.src = src; }
+  if(b.facing !== undefined){ var fa = b.facing, tx = b.x + Math.cos(fa)*R*1.55, ty = b.y + Math.sin(fa)*R*1.55;
+    x.fillStyle = colA; x.beginPath(); x.moveTo(tx, ty); x.lineTo(b.x + Math.cos(fa+0.5)*R, b.y + Math.sin(fa+0.5)*R); x.lineTo(b.x + Math.cos(fa-0.5)*R, b.y + Math.sin(fa-0.5)*R); x.fill(); }
+  x.fillStyle = colA; x.beginPath(); x.arc(b.x, b.y, R + 2.5/k, 0, Math.PI*2); x.fill();
+  x.save(); x.beginPath(); x.arc(b.x, b.y, R, 0, Math.PI*2); x.clip();
+  x.fillStyle = "#1b1e27"; x.fillRect(b.x - R, b.y - R, 2*R, 2*R);
+  if(im && im.complete && im.naturalWidth) x.drawImage(im, b.x - R*1.15, b.y - R*0.95, R*2.3, R*2.3);
+  x.restore();
+  if(plSelected === b.id){ x.strokeStyle = "#fff"; x.lineWidth = 2/k; x.beginPath(); x.arc(b.x, b.y, R + 3.5/k, 0, Math.PI*2); x.stroke(); }
 }
 // (v310) с кем бой у игрока обсервера — пунктир от него к сопернику и кольцо вокруг соперника
 function obsOverlay(){

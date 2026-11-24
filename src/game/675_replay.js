@@ -485,8 +485,8 @@ function bcFrame(drawFn){
   BC.disp = SA.t;
   var FUT = {}; R.kills.forEach(function(k){ if(k.t > SA.t && k.t <= tick){ var d = k.t - SA.t; [k.att, k.vic].forEach(function(id){ if(id && (FUT[id] == null || d < FUT[id])) FUT[id] = d; }); } });
   var back = null;
-  try{ back = rpSwap(R, SA.w, (SB && SB.w) || SA.w, f, SA.t + f, {Iref: SA, trCache: BC.trCache}); OBS_FUT = FUT; drawFn(); }
-  finally { OBS_FUT = null; if(back) back(); }
+  try{ back = rpSwap(R, SA.w, (SB && SB.w) || SA.w, f, SA.t + f, {Iref: SA, trCache: BC.trCache}); obsFutSet(FUT); drawFn(); }
+  finally { obsFutSet(null); if(back) back(); }
   return true;
 }
 function rpTrFrom(R, t){ var lo = 0, hi = R.tr.length; while(lo < hi){ var mid = (lo + hi) >> 1; if(R.tr[mid].t < t) lo = mid + 1; else hi = mid; } return lo; }
