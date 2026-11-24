@@ -1,0 +1,11 @@
+{
+ "build": "sim.html (код игры 334860d), freshMatch(3), Chromium 158.0.8127.36",
+ "ticks": 20000,
+ "hash_every": 16,
+ "base_vs_base_first_diff_tick": -1,
+ "base_vs_libm_first_diff_tick": 16,
+ "round_at_end": {
+  "base": 4,
+  "libm": 3
+ }
+}

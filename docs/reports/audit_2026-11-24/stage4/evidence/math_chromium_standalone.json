@@ -1,0 +1,94 @@
+{
+ "main": {
+  "hash": {
+   "js": {
+    "sin": "9795e229",
+    "cos": "b14fc6c4",
+    "tan": "6102b26e",
+    "atan2": "b5c3327f",
+    "exp": "329f76fe",
+    "log": "79fb2d87",
+    "pow": "52672fea",
+    "hypot": "d36d24b5",
+    "sqrt": "9d2ca4a3"
+   },
+   "wasm_std": {
+    "sin": "6714cee3",
+    "cos": "138bca5f",
+    "tan": "2c3cfc5c",
+    "atan2": "aba782ba",
+    "exp": "6af67175",
+    "log": "f46ec5df",
+    "pow": "86a0ea56",
+    "hypot": "8b8650b2",
+    "sqrt": "9d2ca4a3"
+   },
+   "wasm_libm": {
+    "sin": "6714cee3",
+    "cos": "138bca5f",
+    "tan": "2c3cfc5c",
+    "atan2": "aba782ba",
+    "exp": "6af67175",
+    "log": "f46ec5df",
+    "pow": "86a0ea56",
+    "hypot": "7347637b",
+    "sqrt": "9d2ca4a3"
+   }
+  },
+  "overhead": {
+   "calls": 10000000,
+   "wasm_ns_per_call": 2.69,
+   "js_ns_per_call": 0.45
+  }
+ },
+ "worker": {
+  "hash": {
+   "js": {
+    "sin": "9795e229",
+    "cos": "b14fc6c4",
+    "tan": "6102b26e",
+    "atan2": "b5c3327f",
+    "exp": "329f76fe",
+    "log": "79fb2d87",
+    "pow": "52672fea",
+    "hypot": "d36d24b5",
+    "sqrt": "9d2ca4a3"
+   },
+   "wasm_std": {
+    "sin": "6714cee3",
+    "cos": "138bca5f",
+    "tan": "2c3cfc5c",
+    "atan2": "aba782ba",
+    "exp": "6af67175",
+    "log": "f46ec5df",
+    "pow": "86a0ea56",
+    "hypot": "8b8650b2",
+    "sqrt": "9d2ca4a3"
+   },
+   "wasm_libm": {
+    "sin": "6714cee3",
+    "cos": "138bca5f",
+    "tan": "2c3cfc5c",
+    "atan2": "aba782ba",
+    "exp": "6af67175",
+    "log": "f46ec5df",
+    "pow": "86a0ea56",
+    "hypot": "7347637b",
+    "sqrt": "9d2ca4a3"
+   }
+  },
+  "overhead": {
+   "calls": 10000000,
+   "wasm_ns_per_call": 2.82,
+   "js_ns_per_call": 0.46
+  }
+ },
+ "browser": "158.0.8127.36",
+ "cmp": {
+  "main_js_eq_node_js": false,
+  "worker_js_eq_node_js": false,
+  "main_wasm_libm_eq_native_libm": true,
+  "worker_wasm_libm_eq_native_libm": true,
+  "main_wasm_std_eq_node_wasm_std": true
+ }
+}

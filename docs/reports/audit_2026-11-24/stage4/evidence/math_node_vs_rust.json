@@ -1,0 +1,156 @@
+{
+ "n": 200000,
+ "diff": {
+  "js vs native_std": {
+   "sin": 6607,
+   "cos": 6691,
+   "tan": 7374,
+   "atan2": 35576,
+   "exp": 19478,
+   "log": 2269,
+   "pow": 19681,
+   "hypot": 69244,
+   "sqrt": 0
+  },
+  "js vs native_libm": {
+   "sin": 1831,
+   "cos": 1893,
+   "tan": 0,
+   "atan2": 0,
+   "exp": 0,
+   "log": 212,
+   "pow": 8861,
+   "hypot": 72958,
+   "sqrt": 0
+  },
+  "js vs wasm_std": {
+   "sin": 1831,
+   "cos": 1893,
+   "tan": 0,
+   "atan2": 0,
+   "exp": 0,
+   "log": 212,
+   "pow": 8861,
+   "hypot": 69227,
+   "sqrt": 0
+  },
+  "js vs wasm_libm": {
+   "sin": 1831,
+   "cos": 1893,
+   "tan": 0,
+   "atan2": 0,
+   "exp": 0,
+   "log": 212,
+   "pow": 8861,
+   "hypot": 72958,
+   "sqrt": 0
+  },
+  "native_std vs native_libm": {
+   "sin": 6126,
+   "cos": 6188,
+   "tan": 7374,
+   "atan2": 35576,
+   "exp": 19478,
+   "log": 2287,
+   "pow": 19628,
+   "hypot": 27964,
+   "sqrt": 0
+  },
+  "native_libm vs wasm_libm": {
+   "sin": 0,
+   "cos": 0,
+   "tan": 0,
+   "atan2": 0,
+   "exp": 0,
+   "log": 0,
+   "pow": 0,
+   "hypot": 0,
+   "sqrt": 0
+  },
+  "native_std vs wasm_std": {
+   "sin": 6126,
+   "cos": 6188,
+   "tan": 7374,
+   "atan2": 35576,
+   "exp": 19478,
+   "log": 2287,
+   "pow": 19628,
+   "hypot": 1251,
+   "sqrt": 0
+  },
+  "wasm_std vs wasm_libm": {
+   "sin": 0,
+   "cos": 0,
+   "tan": 0,
+   "atan2": 0,
+   "exp": 0,
+   "log": 0,
+   "pow": 0,
+   "hypot": 27935,
+   "sqrt": 0
+  }
+ },
+ "hash": {
+  "js": {
+   "sin": "553a9172",
+   "cos": "513afd5e",
+   "tan": "2c3cfc5c",
+   "atan2": "aba782ba",
+   "exp": "6af67175",
+   "log": "1b7dbd19",
+   "pow": "1bc03909",
+   "hypot": "d36d24b5",
+   "sqrt": "9d2ca4a3"
+  },
+  "wasm_std": {
+   "sin": "6714cee3",
+   "cos": "138bca5f",
+   "tan": "2c3cfc5c",
+   "atan2": "aba782ba",
+   "exp": "6af67175",
+   "log": "f46ec5df",
+   "pow": "86a0ea56",
+   "hypot": "8b8650b2",
+   "sqrt": "9d2ca4a3"
+  },
+  "wasm_libm": {
+   "sin": "6714cee3",
+   "cos": "138bca5f",
+   "tan": "2c3cfc5c",
+   "atan2": "aba782ba",
+   "exp": "6af67175",
+   "log": "f46ec5df",
+   "pow": "86a0ea56",
+   "hypot": "7347637b",
+   "sqrt": "9d2ca4a3"
+  },
+  "native_std": {
+   "sin": "56efa7f",
+   "cos": "2e8e417f",
+   "tan": "8b2be7a0",
+   "atan2": "b4a92314",
+   "exp": "b460c765",
+   "log": "bb18407e",
+   "pow": "52672fea",
+   "hypot": "2b0572a3",
+   "sqrt": "9d2ca4a3"
+  },
+  "native_libm": {
+   "sin": "6714cee3",
+   "cos": "138bca5f",
+   "tan": "2c3cfc5c",
+   "atan2": "aba782ba",
+   "exp": "6af67175",
+   "log": "f46ec5df",
+   "pow": "86a0ea56",
+   "hypot": "7347637b",
+   "sqrt": "9d2ca4a3"
+  }
+ },
+ "overhead_node": {
+  "calls": 10000000,
+  "wasm_ns_per_call": 2.91,
+  "js_ns_per_call": 0.66
+ },
+ "node": "v22.23.5"
+}

@@ -1,0 +1,9 @@
+cr_check.py (mpmath 200 бит), первые 5000 входов; Node v22.23.5 (V8 12.4.254.21) против Chromium 158.0.8127.36 (Playwright 1.63.0):
+sin    правильно округлено из 5000: node 4804  chromium 5000
+cos    правильно округлено из 5000: node 4832  chromium 5000
+tan    правильно округлено из 5000: node 4820  chromium 5000
+atan2  правильно округлено из 5000: node 4132  chromium 5000
+exp    правильно округлено из 5000: node 4469  chromium 5000
+log    правильно округлено из 5000: node 4932  chromium 5000
+pow    правильно округлено из 5000: node 4478  chromium 4997
+Расхождения Chromium ↔ Node на 20000 входах (br2.js): sin 704, cos 681, tan 728, atan2 3440, exp 1985, log 243, pow 2035, hypot 0, sqrt 0.

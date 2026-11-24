@@ -1,0 +1,7 @@
+Счёт по коду расчёта (src/game 000–545, код игры 334860d; grep -oE, включая строки с комментариями — верхняя граница).
+Трансцендентные Math (зависят от реализации движка JS): sin 61, cos 64, atan2 108, atan 6, acos 1, exp 14, log 11, pow 8; hypot 968; sqrt 15.
+Места, где семантика JS и Rust различается: Math.round 256 (JS: −2.5 → −2, Rust round: −3), Math.min 211 / Math.max 316 (JS: NaN → NaN,
+Rust f64::min: NaN → другой аргумент), .sort( 98 (компаратор, устойчивость), for…in 105 и Object.keys 57 (порядок ключей JS: сначала
+целые по возрастанию, потом по вставке), .toFixed 24, |0 134.
+Проверено: node -e (Math.round(-2.5) = -2, Math.min(NaN,1) = NaN); rustc ((-2.5).round() = -3, NAN.min(1.0) = 1).
+Время в логике: performance.now — только 380:31/45 (замер NADE_SOLVE_MS, «только для проверки»); Date.now / Math.random — нет.
