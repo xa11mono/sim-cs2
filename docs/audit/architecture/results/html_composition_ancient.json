@@ -1,0 +1,432 @@
+{
+ "file": "C:\\Projects\\sim-cs2\\ancient-radar.html",
+ "page_bytes": 15828676,
+ "page_chars": 15774517,
+ "page_gzip": 10269758,
+ "page_brotli": 10143839,
+ "body_at": 530,
+ "styles": [
+  {
+   "at": 130,
+   "bytes": 393
+  },
+  {
+   "at": 536,
+   "bytes": 59212
+  },
+  {
+   "at": 57053,
+   "bytes": 478742
+  },
+  {
+   "at": 536118,
+   "bytes": 69273
+  }
+ ],
+ "scripts": [
+  {
+   "at": 625494,
+   "end": 15774501,
+   "bytes": 15190895
+  },
+  {
+   "at": 535796,
+   "end": 536083,
+   "bytes": 287
+  }
+ ],
+ "html_bytes": 29874,
+ "style_bytes": 607620,
+ "script_bytes": 15191182,
+ "fonts": {
+  "count": 11,
+  "base64_chars": 475220,
+  "bytes_est": 356415
+ },
+ "css_bytes": 132400,
+ "map_literal": {
+  "at": 945933,
+  "bytes": 11405446
+ },
+ "map_keys": {
+  "total": 11426818,
+  "by_category": {
+   "geometry": 9902711,
+   "nav": 279135,
+   "visibility": 10838,
+   "textures": 85225,
+   "gameplay": 1148291,
+   "other": 618
+  },
+  "rows": [
+   {
+    "key": "map3d",
+    "bytes": 9816299,
+    "cat": "geometry"
+   },
+   {
+    "key": "nadelanes",
+    "bytes": 593025,
+    "cat": "gameplay"
+   },
+   {
+    "key": "pro",
+    "bytes": 301676,
+    "cat": "gameplay"
+   },
+   {
+    "key": "navmesh",
+    "bytes": 247893,
+    "cat": "nav"
+   },
+   {
+    "key": "radar",
+    "bytes": 85225,
+    "cat": "textures"
+   },
+   {
+    "key": "nadeguess",
+    "bytes": 62777,
+    "cat": "gameplay"
+   },
+   {
+    "key": "heights",
+    "bytes": 61015,
+    "cat": "geometry"
+   },
+   {
+    "key": "ctspots",
+    "bytes": 56522,
+    "cat": "gameplay"
+   },
+   {
+    "key": "lineups",
+    "bytes": 46777,
+    "cat": "gameplay"
+   },
+   {
+    "key": "postplant",
+    "bytes": 39967,
+    "cat": "gameplay"
+   },
+   {
+    "key": "zones",
+    "bytes": 31242,
+    "cat": "nav"
+   },
+   {
+    "key": "tactics",
+    "bytes": 13372,
+    "cat": "gameplay"
+   },
+   {
+    "key": "zoneprops",
+    "bytes": 10838,
+    "cat": "visibility"
+   },
+   {
+    "key": "runups",
+    "bytes": 10782,
+    "cat": "gameplay"
+   },
+   {
+    "key": "luaim",
+    "bytes": 9544,
+    "cat": "gameplay"
+   },
+   {
+    "key": "wallbang",
+    "bytes": 8713,
+    "cat": "geometry"
+   },
+   {
+    "key": "walls",
+    "bytes": 8390,
+    "cat": "geometry"
+   },
+   {
+    "key": "cover",
+    "bytes": 6949,
+    "cat": "geometry"
+   },
+   {
+    "key": "turnmodel",
+    "bytes": 4205,
+    "cat": "gameplay"
+   },
+   {
+    "key": "ctshare",
+    "bytes": 4151,
+    "cat": "gameplay"
+   },
+   {
+    "key": "spawnearly",
+    "bytes": 2965,
+    "cat": "gameplay"
+   },
+   {
+    "key": "nadeplan",
+    "bytes": 1701,
+    "cat": "gameplay"
+   },
+   {
+    "key": "climbs",
+    "bytes": 1345,
+    "cat": "geometry"
+   },
+   {
+    "key": "defaultpos",
+    "bytes": 827,
+    "cat": "gameplay"
+   },
+   {
+    "key": "spawnSpots",
+    "bytes": 253,
+    "cat": "other"
+   },
+   {
+    "key": "ui",
+    "bytes": 124,
+    "cat": "other"
+   },
+   {
+    "key": "zoneLayer",
+    "bytes": 47,
+    "cat": "other"
+   },
+   {
+    "key": "spawns",
+    "bytes": 43,
+    "cat": "other"
+   },
+   {
+    "key": "spawnFix",
+    "bytes": 40,
+    "cat": "other"
+   },
+   {
+    "key": "store",
+    "bytes": 29,
+    "cat": "other"
+   },
+   {
+    "key": "siteAFix",
+    "bytes": 25,
+    "cat": "other"
+   },
+   {
+    "key": "name",
+    "bytes": 17,
+    "cat": "other"
+   },
+   {
+    "key": "id",
+    "bytes": 15,
+    "cat": "other"
+   },
+   {
+    "key": "pxUnits",
+    "bytes": 14,
+    "cat": "other"
+   },
+   {
+    "key": "db",
+    "bytes": 11,
+    "cat": "other"
+   }
+  ]
+ },
+ "snd_data": {
+  "at": 14051546,
+  "bytes": 1707346,
+  "base64_chars": 1705860,
+  "bytes_est": 1279395
+ },
+ "engine_bytes": 1979206,
+ "marks": {
+  "at": 13858876,
+  "bytes": 98897,
+  "snapshot_bytes": 76239,
+  "module_bytes": 22658
+ },
+ "radar_base64_chars": 85192,
+ "radar_png_bytes": 63894,
+ "images": [
+  {
+   "at": 946023,
+   "mime": "png",
+   "chars": 85192,
+   "bytes": 63894,
+   "in_map": true
+  },
+  {
+   "at": 12428242,
+   "mime": "png",
+   "chars": 5696,
+   "bytes": 4272,
+   "in_map": false
+  },
+  {
+   "at": 12434078,
+   "mime": "png",
+   "chars": 11724,
+   "bytes": 8793,
+   "in_map": false
+  },
+  {
+   "at": 13245467,
+   "mime": "png",
+   "chars": 76,
+   "bytes": 57,
+   "in_map": false
+  },
+  {
+   "at": 13276091,
+   "mime": "png",
+   "chars": 61804,
+   "bytes": 46353,
+   "in_map": false
+  },
+  {
+   "at": 13337931,
+   "mime": "png",
+   "chars": 53696,
+   "bytes": 40272,
+   "in_map": false
+  },
+  {
+   "at": 13391661,
+   "mime": "png",
+   "chars": 50836,
+   "bytes": 38127,
+   "in_map": false
+  },
+  {
+   "at": 13442530,
+   "mime": "png",
+   "chars": 52820,
+   "bytes": 39615,
+   "in_map": false
+  },
+  {
+   "at": 13495382,
+   "mime": "png",
+   "chars": 49812,
+   "bytes": 37359,
+   "in_map": false
+  },
+  {
+   "at": 13545230,
+   "mime": "png",
+   "chars": 52480,
+   "bytes": 39360,
+   "in_map": false
+  },
+  {
+   "at": 13597742,
+   "mime": "png",
+   "chars": 61820,
+   "bytes": 46365,
+   "in_map": false
+  },
+  {
+   "at": 13659596,
+   "mime": "png",
+   "chars": 59400,
+   "bytes": 44550,
+   "in_map": false
+  },
+  {
+   "at": 13719028,
+   "mime": "png",
+   "chars": 60708,
+   "bytes": 45531,
+   "in_map": false
+  },
+  {
+   "at": 13779770,
+   "mime": "png",
+   "chars": 66648,
+   "bytes": 49986,
+   "in_map": false
+  }
+ ],
+ "map3d": {
+  "prims": {
+   "stored": 5875080,
+   "inflated": 16395105,
+   "json": 111,
+   "blobs": 7,
+   "bad": 0
+  },
+  "sight": {
+   "stored": 1976188,
+   "inflated": 9651981,
+   "json": 0,
+   "blobs": 4,
+   "bad": 0
+  },
+  "nade": {
+   "stored": 1900460,
+   "inflated": 8476672,
+   "json": 0,
+   "blobs": 3,
+   "bad": 0
+  },
+  "floors": {
+   "stored": 59548,
+   "inflated": 1784350,
+   "json": 0,
+   "blobs": 3,
+   "bad": 0
+  },
+  "sky": {
+   "stored": 1388,
+   "inflated": 1048576,
+   "json": 32,
+   "blobs": 1,
+   "bad": 0
+  },
+  "sky_z": {
+   "stored": 2744,
+   "inflated": 2097152,
+   "json": 0,
+   "blobs": 1,
+   "bad": 0
+  },
+  "mats": {
+   "stored": 0,
+   "inflated": 0,
+   "json": 233,
+   "blobs": 0,
+   "bad": 0
+  }
+ },
+ "transport": {
+  "full_page": {
+   "bytes": 15828676,
+   "gzip": 10269758,
+   "brotli": 10143839
+  },
+  "styles": {
+   "bytes": 607620,
+   "gzip": 389096,
+   "brotli": null
+  },
+  "map_literal": {
+   "bytes": 11405446,
+   "gzip": 7777333,
+   "brotli": null
+  },
+  "snd_data": {
+   "bytes": 1707346,
+   "gzip": 1187571,
+   "brotli": null
+  },
+  "game_script": {
+   "bytes": 15190895,
+   "gzip": 9872613,
+   "brotli": null
+  }
+ }
+}

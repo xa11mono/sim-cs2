@@ -1,0 +1,748 @@
+{
+ "ancient": {
+  "map": "ancient",
+  "conditions": {
+   "headed": true,
+   "viewport": "1400x900",
+   "http": "локальный сервер, Cache-Control: max-age=3600",
+   "instrumented": true,
+   "fps_ms": 8000,
+   "runs": 3
+  },
+  "machine": {
+   "os": "Windows-10-10.0.19045-SP0",
+   "python": "3.10.6",
+   "cpu": [
+    "AMD Ryzen 7 7800X3D 8-Core Processor           ",
+    "16754135040"
+   ]
+  },
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3070 (0x00002484) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "cold": [
+   {
+    "ready_s": 1.23,
+    "response_end": 342,
+    "first_paint": 468,
+    "s0": 462,
+    "html_parse": 119,
+    "map_literal": 4.3,
+    "nav_init": 444,
+    "zone_danger_and_rest": 232,
+    "marks_module": 0.4,
+    "warmstart": 30.0,
+    "script_exec": 719,
+    "fps_2d": 199.4,
+    "frame_p50": 5.0,
+    "frame_p95": 5.1,
+    "frame_max": 25.0,
+    "long_n": 0,
+    "js_heap_mb": 167.8,
+    "cdp_heap_mb": 39.8,
+    "dom_nodes": 2251,
+    "first_game_frame": 1184
+   },
+   {
+    "ready_s": 1.01,
+    "response_end": 117,
+    "first_paint": 72,
+    "s0": 241,
+    "html_parse": 124,
+    "map_literal": 4.4,
+    "nav_init": 452,
+    "zone_danger_and_rest": 226,
+    "marks_module": 0.5,
+    "warmstart": 29.7,
+    "script_exec": 720,
+    "fps_2d": 199.4,
+    "frame_p50": 5.0,
+    "frame_p95": 5.1,
+    "frame_max": 25.1,
+    "long_n": 0,
+    "js_heap_mb": 169.3,
+    "cdp_heap_mb": 41.2,
+    "dom_nodes": 2251,
+    "first_game_frame": 1005
+   },
+   {
+    "ready_s": 1.01,
+    "response_end": 114,
+    "first_paint": 56,
+    "s0": 219,
+    "html_parse": 104,
+    "map_literal": 4.3,
+    "nav_init": 410,
+    "zone_danger_and_rest": 207,
+    "marks_module": 0.4,
+    "warmstart": 117.8,
+    "script_exec": 747,
+    "fps_2d": 199.5,
+    "frame_p50": 5.0,
+    "frame_p95": 5.1,
+    "frame_max": 25.0,
+    "long_n": 0,
+    "js_heap_mb": 158.1,
+    "cdp_heap_mb": 41.0,
+    "dom_nodes": 2251,
+    "first_game_frame": 1004
+   }
+  ],
+  "warm": [
+   {
+    "ready_s": 0.81,
+    "response_end": 82,
+    "first_paint": 52,
+    "s0": 149,
+    "html_parse": 67,
+    "map_literal": 2.3,
+    "nav_init": 406,
+    "zone_danger_and_rest": 197,
+    "marks_module": 0.2,
+    "warmstart": 25.9,
+    "script_exec": 637,
+    "fps_2d": 200.0,
+    "frame_p50": 5.0,
+    "frame_p95": 5.1,
+    "frame_max": 5.2,
+    "long_n": 0,
+    "js_heap_mb": 118.2,
+    "cdp_heap_mb": 35.8,
+    "dom_nodes": 2249,
+    "first_game_frame": 800
+   },
+   {
+    "ready_s": 0.82,
+    "response_end": 100,
+    "first_paint": 52,
+    "s0": 152,
+    "html_parse": 52,
+    "map_literal": 2.4,
+    "nav_init": 417,
+    "zone_danger_and_rest": 195,
+    "marks_module": 0.3,
+    "warmstart": 25.5,
+    "script_exec": 645,
+    "fps_2d": 200.0,
+    "frame_p50": 5.0,
+    "frame_p95": 5.1,
+    "frame_max": 5.1,
+    "long_n": 0,
+    "js_heap_mb": 241.9,
+    "cdp_heap_mb": 84.9,
+    "dom_nodes": 4636,
+    "first_game_frame": 812
+   },
+   {
+    "ready_s": 0.83,
+    "response_end": 87,
+    "first_paint": 44,
+    "s0": 140,
+    "html_parse": 53,
+    "map_literal": 2.5,
+    "nav_init": 433,
+    "zone_danger_and_rest": 194,
+    "marks_module": 0.2,
+    "warmstart": 26.0,
+    "script_exec": 661,
+    "fps_2d": 200.0,
+    "frame_p50": 5.0,
+    "frame_p95": 5.1,
+    "frame_max": 5.1,
+    "long_n": 0,
+    "js_heap_mb": 184.2,
+    "cdp_heap_mb": 41.7,
+    "dom_nodes": 2251,
+    "first_game_frame": 816
+   }
+  ],
+  "d3": {
+   "ok": true,
+   "stat": {
+    "droppedNav": 89220,
+    "droppedCut": 158813,
+    "hiddenMat": 2613,
+    "tri": 956147,
+    "hull": 287,
+    "hullSkip": 8,
+    "floor": 0,
+    "area1": 324399,
+    "area2": 127790,
+    "area8": 74039,
+    "areaBig": 51043,
+    "mats": {
+     "rock": 854113,
+     "grass": 1948,
+     "unknown_1376136223": 1830,
+     "wood": 38853,
+     "mud": 10448,
+     "unknown_771186759": 3246,
+     "wood_plank": 14601,
+     "default": 14326,
+     "metal": 5474,
+     "metalpanel": 224,
+     "wood_panel": 3961,
+     "Wood_Tree": 1008,
+     "wood_dense": 1872,
+     "plastic": 1494,
+     "metal_sheetmetal": 476,
+     "metal_barrel": 114
+    },
+    "edgesBoundary": 8430,
+    "edgesCrease": 15811,
+    "openInside": 5402,
+    "uniqVerts": 404844,
+    "totalVerts": 2478507
+   },
+   "fps": {
+    "frames": 1602,
+    "span_ms": 8005.3,
+    "fps": 200.0,
+    "frame_ms": {
+     "mean": 5.0,
+     "p50": 5.0,
+     "p95": 5.1,
+     "max": 5.1
+    },
+    "long": {
+     "n": 0,
+     "total_ms": 0,
+     "max_ms": 0
+    }
+   },
+   "memory": {
+    "used": 334929259
+   },
+   "heap": 204576840,
+   "dom": {
+    "documents": 30,
+    "nodes": 2420,
+    "jsEventListeners": 203
+   }
+  },
+  "cold_median": {
+   "ready_s": 1.01,
+   "response_end": 117,
+   "first_paint": 72,
+   "s0": 241,
+   "html_parse": 119,
+   "map_literal": 4.3,
+   "nav_init": 444,
+   "zone_danger_and_rest": 226,
+   "marks_module": 0.4,
+   "warmstart": 30.0,
+   "script_exec": 720,
+   "fps_2d": 199.4,
+   "frame_p50": 5.0,
+   "frame_p95": 5.1,
+   "frame_max": 25.0,
+   "long_n": 0,
+   "js_heap_mb": 167.8,
+   "cdp_heap_mb": 41.0,
+   "dom_nodes": 2251,
+   "first_game_frame": 1005
+  },
+  "cold_range": {
+   "ready_s": [
+    1.01,
+    1.23
+   ],
+   "map_literal": [
+    4.3,
+    4.4
+   ],
+   "nav_init": [
+    410,
+    452
+   ],
+   "script_exec": [
+    719,
+    747
+   ],
+   "first_game_frame": [
+    1004,
+    1184
+   ]
+  },
+  "warm_median": {
+   "ready_s": 0.82,
+   "response_end": 87,
+   "first_paint": 52,
+   "s0": 149,
+   "html_parse": 53,
+   "map_literal": 2.4,
+   "nav_init": 417,
+   "zone_danger_and_rest": 195,
+   "marks_module": 0.2,
+   "warmstart": 25.9,
+   "script_exec": 645,
+   "fps_2d": 200.0,
+   "frame_p50": 5.0,
+   "frame_p95": 5.1,
+   "frame_max": 5.1,
+   "long_n": 0,
+   "js_heap_mb": 184.2,
+   "cdp_heap_mb": 41.7,
+   "dom_nodes": 2251,
+   "first_game_frame": 812
+  },
+  "warm_range": {
+   "ready_s": [
+    0.81,
+    0.83
+   ],
+   "map_literal": [
+    2.3,
+    2.5
+   ],
+   "nav_init": [
+    406,
+    433
+   ],
+   "script_exec": [
+    637,
+    661
+   ],
+   "first_game_frame": [
+    800,
+    816
+   ]
+  },
+  "memory_phases": [
+   {
+    "label": "браузер запущен (about:blank)",
+    "rss": {
+     "ws_mb": 0.0,
+     "priv_mb": 0.0
+    },
+    "ua_mb": null,
+    "js_mb": null
+   },
+   {
+    "label": "до открытия страницы",
+    "rss": {
+     "ws_mb": 151.4,
+     "priv_mb": 105.1
+    },
+    "ua_mb": null,
+    "js_mb": null
+   },
+   {
+    "label": "готово (разминка идёт)",
+    "rss": {
+     "ws_mb": 861.4,
+     "priv_mb": 712.5
+    },
+    "ua_mb": 136.7,
+    "js_mb": 165.3
+   },
+   {
+    "label": "матч идёт 10 с",
+    "rss": {
+     "ws_mb": 847.6,
+     "priv_mb": 685.8
+    },
+    "ua_mb": 140.7,
+    "js_mb": 139.5
+   },
+   {
+    "label": "3D включён 5 с",
+    "rss": {
+     "ws_mb": 1197.3,
+     "priv_mb": 1111.6
+    },
+    "ua_mb": 238.3,
+    "js_mb": 407.9
+   },
+   {
+    "label": "3D выключен 3 с",
+    "rss": {
+     "ws_mb": 1262.6,
+     "priv_mb": 1207.8
+    },
+    "ua_mb": 285.7,
+    "js_mb": 198.3
+   },
+   {
+    "label": "браузер закрыт",
+    "rss": {
+     "ws_mb": 0.0,
+     "priv_mb": 0.0
+    },
+    "ua_mb": null,
+    "js_mb": null
+   }
+  ]
+ },
+ "mirage": {
+  "map": "mirage",
+  "conditions": {
+   "headed": true,
+   "viewport": "1400x900",
+   "http": "локальный сервер, Cache-Control: max-age=3600",
+   "instrumented": true,
+   "fps_ms": 8000,
+   "runs": 3
+  },
+  "machine": {
+   "os": "Windows-10-10.0.19045-SP0",
+   "python": "3.10.6",
+   "cpu": [
+    "AMD Ryzen 7 7800X3D 8-Core Processor           ",
+    "16754135040"
+   ]
+  },
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3070 (0x00002484) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "cold": [
+   {
+    "ready_s": 1.09,
+    "response_end": 385,
+    "first_paint": 536,
+    "s0": 502,
+    "html_parse": 116,
+    "map_literal": 7.5,
+    "nav_init": 218,
+    "zone_danger_and_rest": 248,
+    "marks_module": 0.4,
+    "warmstart": 44.8,
+    "script_exec": 531,
+    "fps_2d": 199.2,
+    "frame_p50": 5.0,
+    "frame_p95": 5.1,
+    "frame_max": 35.1,
+    "long_n": 0,
+    "js_heap_mb": 71.6,
+    "cdp_heap_mb": 35.1,
+    "dom_nodes": 2250,
+    "first_game_frame": 1078
+   },
+   {
+    "ready_s": 0.81,
+    "response_end": 88,
+    "first_paint": 80,
+    "s0": 212,
+    "html_parse": 124,
+    "map_literal": 7.8,
+    "nav_init": 222,
+    "zone_danger_and_rest": 251,
+    "marks_module": 0.4,
+    "warmstart": 45.0,
+    "script_exec": 539,
+    "fps_2d": 199.2,
+    "frame_p50": 5.0,
+    "frame_p95": 5.1,
+    "frame_max": 35.0,
+    "long_n": 0,
+    "js_heap_mb": 71.3,
+    "cdp_heap_mb": 34.8,
+    "dom_nodes": 2250,
+    "first_game_frame": 793
+   },
+   {
+    "ready_s": 0.85,
+    "response_end": 81,
+    "first_paint": 68,
+    "s0": 194,
+    "html_parse": 112,
+    "map_literal": 7.4,
+    "nav_init": 198,
+    "zone_danger_and_rest": 225,
+    "marks_module": 0.4,
+    "warmstart": 162.1,
+    "script_exec": 604,
+    "fps_2d": 199.2,
+    "frame_p50": 5.0,
+    "frame_p95": 5.1,
+    "frame_max": 35.0,
+    "long_n": 0,
+    "js_heap_mb": 71.9,
+    "cdp_heap_mb": 35.4,
+    "dom_nodes": 2251,
+    "first_game_frame": 836
+   }
+  ],
+  "warm": [
+   {
+    "ready_s": 0.59,
+    "response_end": 58,
+    "first_paint": 52,
+    "s0": 100,
+    "html_parse": 42,
+    "map_literal": 4.7,
+    "nav_init": 190,
+    "zone_danger_and_rest": 223,
+    "marks_module": 0.2,
+    "warmstart": 37.5,
+    "script_exec": 463,
+    "fps_2d": 200.0,
+    "frame_p50": 5.0,
+    "frame_p95": 5.1,
+    "frame_max": 5.1,
+    "long_n": 0,
+    "js_heap_mb": 99.4,
+    "cdp_heap_mb": 39.6,
+    "dom_nodes": 2251,
+    "first_game_frame": 573
+   },
+   {
+    "ready_s": 0.57,
+    "response_end": 58,
+    "first_paint": 52,
+    "s0": 101,
+    "html_parse": 42,
+    "map_literal": 4.9,
+    "nav_init": 187,
+    "zone_danger_and_rest": 213,
+    "marks_module": 0.3,
+    "warmstart": 36.6,
+    "script_exec": 449,
+    "fps_2d": 200.0,
+    "frame_p50": 5.0,
+    "frame_p95": 5.1,
+    "frame_max": 5.2,
+    "long_n": 0,
+    "js_heap_mb": 99.4,
+    "cdp_heap_mb": 39.5,
+    "dom_nodes": 2251,
+    "first_game_frame": 564
+   },
+   {
+    "ready_s": 0.57,
+    "response_end": 52,
+    "first_paint": 44,
+    "s0": 94,
+    "html_parse": 42,
+    "map_literal": 4.7,
+    "nav_init": 186,
+    "zone_danger_and_rest": 213,
+    "marks_module": 0.2,
+    "warmstart": 37.0,
+    "script_exec": 448,
+    "fps_2d": 200.0,
+    "frame_p50": 5.0,
+    "frame_p95": 5.1,
+    "frame_max": 5.1,
+    "long_n": 0,
+    "js_heap_mb": 99.3,
+    "cdp_heap_mb": 39.4,
+    "dom_nodes": 2251,
+    "first_game_frame": 554
+   }
+  ],
+  "d3": {
+   "ok": true,
+   "stat": {
+    "droppedNav": 10983,
+    "droppedCut": 36092,
+    "hiddenMat": 1178,
+    "tri": 87791,
+    "hull": 1821,
+    "hullSkip": 107,
+    "floor": 0,
+    "area1": 40629,
+    "area2": 4172,
+    "area8": 4516,
+    "areaBig": 10244,
+    "mats": {
+     "sand": 1755,
+     "concrete": 35862,
+     "dirt": 171,
+     "default": 5811,
+     "rock": 6928,
+     "plaster": 24703,
+     "brick": 1542,
+     "wood": 3412,
+     "wood_plank": 3212,
+     "metal": 412,
+     "wood_solid": 724,
+     "tile": 1324,
+     "sheetrock": 313,
+     "metalvent": 292,
+     "boulder": 360,
+     "metalpanel": 4
+    },
+    "edgesBoundary": 19984,
+    "edgesCrease": 24466,
+    "openInside": 15831,
+    "uniqVerts": 58341,
+    "totalVerts": 303627
+   },
+   "fps": {
+    "frames": 1601,
+    "span_ms": 8000.3,
+    "fps": 200.0,
+    "frame_ms": {
+     "mean": 5.0,
+     "p50": 5.0,
+     "p95": 5.1,
+     "max": 5.2
+    },
+    "long": {
+     "n": 0,
+     "total_ms": 0,
+     "max_ms": 0
+    }
+   },
+   "memory": {
+    "used": 82508604
+   },
+   "heap": 47487344,
+   "dom": {
+    "documents": 22,
+    "nodes": 2384,
+    "jsEventListeners": 203
+   }
+  },
+  "cold_median": {
+   "ready_s": 0.85,
+   "response_end": 88,
+   "first_paint": 80,
+   "s0": 212,
+   "html_parse": 116,
+   "map_literal": 7.5,
+   "nav_init": 218,
+   "zone_danger_and_rest": 248,
+   "marks_module": 0.4,
+   "warmstart": 45.0,
+   "script_exec": 539,
+   "fps_2d": 199.2,
+   "frame_p50": 5.0,
+   "frame_p95": 5.1,
+   "frame_max": 35.0,
+   "long_n": 0,
+   "js_heap_mb": 71.6,
+   "cdp_heap_mb": 35.1,
+   "dom_nodes": 2250,
+   "first_game_frame": 836
+  },
+  "cold_range": {
+   "ready_s": [
+    0.81,
+    1.09
+   ],
+   "map_literal": [
+    7.4,
+    7.8
+   ],
+   "nav_init": [
+    198,
+    222
+   ],
+   "script_exec": [
+    531,
+    604
+   ],
+   "first_game_frame": [
+    793,
+    1078
+   ]
+  },
+  "warm_median": {
+   "ready_s": 0.57,
+   "response_end": 58,
+   "first_paint": 52,
+   "s0": 100,
+   "html_parse": 42,
+   "map_literal": 4.7,
+   "nav_init": 187,
+   "zone_danger_and_rest": 213,
+   "marks_module": 0.2,
+   "warmstart": 37.0,
+   "script_exec": 449,
+   "fps_2d": 200.0,
+   "frame_p50": 5.0,
+   "frame_p95": 5.1,
+   "frame_max": 5.1,
+   "long_n": 0,
+   "js_heap_mb": 99.4,
+   "cdp_heap_mb": 39.5,
+   "dom_nodes": 2251,
+   "first_game_frame": 564
+  },
+  "warm_range": {
+   "ready_s": [
+    0.57,
+    0.59
+   ],
+   "map_literal": [
+    4.7,
+    4.9
+   ],
+   "nav_init": [
+    186,
+    190
+   ],
+   "script_exec": [
+    448,
+    463
+   ],
+   "first_game_frame": [
+    554,
+    573
+   ]
+  },
+  "memory_phases": [
+   {
+    "label": "браузер запущен (about:blank)",
+    "rss": {
+     "ws_mb": 0.0,
+     "priv_mb": 0.0
+    },
+    "ua_mb": null,
+    "js_mb": null
+   },
+   {
+    "label": "до открытия страницы",
+    "rss": {
+     "ws_mb": 155.2,
+     "priv_mb": 105.4
+    },
+    "ua_mb": null,
+    "js_mb": null
+   },
+   {
+    "label": "готово (разминка идёт)",
+    "rss": {
+     "ws_mb": 803.7,
+     "priv_mb": 640.9
+    },
+    "ua_mb": 79.8,
+    "js_mb": 78.0
+   },
+   {
+    "label": "матч идёт 10 с",
+    "rss": {
+     "ws_mb": 814.0,
+     "priv_mb": 641.0
+    },
+    "ua_mb": 84.8,
+    "js_mb": 72.9
+   },
+   {
+    "label": "3D включён 5 с",
+    "rss": {
+     "ws_mb": 958.4,
+     "priv_mb": 858.1
+    },
+    "ua_mb": 144.2,
+    "js_mb": 194.1
+   },
+   {
+    "label": "3D выключен 3 с",
+    "rss": {
+     "ws_mb": 1042.2,
+     "priv_mb": 979.7
+    },
+    "ua_mb": 153.9,
+    "js_mb": 121.0
+   },
+   {
+    "label": "браузер закрыт",
+    "rss": {
+     "ws_mb": 0.0,
+     "priv_mb": 0.0
+    },
+    "ua_mb": null,
+    "js_mb": null
+   }
+  ]
+ }
+}

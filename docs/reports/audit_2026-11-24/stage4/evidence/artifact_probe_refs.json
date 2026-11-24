@@ -1,0 +1,47 @@
+{
+ "n": 20000,
+ "source": "stage4/bench/core.js jsFill/wasmFill, hashes(); node v22.23.5, Chromium 158.0.8127.36, Rust libm 0.2 (prec.wasm)",
+ "node22_js": {
+  "sin": "4ee8b2d9",
+  "cos": "b4ea5f42",
+  "tan": "849cffad",
+  "atan2": "e7883000",
+  "exp": "b693f15c",
+  "log": "bdb46959",
+  "pow": "b9a6eb30",
+  "hypot": "5d4cac54",
+  "sqrt": "eb516bd4"
+ },
+ "libm": {
+  "sin": "e9524b73",
+  "cos": "2f534465",
+  "tan": "849cffad",
+  "atan2": "e7883000",
+  "exp": "b693f15c",
+  "log": "4ca11693",
+  "pow": "c87fd075",
+  "hypot": "d0b3582c",
+  "sqrt": "eb516bd4"
+ },
+ "chromium158_js": {
+  "sin": "e6e38f19",
+  "cos": "8e403a8d",
+  "tan": "8a38b291",
+  "atan2": "6d6d022a",
+  "exp": "d3fa1059",
+  "log": "7090192e",
+  "pow": "4fd9cdd5",
+  "hypot": "5d4cac54",
+  "sqrt": "eb516bd4"
+ },
+ "probe": "https://claude.ai/artifact/6cjBWQnz7BcZXqahNv2zGu (make_probe.js), результаты — коллекция runs",
+ "local_file_run_chromium158": {
+  "wasm_sync": true,
+  "wasm_async": true,
+  "libm_bitexact": true,
+  "worker_blob": true,
+  "worker_data": true,
+  "worker_blob_module": "ошибка Worker по file:// (модуль из Blob)",
+  "crossOriginIsolated": false
+ }
+}

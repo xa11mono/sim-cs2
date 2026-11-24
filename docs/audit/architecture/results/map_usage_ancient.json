@@ -1,0 +1,251 @@
+{
+ "file": "C:\\Projects\\sim-cs2\\ancient-radar.html",
+ "keys": [
+  {
+   "key": "map3d",
+   "direct": 3,
+   "bracket": 0,
+   "word": 11,
+   "bytes": 9816290
+  },
+  {
+   "key": "nadelanes",
+   "direct": 6,
+   "bracket": 0,
+   "word": 6,
+   "bytes": 593012
+  },
+  {
+   "key": "pro",
+   "direct": 27,
+   "bracket": 0,
+   "word": 96,
+   "bytes": 301669
+  },
+  {
+   "key": "navmesh",
+   "direct": 6,
+   "bracket": 0,
+   "word": 39,
+   "bytes": 247882
+  },
+  {
+   "key": "radar",
+   "direct": 1,
+   "bracket": 0,
+   "word": 5,
+   "bytes": 85216
+  },
+  {
+   "key": "nadeguess",
+   "direct": 5,
+   "bracket": 0,
+   "word": 6,
+   "bytes": 62764
+  },
+  {
+   "key": "heights",
+   "direct": 1,
+   "bracket": 0,
+   "word": 10,
+   "bytes": 61004
+  },
+  {
+   "key": "ctspots",
+   "direct": 5,
+   "bracket": 0,
+   "word": 7,
+   "bytes": 56511
+  },
+  {
+   "key": "lineups",
+   "direct": 8,
+   "bracket": 0,
+   "word": 10,
+   "bytes": 46766
+  },
+  {
+   "key": "postplant",
+   "direct": 5,
+   "bracket": 0,
+   "word": 44,
+   "bytes": 39954
+  },
+  {
+   "key": "zones",
+   "direct": 53,
+   "bracket": 0,
+   "word": 84,
+   "bytes": 31233
+  },
+  {
+   "key": "tactics",
+   "direct": 24,
+   "bracket": 0,
+   "word": 34,
+   "bytes": 13361
+  },
+  {
+   "key": "zoneprops",
+   "direct": 3,
+   "bracket": 0,
+   "word": 3,
+   "bytes": 10825
+  },
+  {
+   "key": "runups",
+   "direct": 2,
+   "bracket": 0,
+   "word": 2,
+   "bytes": 10772
+  },
+  {
+   "key": "luaim",
+   "direct": 2,
+   "bracket": 0,
+   "word": 2,
+   "bytes": 9535
+  },
+  {
+   "key": "wallbang",
+   "direct": 1,
+   "bracket": 0,
+   "word": 9,
+   "bytes": 8701
+  },
+  {
+   "key": "walls",
+   "direct": 1,
+   "bracket": 0,
+   "word": 28,
+   "bytes": 8381
+  },
+  {
+   "key": "cover",
+   "direct": 1,
+   "bracket": 0,
+   "word": 27,
+   "bytes": 6940
+  },
+  {
+   "key": "turnmodel",
+   "direct": 5,
+   "bracket": 0,
+   "word": 5,
+   "bytes": 4192
+  },
+  {
+   "key": "ctshare",
+   "direct": 2,
+   "bracket": 0,
+   "word": 2,
+   "bytes": 4140
+  },
+  {
+   "key": "spawnearly",
+   "direct": 4,
+   "bracket": 0,
+   "word": 4,
+   "bytes": 2951
+  },
+  {
+   "key": "nadeplan",
+   "direct": 5,
+   "bracket": 0,
+   "word": 5,
+   "bytes": 1689
+  },
+  {
+   "key": "climbs",
+   "direct": 12,
+   "bracket": 0,
+   "word": 16,
+   "bytes": 1335
+  },
+  {
+   "key": "defaultpos",
+   "direct": 2,
+   "bracket": 0,
+   "word": 3,
+   "bytes": 813
+  },
+  {
+   "key": "spawnSpots",
+   "direct": 2,
+   "bracket": 0,
+   "word": 3,
+   "bytes": 239
+  },
+  {
+   "key": "ui",
+   "direct": 1,
+   "bracket": 0,
+   "word": 17,
+   "bytes": 118
+  },
+  {
+   "key": "zoneLayer",
+   "direct": 1,
+   "bracket": 0,
+   "word": 29,
+   "bytes": 34
+  },
+  {
+   "key": "spawns",
+   "direct": 2,
+   "bracket": 0,
+   "word": 3,
+   "bytes": 33
+  },
+  {
+   "key": "spawnFix",
+   "direct": 1,
+   "bracket": 0,
+   "word": 1,
+   "bytes": 28
+  },
+  {
+   "key": "store",
+   "direct": 8,
+   "bracket": 0,
+   "word": 8,
+   "bytes": 20
+  },
+  {
+   "key": "siteAFix",
+   "direct": 2,
+   "bracket": 0,
+   "word": 2,
+   "bytes": 13
+  },
+  {
+   "key": "id",
+   "direct": 0,
+   "bracket": 0,
+   "word": 2713,
+   "bytes": 9
+  },
+  {
+   "key": "name",
+   "direct": 2,
+   "bracket": 0,
+   "word": 215,
+   "bytes": 9
+  },
+  {
+   "key": "db",
+   "direct": 2,
+   "bracket": 0,
+   "word": 14,
+   "bytes": 5
+  },
+  {
+   "key": "pxUnits",
+   "direct": 9,
+   "bracket": 0,
+   "word": 10,
+   "bytes": 3
+  }
+ ],
+ "total_bytes": 11426447
+}

@@ -1,0 +1,235 @@
+{
+ "map": "mirage",
+ "phases": [
+  {
+   "label": "браузер запущен (about:blank)",
+   "rss_mb": {
+    "ws_mb": 0.0,
+    "priv_mb": 0.0
+   },
+   "js_heap_used_mb": null
+  },
+  {
+   "label": "до открытия страницы",
+   "rss_mb": {
+    "ws_mb": 155.2,
+    "priv_mb": 105.4
+   }
+  },
+  {
+   "label": "готово (разминка идёт)",
+   "rss_mb": {
+    "ws_mb": 803.7,
+    "priv_mb": 640.9
+   },
+   "ua_memory": {
+    "bytes": 83631377,
+    "breakdown": [
+     {
+      "bytes": 3376734,
+      "types": [
+       "Shared"
+      ],
+      "url": null
+     },
+     {
+      "bytes": 0,
+      "types": [],
+      "url": null
+     },
+     {
+      "bytes": 472568,
+      "types": [
+       "DOM"
+      ],
+      "url": null
+     },
+     {
+      "bytes": 74789979,
+      "types": [
+       "JavaScript"
+      ],
+      "url": null
+     },
+     {
+      "bytes": 4992096,
+      "types": [
+       "Canvas"
+      ],
+      "url": null
+     }
+    ]
+   },
+   "js_heap_used_mb": 78.0,
+   "js_heap_total_mb": 103.8,
+   "cdp_heap_used_mb": 41.6,
+   "cdp_heap_total_mb": 67.3,
+   "dom_nodes": 2253,
+   "dom_documents": 14
+  },
+  {
+   "label": "матч идёт 10 с",
+   "rss_mb": {
+    "ws_mb": 814.0,
+    "priv_mb": 641.0
+   },
+   "ua_memory": {
+    "bytes": 88914795,
+    "breakdown": [
+     {
+      "bytes": 469576,
+      "types": [
+       "DOM"
+      ],
+      "url": null
+     },
+     {
+      "bytes": 4992096,
+      "types": [
+       "Canvas"
+      ],
+      "url": null
+     },
+     {
+      "bytes": 4002598,
+      "types": [
+       "Shared"
+      ],
+      "url": null
+     },
+     {
+      "bytes": 0,
+      "types": [],
+      "url": null
+     },
+     {
+      "bytes": 79450525,
+      "types": [
+       "JavaScript"
+      ],
+      "url": null
+     }
+    ]
+   },
+   "js_heap_used_mb": 72.9,
+   "js_heap_total_mb": 127.7,
+   "cdp_heap_used_mb": 39.7,
+   "cdp_heap_total_mb": 94.3,
+   "dom_nodes": 2771,
+   "dom_documents": 13
+  },
+  {
+   "label": "3D включён 5 с",
+   "rss_mb": {
+    "ws_mb": 958.4,
+    "priv_mb": 858.1
+   },
+   "ua_memory": {
+    "bytes": 151152710,
+    "breakdown": [
+     {
+      "bytes": 520512,
+      "types": [
+       "DOM"
+      ],
+      "url": null
+     },
+     {
+      "bytes": 98374713,
+      "types": [
+       "JavaScript"
+      ],
+      "url": null
+     },
+     {
+      "bytes": 6138989,
+      "types": [
+       "Shared"
+      ],
+      "url": null
+     },
+     {
+      "bytes": 0,
+      "types": [],
+      "url": null
+     },
+     {
+      "bytes": 46118496,
+      "types": [
+       "Canvas"
+      ],
+      "url": null
+     }
+    ]
+   },
+   "js_heap_used_mb": 194.1,
+   "js_heap_total_mb": 242.9,
+   "cdp_heap_used_mb": 145.9,
+   "cdp_heap_total_mb": 194.7,
+   "dom_nodes": 3973,
+   "dom_documents": 31
+  },
+  {
+   "label": "3D выключен 3 с",
+   "rss_mb": {
+    "ws_mb": 1042.2,
+    "priv_mb": 979.7
+   },
+   "ua_memory": {
+    "bytes": 161398862,
+    "breakdown": [
+     {
+      "bytes": 527024,
+      "types": [
+       "DOM"
+      ],
+      "url": null
+     },
+     {
+      "bytes": 46118496,
+      "types": [
+       "Canvas"
+      ],
+      "url": null
+     },
+     {
+      "bytes": 0,
+      "types": [],
+      "url": null
+     },
+     {
+      "bytes": 26721670,
+      "types": [
+       "Shared"
+      ],
+      "url": null
+     },
+     {
+      "bytes": 88031672,
+      "types": [
+       "JavaScript"
+      ],
+      "url": null
+     }
+    ]
+   },
+   "js_heap_used_mb": 121.0,
+   "js_heap_total_mb": 192.7,
+   "cdp_heap_used_mb": 85.0,
+   "cdp_heap_total_mb": 156.8,
+   "dom_nodes": 2594,
+   "dom_documents": 22
+  },
+  {
+   "label": "браузер закрыт",
+   "rss_mb": {
+    "ws_mb": 0.0,
+    "priv_mb": 0.0
+   }
+  }
+ ],
+ "conditions": {
+  "headed": true,
+  "rss": "сумма WorkingSet64 процессов chrome"
+ }
+}

@@ -1,0 +1,1289 @@
+{
+ "map": "mirage",
+ "src": "mirage-radar.html",
+ "machine": {
+  "os": "Windows-10-10.0.19045-SP0",
+  "python": "3.10.6",
+  "cpu": [
+   "AMD Ryzen 7 7800X3D 8-Core Processor           ",
+   "16754135040"
+  ]
+ },
+ "conditions": {
+  "headed": true,
+  "viewport": "1400x900",
+  "http": "локальный сервер, Cache-Control: max-age=3600",
+  "instrumented": true,
+  "fps_ms": 8000,
+  "runs": 3
+ },
+ "cold": [
+  {
+   "nav": {
+    "nextHop": "http/1.0",
+    "transfer": 9436069,
+    "encoded": 9435769,
+    "decoded": 9435769,
+    "responseEnd": 385.29999999701977,
+    "domInteractive": 1088.2000000029802,
+    "dcl": 1088.2000000029802,
+    "load": 1092.0999999940395,
+    "duration": 1092.0999999940395,
+    "paints": {
+     "first-paint": 536,
+     "first-contentful-paint": 536
+    },
+    "marks": {
+     "s0": 501.5,
+     "map0": 501.5,
+     "map1": 509,
+     "nav0": 520.5,
+     "nav1": 738.7000000029802,
+     "mk0": 986.5999999940395,
+     "mk1": 987,
+     "snd0": 987.2000000029802,
+     "snd1": 987.2000000029802,
+     "w0": 987.3999999910593,
+     "fm0": 987.5,
+     "fm1": 990.3999999910593,
+     "w1": 1032.2000000029802,
+     "s1": 1032.3999999910593
+    },
+    "frames": [
+     585,
+     1078.4,
+     1298.4
+    ],
+    "frameCount": 120
+   },
+   "memory": {
+    "used": 75042542,
+    "total": 110709346,
+    "limit": 4395630592
+   },
+   "heap": {
+    "used": 36754404,
+    "total": 72417280
+   },
+   "dom": {
+    "documents": 14,
+    "nodes": 2250,
+    "jsEventListeners": 203
+   },
+   "ready_wall_s": 1.09,
+   "profile": {
+    "total_us": 1598098,
+    "top": [
+     {
+      "fn": "(idle)",
+      "ms": 714.0,
+      "pct": 44.7
+     },
+     {
+      "fn": "(program)",
+      "ms": 253.5,
+      "pct": 15.9
+     },
+     {
+      "fn": "m3Cast",
+      "ms": 155.6,
+      "pct": 9.7
+     },
+     {
+      "fn": "(anonymous)",
+      "ms": 148.3,
+      "pct": 9.3
+     },
+     {
+      "fn": "zInflate",
+      "ms": 34.1,
+      "pct": 2.1
+     },
+     {
+      "fn": "dec",
+      "ms": 28.4,
+      "pct": 1.8
+     },
+     {
+      "fn": "(garbage collector)",
+      "ms": 22.5,
+      "pct": 1.4
+     },
+     {
+      "fn": "segOverlap",
+      "ms": 20.2,
+      "pct": 1.3
+     },
+     {
+      "fn": "mkSnapshot",
+      "ms": 19.6,
+      "pct": 1.2
+     },
+     {
+      "fn": "pointInPoly",
+      "ms": 15.3,
+      "pct": 1.0
+     },
+     {
+      "fn": "bits",
+      "ms": 15.3,
+      "pct": 1.0
+     },
+     {
+      "fn": "m3SegTri",
+      "ms": 14.5,
+      "pct": 0.9
+     },
+     {
+      "fn": "wrapRect",
+      "ms": 10.9,
+      "pct": 0.7
+     },
+     {
+      "fn": "navAt",
+      "ms": 10.0,
+      "pct": 0.6
+     },
+     {
+      "fn": "m3Load",
+      "ms": 8.2,
+      "pct": 0.5
+     },
+     {
+      "fn": "arr",
+      "ms": 8.0,
+      "pct": 0.5
+     },
+     {
+      "fn": "playersUpdate",
+      "ms": 7.6,
+      "pct": 0.5
+     },
+     {
+      "fn": "need",
+      "ms": 6.5,
+      "pct": 0.4
+     },
+     {
+      "fn": "computeZoneDanger",
+      "ms": 6.1,
+      "pct": 0.4
+     },
+     {
+      "fn": "PL_MONEY",
+      "ms": 6.0,
+      "pct": 0.4
+     },
+     {
+      "fn": "m3SegHull",
+      "ms": 4.3,
+      "pct": 0.3
+     },
+     {
+      "fn": "relax",
+      "ms": 4.3,
+      "pct": 0.3
+     },
+     {
+      "fn": "zoneEdges",
+      "ms": 4.2,
+      "pct": 0.3
+     },
+     {
+      "fn": "cols",
+      "ms": 4.0,
+      "pct": 0.3
+     },
+     {
+      "fn": "normZoneName",
+      "ms": 3.9,
+      "pct": 0.2
+     },
+     {
+      "fn": "paint",
+      "ms": 3.8,
+      "pct": 0.2
+     },
+     {
+      "fn": "put",
+      "ms": 3.4,
+      "pct": 0.2
+     },
+     {
+      "fn": "zoneAliases",
+      "ms": 2.7,
+      "pct": 0.2
+     },
+     {
+      "fn": "draw",
+      "ms": 2.7,
+      "pct": 0.2
+     },
+     {
+      "fn": "m3Cell",
+      "ms": 2.7,
+      "pct": 0.2
+     },
+     {
+      "fn": "visFloorAt",
+      "ms": 2.7,
+      "pct": 0.2
+     },
+     {
+      "fn": "dist2",
+      "ms": 2.5,
+      "pct": 0.2
+     },
+     {
+      "fn": "rebuildNav",
+      "ms": 2.4,
+      "pct": 0.1
+     },
+     {
+      "fn": "plCardUpdate",
+      "ms": 2.2,
+      "pct": 0.1
+     },
+     {
+      "fn": "linkedAB",
+      "ms": 2.1,
+      "pct": 0.1
+     },
+     {
+      "fn": "m3",
+      "ms": 1.9,
+      "pct": 0.1
+     },
+     {
+      "fn": "m3SolidGrid",
+      "ms": 1.8,
+      "pct": 0.1
+     },
+     {
+      "fn": "m3Line",
+      "ms": 1.7,
+      "pct": 0.1
+     },
+     {
+      "fn": "zonesByName",
+      "ms": 1.7,
+      "pct": 0.1
+     },
+     {
+      "fn": "domHtml",
+      "ms": 1.7,
+      "pct": 0.1
+     },
+     {
+      "fn": "zoneDijkstra",
+      "ms": 1.6,
+      "pct": 0.1
+     },
+     {
+      "fn": "miniDraw",
+      "ms": 1.6,
+      "pct": 0.1
+     },
+     {
+      "fn": "push",
+      "ms": 1.5,
+      "pct": 0.1
+     },
+     {
+      "fn": "atob",
+      "ms": 1.3,
+      "pct": 0.1
+     },
+     {
+      "fn": "navEdgeDz",
+      "ms": 1.2,
+      "pct": 0.1
+     },
+     {
+      "fn": "less",
+      "ms": 1.1,
+      "pct": 0.1
+     },
+     {
+      "fn": "m3Floors",
+      "ms": 1.1,
+      "pct": 0.1
+     },
+     {
+      "fn": "reachFrom",
+      "ms": 1.1,
+      "pct": 0.1
+     },
+     {
+      "fn": "navPlane",
+      "ms": 1.1,
+      "pct": 0.1
+     },
+     {
+      "fn": "zoneOf",
+      "ms": 1.1,
+      "pct": 0.1
+     },
+     {
+      "fn": "RegExp: k-(smoke|flash|he|molly)",
+      "ms": 1.1,
+      "pct": 0.1
+     },
+     {
+      "fn": "rr",
+      "ms": 1.1,
+      "pct": 0.1
+     },
+     {
+      "fn": "requestAnimationFrame",
+      "ms": 1.1,
+      "pct": 0.1
+     },
+     {
+      "fn": "cellOf",
+      "ms": 1.0,
+      "pct": 0.1
+     },
+     {
+      "fn": "navJumpCost0",
+      "ms": 0.8,
+      "pct": 0.0
+     },
+     {
+      "fn": "updateNavInputs",
+      "ms": 0.8,
+      "pct": 0.0
+     },
+     {
+      "fn": "buildWaypointPath0",
+      "ms": 0.7,
+      "pct": 0.0
+     },
+     {
+      "fn": "navJumpCost",
+      "ms": 0.7,
+      "pct": 0.0
+     },
+     {
+      "fn": "visLine",
+      "ms": 0.6,
+      "pct": 0.0
+     },
+     {
+      "fn": "renderEcon",
+      "ms": 0.6,
+      "pct": 0.0
+     },
+     {
+      "fn": "bzDist",
+      "ms": 0.6,
+      "pct": 0.0
+     },
+     {
+      "fn": "__mi_110_post_routes",
+      "ms": 0.6,
+      "pct": 0.0
+     },
+     {
+      "fn": "buildWaypointPath",
+      "ms": 0.6,
+      "pct": 0.0
+     },
+     {
+      "fn": "obsSet",
+      "ms": 0.6,
+      "pct": 0.0
+     },
+     {
+      "fn": "covPts",
+      "ms": 0.5,
+      "pct": 0.0
+     },
+     {
+      "fn": "navGapKey",
+      "ms": 0.5,
+      "pct": 0.0
+     },
+     {
+      "fn": "beliefBuild",
+      "ms": 0.5,
+      "pct": 0.0
+     },
+     {
+      "fn": "tb",
+      "ms": 0.5,
+      "pct": 0.0
+     },
+     {
+      "fn": "logRender",
+      "ms": 0.5,
+      "pct": 0.0
+     },
+     {
+      "fn": "obsOverlay",
+      "ms": 0.5,
+      "pct": 0.0
+     }
+    ]
+   },
+   "errors": [
+    "console:error:Failed to load resource: the server responded with a status of 404 (File not found)"
+   ],
+   "fps_2d": {
+    "frames": 1594,
+    "span_ms": 7995.3,
+    "fps": 199.2,
+    "frame_ms": {
+     "mean": 5.02,
+     "p50": 5.0,
+     "p95": 5.1,
+     "max": 35.1
+    },
+    "long": {
+     "n": 0,
+     "total_ms": 0,
+     "max_ms": 0
+    }
+   },
+   "memory_after_2d": {
+    "used": 93434500
+   },
+   "heap_after_2d": 58474880,
+   "run": 1
+  },
+  {
+   "nav": {
+    "nextHop": "http/1.0",
+    "transfer": 9436069,
+    "encoded": 9435769,
+    "decoded": 9435769,
+    "responseEnd": 88.20000000298023,
+    "domInteractive": 802.0999999940395,
+    "dcl": 802.0999999940395,
+    "load": 806.0999999940395,
+    "duration": 806.0999999940395,
+    "paints": {
+     "first-paint": 80,
+     "first-contentful-paint": 80
+    },
+    "marks": {
+     "s0": 212,
+     "map0": 212.09999999403954,
+     "map1": 219.8999999910593,
+     "nav0": 231.29999999701977,
+     "nav1": 453.59999999403954,
+     "mk0": 704.5,
+     "mk1": 704.8999999910593,
+     "snd0": 705.2000000029802,
+     "snd1": 705.2000000029802,
+     "w0": 705.3999999910593,
+     "fm0": 705.3999999910593,
+     "fm1": 708.2999999970198,
+     "w1": 750.3999999910593,
+     "s1": 750.5999999940395
+    },
+    "frames": [
+     293,
+     793,
+     818.1
+    ],
+    "frameCount": 162
+   },
+   "memory": {
+    "used": 74741042,
+    "total": 111233634,
+    "limit": 4395630592
+   },
+   "heap": {
+    "used": 36534340,
+    "total": 72941568
+   },
+   "dom": {
+    "documents": 14,
+    "nodes": 2250,
+    "jsEventListeners": 203
+   },
+   "ready_wall_s": 0.81,
+   "profile": {
+    "total_us": 1617192,
+    "top": [
+     {
+      "fn": "(idle)",
+      "ms": 678.0,
+      "pct": 41.9
+     },
+     {
+      "fn": "(program)",
+      "ms": 274.0,
+      "pct": 16.9
+     },
+     {
+      "fn": "m3Cast",
+      "ms": 161.0,
+      "pct": 10.0
+     },
+     {
+      "fn": "(anonymous)",
+      "ms": 154.5,
+      "pct": 9.6
+     },
+     {
+      "fn": "zInflate",
+      "ms": 34.1,
+      "pct": 2.1
+     },
+     {
+      "fn": "dec",
+      "ms": 24.7,
+      "pct": 1.5
+     },
+     {
+      "fn": "segOverlap",
+      "ms": 22.9,
+      "pct": 1.4
+     },
+     {
+      "fn": "(garbage collector)",
+      "ms": 21.7,
+      "pct": 1.3
+     },
+     {
+      "fn": "mkSnapshot",
+      "ms": 19.2,
+      "pct": 1.2
+     },
+     {
+      "fn": "bits",
+      "ms": 17.4,
+      "pct": 1.1
+     },
+     {
+      "fn": "pointInPoly",
+      "ms": 16.4,
+      "pct": 1.0
+     },
+     {
+      "fn": "wrapRect",
+      "ms": 13.5,
+      "pct": 0.8
+     },
+     {
+      "fn": "arr",
+      "ms": 13.2,
+      "pct": 0.8
+     },
+     {
+      "fn": "m3SegTri",
+      "ms": 12.8,
+      "pct": 0.8
+     },
+     {
+      "fn": "navAt",
+      "ms": 11.7,
+      "pct": 0.7
+     },
+     {
+      "fn": "m3Load",
+      "ms": 8.5,
+      "pct": 0.5
+     },
+     {
+      "fn": "playersUpdate",
+      "ms": 7.0,
+      "pct": 0.4
+     },
+     {
+      "fn": "draw",
+      "ms": 6.4,
+      "pct": 0.4
+     },
+     {
+      "fn": "PL_MONEY",
+      "ms": 6.0,
+      "pct": 0.4
+     },
+     {
+      "fn": "normZoneName",
+      "ms": 5.9,
+      "pct": 0.4
+     },
+     {
+      "fn": "need",
+      "ms": 4.3,
+      "pct": 0.3
+     },
+     {
+      "fn": "zoneEdges",
+      "ms": 4.3,
+      "pct": 0.3
+     },
+     {
+      "fn": "cols",
+      "ms": 4.1,
+      "pct": 0.3
+     },
+     {
+      "fn": "zoneAliases",
+      "ms": 3.9,
+      "pct": 0.2
+     },
+     {
+      "fn": "m3Cell",
+      "ms": 3.7,
+      "pct": 0.2
+     },
+     {
+      "fn": "rr",
+      "ms": 3.7,
+      "pct": 0.2
+     },
+     {
+      "fn": "visFloorAt",
+      "ms": 3.6,
+      "pct": 0.2
+     },
+     {
+      "fn": "miniDraw",
+      "ms": 3.4,
+      "pct": 0.2
+     },
+     {
+      "fn": "paint",
+      "ms": 3.2,
+      "pct": 0.2
+     },
+     {
+      "fn": "put",
+      "ms": 3.2,
+      "pct": 0.2
+     },
+     {
+      "fn": "relax",
+      "ms": 3.0,
+      "pct": 0.2
+     },
+     {
+      "fn": "m3",
+      "ms": 2.9,
+      "pct": 0.2
+     },
+     {
+      "fn": "plCardUpdate",
+      "ms": 2.7,
+      "pct": 0.2
+     },
+     {
+      "fn": "computeZoneDanger",
+      "ms": 2.6,
+      "pct": 0.2
+     },
+     {
+      "fn": "m3SegHull",
+      "ms": 2.6,
+      "pct": 0.2
+     },
+     {
+      "fn": "linkedAB",
+      "ms": 2.4,
+      "pct": 0.1
+     },
+     {
+      "fn": "visLine",
+      "ms": 2.2,
+      "pct": 0.1
+     },
+     {
+      "fn": "domHtml",
+      "ms": 2.1,
+      "pct": 0.1
+     },
+     {
+      "fn": "rebuildNav",
+      "ms": 1.8,
+      "pct": 0.1
+     },
+     {
+      "fn": "navEdgeDz",
+      "ms": 1.7,
+      "pct": 0.1
+     },
+     {
+      "fn": "m3Line",
+      "ms": 1.6,
+      "pct": 0.1
+     },
+     {
+      "fn": "mixC",
+      "ms": 1.6,
+      "pct": 0.1
+     },
+     {
+      "fn": "m3SolidGrid",
+      "ms": 1.5,
+      "pct": 0.1
+     },
+     {
+      "fn": "buildWaypointPath0",
+      "ms": 1.5,
+      "pct": 0.1
+     },
+     {
+      "fn": "push",
+      "ms": 1.4,
+      "pct": 0.1
+     },
+     {
+      "fn": "dist2",
+      "ms": 1.4,
+      "pct": 0.1
+     },
+     {
+      "fn": "navJumpCost0",
+      "ms": 1.1,
+      "pct": 0.1
+     },
+     {
+      "fn": "requestAnimationFrame",
+      "ms": 1.1,
+      "pct": 0.1
+     },
+     {
+      "fn": "less",
+      "ms": 1.1,
+      "pct": 0.1
+     },
+     {
+      "fn": "covPts",
+      "ms": 1.1,
+      "pct": 0.1
+     },
+     {
+      "fn": "domClass",
+      "ms": 1.1,
+      "pct": 0.1
+     },
+     {
+      "fn": "hudBrandUpdate",
+      "ms": 1.1,
+      "pct": 0.1
+     },
+     {
+      "fn": "buildWaypointPath",
+      "ms": 1.1,
+      "pct": 0.1
+     },
+     {
+      "fn": "zoneOf",
+      "ms": 1.1,
+      "pct": 0.1
+     },
+     {
+      "fn": "key",
+      "ms": 1.1,
+      "pct": 0.1
+     },
+     {
+      "fn": "domText",
+      "ms": 1.1,
+      "pct": 0.1
+     },
+     {
+      "fn": "centroidOf",
+      "ms": 1.1,
+      "pct": 0.1
+     },
+     {
+      "fn": "m3Floors",
+      "ms": 1.1,
+      "pct": 0.1
+     },
+     {
+      "fn": "getElementById",
+      "ms": 1.0,
+      "pct": 0.1
+     },
+     {
+      "fn": "cellOf",
+      "ms": 1.0,
+      "pct": 0.1
+     },
+     {
+      "fn": "m3SolidHit",
+      "ms": 1.0,
+      "pct": 0.1
+     },
+     {
+      "fn": "atob",
+      "ms": 0.8,
+      "pct": 0.0
+     },
+     {
+      "fn": "navJumpCost",
+      "ms": 0.8,
+      "pct": 0.0
+     },
+     {
+      "fn": "navPlane",
+      "ms": 0.7,
+      "pct": 0.0
+     },
+     {
+      "fn": "zonesByName",
+      "ms": 0.7,
+      "pct": 0.0
+     },
+     {
+      "fn": "pop",
+      "ms": 0.7,
+      "pct": 0.0
+     },
+     {
+      "fn": "down",
+      "ms": 0.7,
+      "pct": 0.0
+     },
+     {
+      "fn": "updateNavInputs",
+      "ms": 0.7,
+      "pct": 0.0
+     },
+     {
+      "fn": "zoneById",
+      "ms": 0.6,
+      "pct": 0.0
+     },
+     {
+      "fn": "buyForPlayer",
+      "ms": 0.6,
+      "pct": 0.0
+     }
+    ]
+   },
+   "errors": [],
+   "fps_2d": {
+    "frames": 1596,
+    "span_ms": 8005.2,
+    "fps": 199.2,
+    "frame_ms": {
+     "mean": 5.02,
+     "p50": 5.0,
+     "p95": 5.1,
+     "max": 35.0
+    },
+    "long": {
+     "n": 0,
+     "total_ms": 0,
+     "max_ms": 0
+    }
+   },
+   "memory_after_2d": {
+    "used": 93464353
+   },
+   "heap_after_2d": 58504736,
+   "run": 2
+  },
+  {
+   "nav": {
+    "nextHop": "http/1.0",
+    "transfer": 9436069,
+    "encoded": 9435769,
+    "decoded": 9435769,
+    "responseEnd": 81.40000000596046,
+    "domInteractive": 843.2999999970198,
+    "dcl": 843.2999999970198,
+    "load": 847.1000000089407,
+    "duration": 847.1000000089407,
+    "paints": {
+     "first-paint": 68,
+     "first-contentful-paint": 68
+    },
+    "marks": {
+     "s0": 193.79999999701977,
+     "map0": 193.90000000596046,
+     "map1": 201.29999999701977,
+     "nav0": 211.6000000089407,
+     "nav1": 409.79999999701977,
+     "mk0": 634.9000000059605,
+     "mk1": 635.2999999970198,
+     "snd0": 635.5,
+     "snd1": 635.5,
+     "w0": 635.7000000029802,
+     "fm0": 635.7999999970198,
+     "fm1": 638,
+     "w1": 797.7999999970198,
+     "s1": 798
+    },
+    "frames": [
+     269,
+     835.7,
+     855.7
+    ],
+    "frameCount": 160
+   },
+   "memory": {
+    "used": 75383734,
+    "total": 109398626,
+    "limit": 4395630592
+   },
+   "heap": {
+    "used": 37143108,
+    "total": 71106560
+   },
+   "dom": {
+    "documents": 14,
+    "nodes": 2251,
+    "jsEventListeners": 203
+   },
+   "ready_wall_s": 0.85,
+   "errors": [],
+   "fps_2d": {
+    "frames": 1597,
+    "span_ms": 8010.3,
+    "fps": 199.2,
+    "frame_ms": {
+     "mean": 5.02,
+     "p50": 5.0,
+     "p95": 5.1,
+     "max": 35.0
+    },
+    "long": {
+     "n": 0,
+     "total_ms": 0,
+     "max_ms": 0
+    }
+   },
+   "memory_after_2d": {
+    "used": 93320060
+   },
+   "heap_after_2d": 58360440,
+   "run": 3
+  }
+ ],
+ "warm": [
+  {
+   "nav": {
+    "nextHop": "http/1.0",
+    "transfer": 9436069,
+    "encoded": 9435769,
+    "decoded": 9435769,
+    "responseEnd": 58.29999999701977,
+    "domInteractive": 581.2999999970198,
+    "dcl": 581.2999999970198,
+    "load": 583.7000000029802,
+    "duration": 583.7000000029802,
+    "paints": {
+     "first-paint": 52,
+     "first-contentful-paint": 52
+    },
+    "marks": {
+     "s0": 100.09999999403954,
+     "map0": 100.29999999701977,
+     "map1": 105,
+     "nav0": 112.09999999403954,
+     "nav1": 302.29999999701977,
+     "mk0": 524.8999999910593,
+     "mk1": 525.0999999940395,
+     "snd0": 525.2999999970198,
+     "snd1": 525.2999999970198,
+     "w0": 525.3999999910593,
+     "fm0": 525.3999999910593,
+     "fm1": 526.8999999910593,
+     "w1": 562.8999999910593,
+     "s1": 563
+    },
+    "frames": [
+     496.7,
+     573.4,
+     593.4
+    ],
+    "frameCount": 161
+   },
+   "memory": {
+    "used": 104235675,
+    "total": 188181999,
+    "limit": 4395630592
+   },
+   "heap": {
+    "used": 41497572,
+    "total": 125440000
+   },
+   "dom": {
+    "documents": 14,
+    "nodes": 2251,
+    "jsEventListeners": 203
+   },
+   "run": 1,
+   "ready_wall_s": 0.59,
+   "fps_2d": {
+    "frames": 601,
+    "span_ms": 3000.2,
+    "fps": 200.0,
+    "frame_ms": {
+     "mean": 5.0,
+     "p50": 5.0,
+     "p95": 5.1,
+     "max": 5.1
+    },
+    "long": {
+     "n": 0,
+     "total_ms": 0,
+     "max_ms": 0
+    }
+   }
+  },
+  {
+   "nav": {
+    "nextHop": "http/1.0",
+    "transfer": 9436069,
+    "encoded": 9435769,
+    "decoded": 9435769,
+    "responseEnd": 58.30000001192093,
+    "domInteractive": 567.7000000029802,
+    "dcl": 567.8000000119209,
+    "load": 570.2000000029802,
+    "duration": 570.2000000029802,
+    "paints": {
+     "first-paint": 52,
+     "first-contentful-paint": 52
+    },
+    "marks": {
+     "s0": 100.6000000089407,
+     "map0": 100.70000000298023,
+     "map1": 105.6000000089407,
+     "nav0": 112.30000001192093,
+     "nav1": 299.70000000298023,
+     "mk0": 512.7000000029802,
+     "mk1": 513,
+     "snd0": 513.1000000089407,
+     "snd1": 513.2000000029802,
+     "w0": 513.3000000119209,
+     "fm0": 513.3000000119209,
+     "fm1": 514.7000000029802,
+     "w1": 549.9000000059605,
+     "s1": 550
+    },
+    "frames": [
+     497,
+     563.7,
+     578.7
+    ],
+    "frameCount": 160
+   },
+   "memory": {
+    "used": 104195131,
+    "total": 191065583,
+    "limit": 4395630592
+   },
+   "heap": {
+    "used": 41457028,
+    "total": 128323584
+   },
+   "dom": {
+    "documents": 14,
+    "nodes": 2251,
+    "jsEventListeners": 203
+   },
+   "run": 2,
+   "ready_wall_s": 0.57,
+   "fps_2d": {
+    "frames": 603,
+    "span_ms": 3010.1,
+    "fps": 200.0,
+    "frame_ms": {
+     "mean": 5.0,
+     "p50": 5.0,
+     "p95": 5.1,
+     "max": 5.2
+    },
+    "long": {
+     "n": 0,
+     "total_ms": 0,
+     "max_ms": 0
+    }
+   }
+  },
+  {
+   "nav": {
+    "nextHop": "http/1.0",
+    "transfer": 9436069,
+    "encoded": 9435769,
+    "decoded": 9435769,
+    "responseEnd": 52.099999994039536,
+    "domInteractive": 560.2999999970198,
+    "dcl": 560.2999999970198,
+    "load": 562.5999999940395,
+    "duration": 562.5999999940395,
+    "paints": {
+     "first-paint": 44,
+     "first-contentful-paint": 44
+    },
+    "marks": {
+     "s0": 93.8999999910593,
+     "map0": 94.09999999403954,
+     "map1": 98.79999999701977,
+     "nav0": 105.09999999403954,
+     "nav1": 291.09999999403954,
+     "mk0": 503.8999999910593,
+     "mk1": 504.09999999403954,
+     "snd0": 504.19999998807907,
+     "snd1": 504.19999998807907,
+     "w0": 504.29999999701977,
+     "fm0": 504.29999999701977,
+     "fm1": 505.79999999701977,
+     "w1": 541.2999999970198,
+     "s1": 541.5
+    },
+    "frames": [
+     475.2,
+     553.5,
+     573.6
+    ],
+    "frameCount": 162
+   },
+   "memory": {
+    "used": 104103383,
+    "total": 186609135,
+    "limit": 4395630592
+   },
+   "heap": {
+    "used": 41365280,
+    "total": 123867136
+   },
+   "dom": {
+    "documents": 14,
+    "nodes": 2251,
+    "jsEventListeners": 203
+   },
+   "run": 3,
+   "ready_wall_s": 0.57,
+   "fps_2d": {
+    "frames": 604,
+    "span_ms": 3015.1,
+    "fps": 200.0,
+    "frame_ms": {
+     "mean": 5.0,
+     "p50": 5.0,
+     "p95": 5.1,
+     "max": 5.1
+    },
+    "long": {
+     "n": 0,
+     "total_ms": 0,
+     "max_ms": 0
+    }
+   }
+  }
+ ],
+ "control": {
+  "ready_wall_s": 0.84,
+  "nav": {
+   "nextHop": "http/1.0",
+   "transfer": 9434468,
+   "encoded": 9434168,
+   "decoded": 9434168,
+   "responseEnd": 75.79999999701977,
+   "domInteractive": 834.0999999940395,
+   "dcl": 834.0999999940395,
+   "load": 838.2999999970198,
+   "duration": 838.2999999970198,
+   "paints": {
+    "first-paint": 60,
+    "first-contentful-paint": 60
+   },
+   "marks": {},
+   "frames": [
+    262,
+    828.8,
+    848.8
+   ],
+   "frameCount": 160
+  },
+  "errors": [],
+  "fps_2d": {
+   "frames": 3,
+   "span_ms": 2000,
+   "fps": 1.0,
+   "frame_ms": {
+    "mean": 1000,
+    "p50": 1000,
+    "p95": 1000,
+    "max": 1000
+   },
+   "long": {
+    "n": 0,
+    "total_ms": 0,
+    "max_ms": 0
+   }
+  },
+  "memory": {
+   "used": 73007878,
+   "total": 108611922,
+   "limit": 4395630592
+  }
+ },
+ "3d": {
+  "ok": true,
+  "stat": {
+   "droppedNav": 10983,
+   "droppedCut": 36092,
+   "hiddenMat": 1178,
+   "tri": 87791,
+   "hull": 1821,
+   "hullSkip": 107,
+   "floor": 0,
+   "area1": 40629,
+   "area2": 4172,
+   "area8": 4516,
+   "areaBig": 10244,
+   "mats": {
+    "sand": 1755,
+    "concrete": 35862,
+    "dirt": 171,
+    "default": 5811,
+    "rock": 6928,
+    "plaster": 24703,
+    "brick": 1542,
+    "wood": 3412,
+    "wood_plank": 3212,
+    "metal": 412,
+    "wood_solid": 724,
+    "tile": 1324,
+    "sheetrock": 313,
+    "metalvent": 292,
+    "boulder": 360,
+    "metalpanel": 4
+   },
+   "edgesBoundary": 19984,
+   "edgesCrease": 24466,
+   "openInside": 15831,
+   "uniqVerts": 58341,
+   "totalVerts": 303627
+  },
+  "fps": {
+   "frames": 1601,
+   "span_ms": 8000.3,
+   "fps": 200.0,
+   "frame_ms": {
+    "mean": 5.0,
+    "p50": 5.0,
+    "p95": 5.1,
+    "max": 5.2
+   },
+   "long": {
+    "n": 0,
+    "total_ms": 0,
+    "max_ms": 0
+   }
+  },
+  "memory": {
+   "used": 82508604
+  },
+  "heap": 47487344,
+  "dom": {
+   "documents": 22,
+   "nodes": 2384,
+   "jsEventListeners": 203
+  }
+ },
+ "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3070 (0x00002484) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+}

@@ -1,0 +1,55 @@
+{
+ "files": [
+  "C:\\Projects\\sim-cs2\\ancient-radar.html",
+  "C:\\Projects\\sim-cs2\\mirage-radar.html"
+ ],
+ "rows": [
+  {
+   "name": "движок (скрипт без MAP/SND)",
+   "a": 2044956,
+   "b": 2044955,
+   "same": false,
+   "samePct": "100.0",
+   "hashA": "14db548783f2",
+   "hashB": "e7edf5513f14"
+  },
+  {
+   "name": "литерал MAP (JSON-текст)",
+   "a": 11405445,
+   "b": 5010928,
+   "same": false,
+   "samePct": "43.9",
+   "hashA": "047b202ba90e",
+   "hashB": "6f51329817de"
+  },
+  {
+   "name": "SND_DATA (звуки)",
+   "a": 1707345,
+   "b": 1707345,
+   "same": true,
+   "samePct": 100,
+   "hashA": "baf3071c3820",
+   "hashB": "baf3071c3820"
+  },
+  {
+   "name": "CSS (все <style>)",
+   "a": 607587,
+   "b": 607587,
+   "same": true,
+   "samePct": 100,
+   "hashA": "0d6ef64feb8d",
+   "hashB": "0d6ef64feb8d"
+  },
+  {
+   "name": "HTML-разметка (без script/style)",
+   "a": 29874,
+   "b": 29884,
+   "same": false,
+   "samePct": "100.0",
+   "hashA": "35369dfc6d6e",
+   "hashB": "69d53fc11926"
+  }
+ ],
+ "engine_bytes": 2044956,
+ "shared_per_build": 4354022
+}
