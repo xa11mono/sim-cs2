@@ -7,7 +7,7 @@
 | уровень | что | где |
 |---|---|---|
 | 1. План и ход работ | генеральный план Р0–Р8, журнал, среда, отложенные игровые недостатки | `rebuild/MASTER_PLAN.md`, `rebuild/JOURNAL.md`, `rebuild/ENVIRONMENT.md`, `rebuild/BEHAVIOR_BACKLOG.md` |
-| 2. Действующие решения | реестр архитектурных решений АР-01…АР-23 и отклонённые предложения | [`DECISIONS.md`](DECISIONS.md) |
+| 2. Действующие решения | реестр архитектурных решений АР-01…АР-27 и отклонённые предложения | [`DECISIONS.md`](DECISIONS.md) |
 | 3. Текущее устройство игры | как устроен код сейчас (меняется вместе с кодом) | `docs/ARCHITECTURE.md`; карты устройства — `rebuild/gen/` (генерирует `tools/rebuild/gen_maps.js`) |
 | 4. Исходные отчёты | доказательства и рассуждения; не правятся, только дополняются | ниже |
 
@@ -25,6 +25,7 @@
 | ресурсы, пакеты карт, размер страниц | АР-09, АР-10, АР-18 | `stage4/ARCHITECTURE_ADDENDUM.md` §5, §6 | `HTML_SIZE_AUDIT.md`, `RESOURCE_ARCHITECTURE.md` |
 | загрузка, кадры, память, скорость | АР-22 | `stage3/PERFORMANCE_PLAN.md`, `FREEZE_AUDIT.md`, `stage3/evidence/` | `LOADING_PERFORMANCE.md`, `results/` |
 | симуляция и показ, Node, Rust Native в веб-интерфейсе | АР-08, АР-19 | `stage4/ARCHITECTURE_ADDENDUM.md` §4, §12 | `DEPLOYMENT_OPTIONS.md` |
+| кросс-браузерность | АР-24…АР-27 | `rebuild/ENVIRONMENT.md` §4, `stage4/bench/make_probe.js` | — |
 | защита от регрессий, тесты | АР-06 | `stage3/REGRESSION_PROTECTION.md`, `TEST_COVERAGE_PLAN.md` | — |
 | отметки, причинный дебаг | АР-12, АР-13 | `stage4/ARCHITECTURE_ADDENDUM.md` §8, §9 | `BUILD_PIPELINE.md` §5.7 |
 | агенты, Graphify, Ponytail | АР-16 | `stage4/ARCHITECTURE_ADDENDUM.md` §10, §11 | `RECOMMENDATIONS.md` §6.1 |
