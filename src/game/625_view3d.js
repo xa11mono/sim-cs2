@@ -30,6 +30,8 @@ var D3_FP_PW = 9, D3_FP_ZW = 14, D3_FP_PDEAD = 0.012;   // (v590) пружины
 // пружина без перелёта (критическое затухание, как SmoothDamp): s = {x, v} догоняет цель за ≈ 1/w с; vmax — предел скорости (0 — без предела)
 function d3Spring(s, to, w, dt, vmax){ if(dt <= 0){ return s; } var e = Math.exp(-w*dt), d = s.x - to, t = (s.v + w*d)*dt;
   s.v = (s.v - w*t)*e; var nx = to + (d + t)*e; if(vmax > 0){ var lim = vmax*dt; if(nx - s.x > lim) nx = s.x + lim; if(s.x - nx > lim) nx = s.x - lim; s.v = Math.max(-vmax, Math.min(vmax, s.v)); } s.x = nx; return s; }
+var D3_EYE_CAMS = {fp: 1, chase: 1, flythru: 1, nade: 1, spawn: 1};   // (v591) камеры на уровне глаз — без среза, стены сплошные
+var D3_XR_R = 1000;   // (v591) враги ближе 1000 px радара (2500 ед.) — кандидаты в «ближайших» для силуэта сквозь стены (проектное)
 var D3_TAG_TEAM = 600, D3_TAG_ENEMY = 2, D3_GLOW_W = 0.9;   // (v590) ник своего — ближе 600 px радара (1500 ед.), ник врага — у 2 ближайших видимых; обводка — не тоньше, px сцены — проектные
 var D3_TR_SHOT = 58, D3_TR_HIT = 50;   // ед. игры: трассер — от оружия у глаз (глаза 64), в грудь цели (проектные)
 var D3 = {on: false, xray: false, sims: true, corpse: {}, mode: "view", tgt: null, nadeLast: null, style: 0, cam: "view", hist: {}, fpId: null, noTags: false, gl: null, built: false, failed: null, yaw: 0, pitch: 0.95, yawT: 0, pitchT: 0.95, top: false, lock: false,
@@ -42,7 +44,7 @@ var D3_LOW = 28;               // проектное число: опущенн�
 // виды мира (владелец 13.11: «прозрачный был лучше — от него, но сделай несколько вариаций»): a — плотность граней, ea — яркость рёбер
 var D3_STYLES = [{id: "glass", name: "стекло", a: 0.32, ea: 0.6}, {id: "line", name: "контур", a: 0.1, ea: 0.85}, {id: "solid", name: "макет", a: 1, ea: 0.3}];
 var D3_HIDE = {"default": 1};   // (владелец 13.11: «дырки и странные объекты — как будто посчитаны невидимые стены») служебные плоскости карты (блокираторы взгляда) — не рисуются: из 25 треугольников больше 200000 ед² у Mirage 22 — этот материал
-var D3_HIDE_AREA = 200000;     // (v590, владелец 24.11: «найти все дырки в стенках, детали зданий сохранялись») материал D3_HIDE скрыт только у плоскостей больше
+var D3_HIDE_AREA = 20000;      // (v590, владелец 24.11: «найти все дырки в стенках, детали зданий сохранялись») материал D3_HIDE скрыт только у плоскостей больше
                                // этой площади (ед²) — блокираторы; обычные стены с этим материалом (Mirage: 5451 из 5811 треугольников «default») рисуются
 var D3_SOFT = {rock:1, grass:1, mud:1, dirt:1, sand:1, boulder:1, Wood_Tree:1, foliage:1, gravel:1, snow:1};   // природный рельеф — не ящики
 
@@ -87,11 +89,14 @@ var D3_CUTF = "uniform highp sampler2D uF; uniform float uCut, uLow, uSims, uRf,
   " vec2 b = w.xz + d/l*22.0; float rb = refY(vec3(b.x, 1e6, b.y)); return rb > -1e8 && rb < w.y - uLow ? uLow : uCut; }\n";   // за стеной весь пол ниже неё — стена; этаж на уровне её верха (бок балкона, ступени) — не опускать
 var D3_WFS = "#version 300 es\nprecision highp float; in vec3 vW; in float vK; uniform vec3 uEye, uL, uBg, uProp, uRock, uCap, uGround; uniform vec2 uFog, uZr; uniform float uA; out vec4 o;\n" + D3_CUTF +
   "void main(){ float r = refY(vW); if(r < -1e8){ if(uCut < 1e4) discard; r = vW.y - 30.0; } float h = vW.y - r, cu = cutAt(vW, uEye); if(h > cu) discard;\n" +   // (v590) без среза (от первого лица) — без пола рядом не выбрасывается: дыры в фасадах
+  // (v591, владелец 24.11: «нет стенок у ящиков, пустая стена») треугольники карты без замкнутого блока («суп», vK ≥ 2,5) — двусторонние:
+  // их сторона наружу в данных не задана, отсечение изнанки выбрасывало бока ящиков и стены; изнанку отсекаем только у выпуклых блоков
+  " float kk = vK, soup = 0.0; if(kk > 2.5){ soup = 1.0; kk -= 3.0; } if(uA < 1.0 && kk < 1.5 && soup < 0.5 && !gl_FrontFacing) discard;\n" +
   " vec3 n = normalize(cross(dFdx(vW), dFdy(vW))); if(dot(n, uEye - vW) < 0.0) n = -n; vec3 c;\n" +
-  " if(vK > 1.5){ float t = clamp((vW.y - uZr.x)/max(1.0, uZr.y - uZr.x), 0.0, 1.0); c = uGround*(0.86 + 0.32*t)*(0.95 + 0.07*max(dot(n, uL), 0.0)); }\n" +
-  " else if(!gl_FrontFacing && uA >= 1.0) c = uCap; else { vec3 base = mix(uProp, uRock, vK); float d = max(dot(n, uL), 0.0), hm = 0.5 + 0.5*n.y;\n" +
+  " if(kk > 1.5){ float t = clamp((vW.y - uZr.x)/max(1.0, uZr.y - uZr.x), 0.0, 1.0); c = uGround*(0.86 + 0.32*t)*(0.95 + 0.07*max(dot(n, uL), 0.0)); }\n" +
+  " else if(!gl_FrontFacing && uA >= 1.0 && soup < 0.5) c = uCap; else { vec3 base = mix(uProp, uRock, kk); float d = max(dot(n, uL), 0.0), hm = 0.5 + 0.5*n.y;\n" +
   "  c = base*(0.30 + 0.36*hm + 0.50*d); c *= mix(0.55, 1.0, smoothstep(0.0, 26.0, h)); }\n" +
-  " if(vK < 1.5) c = mix(c, uCap*1.06, smoothstep(cu - 1.4, cu, h)*0.85);\n" +
+  " if(kk < 1.5) c = mix(c, uCap*1.06, smoothstep(cu - 1.4, cu, h)*0.85);\n" +
   " float f = smoothstep(uFog.x, uFog.y, distance(vW, uEye)); float rim = smoothstep(cu - 1.4, cu, h);\n" +
   " if(uA < 1.0) o = vec4(c, (uA + rim*0.5)*(1.0 - f)); else o = vec4(mix(c, uBg, f), 1.0); }";
 var D3_ELVS = "#version 300 es\nin vec3 aP; uniform mat4 uVP; out vec3 vW; void main(){ vW = aP; gl_Position = uVP*vec4(aP,1.0); gl_Position.z -= 0.0006*gl_Position.w; }";
@@ -178,6 +183,28 @@ function d3FpBot(){
   var cx = (cv.width/2 - view.panX)/view.scale, cy = (cv.height/2 - view.panY)/view.scale, bd = Infinity;
   bots.forEach(function(o){ if(!o.alive) return; var d = Math.hypot(o.x - cx, o.y - cy); if(d < bd){ bd = d; b = o; } });
   return b || null;
+}
+// ---------- (v591, владелец 24.11: «что-то в руках, когда стреляет — отдача; анимация, как ставит бомбу; реальный импакт, камера в стиле
+// Counter-Strike») — только показ: выстрелы узнаём по новым трассерам (начало трассера — у стрелка), отдача и вспышка — по времени кадра ----------
+var D3_KICK_MS = 110, D3_FLASH_MS = 45, D3_PUNCH = 0.011, D3_PUNCH_MAX = 0.05, D3_PUNCH_BACK = 9;   // мс, мс, рад на выстрел, предел, возврат 1/с — проектные
+function d3ShotsScan(){
+  var S = D3.shotAt || (D3.shotAt = {}), seen = D3.trSeen || (D3.trSeen = new WeakSet());
+  tracers.forEach(function(t){ if(seen.has(t)) return; seen.add(t); var best = null, bd = 14;
+    bots.forEach(function(o){ if(o.team !== t.team) return; var d = Math.hypot(o.x - t.x1, o.y - t.y1); if(d < bd){ bd = d; best = o; } });
+    if(best){ S[best.id] = t.born; D3.shotN = (D3.shotN || 0) + 1; if(best.id === D3.fpId) D3.fpShot = (D3.fpShot || 0) + 1; } });
+}
+function d3Kick(id){ var t = D3.shotAt && D3.shotAt[id]; if(t == null) return 0; var a = nowTs - t; return a < 0 || a > D3_KICK_MS ? 0 : 1 - a/D3_KICK_MS; }
+function d3FlashOn(id){ var t = D3.shotAt && D3.shotAt[id]; return t != null && nowTs - t >= 0 && nowTs - t < D3_FLASH_MS; }
+// матрица по базису: ось a — длина, b — высота (у коробки низ в 0), c — ширина; o — точка
+function d3Basis(o, a, b, c, la, lb, lc){ return new Float32Array([a[0]*la, a[1]*la, a[2]*la, 0, b[0]*lb, b[1]*lb, b[2]*lb, 0, c[0]*lc, c[1]*lc, c[2]*lc, 0, o[0], o[1], o[2], 1]); }
+// оружие в руках фигуры: ствольная коробка, ствол, магазин; отдача — назад и вверх; вспышка у дула
+function d3Gun(draw, x, z, y, f, h, kick, flash){
+  var ca = Math.cos(f), sa = Math.sin(f), back = kick*h*0.07, up = kick*h*0.03, fw = [ca, 0, sa], upv = [0, 1, 0], sd = [-sa, 0, ca];
+  var bx = x + ca*(h*0.32 - back), by = z + h*0.54 + up, bz = y + sa*(h*0.32 - back), dark = [0.09, 0.1, 0.08, 1];
+  draw(D3.box, d3Basis([bx, by, bz], fw, upv, sd, h*0.15, h*0.07, h*0.035), dark, 0.6);   // коробка
+  draw(D3.box, d3Basis([bx + ca*h*0.2, by + h*0.025 + up*0.5, bz + sa*h*0.2], fw, upv, sd, h*0.1, h*0.025, h*0.015), [0.06, 0.06, 0.06, 1], 0.5);   // ствол
+  draw(D3.box, d3Basis([bx + ca*h*0.04, by - h*0.07, bz + sa*h*0.04], fw, upv, sd, h*0.03, h*0.07, h*0.025), [0.12, 0.12, 0.1, 1], 0.5);   // магазин
+  if(flash){ var mx = bx + ca*h*0.33, my = by + h*0.035, mz = bz + sa*h*0.33; draw(D3.sphere, d3Model(mx, my, mz, h*0.06, h*0.06, h*0.06), [1, 0.85, 0.45, 0.95], 0, 0); }
 }
 // (владелец 13.11: «моделька после смерти остаётся, голова и туловище получают физику и скатываются») тело: корпус падает вокруг
 // ступней в сторону от убийцы (или назад от взгляда), у пола — отскок и трение; голова отрывается при ударе и катится; стены — лучом
@@ -421,7 +448,10 @@ function d3World(gl){
     var ux = b[0]-a[0], uy = b[1]-a[1], uz = b[2]-a[2], vx = c[0]-a[0], vy = c[1]-a[1], vz = c[2]-a[2];
     var nx = uy*vz - uz*vy, ny = uz*vx - ux*vz, nz = ux*vy - uy*vx, l = Math.hypot(nx, ny, nz); if(l < 1e-6) return;
     if(out){ P2.push(ra[0], a[2]*D3_KZ, ra[1], rb[0], b[2]*D3_KZ, rb[1], rc[0], c[2]*D3_KZ, rc[1]); K2.push(kind, kind, kind); return; }
-    if(nz/l > 0.7 && near(Aa || Ab || Ac, zmax, 10)){   // пол и ступени — отдельно, непрозрачно, цвета пола (навмеш — под ним, где геометрии нет)
+    // (v591, владелец: «треугольник моргает — одна текстура перекрывает другую») плоское вверх в 24 ед. над полом — тоже пол (было: в предметы,
+    // и предмет на одной высоте с полом мерцал поверх него)
+    var rf = Math.abs(nz/l) > 0.7 ? under(Aa || Ab || Ac, zmax) : null;
+    if(nz/l > 0.7 && (near(Aa || Ab || Ac, zmax, 10) || (rf !== null && zmax - rf < 24))){   // пол и ступени — отдельно, непрозрачно, цвета пола (навмеш — под ним, где геометрии нет)
       // пол внутри возвышения (над ним в той же клетке пол — пешком, прыжком, подсадкой — ниже роста, 8–110 ед.) — не рисуем: сквозь стекло стенки его видно (владелец)
       var cc = m3Cell(M, (ra[0] + rb[0] + rc[0])/3, (ra[1] + rb[1] + rc[1])/3);
       if(cc >= 0){ for(var fq = M.floors.st[cc]; fq < M.floors.st[cc+1]; fq++){ var dz = M.floors.z[fq] - zmax; if(dz > 8 && dz < 110) return; } }
@@ -435,8 +465,11 @@ function d3World(gl){
   for(var k = 0; k < nt; k++){ if(!(tf[k] & 1)) continue; var o = k*9;
     var mn = mats[tm[k]] || ("#" + tm[k]); ST.mats = ST.mats || {}; ST.mats[mn] = (ST.mats[mn] || 0) + 1;
     if(D3_HIDE[mats[tm[k]]]){ var hx1 = T[o+3]-T[o], hy1 = T[o+4]-T[o+1], hz1 = T[o+5]-T[o+2], hx2 = T[o+6]-T[o], hy2 = T[o+7]-T[o+1], hz2 = T[o+8]-T[o+2];
-      if(Math.hypot(hy1*hz2 - hz1*hy2, hz1*hx2 - hx1*hz2, hx1*hy2 - hy1*hx2)/2 > D3_HIDE_AREA){ ST.hiddenMat++; continue; } }
-    push([T[o], T[o+1], T[o+2]], [T[o+3], T[o+4], T[o+5]], [T[o+6], T[o+7], T[o+8]], D3_SOFT[mats[tm[k]]] ? 1 : 0); }
+      var hnx = hy1*hz2 - hz1*hy2, hny = hz1*hx2 - hx1*hz2, hnz = hx1*hy2 - hy1*hx2, hl = Math.hypot(hnx, hny, hnz), hcz = hl ? Math.abs(hnz)/hl : 1;
+      // (v591) наклонные плоскости этого материала — гладкие «клипы» поверх лестниц и пандусов (на снимке обзора — косые листы над Mid): скрыты;
+      // стены (вертикально) и полы / крыши (горизонтально) — рисуются
+      if(hl/2 > D3_HIDE_AREA || (hcz > 0.12 && hcz < 0.97)){ ST.hiddenMat++; continue; } }
+    push([T[o], T[o+1], T[o+2]], [T[o+3], T[o+4], T[o+5]], [T[o+6], T[o+7], T[o+8]], (D3_SOFT[mats[tm[k]]] ? 1 : 0) + 3); }   // + 3 — «суп», двусторонний (v591)
   // выпуклые блоки: вершины — пересечения троек плоскостей внутри блока, грань — вершины на её плоскости по кругу (наружу)
   var hn = M.hullN, hp = M.hullP, ho = M.hullOff, hfl = M.hullFlag, hm = M.hullMat;
   for(var h = 0; h < hn.length; h++){
@@ -475,7 +508,7 @@ function d3World(gl){
   for(var ti = 0; ti < P.length/9; ti++){ var a9 = ti*9;
     var ux2 = P[a9+3]-P[a9], uy2 = P[a9+4]-P[a9+1], uz2 = P[a9+5]-P[a9+2], vx2 = P[a9+6]-P[a9], vy2 = P[a9+7]-P[a9+1], vz2 = P[a9+8]-P[a9+2];
     var nx2 = uy2*vz2 - uz2*vy2, ny2 = uz2*vx2 - ux2*vz2, nz2 = ux2*vy2 - uy2*vx2, l2 = Math.hypot(nx2, ny2, nz2) || 1; NN.push(nx2/l2, ny2/l2, nz2/l2);
-    if(K[ti*3]) continue;
+    if(K[ti*3] % 3 === 1) continue;
     for(var e = 0; e < 3; e++){
       var ia = a9 + e*3, ib = a9 + ((e+1) % 3)*3;
       var ka = Math.round(P[ia]*8) + "," + Math.round(P[ia+1]*8) + "," + Math.round(P[ia+2]*8), kb = Math.round(P[ib]*8) + "," + Math.round(P[ib+1]*8) + "," + Math.round(P[ib+2]*8);
@@ -548,6 +581,7 @@ function d3Toggle(on){
 function d3Frame(opt){
   if(!D3.on || !D3.gl) return;
   opt = opt || {};
+  d3ShotsScan();
   var gl = D3.gl, c = gl.canvas, r = c.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
   var cw = opt.w || r.width, ch = opt.h || r.height;
   var Wc = Math.max(1, Math.round(cw*dpr)), Hc = Math.max(1, Math.round(ch*dpr));
@@ -573,7 +607,8 @@ function d3Frame(opt){
     var al0 = Math.max(0, Math.min(1, accumulator / TICK_MS)), fx = fpb.px + (fpb.x - fpb.px)*al0, fy = fpb.py + (fpb.y - fpb.py)*al0;
     var ff = fpb._visFacing !== undefined ? fpb._visFacing : (fpb.facing || 0);
     D3.fpTgt = ff;   // (замер: во что целится камера — чтобы отличать рывок цели от рывка сглаживания)
-    var eh = (fpb.crouching ? 46 : 64)*D3_KZ, ez0 = (fpb.z || 0)*D3_KZ + eh;
+    var fAct = fpb.planting || fpb.defusing;   // (v591) ставит / снимает бомбу — присел, смотрит вниз на бомбу
+    var eh = (fpb.crouching || fAct ? 46 : 64)*D3_KZ, ez0 = (fpb.z || 0)*D3_KZ + eh;
     // (владелец 14.11: «камера резко прыгает», «взгляд — плавно, как в демках») поворот — взгляд бота из игры (_visFacing, 510); наклон — к голове
     // врага в прицеле, к точке взгляда (v583a, Д9, Д25: пол у точки — ближайший по высоте к полу бота, d3FloorNear), иначе — горизонт по полу
     // впереди; наклон не быстрее про: демки Mirage (motion, 789 тыс. тиков) — p99 1,36° за тик (≈ 87°/с) — D3_FP_PRATE.
@@ -592,7 +627,8 @@ function d3Frame(opt){
     var nowP = performance.now(), FP = D3.fpP;
     if(!FP || FP.id !== fpb.id || nowP - FP.t > 500) FP = D3.fpP = {id: fpb.id, p: pD, pv: 0, y: ff, yv: 0, t: nowP, pt: pD, ez: {x: ez0, v: 0}};
     var dtP = Math.min(0.1, (nowP - FP.t)/1000); FP.t = nowP;
-    if(Math.abs(pD - FP.pt) > D3_FP_PDEAD || en) FP.pt = pD;
+    if(fAct) pD = -0.95;
+    if(Math.abs(pD - FP.pt) > D3_FP_PDEAD || en || fAct) FP.pt = pD;
     d3Spring(FP.ez, ez0, D3_FP_ZW, dtP, 0); var ez = FP.ez.x;
     // (v589) поворот и наклон — «рукой»: тот же d3Mouse, что для мыши; yaw без предела про (это поворот корпуса), наклон — не быстрее про
     // подшаги ≤ 1/60 с: длинный кадр (просадка) не превращается в один рывок — рука ведёт так же, просто несколько шагов за кадр
@@ -603,7 +639,14 @@ function d3Frame(opt){
     // (v590) наклон — пружиной без перелёта (d3Spring, не быстрее про): «рука» d3Mouse на плавно ползущей цели наклона (ход по ступеням,
     // сближение) работает рывками разгон / торможение — замер м3 40 с: 60 разворотов наклона против 9 у пружины
     var PS = {x: FP.p, v: FP.pv}; d3Spring(PS, FP.pt, D3_FP_PW, dtP, D3_FP_PRATE); FP.p = PS.x; FP.pv = PS.v;
-    var ffC = FP.y, pcC = FP.p;
+    // (v591) импакт «как в CS»: выстрел — толчок прицела вверх (копится до D3_PUNCH_MAX, возвращается); урон — встряска камеры
+    if(FP.shots === undefined){ FP.shots = D3.fpShot || 0; FP.hp = fpb.hp; FP.punch = 0; FP.shake = 0; }
+    if((D3.fpShot || 0) !== FP.shots){ FP.punch = Math.min(D3_PUNCH_MAX, FP.punch + D3_PUNCH*((D3.fpShot || 0) - FP.shots)); FP.shots = D3.fpShot || 0; }
+    if(fpb.hp < FP.hp) FP.shake = Math.min(1, FP.shake + (FP.hp - fpb.hp)/35); FP.hp = fpb.hp;
+    FP.punch *= Math.exp(-D3_PUNCH_BACK*dtP); FP.shake *= Math.exp(-7*dtP);
+    var shx = FP.shake > 0.01 ? (d3R(nowP*0.031) - 0.5)*FP.shake*1.6 : 0, shy = FP.shake > 0.01 ? (d3R(nowP*0.027 + 3) - 0.5)*FP.shake*1.2 : 0;
+    var ffC = FP.y + shx*0.01, pcC = FP.p + FP.punch + shy*0.01; ez += shy*0.5;
+    D3.vm = {kick: d3Kick(fpb.id), flash: d3FlashOn(fpb.id), act: fAct ? (fpb.planting ? "plant" : "defuse") : null, pk: fpb.planting ? Math.max(0, Math.min(1, 1 - ((fpb.plantUntil || tick) - tick)/PLANT_TICKS)) : 1, id: fpb.id};
     tgt = [fx + Math.cos(ffC)*Math.cos(pcC)*100, ez + Math.sin(pcC)*100, fy + Math.sin(ffC)*Math.cos(pcC)*100];
     eye = [fx, ez, fy];
     if(mode === "chase"){   // за спиной: сзади и чуть сверху; стена между игроком и камерой — камера ближе (не уходит в текстуры)
@@ -653,7 +696,9 @@ function d3Frame(opt){
     gl.useProgram(pM.p);
   }
   // мир со срезом и его рёбра — вид по D3_STYLES (кнопка в колонке): непрозрачный — сразу, прозрачный — последним (видно игроков за стенами)
-  var Wd = D3.world, pW = D3.pW, inFp = D3.mode === "fp", cut = (inFp ? 1e5 : D3_CUT)*D3_KZ, low = D3_LOW*D3_KZ, sims = D3.sims && !inFp ? 1 : 0, STY = inFp ? D3_STYLES[2] : (D3_STYLES[D3.style] || D3_STYLES[0]);   // от первого лица — стены сплошные
+  // (v591, владелец 24.11, фото 3: «нет стенки выше, пол видно сквозь стены») камеры на уровне глаз (от первого лица, за спиной, пролёт, за
+  // гранатой, спавн) — как от первого лица: вся геометрия без среза, стены сплошные; срез и стекло — только у камер сверху (обзор, облёт)
+  var Wd = D3.world, pW = D3.pW, inFp = D3_EYE_CAMS[D3.mode] === 1, cut = (inFp ? 1e5 : D3_CUT)*D3_KZ, low = D3_LOW*D3_KZ, sims = D3.sims && !inFp ? 1 : 0, STY = inFp ? D3_STYLES[2] : (D3_STYLES[D3.style] || D3_STYLES[0]);   // от первого лица — стены сплошные
   var wCnt = inFp ? Wd.cntAll : Wd.cnt, wEcnt = inFp ? Wd.ecntAll : Wd.ecnt;   // (v590) от первого лица — и верх зданий, и фасады у края
   var drawWorld = function(){
     if(!wCnt) return;
@@ -667,8 +712,9 @@ function d3Frame(opt){
     // грани и рёбра за ними не рисуются; с «рентгеном» (кнопка) — видно всё насквозь, как раньше
     // скрыть невидимое — только вблизи: вид на всю карту (облёт на закупке) иначе рисует её дважды — лаги на слабой видеокарте
     if(STY.a < 1 && !D3.xray && dist < 900){ gl.colorMask(false, false, false, false); gl.drawArrays(gl.TRIANGLES, 0, wCnt); gl.colorMask(true, true, true, true); gl.depthFunc(gl.LEQUAL); }
-    if(STY.a < 1){ gl.depthMask(false); gl.enable(gl.CULL_FACE); gl.cullFace(gl.BACK); }   // изнанку не рисуем — внутренности ящиков и возвышений не видны (владелец, фото 1)
-    gl.drawArrays(gl.TRIANGLES, 0, wCnt); if(pW.aK >= 0) gl.disableVertexAttribArray(pW.aK);
+    if(STY.a < 1) gl.depthMask(false);   // изнанку выпуклых блоков не рисуем (шейдер, v591) — внутренности ящиков и возвышений не видны (владелец, фото 1)
+    gl.enable(gl.POLYGON_OFFSET_FILL); gl.polygonOffset(1, 2);   // (v591) предмет на одной высоте с полом — пол поверх, без мерцания
+    gl.drawArrays(gl.TRIANGLES, 0, wCnt); gl.disable(gl.POLYGON_OFFSET_FILL); if(pW.aK >= 0) gl.disableVertexAttribArray(pW.aK);
     var pE = D3.pE; gl.useProgram(pE.p); gl.uniformMatrix4fv(pE.u.uVP, false, VP); gl.uniform3fv(pE.u.uEye, eye); gl.uniform2fv(pE.u.uFog, fog);
     gl.uniform1i(pE.u.uF, 0); gl.uniform1f(pE.u.uCut, cut); gl.uniform1f(pE.u.uLow, low); gl.uniform1f(pE.u.uSims, sims); gl.uniform1f(pE.u.uFb, 1); gl.uniform3fv(pE.u.uTgt, tgt); gl.uniform1f(pE.u.uRf, dist*0.55); gl.uniform4fv(pE.u.uC, [D3.cEdge[0], D3.cEdge[1], D3.cEdge[2], STY.ea]);
     d3Attr(gl, pE.aP, Wd.e, 3); gl.drawArrays(gl.LINES, 0, wEcnt);
@@ -713,14 +759,22 @@ function d3Frame(opt){
   if(pov){ TAG = {}; TAG[pov.id] = 1;
     bots.forEach(function(o){ if(!o.alive || o === pov || o.team !== pov.team) return; var d = Math.hypot(o.x - pov.x, o.y - pov.y); if(d < D3_TAG_TEAM) TAG[o.id] = Math.min(1, (D3_TAG_TEAM - d)/(D3_TAG_TEAM*0.25)); });
     (pov._visible || []).filter(function(o){ return o.alive && o.team !== pov.team; }).sort(function(a, c){ return Math.hypot(a.x - pov.x, a.y - pov.y) - Math.hypot(c.x - pov.x, c.y - pov.y); })
-      .forEach(function(o, k){ GLOW[o.id] = 1; if(k < D3_TAG_ENEMY) TAG[o.id] = 1; }); }
+      .forEach(function(o, k){ GLOW[o.id] = 1; if(k < D3_TAG_ENEMY) TAG[o.id] = 1; });
+    // (v591, владелец 24.11: «ближайшие игроки, даже вражеские, должны сквозь стенки подсвечиваться — моделька, силуэт, обводка и ник»)
+    // свои рядом (с ником) и D3_TAG_ENEMY ближайших врагов ближе D3_XR_R — силуэт сквозь стены (рентген обсервера, как на трансляции CS2)
+    bots.filter(function(o){ return o.alive && o.team !== pov.team && Math.hypot(o.x - pov.x, o.y - pov.y) < D3_XR_R; })
+      .sort(function(a, c){ return Math.hypot(a.x - pov.x, a.y - pov.y) - Math.hypot(c.x - pov.x, c.y - pov.y); })
+      .slice(0, D3_TAG_ENEMY).forEach(function(o){ GLOW[o.id] = 1; TAG[o.id] = 1; });
+    for(var tg in TAG) if(tg !== pov.id) GLOW[tg] = 1; }
+  var XR = [];   // силуэты сквозь стены — рисуются последними (после стен), только там, где фигура закрыта
   bots.forEach(function(b){
     var x = b.px + (b.x - b.px)*al, y = b.py + (b.y - b.py)*al, z = (b.z != null ? b.z : d3FloorNear(x, y, null))*D3_KZ, col = b.team === "CT" ? D3.cCT : D3.cT;
     var CL = b._climb, air = CL && CL.jump ? 4*(CL.air || 0)*(1 - (CL.air || 0)) : 0; z += air*18;
     d3Hist(b, x, y, z); if(b.alive && D3.corpse[b.id]) delete D3.corpse[b.id];
     if(!b.alive){ d3Corpse(b, draw, col, sz); return; }   // павший — тело падает и катится (d3Corpse)
     if(b.id === D3.fpId) return;   // от первого лица — себя не видно
-    var h = (b.crouching ? 20 : 27)*sz;
+    var act = b.planting ? "plant" : b.defusing ? "defuse" : null;   // (v591) ставит / снимает бомбу — присел, голова вниз к бомбе
+    var h = (b.crouching || act ? 20 : 27)*sz;
     var blind = tick < b.blindUntil ? Math.min(1, (b.blindUntil - tick)/64*0.5)*0.75 : 0;
     var tc = [col[0] + (1 - col[0])*blind, col[1] + (1 - col[1])*blind, col[2] + (1 - col[2])*blind, 1];
     var hi = [tc[0] + (1 - tc[0])*0.45, tc[1] + (1 - tc[1])*0.45, tc[2] + (1 - tc[2])*0.45, 1];
@@ -731,6 +785,7 @@ function d3Frame(opt){
     draw(D3.ring, d3Model(x, fz + 0.45, y, 7.6*sz, 1, 7.6*sz), rc, 0);
     gl.depthMask(true);
     if(lift > 3){ var wl = [1, 1, 1, 0.55]; line([x, fz + 0.5, y], [x, z, y], wl, wl); }   // в воздухе — отвес до пола (видно прыжок / спрыгнул)
+    if(GLOW[b.id]) XR.push([x, z, y, h, col]);
     if(GLOW[b.id]){   // подсветка силуэта: обводка — изнанка чуть большей фигуры (видна только по краю, за стеной — нет: глубина)
       var gc = [Math.min(1, col[0]*0.5 + 0.6), Math.min(1, col[1]*0.5 + 0.5), Math.min(1, col[2]*0.5 + 0.45), 0.95], ow = Math.max(D3_GLOW_W, Math.hypot(x - D3.eye[0], z - D3.eye[1], y - D3.eye[2])*0.004);   // толщина на экране — почти одна вдали и вблизи
       gl.enable(gl.CULL_FACE); gl.cullFace(gl.FRONT);
@@ -738,11 +793,17 @@ function d3Frame(opt){
       draw(D3.sphere, d3Model(x, z + h*0.9, y, h*0.13 + ow, h*0.13 + ow, h*0.13 + ow), gc, 0);
       gl.disable(gl.CULL_FACE); }
     draw(D3.capsule, d3Model(x, z + 0.3, y, h*0.6, h*0.8, h*0.6), tc, 1);
-    draw(D3.sphere, d3Model(x, z + h*0.9, y, h*0.13, h*0.13, h*0.13), hi, 1);
+    var vf0 = b._visFacing !== undefined ? b._visFacing : (b.facing || 0), hdF = act ? h*0.16 : 0;   // голова наклонена вперёд, к бомбе
+    draw(D3.sphere, d3Model(x + Math.cos(vf0)*hdF, z + h*(act ? 0.84 : 0.9), y + Math.sin(vf0)*hdF, h*0.13, h*0.13, h*0.13), hi, 1);
     var vf = b._visFacing !== undefined ? b._visFacing : b.facing;
     if(vf !== undefined){
       var ca = Math.cos(vf), sa = Math.sin(vf);
-      draw(D3.box, d3Rot(x + ca*h*0.3, z + h*0.56, y + sa*h*0.3, vf, h*0.22, h*0.05, h*0.035), [0.09, 0.1, 0.08, 1], 0.6);   // оружие
+      if(act){   // бомба / кусачки в руках у пола: плант — опускается к полу по ходу установки, огонёк мигает
+        var pk = act === "plant" ? Math.max(0, Math.min(1, 1 - ((b.plantUntil || tick) - tick)/PLANT_TICKS)) : 1, hb = fz + (1 - pk)*h*0.3 + 0.5, px2 = x + ca*h*0.38, py2 = y + sa*h*0.38;
+        if(act === "plant"){ draw(D3.box, d3Rot(px2, hb, py2, vf, 3.4*sz*0.55, 1.7*sz*0.55, 2.3*sz*0.55), [0.2, 0.23, 0.18, 1], 0.9);
+          draw(D3.sphere, d3Model(px2, hb + 1.2*sz, py2, 0.4*sz, 0.4*sz, 0.4*sz), [1, 0.3, 0.25, (tick >> 3) & 1 ? 1 : 0.3], 0); }
+        else draw(D3.box, d3Rot(px2, z + h*0.3, py2, vf, h*0.08, h*0.05, h*0.06), [0.75, 0.2, 0.15, 1], 0.6);
+      } else d3Gun(draw, x, z, y, vf, h, d3Kick(b.id), d3FlashOn(b.id));   // оружие: отдача и вспышка у дула
       var r0 = 8.2*sz, len = 5*sz;
       var Mc = new Float32Array([ca*len, 0, sa*len, 0, 0, 1, 0, 0, -sa*len*0.9, 0, ca*len*0.9, 0, x + ca*r0, fz + 0.7, y + sa*r0, 1]);
       draw(D3.cone, Mc, [rc[0], rc[1], rc[2], 0.9], 0);
@@ -837,6 +898,31 @@ function d3Frame(opt){
     gl.drawArrays(gl.LINES, 0, np);
   }
   if(STY.a < 1){ drawWorld(); drawSmokes(); }
+  // рентген: закрытая часть фигуры — плоский полупрозрачный силуэт цвета стороны (глубина «дальше стены»)
+  if(XR.length){ gl.useProgram(pM.p); gl.depthMask(false); gl.depthFunc(gl.GREATER);
+    XR.forEach(function(q){ var c = q[4], sc2 = [Math.min(1, c[0]*0.6 + 0.45), Math.min(1, c[1]*0.6 + 0.4), Math.min(1, c[2]*0.6 + 0.35), 0.55];
+      draw(D3.capsule, d3Model(q[0], q[1] + 0.3, q[2], q[3]*0.6, q[3]*0.8, q[3]*0.6), sc2, 0);
+      draw(D3.sphere, d3Model(q[0], q[1] + q[3]*0.9, q[2], q[3]*0.13, q[3]*0.13, q[3]*0.13), sc2, 0); });
+    gl.depthFunc(gl.LESS); gl.depthMask(true); }
+  // (v591) от первого лица — оружие в руках (поверх мира: глубина заново), отдача назад и вверх, вспышка у дула; плант — бомба в руках у пола
+  if(D3.mode === "fp" && D3.fpId && D3.vm && D3.vm.id === D3.fpId && !opt.w){
+    var E3 = eye, f3 = [tgt[0]-E3[0], tgt[1]-E3[1], tgt[2]-E3[2]], fl3 = Math.hypot(f3[0], f3[1], f3[2]) || 1; f3 = [f3[0]/fl3, f3[1]/fl3, f3[2]/fl3];
+    var r3 = [-f3[2], 0, f3[0]], rl3 = Math.hypot(r3[0], r3[2]) || 1; r3 = [r3[0]/rl3, 0, r3[2]/rl3];
+    var u3 = [r3[1]*f3[2] - r3[2]*f3[1], r3[2]*f3[0] - r3[0]*f3[2], r3[0]*f3[1] - r3[1]*f3[0]];
+    var at = function(a, b, c){ return [E3[0] + f3[0]*a + r3[0]*b + u3[0]*c, E3[1] + f3[1]*a + r3[1]*b + u3[1]*c, E3[2] + f3[2]*a + r3[2]*b + u3[2]*c]; };
+    var vk = D3.vm.kick, kb = vk*0.5, ku = vk*0.25;
+    gl.useProgram(pM.p); gl.clear(gl.DEPTH_BUFFER_BIT);
+    if(D3.vm.act === "plant"){ var lo = -1.4 - (1 - D3.vm.pk)*-0.6; draw(D3.box, d3Basis(at(3.2, -0.6, lo - 0.5), f3, u3, r3, 1.1, 0.55, 0.8), [0.36, 0.4, 0.3, 1], 0.9);
+      draw(D3.sphere, d3Model.apply(null, at(3.4, -0.5, lo).concat([0.12, 0.12, 0.12])), [1, 0.3, 0.25, (tick >> 3) & 1 ? 1 : 0.3], 0); }
+    else if(D3.vm.act !== "defuse"){
+      // в правом нижнем углу (≈ 30° вправо и вниз), ствол вдоль взгляда; отдача — назад и вверх
+      draw(D3.box, d3Basis(at(2.7 - kb, 1.45, -1.45 + ku), f3, u3, r3, 0.6, 0.26, 0.15), [0.17, 0.18, 0.16, 1], 0.8);   // коробка
+      draw(D3.box, d3Basis(at(3.6 - kb, 1.45, -1.33 + ku*1.3), f3, u3, r3, 0.4, 0.09, 0.07), [0.1, 0.1, 0.1, 1], 0.7);   // ствол
+      draw(D3.box, d3Basis(at(2.85 - kb, 1.45, -1.75 + ku), f3, u3, r3, 0.12, 0.32, 0.1), [0.2, 0.2, 0.18, 1], 0.7);   // магазин
+      draw(D3.box, d3Basis(at(2.2 - kb, 1.5, -1.6 + ku), f3, u3, r3, 0.3, 0.26, 0.2), [0.42, 0.34, 0.26, 1], 0.9);   // рука
+      if(D3.vm.flash){ gl.blendFunc(gl.SRC_ALPHA, gl.ONE); var mp = at(4.05 - kb, 1.45, -1.29 + ku*1.3); draw(D3.sphere, d3Model(mp[0], mp[1], mp[2], 0.28, 0.28, 0.28), [1, 0.82, 0.4, 0.9], 0, 0); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); }
+    }
+  }
 }
 // точка сцены → px экрана (CSS) или null (за камерой)
 function d3Proj(x, y, z){

@@ -20,7 +20,9 @@ var OBS_K = {
   bombLast: 10, bombNearR: 380,   // последние bombLast с бомбы при CT рядом — фокус на бомбе; (v569) CT ближе bombNearR к бомбе — тоже
   closeR: 800, closeV: 150,       // (v461) сближение: ближе closeR и навстречу быстрее closeV ед. карты/с — скоро бой
   wideToNear: 0.9,                // перелёт с общего плана на бой, с
-  localR: 650, execSoon: 8        // (v569) «свой бой» — враги и свои ближе localR; «скоро выход» — за execSoon с (проектные)
+  localR: 650, execSoon: 8,       // (v569) «свой бой» — враги и свои ближе localR; «скоро выход» — за execSoon с (проектные)
+  domK: 2, domAdd: 6,             // (v591) «намного интереснее»: счёт в domK раз и на domAdd больше (проектные)
+  hotCold: 0.6, hotNow: 0.35, hotHeld: 0.3   // (v591) бой «холодный» — без выстрелов hotCold с; «горячий» — выстрел за hotNow с; на игроке не меньше hotHeld с (проектные)
 };
 function obsT(sec){ return sec*TICK_HZ; }
 // (v569, В116) видна ли точка карты на экране сейчас (для «пропущено в эфире» и мерок обсервера); на общем плане — видна вся карта
@@ -208,7 +210,17 @@ function obsFrame(ts){
       if(decisive){ var D = obsPickBest(null, F); if(D.b){ best = D.b; bs = D.s; } }
       // на выходе — переключение между его игроками: каждого держит execCycle с, потом следующий интересный у сайта
       if(F && cur && cur.alive && !curFight && held > obsT(OBS_K.execCycle) && best === cur){ var E = obsPickBest(cur); if(E.b && E.s > 1){ best = E.b; bs = curS*2; } }
-      var canSwitch = !cur || deadLong || decisive || (cur.alive && !curFight && (urgent || (held > obsT(OBS_K.hold) && bs > curS*OBS_K.more)));
+      // (v591, владелец 24.11: «обсервер не успевает переключаться перед убийствами — подключается, когда почти убил») замер м3, м7, м11
+      // (75 убийств): 33 раза камера пришла к убийце / жертве меньше чем за 1 с, из них 25 — держала другой бой. Бой у текущего «холодный»
+      // (по нему и он сам не стреляли hotCold с — видят друг друга и держат), а у другого уже стреляют (hotNow с) — к горячему: там будет убийство
+      var hotIn = function(o, sec){ if(!o || !o.alive) return false; var w = obsT(sec), sb = obsCtx().shotBy[o.id];
+        return (o._shotAtT != null && tick - o._shotAtT < w) || (sb != null && tick - sb < w); };
+      // разбор поздних (м3, м7 за 0,8 с до убийства): у другого бой намного интереснее (счёт ×domK и +domAdd), а текущий в это время не
+      // стреляет — камера держалась «своего» боя; холодный бой отпускаем уже через hotHeld с
+      var coldFight = !!(cur && cur.alive && curFight && !hotIn(cur, OBS_K.hotCold) && held > obsT(OBS_K.hotHeld));
+      var dom = !!(best && best !== cur && bs >= curS*OBS_K.domK && bs >= curS + OBS_K.domAdd && obsFight(best, OBS_K.fightUrgent));
+      if(coldFight && best && best !== cur && (hotIn(best, OBS_K.hotNow) || dom) && !decisive) urgent = true;
+      var canSwitch = !cur || deadLong || decisive || (cur.alive && (!curFight || coldFight) && (urgent || (held > obsT(OBS_K.hold) && bs > curS*OBS_K.more)));
       if(best && best !== cur && canSwitch){ obsSet(best, ts, true); cur = best; }
     }
     // (v305) карточка по центру — всегда игрок обсервера
