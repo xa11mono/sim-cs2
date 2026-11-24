@@ -42,7 +42,7 @@ function kfIn(k){ if(!HUD_KF_SHOWN || HUD_KF_SHOWN.has(k)) return ""; HUD_KF_SHO
 // (v437, владелец 27.10) строка киллфида гаснет через KF_LIFE с игрового времени (пауза — стоит), последние KF_FADE с — затухает.
 // Только показ: массив killfeed и знание ботов не трогаются. 8 с — проектное число
 var KF_LIFE = 8, KF_FADE = 0.6;
-function kfStage(k){ var a = simTime - (k.at != null ? k.at : simTime); return a >= KF_LIFE ? 2 : a >= KF_LIFE - KF_FADE ? 1 : 0; }
+function kfStage(k){ var a = simTime - (k.at != null ? k.at : simTime); return a < -1e-6 || a >= KF_LIFE ? 2 : a >= KF_LIFE - KF_FADE ? 1 : 0; }   // (v592) ещё не на экране (задержка эфира) — не показывать
 // раз в кадр (620): у какой-то строки сменилась стадия — перерисовать
 function kfExpireTick(){
   var sig = killfeed.map(kfStage).join("");

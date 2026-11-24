@@ -21,6 +21,7 @@ var OBS_K = {
   closeR: 800, closeV: 150,       // (v461) сближение: ближе closeR и навстречу быстрее closeV ед. карты/с — скоро бой
   wideToNear: 0.9,                // перелёт с общего плана на бой, с
   localR: 650, execSoon: 8,       // (v569) «свой бой» — враги и свои ближе localR; «скоро выход» — за execSoon с (проектные)
+  futSee: 1.5, futBonus: 30, futGap: 0.4,   // (v592) задержка эфира: убийство через ≤ futSee с — +futBonus; к другому, если его раньше на futGap с (проектные)
   domK: 2, domAdd: 6,             // (v591) «намного интереснее»: счёт в domK раз и на domAdd больше (проектные)
   hotCold: 0.6, hotNow: 0.35, hotHeld: 0.3   // (v591) бой «холодный» — без выстрелов hotCold с; «горячий» — выстрел за hotNow с; на игроке не меньше hotHeld с (проектные)
 };
@@ -35,6 +36,8 @@ function obsShows(x, y){
 var OBS_ST = {m: -1, kills: 0, live: 0, sw: 0, late: 0};
 // (v459) общее на тик — считается один раз, а не для каждого бота: фокус, кто последним стрелял ПО ИГРОКУ (не в смок), видимость пар
 var OBC = null;
+// (v592) задержка эфира (675, bcFrame): кто из игроков через сколько тиков экрана убьёт / погибнет — игра уже это сыграла, экран ещё нет
+var OBS_FUT = null;
 function obsCtx(){
   if(OBC && OBC.tick === tick && OBC.m === matchNum && OBC.rs === roundState) return OBC;
   var C = {tick: tick, m: matchNum, rs: roundState, F: null, shotBy: {}, los: {}, alive: {CT: 0, T: 0}};
@@ -125,6 +128,8 @@ function obsScore(b){
     else if(o.facing !== undefined && _angOff(Math.atan2(b.y-o.y, b.x-o.x), o.facing) < 0.5 && obsLos(b, o)) sc += 2.5;
   });
   sc += near;
+  // (v592) задержка эфира: убийство с его участием будет на экране через futSee с — главный кандидат (раньше — сильнее)
+  var fu = OBS_FUT && OBS_FUT[b.id]; if(fu != null && fu <= obsT(OBS_K.futSee)) sc += OBS_K.futBonus*(1 - 0.5*fu/obsT(OBS_K.futSee));
   if(b.id === OBS.id) sc *= 1.05;                                             // инерция
   if(b.id === OBS.prev && tick < (OBS.prevUntil||0) && !b._sawEnemy) sc *= 0.5;   // только что показывали — не сразу обратно
   return sc;
@@ -220,7 +225,9 @@ function obsFrame(ts){
       var coldFight = !!(cur && cur.alive && curFight && !hotIn(cur, OBS_K.hotCold) && held > obsT(OBS_K.hotHeld));
       var dom = !!(best && best !== cur && bs >= curS*OBS_K.domK && bs >= curS + OBS_K.domAdd && obsFight(best, OBS_K.fightUrgent));
       if(coldFight && best && best !== cur && (hotIn(best, OBS_K.hotNow) || dom) && !decisive) urgent = true;
-      var canSwitch = !cur || deadLong || decisive || (cur.alive && (!curFight || coldFight) && (urgent || (held > obsT(OBS_K.hold) && bs > curS*OBS_K.more)));
+      // (v592) задержка эфира: у лучшего убийство на экране раньше, чем у текущего (или у текущего его нет) — к нему, даже из боя
+      var fB = OBS_FUT && best ? OBS_FUT[best.id] : null, fC = OBS_FUT && cur ? OBS_FUT[cur.id] : null, fut = !!(best && best !== cur && fB != null && fB <= obsT(OBS_K.futSee) && (fC == null || fC > fB + obsT(OBS_K.futGap)));
+      var canSwitch = !cur || deadLong || decisive || fut || (cur.alive && (!curFight || coldFight) && (urgent || (held > obsT(OBS_K.hold) && bs > curS*OBS_K.more)));
       if(best && best !== cur && canSwitch){ obsSet(best, ts, true); cur = best; }
     }
     // (v305) карточка по центру — всегда игрок обсервера

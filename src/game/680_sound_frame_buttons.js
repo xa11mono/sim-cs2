@@ -223,8 +223,11 @@ window.addEventListener("error", function(ev){ showFatal(ev.error || ev.message)
 var RC_HALF = null, WSK_EL = null;
 function showSync(){
   // (17.11, перестройка) события игры для показа (435: showEv / soundEv) — разбор раз в кадр; киллфид — по KF_DIRTY; писк бомбы — здесь
-  if(KF_DIRTY){ KF_DIRTY = false; renderFeed(); }
+  if(KF_DIRTY){ KF_DIRTY = false; if(BC.disp == null) renderFeed(); }   // (v592) задержка эфира — киллфид обновляет кадр (kfExpireTick по времени экрана)
+  // (v592) задержка эфира: событие ждёт, пока экран дойдёт до его тика; без задержки — все сразу
+  var later = [], vN = 0;
   for(var qi = 0; qi < SHOW_Q.length; qi++){ var E = SHOW_Q[qi];
+    if(!bcShown(E.tk)){ later.push(E); continue; }
     try{
       if(E[0] === "snd"){ if(SND && SND.on){ var F = {sndBomb: sndBomb, sndNade: sndNade, sndBody: sndBody, sndShot: sndShot, sndPickup: sndPickup, sndStep: sndStep, sndLadder: sndLadder}[E[1]]; if(F) F.apply(null, E.slice(2)); } }
       else if(E[0] === "banner") showBanner(E[1], E[2], E[3]);
@@ -235,7 +238,8 @@ function showSync(){
       else if(E[0] === "bombPulse") hudBombPulse(E[1]);
     }catch(err){}
   }
-  SHOW_Q.length = 0;
+  SHOW_Q.length = 0; for(var li = 0; li < later.length; li++) SHOW_Q.push(later[li]);
+  if(BC.disp != null){ voiceLines.forEach(function(v){ if(bcShown(v.tk)) vN++; }); if(vN !== BC.vN){ BC.vN = vN; VOICE_DIRTY = true; } } else if(BC.vN != null){ BC.vN = null; VOICE_DIRTY = true; }
   if(VOICE_DIRTY){ VOICE_DIRTY = false; renderVoice(); }
   if(LOG_DIRTY){ LOG_DIRTY = false; logRender(); }
   if(RC_HALF !== null){ var rh = document.getElementById("rcHalf"); if(rh) rh.textContent = RC_HALF; RC_HALF = null; }
@@ -263,12 +267,15 @@ function frameBody(ts){
   }
   rpRecord();   // (v459) запись для повтора клатча — только читает
   if(!rpFrame(ts) && !tsFrame(ts)){   // идёт повтор клатча или сцена паузы — они рисуют экран сами
-    obsFrame(ts);
-    // (v573) 3D включён — 2D-кадр без растра (табло, панели, киллфид — как обычно), поверх — 3D; выключен — как было
-    if(typeof D3 !== "undefined" && D3.on && D3.gl){ d3Draw2D(); d3Frame(); }
-    else { draw(); obsOverlay(); }
-    miniDraw();
-  }
+    var paint = function(){
+      obsFrame(ts);
+      // (v573) 3D включён — 2D-кадр без растра (табло, панели, киллфид — как обычно), поверх — 3D; выключен — как было
+      if(typeof D3 !== "undefined" && D3.on && D3.gl){ d3Draw2D(); d3Frame(); }
+      else { draw(); obsOverlay(); }
+      miniDraw();
+    };
+    if(!bcFrame(paint)) paint();   // (v592) задержка эфира: кадр — записанный мир на BC.sec раньше (675)
+  } else BC.disp = null;
   showSync();   // (15.11, перестройка) показ того, что симуляция отметила: войс, консоль, карточка, кнопка разминки
   frameWrapR = null;   // вне кадра (клики, перемотка) — читать заново
 }

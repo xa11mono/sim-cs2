@@ -4,8 +4,8 @@
 // LOG_DIRTY, KF_DIRTY; разовые события показа (звук, баннер, карточка раунда, вспышка кромки, закупка на панели) — очередь SHOW_Q
 // (showEv / soundEv), её разбирает кадр (680 showSync). Перенесено дословно из 440, 630, 640; инструменты замеров цепляются к тем же
 // именам (feedKill, logEvent, voiceFeed). Без кадра (замеры в Node) очередь не растёт больше SHOW_Q_MAX
-var SHOW_Q = [], SHOW_Q_MAX = 256, KF_DIRTY = false;
-function showEv(){ SHOW_Q.push(Array.prototype.slice.call(arguments)); if(SHOW_Q.length > SHOW_Q_MAX) SHOW_Q.shift(); }
+var SHOW_Q = [], SHOW_Q_MAX = 4096, KF_DIRTY = false;   // (v592) запас на задержку эфира (события ждут экрана до 1,5 с)
+function showEv(){ var e = Array.prototype.slice.call(arguments); e.tk = tick; SHOW_Q.push(e); if(SHOW_Q.length > SHOW_Q_MAX) SHOW_Q.shift(); }
 function soundEv(){ showEv.apply(null, ["snd"].concat(Array.prototype.slice.call(arguments))); }
 var SERIES = {bo:3, maps:{}};
 var TEAM_LOG = {round: -1, log: []};   // (v566) решения команд за раунд — журнал; рисует «Разбор команды» (612)
@@ -39,7 +39,7 @@ function voiceFeed(team, who, text, kind){
   var sec = roundState === "live" ? Math.max(0, ROUND_TIME_SEC - (simTime - roundStartTime)) : ROUND_TIME_SEC;   // как таймер табло
   var planted = typeof bomb !== "undefined" && bomb && bomb.state === "planted";
   voiceLines.unshift({t: planted ? "💣" : Math.floor(sec/60)+":"+("0"+Math.floor(sec%60)).slice(-2), team: team,
-                      who: who && who !== team ? nick(who) : "колл", text: nickify(text), kind: kind});
+                      who: who && who !== team ? nick(who) : "колл", text: nickify(text), kind: kind, tk: tick});
   if(voiceLines.length > 60) voiceLines.length = 60;
   VOICE_DIRTY = true;   // (15.11, перестройка: показ отдельно от симуляции) рисует кадр (680), не симуляция
 }

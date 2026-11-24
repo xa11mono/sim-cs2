@@ -252,6 +252,8 @@ function mkPlace(x, y){ return String(calloutName(x, y) || "").replace(/^на «
 function mkState(){
   return {
     match: matchNum, tick: tick, round: roundNum, roundTime: Math.round((simTime - roundStartTime)*10)/10,
+    // (v592) задержка эфира: владелец видел экран на seenTick (игра уже на tick); разбор отметки — момент seenTick, а не tick
+    seenTick: typeof BC !== "undefined" && BC.disp != null ? BC.disp : tick, bcastDelay: typeof BC !== "undefined" && BC.disp != null ? tick - BC.disp : 0,
     roundState: roundState, sandbox: !!(typeof SANDBOX !== "undefined" && SANDBOX.on), score: {CT: score.CT, T: score.T}, bomb: {state: bomb.state, site: bomb.site || null,
       x: bomb.x != null ? Math.round(bomb.x) : null, y: bomb.y != null ? Math.round(bomb.y) : null},
     bots: bots.map(function(b){

@@ -5,7 +5,8 @@ var VOICE_KIND_T = {recall:"переколл", death:"смерть", see:"виж
 var HUD_VOICE_SHOWN = typeof WeakSet !== "undefined" ? new WeakSet() : null;
 function renderVoice(){
   var el = document.getElementById("voice"); if(!el) return;
-  var body = voiceLines.length ? voiceLines.map(function(v){
+  var VL = voiceLines.filter(function(v){ return bcShown(v.tk); });   // (v592) задержка эфира — фраза появляется, когда до неё дошёл экран
+  var body = VL.length ? VL.map(function(v){
     var nw = HUD_VOICE_SHOWN && !HUD_VOICE_SHOWN.has(v) ? (HUD_VOICE_SHOWN.add(v), " in") : "";
     return '<div class="vl '+v.kind+nw+'" title="'+VOICE_KIND_T[v.kind]+'"><span class="vt">'+(v.t === "💣" ? hudC4() : v.t)+'</span><span class="vw '+v.team.toLowerCase()+'">'+esc(v.who)+
       '</span><span class="vx">'+esc(v.text)+'</span></div>';
