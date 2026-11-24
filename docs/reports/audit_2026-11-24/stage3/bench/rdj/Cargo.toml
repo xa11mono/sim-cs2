@@ -1,0 +1,16 @@
+[package]
+name = "rdj"
+version = "0.1.0"
+edition = "2021"
+[lib]
+crate-type = ["cdylib", "rlib"]
+[[bin]]
+name = "bench"
+path = "src/main.rs"
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+[[bin]]
+name = "tri"
+path = "src/bin_tri.rs"

@@ -1,0 +1,43 @@
+ok
+кадров 1090, интервал кадра: медиана 16.7 мс, 95% 16.8, 99% 33.4, макс 400; >50мс: 6, >100мс: 3
+работа JS в кадре: медиана 1.0, 95% 10.5, 99% 31.0, макс 401
+  draw             сред 0.51  95% 1.0  макс 6  всего 557 мс
+  miniDraw         сред 0.07  95% 0.2  макс 2  всего 80 мс
+  mkAfterTicks     сред 0.03  95% 0.0  макс 31  всего 32 мс
+  mkCheckpoint     сред 0.03  95% 0.0  макс 31  всего 31 мс
+  obsFrame         сред 0.08  95% 0.2  макс 9  всего 82 мс
+  obsOverlay       сред 0.00  95% 0.0  макс 0  всего 2 мс
+  playersUpdate    сред 0.05  95% 0.3  макс 7  всего 54 мс
+  renderEcon       сред 0.01  95% 0.1  макс 2  всего 14 мс
+  scoreboardUpdate сред 0.05  95% 0.2  макс 0  всего 59 мс
+  stepTick         сред 2.47  95% 8.9  макс 390  всего 2691 мс
+  долгий кадр 401 мс тик 961: stepTick 390, playersUpdate 7, obsFrame 9
+  долгий кадр 303 мс тик 980: stepTick 301
+  долгий кадр 169 мс тик 986: stepTick 167
+  долгий кадр 74 мс тик 1238: stepTick 73
+  долгий кадр 65 мс тик 967: stepTick 63
+  долгий кадр 58 мс тик 1025: stepTick 56
+  долгий кадр 35 мс тик 1082: stepTick 33
+  долгий кадр 34 мс тик 1138: stepTick 32
+профиль (self, с): 20.091289
+    8425.1 (program):-1
+    7842.8 (idle):-1
+    431.5 m3Cast:27040
+    340.5 m3NadeTrace:27229
+    321.2 getBoundingClientRect:-1
+    163.6 relax:28319
+    99.1 pointInPoly:26219
+    95.2 (garbage collector):-1
+    86.5 dist2:26300
+    75 fillText:-1
+    62.3 (anon):47458
+    60.9 m3SegTri:27008
+    48 navJumpCost:28222
+    46.9 navAt:26247
+    45.7 draw:46359
+    45.7 buildWaypointPath0:28551
+    43 visFloorAt:27595
+    39.4 (anon):1193
+    36.8 requestAnimationFrame:-1
+
+[exited with code 0]
