@@ -1,0 +1,6 @@
+{"par": 8, "fp": [
+  {"label": "v599a_env_base_anc", "ref": "334860d4ee7c80dde09866858e1eb2bd4c03128d", "map": "ancient"},
+  {"label": "v599a_env_base_mir", "ref": "334860d4ee7c80dde09866858e1eb2bd4c03128d", "map": "mirage"},
+  {"label": "v599a_env_anc", "ref": "4500ee2b66f95d7c47633c2e921b50e1f7fbabfe", "map": "ancient"},
+  {"label": "v599a_env_mir", "ref": "4500ee2b66f95d7c47633c2e921b50e1f7fbabfe", "map": "mirage"}
+]}
