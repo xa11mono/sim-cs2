@@ -54,6 +54,7 @@
           <label class="chk" title="(v447) Хайлайты: шанс, что игрок в начале дуэли «в ударе» — быстрее реакция, точнее прицел, флик AWP, выходит на следующего. 0 — без хайлайтов. Меняет игру с нового матча (кнопка «Сыграть»)">хайлайты <input type="range" id="hlP" min="0" max="30" step="1" style="width:90px;vertical-align:middle"> <span id="hlPv"></span></label>
           <label class="chk" title="(v459) Повтор клатча: после выигранного клатча 1v2 и больше, пока закупка, — повтор фрагов с замедлением и реакция игроков. Только показ, игру не меняет"><input type="checkbox" id="chkRp" checked> повтор клатча</label>
           <label class="chk" title="(v459) Что показывать после клатча: авто — по-разному, как на трансляции"><select id="selRp"><option value="auto">авто</option><option value="both">клип + реакция</option><option value="clip">только клип</option><option value="emo">только реакция</option></select></label>
+          <label class="chk" title="(v595) Стиль HUD трансляции: расположение, цвета, формы и движение — по эфирам больших турниров (знаки лиг не используются)"><select id="selHud"><option value="base">HUD: свой</option><option value="esl">HUD: как ESL Pro League</option><option value="iem">HUD: как IEM</option><option value="pgl">HUD: как PGL</option><option value="blast">HUD: как BLAST</option></select></label>
           <button id="btnRpLast" title="Показать повтор последнего клатча этого матча ещё раз">Повтор последнего клатча</button>
           <button id="btnRpGo" title="Матч 17, раунд 27: клатч 1v5 — матч перематывается до закупки этого раунда, дальше смотреть (совпадёт при «Хайлайты» 6 % и без своих правок карты)">Клатч-раунд: матч 17, раунд 27 (1v5)</button>
           <button id="btnToGo" title="Матч 13, раунд 7: перед ним T берут тактическую паузу — матч перематывается до этой закупки">Пауза-раунд: матч 13, раунд 7</button>
@@ -93,6 +94,8 @@
     </div>
     <div id="bombEdge"></div>
     <canvas id="miniMap" width="232" height="232" title="Мини-радар: где игроки (как радар в CS2)"></canvas>
+    <div id="hudBrand" aria-hidden="true"><div class="hb-veto" id="hbVeto"></div><div class="hb-mark"><svg viewBox="0 0 24 24"><path d="M12 2 22 12 12 22 2 12z" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M12 7.5 16.5 12 12 16.5 7.5 12z" fill="currentColor"/></svg><b>SIM&nbsp;CS2</b><span id="hbSub">@@MAP_NAME@@</span></div></div>
+    <div id="hudDiff" aria-live="polite"><span class="hd-fire"></span><b>ДЕЛАЕТ РАЗНИЦУ</b><span id="hdWho"></span></div>
     <div id="hgtTip" class="hgt-tip" style="display:none;"></div>
     <div id="covTip" class="hgt-tip" style="display:none;"></div>
     <div id="wbTip" class="hgt-tip wb-tip" style="display:none;"></div>
@@ -215,6 +218,7 @@
       </div>
       <div class="sb-series" id="sbSeries"><span id="sbSerT"></span><span id="sbSerCT"></span></div>
       <div class="sb-alive"><b class="t" id="sbAliveT">5</b><span>vs</span><b class="ct" id="sbAliveCT">5</b></div>
+      <div class="sb-planted" aria-hidden="true"><svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="4.5" y="5.5" width="7" height="3" fill="currentColor"/><circle cx="5.5" cy="11" r="1" fill="currentColor"/><circle cx="8" cy="11" r="1" fill="currentColor"/><circle cx="10.5" cy="11" r="1" fill="currentColor"/></svg>ЗАЛОЖЕНА</div>
       <div class="sb-clutch" id="sbClutch" aria-live="polite"><span class="cl-tag">клатч</span><b class="cl-who" id="sbClWho"></b><span class="cl-n"><i>1</i><em>на</em><i id="sbClN">2</i></span></div>
     </div>
     <div class="pl-col" id="plT"></div>

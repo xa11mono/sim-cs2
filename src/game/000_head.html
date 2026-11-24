@@ -173,4 +173,222 @@
   #plFocus.t .pf-bar::after{background:var(--t);}
   #plFocus #pfNick{font-size:15px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;color:#fff;}
   #plFocus #pfHp{font-family:var(--hud-n);font-size:16px;font-weight:500;color:#fff;}
+
+  /* ===================== (v595) огонёк «в ударе» — за фото игрока в панелях, во всех стилях HUD ===================== */
+  .pl-ava{position:relative;}
+  .pl-ava img,.pl-ava > svg{position:relative;z-index:1;}
+  .pl-fire{position:absolute;left:-30%;right:-30%;bottom:-4%;height:150%;z-index:0;pointer-events:none;display:none;}
+  .pl-card.fire .pl-ava{background:radial-gradient(ellipse 70% 60% at 50% 100%,rgba(60,14,0,.85),rgba(60,14,0,0) 75%);}
+  .pl-card.fire .pl-fire{display:block;}
+  .pl-card.dead .pl-fire{display:none;}
+  .pl-fire::before,.pl-fire::after{content:"";position:absolute;bottom:0;transform-origin:50% 100%;border-radius:50% 50% 35% 35%/70% 70% 30% 30%;}
+  .pl-fire::before{left:6%;right:6%;height:96%;background:radial-gradient(ellipse 52% 72% at 50% 100%,#ffe27a 0%,#ff9a26 32%,rgba(255,72,24,.78) 58%,rgba(255,40,10,0) 76%);
+    filter:blur(2.5px);animation:plFireA .42s ease-in-out infinite alternate;}
+  .pl-fire::after{left:24%;right:24%;height:74%;background:radial-gradient(ellipse 50% 70% at 50% 100%,#fff6c8 0%,#ffc94a 38%,rgba(255,120,30,0) 74%);
+    filter:blur(1.5px);animation:plFireB .58s ease-in-out infinite alternate;}
+  @keyframes plFireA{from{transform:scale(1.04,.86);opacity:.82;}to{transform:scale(.94,1.08) translateY(-3%);opacity:1;}}
+  @keyframes plFireB{from{transform:scale(.9,1.06) translateX(-4%);}to{transform:scale(1.08,.9) translateX(4%);}}
+  #hudDiff{display:none;}
+  #hudBrand{display:none;}
+  #scoreboard .sb-planted{display:none;}
+  @media (prefers-reduced-motion: reduce){ .pl-fire::before,.pl-fire::after{animation:none;} }
+
+  /* ===================== (v595, владелец 24.11: «сделать то же самое — те же цвета, формы, расположение, надписи, движение») стили HUD
+     трансляции по фото владельца (ESL Pro League S24, IEM Cologne, PGL, BLAST); знаки лиг не рисуем — на их месте знак проекта.
+     Значения — DESIGN.md «Стили трансляции». Карточка игрока — сетка: каждый стиль задаёт свою схему ячеек (pl-body / pl-side /
+     pl-top раскрыты в сетку через display:contents) ===================== */
+  html.hud-bc{--bc-row-gap:4px;}
+  html.hud-bc #miniMap{left:12px;right:auto;top:44px;width:300px;height:300px;border:0;border-radius:0;background:transparent;box-shadow:none;}
+  html.hud-bc #hudBrand{display:block;position:absolute;left:12px;top:10px;width:300px;z-index:4;pointer-events:none;zoom:var(--k);font-family:var(--hud-f);}
+  html.hud-bc .hb-veto{display:flex;align-items:center;gap:8px;height:26px;padding:0 10px;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#c8d0dc;white-space:nowrap;overflow:hidden;}
+  html.hud-bc .hb-veto i{font-style:normal;font-size:9px;opacity:.75;}
+  html.hud-bc .hb-veto span.cur{color:#fff;}
+  html.hud-bc .hb-veto span.w.t{color:var(--t-hi);} html.hud-bc .hb-veto span.w.ct{color:var(--ct-hi);}
+  html.hud-bc .hb-mark{display:none;}
+  html.hud-bc #killfeed{top:10px;right:12px;}
+  html.hud-bc #voice{top:auto;bottom:calc(16px + 380px*var(--k));right:12px;width:300px;max-height:132px;background:rgba(8,10,14,.6);border:0;}
+  html.hud-bc #econ{display:none;}
+  html.hud-bc #scoreboard .sb-alive{display:none;}
+  html.hud-bc .pl-col{top:auto;bottom:12px;width:286px;gap:var(--bc-row-gap);box-shadow:none;}
+  html.hud-bc .pl-card{display:grid;align-items:center;column-gap:0;height:auto;border-top:0;overflow:hidden;}
+  html.hud-bc .pl-body,html.hud-bc .pl-side,html.hud-bc .pl-top{display:contents;}
+  html.hud-bc .pl-hit{z-index:0;}
+  html.hud-bc .pl-num{grid-area:num;align-self:stretch;width:auto;}
+  html.hud-bc .pl-nick{grid-area:nick;min-width:0;}
+  html.hud-bc .pl-stat{grid-area:stat;min-width:0;}
+  html.hud-bc .pl-ava{grid-area:ava;align-self:stretch;width:auto;height:auto;}
+  html.hud-bc .pl-wp{grid-area:wp;justify-self:center;}
+  html.hud-bc .pl-hp{grid-area:hp;min-width:0;}
+  html.hud-bc .pl-gear{grid-area:gear;justify-self:center;}
+  html.hud-bc .pl-adr{display:none;}
+  html.hud-bc .pl-nick,html.hud-bc .pl-stat,html.hud-bc .pl-wp,html.hud-bc .pl-hp,html.hud-bc .pl-gear,html.hud-bc .pl-num,html.hud-bc .pl-ava{position:relative;z-index:2;}
+
+  /* ---------- как ESL Pro League S24 / IEM (фото 3, 4) ---------- */
+  /* (v595, владелец 24.11: «подбери шрифты по стилю») шрифт HUD у каждого стиля — подписи и числа одним семейством, как в эфире:
+     ESL — Fira Sans Condensed 700 (узкий, прямой, плотный), IEM — Oswald 600 (высокий узкий), PGL — Rubik 500–700 (мягкий, строчные ники),
+     BLAST — Exo 2 700 (технический, квадратные формы); у всех есть кириллица */
+  html[data-hud=esl]{--hud-f:'Fira Sans Condensed','Roboto Condensed',sans-serif; --hud-n:'Fira Sans Condensed','Roboto Condensed',sans-serif;}
+  html[data-hud=iem]{--hud-f:'Oswald','Roboto Condensed',sans-serif; --hud-n:'Oswald','Roboto Condensed',sans-serif;}
+  html[data-hud=pgl]{--hud-f:'Rubik','Roboto Condensed',sans-serif; --hud-n:'Rubik','Roboto Condensed',sans-serif;}
+  html[data-hud=blast]{--hud-f:'Exo 2','Roboto Condensed',sans-serif; --hud-n:'Exo 2','Roboto Condensed',sans-serif;}
+  html[data-hud=esl]{--bc-hd:#10141b; --bc-acc:#8ee03a; --bc-acc-ink:#0b1408; --bc-main:#10141b; --bc-score:#fff; --bc-logo-bg:transparent;
+    --bc-t:#5d5129; --bc-t-fill:#8c7a3c; --bc-t-tag:#efe3b5; --bc-ct:#17284a; --bc-ct-fill:#24417a; --bc-ct-tag:#9fd9f5; --bc-tag-ink:#10141b;}
+  html[data-hud=iem]{--bc-hd:#1b3a8c; --bc-acc:#f2c94c; --bc-acc-ink:#fff; --bc-main:#152c6c; --bc-score:#fff; --bc-logo-bg:#0d1a42;
+    --bc-t:#5f5730; --bc-t-fill:#9a8d4b; --bc-t-tag:#e7dcae; --bc-ct:#1b3576; --bc-ct-fill:#2b56b8; --bc-ct-tag:#a9d4ff; --bc-tag-ink:#10141b;}
+  html[data-hud=esl] .hb-veto{background:rgba(12,15,20,.88);}
+  html[data-hud=iem] .hb-veto{background:var(--bc-hd);}
+  html[data-hud=esl] #scoreboard,html[data-hud=iem] #scoreboard{top:8px;}
+  html[data-hud=esl] #scoreboard .sb-head,html[data-hud=iem] #scoreboard .sb-head{justify-content:center;gap:16px;position:relative;}
+  html[data-hud=esl] #scoreboard .sb-head span{background:var(--bc-acc);color:var(--bc-acc-ink);font-size:11px;font-weight:700;letter-spacing:.04em;padding:3px 14px 2px;line-height:1.3;}
+  html[data-hud=esl] #scoreboard .sb-head span:first-child{clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);}
+  html[data-hud=esl] #scoreboard .sb-head span + span{clip-path:polygon(0 0,calc(100% - 8px) 0,100% 100%,8px 100%);}
+  html[data-hud=esl] #scoreboard .sb-head::after,html[data-hud=iem] #scoreboard .sb-head::after{content:"";position:absolute;left:50%;top:2px;width:10px;height:14px;margin-left:-5px;
+    background:var(--bc-acc);clip-path:polygon(0 0,100% 0,100% 45%,50% 100%,0 45%);}
+  html[data-hud=iem] #scoreboard .sb-head{background:var(--bc-hd);}
+  html[data-hud=iem] #scoreboard .sb-head span,html[data-hud=iem] #scoreboard .sb-head span + span{background:none;color:#fff;font-size:11px;font-weight:700;letter-spacing:.06em;padding:3px 18px 2px;}
+  html[data-hud=esl] #scoreboard .sb-main,html[data-hud=iem] #scoreboard .sb-main{background:var(--bc-main);box-shadow:none;}
+  html[data-hud=esl] #scoreboard .sb-main::after{content:"";position:absolute;left:0;right:0;bottom:-5px;height:6px;background:#f2f2ee;
+    clip-path:polygon(0 0,100% 0,100% 40%,96% 90%,91% 50%,86% 100%,80% 45%,73% 85%,67% 40%,60% 95%,54% 50%,47% 90%,41% 40%,34% 100%,28% 45%,21% 85%,15% 40%,9% 95%,4% 50%,0 80%);}
+  html[data-hud=iem] #scoreboard .sb-logo{box-shadow:inset 0 0 0 2px #fff;}
+  html[data-hud=esl] #scoreboard .sb-team,html[data-hud=iem] #scoreboard .sb-team{background:none;border-top:0;padding:6px 10px;gap:12px;}
+  html[data-hud=esl] #scoreboard .sb-name,html[data-hud=iem] #scoreboard .sb-name{display:none;}
+  html[data-hud=esl] #scoreboard .sb-logo,html[data-hud=iem] #scoreboard .sb-logo{width:40px;height:40px;background:var(--bc-logo-bg);}
+  html[data-hud=esl] #scoreboard .sb-score,html[data-hud=iem] #scoreboard .sb-score{color:var(--bc-score);font-family:var(--hud-f);font-weight:700;font-size:34px;min-width:34px;}
+  html[data-hud=esl] #scoreboard .sb-mid,html[data-hud=iem] #scoreboard .sb-mid{background:none;border-color:rgba(255,255,255,.12);min-width:78px;}
+  html[data-hud=esl] #scoreboard .sb-round,html[data-hud=iem] #scoreboard .sb-round{color:#fff;font-weight:700;font-size:11px;}
+  html[data-hud=esl] #scoreboard .sb-time,html[data-hud=iem] #scoreboard .sb-time{color:#fff;font-family:var(--hud-f);font-weight:700;font-size:16px;}
+  html[data-hud=esl] #scoreboard .sb-prog,html[data-hud=iem] #scoreboard .sb-prog{display:none;}
+  html[data-hud=esl] #scoreboard .sb-series,html[data-hud=iem] #scoreboard .sb-series{position:absolute;left:0;right:0;top:calc(50% + 6px);padding:0 58px;pointer-events:none;}
+  html[data-hud=esl] #scoreboard .sb-series span,html[data-hud=iem] #scoreboard .sb-series span{flex-direction:column;gap:3px;}
+  html[data-hud=esl] #scoreboard .sb-series i,html[data-hud=iem] #scoreboard .sb-series i{width:4px;height:4px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.6);}
+  html[data-hud=esl] .pl-tag,html[data-hud=iem] .pl-tag{height:22px;font-size:12px;font-weight:700;letter-spacing:.04em;border-top:0;align-self:flex-start;padding:0 10px;color:var(--bc-tag-ink);}
+  html[data-hud=esl] #plT .pl-tag,html[data-hud=iem] #plT .pl-tag{background:var(--bc-t-tag);color:var(--bc-tag-ink);}
+  html[data-hud=esl] #plCT .pl-tag,html[data-hud=iem] #plCT .pl-tag{background:var(--bc-ct-tag);color:var(--bc-tag-ink);align-self:flex-end;justify-content:flex-end;}
+  html[data-hud=esl] .pl-card,html[data-hud=iem] .pl-card{height:56px;grid-template-rows:20px 18px;row-gap:2px;align-content:center;}
+  html[data-hud=esl] #plT .pl-card,html[data-hud=iem] #plT .pl-card{grid-template-columns:16px 1fr 50px 44px 50px;grid-template-areas:"num nick ava wp hp" "num stat ava gear hp";background:var(--bc-t);}
+  html[data-hud=esl] #plCT .pl-card,html[data-hud=iem] #plCT .pl-card{grid-template-columns:50px 44px 50px 1fr 16px;grid-template-areas:"hp wp ava nick num" "hp gear ava stat num";background:var(--bc-ct);}
+  html[data-hud=esl] .pl-num,html[data-hud=iem] .pl-num{background:rgba(0,0,0,.38)!important;color:#fff!important;font-size:12px;}
+  html[data-hud=esl] #plT .pl-num,html[data-hud=iem] #plT .pl-num{background:var(--bc-t-tag)!important;color:var(--bc-tag-ink)!important;}
+  html[data-hud=esl] #plCT .pl-num,html[data-hud=iem] #plCT .pl-num{background:var(--bc-ct-tag)!important;color:var(--bc-tag-ink)!important;}
+  html[data-hud=esl] .pl-ava,html[data-hud=iem] .pl-ava{margin:3px 0;background:rgba(0,0,0,.22);}
+  html[data-hud=esl] .pl-nick,html[data-hud=iem] .pl-nick{padding:0 8px;font-size:14px;font-weight:700;align-self:end;}
+  html[data-hud=esl] .pl-stat,html[data-hud=iem] .pl-stat{padding:0 8px;font-size:11px;gap:8px;color:#e9e4cf;align-self:start;}
+  html[data-hud=esl] #plCT .pl-stat,html[data-hud=iem] #plCT .pl-stat{color:#d6e4f5;justify-content:flex-end;}
+  html[data-hud=esl] #plCT .pl-nick,html[data-hud=iem] #plCT .pl-nick{text-align:right;}
+  html[data-hud=esl] .pl-stat svg,html[data-hud=iem] .pl-stat svg{fill:currentColor;opacity:.8;}
+  html[data-hud=esl] .pl-money,html[data-hud=iem] .pl-money{color:inherit;}
+  html[data-hud=esl] .pl-hp,html[data-hud=iem] .pl-hp{font-family:var(--hud-f);font-weight:700;font-size:26px;text-align:center;}
+  html[data-hud=esl] .pl-top svg.wp,html[data-hud=iem] .pl-top svg.wp{height:15px;max-width:40px;opacity:.95;}
+  html[data-hud=esl] .pl-gear,html[data-hud=iem] .pl-gear{display:flex;height:12px;}
+  html[data-hud=esl] .pl-bar,html[data-hud=iem] .pl-bar,html[data-hud=esl] #plCT .pl-bar,html[data-hud=iem] #plCT .pl-bar{inset:0;height:auto;background:none;z-index:1;}
+  html[data-hud=esl] .pl-bar b.tr,html[data-hud=iem] .pl-bar b.tr{background:rgba(255,255,255,.16);}
+  html[data-hud=esl] #plT .pl-bar b.hp,html[data-hud=iem] #plT .pl-bar b.hp{background:linear-gradient(90deg,var(--bc-t),var(--bc-t-fill));}
+  html[data-hud=esl] #plCT .pl-bar b.hp,html[data-hud=iem] #plCT .pl-bar b.hp{background:linear-gradient(270deg,var(--bc-ct),var(--bc-ct-fill));}
+  html[data-hud=esl] .pl-card.dead,html[data-hud=iem] .pl-card.dead{background:rgba(16,18,22,.78)!important;}
+
+  /* ---------- как PGL (фото 1) ---------- */
+  html[data-hud=pgl]{--bc-card:rgba(52,56,64,.88); --bc-card-line:rgba(255,255,255,.08); --bc-t-fill:#f08c2a; --bc-ct-fill:#2f8cf0; --bc-dim:#aab1bc;}
+  html[data-hud=pgl] #miniMap{top:52px;left:18px;width:288px;height:288px;}
+  html[data-hud=pgl] #hudBrand{left:12px;top:8px;width:300px;height:380px;background:#24272d;border-radius:6px;box-shadow:0 8px 20px -8px rgba(0,0,0,.6);}
+  html[data-hud=pgl] .hb-veto{height:40px;padding:0 12px;font-size:11px;color:#fff;justify-content:flex-start;gap:6px;}
+  html[data-hud=pgl] .hb-veto span{color:var(--bc-dim);} html[data-hud=pgl] .hb-veto span.cur{color:#fff;}
+  html[data-hud=pgl] .hb-mark{display:flex;position:absolute;left:0;right:0;bottom:0;height:40px;align-items:center;justify-content:center;gap:10px;color:#fff;
+    font-size:22px;font-weight:700;letter-spacing:.14em;border-top:1px solid rgba(255,255,255,.08);}
+  html[data-hud=pgl] .hb-mark svg{width:22px;height:22px;}
+  html[data-hud=pgl] .hb-mark span{display:none;}
+  html[data-hud=pgl] #voice{bottom:calc(16px + 330px*var(--k));}
+  html[data-hud=pgl] #scoreboard{top:8px;}
+  html[data-hud=pgl] #scoreboard .sb-head{display:none;}
+  html[data-hud=pgl] #scoreboard .sb-main{background:linear-gradient(90deg,rgba(240,140,42,.42),#1b1d22 22%,#1b1d22 78%,rgba(47,140,240,.42));border-radius:8px;border:1px solid rgba(255,255,255,.1);overflow:hidden;box-shadow:0 8px 20px -8px rgba(0,0,0,.65);}
+  html[data-hud=pgl] #scoreboard .sb-team{background:none;border-top:0;padding:8px 16px;gap:12px;}
+  html[data-hud=pgl] #scoreboard .sb-logo{width:40px;height:40px;}
+  html[data-hud=pgl] #scoreboard .sb-name{color:#fff;font-size:15px;font-weight:700;letter-spacing:.02em;max-width:180px;}
+  html[data-hud=pgl] #scoreboard .sb-score{font-family:var(--hud-f);font-weight:700;font-size:34px;}
+  html[data-hud=pgl] #scoreboard .sb-team.t .sb-score{color:var(--bc-t-fill);} html[data-hud=pgl] #scoreboard .sb-team.ct .sb-score{color:var(--bc-ct-fill);}
+  html[data-hud=pgl] #scoreboard .sb-mid{background:none;border:0;min-width:84px;}
+  html[data-hud=pgl] #scoreboard .sb-time{order:-1;font-family:var(--hud-f);font-weight:700;font-size:22px;}
+  html[data-hud=pgl] #scoreboard .sb-round{text-transform:none;letter-spacing:0;color:var(--bc-dim);}
+  html[data-hud=pgl] #scoreboard .sb-prog{display:none;}
+  html[data-hud=pgl] #scoreboard .sb-series{position:absolute;left:0;right:0;bottom:6px;padding:0 70px;}
+  html[data-hud=pgl] #scoreboard .sb-series i{width:6px;height:6px;border-radius:50%;}
+  html[data-hud=pgl] .pl-col{width:260px;}
+  html[data-hud=pgl] .pl-tag{display:none;}
+  html[data-hud=pgl] .pl-card{background:var(--bc-card);border-radius:4px;box-shadow:inset 0 0 0 1px var(--bc-card-line);row-gap:1px;padding-bottom:4px;}
+  html[data-hud=pgl] #plT .pl-card{grid-template-columns:16px 1fr 40px;grid-template-rows:20px 16px 18px;grid-template-areas:"num nick ava" "num stat ava" "num bar bar";}
+  html[data-hud=pgl] #plCT .pl-card{grid-template-columns:40px 1fr 16px;grid-template-rows:20px 16px 18px;grid-template-areas:"ava nick num" "ava stat num" "bar bar num";}
+  html[data-hud=pgl] .pl-num{background:transparent!important;color:#fff!important;font-size:12px;}
+  html[data-hud=pgl] .pl-ava{display:none;}
+  html[data-hud=pgl] .pl-card.fire .pl-ava{display:flex;}
+  html[data-hud=pgl] .pl-nick{padding:0 6px;font-size:14px;font-weight:700;text-transform:none;letter-spacing:0;}
+  html[data-hud=pgl] .pl-stat{padding:0 6px;font-size:11px;gap:8px;color:var(--bc-dim);}
+  html[data-hud=pgl] #plCT .pl-nick{text-align:right;} html[data-hud=pgl] #plCT .pl-stat{justify-content:flex-end;}
+  html[data-hud=pgl] .pl-money{color:var(--bc-dim);}
+  html[data-hud=pgl] .pl-card.dead .pl-adr{display:inline-flex;color:#fff;}
+  html[data-hud=pgl] .pl-adr i{margin-left:4px;}
+  html[data-hud=pgl] .pl-gear{display:none;}
+  html[data-hud=pgl] .pl-bar,html[data-hud=pgl] #plCT .pl-bar{grid-area:bar;position:relative;inset:auto;height:18px;margin:0 6px;background:rgba(0,0,0,.35);z-index:1;}
+  html[data-hud=pgl] #plT .pl-bar b.hp{background:var(--bc-t-fill);} html[data-hud=pgl] #plCT .pl-bar b.hp{background:var(--bc-ct-fill);}
+  html[data-hud=pgl] .pl-card.dead .pl-bar{visibility:hidden;}
+  html[data-hud=pgl] .pl-hp{grid-area:bar;justify-self:start;margin-left:6px;height:18px;line-height:18px;padding:0 6px;font-family:var(--hud-f);font-weight:700;font-size:12px;color:#fff;background:rgba(0,0,0,.35);z-index:3;}
+  html[data-hud=pgl] #plCT .pl-hp{justify-self:end;margin:0 6px 0 0;}
+  html[data-hud=pgl] .pl-card.dead .pl-hp{display:none;}
+  html[data-hud=pgl] .pl-wp{grid-area:bar;justify-self:end;margin-right:12px;z-index:3;}
+  html[data-hud=pgl] #plCT .pl-wp{justify-self:start;margin:0 0 0 12px;}
+  html[data-hud=pgl] .pl-top svg.wp{height:12px;opacity:1;}
+  html[data-hud=pgl] .pl-card.sel{box-shadow:inset 0 0 0 2px #f6f6f2;}
+  html[data-hud=pgl] #hudDiff{position:absolute;left:12px;bottom:calc(20px + 330px*var(--k));z-index:5;pointer-events:none;zoom:var(--k);font-family:var(--hud-f);
+    display:flex;align-items:center;gap:8px;height:24px;padding:0 10px 0 12px;border-radius:12px;background:#16181d;box-shadow:inset 0 0 0 2px #e4502a;color:#fff;
+    font-size:12px;font-weight:700;letter-spacing:.04em;opacity:0;transform:translateY(6px);transition:opacity var(--d3) var(--ease),transform var(--d3) var(--ease);}
+  html[data-hud=pgl] #hudDiff.on{opacity:1;transform:none;}
+  html[data-hud=pgl] #hudDiff.ct{left:auto;right:12px;}
+  html[data-hud=pgl] #hudDiff #hdWho{order:2;color:#c9cdd4;text-transform:uppercase;font-weight:600;}
+  html[data-hud=pgl] .hd-fire{order:3;width:12px;height:16px;border-radius:50% 50% 40% 40%/70% 70% 30% 30%;background:radial-gradient(ellipse 50% 70% at 50% 100%,#fff3b0,#ffb12b 50%,#e4502a 80%);
+    animation:plFireA .42s ease-in-out infinite alternate;transform-origin:50% 100%;}
+
+  /* ---------- как BLAST (фото 2) ---------- */
+  html[data-hud=blast]{--bc-t-fill:#e3283c; --bc-ct-fill:#2a62e8; --bc-card:#121521; --bc-strip:#0c0e16;}
+  html[data-hud=blast] .hb-veto{display:none;}
+  html[data-hud=blast] #miniMap{top:10px;width:260px;height:260px;}
+  html[data-hud=blast] #voice{bottom:calc(16px + 190px*var(--k));}
+  html[data-hud=blast] #scoreboard{top:8px;flex-direction:row;align-items:stretch;}
+  html[data-hud=blast] #scoreboard .sb-head{display:none;}
+  html[data-hud=blast] #scoreboard .sb-main{background:#14161c;box-shadow:none;}
+  html[data-hud=blast] #scoreboard .sb-team{background:none;border-top:0;padding:4px 12px;gap:12px;}
+  html[data-hud=blast] #scoreboard .sb-team.t{box-shadow:inset 6px 0 0 var(--bc-t-fill);padding-left:18px;} html[data-hud=blast] #scoreboard .sb-team.ct{box-shadow:inset -6px 0 0 var(--bc-ct-fill);padding-right:18px;}
+  html[data-hud=blast] #scoreboard .sb-name{display:none;}
+  html[data-hud=blast] #scoreboard .sb-logo{width:32px;height:32px;}
+  html[data-hud=blast] #scoreboard .sb-score{font-family:var(--hud-f);font-weight:700;font-size:28px;}
+  html[data-hud=blast] #scoreboard .sb-mid{background:none;border-color:rgba(255,255,255,.1);min-width:88px;}
+  html[data-hud=blast] #scoreboard .sb-round{color:#c7ccd8;}
+  html[data-hud=blast] #scoreboard .sb-prog,html[data-hud=blast] #scoreboard .sb-series{display:none;}
+  html[data-hud=blast] body.bomb-on #scoreboard .sb-planted{display:flex;align-items:center;gap:8px;padding:0 16px;background:var(--bc-t-fill);color:#fff;font-family:var(--hud-f);font-weight:700;
+    font-size:14px;letter-spacing:.04em;animation:bcIn var(--d3) var(--ease) both;}
+  @keyframes bcIn{from{opacity:0;transform:translateX(-8px);}to{opacity:1;transform:none;}}
+  html[data-hud=blast] #scoreboard .sb-planted svg{width:18px;height:18px;}
+  html[data-hud=blast] .pl-col{flex-direction:row;width:auto;gap:4px;align-items:flex-end;}
+  html[data-hud=blast] #plCT{flex-direction:row-reverse;}
+  html[data-hud=blast] .pl-tag{display:none;}
+  html[data-hud=blast] .pl-card,html[data-hud=blast] #plCT .pl-card{width:104px;grid-template-columns:18px 1fr;grid-template-rows:84px 18px 18px;grid-template-areas:"ava ava" "num nick" "stat stat";background:var(--bc-card);}
+  html[data-hud=blast] #plT .pl-card .pl-ava{background:linear-gradient(180deg,#2f6ff0,#173a94);} html[data-hud=blast] #plCT .pl-card .pl-ava{background:linear-gradient(180deg,#e8344a,#8f1626);}
+  html[data-hud=blast] .pl-ava img{object-fit:cover;object-position:50% 15%;}
+  html[data-hud=blast] .pl-num{background:var(--bc-strip)!important;color:#fff!important;font-size:11px;}
+  html[data-hud=blast] .pl-nick{padding:0 6px;font-size:12px;font-weight:700;background:var(--bc-strip);align-self:stretch;line-height:18px;}
+  html[data-hud=blast] .pl-stat{padding:0 6px;font-size:11px;gap:6px;justify-content:space-between;}
+  html[data-hud=blast] .pl-hp{grid-area:ava;align-self:start;justify-self:end;font-family:var(--hud-f);font-weight:700;font-size:22px;padding:2px 6px;text-align:right;text-shadow:0 1px 2px rgba(0,0,0,.6);}
+  html[data-hud=blast] .pl-wp{grid-area:ava;align-self:end;justify-self:start;margin:0 0 4px 6px;}
+  html[data-hud=blast] .pl-top svg.wp{height:12px;opacity:1;}
+  html[data-hud=blast] .pl-gear{display:none;}
+  html[data-hud=blast] .pl-bar,html[data-hud=blast] #plCT .pl-bar{left:0;right:0;bottom:0;height:3px;}
+  html[data-hud=blast] #plT .pl-bar b.hp{background:var(--bc-ct-fill);} html[data-hud=blast] #plCT .pl-bar b.hp{background:var(--bc-t-fill);}
+  html[data-hud=blast] .pl-card.dead .pl-ava{background:#1b1e27!important;}
+  html[data-hud=blast] .pl-card.sel{box-shadow:inset 0 0 0 2px #fff;}
+
+  /* ---------- выбранный игрок — «камера игрока» внизу по центру ---------- */
+  html.hud-bc #plFocus{width:260px;bottom:12px;}
+  html.hud-bc #plFocus .pf-photo{height:138px;}
+  html.hud-bc #plFocus .pf-photo::before{background:linear-gradient(180deg,#232a38,#0d1018);border-top:0;}
+  html.hud-bc #plFocus .pf-bar{background:#0d0f14;height:30px;border-top:0;}
+  html.hud-bc #plFocus #pfNick{font-weight:700;}
+  html[data-hud=pgl] #plFocus .pf-bar::after{background:#f08c2a;}
+  html[data-hud=blast] #plFocus .pf-bar{background:#14161c;}
 </style></head><body>

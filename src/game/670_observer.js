@@ -309,11 +309,21 @@ function obsFrame(ts){
 }
 // (v307) мини-радар — вся карта в углу: живые — кружок цвета стороны с номером и чёрточкой взгляда, погибшие — крестик, бомба
 var MINI = {cv:null, ctx:null};
+var MINI_ZOOM = {calm: 1.35, fight: 1.9, rate: 2.5};   // (v595) приближение мини-карты: спокойно / в бою, скорость 1/с — проектные
 function miniDraw(){
   var c = MINI.cv || (MINI.cv = document.getElementById("miniMap")); if(!c) return;
   var x = MINI.ctx || (MINI.ctx = c.getContext("2d")), W = c.width, k = W/2048;
   x.setTransform(1,0,0,1,0,0); x.clearRect(0,0,W,W);
-  x.setTransform(k,0,0,k,0,0);
+  // (v595, владелец 24.11: «маленькую карту — в то же место, что на худе трансляции, с такой же анимацией — может приближаться») в стилях
+  // трансляции мини-карта плавно приближается к игроку обсервера (в бою — сильнее), центр не выходит за карту; свой стиль — вся карта
+  var bc = typeof HUD_STYLE !== "undefined" && HUD_STYLE !== "base", cur = bc && OBS.id ? teamBot(OBS.id) : null, nowM = performance.now();
+  var zT = 1, cxT = 1024, cyT = 1024;
+  if(cur && cur.alive && roundState === "live"){ zT = obsFight(cur, OBS_K.fightLock) ? MINI_ZOOM.fight : MINI_ZOOM.calm; cxT = cur.x; cyT = cur.y; }
+  var dtM = Math.min(0.1, Math.max(0, (nowM - (MINI.t || nowM))/1000)), aM = 1 - Math.exp(-MINI_ZOOM.rate*dtM); MINI.t = nowM;
+  if(MINI.z == null){ MINI.z = zT; MINI.cx = cxT; MINI.cy = cyT; }
+  MINI.z += (zT - MINI.z)*aM; MINI.cx += (cxT - MINI.cx)*aM; MINI.cy += (cyT - MINI.cy)*aM;
+  var half = 1024/MINI.z, mcx = Math.max(half, Math.min(2048 - half, MINI.cx)), mcy = Math.max(half, Math.min(2048 - half, MINI.cy)), kz = k*MINI.z;
+  x.setTransform(kz,0,0,kz, W/2 - mcx*kz, W/2 - mcy*kz); k = kz;
   if(imgReady){ x.globalAlpha = 0.9; x.drawImage(img,0,0,2048,2048); x.globalAlpha = 1; }
   // видимая область большого радара — рамкой
   var r = wrapRect(), vx0 = -view.panX/view.scale, vy0 = -view.panY/view.scale;

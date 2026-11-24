@@ -170,7 +170,7 @@ function plSkel(ids){
     return '<div class="pl-card" data-id="'+id+'" tabindex="0" title="Показать игрока"><div class="pl-hit"></div>'+
       '<div class="pl-num"></div>'+
       '<div class="pl-body"><div class="pl-nick"></div>'+
-        '<div class="pl-stat"><span>'+PL_KILL+'<i class="pk"></i></span><span>'+PL_SKULL+'<i class="pd"></i></span><span class="pl-money">$<i class="pm"></i></span></div></div>'+
+        '<div class="pl-stat"><span>'+PL_KILL+'<i class="pk"></i></span><span>'+PL_SKULL+'<i class="pd"></i></span><span class="pl-money">$<i class="pm"></i></span><span class="pl-adr">ADR <i class="pa"></i></span></div></div>'+
       '<div class="pl-ava"></div>'+
       '<div class="pl-side"><div class="pl-top"><span class="pl-wp"></span><span class="pl-hp"></span></div><div class="pl-gear"></div></div>'+
       '<div class="pl-bar"><b class="tr"></b><b class="hp"></b></div></div>';
@@ -179,14 +179,16 @@ function plSkel(ids){
 var PL_MONEY = function(v){ return v.toLocaleString("en-US"); };
 function plCardUpdate(c, b){
   var q = function(s){ return c.querySelector(s); };
-  var R = c._r || (c._r = {num:q(".pl-num"), nick:q(".pl-nick"), k:q(".pk"), d:q(".pd"), m:q(".pm"), ava:q(".pl-ava"), wp:q(".pl-wp"),
+  var R = c._r || (c._r = {num:q(".pl-num"), nick:q(".pl-nick"), k:q(".pk"), d:q(".pd"), m:q(".pm"), adr:q(".pa"), ava:q(".pl-ava"), wp:q(".pl-wp"),
     hp:q(".pl-hp"), gear:q(".pl-gear"), tr:q(".pl-bar .tr"), hb:q(".pl-bar .hp"), hit:q(".pl-hit")});
   var hp = b.alive ? Math.max(0, Math.round(b.hp)) : 0, low = hp > 0 && hp <= 25;
-  domClass(c, "pl-card" + (b.alive ? "" : " dead") + (plSelected === b.id ? " sel" : "") + (low ? " low" : ""));
+  var fire = hudFire(b);
+  domClass(c, "pl-card" + (b.alive ? "" : " dead") + (plSelected === b.id ? " sel" : "") + (low ? " low" : "") + (fire ? " fire" : ""));
+  domText(R.adr, String(Math.round(hudAdr(b))));
   domText(R.num, plNum(b));
   domText(R.nick, nick(b.id));
   hudNum(R.k, b.kills || 0); hudNum(R.d, b.deaths || 0); hudNum(R.m, buyShowMoney(b), PL_MONEY);
-  if(R.ava._id !== nick(b.id)){ R.ava._id = nick(b.id); R.ava.innerHTML = plPhoto(b); }   // (док 6) фото — по нику: после смены сторон тот же слот у другого игрока
+  if(R.ava._id !== nick(b.id)){ R.ava._id = nick(b.id); R.ava.innerHTML = '<i class="pl-fire"></i>' + plPhoto(b); }   // (v595) огонёк — за фото   // (док 6) фото — по нику: после смены сторон тот же слот у другого игрока
   var wp = "", gear = "";
   if(b.alive){
     var hide = buyShowHidden(b);
@@ -211,7 +213,39 @@ function plCardUpdate(c, b){
   if(R.alive === true && !b.alive) hudAnim(c, [{transform:"translateX("+(b.team === "T" ? "-" : "")+"6px)"}, {transform:"none"}], {duration:320, easing:"cubic-bezier(.2,.8,.2,1)"});
   R.alive = b.alive;
 }
+// ---------- (v595, владелец 24.11: «огонёк за фото игрока в таблицах слева-справа, когда он играет круто — отличная статистика, ADR») ----------
+// ADR за матч — урон по врагам (roundDmg игры, 400) на сыгранный раунд; копится здесь (показ): прошлые раунды + текущий. «В ударе» —
+// HUD_FIRE.kills и больше фрагов за раунд или ADR от HUD_FIRE.adr после HUD_FIRE.rounds раундов (проектные числа, предложены владельцу 24.11)
+var HUD_FIRE = {kills: 3, adr: 100, rounds: 3};
+var HUD_DMG = {m: -1, r: -1, base: {}, last: {}};
+function hudDmgTick(){
+  if(HUD_DMG.m !== matchNum){ HUD_DMG = {m: matchNum, r: roundNum, base: {}, last: {}}; }
+  if(HUD_DMG.r !== roundNum){ for(var id in HUD_DMG.last) HUD_DMG.base[id] = (HUD_DMG.base[id] || 0) + HUD_DMG.last[id]; HUD_DMG.last = {}; HUD_DMG.r = roundNum; }
+  bots.forEach(function(b){ HUD_DMG.last[b.id] = b.roundDmg || 0; });
+}
+function hudRounds(){ return Math.max(1, roundNum - (roundState === "freeze" || roundState === "warmup" ? 1 : 0)); }
+function hudAdr(b){ return ((HUD_DMG.base[b.id] || 0) + (b.roundDmg || 0))/hudRounds(); }
+function hudFire(b){ return (b.roundKills || 0) >= HUD_FIRE.kills || (hudRounds() >= HUD_FIRE.rounds && hudAdr(b) >= HUD_FIRE.adr); }
+// стиль HUD трансляции (меню «Инструменты»): data-hud у страницы — все различия в CSS (000_head), здесь только выбор и полоса карт серии
+var HUD_STYLE = "base";
+try{ HUD_STYLE = localStorage.getItem("sim-hud") || "base"; }catch(e){}
+function hudStyleSet(s){ HUD_STYLE = s; if(document.documentElement.dataset.hud !== s) document.documentElement.dataset.hud = s; document.documentElement.classList.toggle("hud-bc", s !== "base"); try{ localStorage.setItem("sim-hud", s); }catch(e){} }
+(function(){ if(typeof document === "undefined") return; hudStyleSet(HUD_STYLE); var sel = document.getElementById("selHud"); if(!sel) return; sel.value = HUD_STYLE;
+  sel.addEventListener("change", function(){ hudStyleSet(sel.value); }); })();
+function hudBrandUpdate(){
+  var v = document.getElementById("hbVeto"); if(!v) return;
+  var done = 0; for(var m in SERIES.maps) done++;
+  var h = ""; for(var i = 1; i <= SERIES.bo; i++){ var k = null, j = 0; for(var mm in SERIES.maps){ j++; if(j === i) k = SERIES.maps[mm]; }
+    var cls = i === done + 1 ? "cur" : k ? (k === SIDE_TEAM.T ? "w t" : "w ct") : "";
+    h += (i > 1 ? '<i>▸</i>' : '') + '<span class="' + cls + '">' + (i === done + 1 ? "@@MAP_NAME@@" : "КАРТА " + i) + '</span>'; }
+  domHtml(v, h);
+  // «делает разницу» — лучший «в ударе» (фраги за раунд, потом ADR)
+  var best = null; bots.forEach(function(b){ if(!hudFire(b)) return; if(!best || (b.roundKills||0) > (best.roundKills||0) || ((b.roundKills||0) === (best.roundKills||0) && hudAdr(b) > hudAdr(best))) best = b; });
+  var d = document.getElementById("hudDiff");
+  if(d){ domClass(d, best ? "on " + best.team.toLowerCase() : ""); domText(document.getElementById("hdWho"), best ? nick(best.id) : ""); }
+}
 function playersUpdate(){
+  hudDmgTick(); hudBrandUpdate();
   ["T","CT"].forEach(function(t){
     var el = document.getElementById("pl"+t); if(!el) return;
     var mates = bots.filter(function(b){ return b.team === t; }), key = mates.map(function(b){ return b.id; }).join(",");

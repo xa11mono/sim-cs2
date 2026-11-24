@@ -25,6 +25,12 @@ FACES = [
     ('IBM Plex Mono', 'IBMPlexMono-Medium.woff', '500'),
     ('IBM Plex Mono', 'IBMPlexMono-SemiBold.woff', '600'),
     ('IBM Plex Mono', 'IBMPlexMono-Bold.woff', '700'),
+    # (v595) шрифты стилей HUD трансляции (DESIGN.md «Стили трансляции»): google/fonts ofl/firasanscondensed (Bold), ofl/oswald (wght → 600),
+    # ofl/rubik (wght 500–700), ofl/exo2 (wght → 700); pyftsubset --flavor=woff --no-hinting, тот же набор знаков
+    ('Fira Sans Condensed', 'FiraSansCondensed-700.woff', '700'),
+    ('Oswald', 'Oswald-600.woff', '600'),
+    ('Rubik', 'Rubik-var.woff', '500 700'),
+    ('Exo 2', 'Exo2-700.woff', '700'),
 ]
 # холст сам шрифт не запрашивает — грузим заранее те, что рисует радар
 PRELOAD = ['400 12px "IBM Plex Mono"', '600 12px "IBM Plex Mono"', '700 12px "IBM Plex Mono"',

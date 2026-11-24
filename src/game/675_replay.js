@@ -81,7 +81,7 @@ function rpSample(R){
 // (v463) мир тика для кадра повтора: то, что читает draw (620) — поля игроков, дым, огонь, гранаты, эффекты, бомба, вещи на земле
 var RP_BF = ["x","y","z","alive","hp","crouching","facing","_visFacing","_reloading","reloadUntil","weapon","_underV","_overV","_jump","blindUntil","state","tRole",
   "_knife","planting","defusing","plantUntil","defuseUntil","kit","onStairs","walking","_killHow","_sawEnemy","curSpeed","_idle","_idlePhase","holding","atPost",
-  "_visible","lookTarget","_killer"];   // (v594) кого видит и куда смотрит — для 3D (наклон, ники, силуэты) того же момента, что на экране
+  "_visible","lookTarget","_killer","kills","deaths","roundKills","roundDmg","money"];   // (v594) кого видит и куда смотрит — для 3D того же момента, что на экране; (v595) фраги, урон, деньги — панели HUD того же момента
 var RP_BF_COPY = {_visible: function(v){ return v ? v.slice() : v; }, lookTarget: function(v){ return v ? {x: v.x, y: v.y} : v; }};   // меняются на месте — копия
 function rpCl(o){ var c = {}; for(var k in o){ var v = o[k]; c[k] = Array.isArray(v) ? v.slice() : v; } return c; }
 function rpWorld(){
