@@ -31,6 +31,14 @@ function nadeImg(type, team){
   var im = new Image(); im.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="'+ic.vb+'" fill="'+NADE_ICON_FILL[k]+'">'+ic.svg+'</svg>');
   im._ar = ic.w/ic.h; return (NADE_IMG[k] = im);
 }
+// (v596) силуэт вещи для радара (оружие — KF_ICON по ключу оружия, граната — NADE_ICON): белая картинка, один раз на ключ
+var RADAR_ICON = {};
+function radarIcon(kind, key){
+  var k = kind + ":" + key; if(RADAR_ICON[k] !== undefined) return RADAR_ICON[k];
+  var ic = kind === "nade" ? NADE_ICON[key] : KF_ICON[key]; if(!ic || typeof Image === "undefined") return (RADAR_ICON[k] = null);
+  var im = new Image(); im.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="'+ic.vb+'" fill="#eef0e8">'+ic.svg.replace(/fill-opacity="[^"]*"/g, '')+'</svg>');
+  im._ar = ic.w/ic.h; return (RADAR_ICON[k] = im);
+}
 function kfSvg(key, cls, title){
   var ic = KF_ICON[key]; if(!ic) return null;
   var hpx = cls === "wp" ? 16 : 15, wpx = (ic.w*hpx/ic.h).toFixed(1);

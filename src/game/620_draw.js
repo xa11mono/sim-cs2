@@ -670,23 +670,16 @@ function draw(){
     ctx.font = "600 12px 'IBM Plex Mono',monospace"; ctx.textAlign = "left"; ["stall", "nav", "tug"].forEach(line);
     ctx.restore();
   }
-  // оружие на земле
-  groundWeapons.forEach(function(G){
-    ctx.save(); ctx.fillStyle = "rgba(210,210,200,0.85)"; ctx.strokeStyle = "rgba(20,20,20,0.8)"; ctx.lineWidth = 1/view.scale;
-    var w2 = 9/view.scale, h2 = 3.5/view.scale; ctx.fillRect(G.x-w2, G.y-h2, w2*2, h2*2); ctx.strokeRect(G.x-w2, G.y-h2, w2*2, h2*2);
-    ctx.font = (7/view.scale)+"px 'IBM Plex Mono',monospace"; ctx.textAlign = "center"; ctx.fillText(WEAPONS[G.key].name.split(" ")[0], G.x, G.y - 6/view.scale);
-    ctx.restore();
-  });
-  // пистолеты, гранаты, киты на земле (v271)
+  // (v596, владелец 24.11: «на радаре — силуэты оружия и гранат, как у бомбы») вещи на земле — силуэты из набора киллфида (KF_ICON / NADE_ICON),
+  // светлые с тёмной тенью; размер в px экрана постоянный (длинное оружие — 22 × 8, пистолет — 14 × 6, граната — 8 в высоту); кит — значок панели
+  var gi = function(G, kind){ var im = radarIcon(kind, G.key); if(!im || !im.complete || !im.naturalWidth) return false;
+    var H = (kind === "nade" ? 9 : kind === "pistol" ? 6 : 7.5)/view.scale, W = Math.min(H*im._ar, (kind === "w" ? 24 : 15)/view.scale);
+    H = W/im._ar; ctx.save(); ctx.shadowColor = "rgba(0,0,0,.85)"; ctx.shadowBlur = 3; ctx.shadowOffsetY = 1;
+    ctx.drawImage(im, G.x - W/2, G.y - H/2, W, H); ctx.restore(); return true; };
+  groundWeapons.forEach(function(G){ if(!gi(G, "w")){ ctx.save(); ctx.fillStyle = "rgba(225,228,218,.92)"; var w2 = 9/view.scale, h2 = 3/view.scale; ctx.fillRect(G.x-w2, G.y-h2, w2*2, h2*2); ctx.restore(); } });
   groundItems.forEach(function(G){
-    ctx.save(); ctx.fillStyle = "rgba(210,210,200,0.85)"; ctx.strokeStyle = "rgba(20,20,20,0.8)"; ctx.lineWidth = 1/view.scale;
-    var r = 3/view.scale;
-    if(G.kind === "nade"){ ctx.beginPath(); ctx.arc(G.x, G.y, r, 0, Math.PI*2); ctx.fill(); ctx.stroke(); }
-    else if(G.kind === "kit"){ ctx.fillStyle = "rgba(90,160,230,0.9)"; ctx.fillRect(G.x-r, G.y-r, r*2, r*2); ctx.strokeRect(G.x-r, G.y-r, r*2, r*2); }
-    else { ctx.fillRect(G.x-5/view.scale, G.y-r*0.8, 10/view.scale, r*1.6); ctx.strokeRect(G.x-5/view.scale, G.y-r*0.8, 10/view.scale, r*1.6); }
-    ctx.font = (6.5/view.scale)+"px 'IBM Plex Mono',monospace"; ctx.textAlign = "center"; ctx.fillStyle = "rgba(210,210,200,0.85)";
-    ctx.fillText(G.kind === "kit" ? "кит" : G.kind === "nade" ? NADE[G.key].name : WEAPONS[G.key].name.split(" ")[0], G.x, G.y - 5.5/view.scale);
-    ctx.restore();
+    if(G.kind === "kit"){ ctx.save(); var r = 4/view.scale; ctx.fillStyle = "#5a9bd9"; ctx.fillRect(G.x-r, G.y-r*0.8, r*2, r*1.6); ctx.fillStyle = "#fff"; ctx.fillRect(G.x-r*0.15, G.y-r*0.55, r*0.3, r*1.1); ctx.fillRect(G.x-r*0.55, G.y-r*0.15, r*1.1, r*0.3); ctx.restore(); return; }
+    if(!gi(G, G.kind === "nade" ? "nade" : "pistol")){ ctx.save(); ctx.fillStyle = "rgba(225,228,218,.92)"; ctx.beginPath(); ctx.arc(G.x, G.y, 3/view.scale, 0, Math.PI*2); ctx.fill(); ctx.restore(); }
   });
   // где погиб игрок — крестик цвета его стороны (до конца раунда)
   bots.forEach(function(bot){
