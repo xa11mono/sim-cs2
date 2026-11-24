@@ -11,21 +11,6 @@
 // Камера: цель и приближение — из view (обсервер ведёт её и в 3D), поворот и наклон — свои (D3.yaw / D3.pitch).
 // Цвета — токены :root (--v3-*, DESIGN.md «3D-вид»).
 var D3_FP_AIM = 0.26, D3_FP_PRATE = 87*Math.PI/180;   // от первого лица: на врага — если смотрит в ± 15° (до ± 24° — плавно слабее); наклон ≤ 87°/с (p99 про)
-// (v589, владелец 24.11: «повторить полностью движение камеры, как будто кто-то играет и двигает мышкой — без рывков и без притягивания,
-// плавное, но одновременно резкое») поворот от первого лица ведётся «рукой», а не подтягиванием к цели: у поворота есть скорость и
-// ускорение кисти, мёртвая зона 0,15° (мышь не дёргается на микрошумах), скорость растёт к пределу и гасится на подходе, перелёта нет.
-// Шаг — по времени КАДРА (не по тикам), поэтому на стыке тиков камера не прыгает. Числа — проектные (кисть по демкам: пик 1500°/с, 0,1 с до пика)
-var D3_MOUSE = {vmax: 900*Math.PI/180, acc: 5200*Math.PI/180, dead: 0.15*Math.PI/180};
-function d3Mouse(cur, vel, tgt, dt, vmax, acc){
-  var d = Math.atan2(Math.sin(tgt - cur), Math.cos(tgt - cur));
-  if(Math.abs(d) < D3_MOUSE.dead && Math.abs(vel) < D3_MOUSE.dead*2){ return [cur + vel*dt*0.4, vel*0.4]; }   // довороты кончились — рука стоит
-  var want = (d < 0 ? -1 : 1) * Math.min(vmax, Math.sqrt(2*acc*Math.abs(d)));   // хотим такую скорость, чтобы успеть погасить на подходе
-  var dv = want - vel, step = (dv < 0 ? -1 : 1) * Math.min(Math.abs(dv), acc*dt);
-  vel = Math.max(-vmax, Math.min(vmax, vel + step));
-  var np = cur + vel*dt;
-  if((d > 0 && np > tgt) || (d < 0 && np < tgt)){ np = tgt; vel = 0; }   // не перелетаем цель
-  return [np, vel];
-}
 var D3_FP_SLOPE = 0.75, D3_FP_DZMAX = 160;   // (v593) пол у точки взгляда — не круче лестницы (подъём 0,75 на 1) и не дальше 160 ед. по высоте (окно Mid → Window +105) — проектные
 var D3_FP_PW = 9, D3_FP_ZW = 14, D3_FP_PDEAD = 0.012;   // (v590) пружины наклона 9/с и высоты глаз 14/с; цель наклона меньше 0,7° не сдвигается — проектные
 // пружина без перелёта (критическое затухание, как SmoothDamp): s = {x, v} догоняет цель за ≈ 1/w с; vmax — предел скорости (0 — без предела)
@@ -202,12 +187,12 @@ function d3FpBot(){
 }
 // ---------- (v591, владелец 24.11: «что-то в руках, когда стреляет — отдача; анимация, как ставит бомбу; реальный импакт, камера в стиле
 // Counter-Strike») — только показ: выстрелы узнаём по новым трассерам (начало трассера — у стрелка), отдача и вспышка — по времени кадра ----------
-var D3_KICK_MS = 110, D3_FLASH_MS = 45, D3_PUNCH = 0.011, D3_PUNCH_MAX = 0.05, D3_PUNCH_BACK = 9;   // мс, мс, рад на выстрел, предел, возврат 1/с — проектные
+var D3_KICK_MS = 110, D3_FLASH_MS = 45;   // отдача оружия и вспышка у дула, мс — проектные
 function d3ShotsScan(){
   var S = D3.shotAt || (D3.shotAt = {}), seen = D3.trSeen || (D3.trSeen = new WeakSet());
   tracers.forEach(function(t){ if(seen.has(t)) return; seen.add(t); var best = null, bd = 14;
     bots.forEach(function(o){ if(o.team !== t.team) return; var d = Math.hypot(o.x - t.x1, o.y - t.y1); if(d < bd){ bd = d; best = o; } });
-    if(best){ S[best.id] = t.born; D3.shotN = (D3.shotN || 0) + 1; if(best.id === D3.fpId) D3.fpShot = (D3.fpShot || 0) + 1; } });
+    if(best){ S[best.id] = t.born; D3.shotN = (D3.shotN || 0) + 1; } });
 }
 function d3Kick(id){ var t = D3.shotAt && D3.shotAt[id]; if(t == null) return 0; var a = nowTs - t; return a < 0 || a > D3_KICK_MS ? 0 : 1 - a/D3_KICK_MS; }
 function d3FlashOn(id){ var t = D3.shotAt && D3.shotAt[id]; return t != null && nowTs - t >= 0 && nowTs - t < D3_FLASH_MS; }
@@ -664,22 +649,14 @@ function d3Frame(opt){
     if(fAct) pD = -0.95;
     if(Math.abs(pD - FP.pt) > D3_FP_PDEAD || en || fAct) FP.pt = pD;
     d3Spring(FP.ez, ez0, D3_FP_ZW, dtP, 0); var ez = FP.ez.x;
-    // (v589) поворот и наклон — «рукой»: тот же d3Mouse, что для мыши; yaw без предела про (это поворот корпуса), наклон — не быстрее про
-    // подшаги ≤ 1/60 с: длинный кадр (просадка) не превращается в один рывок — рука ведёт так же, просто несколько шагов за кадр
-    var nSub = Math.max(1, Math.min(8, Math.ceil(dtP/0.0167))), dtS = dtP/nSub;
-    for(var si = 0; si < nSub; si++){
-      var rY = d3Mouse(FP.y, FP.yv, ff, dtS, D3_MOUSE.vmax, D3_MOUSE.acc); FP.y = rY[0]; FP.yv = rY[1];
-    }
-    // (v590) наклон — пружиной без перелёта (d3Spring, не быстрее про): «рука» d3Mouse на плавно ползущей цели наклона (ход по ступеням,
-    // сближение) работает рывками разгон / торможение — замер м3 40 с: 60 разворотов наклона против 9 у пружины
+    // (v594, владелец 24.11: «бот смотрит по диагонали, камера постоянно дрожит, даже когда стреляет — не смотрит на врага; бежит — смотрит в
+    // другую сторону») замер м3, 25 с от первого лица: камера отставала от взгляда бота в среднем на 6–7° (на развороте — до 140°): поворот шёл
+    // через «руку» d3Mouse (v589) поверх взгляда, который в игре уже ведёт рука с инерцией (275, handTurn; кадр — 620); выстрел толкал прицел
+    // вверх, урон тряс камеру (v591). Теперь поворот — ровно взгляд бота (как конус в 2D), наклон — пружиной; толчка и тряски у камеры нет
+    // (отдача — только у оружия в руках)
+    FP.y = ff; FP.yv = 0;
     var PS = {x: FP.p, v: FP.pv}; d3Spring(PS, FP.pt, D3_FP_PW, dtP, D3_FP_PRATE); FP.p = PS.x; FP.pv = PS.v;
-    // (v591) импакт «как в CS»: выстрел — толчок прицела вверх (копится до D3_PUNCH_MAX, возвращается); урон — встряска камеры
-    if(FP.shots === undefined){ FP.shots = D3.fpShot || 0; FP.hp = fpb.hp; FP.punch = 0; FP.shake = 0; }
-    if((D3.fpShot || 0) !== FP.shots){ FP.punch = Math.min(D3_PUNCH_MAX, FP.punch + D3_PUNCH*((D3.fpShot || 0) - FP.shots)); FP.shots = D3.fpShot || 0; }
-    if(fpb.hp < FP.hp) FP.shake = Math.min(1, FP.shake + (FP.hp - fpb.hp)/35); FP.hp = fpb.hp;
-    FP.punch *= Math.exp(-D3_PUNCH_BACK*dtP); FP.shake *= Math.exp(-7*dtP);
-    var shx = FP.shake > 0.01 ? (d3R(nowP*0.031) - 0.5)*FP.shake*1.6 : 0, shy = FP.shake > 0.01 ? (d3R(nowP*0.027 + 3) - 0.5)*FP.shake*1.2 : 0;
-    var ffC = FP.y + shx*0.01, pcC = FP.p + FP.punch + shy*0.01; ez += shy*0.5;
+    var ffC = ff, pcC = FP.p;
     D3.vm = {kick: d3Kick(fpb.id), flash: d3FlashOn(fpb.id), act: fAct ? (fpb.planting ? "plant" : "defuse") : null, pk: fpb.planting ? Math.max(0, Math.min(1, 1 - ((fpb.plantUntil || tick) - tick)/PLANT_TICKS)) : 1, id: fpb.id};
     tgt = [fx + Math.cos(ffC)*Math.cos(pcC)*100, ez + Math.sin(pcC)*100, fy + Math.sin(ffC)*Math.cos(pcC)*100];
     eye = [fx, ez, fy];

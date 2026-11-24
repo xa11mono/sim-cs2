@@ -80,10 +80,12 @@ function rpSample(R){
 }
 // (v463) мир тика для кадра повтора: то, что читает draw (620) — поля игроков, дым, огонь, гранаты, эффекты, бомба, вещи на земле
 var RP_BF = ["x","y","z","alive","hp","crouching","facing","_visFacing","_reloading","reloadUntil","weapon","_underV","_overV","_jump","blindUntil","state","tRole",
-  "_knife","planting","defusing","plantUntil","defuseUntil","kit","onStairs","walking","_killHow","_sawEnemy","curSpeed","_idle","_idlePhase","holding","atPost"];
+  "_knife","planting","defusing","plantUntil","defuseUntil","kit","onStairs","walking","_killHow","_sawEnemy","curSpeed","_idle","_idlePhase","holding","atPost",
+  "_visible","lookTarget","_killer"];   // (v594) кого видит и куда смотрит — для 3D (наклон, ники, силуэты) того же момента, что на экране
+var RP_BF_COPY = {_visible: function(v){ return v ? v.slice() : v; }, lookTarget: function(v){ return v ? {x: v.x, y: v.y} : v; }};   // меняются на месте — копия
 function rpCl(o){ var c = {}; for(var k in o){ var v = o[k]; c[k] = Array.isArray(v) ? v.slice() : v; } return c; }
 function rpWorld(){
-  var W = {tick: tick, b: bots.map(function(o){ var c = {}; RP_BF.forEach(function(k){ c[k] = o[k]; }); return c; }),
+  var W = {tick: tick, b: bots.map(function(o){ var c = {}; RP_BF.forEach(function(k){ c[k] = RP_BF_COPY[k] ? RP_BF_COPY[k](o[k]) : o[k]; }); return c; }),
     sm: smokes.map(rpCl), fi: fires.map(rpCl), nd: nadesInAir.map(rpCl), fx: nadeFx.map(rpCl),
     bomb: bomb ? rpCl(bomb) : null, bc: bomb && bomb.carrier ? bots.indexOf(bomb.carrier) : -1};
   if(tick % 8 === 0){ W.gw = groundWeapons.map(rpCl); W.gi = groundItems.map(rpCl); }
@@ -442,7 +444,9 @@ function rpSwap(R, A, B, f, rt, o){
   if(o.hideTac) teamTac = {T: null, CT: keep.teamTac && keep.teamTac.CT};
   if(R.side){ SIDE_TEAM = R.side; } if(R.NK){ NICKS = R.NK; }
   bots.forEach(function(q, i){ var a = A.b[i], b2 = B.b[i]; RP_BF.forEach(function(k){ q[k] = b2[k]; });
-    q.px = a.x; q.py = a.y; q.pfacing = a._visFacing !== undefined ? a._visFacing : a.facing; movePath(q, null, "replay"); q._trail = []; });
+    // (v594) взгляд между кадрами записи — от взгляда кадра A (facing) к B; было: от _visFacing A — его считал прошлый кадр экрана (отстаёт
+    // на кадр и на долю тика) — поворот шёл ступеньками, камера дрожала при задержке эфира и в повторе
+    q.px = a.x; q.py = a.y; q.pfacing = a.facing; movePath(q, null, "replay"); q._trail = []; });
   } catch(e){ restore(); throw e; }
   return restore;
 }
