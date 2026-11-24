@@ -301,10 +301,16 @@ async function mkSubmit(){
   mkClose(); mkToast("Сохраняю отметку…");
   if(await mkSave(m, "new")) mkToast("Отметка сохранена");
 }
+// (Р0.1, 24.11) среда записи: браузер и ОС влияют на последние знаки Math (rebuild/ENVIRONMENT.md) — снимок повторяется только в той же среде
+function mkEnv(){
+  var n = typeof navigator !== "undefined" ? navigator : {}, ua = n.userAgentData, v = document.getElementById("simVersion");
+  return { ua: n.userAgent || null, brands: ua && ua.brands ? ua.brands.map(function(b){ return b.brand + " " + b.version; }).join(", ") : null,
+    platform: (ua && ua.platform) || n.platform || null, build: v ? v.textContent : null };
+}
 async function mkSave(m, status){
   var doc = { match: m.match, tick: m.tick, round: m.round, roundTime: m.roundTime, category: m.category, priority: m.priority,
     text: m.text, want: m.want || "", bot: m.bot || null, principle: null, status: status, version: null,
-    fp: m.fp, state: m.state, frameAsset: null, created: Date.now(), updated: Date.now() };
+    fp: m.fp, state: m.state, frameAsset: null, created: Date.now(), updated: Date.now(), env: mkEnv() };
   if(MK.assets && m.frameUrl){ try{ var up = await MK.assets.upload(mkUrlToBlob(m.frameUrl)); doc.frameAsset = up.id; }catch(e){} }
   doc.screenAsset = null;   // (v385) весь экран
   if(MK.assets && m.screenP){ try{ var su = await m.screenP; if(su){ var us0 = await MK.assets.upload(mkUrlToBlob(su)); doc.screenAsset = us0.id; } }catch(e){} }

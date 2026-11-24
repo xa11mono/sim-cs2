@@ -20,7 +20,7 @@ def sh(args, **kw):
     for line in p.stdout: log(line.rstrip())
     if p.wait(): raise subprocess.CalledProcessError(p.returncode, args)
 
-PW_VER = '1.56.0'   # та же версия, что в облаке (Chromium 1194): другая версия браузера — другой движок JS, матчи расходятся
+PW_VER = '1.63.0'   # (Р0.1, 24.11) = облако: Chromium 158.0.8127.36 (rebuild/ENVIRONMENT.md); другая версия браузера — другой Math, матчи расходятся
 def ensure_playwright():
     # playwright — вне папки репо, чтобы чистка рабочей папки исполнителем его не стирала
     home = os.path.join(os.path.expanduser('~'), '.simcs2_node')
@@ -57,6 +57,12 @@ def main():
     open(LOG, 'w', encoding='utf-8').close()
     req = json.load(open(sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, 'request.json'), encoding='utf-8'))
     ensure_playwright()
+    # (Р0.1, 24.11) среда рядом с каждым результатом: runs/<label>/env.json (Playwright, Chromium, Node, ОС)
+    for k, v in req.items():
+        for j in (v if isinstance(v, list) else []):
+            if isinstance(j, dict) and j.get('label'):
+                d = os.path.join(ROOT, 'tools', 'measure', 'runs', j['label']); os.makedirs(d, exist_ok=True)
+                sh(['node', os.path.join(HERE, 'env.js'), os.path.join(d, 'env.json')], cwd=os.path.join(os.path.expanduser('~'), '.simcs2_node'))
     par = int(req.get('par', 6)); sims = os.path.join(ROOT, 'tools', 'measure', 'runs', '_sims'); os.makedirs(sims, exist_ok=True)
     # сначала собрать все версии, потом все матчи одной очередью (освободилось место — сразу следующий матч любой версии)
     jobargs = []; mset = None

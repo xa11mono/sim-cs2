@@ -4,6 +4,7 @@
 # Сравнить два прогона: diff -r <папка1> <папка2> (пусто = поведение не изменилось)
 HERE="$(cd "$(dirname "$0")" && pwd)"; ROOT="$(dirname "$(dirname "$HERE")")"
 SIM="$(realpath "$1")"; OUT="$2"; mkdir -p "$OUT"
+node "$HERE/env.js" "$OUT/env.json"   # (Р0.1) среда: Playwright, Chromium, Node, ОС — отпечатки сравнимы только в одной среде
 for m in 3 7 11 13 17 19 23 29; do
   node "$ROOT/src/q.js" "$SIM" "$(sed "s/__M__/$m/" "$HERE/fingerprint.js")" > "$OUT/fp_$m.json" &
 done
