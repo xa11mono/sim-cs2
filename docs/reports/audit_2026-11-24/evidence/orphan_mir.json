@@ -1,0 +1,1 @@
+{"ticks":36000,"rounds":6,"orphanEps":1,"orphanTicks":2,"stillTicks":0,"longest":[{"id":"T3","t0":22331,"n":2,"still":0,"round":4,"why":"death","t1":22332,"next":"lineup"}],"tries":314,"throwsOk":64,"pauseFails":165,"pauseAfterPaidSolve":159,"msWastedInThoseCalls":60710}

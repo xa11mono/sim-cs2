@@ -1,0 +1,60 @@
+== scenarios
+{"reaction_first_contact":{"ok":false,"firstShotTick":null,"expectAtLeast":16,"dist":360},"fov_second_enemy_behind":{"ok":true,"seesBehind":false,"lineOpen":true,"seesFront":true},"team_lkp_without_voice":{"ok":false,"err":"ReferenceError: LKP is not defined"},"save_over_lineup":{"ok":false,"tags":["lineup","save","save"]},"anchor_pick_stable":{"ok":true,"distinctPicks":1},"site_switch_clears_old":{"ok":true,"route":false,"nade":false,"restarted":false,"hasOnePlace":true},"no_nade_on_teammate":{"ok":false,"heOnMate":false,"mollyOnMate":false,"heWhenClear":false}}
+== scenarios2
+{"second_target_unexpected":{"ok":false,"ticksToShotB":null,"reactTicks":16,"streakA":0},"known_target_reappears":{"ok":false,"ticksToShot":null,"reactTicks":16},"target_lost_just_before":{"ok":false,"ticksToShot":null,"reactTicks":16},"belief_heard_not_said":{"ok":false,"mapChange":0.5415},"belief_said_in_voice":{"ok":true,"valid":true,"sec":25,"control":0.081,"voiced":0.84,"thisEnemy":[0.009,0.28]},"belief_radar_seen":{"ok":false,"mass":0},"belief_stale_decays":{"ok":true,"info":"только запись","after2s":0.28,"after22s":0.117},"flash_teammate_record":{"ok":true,"info":"только запись","mateBlindSec":0.42,"enemyBlindSec":0.41,"throwerBlindSec":0,"note":"свой слепнет ×0,18 всегда — колла «флешу» в войсе нет"},"switch_no_old_staging":{"ok":true,"round":1,"oldSite":"B","waitingAtOld":[]}}
+== scenarios3
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+page.evaluate: Target page, context or browser has been closed
+Browser logs:
+
+<launching> /opt/pw-browsers/chromium_headless_shell-1243/chrome-headless-shell-linux64/chrome-headless-shell --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-edgeupdater --disable-extensions --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,BlockOriginHeaderModificationOnRedirect,Translate,AutoDeElevate,OptimizationHints,msForceBrowserSignIn,msEdgeUpdateLaunchServicesPreferredVersion --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --disable-updater-scheduler --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --disable-infobars --disable-search-engine-choice-screen --disable-sync --enable-unsafe-swiftshader --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --user-data-dir=/tmp/playwright_chromiumdev_profile-4d4hbO --remote-debugging-pipe --no-startup-window
+<launched> pid=2314
+[pid=2314][err] [1124/145045.066806:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory
+[pid=2314][err] [1124/145045.068150:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[pid=2314][err] [1124/145045.068212:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory
+[pid=2314][err] [1124/145045.068232:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory
+[pid=2314][err] [1124/145045.068743:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[pid=2314][err] [1124/145045.068752:WARNING:dbus/object_proxy.cc:439] Failed to connect to NameOwnerChanged signal for object: /org/freedesktop/portal/desktop
+[pid=2314][err] [1124/145045.068762:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[pid=2314][err] [1124/145045.068770:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[pid=2314][err] [1124/145045.088219:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[pid=2314][err] [1124/145045.088288:WARNING:device/bluetooth/dbus/bluez_dbus_manager.cc:209] Floss manager service not available, cannot set Floss enable/disable.
+[pid=2314][err] [1124/145045.088789:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[pid=2314][err] [1124/145045.093819:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[pid=2314][err] [1124/145045.137176:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:1652] drmGetDevices2() has not found any devices
+[pid=2314][err] [1124/145045.139609:WARNING:sandbox/policy/linux/sandbox_linux.cc:405] InitializeSandbox() called with multiple threads in process gpu-process.
+[pid=2314][err] [1124/145047.080834:INFO:CONSOLE:56864] "снимок: не копируются, убраны из снимка — cv, ctx, wrap, showNavmesh, showPortals, showWalls, showZones, showPoints, showDanger, showLos, showTracers, showCalls, showWhy, showSound, chkAlign, alignPanel, inNavDx, inNavDy, inNavScale, btnNavReset, chkNavWarp, navWarpPanel, navWarpHint, navWarpCountEl, btnNavWarpUndo, btnNavWarpClear, chkZoneEdit, zoneEditPanel, zoneEditHint, zoneKindSelect, zoneNameInput, btnZoneFinish, chkZoneVertexEdit, zoneEditCountEl, btnZoneDelete, chkZoneAlign, zoneAlignPanel, inZlDx, inZlDy, inZlScale, chkLineups, lineupPanel, zoneNamePanel, zoneNameInput2, chkLookDbg, lookDbgEl, chkTeamDbg, teamDbgEl, D3, D3_NULLGRAD, D3_NULLCTX", source: file:///tmp/claude-0/-home-user-sim-cs2/83f1975d-d3f7-5e99-871b-83ba561ce111/scratchpad/sim_mir.html (56864)
+[pid=2314] <gracefully close start>
+[pid=2314] <forcefully close>
+[pid=2314] <kill>
+[pid=2314] <will force kill>
+    at /home/user/sim-cs2/src/q.js:5:22 {
+  log: []
+}
+
+Node.js v22.23.5
+== scenarios4
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+page.evaluate: Target page, context or browser has been closed
+    at /home/user/sim-cs2/src/q.js:5:22 {
+  log: []
+}
+
+Node.js v22.23.5
+== scenarios5
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+page.evaluate: Target page, context or browser has been closed
+    at /home/user/sim-cs2/src/q.js:5:22 {
+  log: []
+}
+
+Node.js v22.23.5
