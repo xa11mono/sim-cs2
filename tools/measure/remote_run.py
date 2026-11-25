@@ -65,7 +65,17 @@ def _build(ref, mapname, out):
 
 def main():
     open(LOG, 'w', encoding='utf-8').close()
-    req = json.load(open(sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, 'request.json'), encoding='utf-8'))
+    request_path = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, 'request.json')
+    with open(request_path, encoding='utf-8') as request_file:
+        req = json.load(request_file)
+    for flag in ('shared_browser', 'stream_records'):
+        if type(req.get(flag, False)) is not bool:
+            sys.exit(flag + ' должен быть JSON boolean')
+    if req.get('stream_records') and not req.get('shared_browser'):
+        sys.exit('stream_records требует shared_browser')
+    for j in req.get('jobs', []):
+        if type(j.get('light_page', False)) is not bool:
+            sys.exit('light_page должен быть JSON boolean')
     ensure_playwright()
     # (Р0.1, 24.11) среда рядом с каждым результатом: runs/<label>/env.json (Playwright, Chromium, Node, ОС)
     for k, v in req.items():
@@ -92,8 +102,10 @@ def main():
         sim = os.path.join(sims, j['label'] + '.html'); build(j['ref'], j.get('map', 'ancient'), sim)
         out = os.path.join(ROOT, 'tools', 'measure', 'runs', j['label']); os.makedirs(out, exist_ok=True)
         for m in j.get('matches', [3, 7, 11, 13, 17, 19, 23, 29]): fps.append((sim, m, os.path.join(out, 'fp_%d.json' % m), bool(j.get('fields')), j.get('engine', 'chromium')))
-    fpjs = open(os.path.join(HERE, 'fingerprint.js'), encoding='utf-8').read()
-    fwjs = open(os.path.join(HERE, 'engine', 'field_watch.js'), encoding='utf-8').read()   # (15.11) "fields": true — ловец писателей полей
+    with open(os.path.join(HERE, 'fingerprint.js'), encoding='utf-8') as source:
+        fpjs = source.read()
+    with open(os.path.join(HERE, 'engine', 'field_watch.js'), encoding='utf-8') as source:
+        fwjs = source.read()   # (15.11) "fields": true — ловец писателей полей
     # (15.11, перестройка) покрытие кода: {"cov": [{"label", "ref", "map", "matches"?, "rounds"?}]} — code_cov.js по матчу на процесс →
     # runs/<label>/cov_<m>.json (функция и сколько раз вызвана); мёртвые — не вызванные ни в одном матче (сводит облако)
     covs = []
@@ -219,14 +231,22 @@ def main():
         if j.get('special'): r0sh(['node', os.path.join(R0, 'inv_run.js'), sim, '--special', '--out=' + os.path.join(out, 'inv_special.json')], out, 'inv_special')
     for j in req.get('jobs', []):
         sim = os.path.join(sims, j['label'] + '.html')
-        build(j['ref'], j.get('map', 'ancient'), sim); jobargs.append('--job=%s,%s' % (j['label'], sim))
+        build(j['ref'], j.get('map', 'ancient'), sim)
+        if j.get('light_page'):
+            light = os.path.join(sims, j['label'] + '.measure.html')
+            sh([PY, os.path.join(HERE, 'runner', 'light_page.py'), sim, light], cwd=ROOT)
+            sim = light
+        jobargs.append('--job=%s,%s' % (j['label'], sim))
         # (05.11) "snaps": true — писать снимки раундов (база для переигровки); "replay": {"from": <метка базы>, "rounds": "eco" | "all" |
         # "ct:eco" | "tac:rush" | "3+7+12"} — играть только выбранные раунды со снимков базы (engine/walk_run.py)
         if j.get('snaps'): jobargs.append('--snaps=%s' % j['label'])
         if j.get('replay'): jobargs.append('--replay=%s:%s:%s' % (j['label'], j['replay']['from'], j['replay'].get('rounds', 'all')))
         m = ','.join(str(x) for x in j.get('matches', [3, 7, 11, 13, 17, 19, 23, 29]))
         assert mset in (None, m), 'у всех заданий — одни и те же матчи'; mset = m
-    if jobargs: sh([PY, os.path.join(HERE, 'engine', 'walk_run.py')] + jobargs + ['--matches=' + mset, '--par=%d' % par], cwd=ROOT)
+    if jobargs:
+        if req.get('shared_browser'): jobargs.append('--shared-browser')
+        if req.get('stream_records'): jobargs.append('--stream-records')
+        sh([PY, os.path.join(HERE, 'engine', 'walk_run.py')] + jobargs + ['--matches=' + mset, '--par=%d' % par], cwd=ROOT)
     log('all done')
 
 if __name__ == '__main__':

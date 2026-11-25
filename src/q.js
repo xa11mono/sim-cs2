@@ -1,8 +1,39 @@
-// (Р2.6) движок — SIM_BROWSER = chromium (по умолчанию) | firefox | webkit: тот же код отпечатка в другом браузере
-const pw = require('playwright'), ENGINE = process.env.SIM_BROWSER || 'chromium';
-(async()=>{ const br=await pw[ENGINE].launch(); const pg=await br.newPage(); await pg.route(/^https?:/, r=>r.abort());
-await pg.goto(require('url').pathToFileURL(require('path').resolve(process.argv[2])).href); await pg.waitForTimeout(1200);
-// (Р2.6) кадр страницы остановлен до кода: в другом движке он успел бы сделать другое число тиков «по часам» до freshMatch; SIM_LIVE_FRAMES=1 — как раньше
-if(!process.env.SIM_LIVE_FRAMES) await require('../tools/measure/dv_state.js').stopFrames(pg);
-let code=process.argv[3]; if(code.startsWith('@')) code=require('fs').readFileSync(code.slice(1),'utf8');   // (Б2) «@файл»: на Windows длина командной строки ≤ 32 767 знаков
-console.log(await pg.evaluate(src=>__ev(src), code)); await br.close(); })();
+// (Р2.6) движок — SIM_BROWSER = chromium (по умолчанию) | firefox | webkit.
+const fs = require('node:fs');
+const { resolve } = require('node:path');
+const { pathToFileURL } = require('node:url');
+const { stopFrames } = require('../tools/measure/dv_state.js');
+
+function launch(engine = process.env.SIM_BROWSER || 'chromium') {
+  return require('playwright')[engine].launch();
+}
+
+async function prepare(context, html) {
+  const page = await context.newPage();
+  await page.route(/^https?:/, route => route.abort());
+  await page.goto(pathToFileURL(resolve(html)).href);
+  await page.waitForTimeout(1200);
+  if (!process.env.SIM_LIVE_FRAMES) await stopFrames(page);
+  return page;
+}
+
+function readCode(code) {
+  return code.startsWith('@') ? fs.readFileSync(code.slice(1), 'utf8') : code;
+}
+
+async function main() {
+  const browser = await launch();
+  try {
+    const context = await browser.newContext();
+    const page = await prepare(context, process.argv[2]);
+    console.log(await page.evaluate(src => __ev(src), readCode(process.argv[3])));
+  } finally {
+    await browser.close();
+  }
+}
+
+module.exports = { launch, prepare, readCode };
+if (require.main === module) main().catch(error => {
+  console.error(error);
+  process.exitCode = 1;
+});

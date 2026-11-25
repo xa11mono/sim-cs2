@@ -7,6 +7,12 @@ measure.py <метка> --no-build --no-play --sim=…  Игру не меняе
 import sys, os, subprocess
 HERE = os.path.dirname(os.path.abspath(__file__)); MEAS = os.path.dirname(HERE); ROOT = os.path.dirname(os.path.dirname(MEAS))
 args = [a for a in sys.argv[1:] if not a.startswith('--')]
+SHARED = '--shared-browser' in sys.argv
+STREAM = '--stream-records' in sys.argv
+if STREAM and not SHARED:
+    sys.exit('--stream-records требует --shared-browser')
+RUNS = os.environ.get('SIMCS2_RUNS_DIR') or os.path.join(MEAS, 'runs')
+MATCH_TIMEOUT = 2400
 matches = [3, 7, 11, 13, 17, 19, 23, 29]; sim = None; par = 2; jobs = []
 # (05.11) снимки раундов: --snaps=<метка>,… — базовый прогон пишет снимок в конце каждого раунда в SNAPDIR/<метка>/m<M>.json.gz (вне
 # репозитория: checkout чистит неотслеживаемое; в pc-results не идут — большие). --replay=<метка>:<база>:<раунды> — новая версия
@@ -21,7 +27,9 @@ for a in sys.argv[1:]:
     if a.startswith('--snaps='): SNAPS.update(a.split('=', 1)[1].split(','))
     if a.startswith('--replay='): l, base, rr = a.split('=', 1)[1].split(':', 2); REPLAY[l] = (base, rr)
 if args: jobs.insert(0, (args[0], sim))
-for l, f in jobs: os.makedirs(os.path.join(MEAS, 'runs', l), exist_ok=True)
+if par < 1:
+    sys.exit('--par должен быть больше нуля')
+for l, f in jobs: os.makedirs(os.path.join(RUNS, l), exist_ok=True)
 tpl = open(os.path.join(MEAS, 'rec2.js'), encoding='utf-8').read()
 watch = open(os.path.join(MEAS, 'audit', 'watch.js'), encoding='utf-8').read() + '\n' + open(os.path.join(HERE, 'walk_watch.js'), encoding='utf-8').read() \
     + '\n' + open(os.path.join(HERE, 'know_watch.js'), encoding='utf-8').read() \
@@ -47,6 +55,11 @@ for l, f in jobs:
         rounds = json.load(gzip.open(sp, 'rt', encoding='utf-8'))['rounds']
         todo += [(l, f, m, R) for R in pick_rounds(rounds, rr)]
 run = []; total = len(todo); fin = 0
+pool = None
+if SHARED and todo:
+    sys.path.insert(0, MEAS)
+    from runner.process import SharedProcess
+    pool = SharedProcess(ROOT)
 def start(l, f, m, R=0):
     src = tpl.replace('__M__', str(m)).replace('__T__', TICKS).replace('/*@@WATCH@@*/', watch)
     if l in SNAPS: src = src.replace('/*@@SNAPS@@*/', 'SNAP_ON = 1;')
@@ -54,16 +67,26 @@ def start(l, f, m, R=0):
         snaps = json.load(gzip.open(os.path.join(SNAPDIR, REPLAY[l][0], f'm{m}.json.gz'), 'rt', encoding='utf-8'))['snaps']
         rest = ('mkRestore(mkUnpack(__SNAPTXT)); ' if str(R) in snaps else 'freshMatch(%d); ' % m) + 'R_END=%d;' % R
         src = ('var __SNAPTXT=' + json.dumps(snaps[str(R)]['s']) + ';\n' if str(R) in snaps else '') + src.replace('freshMatch(%d);' % m, rest, 1)
-        js = os.path.join(MEAS, 'runs', l, f'_rec_{m}_r{R}.js'); open(js, 'w', encoding='utf-8').write(src)
-        fo = open(os.path.join(MEAS, 'runs', l, f'rec_{m}_r{R}.json'), 'w', encoding='utf-8')
-        return [subprocess.Popen(['node', 'src/q.js', f, '@' + js], cwd=ROOT, stdout=fo), fo, l, m, time.time(), R]
-    # (Б2) код матча — файлом («@путь»): со сторожем знания он длиннее предела командной строки Windows (32 767 знаков)
-    js = os.path.join(MEAS, 'runs', l, f'_rec_{m}.js'); open(js, 'w', encoding='utf-8').write(src)
-    fo = open(os.path.join(MEAS, 'runs', l, f'rec_{m}.json'), 'w', encoding='utf-8')
-    return [subprocess.Popen(['node', 'src/q.js', f, '@' + js], cwd=ROOT, stdout=fo), fo, l, m, time.time(), 0]   # без `timeout`: на Windows его нет
+    # Код передаётся файлом: со сторожами превышает лимит командной строки Windows.
+    stem = f'rec_{m}_r{R}' if R else f'rec_{m}'
+    js = os.path.join(RUNS, l, '_' + stem + '.js')
+    with open(js, 'w', encoding='utf-8') as script:
+        script.write(src)
+    rf = os.path.join(RUNS, l, stem + '.json')
+    if pool:
+        # A failed retry must never publish a previous result under the same label.
+        if os.path.isfile(rf): os.unlink(rf)
+        return [pool.submit(f, js, rf, STREAM, MATCH_TIMEOUT * 1000), None, l, m, time.time(), R, rf]
+    fo = open(rf, 'w', encoding='utf-8')
+    try:
+        child = subprocess.Popen(['node', 'src/q.js', f, '@' + js], cwd=ROOT, stdout=fo)
+    except BaseException:
+        fo.close()
+        raise
+    return [child, fo, l, m, time.time(), R, rf]
 def split_snaps(l, m):
     # снимки — из записи в SNAPDIR (с раундами — для выбора при переигровке), запись — без них
-    fn = os.path.join(MEAS, 'runs', l, f'rec_{m}.json')
+    fn = os.path.join(RUNS, l, f'rec_{m}.json')
     try: d = json.load(open(fn, encoding='utf-8'))
     except Exception: return
     sn = d.pop('snaps', None)
@@ -78,20 +101,36 @@ if SNAPS and os.path.isdir(SNAPDIR):
     for _, d in old_l[:max(0, len(old_l) - (SNAP_KEEP - len(SNAPS)))]: shutil.rmtree(os.path.join(SNAPDIR, d), ignore_errors=True)
 T0 = time.time()
 print(f'матчей в очереди: {total}, одновременно: {par}', flush=True)
-while todo or run:
-    while todo and len(run) < par: run.append(start(*todo.pop(0)))
-    time.sleep(1)
-    for r in run[:]:
-        p, fo, l, m, t0, R = r
-        if p.poll() is None and time.time() - t0 < 2400: continue
-        if p.poll() is None: p.kill(); p.wait()
-        fo.close(); run.remove(r)
-        fin += 1
-        if l in SNAPS and not R: split_snaps(l, m)
-        rf = os.path.join(MEAS, 'runs', l, f'rec_{m}_r{R}.json' if R else f'rec_{m}.json')
-        # (05.11, ранний стоп) половина готова — промежуточная выкладка (pc-results/<N>-half): можно сравнить и, если явно хуже, отменить прогон
-        if fin == total // 2 and total >= 8 and os.environ.get('GITHUB_TOKEN'):
-            subprocess.run([sys.executable, os.path.join(MEAS, 'publish_results.py'), '--part=half'], cwd=ROOT)
-        print(l, 'match', m, ('round %d ' % R) if R else '', 'rc', p.returncode, os.path.getsize(rf),
-              f'— готово {fin}/{total}, {round((time.time() - T0)/60)} мин', flush=True)
+failure = False
+try:
+    while todo or run:
+        while todo and len(run) < par:
+            run.append(start(*todo.pop(0)))
+        time.sleep(1)
+        for r in run[:]:
+            p, fo, l, m, t0, R, rf = r
+            rc = p.poll()
+            if rc is None:
+                if pool or time.time() - t0 < MATCH_TIMEOUT: continue
+                p.kill()
+                rc = p.wait()
+            if fo: fo.close()
+            run.remove(r)
+            fin += 1
+            failure |= rc != 0
+            if rc == 0 and l in SNAPS and not R: split_snaps(l, m)
+            # Half publication is unchanged for the standard workflow directory.
+            if fin == total // 2 and total >= 8 and os.environ.get('GITHUB_TOKEN') and 'SIMCS2_RUNS_DIR' not in os.environ:
+                subprocess.run([sys.executable, os.path.join(MEAS, 'publish_results.py'), '--part=half'], cwd=ROOT)
+            print(l, 'match', m, ('round %d ' % R) if R else '', 'rc', rc,
+                  os.path.getsize(rf) if os.path.isfile(rf) else 0,
+                  f'— готово {fin}/{total}, {round((time.time() - T0)/60)} мин', flush=True)
+finally:
+    if pool: pool.close()
+    for p, fo, *_ in run:
+        if fo:
+            p.kill()
+            p.wait()
+            fo.close()
 print('done')
+if failure: sys.exit(1)
