@@ -1,3 +1,1 @@
-{"par": 8, "jobs": [
-  {"label": "b2_mir_a5", "ref": "d71ba75743497183374dc3762db1de5484583fbc", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29]}
-]}
+{"par": 2, "rust": [{"label": "v599a_rust2"}], "inv": [{"label": "v599a_inv3_anc", "ref": "8d04b7c95151a11b119f59b247bdff3c53192247", "map": "ancient", "matches": [], "special": true}, {"label": "v599a_inv3_mir", "ref": "8d04b7c95151a11b119f59b247bdff3c53192247", "map": "mirage", "matches": [], "special": true}]}
