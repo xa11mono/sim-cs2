@@ -256,7 +256,7 @@ function rebuildNav(){
     if(!navTallDone) navCutTall();
   }
 }
-rebuildNav();
+// при загрузке rebuildNav вызывает mapBoot (060) — после стен, до таблицы «откуда простреливается» (Р3.4)
 
 // Binary min-heap priority queue — with ~2000 nav-area nodes (vs. ~60 hand
 // zones before), the old "sort the whole array every pop" approach gets

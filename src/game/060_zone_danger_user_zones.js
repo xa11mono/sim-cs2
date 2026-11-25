@@ -77,7 +77,16 @@ function computeZoneDanger(){
     }
   }
 }
-computeZoneDanger(); // once at load, per plan §2 — not re-run every tick
+// (Р3.4, 25.11) загрузка карты — один явный порядок, одно место: стены (контур MANUAL_WALLS, подпись WALLS_SIG) → навмеш (граф, порталы,
+// пути) → таблица «откуда простреливается» (по сетке видимости и графу). Раньше — три отдельных вызова в 030 / 050 / 060 при загрузке файла;
+// перенос не меняет состояние после загрузки (tools/rebuild/load_state_cmp.js: все переменные реестра и поля ботов — одинаковые).
+// Перестройка во время игры (редактор карты) — applyWalls(true) / rebuildNav / visInvalidate → zoneDangerSync, как было.
+function mapBoot(){
+  applyWalls();          // контур стен (без перестройки графа: при загрузке графа ещё нет)
+  rebuildNav();          // граф навмеша по стенам
+  computeZoneDanger();   // таблица «откуда простреливается» — один раз при загрузке, не каждый тик
+}
+mapBoot();
 var zoneLayerRebuildTimer = null;
 function applyZoneLayer(heavy){
   applyZoneLayerToData();

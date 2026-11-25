@@ -26,7 +26,7 @@ function applyWalls(full){
   if(typeof HOLD_CANDS !== "undefined") HOLD_CANDS = {};
   if(typeof visInvalidate === "function") visInvalidate();   // и таблица «откуда простреливается»
 }
-applyWalls();
+// при загрузке applyWalls вызывает mapBoot (060) — один явный порядок загрузки карты (Р3.4)
 
 // ======================= v199: высоты и этажи (19_map_heights.js) =======================
 // Данные — src/data/heights.json (делает tools/map/heights_bake.py из навмеша и
