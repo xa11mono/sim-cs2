@@ -81,7 +81,7 @@ def main():
     for j in req.get('fp', []):
         sim = os.path.join(sims, j['label'] + '.html'); build(j['ref'], j.get('map', 'ancient'), sim)
         out = os.path.join(ROOT, 'tools', 'measure', 'runs', j['label']); os.makedirs(out, exist_ok=True)
-        for m in j.get('matches', [3, 7, 11, 13, 17, 19, 23, 29]): fps.append((sim, m, os.path.join(out, 'fp_%d.json' % m), bool(j.get('fields'))))
+        for m in j.get('matches', [3, 7, 11, 13, 17, 19, 23, 29]): fps.append((sim, m, os.path.join(out, 'fp_%d.json' % m), bool(j.get('fields')), j.get('engine', 'chromium')))
     fpjs = open(os.path.join(HERE, 'fingerprint.js'), encoding='utf-8').read()
     fwjs = open(os.path.join(HERE, 'engine', 'field_watch.js'), encoding='utf-8').read()   # (15.11) "fields": true — ловец писателей полей
     # (15.11, перестройка) покрытие кода: {"cov": [{"label", "ref", "map", "matches"?, "rounds"?}]} — code_cov.js по матчу на процесс →
@@ -93,7 +93,12 @@ def main():
         for m in j.get('matches', [3, 7, 11, 13, 17, 19, 23, 29]):
             covs.append(['node', os.path.join(HERE, 'code_cov.js'), sim, os.path.join(out, 'cov_%d.json' % m), str(j.get('rounds', 99)), str(m)])
     run = []
-    for sim, m, out, fw in fps:
+    # (Р2.6) "engine": "firefox" | "webkit" — отпечаток в другом движке (src/q.js, SIM_BROWSER); движки ставятся один раз
+    need = sorted(set(e for *_, e in fps if e != 'chromium'))
+    if need:
+        home = os.path.join(os.path.expanduser('~'), '.simcs2_node'); npx = os.path.join(home, 'node_modules', '.bin', 'playwright.cmd' if os.name == 'nt' else 'playwright')
+        sh([npx, 'install'] + need, cwd=home)
+    for sim, m, out, fw, eng in fps:
         while len(run) >= par:
             for p, f in run:
                 if p.poll() is not None and f: f.close()
@@ -101,7 +106,7 @@ def main():
             if len(run) >= par: __import__('time').sleep(2)
         f = open(out, 'w', encoding='utf-8'); log('fp %s m%d' % (os.path.basename(sim), m))
         code = (fwjs + '\n' if fw else '') + fpjs.replace('__M__', str(m)); cf = out[:-5] + '.code.js'; open(cf, 'w', encoding='utf-8').write(code)
-        run.append((subprocess.Popen(['node', os.path.join(ROOT, 'src', 'q.js'), sim, '@' + cf], cwd=ROOT, stdout=f), f))
+        run.append((subprocess.Popen(['node', os.path.join(ROOT, 'src', 'q.js'), sim, '@' + cf], cwd=ROOT, stdout=f, env=dict(os.environ, SIM_BROWSER=eng)), f))
     for c in covs:
         while len(run) >= par:
             for p, f in run:
@@ -113,7 +118,7 @@ def main():
         p.wait()
         if f: f.close()
     # ловец полей — из fp_<m>.json в fw_<m>.json (отпечаток остаётся как без ловца — сравним с прошлыми); код замера — удалить
-    for sim, m, out, fw in fps:
+    for sim, m, out, fw, eng in fps:
         try: os.remove(out[:-5] + '.code.js')
         except OSError: pass
         if not fw: continue
@@ -176,6 +181,18 @@ def main():
         r0sh([npx, 'install'] + [e for e in engines if e != 'chromium'], out, 'install', cwd=home)
         for e in engines: r0sh(['node', os.path.join(R0, 'xb_smoke.js'), sim, e, os.path.join(out, 'xb_%s.json' % e), str(j.get('match', 3)), str(j.get('ticks', 2000))], out, 'xb_' + e)
     # Р0.6 инварианты: {"inv": [{"label","ref","map","matches"?,"ticks"?,"special"?}]}
+    # Р2.6 локатор между движками / сборками: {"div": [{"label","ref","map","match"?,"ticks"?,"every"?,"a":"firefox","b":"webkit","ref_b"?,
+    # "math"?,"sort"?}]} → runs/<label>/div.json (+ div.txt); ref_b — вторая сборка (иначе обе стороны — одна сборка ref)
+    if req.get('div'):
+        home = os.path.join(os.path.expanduser('~'), '.simcs2_node'); npx = os.path.join(home, 'node_modules', '.bin', 'playwright.cmd' if os.name == 'nt' else 'playwright')
+        r0sh([npx, 'install', 'firefox', 'webkit'], r0out(req['div'][0]), 'install', cwd=home)
+        r0sh([shutil.which('npm') or shutil.which('npm.cmd') or 'npm', 'install', '--prefix', os.path.join(ROOT, 'tools', 'rebuild')], r0out(req['div'][0]), 'npm_rebuild')
+    for j in req.get('div', []):
+        out = r0out(j); sim = os.path.join(sims, j['label'] + '.html'); build(j['ref'], j.get('map', 'ancient'), sim); simb = sim
+        if j.get('ref_b'): simb = os.path.join(sims, j['label'] + '_b.html'); build(j['ref_b'], j.get('map', 'ancient'), simb)
+        r0sh(['node', os.path.join(R0, 'diverge.js'), sim, simb, '--match=%d' % j.get('match', 3), '--ticks=%d' % j.get('ticks', 20000), '--every=%d' % j.get('every', 64),
+              '--browser-a=' + j.get('a', 'chromium'), '--browser-b=' + j.get('b', 'chromium'), '--out=' + os.path.join(out, 'div.json')]
+             + (['--math'] if j.get('math') else []) + (['--sort'] if j.get('sort') else []), out, 'div')
     if req.get('inv'):   # локатору (I-22 / I-23 / I-30) нужен acorn — пакеты сборки (tools/rebuild/package.json) в рабочей папке исполнителя
         r0sh([shutil.which('npm') or shutil.which('npm.cmd') or 'npm', 'install', '--prefix', os.path.join(ROOT, 'tools', 'rebuild')], r0out(req['inv'][0]), 'npm_rebuild')
     for j in req.get('inv', []):

@@ -7,11 +7,15 @@
 // --start-*: код старта вместо freshMatch(--match) (инвариант I-22 — newMatch после матча; I-30 — перестановка ботов);
 // --snap-at=T: страница B не играет сама, а открывает снимок отметки страницы A на тике T (инвариант I-23: снимок = игра).
 // --inject-*: код выполняется в странице до freshMatch (самопроверка — tools/measure/selftest/math_libm.js). Нужен acorn (NODE_PATH).
-const { chromium } = require('playwright'), url = require('url'), fs = require('fs'), path = require('path');
+// (Р2.6, 25.11) --browser-a / --browser-b = chromium | firefox | webkit — каждая страница в своём движке (одна и та же сборка или две):
+// расхождение движков локализуется так же, как расхождение сборок. --sort — журнал сортировок внутри stepTick (перестановка, число вызовов
+// сравнения, текст функции сравнения): разный порядок при одинаковом входе = сравнение не задаёт порядок однозначно (NaN, несогласованность).
+const pw = require('playwright'), url = require('url'), fs = require('fs'), path = require('path');
 const args = process.argv.slice(2), opt = (n, d) => { const a = args.find(x => x.startsWith('--' + n + '=')); return a ? a.slice(n.length + 3) : d; };
 const files = args.filter(x => !x.startsWith('--'));
 if (files.length < 2) { console.error('node tools/measure/diverge.js A.html B.html [--match=3] [--ticks=20000] [--every=64] [--inject-a=f.js] [--inject-b=f.js] [--skip=…] [--skip-field=…] [--math] [--out=…]'); process.exit(2); }
-const MATCH = +opt('match', 3), TICKS = +opt('ticks', 20000), EVERY = Math.max(1, +opt('every', 64)), MATH = args.includes('--math');
+const MATCH = +opt('match', 3), TICKS = +opt('ticks', 20000), EVERY = Math.max(1, +opt('every', 64)), MATH = args.includes('--math'), SORT = args.includes('--sort');
+const ENG = { a: opt('browser-a', 'chromium'), b: opt('browser-b', 'chromium') };
 
 // Не хэшируются: (1) кэши, чьё содержимое не меняет результат (как SNAP_SKIP в rec2.js); (2) очереди показа; (3) все переменные верхнего
 // уровня из файлов показа и инструментов (src/game/550… и выше: рисование, HUD, редакторы, обсервер, повтор, песочница, звук, кадр) —
@@ -66,9 +70,17 @@ const SETUP = `window.DV = {
   // журнал Math — только вызовы внутри stepTick (кадр страницы между шагами тоже зовёт Math)
   mathOn: function(){ if(DV.M) return; DV.M = {}; DV.log = [];
     ['sin','cos','tan','atan','atan2','asin','acos','exp','log','pow','hypot','sqrt'].forEach(function(f){ var o = Math[f]; DV.M[f] = o;
-      Math[f] = function(){ var r = o.apply(Math, arguments); if(DV.inTick && DV.log.length < 200000) DV.log.push([f, Array.prototype.slice.call(arguments), r]); return r; }; }); }
+      Math[f] = function(){ var r = o.apply(Math, arguments); if(DV.inTick && DV.log.length < 200000) DV.log.push([f, Array.prototype.slice.call(arguments), r]); return r; }; }); },
+  // журнал сортировок (только внутри stepTick): исходная сортировка движка вызывается как есть, записывается перестановка
+  sortOn: function(){ if(DV.S) return; var os = DV.S = Array.prototype.sort; DV.slog = [];
+    Array.prototype.sort = function(cmp){
+      if(!DV.inTick || DV.slog.length >= 100000) return os.call(this, cmp);
+      var orig = Array.prototype.slice.call(this), n = 0, nan = 0;
+      var r = os.call(this, cmp ? function(a, b){ n++; var v = cmp(a, b); if(v !== v) nan++; return v; } : undefined);
+      DV.slog.push([cmp ? String(cmp).replace(/\s+/g, ' ').slice(0, 220) : '(по умолчанию)', orig.length, Array.prototype.map.call(this, function(x){ return orig.indexOf(x); }).join(','), n, nan]);
+      return r; }; }
 };`;
-async function open(browser, file, inject, start) {
+async function open(browser, file, inject, start) {   // browser — движок своей стороны
   const p = await browser.newPage(); await p.route(/^https?:/, r => r.abort());
   await p.goto(url.pathToFileURL(path.resolve(file)).href); await p.waitForTimeout(1200);
   await p.evaluate(c => __ev(c), SETUP + '\n' + inject + '\n' + start + '\n1');
@@ -88,18 +100,20 @@ function deepDiff(sa, sb, limit) {
   return out;
 }
 (async () => {
-  const browser = await chromium.launch(), t0 = Date.now();
+  const t0 = Date.now(), BR = {};
+  for (const k of ['a', 'b']) if (!BR[ENG[k]]) BR[ENG[k]] = await pw[ENG[k]].launch();
+  const brA = BR[ENG.a], brB = BR[ENG.b];
   // страница B со снимка страницы A (I-23): A доигрывает до T, снимок → B (mkOpenSnap, как отметка); дальше обе идут от T
   async function openPair() {
-    const A = await open(browser, files[0], inj('a'), startCode('a'));
-    if (!SNAP_AT) return [A, await open(browser, files[1], inj('b'), startCode('b'))];
+    const A = await open(brA, files[0], inj('a'), startCode('a'));
+    if (!SNAP_AT) return [A, await open(brB, files[1], inj('b'), startCode('b'))];
     const snap = await A.evaluate(T => __ev(`for(var i = 0; i < ${T}; i++) stepTick(); mkPack(mkSnapshot())`), SNAP_AT);
-    const B = await open(browser, files[1], inj('b'), 'freshMatch(' + MATCH + ');');
+    const B = await open(brB, files[1], inj('b'), 'freshMatch(' + MATCH + ');');
     await B.evaluate(s => { __ev('mkOpenSnap(' + JSON.stringify(s) + '); 1'); }, snap);
     return [A, B];
   }
   let [A, B] = await openPair();
-  const rep = { a: files[0], b: files[1], match: MATCH, every: EVERY, startA: startCode('a'), startB: SNAP_AT ? 'снимок A на тике ' + SNAP_AT : startCode('b'), skipShowVars: SHOWV.length, skipField: SKIPF, found: false };
+  const rep = { a: files[0], b: files[1], engines: { a: ENG.a + ' ' + brA.version(), b: ENG.b + ' ' + brB.version() }, match: MATCH, every: EVERY, startA: startCode('a'), startB: SNAP_AT ? 'снимок A на тике ' + SNAP_AT : startCode('b'), skipShowVars: SHOWV.length, skipField: SKIPF, found: false };
   let ok = (await step(A, 0, false)).tick, bad = -1;
   const start = ok;
   for (let t = 0; t < TICKS; t += EVERY) {
@@ -115,6 +129,7 @@ function deepDiff(sa, sb, limit) {
     let ra, rb, vars = [];
     for (let k = 0; k <= EVERY + 1; k++) {
       if (MATH) await Promise.all([A, B].map(p => p.evaluate(() => __ev('DV.mathOn(); DV.log = []; 1'))));
+      if (SORT) await Promise.all([A, B].map(p => p.evaluate(() => __ev('DV.sortOn(); DV.slog = []; 1'))));
       [ra, rb] = await Promise.all([step(A, 1, true), step(B, 1, true)]);
       vars = diffVars(ra.st, rb.st); if (vars.length || ra.tick !== rb.tick) break;
     }
@@ -126,11 +141,18 @@ function deepDiff(sa, sb, limit) {
       const i = la.findIndex((c, k) => JSON.stringify(c) !== JSON.stringify(lb[k]));
       rep.math = { calls: [la.length, lb.length], first: i < 0 ? null : { index: i, a: la[i], b: lb[i] } };
     }
+    if (SORT) {
+      const [sa, sb] = await Promise.all([A, B].map(p => p.evaluate(() => __ev('JSON.stringify(DV.slog)')).then(JSON.parse)));
+      const i = sa.findIndex((c, k) => !sb[k] || c[0] !== sb[k][0] || c[1] !== sb[k][1] || c[2] !== sb[k][2]);
+      rep.sort = { calls: [sa.length, sb.length], withNaN: [sa.filter(c => c[4]).length, sb.filter(c => c[4]).length],
+        first: i < 0 ? null : { index: i, a: sa[i], b: sb[i] }, nanSorts: sa.filter(c => c[4]).slice(0, 10) };
+      console.log('  сортировки: ' + rep.sort.calls.join(' / ') + ', с NaN в сравнении: ' + rep.sort.withNaN.join(' / ') + '; первая с разным порядком: ' + (rep.sort.first ? JSON.stringify(rep.sort.first).slice(0, 600) : 'нет'));
+    }
     console.log('ПЕРВОЕ РАСХОЖДЕНИЕ: тик ' + rep.tick + ' (матч ' + MATCH + '); переменных: ' + vars.length + ' — ' + vars.slice(0, 12).join(', '));
     for (const n of names) for (const d of rep.fields[n]) console.log('  ' + n + d.path + ': ' + JSON.stringify(d.a) + ' → ' + JSON.stringify(d.b));
     if (rep.math) console.log('  Math: вызовов ' + rep.math.calls.join(' / ') + '; первый различный: ' + (rep.math.first ? JSON.stringify(rep.math.first) : 'нет (расхождение не из Math)'));
   }
   rep.seconds = Math.round((Date.now() - t0) / 1000);
   if (opt('out', '')) fs.writeFileSync(opt('out', ''), JSON.stringify(rep, null, 1));
-  await browser.close(); process.exit(rep.found ? 1 : 0);
+  for (const b of Object.values(BR)) await b.close(); process.exit(rep.found ? 1 : 0);
 })();
