@@ -146,7 +146,26 @@ function analyze() {
             consider({ body: b }, d.id.name, fs_.loc.start.line, anc); } }
     });
   }
-  return sites.concat(bombReads(BR));
+  return sites.concat(bombReads(BR), teamBotReads());
+}
+// (вид 3) живой объект игрока по номеру: var o = teamBot(id) в коде решений, у результата читаются поля истины или он передаётся в функцию
+// (там поля читаются уже без проверки). Номер — обычно из знания (beliefLast, контакт), а объект — истина. Кто жив (.alive) — открыто (киллфид)
+function teamBotReads() {
+  const out = [];
+  for (const f of SRC.gameFiles().filter(f => /\.(js|ts)$/.test(f))) { const num = +f.slice(0, 3); if (num < 100 || num >= 545) continue; let ast;
+    try { ast = acorn.parse(SRC.readGame(f), { ecmaVersion: 'latest', allowReturnOutsideFunction: true, locations: true }); } catch (e) { continue; }
+    walk.ancestor(ast, { VariableDeclarator(d, anc) { if (!d.init || d.id.type !== 'Identifier') return; let i = d.init;
+      if (i.type === 'ConditionalExpression') i = i.consequent.type === 'CallExpression' ? i.consequent : i.alternate;
+      if (i.type === 'LogicalExpression') i = i.right;
+      if (!(i.type === 'CallExpression' && i.callee.type === 'Identifier' && i.callee.name === 'teamBot')) return;
+      const V = d.id.name, scope = anc.slice().reverse().find(a => /Function/.test(a.type)); if (!scope) return; const props = new Set();
+      walk.simple(scope.body, { MemberExpression(m) { if (m.object.type === 'Identifier' && m.object.name === V && !m.computed && TRUTH.has(m.property.name)) props.add(m.property.name); },
+        CallExpression(c) { if (c.callee.type === 'Identifier' && c.callee.name !== 'teamBot' && c.arguments.some(a => a.type === 'Identifier' && a.name === V)) props.add('→' + c.callee.name); } });
+      if (!props.size) return;
+      const top = anc.find(a => a.type === 'FunctionDeclaration');
+      out.push({ file: f, fn: top ? top.id.name : '(загрузка)', line: d.loc.start.line, props: ['teamBot.' + [...props].sort().join(',')], kind: 'teamBot', perception: false }); } });
+  }
+  return out;
 }
 const key = s => s.file.slice(0, 3) + ':' + s.fn + ':' + s.props.join(',');
 // сверка с реестром известных мест: новое место или больше мест у ключа — ошибка; ушедшее из кода — напоминание убрать строку
