@@ -181,6 +181,12 @@ def main():
         r0sh([npx, 'install'] + [e for e in engines if e != 'chromium'], out, 'install', cwd=home)
         for e in engines: r0sh(['node', os.path.join(R0, 'xb_smoke.js'), sim, e, os.path.join(out, 'xb_%s.json' % e), str(j.get('match', 3)), str(j.get('ticks', 2000))], out, 'xb_' + e)
     # Р0.6 инварианты: {"inv": [{"label","ref","map","matches"?,"ticks"?,"special"?}]}
+    # Р2.2 / Р2.6 dmath в движках: {"dmath": [{"label","engines"?}]} → runs/<label>/page_<движок>.json (хэши dmath страницы и Node этой машины)
+    for j in req.get('dmath', []):
+        out = r0out(j); home = os.path.join(os.path.expanduser('~'), '.simcs2_node'); npx = os.path.join(home, 'node_modules', '.bin', 'playwright.cmd' if os.name == 'nt' else 'playwright')
+        engines = j.get('engines', ['chromium', 'firefox', 'webkit']); r0sh([npx, 'install'] + [e for e in engines if e != 'chromium'], out, 'install', cwd=home)
+        for e in engines: r0sh(['node', os.path.join(ROOT, 'tools', 'dmath', 'page_check.js'), os.path.join(ROOT, 'tools', 'dmath', 'corpus_sample.json.gz'), '--out=' + os.path.join(out, 'page_%s.json' % e)],
+                               out, 'page_' + e, env=dict(os.environ, SIM_BROWSER=e))
     # Р2.6 локатор между движками / сборками: {"div": [{"label","ref","map","match"?,"ticks"?,"every"?,"a":"firefox","b":"webkit","ref_b"?,
     # "math"?,"sort"?}]} → runs/<label>/div.json (+ div.txt); ref_b — вторая сборка (иначе обе стороны — одна сборка ref)
     if req.get('div'):

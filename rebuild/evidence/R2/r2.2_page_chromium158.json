@@ -1,0 +1,92 @@
+{
+ "engine": "chromium 158.0.8127.36",
+ "node": "v22.23.5",
+ "n": 100000,
+ "corpus": true,
+ "functions": "sin 298503 =, cos 298651 =, atan 111410 =, acos 100064 =, exp 216622 =, log 100778 =, atan2 301074 =, pow 103172 =, hypot 300921 =, hypot3 101089 =",
+ "mismatch": [],
+ "nodeHashes": {
+  "sin": {
+   "n": 298503,
+   "hash": "eff4c96"
+  },
+  "cos": {
+   "n": 298651,
+   "hash": "d9d2bf46"
+  },
+  "atan": {
+   "n": 111410,
+   "hash": "31c146ce"
+  },
+  "acos": {
+   "n": 100064,
+   "hash": "5a7f068"
+  },
+  "exp": {
+   "n": 216622,
+   "hash": "224f2369"
+  },
+  "log": {
+   "n": 100778,
+   "hash": "b3f6c886"
+  },
+  "atan2": {
+   "n": 301074,
+   "hash": "47d480ea"
+  },
+  "pow": {
+   "n": 103172,
+   "hash": "4c6f0db0"
+  },
+  "hypot": {
+   "n": 300921,
+   "hash": "6b54ef52"
+  },
+  "hypot3": {
+   "n": 101089,
+   "hash": "cdae01f2"
+  }
+ },
+ "pageHashes": {
+  "sin": {
+   "n": 298503,
+   "hash": "eff4c96"
+  },
+  "cos": {
+   "n": 298651,
+   "hash": "d9d2bf46"
+  },
+  "atan": {
+   "n": 111410,
+   "hash": "31c146ce"
+  },
+  "acos": {
+   "n": 100064,
+   "hash": "5a7f068"
+  },
+  "exp": {
+   "n": 216622,
+   "hash": "224f2369"
+  },
+  "log": {
+   "n": 100778,
+   "hash": "b3f6c886"
+  },
+  "atan2": {
+   "n": 301074,
+   "hash": "47d480ea"
+  },
+  "pow": {
+   "n": 103172,
+   "hash": "4c6f0db0"
+  },
+  "hypot": {
+   "n": 300921,
+   "hash": "6b54ef52"
+  },
+  "hypot3": {
+   "n": 101089,
+   "hash": "cdae01f2"
+  }
+ }
+}

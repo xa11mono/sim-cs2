@@ -5,6 +5,7 @@
   "001_fonts.html",
   "002_style.html",
   "004_markup.html",
+  "005_dmath.ts",
   "010_map_zones_warp.js",
   "020_map_navmesh_autowalls.js",
   "030_map_walls_heights_cover_wallbang.js",

@@ -1,4 +1,5 @@
-// (Р0.12, 24.11) Проверка прототипа dmath: каждая функция против Rust libm 0.2.16 (tools/dmath/ref, нативно) — бит в бит на
+// (Р2.2, 25.11: игровой src/game/005_dmath.ts через tools/dmath/dmath.js; эталон pow — pow_js, hypot — hypot_v8 / hypot3_v8, плюс
+// hypot = Math.hypot Node (V8) и контракт JS: особые значения, знак, NaN — как у Math) (Р0.12, 24.11) Проверка прототипа dmath: каждая функция против Rust libm 0.2.16 (tools/dmath/ref, нативно) — бит в бит на
 // (1) случайных входах в диапазонах игры, (2) случайных битах по всему диапазону double, (3) граничных значениях (и всех их парах),
 // (4) корпусе реальных аргументов из матчей (--corpus=файл, пишет tools/dmath/corpus.js). Плюс: где JS Math этой среды отличается от libm
 // (контракт и последние знаки) и скорость dmath против Math.* (нс на вызов).
@@ -18,20 +19,26 @@ const ONE = ['sin', 'cos', 'atan', 'acos', 'exp', 'log', 'sqrt'], TWO = ['atan2'
 const EDGE = [0, -0, Infinity, -Infinity, NaN, 5e-324, -5e-324, 2.2250738585072014e-308, 1.7976931348623157e308, -1.7976931348623157e308, 1, -1, 0.5, -0.5, 2, -2, 3,
   Math.PI, -Math.PI, Math.PI / 2, Math.PI / 4, 3 * Math.PI / 4, 1e-300, 1e300, 1e22, 1.6e6, 1e6 * Math.PI, 2 ** 52, 2 ** 53 + 2, 709.782712893384, 709.79, -745.1332191019411, -745.14,
   -708.4, 1e-8, 0.9999999999999999, 1.0000000000000002, 46.8, -46.8, 1308.17, 0.25, 1.5, -1.5, 100, 0.001];
+const REFN = { pow: 'pow_js', hypot: 'hypot_v8' };   // эталон функции в tools/dmath/ref (контракт JS у pow; hypot — алгоритм V8)
+// нарушение контракта (не последний знак): NaN / не NaN, ±0, ±∞, знак, или разница больше 4 ulp
+const ulp = x => { if (!isFinite(x)) return Infinity; F[0] = Math.abs(x); const a = F[0]; U[0] = (U[0] + 1) >>> 0; if (U[0] === 0) U[1]++; return F[0] - a || 5e-324; };
+const contractBad = (d, m) => !bitsEq(d, m) && ((d !== d) !== (m !== m) || !isFinite(d) || !isFinite(m) || d === 0 || m === 0 || Math.sign(d) !== Math.sign(m) || Math.abs(d - m) > 4 * ulp(m));
 function ref(fn, inputs) {
+  fn = REFN[fn] || fn;
   const fi = path.join(TMP, 'in.bin'), fo = path.join(TMP, 'out.bin');
   fs.writeFileSync(fi, Buffer.from(new Float64Array(inputs).buffer));
   const r = cp.spawnSync(REF, [fn, fi, fo]); if (r.status) throw new Error('эталон: ' + r.stderr);
   const b = fs.readFileSync(fo); return new Float64Array(b.buffer, b.byteOffset, b.length / 8);
 }
 function compare(fn, inputs) {
-  const R = ref(fn, inputs), two = TWO.includes(fn), n = two ? inputs.length / 2 : inputs.length, bad = [], jsDiff = [];
+  const R = ref(fn, inputs), two = TWO.includes(fn), n = two ? inputs.length / 2 : inputs.length, bad = [], jsDiff = [], contract = [];
   for (let i = 0; i < n; i++) {
     const a = two ? [inputs[2 * i], inputs[2 * i + 1]] : [inputs[i]], d = D[fn](...a), m = Math[fn](...a);
     if (!bitsEq(d, R[i])) bad.push({ args: a, dmath: d, libm: R[i] });
     if (!bitsEq(m, R[i])) jsDiff.push({ args: a, math: m, libm: R[i] });
+    if (contractBad(d, m)) contract.push({ args: a, dmath: d, math: m });
   }
-  return { n, mismatch: bad.length, examples: bad.slice(0, 5), jsMathDiffersFromLibm: jsDiff.length, jsExamples: jsDiff.slice(0, 3) };
+  return { n, mismatch: bad.length, examples: bad.slice(0, 5), jsMathDiffersFromLibm: jsDiff.length, jsExamples: jsDiff.slice(0, 3), contractViolations: contract.length, contractExamples: contract.slice(0, 5) };
 }
 function randomSet(fn) {
   const v = [];
@@ -56,14 +63,26 @@ function speed(fn, inputs) {
   return { dmath_ns: +td.toFixed(1), math_ns: +tm.toFixed(1) };
 }
 const rep = { env: { node: process.version, v8: process.versions.v8, os: os.platform() }, libm: '0.2.16', n: N, functions: {} };
-let corpus = null; if (opt('corpus', '')) corpus = JSON.parse(fs.readFileSync(opt('corpus', ''), 'utf8'));
+let corpus = null; if (opt('corpus', '')) { const raw = fs.readFileSync(opt('corpus', '')); corpus = JSON.parse((/\.gz$/.test(opt('corpus', '')) ? require('zlib').gunzipSync(raw) : raw).toString('utf8')); }   // .json или .json.gz
 for (const fn of ONE.concat(TWO)) {
   const two = TWO.includes(fn), edge = two ? EDGE.flatMap(a => EDGE.flatMap(b => [a, b])) : EDGE.slice(), rnd = randomSet(fn);
   const r = { random: compare(fn, rnd), edge: compare(fn, edge), speed: speed(fn, rnd.slice(0, two ? 200000 : 100000)) };
   if (corpus && corpus[fn] && corpus[fn].length) r.corpus = compare(fn, two ? corpus[fn].flat() : corpus[fn]);
   rep.functions[fn] = r;
+  if (fn === 'hypot') {   // три аргумента (7 вызовов в расчёте) и равенство Math.hypot Node (V8) — бит в бит
+    const t = []; for (let i = 0; i < N / 2; i++) t.push(...(i % 2 ? [(u() - 0.5) * 6000, (u() - 0.5) * 6000, (u() - 0.5) * 600] : [anyBits(), anyBits(), anyBits()]));
+    const e3 = []; EDGE.forEach(a => EDGE.forEach(b => [0, -0, NaN, Infinity, 1.5].forEach(c => e3.push(a, b, c))));
+    const all3 = t.concat(e3), R3 = ref('hypot3_v8', all3); let b3 = 0, mv = 0, c3 = 0;
+    for (let i = 0; i < all3.length / 3; i++) { const a = all3.slice(3 * i, 3 * i + 3), d = D.hypot3(...a), m = Math.hypot(...a); if (!bitsEq(d, R3[i])) b3++; if (!bitsEq(d, m)) mv++; if (contractBad(d, m)) c3++; }
+    let mv2 = 0; for (let i = 0; i < rnd.length / 2; i++) if (!bitsEq(D.hypot(rnd[2 * i], rnd[2 * i + 1]), Math.hypot(rnd[2 * i], rnd[2 * i + 1]))) mv2++;
+    for (const x of [[-0, 0], [Infinity, NaN], [NaN, -Infinity], [undefined, 1], ['3', 4], [null, -2]]) { if (!bitsEq(D.hypot(...x), Math.hypot(...x))) mv++; }
+    for (const x of [[Infinity, NaN, 1], [undefined, 1, 2], [-0, -0, -0], ['1', 2, '2']]) { if (!bitsEq(D.hypot3(...x), Math.hypot(...x))) mv++; }
+    r.three = { n: all3.length / 3, mismatchRef: b3, mismatchMathHypotNode: mv, contractViolations: c3 }; r.mathHypotNode2 = { n: rnd.length / 2, mismatch: mv2 };
+    console.log('hypot3 эталон: ' + b3 + '/' + r.three.n + ', = Math.hypot Node: ' + mv + ' и ' + mv2 + ' (2 арг.), контракт: ' + c3);
+  }
   console.log(fn.padEnd(6) + ' случайные: ' + r.random.mismatch + '/' + r.random.n + '  граничные: ' + r.edge.mismatch + '/' + r.edge.n +
     (r.corpus ? '  корпус игры: ' + r.corpus.mismatch + '/' + r.corpus.n : '') + '  | Math≠libm: ' + r.random.jsMathDiffersFromLibm + ' / ' + r.edge.jsMathDiffersFromLibm +
+    '  | контракт JS: ' + (r.random.contractViolations + r.edge.contractViolations + (r.corpus ? r.corpus.contractViolations : 0)) +
     '  | нс: dmath ' + r.speed.dmath_ns + ', Math ' + r.speed.math_ns);
 }
 fs.rmSync(TMP, { recursive: true, force: true });
