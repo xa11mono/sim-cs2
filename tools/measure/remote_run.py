@@ -43,7 +43,17 @@ def ensure_playwright():
         sh([npx, 'install', 'chromium'], cwd=home)
     log('playwright ' + PW_VER + ', браузеры: ' + os.environ['PLAYWRIGHT_BROWSERS_PATH'])
 
+BUILT = {}   # (Р2, владелец 25.11) одна версия одной карты в одном прогоне собирается один раз: (коммит, карта) → готовая сборка
+
 def build(ref, mapname, out):
+    sh(['git', 'fetch', '--quiet', 'origin', ref], cwd=ROOT)
+    key = (subprocess.run(['git', 'rev-parse', 'FETCH_HEAD'], cwd=ROOT, capture_output=True, text=True).stdout.strip(), mapname)
+    if key in BUILT and os.path.exists(BUILT[key]):
+        if os.path.abspath(BUILT[key]) != os.path.abspath(out): shutil.copyfile(BUILT[key], out)
+        log('сборка %s %s — уже есть в этом прогоне (%s)' % (key[0][:10], mapname, os.path.basename(BUILT[key]))); return
+    _build(ref, mapname, out); BUILT[key] = out
+
+def _build(ref, mapname, out):
     tmp = tempfile.mkdtemp(prefix='simbuild_')
     try:
         sh(['git', 'fetch', '--quiet', 'origin', ref], cwd=ROOT)
