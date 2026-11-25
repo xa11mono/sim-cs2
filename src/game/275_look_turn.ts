@@ -7,7 +7,7 @@
 // Причина последней записи извне — b._faceWhy. Код ниже перенесён дословно из 510_engagements.js (resolveEngagements, lookTrack, handTurn)
 // и 540_step_tick.js (фриз); порядок вызовов в тике тот же (lookTick — из resolveEngagements, freezeLookTick — из stepTick).
 function lookFace(b: Bot, a: Angle, why: string): void{ b.facing = a; b._faceWhy = why; }
-function lookTurnBy(b: Bot, d: Angle, why: string): void{ b.facing! += d; b._faceWhy = why; }
+function lookTurnBy(b: Bot, d: Angle, why: string): void{ b.facing! += d; b._faceWhy = why; }   // тип: доворот — после первой записи взгляда (lookTick, freezeLookTick), как в .js
 function lookReset(b: Bot): void{ b.facing = undefined; b._faceWhy = "reset"; }
 
 var AIM_TRACK_BAND = 0.03;   // рад (≈ 1,7°) — меньше прицел в бою не доводит (проектное число; конус выстрела вдали — 0,05)
@@ -51,7 +51,7 @@ function lookTick(): void{
       var W0 = b._lkW, same = !b._sawEnemy && W0 && W0.t === tick - 1 && _angOff(want, Math.atan2(W0.y - b.y, W0.x - b.x)) < AIM_TRACK_BAND;
       b._lkW = {x: look.x, y: look.y, w: want, t: tick};
       var hBusy = b._hand && tick < b._hand.t0 + b._hand.T + b._hand.gap;
-      if(same && !hBusy){ var dr = want - W0!.w; dr = Math.atan2(Math.sin(dr), Math.cos(dr)); b.facing += dr; dd -= dr; }   // мышь едет вместе со сдвигом
+      if(same && !hBusy){ var dr = want - W0!.w; dr = Math.atan2(Math.sin(dr), Math.cos(dr)); b.facing += dr; dd -= dr; }   // мышь едет вместе со сдвигом (тип: same истинно только при W0 (условие строкой выше))
       if(slUrg){
         // (В147) поворот к врагу — рукой (handTurn, модель «перестрелка» из демок): рывок с колоколом скорости, промах, пауза, доводка.
         // Прицел, ушедший меньше AIM_TRACK_BAND, стоит (в бою прицел про неподвижен ~50 % времени). Было: рывок FLICK (> 45°, проектные
@@ -95,7 +95,7 @@ function lookTick(): void{
 // движется половину времени
 function lookTrack(b: Bot, dd: number): void{
   if(Math.abs(dd) >= AIM_TRACK_BAND) b._aimTrk = true; else if(Math.abs(dd) <= AIM_TRACK_BAND/5) b._aimTrk = false;
-  if(b._aimTrk){ var tr = Math.max(AIM_TRACK_MIN, Math.abs(dd)*(1 - Math.exp(-1/(AIM_LAG*TICK_HZ)))); b.facing! += Math.max(-tr, Math.min(tr, dd)); }
+  if(b._aimTrk){ var tr = Math.max(AIM_TRACK_MIN, Math.abs(dd)*(1 - Math.exp(-1/(AIM_LAG*TICK_HZ)))); b.facing! += Math.max(-tr, Math.min(tr, dd)); }   // тип: lookTrack зовётся из lookTick после записи взгляда (строка 43)
   b._aimFix = false;
 }
 // (В147) «рука» — как человек ведёт мышь к цели: рывок (мин. рывок: s = 10τ³ − 15τ⁴ + 6τ⁵ — колокол скорости) за T тиков на угол
@@ -115,17 +115,17 @@ function handTurn(b: Bot, dd: number, ctx: string, trk?: boolean): void{   // tr
   var H = b._hand;
   if(H && tick < H.t0 + H.T){   // рывок идёт: сумма колоколов (составной поворот, возврат после перелёта)
     H.segs.forEach(function(g){ var a = tick - g.t0 + 1; if(a < 1 || a > g.T) return; var tau = a/g.T, s = tau*tau*tau*(10 - 15*tau + 6*tau*tau);
-      b.facing! += g.A*(s - (g.s || 0)); g.s = s; });
+      b.facing! += g.A*(s - (g.s || 0)); g.s = s; });   // тип: handTurn зовётся из lookTick после записи взгляда (строка 43)
     return;
   }
   if(H && !H.end) H.end = tick;
   if(H && tick < H.end + H.gap) return;   // пауза перед доводкой
   if(!b._aimFix) return;                  // прицел стоит (порог — как был)
   var TM = MAP.turnmodel, deg = Math.abs(dd)*180/Math.PI;
-  if(!TM){ var st0 = Math.min(Math.abs(dd), 4.5/TICK_HZ); b.facing! += dd > 0 ? st0 : -st0; return; }   // набора нет — как раньше (потолок 4,5 рад/с)
+  if(!TM){ var st0 = Math.min(Math.abs(dd), 4.5/TICK_HZ); b.facing! += dd > 0 ? st0 : -st0; return; }   // набора нет — как раньше (потолок 4,5 рад/с) (тип: handTurn — после записи взгляда (строка 43))
   var Bn = TM.bins, bi = 0; while(bi < Bn.length - 2 && deg >= Bn[bi+1]) bi++;
-  var bk = Bn[bi] + "-" + Bn[bi+1], M = TM.model[ctx + "|" + bk] || TM.model["n|" + bk], SB: TurnModelSub = (TM.sub || {} as NonNullable<TurnModel["sub"]>)[ctx + "|" + bk] || {};
-  if(!M){ b.facing! += dd; return; }
+  var bk = Bn[bi] + "-" + Bn[bi+1], M = TM.model[ctx + "|" + bk] || TM.model["n|" + bk], SB: TurnModelSub = (TM.sub || {} as NonNullable<TurnModel["sub"]>)[ctx + "|" + bk] || {};   // тип: пустая таблица подкорзин, если в наборе карты нет sub
+  if(!M){ b.facing! += dd; return; }   // тип: handTurn — после записи взгляда (строка 43)
   var k = b.id.charCodeAt(b.id.length-1)*7 + b.id.charCodeAt(0)*3, U = function(n: number): number{ return hashRand(tick*(17 + 12*n) + k + 6*n); };
   // длительность — из угла и пика: у колокола пик = 1,875·угол / T; пик — жребием по квартилям про для этого угла, T — в пределах квартилей
   // длительности про (у мелких доводок про пик ~0,4°/тик — медленный сдвиг, а не рывок)
@@ -157,21 +157,21 @@ function freezePick(q: readonly number[], u: number): number{ var k = Math.min(3
 function freezeLookTick(): void{
   bots.forEach(function(b, i){
     if(!b.alive) return;
-    if(!isFinite(b.facing as number)) b.facing = Math.atan2(1024-b.y, 1024-b.x);   // ещё не смотрел никуда — к середине карты
+    if(!isFinite(b.facing as number)) b.facing = Math.atan2(1024-b.y, 1024-b.x);   // ещё не смотрел никуда — к середине карты (тип: isFinite(undefined) = false — это и есть проверка «взгляда ещё нет»)
     // (v430, М167, владелец: «на закупке крутятся, троятся; на мини-карте нормально») взгляд на начало тика — для сглаживания
     // рисования (620_draw), как в живом раунде (строка «bot.pfacing» ниже): на закупке не запоминался, и большой радар каждый
     // тик заново проводил взгляд от угла прошлого раунда до нынешнего
     b.pfacing = b.facing;
     var F = b._fz;
-    if(!F || F.round !== roundNum){ F = b._fz = {round: roundNum, until: tick, target: b.facing!}; }
+    if(!F || F.round !== roundNum){ F = b._fz = {round: roundNum, until: tick, target: b.facing!}; }   // тип: взгляд задан строкой 160
     if(tick >= F.until){
       var seed = roundNum*7919 + i*104729 + tick;
       var turn = freezePick(FREEZE_TURN, hashRand(seed)) * Math.PI/180 * (hashRand(seed+1) < 0.5 ? -1 : 1);
-      F.target = b.facing! + turn;
+      F.target = b.facing! + turn;   // тип: взгляд задан строкой 160
       F.until = tick + Math.round(freezePick(FREEZE_HOLD, hashRand(seed+2)) * TICK_HZ) + Math.ceil(Math.abs(turn)/FREEZE_TURN_SPEED);
     }
-    var d = F.target - b.facing!;
-    b.facing! += Math.max(-FREEZE_TURN_SPEED, Math.min(FREEZE_TURN_SPEED, d));
+    var d = F.target - b.facing!;   // тип: взгляд задан строкой 160
+    b.facing! += Math.max(-FREEZE_TURN_SPEED, Math.min(FREEZE_TURN_SPEED, d));   // тип: взгляд задан строкой 160
   });
 }
 

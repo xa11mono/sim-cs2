@@ -35,6 +35,19 @@ function checkTs() {
     });
   }
   miss.forEach(m => console.log(m)); diags.push(...miss);
+  // (Р2.0, владелец 25.11) строгую типизацию не обходить: any, «as», «!» — только с обоснованием на той же строке («// тип: …»);
+  // подавление проверки (@ts-ignore, @ts-nocheck, @ts-expect-error) — нельзя, кроме теста типов src/types/types_test.ts
+  const esc = [];
+  for (const f of cfg.fileNames.filter(f => !/\.d\.ts$/.test(f))) {
+    const sf = prog.getSourceFile(f), lines = sf.text.split("\n"), rel = path.relative(ROOT, f), isTest = /types_test\.ts$/.test(f);
+    const why = ln => /\/\/.*тип:/.test(lines[ln]);
+    (function visit(n) {
+      const kind = n.kind === ts.SyntaxKind.AnyKeyword ? "any" : ts.isAsExpression(n) ? "as" : ts.isNonNullExpression(n) ? "!" : null;
+      if (kind) { const ln = sf.getLineAndCharacterOfPosition(n.getStart(sf)).line; if (!why(ln)) esc.push(rel + ":" + (ln + 1) + " «" + kind + "» без обоснования (// тип: …)"); }
+      ts.forEachChild(n, visit); })(sf);
+    lines.forEach((t, i) => { if (/@ts-(ignore|nocheck)/.test(t) || (!isTest && /@ts-expect-error/.test(t))) esc.push(rel + ":" + (i + 1) + " подавление проверки типов — нельзя"); });
+  }
+  esc.forEach(m => console.log(m)); diags.push(...esc);
   console.log("typecheck .ts: tsc " + ts.version + ", файлов " + cfg.fileNames.length + " (" + cfg.fileNames.map(f => path.relative(ROOT, f)).join(", ") + "), ошибок " + diags.length);
   return diags.length ? 1 : 0;
 }
