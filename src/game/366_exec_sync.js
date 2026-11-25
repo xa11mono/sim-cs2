@@ -22,11 +22,11 @@ function exuCur(){
   if(!EXU || EXU.k !== k) EXU = {k:k, n:0, items:{}, ev:[]};
   return EXU;
 }
-function exuEv(kind, it, extra){
+function exuEv(kind, it, extra){ var _ev = simEvIn("exuEv", arguments);
   var E = exuCur(), e = {t:tick, kind:kind, id:it ? it.id : null, crit:it ? it.crit : null, owner:it ? it.owner : null};
   if(extra) for(var q in extra) e[q] = extra[q];
   E.ev.push(e);
-}
+ simEvOut(_ev);}
 // смок закрывает вид на вход T на сайт: из точки смока виден один из входов (если не видно ни одного — он о другом)
 function exuCritical(site, x, y){
   var g = GEO[site], ents = (g && g.tEntry ? [g.tEntry] : []).concat(entryPts(site) || []);

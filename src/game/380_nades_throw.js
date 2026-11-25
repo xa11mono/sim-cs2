@@ -224,10 +224,10 @@ function throwNadeDo(b, type, tx, ty, lob, why, trusted, from){
   return ok;
 }
 // (17.11, перестройка — модули) запись в журнал решений (645) — здесь, у хозяина (было: 645 подменял функцию обёрткой)
-function throwNade(b, type, tx, ty, lob, why){
+function throwNade(b, type, tx, ty, lob, why){ var _ev = simEvIn("throwNade", arguments);
   var r = throwNadeDo.apply(this, arguments);
   if(b) dlog(b, "граната", (r ? "кинул " : "не кинул ") + type + " — " + (why || "") + (r ? "" : ": " + (NADE_FAIL || "?")));
-  return r;
+  return simEvOut(_ev, r);
 }
 function throwNadeTry(b, type, tx, ty, lob, why, trusted, from){
   NADE_FAIL = null;

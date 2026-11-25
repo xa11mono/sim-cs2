@@ -1,0 +1,13 @@
+{
+ "a": "/tmp/claude-0/-home-user-sim-cs2/83f1975d-d3f7-5e99-871b-83ba561ce111/scratchpad/sim_ancient.html",
+ "b": "/tmp/claude-0/-home-user-sim-cs2/83f1975d-d3f7-5e99-871b-83ba561ce111/scratchpad/sim_ancient_ev.html",
+ "match": 3,
+ "every": 64,
+ "startA": "freshMatch(3);",
+ "startB": "freshMatch(3);",
+ "skipShowVars": 219,
+ "skipField": "^(_visFacing|_hitFx)$",
+ "found": false,
+ "checkedTo": 20032,
+ "seconds": 968
+}

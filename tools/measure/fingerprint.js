@@ -8,9 +8,11 @@ var M0 = matchNum, FP = {match:M0, rounds:[], kills:[], nades:[]}, h = 216613626
 var F64 = new Float64Array(1), U32 = new Uint32Array(F64.buffer);
 function mix(v){ F64[0] = +v || 0; h = Math.imul(h ^ U32[0], 16777619) >>> 0; h = Math.imul(h ^ U32[1], 16777619) >>> 0; }
 function mixS(s){ s = String(s == null ? "" : s); for(var i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619) >>> 0; }
-var ofk = feedKill; feedKill = function(att, vic, weap, hs){ FP.kills.push([tick, att ? att.id : null, vic.id, String(weap), hs ? 1 : 0]); return ofk.apply(this, arguments); };
-var otn = throwNade; throwNade = function(b, type){ FP.nades.push([tick, b.id, type]); return otn.apply(this, arguments); };
-var oer = endRound; endRound = function(w, reason){ FP.rounds.push([roundNum, tick, w, reason, bomb && bomb.state, h]); return oer.apply(this, arguments); };
+// (Р0.4, 24.11) подписка на события симуляции (435 simEvOn) вместо подмены функций; старые сборки без simEvOn — та же подписка через обёртку
+function evOn(name, fn){ if(typeof simEvOn === 'function') return simEvOn(name, fn); var o = eval(name); eval(name + ' = function(){ var s = fn("in", arguments), r = o.apply(this, arguments); fn("out", arguments, r, s); return r; }'); }
+evOn('feedKill', function(ph, A){ if(ph === 'in') FP.kills.push([tick, A[0] ? A[0].id : null, A[1].id, String(A[2]), A[3] ? 1 : 0]); });
+evOn('throwNade', function(ph, A){ if(ph === 'in') FP.nades.push([tick, A[0].id, A[1]]); });
+evOn('endRound', function(ph, A){ if(ph === 'in') FP.rounds.push([roundNum, tick, A[0], A[1], bomb && bomb.state, h]); });
 for(var t = 0; t < 400000; t++){
   stepTick();
   if(matchNum !== M0) break;

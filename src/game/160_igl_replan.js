@@ -198,7 +198,7 @@ function tSiteTaking(tt){
   var tNear = bots.filter(function(b){ return b.team === "T" && b.alive && b.tRole !== "lurker" && nearP(b.x, b.y, b.z, S.x, S.y, null, BOMB_HERE_R); }).length;
   return tNear > 0 && beliefCount("T", BZ.siteNear[tt.site] || []) <= tNear;
 }
-function tSetSite(tt, site){
+function tSetSite(tt, site){ var _ev = simEvIn("tSetSite", arguments);
   var old = tt.site;
   // (v450, владелец 28.10: «в экономике после главной тактики писать перекол») — для показа (630): откуда и куда перекол
   if(old && site && old !== site) (tt.recalls || (tt.recalls = [])).push({from: old, to: site, sec: Math.round((tick - roundStartTick)/TICK_HZ)});
@@ -223,7 +223,7 @@ function tSetSite(tt, site){
       nadeCancel(b, "igl-site"); if(b.post && taskProp(b.post.tag, "lineupTask")) clearPost(b);
     }
   });
-}
+ simEvOut(_ev);}
 // (v359, отметка владельца р4: «почему не занимают позиции под плант — Palace, Ramp…», лёрк zont1x стоял в Underpass) на время
 // после планта T встают на места про (набор карты pos.<сайт>.tPost — где про стоят после планта, по демкам), в пределах слышимости
 // дефуза; каждому — своё, ближайшее по пути. Раньше — любые укрытия в 300–620 ед. от бомбы, имена мест не учитывались

@@ -1,0 +1,11 @@
+{
+ "a": "/tmp/claude-0/-home-user-sim-cs2/83f1975d-d3f7-5e99-871b-83ba561ce111/scratchpad/sim_mirage.html",
+ "b": "/tmp/claude-0/-home-user-sim-cs2/83f1975d-d3f7-5e99-871b-83ba561ce111/scratchpad/sim_mirage_ev.html",
+ "match": 3,
+ "every": 64,
+ "skipShowVars": 219,
+ "skipField": "^(_visFacing|_hitFx)$",
+ "found": false,
+ "checkedTo": 20032,
+ "seconds": 613
+}

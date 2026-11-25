@@ -34,7 +34,7 @@ function nadeOrigin(n){
   (saw.ears || (saw.ears = [])).push({x:ex, y:ey, tick:tick, team:n.team, kind:"nade", occl:true});
   // (док 6) в войс — через знание и канал команды (teamNotice: «гранату кинули из X»), а не отдельной надписью
 }
-function detonate(n){
+function detonate(n){ var _ev = simEvIn("detonate", arguments);
   var T = n.type;
   soundEv("sndNade", T, n.x, n.y);
   if(T !== "decoy") nadeOrigin(n);
@@ -104,7 +104,7 @@ function detonate(n){
   }
   nadeFx.push({type:T, x:n.x, y:n.y, born:tick});
   recordNadeLand(n);
-}
+ simEvOut(_ev);}
 // (v263, Б1) Урон по своим — правила CS2 на про (mp_friendlyfire 1, docs/PRO_PLAY.md «Урон по своим»):
 // пуля по своему ×0,33 (ff_damage_reduction_bullets), HE ×0,85 (ff_damage_reduction_grenade), своя граната по себе ×1
 // (…_grenade_self); молотов ×0,4 — как «прочее» (ff_damage_reduction_other): к какой группе огонь относится, источника
@@ -131,15 +131,15 @@ function armorSoak(b, raw, ratio, src){
   return Math.max(0, h);
 }
 var HURT_SND_GAP = 32;   // (v546) тиков (0,5 с) — проектное число
-function applyDamage(att, b, dmg, src, o){
-  if(DEMOV.on && !DEMOV.allow) return false;   // (v571) раунд из демки: урон — только смерти демки (678)
+function applyDamage(att, b, dmg, src, o){ var _ev = simEvIn("applyDamage", arguments);
+  if(DEMOV.on && !DEMOV.allow) return simEvOut(_ev, false);   // (v571) раунд из демки: урон — только смерти демки (678)
   o = o || {};
-  if(!b.alive || dmg <= 0) return false;
+  if(!b.alive || dmg <= 0) return simEvOut(_ev, false);
   var foe = att && att.team !== b.team ? att : null, mate = att && att !== b && att.team === b.team;
   if(mate) dmg = dmg*FF_MUL[src];
   if(o.armorRatio != null) dmg = armorSoak(b, dmg, o.armorRatio, src);
-  if(mate){ var fx = dmg + (b._ffFrac||0); dmg = Math.floor(fx); b._ffFrac = fx - dmg; if(dmg <= 0) return false; }
-  else { dmg = Math.round(dmg); if(dmg <= 0) return false; }
+  if(mate){ var fx = dmg + (b._ffFrac||0); dmg = Math.floor(fx); b._ffFrac = fx - dmg; if(dmg <= 0) return simEvOut(_ev, false); }
+  else { dmg = Math.round(dmg); if(dmg <= 0) return simEvOut(_ev, false); }
   if(foe){ var dl0 = Math.min(dmg, Math.max(0,b.hp)); foe.roundDmg = (foe.roundDmg||0) + dl0; var D0 = b._dmgBy || (b._dmgBy = {}); D0[foe.id] = (D0[foe.id]||0) + dl0;
     // (дуэли 06.11) кто кому сколько в этой перестрелке — 470 duelEval / fin: последние попадания у обоих, [тик, кто, урон]
     var HL = b._hitIn || (b._hitIn = []); HL.push([tick, foe.id, dl0]); if(HL.length > 16) HL.shift();
@@ -153,7 +153,7 @@ function applyDamage(att, b, dmg, src, o){
   // «как бег / чуть громче»), огонь — 600 / 800 бега. Чаще раза в HURT_SND_GAP у одного игрока не повторяется (проектное число)
   if(roundState === "live" && src !== "C4" && tick - (b._hurtSndT || -1e9) >= HURT_SND_GAP){ b._hurtSndT = tick; var fireH = src === "молотов";
     moveSoundEmit(b, SOUND_RADIUS_RUN*(fireH ? 600/800 : 1), "steps", fireH ? "горит в молотове" : "попадание"); }
-  if(b.hp > 0) return false;
+  if(b.hp > 0) return simEvOut(_ev, false);
   b.alive = false; b.deaths++; b._killer = att && att !== b ? att.id : null;   // (v330) кто убил — для обсервера (показ)
   dropWeaponOnDeath(b);
   b.primary = null; b.secondary = b.team==="CT" ? "USP" : "GLOCK"; b.armor = false; b.helmet = false; b.armorHp = 0; b.kit = false;
@@ -171,7 +171,7 @@ function applyDamage(att, b, dmg, src, o){
   b._killHow = {round: roundNum, w: src === "C4" ? "C4" : (src === "HE" || src === "молотов") ? wkey : null, smoke: !!mods.smoke, blind: !!mods.blind};
   if(!o.noFeed) feedKill(att, b, wkey, !!o.hs, mods);
   else if(src === "C4") feedBombKill(b);
-  return true;
+  return simEvOut(_ev, true);
 }
 // (v321, М13) флешку взрывают в воздухе, часто над крышей/стеной (точки разрыва про из демок лежат «в стене» на радаре);
 // стены у нас без высоты, поэтому видно вспышку над крышей — если виден край рядом с ней: точка в 30 или 60 ед. карты от

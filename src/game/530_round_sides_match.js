@@ -138,9 +138,9 @@ function checkRoundEnd(){
   }
   endRound(ctAlive ? "CT" : (tAlive ? "T" : null), "elim");
 }
-function endRound(winner, reason){
-  if(SANDBOX.on) return;   // (v536) песочница: раунд не кончается (677)
-  if(DEMOV.on) return;     // (v571) раунд из демки: кончается по демке (678)
+function endRound(winner, reason){ var _ev = simEvIn("endRound", arguments);
+  if(SANDBOX.on) return simEvOut(_ev);   // (v536) песочница: раунд не кончается (677)
+  if(DEMOV.on) return simEvOut(_ev);     // (v571) раунд из демки: кончается по демке (678)
   for(var shk in siteHeatPending){ siteHeat[shk] = (siteHeat[shk]||0) + 1; } siteHeatPending = {};
   if(winner){ score[winner]++; }
   if(teamTac.T && teamTac.T.tac && teamTac.T.tac.style === "rush"){ RMEM.rush.push({site:teamTac.T.site, round:roundNum}); if(RMEM.rush.length > 6) RMEM.rush.shift(); }
@@ -166,7 +166,7 @@ function endRound(winner, reason){
     logEvent("МАТЧ ОКОНЧЕН — "+(mw ? "победа "+TEAM_NAME[mw] : "ничья")+" "+score.CT+":"+score.T, true);
     saveOppProfile();
   }
-}
+ simEvOut(_ev);}
 
 function resetRound(){
   voiceLines = []; VOICE_DIRTY = true;   // (v264) войс — только этого раунда

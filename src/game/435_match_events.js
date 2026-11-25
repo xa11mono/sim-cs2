@@ -34,17 +34,17 @@ function voiceKind(key, text){
   return VOICE_KEY_KIND[best] || "plan";
 }
 
-function voiceFeed(team, who, text, kind){
-  if(typeof document === "undefined") return;
+function voiceFeed(team, who, text, kind){ var _ev = simEvIn("voiceFeed", arguments);
+  if(typeof document === "undefined") return simEvOut(_ev);
   var sec = roundState === "live" ? Math.max(0, ROUND_TIME_SEC - (simTime - roundStartTime)) : ROUND_TIME_SEC;   // как таймер табло
   var planted = typeof bomb !== "undefined" && bomb && bomb.state === "planted";
   voiceLines.unshift({t: planted ? "💣" : Math.floor(sec/60)+":"+("0"+Math.floor(sec%60)).slice(-2), team: team,
                       who: who && who !== team ? nick(who) : "колл", text: nickify(text), kind: kind});
   if(voiceLines.length > 60) voiceLines.length = 60;
   VOICE_DIRTY = true;   // (15.11, перестройка: показ отдельно от симуляции) рисует кадр (680), не симуляция
-}
+ simEvOut(_ev);}
 
-function logEvent(text, isKill){
+function logEvent(text, isKill){ var _ev = simEvIn("logEvent", arguments);
   text = nickify(text);
   events.unshift({t: simTime.toFixed(1), text: text, kill: !!isKill});
   // (v566) решения команд за раунд — для «Разбора команды» (612)
@@ -52,7 +52,7 @@ function logEvent(text, isKill){
     TEAM_LOG.log.push({s: roundState === "live" ? Math.round(simTime - roundStartTime) : 0, text: text}); if(TEAM_LOG.log.length > 40) TEAM_LOG.log.shift(); }
   if(events.length > 40) events.length = 40;
   LOG_DIRTY = true;   // (15.11, перестройка) консоль рисует кадр (680): logRender
-}
+ simEvOut(_ev);}
 
 var clutchShown = null, clutchInfo = null;
 
@@ -70,7 +70,23 @@ function killAssist(att, vic){
   var o = best ? teamBot(best) : null; if(!o) return null;
   return {id:best, flash:fb, team:o.team};
 }
-function feedKill(att, vic, wkey, hs, mods){
+// ---- (Р0.4, 24.11) события симуляции ТОЛЬКО НА ЧТЕНИЕ: инструменты (отпечаток, запись матча, инварианты, след) подписываются здесь,
+// а не подменяют функции игры (с модулями и TS подмена перестаёт работать). Точки: feedKill, logEvent, voiceFeed (435), endRound (530),
+// throwNade (380), tryShoot (490), detonate, applyDamage (400), exuEv (366), setPost (110), tSetSite (160) — вход ('in', аргументы) и выход
+// ('out', аргументы, результат, то, что подписчик вернул на входе). Результат функции не меняется; ошибка подписчика игру не трогает
+// (копится в simEvIn.errs). Нет подписчиков — один пустой вызов. Подписчик не пишет в состояние игры (правило: rebuild/MASTER_PLAN.md, Р0.4).
+function simEvOn(name, fn){ var H = simEvIn.h || (simEvIn.h = {}); (H[name] = H[name] || []).push(fn); return fn; }
+function simEvIn(name, args){
+  var H = simEvIn.h, L = H && H[name]; if(!L) return null;
+  var c = {name: name, args: args, saved: []};
+  for(var i = 0; i < L.length; i++){ try{ c.saved[i] = L[i]("in", args); }catch(e){ (simEvIn.errs = simEvIn.errs || []).push(name + ": " + e); } }
+  return c;
+}
+function simEvOut(c, r){
+  if(c){ var L = simEvIn.h[c.name]; for(var i = 0; i < L.length; i++){ try{ L[i]("out", c.args, r, c.saved[i]); }catch(e){ (simEvIn.errs = simEvIn.errs || []).push(c.name + ": " + e); } } }
+  return r;
+}
+function feedKill(att, vic, wkey, hs, mods){ var _ev = simEvIn("feedKill", arguments);
   mods = mods || {};
   teamDeath(att, vic);   // до киллфида в знании: видел убийцу — успевает сказать, откуда
   knowKill(att, vic);
@@ -85,7 +101,7 @@ function feedKill(att, vic, wkey, hs, mods){
     showEv("banner", (att.roundKills >= 5 ? "ACE — " : lbl+" — ")+nick(att.id), att.team, 2200);
   }
   checkClutch();
-}
+ simEvOut(_ev);}
 
 // (v288) смерть от взрыва бомбы — строка киллфида без убийцы (как в CS2): иконка C4 и жертва. Только показ —
 // знание и войс бомбовой смерти идут как раньше (feedKill не зовётся)

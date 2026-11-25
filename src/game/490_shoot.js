@@ -63,20 +63,20 @@ function saveShootOk(b, t){
 }
 var TAP_PAUSE = 0.5;   // с — пауза между очередями у про (медиана, все дистанции)
 var TAP_P1 = 0.20, TAP_P23 = 0.33, TAP_SPRAY = 10;   // (Д29) доли очередей в дуэли у про; зажим — до 10 пуль (проектное)
-function tryShoot(shooter, target, dist){
-  if(shooter._sbOff) return;   // (v536) песочница: ИИ выключен — не стреляет (677)
-  if(DEMOV.on) return;   // (v571) раунд из демки: стреляют только игроки демки (678)
+function tryShoot(shooter, target, dist){ var _ev = simEvIn("tryShoot", arguments);
+  if(shooter._sbOff) return simEvOut(_ev);   // (v536) песочница: ИИ выключен — не стреляет (677)
+  if(DEMOV.on) return simEvOut(_ev);   // (v571) раунд из демки: стреляют только игроки демки (678)
   // (этап 2, P0-2) реакция и доводка — по ЭТОЙ цели (shooter._ts[id] — сколько тиков подряд её видно, гаснет как contactStreak),
   // а не по контакту бота с кем угодно: раньше вторая цель в живой перестрелке шла без реакции (34 % выстрелов раньше 150 мс)
   var cs = (shooter._ts && shooter._ts[target.id]) || 0;
-  if(!shooter.alive || !target.alive) return;
-  if((shooter._knife || (shooter._drawUntil && tick < shooter._drawUntil))){ if(shooter._knife){ shooter._knife = false; shooter._drawUntil = tick + Math.round(0.4*TICK_HZ); } return; } // достаёт оружие
+  if(!shooter.alive || !target.alive) return simEvOut(_ev);
+  if((shooter._knife || (shooter._drawUntil && tick < shooter._drawUntil))){ if(shooter._knife){ shooter._knife = false; shooter._drawUntil = tick + Math.round(0.4*TICK_HZ); } return simEvOut(_ev); } // достаёт оружие
   // отступающий стреляет на отходе (раньше не стрелял вообще — его просто
   // расстреливали в спину); бег и так режет ему точность
-  if(shooter.planting || shooter.defusing) return; // руки заняты
-  if(tick < shooter.blindUntil || tick < (shooter.throwUntil||0)) return; // ослеплён / бросает гранату
-  if(!saveShootOk(shooter, target)) return;   // (v547) сейв — проходит мимо
-  if(ambushHoldFire(shooter, target)) return;   // (К1, 18.11) засада: пропускаю / подхожу в спину, пока он меня не видит (480)
+  if(shooter.planting || shooter.defusing) return simEvOut(_ev); // руки заняты
+  if(tick < shooter.blindUntil || tick < (shooter.throwUntil||0)) return simEvOut(_ev); // ослеплён / бросает гранату
+  if(!saveShootOk(shooter, target)) return simEvOut(_ev);   // (v547) сейв — проходит мимо
+  if(ambushHoldFire(shooter, target)) return simEvOut(_ev);   // (К1, 18.11) засада: пропускаю / подхожу в спину, пока он меня не видит (480)
   // план §3: "бот, держащий угол, может выстрелить до того как истечёт обычная
   // реакция на новый визуальный контакт, если есть свежая информация 'враг там',
   // и шанс зависит от точности этой информации" — префайр обходит обычный gate
@@ -143,17 +143,17 @@ function tryShoot(shooter, target, dist){
       prefireConfidence = 1 - (tick - LI.tick)/pfWin; // 1 = только что видел, 0 = на грани "забыл"
     } else {
       fireReady(shooter, target, effReaction - cs);
-      return;
+      return simEvOut(_ev);
     }
   }
   var w = shooter.weapon;
-  if(dist > w.range) return;
-  if(tick < shooter.nextShotTick){ fireReady(shooter, target, shooter.nextShotTick - tick); return; }
-  if(shooter._fc && shooter._fc.moving) return; // уходит с линии / выглядывает — на бегу не стреляет
+  if(dist > w.range) return simEvOut(_ev);
+  if(tick < shooter.nextShotTick){ fireReady(shooter, target, shooter.nextShotTick - tick); return simEvOut(_ev); }
+  if(shooter._fc && shooter._fc.moving) return simEvOut(_ev); // уходит с линии / выглядывает — на бегу не стреляет
   var thruSmoke = !!shooter._smokeShot;
   // раздел 14: магазин и перезарядка — во время перезарядки не стреляет
   updateReload(shooter);
-  if(shooter._reloading || shooter.ammo <= 0) return;
+  if(shooter._reloading || shooter.ammo <= 0) return simEvOut(_ev);
   // угловые размеры цели (px радара ≈ 2.5 юнита CS2): тело ~32u шириной, голова ~11u
   var hA = Math.atan(HEAD_HALF/Math.max(8,dist)), bA = Math.atan(BODY_HALF/Math.max(8,dist));
   // стреляет только туда, куда смотрит: прицел должен быть почти на цели —
@@ -162,11 +162,11 @@ function tryShoot(shooter, target, dist){
   if(shooter.facing !== undefined){
     var aimA = Math.atan2(target.y-shooter.y, target.x-shooter.x);
     aimD = Math.abs(((aimA - shooter.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
-    if(aimD > Math.min(AIM_FIRE_CONE, Math.max(0.05, 2.5*bA))){ fireReady(shooter, target, 0); return; }
+    if(aimD > Math.min(AIM_FIRE_CONE, Math.max(0.05, 2.5*bA))){ fireReady(shooter, target, 0); return simEvOut(_ev); }
   }
   // (v263, Б1) свой на линии огня — не стреляет, как настоящий игрок: пуля попала бы в него
   var onLine = bulletVictim(shooter, target.x, target.y, target);
-  if(onLine && onLine.team === shooter.team) return;
+  if(onLine && onLine.team === shooter.team) return simEvOut(_ev);
 
   // раздел 14 (пересмотр): разброс от частой стрельбы — "нагрев", который
   // остывает со временем. Не на близкой дистанции — бот не спамит, а тапает:
@@ -190,7 +190,7 @@ function tryShoot(shooter, target, dist){
     // очередей про (тапы 78–87 %: туда входят прострелы, спам, префайр), в дуэли бот тапал раз в 0,5 с против очереди. 4+ — до TAP_SPRAY (проектное)
     if(!T || sinceT >= TAP_PAUSE*TICK_HZ){ var u = hashRand(tick*29 + shooter.id.charCodeAt(shooter.id.length-1)*17), u2 = hashRand(tick*31 + shooter.id.charCodeAt(0)*13);
       T = shooter._tap = {n: 0, len: u < TAP_P1 ? 1 : u < TAP_P1 + TAP_P23 ? (u2 < 0.5 ? 2 : 3) : 4 + Math.floor(u2*(TAP_SPRAY - 3))}; }
-    if(T.n >= T.len){ fireReady(shooter, target, TAP_PAUSE*TICK_HZ - sinceT); return; }
+    if(T.n >= T.len){ fireReady(shooter, target, TAP_PAUSE*TICK_HZ - sinceT); return simEvOut(_ev); }
   }
   var burstIdx = tick - shooter.lastShotTick > SPRAY_RESET_TICKS ? 0 : shooter.burstCount;
 
@@ -225,7 +225,7 @@ function tryShoot(shooter, target, dist){
   // вдали — сначала остановка. Иначе ждёт, пока сбросит скорость (контрстрейф — fightStrafe)
   var w0 = Math.hypot(shotSpread(shooter, 0), nsS), sig0 = Math.sqrt(w0*w0 + rest2) * sM;
   var pBody = function(sg){ return 1 - Math.exp(-(bA*bA)/(2*sg*sg)); };
-  if(wSpread > w0 && pBody(sigma) < FIRE_K * pBody(sig0)){ fireReady(shooter, target, 0); return; }
+  if(wSpread > w0 && pBody(sigma) < FIRE_K * pBody(sig0)){ fireReady(shooter, target, 0); return simEvOut(_ev); }
   shooter._fire = null;
   shooter.burstCount = burstIdx + 1;
   shooter.lastShotTick = tick;
@@ -378,7 +378,7 @@ function tryShoot(shooter, target, dist){
   });
   if(tracers.length > 60) tracers.shift();
   if(prefire) logEvent(shooter.id+": префайр по памяти о "+target.id+" (увер. "+Math.round(prefireConfidence*100)+"%)"+(hit?" — попал":""));
-}
+ simEvOut(_ev);}
 
 var STATE_LABEL = {patrol:"патруль", hold:"держит угол", engage:"атакует", retreat:"отступает"};
 // (v154) обстановка для решения о дуэли

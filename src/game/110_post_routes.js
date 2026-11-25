@@ -482,13 +482,13 @@ function taskDeadline(b, pt, holdSec, walking){
   var v = SPEED*(walking ? WALK_SPEED_FRAC : 1)*(typeof weaponSpeedMul === "function" ? weaponSpeedMul(b) : 1);
   return tick + Math.ceil((pathLenTo(b, pt.x, pt.y)/Math.max(1, v) + holdSec)*TICK_HZ);
 }
-function setPost(b, pt, look, hold, tag){
+function setPost(b, pt, look, hold, tag){ var _ev = simEvIn("setPost", arguments);
   var was = b && b.post ? b.post.tag : null, r = setPostDo.apply(this, arguments);
-  if(!b) return r;
+  if(!b) return simEvOut(_ev, r);
   var cur = b._task ? " (уровень " + b._task.lv + ")" : "";
   if(r && tag !== was) dlog(b, "место", "задача «" + tag + "»" + cur + (was ? " вместо «" + was + "»" : "") + " — " + calloutName(pt.x, pt.y));
   else if(!r) dlog(b, "место", "отказ «" + tag + "»: занят «" + (b._task ? b._task.tag : (b.post && b.post.tag)) + "»" + cur);
-  return r;
+  return simEvOut(_ev, r);
 }
 // (5) после временной задачи (ответ владельца 04.11, `docs/tasks/OWNER_ANSWERS_2026-11-04.md`): не «вернуться на пост», а оценить. Ушёл
 // по бою (контакт, перестановка в бою — уровни 9 и 6), задача кончилась, роль зовёт на пост: если враг, известный команде (за SITE_SEEN_SEC),
