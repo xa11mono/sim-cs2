@@ -66,7 +66,7 @@
 | Р0-9 | сцена `switch_residual_classified` зависит от предыдущих сцен в странице (утечка через `freshMatch`) | `rebuild/scene_registry.json` | Т-2 |
 | Р0-10 | сцена `mir_stuck_window` падает с ошибкой выполнения; сцена `team_lkp_without_voice` устарела (`LKP`) | `scene_registry.json` | переписать сцены (Р3, без изменения игры) |
 | Р0-11 | `I-21`: `facing` вне [−π, π] — сотни тысяч тиков-ботов за матч | `r0.6_invariants_pc_totals.json` | У-6 (после Р8) |
-| Р0-12 | N-API на Windows (windows-gnu) не собирался: `libloading` 0.8.9 требует `dlltool.exe` | `r0.13_rust_windows.json` | Р0.13: закреплён `libloading` 0.8.8; итог — прогон `measure/v599a-r0c` |
+| Р0-12 | N-API на Windows (windows-gnu) не собирался: `libloading` 0.8.9 требует `dlltool.exe` | `r0.13_rust_windows.json` | решено: `libloading` 0.8.8 + `build.rs` без `napi_build::setup()` на windows-gnu (`libnode.dll`); собран и вызван — прогон 318, `r0.13_napi_pc.json` |
 | Р0-13 | модульный Worker из Blob не запускается в Chromium на странице без адреса (`file://`, пустая); на артефакте — работает | `r0.14_xb_pc.json` | Р5.2: обычный Worker из Blob как основной |
 
 ## 3. Как пункт выходит из реестра (после Р8)

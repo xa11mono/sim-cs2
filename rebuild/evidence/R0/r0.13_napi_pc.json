@@ -1,0 +1,56 @@
+{
+ "step": "Р0.13 N-API на Windows",
+ "run": "pc-results/318 (measure/v599a-r0d)",
+ "date": "2026-11-25",
+ "result": "собран и вызван (cargo build --release код 0; napi_bench код 0)",
+ "env": {
+  "node": "v24.21.0",
+  "v8": "13.6.233.17-node.53",
+  "os": "win32 10.0.19045",
+  "arch": "x64",
+  "playwright": "1.63.0",
+  "chromium": "153.0.8010.12"
+ },
+ "rustc": "rustc 1.100.0 (0ef1bc386 2026-11-09)\r",
+ "cargo": "cargo 1.100.0 (3acc79c0c 2026-11-05)\r",
+ "toolchain": "stable x86_64-pc-windows-gnu, rustup-init из https://win.rustup.rs/x86_64, --profile minimal --no-modify-path, RUSTUP_HOME/CARGO_HOME в ~/.simcs2_rust",
+ "commands": [
+  "rustup-init.exe -y --no-modify-path --profile minimal --default-host x86_64-pc-windows-gnu --default-toolchain stable",
+  "rustup target add wasm32-unknown-unknown",
+  "cargo tree --manifest-path stage4/bench/nap/Cargo.toml -e normal",
+  "cargo build --release --manifest-path stage4/bench/nap/Cargo.toml",
+  "node stage4/bench/napi_bench.js"
+ ],
+ "fixes": {
+  "libloading": "0.8.8 (Cargo.lock): готовые библиотеки импорта windows-targets 0.53.5 / windows_x86_64_gnu 0.53.1 — dlltool.exe не нужен",
+  "napi-build": "build.rs не вызывает napi_build::setup() на windows-gnu (иначе требует libnode.dll); символы Node берутся при загрузке через libloading (napi-sys)"
+ },
+ "mingw_binutils": "не ставились: после закрепления libloading 0.8.8 dlltool.exe не требуется (прогоны 317, 318); repo.msys2.org недоступен из облака — проверка набора binutils не понадобилась",
+ "deps": [
+  "napi 2.16.17",
+  "napi-derive 2.16.13",
+  "napi-sys 2.4.0",
+  "libloading 0.8.8",
+  "windows-targets 0.53.5",
+  "napi-build 2.7.0 (не вызывается на windows-gnu)"
+ ],
+ "call_cost_ns": {
+  "js_ns": 3.15,
+  "wasm_ns": 5.62,
+  "napi_ns": 24.48,
+  "sum_8": {
+   "napi_ns": 138.3,
+   "js_ns": 5.5
+  },
+  "sum_1024": {
+   "napi_ns": 748.7,
+   "js_ns": 631.6
+  },
+  "sum_65536": {
+   "napi_ns": 40616.7,
+   "js_ns": 39843
+  },
+  "node": "v24.21.0",
+  "cpu": "AMD Ryzen 7 7800X3D 8-Core Processor           "
+ }
+}
