@@ -376,28 +376,28 @@ function nadeSelfWhyNot(b, type, pt){
   return "там врага быть не может";
 }
 function assignNadeDo(b, type, target, why, opts){
-  if(!b || !b.alive || !b.nades || b.nades[type] <= 0) return false;
+  if(!b || !b.alive || !b.nades || b.nades[type] <= 0) return {ok: false, why: "нет гранаты"};
   // (v560, В98, разбор владельца 11.11: «зачем он кинул молотов» — молотов выхода «в любимый угол» кинул последний живой T, шедший за бомбой)
   // граната плана команды (bkey) — тоже с проверкой пользы и времени, кроме смока (он закрывает обзор и без известного врага)
-  if(!(opts && opts.bkey) || type !== "smoke"){ var wn = nadeSelfWhyNot(b, type, target); if(wn){ NADE_FAIL = wn; return false; } }
-  if(nadeFailedHere(b, type, target.x, target.y)){ NADE_FAIL = "отсюда уже не долетела"; return false; }
-  if(opts && opts.bkey && !builtinAllowed(opts.bkey)) return false; // встроенная выключена или заменена своим лайнапом
+  if(!(opts && opts.bkey) || type !== "smoke"){ var wn = nadeSelfWhyNot(b, type, target); if(wn){ NADE_FAIL = wn; return {ok: false, why: wn}; } }
+  if(nadeFailedHere(b, type, target.x, target.y)){ NADE_FAIL = "отсюда уже не долетела"; return {ok: false, why: NADE_FAIL}; }
+  if(opts && opts.bkey && !builtinAllowed(opts.bkey)) return {ok: false, why: "встроенная граната выключена"}; // встроенная выключена или заменена своим лайнапом
   // (v428) план гранат команды (365): граната, отложенная на более поздний момент (выход, после планта, ретейк), сейчас не тратится;
   // гранаты выхода T — момент «выход» и тогда, когда их кидают заранее, до пика (preExec)
   var npm = (opts && opts.bkey && /^T\.exec\./.test(opts.bkey)) ? "exec" : (opts && opts.bkey && /^T\.fake\./.test(opts.bkey)) ? "fake" : npMomentNow(b);
-  if(!npCanUse(b, type, npm, null)){ NADE_FAIL = npWhyNot(b, type); return false; }
+  if(!npCanUse(b, type, npm, null)){ NADE_FAIL = npWhyNot(b, type); return {ok: false, why: NADE_FAIL}; }
   // (Г3, 04.11, разбор отметок п.19: молотов «комбо» затёрт смоком «отрезать вход», ни один не брошен; сторож: 74 замены на 8 матчей Mirage)
   // задание гранаты не перебивается другим — бросок доводится или сгорает по сроку (раньше перебивался любой не-лайнап другого типа)
-  if(b.nadeTask) return false;
-  if(type === "smoke" && smokeCovered(target.x, target.y)) return false;
+  if(b.nadeTask) return {ok: false, why: "занят гранатой: " + b.nadeTask.type};
+  if(type === "smoke" && smokeCovered(target.x, target.y)) return {ok: false, why: "точку уже закрывает дым"};
   // одна граната одного типа в одну точку: другие механики (комбо, флешка
   // себе, дамп…) не дублируют уже летящую/назначенную туда же
   if(type !== "smoke" && (nadesInAir.some(function(n){ return n.team === b.team && n.type === type && DM.hypot((n.tx||n.x)-target.x, (n.ty||n.y)-target.y) < 120; }) ||
-     bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o.nadeTask && o.nadeTask.type === type && DM.hypot(o.nadeTask.x-target.x, o.nadeTask.y-target.y) < 120; }))) return false;
+     bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o.nadeTask && o.nadeTask.type === type && DM.hypot(o.nadeTask.x-target.x, o.nadeTask.y-target.y) < 120; }))) return {ok: false, why: "туда уже летит / заказана своя"};
   // (v419) here — бросок только с места (задержать гранатой, 350): срок 2 с, на точку броска не идёт
   var here = !!(opts && opts.here);
   b.nadeTask = {type:type, x:target.x, y:target.y, until: tick + (here ? 2 : 10)*64, why:why||"", start:tick, lob:true, range:(opts && opts.range) || NADE_THROW_RANGE, now:!!(opts && opts.now), here:here, npm:npm, eid:(opts && opts.eid) || null, forC:(opts && opts.forC) || null};
-  return true;
+  return {ok: true, why: "заказ"};
 }
 // (22.11, Ж23-П4, разбор м271222 р6: опорник, о котором не знали, кинул флешку, потом молотов «выкурить по инфе» — помощи не шло,
 // а себя выдал) граната, которая выдаёт того, кого ещё не нашли (knowMeRevealed, 220), — только когда от неё есть толк: обо мне и так
@@ -421,10 +421,14 @@ function nadeOwnerOk(F){
   return !!(o.post && o.post.tag === F.tag);
 }
 // (17.11, перестройка — модули) запись в журнал решений (645) — здесь, у хозяина (было: 645 подменял функцию обёрткой)
-function assignNade(b, type, target, why){
-  var r = assignNadeDo.apply(this, arguments);
+// (Р3.2, канал «гранаты», шаг 1) хозяин заказа гранаты отвечает результатом {ok, why — причина отказа: нет гранаты, не по плану гранат,
+// не долетит, занят гранатой, точку уже закрывает дым, своя туда уже летит / заказана}; assignNade — прежний да / нет (переходник);
+// NADE_FAIL — как было (читают 366:63, 380:223)
+function assignNade(b, type, target, why){ return assignNadeR.apply(this, arguments).ok; }
+function assignNadeR(b, type, target, why){
+  var R = assignNadeDo.apply(this, arguments), r = R.ok;
   if(b) dlog(b, "граната", (r ? "заказ " : "отказ в заказе ") + type + " — " + (why || "") + (r ? "" : (b.nadeTask ? " (занят: " + b.nadeTask.type + " — " + b.nadeTask.why + ")" : "")));
-  return r;
+  return R;
 }
 // задание на гранату выполняется, как только точка видна и в пределах броска
 function nadeQueueNext(b){
