@@ -53,7 +53,7 @@ function lkpTick(){
       // нет (ушёл/вычистили взглядом) — метка ЛИП тоже снимается, без своей логики
       if(BZ.ids.length && beliefMassNear(team, id, e.x, e.y, 260) < 0.12){ delete L[id]; return; }
       // кто-то из своих смотрит на это место (в поле зрения, есть линия) и его там нет
-      var checker = bots.filter(function(b){ return b.alive && b.team === team && Math.hypot(b.x-e.x, b.y-e.y) < 550 &&
+      var checker = bots.filter(function(b){ return b.alive && b.team === team && DM.hypot(b.x-e.x, b.y-e.y) < 550 &&
         hasVision(b.x, b.y, e.x, e.y) && inFov(b, e.x, e.y) && b._visible.indexOf(foe) < 0; })[0];
       if(checker){
         delete L[id]; var zc = zoneIdAt(e.x, e.y); if(zc) CLEARZ[team][zc] = {tick:tick, x:e.x, y:e.y};
@@ -65,7 +65,7 @@ function lkpTick(){
 }
 function lkpNear(team, x, y, r){
   if(BZ.ids.length && belief[team]){ var n1 = 0, S = beliefSeen[team]; Object.keys(belief[team]).forEach(function(eid){ if(S[eid] != null && beliefMassNear(team, eid, x, y, r) >= 0.35) n1++; }); return n1; }
-  var n = 0, L = beliefLast[team]; for(var id in L){ if(Math.hypot(L[id].x-x, L[id].y-y) < r) n++; } return n; }
+  var n = 0, L = beliefLast[team]; for(var id in L){ if(DM.hypot(L[id].x-x, L[id].y-y) < r) n++; } return n; }
 function teamInfoTick(){
   if(roundState !== "live") return;
   bots.forEach(function(b){
@@ -105,7 +105,7 @@ function intelEstimate(team, x, y, r, windowTicks){
       if(beliefMassNear(team, eid, x, y, r) < 0.35) return;
       n++;
       var lo = L[eid];
-      if(lo && tick - lo.tick <= windowTicks && Math.hypot(lo.x-x, lo.y-y) <= r){
+      if(lo && tick - lo.tick <= windowTicks && DM.hypot(lo.x-x, lo.y-y) <= r){
         if(lo.src === "spotted"){ sN++; cf = 1; } else { hN++; cf = Math.max(cf, 0.5); }
         ls = Math.max(ls, lo.tick);
       } else cf = Math.max(cf, 0.3);
@@ -115,7 +115,7 @@ function intelEstimate(team, x, y, r, windowTicks){
   var TI = teamIntel[team], seen = {}, heard = {}, conf = 0, last = -1;
   TI.sig.forEach(function(s){
     if(tick - s.tick > windowTicks) return;
-    if(Math.hypot(s.x-x, s.y-y) > r) return;
+    if(DM.hypot(s.x-x, s.y-y) > r) return;
     if(s.type === "spotted"){ seen[s.id] = true; conf = 1; }
     else if(s.type === "sound"){ heard[s.id] = true; conf = Math.max(conf, 0.5); }
     last = Math.max(last, s.tick);
@@ -124,7 +124,7 @@ function intelEstimate(team, x, y, r, windowTicks){
   return {n: Math.max(nSeen, nHeard), seen: nSeen, heard: nHeard, conf: conf, last: last};
 }
 function intelDeathsNear(team, x, y, r, windowTicks){
-  return teamIntel[team].sig.filter(function(s){ return s.type === "died" && tick - s.tick <= windowTicks && Math.hypot(s.x-x, s.y-y) < r; }).length;
+  return teamIntel[team].sig.filter(function(s){ return s.type === "died" && tick - s.tick <= windowTicks && DM.hypot(s.x-x, s.y-y) < r; }).length;
 }
 // смерть тиммейта — сигнал для всех + реакция ближних: трейд
 // ---- названия зон (редактируются кликом по зоне при включённом слое «зоны») ----
@@ -158,7 +158,7 @@ function zonesByName(name){
 function zonePoint(name, near){
   var ids = zonesByName(name); if(!ids.length) return null;
   var best = null, bd = Infinity;
-  ids.forEach(function(id){ var c = BZ.cent[BZ.idx[id]]; var d = near ? Math.hypot(c.x-near.x, c.y-near.y) : 0; if(d < bd){ bd = d; best = c; } });
+  ids.forEach(function(id){ var c = BZ.cent[BZ.idx[id]]; var d = near ? DM.hypot(c.x-near.x, c.y-near.y) : 0; if(d < bd){ bd = d; best = c; } });
   return best ? walk(best) : null;
 }
 function zoneUserName(id){ if(ZONE_NAMES[id]) return zoneMainName(ZONE_NAMES[id]); var z = zoneById(id); return z && z.name ? (ZONE_DEFAULT_LABEL[z.name]||z.name) : null; }
@@ -195,7 +195,7 @@ function calloutName(x, y, from, z){
            [GEO.rotator,"на проходе между сайтами","с прохода между сайтами"],
            [CT_SPAWN,"на CT-спавне","с CT-спавна"],[T_SPAWN,"на T-спавне","с T-спавна"]];
   var best = null, bd = Infinity;
-  C.forEach(function(c){ if(!c[0]) return; var d = Math.hypot(c[0].x-x, c[0].y-y); if(d < bd){ bd = d; best = c; } });
+  C.forEach(function(c){ if(!c[0]) return; var d = DM.hypot(c[0].x-x, c[0].y-y); if(d < bd){ bd = d; best = c; } });
   return best ? best[from ? 2 : 1] : "?";
 }
 function voiceLog(team, key, who, text){ intelCallLog(team, "v:"+key, text, who, voiceKind(key, text)); }   // (v264) в панель войса, не в консоль
@@ -261,7 +261,7 @@ function intelDeath(victim, killer){
     } else {
       TTd._dl.push({t:"CT", tick:tick, x:victim.x, y:victim.y, phase:TTd.phase});
       // CT умер в течение 3с после нашей смерти от ЕГО же руки / рядом — наш размен
-      TTd._dl.forEach(function(e){ if(e.t === "T" && !e.traded && tick - e.tick < 3*TICK_HZ && (e.kid === victim.id || Math.hypot(e.x-victim.x, e.y-victim.y) < 600)) e.traded = true; });
+      TTd._dl.forEach(function(e){ if(e.t === "T" && !e.traded && tick - e.tick < 3*TICK_HZ && (e.kid === victim.id || DM.hypot(e.x-victim.x, e.y-victim.y) < 600)) e.traded = true; });
     }
   }
   if((victim.curSpeed||0) < 40 && !(bomb && bomb.state === "planted")) habitAdd(victim.id, victim.x, victim.y, 1);
@@ -286,7 +286,7 @@ function intelDeath(victim, killer){
     // (v248) этот убийца уже убил нашего рядом за последние 5 с (тот шёл менять) — в тот же угол по одному
     // не идём: менять только вдвоём; один — держит/обходит (_avoidPeek ниже)
     var chainK = killer && (teamIntel[victim.team].sig || []).some(function(sg){ return sg.type === "died" && sg.id !== victim.id && tick - sg.tick <= 5*TICK_HZ && sg.tick < tick &&
-      Math.hypot(sg.x-victim.x, sg.y-victim.y) <= 300 && sg.kid === killer.id; });
+      DM.hypot(sg.x-victim.x, sg.y-victim.y) <= 300 && sg.kid === killer.id; });
     if(chainK && cands.length < 2) cands = [];
     if(cands[0]) traders.push(cands[0]);
     if(cands[1] && cands[1].L <= (450) && aliveCount(victim.team) >= 3) traders.push(cands[1]);
@@ -301,7 +301,7 @@ function intelDeath(victim, killer){
       if(!swC.length) swC = swAll;
       var aV = Math.atan2(victim.y-kp.y, victim.x-kp.x), sw = null, sBest = -1;
       swC.forEach(function(q){ var da = Math.abs(((Math.atan2(q.y-kp.y, q.x-kp.x)-aV+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
-        var sc = Math.min(da, 0.8) - Math.hypot(q.x-o.x, q.y-o.y)/1500; if(sc > sBest){ sBest = sc; sw = q; } });
+        var sc = Math.min(da, 0.8) - DM.hypot(q.x-o.x, q.y-o.y)/1500; if(sc > sBest){ sBest = sc; sw = q; } });
       sw = sw || {x:victim.x, y:victim.y};
       if(!setPost(o, sw, kp, true, "tradeR")) return;   // (v378) занят задачей важнее размена (бомба, сейв) — арбитр места
       o._probeLock = 0; taskKeep(o, 0, "call");
@@ -321,20 +321,20 @@ function intelDeath(victim, killer){
   // остаётся в Palace» — 2 CT живы, а подмена шла только при 3+ и только тем, у кого рядом напарник) свой рядом (по пути ≤ FILL_NEAR)
   // подменяет и в одиночку и при двух живых: дыра у него под боком, его место от этого не открывается
   if(!traders.length && fillPh && !(bomb && bomb.state === "planted") && aliveCount(victim.team) >= 2 && !teamSaving(victim.team)){
-    var fc = victim.post && Math.hypot(victim.post.x-victim.x, victim.post.y-victim.y) < 600 ? {x:victim.post.x, y:victim.post.y} : {x:victim.x, y:victim.y};
+    var fc = victim.post && DM.hypot(victim.post.x-victim.x, victim.post.y-victim.y) < 600 ? {x:victim.post.x, y:victim.post.y} : {x:victim.x, y:victim.y};
     var fl = killer ? {x:killer.x + (saw ? 0 : (hashRand(tick*37+7)-0.5)*160), y:killer.y + (saw ? 0 : (hashRand(tick*41+3)-0.5)*160)} : (victim.post && victim.post.look) || null;
     var fBest = null, fL = Infinity;
     // решает по тому, что знает команда (владелец 13.10: «умно, а то будут дырки в защите»): место ещё кто-то держит (свой
     // ≤400 px) — подменять незачем; уходит только тот, чьё место остаётся под присмотром (рядом напарник ≤ TRADE_R) и у кого
     // самого не горячо (команда не знает врагов в 600 px за последние 4 с — иначе ушёл бы из-под контакта и открыл свой вход)
-    var covered = bots.some(function(m){ return m !== victim && m.alive && m.team === victim.team && Math.hypot(m.x-fc.x, m.y-fc.y) <= 400; });
+    var covered = bots.some(function(m){ return m !== victim && m.alive && m.team === victim.team && DM.hypot(m.x-fc.x, m.y-fc.y) <= 400; });
     if(!covered) bots.forEach(function(o){
       if(!o.alive || o.team !== victim.team || o === victim || o.planting || o.defusing || o._sawEnemy || o._tradeLock || o._fillLock) return;
       if(o.team === "T" && (o.tRole === "lurker" || (bomb && bomb.carrier === o))) return;
       // (v560, В92, разбор владельца 11.11: «путь fill ведёт на другой конец карты, потом точка отменяется — и обратно») подменять идёт только тот,
       // кто под боком (по пути ≤ FILL_NEAR) — при любом числе живых; раньше при трёх и больше живых — ближайший без предела (AWP с выхода на B
       // отправили на T Ramp: 1315 по пути)
-      if(Math.hypot(o.x-fc.x, o.y-fc.y) > FILL_NEAR) return;
+      if(DM.hypot(o.x-fc.x, o.y-fc.y) > FILL_NEAR) return;
       var L = polyLen(pathPts(o.x, o.y, fc.x, fc.y, o.z)), near = L <= FILL_NEAR;
       if(!near) return;
       if(L < fL){ fL = L; fBest = o; }
@@ -344,8 +344,8 @@ function intelDeath(victim, killer){
       // линию на fl; подменяющий берёт её с ближайшего к себе пригодного места (видит fl, в пределах FILL_FUNC_R от места погибшего), а не идёт
       // точно в его точку
       var fpC = fl ? pickSpots("fill"+tick+fBest.id, {x:(fc.x+fBest.x)/2, y:(fc.y+fBest.y)/2}, 4, {rMax:FILL_FUNC_R, minGap:30, see:[fl]})
-        .filter(function(q){ return Math.hypot(q.x-fc.x, q.y-fc.y) <= FILL_FUNC_R; })
-        .sort(function(p, q){ return Math.hypot(p.x-fBest.x, p.y-fBest.y) - Math.hypot(q.x-fBest.x, q.y-fBest.y); }) : [];
+        .filter(function(q){ return DM.hypot(q.x-fc.x, q.y-fc.y) <= FILL_FUNC_R; })
+        .sort(function(p, q){ return DM.hypot(p.x-fBest.x, p.y-fBest.y) - DM.hypot(q.x-fBest.x, q.y-fBest.y); }) : [];
       var fp = fpC[0] || (fl && pickSpots("fill"+tick+fBest.id, fc, 1, {rMax:170, minGap:30, see:[fl]})[0]) || fc;
       if(setPost(fBest, fp, fl, true, "fill")){ fBest._fillLock = {until: tick + 15*TICK_HZ, team: victim.team, pt: fp, ph: victim.team === "T" ? teamTac.T.phase : null};
       voiceLog(victim.team, "fill"+victim.id, fBest.id, "закрываю "+calloutName(fc.x, fc.y).replace(/^на /, "")+" за "+victim.id); }
@@ -357,9 +357,9 @@ function intelDeath(victim, killer){
      (victim.tRole === "entry" || !teamTac.T._popDone)){
     var kpF = {x:killer.x + (saw ? 0 : (hashRand(tick*23+1)-0.5)*140), y:killer.y + (saw ? 0 : (hashRand(tick*29+2)-0.5)*140)};
     var flc = bots.filter(function(o){ return o.alive && o.team === "T" && o !== victim && o.nades && o.nades.flash > 0 && !o.planting &&
-      !(bomb.state === "carried" && bomb.carrier === o) && Math.hypot(o.x-victim.x, o.y-victim.y) < 750; })
+      !(bomb.state === "carried" && bomb.carrier === o) && DM.hypot(o.x-victim.x, o.y-victim.y) < 750; })
       .sort(function(a, c){ var ta = traders.some(function(T){ return T.b === a; }) ? 200 : 0, tc = traders.some(function(T){ return T.b === c; }) ? 200 : 0;
-        return (Math.hypot(a.x-victim.x, a.y-victim.y) + ta) - (Math.hypot(c.x-victim.x, c.y-victim.y) + tc); })[0];
+        return (DM.hypot(a.x-victim.x, a.y-victim.y) + ta) - (DM.hypot(c.x-victim.x, c.y-victim.y) + tc); })[0];
     if(flc && assignNade(flc, "flash", kpF, "поп на убийцу "+victim.id, {now:true, range:900})){
       teamTac.T._popDone = true;
       voiceLog("T", "pop"+victim.id, flc.id, "даю флешку на "+killer.id+" "+calloutName(kpF.x, kpF.y)+" — меняйте под неё!");
@@ -370,7 +370,7 @@ function intelDeath(victim, killer){
   bots.forEach(function(b){
     if(!b.alive || b.team !== victim.team) return;
     if(traders.some(function(T){ return T.b === b; })) return;
-    var d = Math.hypot(b.x-victim.x, b.y-victim.y);
+    var d = DM.hypot(b.x-victim.x, b.y-victim.y);
     if(d > 550) return;
     // размен уже взял ближайший — остальные не лезут в тот же прострелянный угол
     if(traders.length){ knowAvoidPeek(b, {x:victim.x, y:victim.y}, 8); return; }
@@ -378,7 +378,7 @@ function intelDeath(victim, killer){
     if(BAL.execErr && b.prof && hashRand(tick*29 + b.id.charCodeAt(1)*11) < (1-prof(b, "disc"))*0.12){ noteMistake(b, "не разменял "+victim.id); return; }
     // стрелка не видели и он не рядом — это не трейд, а второй пик в тот же
     // прострелянный угол: не лезть туда же ~8с (держать, ждать, обходить)
-    if(!saw || (killer && Math.hypot(killer.x-b.x, killer.y-b.y) > 650)){
+    if(!saw || (killer && DM.hypot(killer.x-b.x, killer.y-b.y) > 650)){
       knowAvoidPeek(b, {x:victim.x, y:victim.y}, 8);
       return;
     }

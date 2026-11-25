@@ -118,7 +118,7 @@ function secondOnSite(b, k, ap){
   for(var t=0; t<names.length && !p; t++){
     var nm = names[(ni + t) % names.length];
     var q = namedSpot(nm, SITES[k], {see:ents, hideFrom:[GEO[k].tStage], cross: ap ? {from:ap, pt:GEO[k].tEntry} : null, key:"2nd"+k+(ap?Math.round(ap.x/40):"")});
-    if(q && (!ap || Math.hypot(q.x-ap.x, q.y-ap.y) > 90)){ p = q; if(b._holdLog !== roundNum){ b._holdLog = roundNum; logEvent(b.id+": вторым на "+k+" — «"+nm+"»"); } }
+    if(q && (!ap || DM.hypot(q.x-ap.x, q.y-ap.y) > 90)){ p = q; if(b._holdLog !== roundNum){ b._holdLog = roundNum; logEvent(b.id+": вторым на "+k+" — «"+nm+"»"); } }
   }
   if(!p) return false;
   var lk2 = lookFrom(p, ents, GEO[k].tEntry, b);
@@ -142,7 +142,7 @@ function ctEarlyPeek(b, ct){
     // tools/measure/audit/ct_early.py) — шанс ×0,35 (= 13,5 / 39)
     // (v583a, Д18) и спавн: зона, откуда пикает (мид — центр мида, иначе вход T на его сайт), — ранняя зона (MAP.spawnearly): шанс × множитель
     // про для его места спавна среди своих (Mirage CT Window: с ближайшего 1,59, с 4-го 0,53 — AWP с дальнего спавна у про почти не выходит)
-    var kE = npZoneOf(b), gE = GEO[kE === "A" || kE === "B" ? kE : (Math.hypot(b.x-SITES.A.x, b.y-SITES.A.y) < Math.hypot(b.x-SITES.B.x, b.y-SITES.B.y) ? "A" : "B")];
+    var kE = npZoneOf(b), gE = GEO[kE === "A" || kE === "B" ? kE : (DM.hypot(b.x-SITES.A.x, b.y-SITES.A.y) < DM.hypot(b.x-SITES.B.x, b.y-SITES.B.y) ? "A" : "B")];
     var fE = b.tRole === "mid" ? GEO.ctMid : gE && gE.tEntry, spK = fE ? spawnEarlyK(b, calloutName(fE.x, fE.y).replace(/^(на|у|в)\s+/, "").replace(/[«»]/g, "")) : 1;
     E = b._early = {round:roundNum, go: hashRand(roundNum*733 + matchNum*41 + b.id.charCodeAt(2)*9) < (pa-0.5)*1.3*0.35*spK, st:0, spK: spK};
   }
@@ -151,12 +151,12 @@ function ctEarlyPeek(b, ct){
   // (v271) выходит сразу — у про CT впервые в мейне A на 10,8-й с (медиана, 88 демок); раньше бот ждал 6 с и приходил на 14,5-й
   // (док 6, «2-1-2, а на B один»: р13 роумер с местами на B со спавна CT пошёл в ранний пик на A — к нему был ближе — и остался там в контакте)
   // сторона раннего пика — сторона его мест в расстановке (npZoneOf); мид или расстановки нет — ближний сайт, как было
-  var zs = npZoneOf(b), k = zs === "A" || zs === "B" ? zs : (Math.hypot(b.x-SITES.A.x, b.y-SITES.A.y) < Math.hypot(b.x-SITES.B.x, b.y-SITES.B.y) ? "A" : "B");
+  var zs = npZoneOf(b), k = zs === "A" || zs === "B" ? zs : (DM.hypot(b.x-SITES.A.x, b.y-SITES.A.y) < DM.hypot(b.x-SITES.B.x, b.y-SITES.B.y) ? "A" : "B");
   if(!/^(anchor|roamer|mid)/.test(b.tRole)) return false;
   // (v248) за инфой — не в одиночку: один выглядывает, тиммейт рядом на размене [11]
   if(E.st === 0 && !bots.some(function(o){ return o !== b && o.alive && o.team === b.team && nearP(o.x, o.y, o.z, b.x, b.y, b.z, TRADE_R); })) return false;
   // (v285, владелец 14.10) опорник выходит за инфой, только если на его сайте остаётся свой (≤450 px — как защитники в ротациях)
-  if(E.st === 0 && /^anchor/.test(b.tRole) && !bots.some(function(o){ return o !== b && o.alive && o.team === b.team && Math.hypot(o.x-SITES[k].x, o.y-SITES[k].y) < 450; })) return false;
+  if(E.st === 0 && /^anchor/.test(b.tRole) && !bots.some(function(o){ return o !== b && o.alive && o.team === b.team && DM.hypot(o.x-SITES[k].x, o.y-SITES[k].y) < 450; })) return false;
   // (v450, док владельца 28.10 №5: «в расстановке 3-0-2 kyousuke идёт пикать окно, хотя на миду 0») роль «мид» пикает с мида, только если
   // по расстановке он стоит на миде (npZoneOf — сторона мест роли); стоит на сайте (3-0-2: B Plat) — выглядывает от своего места в сторону
   // мида (на B — Short), а не идёт в окно. Владелец: «можно, чтобы шёл шорт пикать»
@@ -197,7 +197,7 @@ function ctEarlyPeek(b, ct){
         if(zq < 0 || reachPossible("CT", zq)) break;   // туда T уже могли дойти — дальше не лезем
         if(paired(q)) nxt = q;
       }
-      if(nxt && Math.hypot(nxt.x-b.x, nxt.y-b.y) > 60){ E.pt = walk(nxt); E.arr = 0; E.deep = (E.deep||0) + 1; setPost(b, E.pt, stg, true, "earlyPeek"); return true; }
+      if(nxt && DM.hypot(nxt.x-b.x, nxt.y-b.y) > 60){ E.pt = walk(nxt); E.arr = 0; E.deep = (E.deep||0) + 1; setPost(b, E.pt, stg, true, "earlyPeek"); return true; }
       E.deepDone = true;
     }
     if(E.deepDone && tick - E.arr > 0.8*TICK_HZ){
@@ -223,7 +223,7 @@ function ctClutch(b, ct){
   var PH = teamIntel.CT.plantHeard, car = teamIntel.CT.carrier;
   var plantSite = PH && tick - PH.tick < 5*TICK_HZ ? PH.site : null;
   var carSite = null;
-  if(car && tick - car.tick < 8*TICK_HZ){ var dA = Math.hypot(car.x-SITES.A.x, car.y-SITES.A.y), dB = Math.hypot(car.x-SITES.B.x, car.y-SITES.B.y); if(Math.min(dA, dB) < 1000) carSite = dA < dB ? "A" : "B"; }
+  if(car && tick - car.tick < 8*TICK_HZ){ var dA = DM.hypot(car.x-SITES.A.x, car.y-SITES.A.y), dB = DM.hypot(car.x-SITES.B.x, car.y-SITES.B.y); if(Math.min(dA, dB) < 1000) carSite = dA < dB ? "A" : "B"; }
   var mA = beliefCount("CT", BZ.siteNear.A||[]), mB = beliefCount("CT", BZ.siteNear.B||[]);
   var infoSite = mA > mB + 0.5 ? "A" : (mB > mA + 0.5 ? "B" : null);
   // (v530, отметка владельца 10.11: «у него всех убили на A, он до сих пор на посту на B») карта вероятностей за 30 с остыла, и последний CT
@@ -232,18 +232,18 @@ function ctClutch(b, ct){
   var seenSite = null;
   if(!plantSite && !carSite && !infoSite){ var BLc = beliefLast.CT || {}, nA = 0, nB = 0;
     for(var sid in BLc){ var sq = BLc[sid], so = teamBot(sid); if(!so || !so.alive || so.team !== "T" || sq.tick < roundStartTick) continue;
-      if(Math.hypot(sq.x-SITES.A.x, sq.y-SITES.A.y) < Math.hypot(sq.x-SITES.B.x, sq.y-SITES.B.y)) nA++; else nB++; }
+      if(DM.hypot(sq.x-SITES.A.x, sq.y-SITES.A.y) < DM.hypot(sq.x-SITES.B.x, sq.y-SITES.B.y)) nA++; else nB++; }
     if(nA !== nB) seenSite = nA > nB ? "A" : "B"; }
   // (v583a, Д2.2) свой погиб на сайте ≤ 3 с назад (киллфид + радар) — факт, как «видели бомбу»: у про после смерти CT на сайте до планта
   // плант на этом сайте в 90–93 % (220, knowSiteShift); клатч берёт его сразу (знание обновится только в конце тика — без этого брал старый сайт
   // и ждал 8 с выдержки, р2 м302: «играю B» через 20 с)
   var deathSite = null, sgD = teamIntel.CT && teamIntel.CT.sig;
   if(sgD) for(var iD = sgD.length-1; iD >= 0; iD--){ var sD = sgD[iD]; if(tick - sD.tick > 3*TICK_HZ) break; if(sD.type !== "died" || sD.id === b.id) continue;
-    ["A", "B"].forEach(function(X){ if(!deathSite && Math.hypot(sD.x-SITES[X].x, sD.y-SITES[X].y) <= KILL_SITE_R) deathSite = X; }); if(deathSite) break; }
+    ["A", "B"].forEach(function(X){ if(!deathSite && DM.hypot(sD.x-SITES[X].x, sD.y-SITES[X].y) <= KILL_SITE_R) deathSite = X; }); if(deathSite) break; }
   var want = plantSite || carSite || deathSite || infoSite || seenSite;
   var nT = aliveCount("T");
   if(!C.site){
-    C.site = want || (Math.hypot(b.x-SITES.A.x, b.y-SITES.A.y) < Math.hypot(b.x-SITES.B.x, b.y-SITES.B.y) ? "A" : "B");
+    C.site = want || (DM.hypot(b.x-SITES.A.x, b.y-SITES.A.y) < DM.hypot(b.x-SITES.B.x, b.y-SITES.B.y) ? "A" : "B");
     C.since = tick; C.want = want; C.wantSince = tick;
     voiceLog("CT", "clutch", b.id, "я один против "+nT+" — "+(want ? "по инфе они на "+C.site+", играю "+C.site : "угадываю "+C.site+", тяну время"));
   } else if(want && want !== C.site){
@@ -290,12 +290,12 @@ function midCoverPick(cts){
   var best = null, bd = 1e9;
   cts.forEach(function(o){
     if(o.tRole === "mid" || o.planting || o.defusing || o._sawEnemy) return;
-    var k = Math.hypot(o.x-SITES.A.x, o.y-SITES.A.y) < Math.hypot(o.x-SITES.B.x, o.y-SITES.B.y) ? "A" : "B";
+    var k = DM.hypot(o.x-SITES.A.x, o.y-SITES.A.y) < DM.hypot(o.x-SITES.B.x, o.y-SITES.B.y) ? "A" : "B";
     // опорник уходит с сайта, только если на сайте остаётся ещё кто-то
-    if(/^anchor/.test(o.tRole) && cts.filter(function(q){ return q !== o && Math.hypot(q.x-SITES[k].x, q.y-SITES[k].y) < 600; }).length === 0) return;
+    if(/^anchor/.test(o.tRole) && cts.filter(function(q){ return q !== o && DM.hypot(q.x-SITES[k].x, q.y-SITES[k].y) < 600; }).length === 0) return;
     // на его сайте инфа (видели/слышали T за 4с рядом со входом) — нужен там
-    if(intelEstimate("CT", GEO[k].tEntry.x, GEO[k].tEntry.y, 600, 4*TICK_HZ).n > 0 && Math.hypot(o.x-SITES[k].x, o.y-SITES[k].y) < 700) return;
-    var d = Math.hypot(o.x-GEO.ctMid.x, o.y-GEO.ctMid.y) + (o.tRole === "rotator" ? -150 : o.tRole === "roamer" ? -100 : 200);
+    if(intelEstimate("CT", GEO[k].tEntry.x, GEO[k].tEntry.y, 600, 4*TICK_HZ).n > 0 && DM.hypot(o.x-SITES[k].x, o.y-SITES[k].y) < 700) return;
+    var d = DM.hypot(o.x-GEO.ctMid.x, o.y-GEO.ctMid.y) + (o.tRole === "rotator" ? -150 : o.tRole === "roamer" ? -100 : 200);
     if(d < bd){ bd = d; best = o; }
   });
   ct._mcv = {round:roundNum, id: best ? best.id : null, until: tick + 3*TICK_HZ};
@@ -311,7 +311,7 @@ function midCoverPost(b, cts){
     M2 = b._midCover = {round:roundNum, pt: sps2[0] || GEO.ctMid};
     voiceLog("CT", "midcover"+roundNum, b.id, "минус мид — я ближе всех, беру мид");
   }
-  var far = Math.hypot(b.x-M2.pt.x, b.y-M2.pt.y) > 220;
+  var far = DM.hypot(b.x-M2.pt.x, b.y-M2.pt.y) > 220;
   setPost(b, M2.pt, GEO.ctMidLook, true, far ? "midcover:go" : "midcover");
   return true;
   var rotAlive = cts.some(function(o){ return o.tRole === "rotator"; });
@@ -419,7 +419,7 @@ function ctInfoCheck(b, ct, cts){
   var best = null;
   for(var j = 0; j < BZ.ids.length; j++){
     var c = BZ.cent[j]; if(!c || !reachPossible("CT", j)) continue;
-    var d = Math.hypot(c.x-b.x, c.y-b.y); if(d < INFO_MIN_R || d > INFO_R) continue;
+    var d = DM.hypot(c.x-b.x, c.y-b.y); if(d < INFO_MIN_R || d > INFO_R) continue;
     d = Math.max(d, pathLenTo(b, c.x, c.y)); if(d > INFO_R) continue;   // (18.11) «ближе» — по пути (проба в Underpath Stairs была 735 по пути при 400 по прямой)
     var zid = BZ.ids[j], cz = CLEARZ.CT[zid]; if(cz && tick - cz.tick < INFO_QUIET*TICK_HZ) continue;
     if(cts.some(function(o){ return hasVision(o.x, o.y, c.x, c.y); })) continue;

@@ -4,7 +4,7 @@
 // (±15–20°), дистанция гуляет сильнее (±30%). Раньше услышанная точка = реальная
 // + случайный сдвиг в ЛЮБУЮ сторону, одинаковый для открытого места и стен.
 function hearPos(o, sx, sy, seed, occl){
-  var d = Math.hypot(sx-o.x, sy-o.y), a = Math.atan2(sy-o.y, sx-o.x);
+  var d = DM.hypot(sx-o.x, sy-o.y), a = Math.atan2(sy-o.y, sx-o.x);
   var sa = occl ? 0.30 : 0.10, sd = occl ? 0.30 : 0.15;
   var ra = hashRand(seed) + hashRand(seed*7+3) - 1;       // треугольное −1…1: чаще около нуля
   var rd = hashRand(seed*13+5) + hashRand(seed*17+11) - 1;
@@ -22,7 +22,7 @@ function emitSound(src, x, y, rOpen, rWall, kind, seed){
   var heard = [];
   bots.forEach(function(o){
     if(!o.alive || o.team === src.team) return;
-    var d = Math.hypot(o.x-x, o.y-y); if(d > rOpen) return;
+    var d = DM.hypot(o.x-x, o.y-y); if(d > rOpen) return;
     var occl = !hasLOS(o.x, o.y, x, y, o.z); if(occl && d > rWall) return;
     var p = hearPos(o, x, y, seed + (o.id.charCodeAt(o.id.length-1)||0)*131, occl) || {x:x, y:y};
     o.heardSound = hearReal(o, {x:p.x, y:p.y, tick:tick, team:src.team, src:src.id, kind:kind, occl:occl});
@@ -49,7 +49,7 @@ function reloadPeek(b){
   // магазином: сам перезаряжается — не выходит
   if(!R || tick >= R.until || b._sawEnemy || b.planting || b.defusing || b.hp <= 50 || b._reloading) return false;
   if(b._rlPeekDone === R.until) return false;
-  var d = Math.hypot(R.x-b.x, R.y-b.y); if(d > 450 || d < 60) return false;
+  var d = DM.hypot(R.x-b.x, R.y-b.y); if(d > 450 || d < 60) return false;
   b._rlPeekDone = R.until;
   var downN = aliveCount(b.team) < aliveCount(b.team === "CT" ? "T" : "CT");
   if(hashRand(tick*43 + (b.id.charCodeAt(b.id.length-1)||0)*3) > (0.35 + 0.5*prof(b, "aggr"))*(downN ? 0.5 : 1)) return false;
@@ -78,8 +78,8 @@ function bombPassTick(){
     pool = ts.filter(function(b){ return b.hp > 60; }); why = "у меня "+c.hp+" HP";
   }
   if(!pool || !pool.length) return;
-  var to = pool.filter(function(b){ return Math.hypot(b.x-c.x, b.y-c.y) < 180 && !b._sawEnemy; })
-    .sort(function(a, b2){ return Math.hypot(a.x-c.x, a.y-c.y) - Math.hypot(b2.x-c.x, b2.y-c.y); })[0];
+  var to = pool.filter(function(b){ return DM.hypot(b.x-c.x, b.y-c.y) < 180 && !b._sawEnemy; })
+    .sort(function(a, b2){ return DM.hypot(a.x-c.x, a.y-c.y) - DM.hypot(b2.x-c.x, b2.y-c.y); })[0];
   if(!to || c._passTried === roundNum+"|"+to.id) return;
   c._passTried = roundNum+"|"+to.id;
   // бросает под ноги тиммейту — тот подбирает (как дроп в CS)
@@ -106,7 +106,7 @@ function finishPush(b){
   var BL = beliefLast[b.team] || {}, tgt = null, tid = null;
   for(var eid in HT){ var h = HT[eid]; if(h.hp > hpMax || tick - h.tick > 8*TICK_HZ) continue;
     var e = bots.filter(function(o){ return o.id === eid; })[0]; if(!e || !e.alive) continue;
-    var lo = BL[eid]; if(!lo || tick - lo.tick > 4*TICK_HZ || Math.hypot(lo.x-b.x, lo.y-b.y) > 600) continue;
+    var lo = BL[eid]; if(!lo || tick - lo.tick > 4*TICK_HZ || DM.hypot(lo.x-b.x, lo.y-b.y) > 600) continue;
     if(bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o.post && o.post.tag === "repos:finish" && o._finId === eid; })) continue; // уже идёт другой
     tgt = lo; tid = eid; break; }
   if(!tgt) return;
@@ -126,11 +126,11 @@ function smokeFadeTick(){
     sm._fadeReady = sm._fadeReady || {};
     bots.forEach(function(b){
       if(!b.alive || b._sawEnemy || sm._fadeReady[b.id]) return;
-      var d = Math.hypot(b.x-sm.x, b.y-sm.y); if(d > 550 || d < NADE.smoke.radius) return;
+      var d = DM.hypot(b.x-sm.x, b.y-sm.y); if(d > 550 || d < NADE.smoke.radius) return;
       if(!hasLOS(b.x, b.y, sm.x, sm.y, b.z)) return;
       // враг вероятно за дымом: свежая инфа за ним (дальше центра от нас)
       var BL = beliefLast[b.team] || {}, far = null;
-      for(var eid in BL){ var lo = BL[eid]; if(tick - lo.tick > 10*TICK_HZ) continue; if(Math.hypot(lo.x-sm.x, lo.y-sm.y) < 450 && Math.hypot(lo.x-b.x, lo.y-b.y) > d){ far = lo; break; } }
+      for(var eid in BL){ var lo = BL[eid]; if(tick - lo.tick > 10*TICK_HZ) continue; if(DM.hypot(lo.x-sm.x, lo.y-sm.y) < 450 && DM.hypot(lo.x-b.x, lo.y-b.y) > d){ far = lo; break; } }
       if(!far) return;
       sm._fadeReady[b.id] = 1;
       var a = Math.atan2(sm.y-b.y, sm.x-b.x), ex = {x: sm.x + Math.cos(a)*NADE.smoke.radius, y: sm.y + Math.sin(a)*NADE.smoke.radius};
@@ -151,11 +151,11 @@ function awpSmokeTick(){
       var e = bots.filter(function(o){ return o.id === eid; })[0]; if(!e || !e.alive || e.primary !== "AWP") continue;
       var ap = {x:lo.x, y:lo.y};
       var th = bots.filter(function(b){ return b.alive && b.team === team && b.nades && b.nades.smoke > 0 && !b.nadeTask && !b._sawEnemy && b.post &&
-        Math.hypot(b.post.x-ap.x, b.post.y-ap.y) > 300 && Math.hypot(b.post.x-ap.x, b.post.y-ap.y) < 1500 && hasLOS(b.post.x, b.post.y, ap.x, ap.y); })
-        .sort(function(a, c){ return Math.hypot(a.x-ap.x, a.y-ap.y) - Math.hypot(c.x-ap.x, c.y-ap.y); })[0];
+        DM.hypot(b.post.x-ap.x, b.post.y-ap.y) > 300 && DM.hypot(b.post.x-ap.x, b.post.y-ap.y) < 1500 && hasLOS(b.post.x, b.post.y, ap.x, ap.y); })
+        .sort(function(a, c){ return DM.hypot(a.x-ap.x, a.y-ap.y) - DM.hypot(c.x-ap.x, c.y-ap.y); })[0];
       if(!th) continue;
       var sp = {x: ap.x + (th.post.x-ap.x)*0.35, y: ap.y + (th.post.y-ap.y)*0.35};
-      if(Math.hypot(sp.x-th.x, sp.y-th.y) > NADE_THROW_RANGE*1.1 || smokeCovered(sp.x, sp.y)) continue;
+      if(DM.hypot(sp.x-th.x, sp.y-th.y) > NADE_THROW_RANGE*1.1 || smokeCovered(sp.x, sp.y)) continue;
       if(assignNade(th, "smoke", sp, "смок на AWP "+eid, {now:true})){ awpSmokeCd[team] = tick + 15*TICK_HZ;
         voiceLog(team, "awps"+eid, th.id, "AWP "+calloutName(ap.x, ap.y)+" — даю смок на его линию"); return; }
     }
@@ -169,7 +169,7 @@ var BLIND_FIRE_R = 700;   // (v554) проектное число: ед. игр�
 function onBlind(b, threat){
   if(b.planting || b.defusing) return;
   var back = null, tr = b._trail || [];
-  for(var i = tr.length-1; i >= 0; i--){ var q = tr[i]; if(Math.hypot(q.x-b.baseX, q.y-b.baseY) < 40) continue; if(Math.hypot(q.x-b.baseX, q.y-b.baseY) > 220) break;
+  for(var i = tr.length-1; i >= 0; i--){ var q = tr[i]; if(DM.hypot(q.x-b.baseX, q.y-b.baseY) < 40) continue; if(DM.hypot(q.x-b.baseX, q.y-b.baseY) > 220) break;
     if(!hasLOS(q.x, q.y, threat.x, threat.y)){ back = q; break; } }
   // (v554, владелец 11.11: «ослеплённый не должен стоять — уходит в укрытие по памяти, может ошибиться и выйти на врагов») следа
   // назад нет — укрытие от угрозы по знанию карты (findCover, как после фрага): путь строится по памяти, врагов он не видит
@@ -180,21 +180,21 @@ function onBlind(b, threat){
   if(wp){ movePath(b, wp, "blind"); b.pathIdx = 0; }
   // стрелять вслепую — только с настоящей причиной: видел врага перед самой вспышкой (≤ 1 с) и он рядом — он пойдёт на флешку.
   // Очередь в точку, где видел, заводит smokeSpamTick (290, хозяин огня по памяти); попадёт, если враг на линии
-  var fire = threat.tick != null && threat.src !== "call" && tick - threat.tick <= TICK_HZ && Math.hypot(threat.x-b.x, threat.y-b.y) < BLIND_FIRE_R && b.ammo > 0 && b.weapon && !b.weapon.scopeTicks;
+  var fire = threat.tick != null && threat.src !== "call" && tick - threat.tick <= TICK_HZ && DM.hypot(threat.x-b.x, threat.y-b.y) < BLIND_FIRE_R && b.ammo > 0 && b.weapon && !b.weapon.scopeTicks;
   if(fire) b._blind.fire = {x:threat.x, y:threat.y, z:threat.z};   // (v556) очередь заводит хозяин огня по памяти — smokeSpamTick (290)
   logEvent(b.id+": ослеплён — "+(back ? (wp && wp.length > 1 ? "уходит в укрытие по памяти" : "отходит за угол") : "присел, держит направление")+(fire ? ", стреляет вслепую туда, где видел врага" : ""));
   // (S2) тиммейт рядом закрывает угол ослеплённого: смотрит туда и готов стрелять
   var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === b.team && !o._sawEnemy && tick >= (o.blindUntil||0) && nearP(o.x, o.y, o.z, b.x, b.y, b.z, 260) && !o.planting && !o.defusing; });
   mates.forEach(function(o){ o.heardSound = {x:threat.x, y:threat.y, tick:tick, team:b.team === "CT" ? "T" : "CT", src:"?", kind:"call"}; o.lastIntel = {x:threat.x, y:threat.y, tick:tick, src:"call"}; });
   var cov = mates.filter(function(o){ return o.hp > 50 && !(o.post && taskProp(o.post.tag, "blindCoverBusy")); })
-    .sort(function(a, c){ return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(c.x-b.x, c.y-b.y); })[0];
+    .sort(function(a, c){ return DM.hypot(a.x-b.x, a.y-b.y) - DM.hypot(c.x-b.x, c.y-b.y); })[0];
   if(cov){
     // (v151) раньше точка бралась вплотную к ослеплённому — а он в это время
     // отходит по тому же проходу: оба упирались друг в друга и дёргались.
     // Теперь: если угол и так видно — стоим и целимся; иначе шаг рядом с собой,
     // не ближе ~1м к слепому и к точке, куда он отходит
     var cs = hasLOS(cov.x, cov.y, threat.x, threat.y) ? null : pickSpots("covblind"+tick+cov.id, {x:cov.x, y:cov.y}, 3, {rMax:130, minGap:24, see:[threat]})
-          .filter(function(q){ return hasLOS(q.x, q.y, threat.x, threat.y) && Math.hypot(q.x-b.x, q.y-b.y) > 60 && !(back && Math.hypot(q.x-back.x, q.y-back.y) < 60); })[0];
+          .filter(function(q){ return hasLOS(q.x, q.y, threat.x, threat.y) && DM.hypot(q.x-b.x, q.y-b.y) > 60 && !(back && DM.hypot(q.x-back.x, q.y-back.y) < 60); })[0];
     if(!cs){ cov._coverDir = {pt:{x:threat.x, y:threat.y}, until:b.blindUntil}; voiceLog(b.team, "cb"+b.id+tick, cov.id, "держу угол за "+b.id); }
     if(cs){ taskKeep(cov, 0, "sound"); setPost(cov, cs, threat, true, "repos:coverblind"); if(cov.post && cov.post.tag === "repos:coverblind"){ taskKeep(cov, tick + Math.max(2*TICK_HZ, b.blindUntil - tick), "sound"); voiceLog(b.team, "cb"+b.id, cov.id, b.id+" слепой — держу его угол"); } }
   }

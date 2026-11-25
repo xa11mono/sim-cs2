@@ -50,7 +50,7 @@ function posAt(side, x, y){
   var ck = side + (x>>2) + "," + (y>>2), C = POSPREF.at || (POSPREF.at = {});   // кэш по клетке 4 px (геометрия не меняется)
   if(ck in C) return C[ck];
   var best = null, bd = Infinity;
-  KNOW_POSITIONS.points.forEach(function(q){ if(q.side !== side) return; var d = Math.hypot(q.x-x, q.y-y);
+  KNOW_POSITIONS.points.forEach(function(q){ if(q.side !== side) return; var d = DM.hypot(q.x-x, q.y-y);
     if(d <= Math.max(q.spread || 0, 40) && d < bd){ bd = d; best = q; } });
   return C[ck] = best;
 }
@@ -98,7 +98,7 @@ function posRoundEnd(winner){
     if(T && T.round === roundNum){ var bt = 2*TICK_HZ - 1; for(var id in T.t) if(T.t[id] > bt){ bt = T.t[id]; H = {pid: id}; } }
     if(!H) return;
     var q = KNOW_POSITIONS.points.filter(function(z){ return z.id === H.pid; })[0]; if(!q) return;
-    var died = !b.alive && Math.hypot(b.x-q.x, b.y-q.y) <= 60;   // 60 ед. карты — как «погиб у точки» в positions_bake.py
+    var died = !b.alive && DM.hypot(b.x-q.x, b.y-q.y) <= 60;   // 60 ед. карты — как «погиб у точки» в positions_bake.py
     b._posMem = {round: roundNum, half: posHalf(), pid: H.pid, res: died ? "died" : (winner === b.team ? "ok" : "lost")};
   });
 }
@@ -129,7 +129,7 @@ function posSideOf(nm){
   var hold = ["A","B","M"].filter(function(k){ return (POS[k] && POS[k].ctHold || []).indexOf(nm) >= 0; });
   var s = hold.length === 1 ? hold[0] : null;
   if(!s){ var p = zonePoint(nm, GEO.ctMid), cs = hold.length ? hold : ["A","B","M"], ref = {A: SITES.A, B: SITES.B, M: GEO.ctMid};
-    if(p){ var c = cs.map(function(k){ return [k, Math.hypot(p.x-ref[k].x, p.y-ref[k].y)]; }).sort(function(a, d){ return a[1]-d[1]; }); s = c[0][0]; } }
+    if(p){ var c = cs.map(function(k){ return [k, DM.hypot(p.x-ref[k].x, p.y-ref[k].y)]; }).sort(function(a, d){ return a[1]-d[1]; }); s = c[0][0]; } }
   if(s) POS_SIDE[nm] = s;   // нет точки зоны (ещё не готовы при загрузке) — не запоминается
   return s;
 }
@@ -172,7 +172,7 @@ function posPickName(b, names, seed){
   // (док 6) с ПП / пистолетом место дальше от подхода T, чем дальность оружия, — реже (wpnRangeFit; подходы T — GEO: входы A, B и мид T)
   var TE = b.team === "CT" ? [GEO.A && GEO.A.tEntry, GEO.B && GEO.B.tEntry, GEO.tMid].filter(Boolean) : [];
   var fitOf = function(nm){ if(!TE.length) return 1; var p = zonePoint(nm, GEO.ctMid); if(!p) return 1;
-    return wpnRangeFit(b, Math.min.apply(null, TE.map(function(e){ return Math.hypot(e.x-p.x, e.y-p.y); }))); };
+    return wpnRangeFit(b, Math.min.apply(null, TE.map(function(e){ return DM.hypot(e.x-p.x, e.y-p.y); }))); };
   var w = names.map(function(nm){
     if(own.length) return (BAL.proFloor*0.1 + (ownBy[normZoneName(nm)] || 0))*fitOf(nm);
     var ids = zonesByName(nm), best = 0;
@@ -223,17 +223,17 @@ function holdCands(center, rMin, rMax, team){
   KNOW_POSITIONS.points.forEach(function(P){
     if(P.side !== team) return;
     P.spots.concat([[P.x, P.y]]).forEach(function(q){
-      var d = Math.hypot(q[0]-center.x, q[1]-center.y);
+      var d = DM.hypot(q[0]-center.x, q[1]-center.y);
       if(d < rMin || d > rMax || insideSolidWall(q[0], q[1])) return;
-      if(out.some(function(c){ return Math.hypot(c.x-q[0], c.y-q[1]) < 12; })) return;
+      if(out.some(function(c){ return DM.hypot(c.x-q[0], c.y-q[1]) < 12; })) return;
       out.push({x:q[0], y:q[1], d:d, pro:true});
     });
   });
   NAVAREAS.forEach(function(z){
     if(NAV_BLOCKED[z.id] || !(zoneGraph[z.id]||[]).length) return;
-    var c = zoneCentroid(z), d = Math.hypot(c.x-center.x, c.y-center.y);
+    var c = zoneCentroid(z), d = DM.hypot(c.x-center.x, c.y-center.y);
     if(d < rMin || d > rMax || insideSolidWall(c.x, c.y)) return;
-    if(out.some(function(q){ return Math.hypot(q.x-c.x, q.y-c.y) < 24; })) return;   // прореживание
+    if(out.some(function(q){ return DM.hypot(q.x-c.x, q.y-c.y) < 24; })) return;   // прореживание
     out.push({x:c.x, y:c.y, d:d});
   });
   HOLD_CANDS[k] = out; return out;
@@ -253,28 +253,28 @@ function holdSpot(b, T){
   var cands = holdCands(center, T.rMin || 0, T.rMax || 340, team);
   var mustPts = T.must || [];
   // (v518c) опасные входы, которые ещё никто из своих в этой группе не держит
-  var uncov = E.filter(function(e){ return e.wn >= HOLD.uncov && !(T.mates||[]).some(function(m){ return m.see && Math.hypot(m.see.pt.x-e.pt.x, m.see.pt.y-e.pt.y) < 60; }); });
+  var uncov = E.filter(function(e){ return e.wn >= HOLD.uncov && !(T.mates||[]).some(function(m){ return m.see && DM.hypot(m.see.pt.x-e.pt.x, m.see.pt.y-e.pt.y) < 60; }); });
   var eval1 = function(c, useMust){
     // (v530, отметка владельца 10.11 «у всех постплант в одной зоне — повтор уже исправлявшейся ошибки»: троим выдана одна точка, 355,647) место,
     // которое в этой группе уже занял свой (ближе «личного места» SPOT_PERSONAL — граница из демок), — не вариант: двое в одной точке не стоят.
     // Раньше это был только штраф (HOLD.stack), и когда точек с видом на бомбу мало, лучшая всё равно побеждала у всех
     // (v570, владелец 12.11: «на пост-планте до сих пор стоят кучно» — точки 81 ед. друг от друга, обе на бомбу) сначала — не ближе «своей
     // линии» OWN_LINE_GAP (110): одно место можно держать вдвоём, но с разных позиций, а не плечом к плечу; нет таких — личное место, как было
-    if((T.mates||[]).some(function(m){ return Math.hypot(m.pt.x-c.x, m.pt.y-c.y) < (T.gap || SPOT_PERSONAL); })) return null;
+    if((T.mates||[]).some(function(m){ return DM.hypot(m.pt.x-c.x, m.pt.y-c.y) < (T.gap || SPOT_PERSONAL); })) return null;
     if(useMust && !mustPts.every(function(m){ return hasLOS(c.x, c.y, m.x, m.y); })) return null;
     var main = 0, mainE = null, open = 0;
     E.forEach(function(e){ if(!hasLOS(c.x, c.y, e.pt.x, e.pt.y)) return; var v = e.wn; open += v; if(v > main){ main = v; mainE = e; } });
-    var s = HOLD.seeMain*main*(mainE ? wpnRangeFit(b, Math.hypot(c.x-mainE.pt.x, c.y-mainE.pt.y)) : 1) - HOLD.extraOpen*(open - main), why = [];   // (док 6) вход дальше дальности оружия — виден, но держать его хуже
+    var s = HOLD.seeMain*main*(mainE ? wpnRangeFit(b, DM.hypot(c.x-mainE.pt.x, c.y-mainE.pt.y)) : 1) - HOLD.extraOpen*(open - main), why = [];   // (док 6) вход дальше дальности оружия — виден, но держать его хуже
     var ex = spotExposure(team, c.x, c.y); if(ex > 1) s -= HOLD.staticOpen*(ex - 1);
-    if(tick - (b.lastShotTick||-1e9) < HOLD.burnSec*TICK_HZ && Math.hypot(c.x-b.x, c.y-b.y) < HOLD.burnR){ s -= HOLD.burned; why.push("засвечен"); }
+    if(tick - (b.lastShotTick||-1e9) < HOLD.burnSec*TICK_HZ && DM.hypot(c.x-b.x, c.y-b.y) < HOLD.burnR){ s -= HOLD.burned; why.push("засвечен"); }
     if(intelDeathsNear(team, c.x, c.y, HOLD.burnR, 10*TICK_HZ) > 0){ s -= HOLD.burned; why.push("тут убили своего"); }
     (T.mates||[]).forEach(function(m){
-      var dm = Math.hypot(m.pt.x-c.x, m.pt.y-c.y);
+      var dm = DM.hypot(m.pt.x-c.x, m.pt.y-c.y);
       if(dm < HOLD.stackR) s -= HOLD.stack;
       // (v518c, пак 09.11 п.8; Р-21: «держу бомбу, смотрю Hole» ×3) тот же главный вход, а другой опасный вход (≥ HOLD.uncov доли главного) никто
       // из своих не держит — штраф, а не бонус кроссфайра: сначала закрыть входы, потом кроссфайр на один
-      else if(mainE && m.see && Math.hypot(m.see.pt.x-mainE.pt.x, m.see.pt.y-mainE.pt.y) < 60 && uncov.length) s -= HOLD.cross;
-      else if(mainE && m.see && Math.hypot(m.see.pt.x-mainE.pt.x, m.see.pt.y-mainE.pt.y) < 60 && dm > 90){
+      else if(mainE && m.see && DM.hypot(m.see.pt.x-mainE.pt.x, m.see.pt.y-mainE.pt.y) < 60 && uncov.length) s -= HOLD.cross;
+      else if(mainE && m.see && DM.hypot(m.see.pt.x-mainE.pt.x, m.see.pt.y-mainE.pt.y) < 60 && dm > 90){
         var a1 = Math.atan2(c.y-mainE.pt.y, c.x-mainE.pt.x), a2 = Math.atan2(m.pt.y-mainE.pt.y, m.pt.x-mainE.pt.x);
         var da = _angOff(a1, a2); if(da > 0.87 && da < 2.1) s += HOLD.cross; else if(da > 0.5) s += HOLD.cross*0.4;
       }
@@ -282,9 +282,9 @@ function holdSpot(b, T){
     // (v246) где этот игрок с этим оружием обычно стоит (и не туда, где только что не сработало); после планта — тепловая карта
     if(!(bomb && bomb.state === "planted")){ var qp = c.pos !== undefined ? c.pos : (c.pos = posAt(team, c.x, c.y)); s += HOLD.pro * posPref(b, qp); }
     else s += HOLD.pro * proAt(team, c.x, c.y);
-    s -= HOLD.travel * Math.hypot(c.x-b.x, c.y-b.y)*1.2/1000;
+    s -= HOLD.travel * DM.hypot(c.x-b.x, c.y-b.y)*1.2/1000;
     s -= HOLD.objDist * c.d / (T.rMax || 340);
-    if(b._hTask && b._hTask.key === T.key && Math.hypot(c.x-b._hTask.pt.x, c.y-b._hTask.pt.y) < 40) s += HOLD.keep;
+    if(b._hTask && b._hTask.key === T.key && DM.hypot(c.x-b._hTask.pt.x, c.y-b._hTask.pt.y) < 40) s += HOLD.keep;
     return {pt:{x:c.x, y:c.y}, s:s, main:mainE, open:open, why:why};
   };
   var best = null;
@@ -309,7 +309,7 @@ var PP_ZONE_R = 150, PP_LATE = 5, PP_DUP = 0.3, PP_LOOK_D = 300, PP_SIDE = 0.52,
 function ppProZone(bp, site){
   var best = null, bd = PP_ZONE_R;
   ((MAP.postplant && MAP.postplant.plants) || []).forEach(function(z){ if(z.site !== site || !z.spots || z.spots.length < 2) return;
-    var d = Math.hypot(z.x-bp.x, z.y-bp.y); if(d < bd){ bd = d; best = z; } });
+    var d = DM.hypot(z.x-bp.x, z.y-bp.y); if(d < bd){ bd = d; best = z; } });
   return best;
 }
 // (v583a, Д16, владелец 17.11: «может чуть выйти левее, к Drop, посмотреть Short, никто ли не пришёл — живее») после планта зона с угрозой
@@ -324,9 +324,9 @@ function ppCheckStep(members, bp){
   var Zs = [];
   BZ.cent.forEach(function(c, j){ if(!c) return; var w = beliefZoneKnown("T", j); if(w < 0.03) return;
     var P = pathPts(c.x, c.y, bp.x, bp.y); if(!P || P.length < 2) return;
-    var e = null, acc = 0; for(var i = P.length-1; i > 0; i--){ var sl = Math.hypot(P[i][0]-P[i-1][0], P[i][1]-P[i-1][1]); if(acc + sl >= PP_ENTRY){ var q = (PP_ENTRY-acc)/(sl || 1); e = {x: P[i][0] + (P[i-1][0]-P[i][0])*q, y: P[i][1] + (P[i-1][1]-P[i][1])*q}; break; } acc += sl; }
+    var e = null, acc = 0; for(var i = P.length-1; i > 0; i--){ var sl = DM.hypot(P[i][0]-P[i-1][0], P[i][1]-P[i-1][1]); if(acc + sl >= PP_ENTRY){ var q = (PP_ENTRY-acc)/(sl || 1); e = {x: P[i][0] + (P[i-1][0]-P[i][0])*q, y: P[i][1] + (P[i-1][1]-P[i][1])*q}; break; } acc += sl; }
     if(!e) return;
-    var m = Zs.filter(function(z){ return Math.hypot(z.c.x-e.x, z.c.y-e.y) < 120; })[0];
+    var m = Zs.filter(function(z){ return DM.hypot(z.c.x-e.x, z.c.y-e.y) < 120; })[0];
     if(m) m.w += w; else Zs.push({j: "e" + Math.round(e.x/40) + "," + Math.round(e.y/40), c: e, w: w}); });
   Zs = Zs.filter(function(z){ return z.w >= PP_CHK_MIN; }).sort(function(a, c){ return c.w - a.w; });
   Zs.forEach(function(z){
@@ -336,7 +336,7 @@ function ppCheckStep(members, bp){
     members.forEach(function(o){ if(!o.atPost || !o.post || (o._ppChk && tick - o._ppChk.t0 < PP_CHK_EVERY*TICK_HZ)) return;
       var sp = pickSpots("ppchk" + z.j + o.id + Math.round(o.post.x) + "," + Math.round(o.post.y), {x: o.post.x, y: o.post.y}, 1, {rMin: 16, rMax: PP_CHK_R, see: [z.c], minGap: 20})[0];
       if(!sp || !hasLOS(sp.x, sp.y, z.c.x, z.c.y) || smokeBlocks(sp.x, sp.y, z.c.x, z.c.y)) return;
-      var d = Math.hypot(sp.x-o.x, sp.y-o.y); if(d < bd){ bd = d; best = o; bpt = sp; } });
+      var d = DM.hypot(sp.x-o.x, sp.y-o.y); if(d < bd){ bd = d; best = o; bpt = sp; } });
     if(best){ best._ppChk = {j: z.j, pt: {x: bpt.x, y: bpt.y}, look: {x: z.c.x, y: z.c.y}, t0: tick};
       logEvent(best.id + ": после планта — шаг, посмотреть " + calloutName(z.c.x, z.c.y).replace(/^на /,"")); }
   });
@@ -355,7 +355,7 @@ function ppProGroup(members, bp, site, tag){
       var sc = s.share*Math.exp(-Math.max(0, T[b.id][i] - (s.tArr || 0))/PP_LATE);
       if(taken[i]) sc *= Math.pow(s.two || 0, taken[i]);
       var a0 = s.look && s.look[0] ? s.look[0][0] : null;
-      if(a0 !== null && chosen.some(function(c){ return c !== s && Math.hypot(c.x-s.x, c.y-s.y) < 120 && c.look && c.look[0] && _angOff(c.look[0][0], a0) < 0.52; })) sc *= PP_DUP;
+      if(a0 !== null && chosen.some(function(c){ return c !== s && DM.hypot(c.x-s.x, c.y-s.y) < 120 && c.look && c.look[0] && _angOff(c.look[0][0], a0) < 0.52; })) sc *= PP_DUP;
       // (отметка владельца 18.11, м5 р1: «все пошли в рампу — одной гранатой закроешь; лучше распределять, как на B — каждый своё») кто с кем
       // стоит у про (pair, демки): множитель — во сколько раз место чаще занято при уже выбранном, чем вообще; и разведение: место с той же
       // стороны от бомбы (направление от бомбы ближе PP_SIDE), что уже занятое, — ×PP_SIDE_K
@@ -380,14 +380,14 @@ function ppProGroup(members, bp, site, tag){
 }
 function holdGroup(members, T, tag){
   var chosen = [];
-  members.slice().sort(function(a, c){ return Math.hypot(a.x-T.center.x, a.y-T.center.y) - Math.hypot(c.x-T.center.x, c.y-T.center.y); })
+  members.slice().sort(function(a, c){ return DM.hypot(a.x-T.center.x, a.y-T.center.y) - DM.hypot(c.x-T.center.x, c.y-T.center.y); })
   .forEach(function(b){
     var H = b._hTask, same = H && H.key === T.key && H.round === roundNum;
     // издалека точку не перевыбираем (иначе, пока идёт, "сколько идти" меняется
     // и он бегает между почти равными точками) — только если сменился главный вход
-    var far = same && Math.hypot(b.x-T.center.x, b.y-T.center.y) > (T.rMax || 340) + 250;
+    var far = same && DM.hypot(b.x-T.center.x, b.y-T.center.y) > (T.rMax || 340) + 250;
     if(far && tick - H.t >= HOLD.reeval){ var E0 = threatEntrances(b.team, T.center, T.rArea || 280)[0];
-      if(E0 && H.see && Math.hypot(E0.pt.x-H.see.pt.x, E0.pt.y-H.see.pt.y) < 60) H.t = tick; }
+      if(E0 && H.see && DM.hypot(E0.pt.x-H.see.pt.x, E0.pt.y-H.see.pt.y) < 60) H.t = tick; }
     var fresh = same && tick - H.t < HOLD.reeval;
     if(!fresh){
       // mustFirst: бомбу (цель) обязательно видит только первый; остальные держат
@@ -396,14 +396,14 @@ function holdGroup(members, T, tag){
       // (v568, отметка владельца м3 р1: «боты снова часто меняют точки пост-планта» — каждые 2 с T менялись точками по кругу: первый по порядку
       // забирал точку соседа, считая её свободной) занятые — и уже выбранные в этом проходе, и текущие точки остальных из этой группы
       var held = chosen.concat(members.filter(function(o){ var Ho = o._hTask; return o !== b && Ho && Ho.key === T.key && Ho.round === roundNum &&
-        !chosen.some(function(c){ return Math.hypot(c.pt.x-Ho.pt.x, c.pt.y-Ho.pt.y) < 1; }); }).map(function(o){ return {pt:o._hTask.pt, see:o._hTask.see}; }));
+        !chosen.some(function(c){ return DM.hypot(c.pt.x-Ho.pt.x, c.pt.y-Ho.pt.y) < 1; }); }).map(function(o){ return {pt:o._hTask.pt, see:o._hTask.see}; }));
       var hT = {key:T.key, center:T.center, rArea:T.rArea, rMin:T.rMin, rMax:(T.mustFirst && chosen.length > 0 && T.rMax2) || T.rMax, must:mustNow, mates:held, anyFrom:T.anyFrom, gap:OWN_LINE_GAP};
       var r = holdSpot(b, hT); if(!r){ hT.gap = SPOT_PERSONAL; r = holdSpot(b, hT); }
       // (v373, сторож: «метание» — двое на пост-планте каждые пару секунд менялись проходами, войс «держу бомбу, смотрю…»
       // спамился) пересмотр точки — новая, только если она заметно лучше старой (на 15 % — проектное число) и старую не занял свой
-      if(r && same && H.pt && r.s < (H.s || 0) + Math.abs(H.s || 0)*0.15 + 0.01 && !chosen.some(function(c){ return Math.hypot(c.pt.x-H.pt.x, c.pt.y-H.pt.y) < 60; })){ H.t = tick; r = null; }
+      if(r && same && H.pt && r.s < (H.s || 0) + Math.abs(H.s || 0)*0.15 + 0.01 && !chosen.some(function(c){ return DM.hypot(c.pt.x-H.pt.x, c.pt.y-H.pt.y) < 60; })){ H.t = tick; r = null; }
       if(r){
-        var moved = !H || H.key !== T.key || Math.hypot(r.pt.x-H.pt.x, r.pt.y-H.pt.y) > 40;
+        var moved = !H || H.key !== T.key || DM.hypot(r.pt.x-H.pt.x, r.pt.y-H.pt.y) > 40;
         b._hTask = {key:T.key, round:roundNum, t:tick, pt:r.pt, look:r.look, see:r.main, s:r.s};
         if(moved && T.voice) T.voice(b, r);
       }

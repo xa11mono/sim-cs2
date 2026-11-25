@@ -29,12 +29,12 @@ function beliefBuild(){
   ["A","B"].forEach(function(k){
     BZ.siteZ[k] = [];
     if(!SITES[k]) return;
-    BZ.cent.forEach(function(c,i){ if(Math.hypot(c.x-SITES[k].x, c.y-SITES[k].y) < 240 || bzOf(SITES[k].x, SITES[k].y) === i) BZ.siteZ[k].push(i); });
+    BZ.cent.forEach(function(c,i){ if(DM.hypot(c.x-SITES[k].x, c.y-SITES[k].y) < 240 || bzOf(SITES[k].x, SITES[k].y) === i) BZ.siteZ[k].push(i); });
     BZ.siteNear = BZ.siteNear || {}; BZ.siteNear[k] = [];
-    BZ.cent.forEach(function(c,i){ if(Math.hypot(c.x-SITES[k].x, c.y-SITES[k].y) < 400) BZ.siteNear[k].push(i); });
+    BZ.cent.forEach(function(c,i){ if(DM.hypot(c.x-SITES[k].x, c.y-SITES[k].y) < 400) BZ.siteNear[k].push(i); });
   });
   BZ.midZ = [];
-  if(GEO.ctMid) BZ.cent.forEach(function(c,i){ if(Math.hypot(c.x-GEO.ctMid.x, c.y-GEO.ctMid.y) < 260) BZ.midZ.push(i); });
+  if(GEO.ctMid) BZ.cent.forEach(function(c,i){ if(DM.hypot(c.x-GEO.ctMid.x, c.y-GEO.ctMid.y) < 260) BZ.midZ.push(i); });
   BZ.DT = null; if(typeof OUTWARD_CACHE !== "undefined") OUTWARD_CACHE = {};
 }
 function bzDist(src){
@@ -44,7 +44,7 @@ function bzDist(src){
     var u = -1, bd = 1e9;
     for(var i=0;i<n;i++) if(!done[i] && D[i] < bd){ bd = D[i]; u = i; }
     if(u < 0) break; done[u] = 1;
-    BZ.nbr[u].forEach(function(v){ var w = Math.hypot(BZ.cent[u].x-BZ.cent[v].x, BZ.cent[u].y-BZ.cent[v].y); if(D[u]+w < D[v]) D[v] = D[u]+w; });
+    BZ.nbr[u].forEach(function(v){ var w = DM.hypot(BZ.cent[u].x-BZ.cent[v].x, BZ.cent[u].y-BZ.cent[v].y); if(D[u]+w < D[v]) D[v] = D[u]+w; });
   }
   return D;
 }
@@ -56,7 +56,7 @@ function bzOf(x, y){
     var z = ZONEMAP.zones[i];
     if(pointInPoly(x, y, z.points)){ best = i; break; }
     var c = BZ.cent[i]; if(!c) continue;
-    var d = Math.hypot(c.x-x, c.y-y); if(d < bd){ bd = d; best = i; }
+    var d = DM.hypot(c.x-x, c.y-y); if(d < bd){ bd = d; best = i; }
   }
   BZ.grid[k] = best;
   return best;
@@ -153,7 +153,7 @@ function reachStepOne(R, clearList){
     if(fixed[u] && R[u] > tick) continue; // держат свои — дальше через неё не пройти
     var nbu = BZ.nbr[u], cu = BZ.cent[u]; if(!cu) continue;
     for(var k0=0;k0<nbu.length;k0++){ var v = nbu[k0], cv = BZ.cent[v]; if(!cv || done[v] || fixed[v] || R[v] <= tick) continue;
-      var tv = D[u] + Math.hypot(cu.x-cv.x, cu.y-cv.y)/SPEED*TICK_HZ; if(tv < D[v]) D[v] = tv; }
+      var tv = D[u] + DM.hypot(cu.x-cv.x, cu.y-cv.y)/SPEED*TICK_HZ; if(tv < D[v]) D[v] = tv; }
   }
   for(var i2=0;i2<n;i2++) if(R[i2] > tick && !fixed[i2]) R[i2] = D[i2];
   return;
@@ -161,7 +161,7 @@ function reachStepOne(R, clearList){
     for(var i=0;i<R.length;i++){
       var nb = BZ.nbr[i], ci = BZ.cent[i]; if(!ci) continue;
       for(var k=0;k<nb.length;k++){ var j = nb[k], cj = BZ.cent[j]; if(!cj) continue;
-        var t = R[j] + Math.hypot(ci.x-cj.x, ci.y-cj.y)/SPEED*TICK_HZ;
+        var t = R[j] + DM.hypot(ci.x-cj.x, ci.y-cj.y)/SPEED*TICK_HZ;
         if(t < R[i]) R[i] = t; }
     }
   }
@@ -169,6 +169,6 @@ function reachStepOne(R, clearList){
 function beliefMassNear(team, eid, x, y, r){
   var P = belief[team] && belief[team][eid]; if(!P) return 0;
   var t = 0, z0 = bzOf(x, y);
-  for(var i=0;i<P.length;i++){ if(!P[i]) continue; var c = BZ.cent[i]; if(i === z0 || (c && Math.hypot(c.x-x, c.y-y) <= r)) t += P[i]; }
+  for(var i=0;i<P.length;i++){ if(!P[i]) continue; var c = BZ.cent[i]; if(i === z0 || (c && DM.hypot(c.x-x, c.y-y) <= r)) t += P[i]; }
   return t;
 }

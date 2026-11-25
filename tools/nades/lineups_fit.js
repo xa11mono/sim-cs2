@@ -5,6 +5,7 @@
 // время ≤ M с — пороги В2), e50 (медиана ошибки, ед.). И печатает проверку «без матчей» — по типам.
 // node tools/nades/lineups_fit.js <карта>
 'use strict';
+require('../dmath/global.js');   // (Р2.3) DM — общая математика игры (файлы игры зовут DM.*)
 const fs = require('fs'), path = require('path');
 const ROOT = path.join(__dirname, '..', '..');
 const NP = require(path.join(ROOT, 'src', 'game', '385_nades_flight.js')), P = NP.NADE_P;

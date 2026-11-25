@@ -35,7 +35,7 @@ function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
   if(bot.team === "T" && aliveCount("T") === 1 && aliveCount("CT") >= 2 && tick - (bot._defuseHeard||-9999) > 110){
     var LKc = beliefLast.T || {}, kF = enemiesSeen;
     for(var eC in LKc){ var qC = LKc[eC]; if(tick - qC.tick < 3*TICK_HZ && nearP(qC.x, qC.y, qC.z, bot.x, bot.y, bot.z, 700) && bots.some(function(o){ return o.id === eC && o.alive; })) kF = Math.max(kF, 1) + (enemiesSeen ? 0 : 0); }
-    var kN = 0; for(var eC2 in LKc){ var q2 = LKc[eC2]; if(tick - q2.tick < 3*TICK_HZ && Math.hypot(q2.x-bot.x, q2.y-bot.y) < 700) kN++; }
+    var kN = 0; for(var eC2 in LKc){ var q2 = LKc[eC2]; if(tick - q2.tick < 3*TICK_HZ && DM.hypot(q2.x-bot.x, q2.y-bot.y) < 700) kN++; }
     if(Math.max(enemiesSeen, kN) >= 2){ retreatScore += 0.4; engageScore -= 0.3;
       if(bot._tcV !== roundNum){ bot._tcV = roundNum; voiceLog("T", "tcl"+roundNum, bot.id, "я один против "+aliveCount("CT")+" — не беру двоих сразу, по одному"); } }
   }
@@ -199,11 +199,11 @@ function postKillDecide(sh, tg, vp, here){
   var pa = prof(sh, "aggr"), seed = tick*53 + (sh.id.charCodeAt(sh.id.length-1)||0)*17;
   // 1) откат: их рядом двое и больше (и нас тут меньше), или мало HP — уйти с засвеченной точки
   if(!ctMust && ((known.length >= 2 && known.length > mates) || sh.hp <= 45)){
-    var dvx = here.x - vp.x, dvy = here.y - vp.y, dvl = Math.max(1, Math.hypot(dvx, dvy));
+    var dvx = here.x - vp.x, dvy = here.y - vp.y, dvl = Math.max(1, DM.hypot(dvx, dvy));
     var back = walk({x: here.x + dvx/dvl*170, y: here.y + dvy/dvl*170});
     var hide = [vp].concat(known.map(function(k){ return {x:k.x, y:k.y}; })), akT = coverThreats(sh, hide);
     var np = pickSpots("pkb"+tick+sh.id, back, 4, {rMin:0, rMax:200, minGap:50, see: sh.post && sh.post.look ? [sh.post.look] : [], hideFrom:hide})
-      .filter(function(p){ return Math.hypot(p.x-here.x, p.y-here.y) > 70; }); np = coverPick(np, coverZ(sh), akT);   // (18.11) общая проверка укрытия (470)
+      .filter(function(p){ return DM.hypot(p.x-here.x, p.y-here.y) > 70; }); np = coverPick(np, coverZ(sh), akT);   // (18.11) общая проверка укрытия (470)
     if(np){
       taskKeep(sh, 0, "afterkill"); sh._probeLock = 0;
       setPost(sh, np, vp, true, "repos:back");
@@ -217,7 +217,7 @@ function postKillDecide(sh, tg, vp, here){
     if(hashRand(seed) < pPush){
       var tgt = known[0] ? {x:known[0].x, y:known[0].y} : vp;
       var sw = pickSpots("pkp"+tick+sh.id, vp, 4, {rMax:150, minGap:40, see:[tgt]})
-        .filter(function(p){ return Math.hypot(p.x-here.x, p.y-here.y) > 60; })[0] || vp;
+        .filter(function(p){ return DM.hypot(p.x-here.x, p.y-here.y) > 60; })[0] || vp;
       taskKeep(sh, 0, "afterkill");
       setPost(sh, sw, tgt, true, "repos:push");
       if(sh.post && sh.post.tag === "repos:push"){ leaveHold(sh); taskKeep(sh, tick + 3*TICK_HZ, "afterkill");
@@ -242,7 +242,7 @@ function killMoveCover(sh, tg){
   if(sh._contact) sh._contact = null;   // выход на контакт закончен — враг, на которого выходил, убит (иначе пост контакта держал его на месте)
   var hereK = {x:sh.x, y:sh.y}, vpK = {x:tg.x, y:tg.y}, seeK = sh.post && sh.post.look ? [sh.post.look] : [];
   var spK = pickSpots("kmv"+tick+sh.id, hereK, 3, {rMin:KILL_MOVE[0], rMax:KILL_MOVE[1], minGap:30, hideFrom:[vpK], see:seeK})
-    .filter(function(q){ return Math.hypot(q.x-hereK.x, q.y-hereK.y) >= KILL_MOVE[0]; })[0];
+    .filter(function(q){ return DM.hypot(q.x-hereK.x, q.y-hereK.y) >= KILL_MOVE[0]; })[0];
   if(!spK) return false;
   taskKeep(sh, 0, "afterkill"); sh._probeLock = 0; fcEnd(sh, "конец: враг убит — иду дальше");   // перестрелка с убитым кончилась — цикл «линия/укрытие» не держит на месте
   setPost(sh, spK, sh.post && sh.post.look ? sh.post.look : vpK, true, "repos:killmove");
@@ -256,12 +256,12 @@ function afterKillReact(sh, tg, w){
   if(sh.post && taskProp(sh.post.tag, "saveTask") && sh._saveSpot){
     var hereS = {x:sh.x, y:sh.y}, vpS = {x:tg.x, y:tg.y};
     var altS = pickSpots("svmv"+tick+sh.id, hereS, 4, {rMin:170, rMax:480, minGap:60, hideFrom:[vpS, hereS]})
-      .filter(function(q){ return Math.hypot(q.x-hereS.x, q.y-hereS.y) > 150 && !hasLOS(q.x, q.y, vpS.x, vpS.y); })[0];
+      .filter(function(q){ return DM.hypot(q.x-hereS.x, q.y-hereS.y) > 150 && !hasLOS(q.x, q.y, vpS.x, vpS.y); })[0];
     if(altS){ sh._saveSpot = altS; logEvent(sh.id+": на сейве — меняю позицию после фрага ("+calloutName(altS.x, altS.y)+")"); return true; }
   }
   // (v248) враги рядом — по тому, что команда знает (ЛИП ≤ 5 с, живые по киллфиду), а не настоящие позиции
   var LKk = beliefLast[sh.team] || {}, foesNear = [];
-  for(var eK in LKk){ var qK = LKk[eK]; if(eK === tg.id || tick - qK.tick > 5*TICK_HZ || Math.hypot(qK.x-sh.x, qK.y-sh.y) >= 1400) continue;
+  for(var eK in LKk){ var qK = LKk[eK]; if(eK === tg.id || tick - qK.tick > 5*TICK_HZ || DM.hypot(qK.x-sh.x, qK.y-sh.y) >= 1400) continue;
     if(bots.some(function(o){ return o.id === eK && o.alive; })) foesNear.push({id: eK, x: qK.x, y: qK.y}); }
   if(!foesNear.length) return false;   // (v370) без известных врагов — в укрытие (killMoveCover)
   var mates = bots.filter(function(o){ return o !== sh && o.alive && o.team === sh.team && nearP(o.x, o.y, o.z, sh.x, sh.y, sh.z, TRADE_R); }).length;
@@ -282,7 +282,7 @@ function afterKillReact(sh, tg, w){
     // держал пост (опорник/линия) — новый угол должен видеть и то, что он держал
     var seeA = [vp]; if(sh.post && sh.post.look && sh.post.tag !== "repos") seeA.push(sh.post.look);
     var alt = pickSpots("awpr"+tick+sh.id, here, 4, {rMin:100, rMax:260, minGap:60, see:seeA, hideFrom:others, cross:{from:here, pt:vp}});
-    var ap = alt.filter(function(q){ return Math.hypot(q.x-here.x, q.y-here.y) > 90; })[0];
+    var ap = alt.filter(function(q){ return DM.hypot(q.x-here.x, q.y-here.y) > 90; })[0];
     if(!ap) return false;
     taskKeep(sh, 0, "afterkill"); sh._probeLock = 0;
     setPost(sh, ap, vp, true, "repos");
@@ -301,7 +301,7 @@ function afterKillReact(sh, tg, w){
   var foes700 = foesNear.filter(function(o){ return nearP(o.x, o.y, o.z, sh.x, sh.y, sh.z, 700); });
   if(mates >= 1 && roundGoal(sh.team) !== "keepGuns" && pa >= 0.75 && pr >= 0.7 && sh.hp > 60 && foes700.length >= 1 && foes700.length <= 2 && hashRand(tick*41 + sh.id.charCodeAt(1)*3) < pa*0.6){
     var sw = pickSpots("swing"+tick+sh.id, vp, 3, {rMax:140, minGap:40})[0] || vp;
-    var nf = foesNear.slice().sort(function(a, c){ return Math.hypot(a.x-vp.x, a.y-vp.y) - Math.hypot(c.x-vp.x, c.y-vp.y); })[0];
+    var nf = foesNear.slice().sort(function(a, c){ return DM.hypot(a.x-vp.x, a.y-vp.y) - DM.hypot(c.x-vp.x, c.y-vp.y); })[0];
     taskKeep(sh, 0, "afterkill");
     setPost(sh, sw, {x:nf.x, y:nf.y}, true, "repos:swing");
     if(!sh.post || sh.post.tag !== "repos:swing") return false;
@@ -322,11 +322,11 @@ function shiftHold(sh, vp, exceptId, why){
   if(sh._hs && sh._hs.round === roundNum && tick - sh._hs.t < 8*TICK_HZ) return false;
   var here = {x:sh.x, y:sh.y}, knownE = [], LKs = beliefLast[sh.team] || {};
   for(var eH in LKs){ var qH = LKs[eH]; if(eH !== exceptId && tick - qH.tick < 10*TICK_HZ && nearP(qH.x, qH.y, qH.z, sh.x, sh.y, sh.z, 1400)) knownE.push({x:qH.x, y:qH.y}); }
-  var dvx = here.x - vp.x, dvy = here.y - vp.y, dvl = Math.max(1, Math.hypot(dvx, dvy));
+  var dvx = here.x - vp.x, dvy = here.y - vp.y, dvl = Math.max(1, DM.hypot(dvx, dvy));
   var back = walk({x: here.x + dvx/dvl*170, y: here.y + dvy/dvl*170});
   var seeL = sh.post.look ? [sh.post.look] : [];
   var np = pickSpots("hs"+tick+sh.id, back, 4, {rMin:0, rMax:200, minGap:50, see:seeL, hideFrom:[vp].concat(knownE)})
-    .filter(function(q){ return Math.hypot(q.x-here.x, q.y-here.y) > 80 && !hasLOS(q.x, q.y, vp.x, vp.y); })[0];
+    .filter(function(q){ return DM.hypot(q.x-here.x, q.y-here.y) > 80 && !hasLOS(q.x, q.y, vp.x, vp.y); })[0];
   if(!np) return false;
   sh._hs = {round:roundNum, tag:sh.post.tag, pt:np, t:tick};
   var lk0 = sh.post.look, tg0 = sh.post.tag;
@@ -340,15 +340,15 @@ function shiftHold(sh, vp, exceptId, why){
 // ближайшее укрытие от конкретного врага: не видно его, дальше от него, чем
 // бот сейчас, и первый шаг пути к укрытию не ведёт в его сторону
 function findCover(b, foe){
-  var dFoe = Math.hypot(foe.x-b.baseX, foe.y-b.baseY);
+  var dFoe = DM.hypot(foe.x-b.baseX, foe.y-b.baseY);
   var fa = Math.atan2(foe.y-b.baseY, foe.x-b.baseX);
   var C = [];
   NAVAREAS.forEach(function(z){
     if(NAV_BLOCKED[z.id] || !(zoneGraph[z.id]||[]).length) return;
     var c = zoneCentroid(z);
-    var d = Math.hypot(c.x-b.baseX, c.y-b.baseY);
+    var d = DM.hypot(c.x-b.baseX, c.y-b.baseY);
     if(d < 40 || d > 420) return;
-    if(Math.hypot(c.x-foe.x, c.y-foe.y) <= dFoe + 20) return;
+    if(DM.hypot(c.x-foe.x, c.y-foe.y) <= dFoe + 20) return;
     var ca = Math.atan2(c.y-b.baseY, c.x-b.baseX);
     var dA = Math.abs(((ca - fa + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
     if(dA < 1.3) return;

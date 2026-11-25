@@ -39,30 +39,30 @@ function moveWalkWhy(bot){
   // причины — «видел / слышал врага рядом» про того, кого только что убил) враг из инфы / звука убит (киллфид знают все) или в том месте
   // только труп (220 knowCorpseOnly: убили, после — тихо, живых по знанию нет) — не повод идти тихо. Другие враги рядом — свои причины ниже
   var deadSrc = function(id, p){ if(id){ var o = teamBot(id); if(o && !o.alive) return true; } return !!(p && knowCorpseOnly(bot.team, p)); };
-  if(bot.lastIntel && tick - bot.lastIntel.tick < CAUTION_TICKS && Math.hypot(bot.lastIntel.x-bot.baseX, bot.lastIntel.y-bot.baseY) <= 1.5*STEP_HEAR_R() && !deadSrc(bot.lastIntel.id, bot.lastIntel)) return "видел врага рядом";
-  if(bot.heardSound && tick - bot.heardSound.tick < SOUND_CAUTION_TICKS && Math.hypot(bot.heardSound.x-bot.baseX, bot.heardSound.y-bot.baseY) <= 1.5*STEP_HEAR_R() && !deadSrc(bot.heardSound.src, bot.heardSound)) return "слышал врага рядом";
+  if(bot.lastIntel && tick - bot.lastIntel.tick < CAUTION_TICKS && DM.hypot(bot.lastIntel.x-bot.baseX, bot.lastIntel.y-bot.baseY) <= 1.5*STEP_HEAR_R() && !deadSrc(bot.lastIntel.id, bot.lastIntel)) return "видел врага рядом";
+  if(bot.heardSound && tick - bot.heardSound.tick < SOUND_CAUTION_TICKS && DM.hypot(bot.heardSound.x-bot.baseX, bot.heardSound.y-bot.baseY) <= 1.5*STEP_HEAR_R() && !deadSrc(bot.heardSound.src, bot.heardSound)) return "слышал врага рядом";
   // роумер подходит к точке чека тихо (v560, В104: только пока он роумит — без задачи, как в stepTick → updateRoamer; было — и на чужой
   // задаче по старой точке чека: ротирующий шёл шагом «роумер у точки чека»)
   if(bot.role === "roamer" && !bot.post && !bot.roamChecking && bot.roamTarget && bot.state === "patrol" &&
-     Math.hypot(bot.roamTarget.x-bot.baseX, bot.roamTarget.y-bot.baseY) < ROAM_QUIET_RADIUS) return "роумер у точки чека";
+     DM.hypot(bot.roamTarget.x-bot.baseX, bot.roamTarget.y-bot.baseY) < ROAM_QUIET_RADIUS) return "роумер у точки чека";
   // заход на занятый врагом сайт (ретейк/ротация) — последние метры шагом
   // (22.11, Ж23, разбор м271222 р6: karrigan шёл в спину шагом 9 с и не успел к планту) фланг / засада / в спину — шагом, только если по моему
   // знанию враг может услышать мой бег: место, куда иду (где их слышал), или куда смотрю — ближе 1,5 слышимости бега (то же правило, что
   // у звука и инфы выше). Было — шагом всегда, сколько бы до них ни было
   if(bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "flankTask")){ var fp = bot.post, fl = fp.look, hr = 1.5*STEP_HEAR_R();
-    if(Math.hypot(fp.x-bot.baseX, fp.y-bot.baseY) <= hr || (fl && Math.hypot(fl.x-bot.baseX, fl.y-bot.baseY) <= hr)) return "фланг"; }
+    if(DM.hypot(fp.x-bot.baseX, fp.y-bot.baseY) <= hr || (fl && DM.hypot(fl.x-bot.baseX, fl.y-bot.baseY) <= hr)) return "фланг"; }
   // (v583a, ретейк как у про: сходятся на ходу, не стоят на точке) CT на сборе ушёл вперёд своего больше чем на RT_GAP по пути — идёт шагом,
   // пока тот не подтянется (расстояния — хозяин ретейка, 180: bomb.retake.apDist)
   if(bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "gatherTask") && bomb && bomb.retake && bomb.retake.apDist){ var AD = bomb.retake.apDist, me = AD[bot.id];
     if(me != null && Object.keys(AD).some(function(id){ return id !== bot.id && AD[id] - me > RT_GAP/PX_UNITS; })) return "ретейк — свой отстаёт, иду шагом"; }
-  if(bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "gatherTask") && Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 500) return "сбор на ретейк — последние метры";
-  if(bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "probeTask") && Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 420) return "проба — последние метры";
-  if(bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "shiftTask") && Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 450) return "перестановка — последние метры";
+  if(bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "gatherTask") && DM.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 500) return "сбор на ретейк — последние метры";
+  if(bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "probeTask") && DM.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 420) return "проба — последние метры";
+  if(bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "shiftTask") && DM.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 450) return "перестановка — последние метры";
   // клатч T с бомбой: без инфы — на шифте (не палится бегом); бежит,
   // только если время поджимает или все CT известны и далеко
   if(bot.team === "T" && bomb && bomb.state === "carried" && bomb.carrier === bot && aliveCount("T") === 1 && soloMayWalk(bot)) return "клатч с бомбой";
   if(bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "cautiousEnd") &&
-     Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 350) return "ретейк / ротация / дефуз — последние метры";
+     DM.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 350) return "ретейк / ротация / дефуз — последние метры";
   // лёркер ходит тихо всегда, кроме самого начала (до своей точки на сетапе)
   // (v530, отметка владельца 10.11 «раш, а лёрк ходит на шифте») тишина лёркера — чтобы его не услышали, пока команда играет медленно; на раше
   // команда сама шумит и выходит сразу — шаг ничего не скрывает, он отстаёт
@@ -71,7 +71,7 @@ function moveWalkWhy(bot){
   // (v323, М39) к дефузу близко — подходит шифтом, чтобы не выдать себя, если время есть (defuseWalk)
   if(defuseWalk(bot)) return "подход к дефузу";
   // добивание последнего — не бегом в открытую: последние метры тихим шагом
-  if(bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "endhuntTask") && Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 350) return "охота на последнего — последние метры";
+  if(bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "endhuntTask") && DM.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 350) return "охота на последнего — последние метры";
   return null;
 }
 // почему шаг отменён — бегом (первая подходящая причина; зовётся, только когда moveWalkWhy сказал «шагом»)
@@ -83,10 +83,10 @@ function moveRunWhy(bot){
   // (v299, И43, владелец 14.10: T0 стрелялся на A, лёркер T4 шёл к бою на шифте) тиммейт рядом уже в перестрелке (видит врага ≥ 0,3 с,
   // как у дабл-пика, или стрелял / по нему стреляли за 2 с) в 900 px от меня, а моя точка — не дальше 600 px от него: иду к бою — бегом, тишина уже ничего не даёт
   if(bot.post && !taskProp(bot.post.tag, "bombSpot") && bots.some(function(m){ return m !== bot && m.alive && m.team === bot.team &&
-       ((m._sawEnemy && (m.contactStreak||0) >= 20) || tick - (m.lastShotTick||-1e9) < 2*TICK_HZ || tick - (m._shotAtT||-1e9) < 2*TICK_HZ) && Math.hypot(m.x-bot.baseX, m.y-bot.baseY) < 900 && Math.hypot(m.x-bot.post.x, m.y-bot.post.y) < 600; })) return "свой рядом уже в бою";
+       ((m._sawEnemy && (m.contactStreak||0) >= 20) || tick - (m.lastShotTick||-1e9) < 2*TICK_HZ || tick - (m._shotAtT||-1e9) < 2*TICK_HZ) && DM.hypot(m.x-bot.baseX, m.y-bot.baseY) < 900 && DM.hypot(m.x-bot.post.x, m.y-bot.post.y) < 600; })) return "свой рядом уже в бою";
   // (v257, К3) ретейк: шагом — только если шагом успевает дойти до бомбы и дефузнуть (та же мерка, что у ниндзя-дефуза)
   if(bot.team === "CT" && bomb && bomb.state === "planted" && bot.post && taskProp(bot.post.tag, "retakeMove")){
-    var dB = Math.hypot(bomb.x-bot.baseX, bomb.y-bot.baseY);
+    var dB = DM.hypot(bomb.x-bot.baseX, bomb.y-bot.baseY);
     if(bombTimeLeftTicks()/TICK_HZ <= dB/(SPEED*WALK_SPEED_FRAC) + (bot.kit ? 5 : 10) + 1.5) return "на шифте не успеть к дефузу";
   }
   // (v438, док владельца 27.10: NiKo за 3,5 с до взрыва шёл шифтом и погиб от бомбы) в зоне смертельного взрыва (урон ≥ HP, BOMB_DMG) —
@@ -125,8 +125,8 @@ function moveSpeedTick(bot, runSpeed, BRAKE_RADIUS, maxDelta){
   // от него), один (своих ближе 500 нет) в 13 % раундов у про и в 29 % у ботов; второй входит через 2,0 с у про и 3,0 с у ботов.
   // Перед входом на сайт один — ждёт напарника на размен до ENTRY_WAIT (2 с — медиана про), потом идёт; лёркер и бой — без ожидания
   var stS = bot.team === "T" && bomb.state !== "planted" && teamTac.T && SITES[teamTac.T.site];
-  if(stS && targetSpeed > 0 && bot.tRole !== "lurker" && !bot._sawEnemy && bot.post && Math.hypot(bot.post.x-stS.x, bot.post.y-stS.y) < 250){
-    var dS0 = Math.hypot(bot.baseX-stS.x, bot.baseY-stS.y), alone = !bots.some(function(o){ return o !== bot && o.alive && o.team === "T" && Math.hypot(o.x-bot.x, o.y-bot.y) < 500; });
+  if(stS && targetSpeed > 0 && bot.tRole !== "lurker" && !bot._sawEnemy && bot.post && DM.hypot(bot.post.x-stS.x, bot.post.y-stS.y) < 250){
+    var dS0 = DM.hypot(bot.baseX-stS.x, bot.baseY-stS.y), alone = !bots.some(function(o){ return o !== bot && o.alive && o.team === "T" && DM.hypot(o.x-bot.x, o.y-bot.y) < 500; });
     var anyMate = bots.some(function(o){ return o !== bot && o.alive && o.team === "T" && o.tRole !== "lurker"; });
     if(dS0 > 250 && dS0 < 340 && alone && anyMate){ if(!bot._entryWait || bot._entryWait.round !== roundNum) bot._entryWait = {t:tick, round:roundNum};
       if(tick - bot._entryWait.t < ENTRY_WAIT){ targetSpeed = 0; why = "ждёт напарника перед входом на сайт"; if(!bot._entryWait.log){ bot._entryWait.log = true; logEvent(bot.id+": перед входом на сайт — жду напарника на размен"); } } }
@@ -147,9 +147,9 @@ function moveSpeedTick(bot, runSpeed, BRAKE_RADIUS, maxDelta){
         var aa = ai*Math.PI/6, rr = NADE.molly.radius + 28;
         var qx = burn.x + Math.cos(aa)*rr, qy = burn.y + Math.sin(aa)*rr;
         if(insideSolidWall(qx, qy) || crossesWall(bot.baseX, bot.baseY, qx, qy)) continue;
-        var dq = Math.hypot(qx-bot.baseX, qy-bot.baseY);
+        var dq = DM.hypot(qx-bot.baseX, qy-bot.baseY);
         // ближе всего — и лучше в сторону, куда бот и так шёл
-        if(bot.post) dq += Math.hypot(qx-bot.post.x, qy-bot.post.y)*(0.08);   // (v151) ближний край важнее, не через весь огонь
+        if(bot.post) dq += DM.hypot(qx-bot.post.x, qy-bot.post.y)*(0.08);   // (v151) ближний край важнее, не через весь огонь
         if(dq < bd){ bd = dq; best = {x:qx, y:qy}; }
       }
       bot._fireExit = best; bot._fireExitFire = burn;
@@ -160,7 +160,7 @@ function moveSpeedTick(bot, runSpeed, BRAKE_RADIUS, maxDelta){
     if(bot._fireExit){
       fightHoldOff(bot, "fire");
       var fw = bot.path && bot.path[bot.path.length-1];
-      if(!fw || Math.hypot(fw[0]-bot._fireExit.x, fw[1]-bot._fireExit.y) > 4){ bot.path = [[bot._fireExit.x, bot._fireExit.y, bot.z]]; bot.pathIdx = 0; }
+      if(!fw || DM.hypot(fw[0]-bot._fireExit.x, fw[1]-bot._fireExit.y) > 4){ bot.path = [[bot._fireExit.x, bot._fireExit.y, bot.z]]; bot.pathIdx = 0; }
       bot.walking = false; placeStance(bot, false, "fire-run");   // из огня — бегом, не шифтом
     }
     targetSpeed = SPEED * weaponSpeedMul(bot); why = "выбегает из огня";
@@ -173,7 +173,7 @@ function moveSpeedTick(bot, runSpeed, BRAKE_RADIUS, maxDelta){
   // (физика гранат: разбег) бросок с разбега — без торможения: в точке броска скорость полная, как у про (380: runupTick)
   if(!bot.holding && bot.path.length && !burn && !(bot.nadeTask && bot.nadeTask.runPh === "go")){
     var finalWp = bot.path[bot.path.length-1];
-    var dFinal = Math.hypot(finalWp[0]-bot.baseX, finalWp[1]-bot.baseY);
+    var dFinal = DM.hypot(finalWp[0]-bot.baseX, finalWp[1]-bot.baseY);
     if(dFinal < BRAKE_RADIUS){ targetSpeed = runSpeed * Math.max(0.35, dFinal/BRAKE_RADIUS); why = "тормозит у конца пути"; }
   }
   // ослеплён: либо шаг назад за угол (путь уже задан в onBlind), либо стоп

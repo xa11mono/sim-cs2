@@ -145,7 +145,7 @@ function teamNotice(b){
     if(s.kind !== "steps" && s.kind !== "water" && s.kind !== "shots" && s.kind !== "nade") continue;
     if(!s.zone) continue;
     // шумит тот, кого я сейчас вижу, — про него уже «see»
-    var vis = (b._visible || []).some(function(e){ return Math.hypot(e.x-s.x, e.y-s.y) <= s.err + 30; });
+    var vis = (b._visible || []).some(function(e){ return DM.hypot(e.x-s.x, e.y-s.y) <= s.err + 30; });
     if(vis) continue;
     // тот же шум продолжается (стрельба, бег) — сказал один раз; снова — только после
     // паузы TEAM.board без звуков в этой и соседних зонах — или когда по слуху их стало больше
@@ -186,7 +186,7 @@ function teamDeath(att, vic){
 function teamHeardDied(team, n){
   var c = knowGraph().c[n.zone]; if(!c) return false;
   var foe = team === "CT" ? "T" : "CT";
-  return teamIntel[foe].sig.some(function(g){ return g.type === "died" && g.tick >= n.made && Math.hypot(g.x-c.x, g.y-c.y) <= 300; });
+  return teamIntel[foe].sig.some(function(g){ return g.type === "died" && g.tick >= n.made && DM.hypot(g.x-c.x, g.y-c.y) <= 300; });
 }
 function teamChannel(T){
   var mates = bots.filter(function(b){ return b.team === T.team; });

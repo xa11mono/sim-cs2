@@ -16,7 +16,7 @@ var NP_LABEL = {now: "сейчас", call: "колл", retake: "ретейк", f
 // зона места на карте: A / B / mid (сторона зоны — posSideOf)
 function npZoneAt(x, y){
   var nm = zoneUserName(zoneIdAt(x, y)), s = nm ? posSideOf(nm) : null;
-  if(!s){ var c = [["A", SITES.A], ["B", SITES.B], ["M", GEO.ctMid]].map(function(q){ return [q[0], Math.hypot(x-q[1].x, y-q[1].y)]; }).sort(function(a, d){ return a[1]-d[1]; }); s = c[0][0]; }
+  if(!s){ var c = [["A", SITES.A], ["B", SITES.B], ["M", GEO.ctMid]].map(function(q){ return [q[0], DM.hypot(x-q[1].x, y-q[1].y)]; }).sort(function(a, d){ return a[1]-d[1]; }); s = c[0][0]; }
   return s === "M" ? "mid" : s;
 }
 // зона бойца в этом раунде — из плана раунда: CT — сторона мест его роли в расстановке; T — сайт его группы тактики (мид — TMID),
@@ -138,7 +138,7 @@ function npOwner(b, L){ return (b._nplan || []).some(function(it){ return it.lu 
 // Граната на тайминг «на всякий случай» в место, где врага точно нет, не летит (остаётся на потом). Как smokeEnemyPossible (290)
 function npFoeMaybe(team, pt){
   var foe = team === "CT" ? "T" : "CT", BL = beliefLast[team] || {}, alive = 0, away = 0;
-  bots.forEach(function(e){ if(e.team !== foe || !e.alive) return; alive++; var L = BL[e.id]; if(L && tick - L.tick < 4*TICK_HZ && Math.hypot(L.x-pt.x, L.y-pt.y) > 900) away++; });
+  bots.forEach(function(e){ if(e.team !== foe || !e.alive) return; alive++; var L = BL[e.id]; if(L && tick - L.tick < 4*TICK_HZ && DM.hypot(L.x-pt.x, L.y-pt.y) > 900) away++; });
   return alive > away;
 }
 // (v429) флешка — только под пик: рядом с точкой (≤ 700) свой собирается выглянуть (ранний пик CT, проба T) или команда ждёт там врага
@@ -150,7 +150,7 @@ function npPeekReady(team, pt, thrower){
   var Z = npZoneAt(pt.x, pt.y), best = null, bd = Infinity;
   bots.forEach(function(o){ if(o === thrower || !o.alive || o.team !== team || !o.post || !/^(earlyPeek|probe)/.test(o.post.tag)) return;
     var lk = o.post.look || o.post; if(npZoneAt(lk.x, lk.y) !== Z) return;
-    var d = Math.hypot(o.post.x-pt.x, o.post.y-pt.y); if(d < bd){ bd = d; best = o; } });
+    var d = DM.hypot(o.post.x-pt.x, o.post.y-pt.y); if(d < bd){ bd = d; best = o; } });
   return best;
 }
 // перед закупом: гранаты, оставшиеся с прошлого раунда, — без плана (кидать можно в любой момент)
@@ -215,7 +215,7 @@ function nadeAskFlash(b, pt, why, type, forC){   // (22.11, Ж23) forC — за�
   var foe = b.team === "CT" ? "T" : "CT", BL = beliefLast[b.team] || {}, fuse = (NADE[type].fuse || NADE.flash.fuse)/TICK_HZ, lim = nadeAimLimit(type, false);
   var seenBy = function(F){ return bots.some(function(e){ if(e.team !== foe || !e.alive) return false; var q = BL[e.id];
     return q && tick - q.tick <= SITE_SEEN_SEC*TICK_HZ && hasLOS(q.x, q.y, F.x, F.y); }); };
-  var LU = proLineups().filter(function(L){ return L.team === b.team && L.type === type && Math.hypot(L.to.x-pt.x, L.to.y-pt.y) <= lim; });
+  var LU = proLineups().filter(function(L){ return L.team === b.team && L.type === type && DM.hypot(L.to.x-pt.x, L.to.y-pt.y) <= lim; });
   var C = [];
   bots.forEach(function(o){
     if(o === b || !o.alive || o.team !== b.team || !o.nades || !(o.nades[type] > 0) || o.nadeTask || o._sawEnemy || o.state !== "patrol" || o.planting || o.defusing) return;
@@ -224,7 +224,7 @@ function nadeAskFlash(b, pt, why, type, forC){   // (22.11, Ж23) forC — за�
     // ничего не произойдет — почему бы не кинуть») бой и задачи важнее гранаты (прикрыть, подпушить, ретейк…) отсекает taskCanSet; держит угол,
     // на который вот-вот выйдут: враг, которого команда видела / слышала за SITE_SEEN_SEC, видит его или его пост — не отвлекается
     if(seenBy(o) || (o.post && seenBy(o.post))) return;
-    if(Math.hypot(o.x-pt.x, o.y-pt.y) <= FLASH_ASK_R) C.push({o:o, t:fuse});
+    if(DM.hypot(o.x-pt.x, o.y-pt.y) <= FLASH_ASK_R) C.push({o:o, t:fuse});
     LU.forEach(function(L){ var F = L.from, t = pathLenTo(o, F.x, F.y)/SPEED + fuse;
       if(t <= FLASH_ASK_WAIT && !luBehind(o, F) && !seenBy(F)) C.push({o:o, t:t, L:L}); });
   });

@@ -74,7 +74,7 @@ function exuThrown(b, nd){
 function exuLanded(n, roof){
   if(n.exu == null || !EXU) return;
   var it = EXU.items[n.exu]; if(!it || it.state !== "flying") return;
-  var err = Math.hypot(n.x - it.x, n.y - it.y);
+  var err = DM.hypot(n.x - it.x, n.y - it.y);
   it.detAt = tick; it.err = Math.round(err);
   if(roof) return exuFail(it, "на крыше");
   // дым закрывает цель, только если цель внутри облака (радиус дыма)
@@ -201,7 +201,7 @@ function smokeLineWait(b, P, S){
   if(!S.length) return null;
   var R = NADE.smoke.radius, Q = enemyPositions(b.team);
   for(var i = 0; i < Q.length; i++){ var q = Q[i];
-    if(Math.hypot(q.x-P.x, q.y-P.y) > SLW_R) continue;
+    if(DM.hypot(q.x-P.x, q.y-P.y) > SLW_R) continue;
     var s = S.filter(function(s){ return s.owner !== b.id && segPtDist(s.x, s.y, q.x, q.y, P.x, P.y) <= R; })[0]; if(!s) continue;
     if(!hasLOS(q.x, q.y, P.x, P.y) || hasLOS(q.x, q.y, b.x, b.y, null, b.z)) continue;
     return {s:s, q:q};
@@ -217,7 +217,7 @@ function smokeLineTick(){
     if(b.team !== "T" || !b.alive) return;
     // (v562) граната с места (нет точки броска или она рядом, ≤ LU_NEAR) ожидание не снимает — бросок и так с этого места; снимает — если за
     // броском надо идти (было: любой бросок «под пробу» на миг снимал ожидание, бот шёл на точку подготовки и тут же возвращался)
-    var ntGo = b.nadeTask && b.nadeTask.from && Math.hypot(b.nadeTask.from.x-b.baseX, b.nadeTask.from.y-b.baseY) > LU_NEAR;
+    var ntGo = b.nadeTask && b.nadeTask.from && DM.hypot(b.nadeTask.from.x-b.baseX, b.nadeTask.from.y-b.baseY) > LU_NEAR;
     if(ntGo || b._sawEnemy || (bomb.carrier === b && b.planting)){ if(on) stop(); return; }
     if(b.nadeTask){ if(on) postKeep(b); return; }
     if(W && tick - W.t < 16){ if(on) postKeep(b); return; }   // пересмотр раз в 0,25 с (BELIEF_STEP)
@@ -227,7 +227,7 @@ function smokeLineTick(){
     // (v562, прогон 208: «ждёт смок ↔ маршрут» на Mirage 17 → 83 за 8 матчей — ждущий терял свой смок, когда тот ложился (точка прицела → место падения), и на миг шёл дальше; и каждые 0,25 с заново решал, видит ли его путь место CT,
     // а оценка мест CT колеблется) начал ждать конкретный смок — ждёт, пока этот смок не встанет или его не будет (нет в списке назначенных /
     // летящих / раскрывающихся), а не пересчитывает причину
-    var w = on && W.s ? (S.some(function(q){ return Math.hypot(q.x-W.s.x, q.y-W.s.y) < NADE.smoke.radius; }) ? {s:W.s, q:W.q} : null) : smokeLineWait(b, P, S);
+    var w = on && W.s ? (S.some(function(q){ return DM.hypot(q.x-W.s.x, q.y-W.s.y) < NADE.smoke.radius; }) ? {s:W.s, q:W.q} : null) : smokeLineWait(b, P, S);
     if(!w){ if(on) logEvent(b.id+": смок встал / его не будет — идёт дальше"); stop(); return; }
     if(!on){
       if(!setPost(b, {x:b.x, y:b.y}, {x:w.q.x, y:w.q.y}, true, "smokeLine")){ b._slw = {round:roundNum, t:tick, on:false}; return; }   // держит задача важнее
@@ -253,12 +253,12 @@ function fireSmokeTick(){
     // (владелец 05.11: «если не критично подождать — можно не тушить») на выходе ждать нельзя — тушат; на сетапе — только если огонь прогорит
     // позже, чем назначен выход (tt.execTick); погаснет раньше — ждут, смок не тратят
     if(tt.phase === "setup" && !(tt.execTick && f.until > tt.execTick)) return;
-    var c = ts.filter(function(b){ return b.nades && b.nades.smoke > 0 && !b.nadeTask && !b._sawEnemy && !b.planting && Math.hypot(b.x-f.x, b.y-f.y) <= NADE_THROW_RANGE &&
-      npCanUse(b, "smoke", npMomentNow(b), null); }).sort(function(a, d){ return Math.hypot(a.x-f.x, a.y-f.y) - Math.hypot(d.x-f.x, d.y-f.y); })[0];
+    var c = ts.filter(function(b){ return b.nades && b.nades.smoke > 0 && !b.nadeTask && !b._sawEnemy && !b.planting && DM.hypot(b.x-f.x, b.y-f.y) <= NADE_THROW_RANGE &&
+      npCanUse(b, "smoke", npMomentNow(b), null); }).sort(function(a, d){ return DM.hypot(a.x-f.x, a.y-f.y) - DM.hypot(d.x-f.x, d.y-f.y); })[0];
     if(!c || !assignNade(c, "smoke", {x:f.x, y:f.y}, "потушить молотов на пути выхода", {now:true})) return;
     f._smk = tick;
     voiceLog("T", "fsmk"+c.id+tick, c.id, "тушу молотов "+calloutName(f.x, f.y).replace(/^на /, "")+" — проходим");
   });
 }
-function fireOnSegF(f, x1, y1, x2, y2, z){ var n = Math.max(1, Math.ceil(Math.hypot(x2-x1, y2-y1)/8));
+function fireOnSegF(f, x1, y1, x2, y2, z){ var n = Math.max(1, Math.ceil(DM.hypot(x2-x1, y2-y1)/8));
   for(var i = 1; i <= n; i++) if(fireTouches(f, x1 + (x2-x1)*i/n, y1 + (y2-y1)*i/n, z)) return true; return false; }

@@ -253,7 +253,7 @@ function m3Cast(M, ax, ay, az, bx, by, bz, kind, first){
     if(best.tri !== undefined){
       var T = M.tri, o = best.tri*9;
       var e1x = T[o+3]-T[o], e1y = T[o+4]-T[o+1], e1z = T[o+5]-T[o+2], e2x = T[o+6]-T[o], e2y = T[o+7]-T[o+1], e2z = T[o+8]-T[o+2];
-      var nx = e1y*e2z - e1z*e2y, ny = e1z*e2x - e1x*e2z, nz = e1x*e2y - e1y*e2x, L = Math.hypot(nx, ny, nz) || 1;
+      var nx = e1y*e2z - e1z*e2y, ny = e1z*e2x - e1x*e2z, nz = e1x*e2y - e1y*e2x, L = DM.hypot3(nx, ny, nz) || 1;
       if(nx*wdx + ny*wdy + nz*wdz > 0){ nx = -nx; ny = -ny; nz = -nz; }
       best.nx = nx/L; best.ny = ny/L; best.nz = nz/L; best.mat = M.mats[M.triMat[best.tri]];
     } else if(best.fill !== undefined){ best.nx = 0; best.ny = 0; best.nz = 1; best.mat = "wood"; }
@@ -406,14 +406,14 @@ function m3BoxTri(T, o, ax, ay, az, dx, dy, dz, r){ var pl = m3TriPlanes(T, o); 
 function m3TriPlanes(T, o){
   var px = T[o], py = T[o+1], pz = T[o+2], qx = T[o+3], qy = T[o+4], qz = T[o+5], wx = T[o+6], wy = T[o+7], wz = T[o+8];
   var e1x = qx-px, e1y = qy-py, e1z = qz-pz, e2x = wx-px, e2y = wy-py, e2z = wz-pz;
-  var nx = e1y*e2z - e1z*e2y, ny = e1z*e2x - e1x*e2z, nz = e1x*e2y - e1y*e2x, L = Math.hypot(nx, ny, nz);
+  var nx = e1y*e2z - e1z*e2y, ny = e1z*e2x - e1x*e2z, nz = e1x*e2y - e1y*e2x, L = DM.hypot3(nx, ny, nz);
   if(L < 1e-6) return null;
   nx /= L; ny /= L; nz /= L;
   var d = nx*px + ny*py + nz*pz, pl = [nx, ny, nz, d, -nx, -ny, -nz, -d];
   var V = [px, py, pz, qx, qy, qz, wx, wy, wz];
   for(var a = 0; a < 3; a++){
     var b = (a + 1) % 3, c = (a + 2) % 3, ex = V[b*3]-V[a*3], ey = V[b*3+1]-V[a*3+1], ez = V[b*3+2]-V[a*3+2];
-    var mx = ey*nz - ez*ny, my = ez*nx - ex*nz, mz = ex*ny - ey*nx, ml = Math.hypot(mx, my, mz); if(ml < 1e-9) return null;
+    var mx = ey*nz - ez*ny, my = ez*nx - ex*nz, mz = ex*ny - ey*nx, ml = DM.hypot3(mx, my, mz); if(ml < 1e-9) return null;
     mx /= ml; my /= ml; mz /= ml;
     if(mx*(V[c*3]-V[a*3]) + my*(V[c*3+1]-V[a*3+1]) + mz*(V[c*3+2]-V[a*3+2]) > 0){ mx = -mx; my = -my; mz = -mz; }
     pl.push(mx, my, mz, mx*V[a*3] + my*V[a*3+1] + mz*V[a*3+2]);

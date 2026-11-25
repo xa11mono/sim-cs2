@@ -175,13 +175,13 @@
   function nadeAim(type, from, aim, trace, o) {
     o = o || {};
     var dx = aim[0] - from[0], dy = aim[1] - from[1];
-    if (Math.hypot(dx, dy) < 1) return null;
+    if (DM.hypot(dx, dy) < 1) return null;
     var yaw0 = Math.atan2(dy, dx) / D2R, yaw = yaw0, best = null;
     var vel = o.vel;
     function score(r) {
       // (физика гранат, 30.10) ошибка — по месту в 3D (высота — с весом o.wz, по умолчанию 1): раньше высота шла с весом 0,5 и
       // смок «на крышу над целью» выигрывал у смока на пол цели рядом
-      var exy = Math.hypot(r.det[0] - aim[0], r.det[1] - aim[1]), dz = r.det[2] - aim[2], sc = Math.hypot(exy, dz * (o.wz != null ? o.wz : 1));
+      var exy = DM.hypot(r.det[0] - aim[0], r.det[1] - aim[1]), dz = r.det[2] - aim[2], sc = DM.hypot(exy, dz * (o.wz != null ? o.wz : 1));
       // (30.10, этаж) o.levels — высоты полов у цели: граната должна сработать на одном из них (± o.levelTol), иначе бросок «не тот
       // этаж / крыша» — хуже любого броска на нужный этаж (+ AIM_LEVEL_MISS к ошибке); levelOk — в ответе
       var lvOk = !o.levels || o.levels.some(function (z) { return Math.abs(r.det[2] - z) <= o.levelTol; });

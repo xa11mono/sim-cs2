@@ -41,7 +41,7 @@ applyZoneLayerToData();
 function autoPortals(){
   var conn = {};
   ZONEMAP.portals.forEach(function(p){ conn[p.a] = true; conn[p.b] = true; });
-  var sd = function(px, py, a, b){ var dx = b.x-a.x, dy = b.y-a.y, L = dx*dx+dy*dy, t = L ? Math.max(0, Math.min(1, ((px-a.x)*dx+(py-a.y)*dy)/L)) : 0; return Math.hypot(px-(a.x+t*dx), py-(a.y+t*dy)); };
+  var sd = function(px, py, a, b){ var dx = b.x-a.x, dy = b.y-a.y, L = dx*dx+dy*dy, t = L ? Math.max(0, Math.min(1, ((px-a.x)*dx+(py-a.y)*dy)/L)) : 0; return DM.hypot(px-(a.x+t*dx), py-(a.y+t*dy)); };
   ZONEMAP.zones.forEach(function(z){
     if(conn[z.id]) return;
     ZONEMAP.zones.forEach(function(o){
@@ -187,7 +187,7 @@ function rebuildNavWarp(){
   // instead of trusting the extrapolation forever.
   var spreadR = 150;
   for(i=0;i<n;i++){ for(var j2=i+1;j2<n;j2++){
-    var d = Math.hypot(pts[i].x-pts[j2].x, pts[i].y-pts[j2].y);
+    var d = DM.hypot(pts[i].x-pts[j2].x, pts[i].y-pts[j2].y);
     if(d > spreadR) spreadR = d;
   } }
   navWarp = {
@@ -222,7 +222,7 @@ function navMapPoint(x, y){
     // anchors near) settles back to its original, untouched position.
     var dmin = Infinity;
     for(var k=0;k<navWarp.n;k++){
-      var kd = Math.hypot(x-navWarp.pts[k].x, y-navWarp.pts[k].y);
+      var kd = DM.hypot(x-navWarp.pts[k].x, y-navWarp.pts[k].y);
       if(kd < dmin) dmin = kd;
     }
     var R2 = navWarp.spreadR*navWarp.spreadR;

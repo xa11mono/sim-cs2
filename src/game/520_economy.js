@@ -204,7 +204,7 @@ function canSell(b, key){
   if(!key || !b._bought || b._bought[key] !== roundNum) return false;
   if(roundState === "freeze") return true;
   var sp = b.team === "T" ? T_SPAWN : CT_SPAWN;   // и только в зоне закупа (у своего спавна, 350 ед. карты — проектное число)
-  return roundState === "live" && simTime - roundStartTime <= SELL_SEC && sp && Math.hypot(b.x-sp.x, b.y-sp.y) < 350;
+  return roundState === "live" && simTime - roundStartTime <= SELL_SEC && sp && DM.hypot(b.x-sp.x, b.y-sp.y) < 350;
 }
 function sellItem(b, key){
   if(!canSell(b, key)) return false;

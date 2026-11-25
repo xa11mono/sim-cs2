@@ -38,13 +38,13 @@ function knowApply(b, s, err, zone, L, opt){
   if(zone && K.spots) K.spots.forEach(function(p){ if(p.zone === zone) p.open = true; });
   if(opt.only && !opt.only.length) return;
   var vis = 0;
-  (b._visible || []).forEach(function(e){ if(Math.hypot(e.x-s.x, e.y-s.y) <= err + 30) vis++; });
+  (b._visible || []).forEach(function(e){ if(DM.hypot(e.x-s.x, e.y-s.y) <= err + 30) vis++; });
   if(vis >= (opt.mult || 1)) return;
   var expl = {}, tot = 0;
   for(var id in K.enemies){
     var B = K.enemies[id]; if(B.visible || (opt.only && opt.only.indexOf(id) < 0)) continue;
     var reach = (tick - B.last.tick)/TICK_HZ*SPEED + err + 60, ex = 0;
-    if(Math.hypot(s.x-B.last.x, s.y-B.last.y) > reach){ expl[id] = 0; continue; }
+    if(DM.hypot(s.x-B.last.x, s.y-B.last.y) > reach){ expl[id] = 0; continue; }
     B.hyps.forEach(function(h){ h._c = knowCompat(h, s, err, g); ex += h.weight*h._c; });
     expl[id] = ex; tot += ex;
   }
@@ -53,7 +53,7 @@ function knowApply(b, s, err, zone, L, opt){
     var r = Math.min(1, expl[id2]/tot*(opt.mult || 1)); if(r < 0.02) continue;
     var B2 = K.enemies[id2], un = knowHyp(B2, "moved_unknown"), specific = false;
     var ls = B2.lastSound, same = !opt.voice && ls && tick - ls.tick <= KNOW.sameSource*TICK_HZ &&
-             Math.hypot(ls.x-s.x, ls.y-s.y) <= err + 100 && KNOW.soundL[s.kind] <= KNOW.soundL[ls.kind];
+             DM.hypot(ls.x-s.x, ls.y-s.y) <= err + 100 && KNOW.soundL[s.kind] <= KNOW.soundL[ls.kind];
     if(!opt.voice) B2.lastSound = {x: s.x, y: s.y, tick: tick, kind: same ? ls.kind : s.kind};
     // (отметка владельца 18.11, м33 р1 т4055, magixx: «отворачивается от Kitchen, хотя оттуда только что граната и шаги») звук «объясняет» и
     // прогноз «идёт по маршруту» (ретейк, «ушёл туда») — раньше такой прогноз только набирал вес, а место оставалось прогнозным (шаги Kitchen
@@ -84,12 +84,12 @@ function knowApply(b, s, err, zone, L, opt){
 }
 function knowCompat(h, s, err, g){
   if(h.type === "moved_unknown") return KNOW.unknownCompat;
-  if(h.type === "held") return h.x !== undefined && Math.hypot(h.x-s.x, h.y-s.y) <= err + 60 ? 1 : (h.x === undefined && h.zone === knowZoneAt(s.x, s.y) ? 1 : 0);
-  if(h.heard) return Math.hypot(h.x-s.x, h.y-s.y) <= err + 80 ? 1 : 0;
-  if(h.type === "retake") return Math.hypot(h.x-s.x, h.y-s.y) <= err + 120 ? 1 : 0;   // (v583a) идёт на ретейк — рядом с его точкой на пути
+  if(h.type === "held") return h.x !== undefined && DM.hypot(h.x-s.x, h.y-s.y) <= err + 60 ? 1 : (h.x === undefined && h.zone === knowZoneAt(s.x, s.y) ? 1 : 0);
+  if(h.heard) return DM.hypot(h.x-s.x, h.y-s.y) <= err + 80 ? 1 : 0;
+  if(h.type === "retake") return DM.hypot(h.x-s.x, h.y-s.y) <= err + 120 ? 1 : 0;   // (v583a) идёт на ретейк — рядом с его точкой на пути
   for(var i = 0; i < h.route.length; i++){
     var c = g.c[h.route[i]];
-    if(Math.hypot(c.x-s.x, c.y-s.y) <= err + g.r[h.route[i]]) return 1;
+    if(DM.hypot(c.x-s.x, c.y-s.y) <= err + g.r[h.route[i]]) return 1;
   }
   return 0;
 }
@@ -116,11 +116,11 @@ function knowWindowsTick(b){
       h.windows.forEach(function(w){
         if(w.done || tick < w.t1) return;
         w.done = true;
-        var c = g.c[w.zone], dist = Math.hypot(c.x-b.x, c.y-b.y) - g.r[w.zone];
+        var c = g.c[w.zone], dist = DM.hypot(c.x-b.x, c.y-b.y) - g.r[w.zone];
         if(dist > stepsWall) return;
         var heard = K.heard.some(function(s){
           return (s.kind === "steps" || s.kind === "water") && s.tick >= w.t0 && s.tick <= w.t1 &&
-                 Math.hypot(s.x-c.x, s.y-c.y) <= g.r[w.zone] + s.err;
+                 DM.hypot(s.x-c.x, s.y-c.y) <= g.r[w.zone] + s.err;
         });
         if(heard) return;
         var un = knowHyp(B, "moved_unknown"), lost = h.weight*(1 - KNOW.quiet);
@@ -136,9 +136,9 @@ function knowLook(b){
   var K = b.know;
   if(tick < (b.blindUntil||0) || (tick + (b.id.charCodeAt(b.id.length-1)||0)) % KNOW.lookEvery) return;
   (K.spots || []).forEach(function(p){
-    if(!p.open || Math.hypot(p.x-b.x, p.y-b.y) > KNOW.lookRange || !inFov(b, p.x, p.y)) return;
+    if(!p.open || DM.hypot(p.x-b.x, p.y-b.y) > KNOW.lookRange || !inFov(b, p.x, p.y)) return;
     if(!hasVision(b.x, b.y, p.x, p.y)) return;
-    if(!(b._visible || []).some(function(e){ return Math.hypot(e.x-p.x, e.y-p.y) < 120; })) p.open = false;
+    if(!(b._visible || []).some(function(e){ return DM.hypot(e.x-p.x, e.y-p.y) < 120; })) p.open = false;
   });
   for(var id in K.enemies){
     var B = K.enemies[id]; if(B.visible) continue;
@@ -151,7 +151,7 @@ function knowLook(b){
         if(h.vz !== vz){ h.vz = vz; h.inView = false; }
       }
       if(hx === undefined) return;
-      var inView = (hx === b.x && hy === b.y) || Math.hypot(hx-b.x, hy-b.y) <= KNOW.lookRange && inFov(b, hx, hy) && hasVision(b.x, b.y, hx, hy);
+      var inView = (hx === b.x && hy === b.y) || DM.hypot(hx-b.x, hy-b.y) <= KNOW.lookRange && inFov(b, hx, hy) && hasVision(b.x, b.y, hx, hy);
       if(inView && !h.inView){
         h.weight *= KNOW.emptyLook; knowNorm(B.hyps);
         knowTrace(b, id, "посмотрел — пусто (" + knowZoneName(vz || h.zone) + ")");
@@ -174,7 +174,7 @@ function knowPlant(b){
   // догадка (plantGuess): в войс не идёт, увидел бомбу / услышал колл — заменяется
   K.plantGuess = false;
   if(b.team === "CT" && !K.plantSite){
-    var hears = function(o, q){ var dH = Math.hypot(o.x-q.x, o.y-q.y); return dH < 520 || (dH < 850 && hasLOS(o.x, o.y, q.x, q.y, o.z)); };
+    var hears = function(o, q){ var dH = DM.hypot(o.x-q.x, o.y-q.y); return dH < 520 || (dH < 850 && hasLOS(o.x, o.y, q.x, q.y, o.z)); };
     var left = ["A", "B"].filter(function(X){ var PP = sitePlantPro(X); if(!PP.length) PP = [SITES[X]];
       return !bots.some(function(o){ return o.team === "CT" && o.alive && PP.every(function(q){ return hears(o, q); }); }); });
     if(left.length === 1){ K.plantSite = left[0]; K.plantGuess = true; }
@@ -229,14 +229,14 @@ function knowSiteShift(K, site, share, skipId){
     // с T Ramp убил CT4 на A — команда CT решила «на A ~2,85», и это растекалось в соседние зоны. У про в момент такой смерти остальные T на
     // самом сайте (≤ 240) — 24–30 %, в 480 (подходы) — 68–74 % (tools/pro/kill_site_pro.py, Mirage, 663 смерти): на сайт — KILL_SITE_ON
     // сдвинутого, остальное — поровну по местам про у подходов (240–480 от сайта), куда враг уже мог дойти
-    knowShiftPut(B, moved, z, S, K.spots.filter(function(p){ var dS = Math.hypot(p.x-S.x, p.y-S.y); return dS > KILL_SITE_R && dS <= KILL_NEAR_R && knowSpotReach(p); }), KILL_SITE_ON);
+    knowShiftPut(B, moved, z, S, K.spots.filter(function(p){ var dS = DM.hypot(p.x-S.x, p.y-S.y); return dS > KILL_SITE_R && dS <= KILL_NEAR_R && knowSpotReach(p); }), KILL_SITE_ON);
     knowNorm(B.hyps); knowTrim(B); }
 }
 // CT видит саму бомбу на земле — знает сайт
 function knowBombSeen(b){
   var K = b.know;
   if(b.team !== "CT" || !K.planted || (K.plantSite && !K.plantGuess) || !bomb || bomb.state !== "planted" || tick < (b.blindUntil||0)) return;
-  if(Math.hypot(bomb.x-b.x, bomb.y-b.y) > KNOW.lookRange || !inFov(b, bomb.x, bomb.y) || !hasVision(b.x, b.y, bomb.x, bomb.y)) return;
+  if(DM.hypot(bomb.x-b.x, bomb.y-b.y) > KNOW.lookRange || !inFov(b, bomb.x, bomb.y) || !hasVision(b.x, b.y, bomb.x, bomb.y)) return;
   K.plantSite = bomb.site; if(K.plantGuess){ K.plantGuess = false; K.plantShift = null; } knowPlantShift(K, bomb.site);
 }
 // ---------- киллфид (feedKill) ----------
@@ -249,15 +249,15 @@ function knowKill(att, vic){
       if(K.enemies[vic.id]){ delete K.enemies[vic.id]; K.alive--; }
       // (v273, владелец 14.10) киллфид + колл убившего «убил … на <место>»: свой звук и инфа рядом с местом фрага (≤300 px),
       // полученные до него, — это был он; забываем (иначе бот смотрел на трупы). В других местах помнит, как было. 300 px — проектное число
-      if(b.heardSound && b.heardSound.team === vic.team && b.heardSound.tick <= tick && Math.hypot(b.heardSound.x-vic.x, b.heardSound.y-vic.y) <= 300) b.heardSound = null;
-      if(b.lastIntel && b.lastIntel.tick <= tick && Math.hypot(b.lastIntel.x-vic.x, b.lastIntel.y-vic.y) <= 300) b.lastIntel = null;
+      if(b.heardSound && b.heardSound.team === vic.team && b.heardSound.tick <= tick && DM.hypot(b.heardSound.x-vic.x, b.heardSound.y-vic.y) <= 300) b.heardSound = null;
+      if(b.lastIntel && b.lastIntel.tick <= tick && DM.hypot(b.lastIntel.x-vic.x, b.lastIntel.y-vic.y) <= 300) b.lastIntel = null;
       return;
     }
     // (v583a, Д2.2, владелец 17.11: «опорника B убили — понятно, где остальные враги, и плант будет там же») свой CT погиб на сайте до планта
     // (киллфид + радар) — невидимые T сдвигаются к этому сайту с долей KILL_SITE_SHARE: у про (1300 смертей CT на сайте до планта, Mirage)
     // остальные живые T в этот момент в 1200 ед. от сайта — в среднем 72 %, плант потом на этом сайте — 90–93 %
     if(b.team === "CT" && !(bomb && bomb.state === "planted")){ var ks = null;
-      ["A", "B"].forEach(function(X){ if(SITES[X] && Math.hypot(vic.x-SITES[X].x, vic.y-SITES[X].y) <= KILL_SITE_R) ks = X; });
+      ["A", "B"].forEach(function(X){ if(SITES[X] && DM.hypot(vic.x-SITES[X].x, vic.y-SITES[X].y) <= KILL_SITE_R) ks = X; });
       if(ks) knowSiteShift(K, ks, KILL_SITE_SHARE, att && att.id); }
     if(!att || att.team === b.team) return;
     var last = {x: vic.x, y: vic.y, zone: knowZoneAt(vic.x, vic.y, vic.z), tick: tick, stance: "stand", source: "killfeed", vx: 0, vy: 0};
@@ -382,10 +382,10 @@ var KNOW_CORPSE_R = 150;   // проектное число: «то же мес�
 function knowCorpseOnly(team, pt){
   var sig = (teamIntel[team] && teamIntel[team].sig) || [], kt = -1, R = KNOW_CORPSE_R;
   for(var i = sig.length - 1; i >= 0; i--){ var sg = sig[i]; if(sg.tick < roundStartTick) break;
-    if(sg.type === "kill" && Math.hypot(sg.x-pt.x, sg.y-pt.y) < R){ kt = sg.tick; break; } }
+    if(sg.type === "kill" && DM.hypot(sg.x-pt.x, sg.y-pt.y) < R){ kt = sg.tick; break; } }
   if(kt < 0) return false;
-  if(sig.some(function(sg){ return sg.tick > kt && (sg.type === "spotted" || sg.type === "sound") && sg.id && sg.id !== "?" && Math.hypot(sg.x-pt.x, sg.y-pt.y) < R; })) return false;
-  return !bots.some(function(o){ return o.alive && o.team !== team && (knowEnemySpots(team, o.id) || []).some(function(q){ return q.w >= 0.05 && Math.hypot(q.x-pt.x, q.y-pt.y) < R; }); });
+  if(sig.some(function(sg){ return sg.tick > kt && (sg.type === "spotted" || sg.type === "sound") && sg.id && sg.id !== "?" && DM.hypot(sg.x-pt.x, sg.y-pt.y) < R; })) return false;
+  return !bots.some(function(o){ return o.alive && o.team !== team && (knowEnemySpots(team, o.id) || []).some(function(q){ return q.w >= 0.05 && DM.hypot(q.x-pt.x, q.y-pt.y) < R; }); });
 }
 // (v583a, Д15, владелец 17.11: «никто не смотрит Short, хотя была инфа, что CT на Mid») T после планта знает, как играют CT: идут к бомбе
 // ближайшим путём. CT, которого не видно: та доля, на которую он уже ушёл с места, где видели (вес «стоит, где видели» стареет по кривой
@@ -401,7 +401,7 @@ function knowRetakeDrift(b){
     if(!B._rt || B._rt.from !== from){ var P = pathPts(B.last.x, B.last.y, bomb.x, bomb.y, B.last.z, bomb.z); B._rt = {from: from, P: P && P.length ? P : [[B.last.x, B.last.y], [bomb.x, bomb.y]]}; }
     var d = RETAKE_V/PX_UNITS*Math.max(0, (tick - from)/TICK_HZ), P = B._rt.P, L = polyLen(P), x = P[0][0], y = P[0][1];
     d = Math.min(d, Math.max(0, L - RETAKE_STOP));
-    for(var i = 1; i < P.length; i++){ var sl = Math.hypot(P[i][0]-P[i-1][0], P[i][1]-P[i-1][1]); if(d <= sl){ x = P[i-1][0] + (P[i][0]-P[i-1][0])*d/(sl || 1); y = P[i-1][1] + (P[i][1]-P[i-1][1])*d/(sl || 1); break; } d -= sl; x = P[i][0]; y = P[i][1]; }
+    for(var i = 1; i < P.length; i++){ var sl = DM.hypot(P[i][0]-P[i-1][0], P[i][1]-P[i-1][1]); if(d <= sl){ x = P[i-1][0] + (P[i][0]-P[i-1][0])*d/(sl || 1); y = P[i-1][1] + (P[i][1]-P[i-1][1])*d/(sl || 1); break; } d -= sl; x = P[i][0]; y = P[i][1]; }
     var h = knowHyp(B, "retake");
     if(!h){
       var tSeen = (tick - (B.last.tick || tick))/TICK_HZ, w = 0;
@@ -426,11 +426,11 @@ function teamAgents(){ return roundState === "live" ? [teamAgent("CT"), teamAgen
 function knowTeamLook(A){
   var K = A.know, mates = bots.filter(function(m){ return m.alive && m.team === A.team && tick >= (m.blindUntil||0); });
   if(tick % KNOW.lookEvery) return;
-  var sees = function(hx, hy){ return mates.some(function(m){ return Math.hypot(hx-m.x, hy-m.y) <= KNOW.lookRange && inFov(m, hx, hy) && hasVision(m.x, m.y, hx, hy); }); };
+  var sees = function(hx, hy){ return mates.some(function(m){ return DM.hypot(hx-m.x, hy-m.y) <= KNOW.lookRange && inFov(m, hx, hy) && hasVision(m.x, m.y, hx, hy); }); };
   var anyVis = []; mates.forEach(function(m){ (m._visible || []).forEach(function(e){ anyVis.push(e); }); });
   (K.spots || []).forEach(function(p){
     if(!p.open || !sees(p.x, p.y)) return;
-    if(!anyVis.some(function(e){ return Math.hypot(e.x-p.x, e.y-p.y) < 120; })) p.open = false;
+    if(!anyVis.some(function(e){ return DM.hypot(e.x-p.x, e.y-p.y) < 120; })) p.open = false;
   });
   for(var id in K.enemies){
     var B = K.enemies[id]; if(B.visible) continue;
@@ -465,7 +465,7 @@ function knowHypSpread(h, B){
   if(h.type === "held" && h.from){
     var Wd = ZONE_DANGER_W[B.last.zone] || {}, out = [], tot = 0;
     h.from.forEach(function(zid){ var j = BZ.idx[zid]; if(j === undefined || !BZ.cent[j]) return;
-      var w = (Wd[zid]||0.1) / (1 + Math.hypot(BZ.cent[j].x-B.last.x, BZ.cent[j].y-B.last.y)/400); out.push([j, w]); tot += w; });
+      var w = (Wd[zid]||0.1) / (1 + DM.hypot(BZ.cent[j].x-B.last.x, BZ.cent[j].y-B.last.y)/400); out.push([j, w]); tot += w; });
     if(tot > 0){ out.forEach(function(q){ q[1] = h.weight*q[1]/tot; }); return out; }
   }
   var zi = knowHypZone(h, B); return zi >= 0 ? [[zi, h.weight]] : [];
@@ -473,4 +473,4 @@ function knowHypSpread(h, B){
 // (17.11, перестройка, дубль 7) «туда не выглядывать: там убили своего / размен не вышел / только что стрелялся» — одно знание бота, одно
 // место (было: замок _avoidPeekUntil / _avoidPeekAt писали 110, 190 ×2, 500, читали 250, 500). 450 — проектное число, как было
 function knowAvoidPeek(b, at, sec){ b._avoidPeekUntil = tick + sec*TICK_HZ; b._avoidPeekAt = at; }
-function knowAvoidPeekNear(b, pt){ return !!(b._avoidPeekUntil > tick && b._avoidPeekAt && Math.hypot(b._avoidPeekAt.x-pt.x, b._avoidPeekAt.y-pt.y) < 450); }
+function knowAvoidPeekNear(b, pt){ return !!(b._avoidPeekUntil > tick && b._avoidPeekAt && DM.hypot(b._avoidPeekAt.x-pt.x, b._avoidPeekAt.y-pt.y) < 450); }

@@ -128,7 +128,7 @@ function visBuild(){
       for(var q = 0; q < P.pieces.length; q++) if(pointInPoly(x, y, P.pieces[q].pts)){ top = P.pieces[q].top; break; }
       if(top === undefined){
         if(P.top !== undefined) top = P.top;
-        else { var bd = Infinity; P.pieces.forEach(function(p){ var d = Math.hypot(p.cx - x, p.cy - y); if(d < bd){ bd = d; top = p.top; } }); }
+        else { var bd = Infinity; P.pieces.forEach(function(p){ var d = DM.hypot(p.cx - x, p.cy - y); if(d < bd){ bd = d; top = p.top; } }); }
       }
       solid[k] = top + VIS_FLOOR_EPS;   // + допуск: visMarch вычитает его (он — для неровного пола, не для укрытий)
     });
@@ -208,7 +208,7 @@ function visWallHit(ax, ay, bx, by){
 // (А5) по геометрии — луч m3Line (стены, ящики, полы и потолки сразу)
 function visMarch(ax, ay, az, bx, by, bz){
   var M3g = m3(); if(M3g) return m3Line(M3g, ax, ay, az, bx, by, bz, "sight");
-  var dx = bx - ax, dy = by - ay, dz = bz - az, n = Math.ceil(Math.hypot(dx, dy) / VIS_CELL);
+  var dx = bx - ax, dy = by - ay, dz = bz - az, n = Math.ceil(DM.hypot(dx, dy) / VIS_CELL);
   if(n < 2) return true;
   var W = VIS.W, S = VIS.solid, Cl = VIS.ceil, Lo = VIS.lo, F = VIS.floor, inv = 1/VIS_CELL, e = VIS_FLOOR_EPS;
   for(var i = 1; i < n; i++){
@@ -240,7 +240,7 @@ function visLine(ax, ay, az, bx, by, bz, smoke){
 function levelBlocked(ax, ay, az, bx, by, bz){
   if(az == null || bz == null || m3()) return false;   // (А5) у геометрии у каждого этажа свои стены и перекрытия
   if(!NAV_GRID) navGridBuild();
-  var L = Math.hypot(bx-ax, by-ay), n = Math.max(1, Math.ceil(L/4));
+  var L = DM.hypot(bx-ax, by-ay), n = Math.max(1, Math.ceil(L/4));
   var ST = NAV_GRID.__stack || (NAV_GRID.__stack = (function(){ var m = {};   // клетки сетки, где есть пол над полом (быстрый отсев)
     for(var key in NAV_GRID){ if(key === "__stack") continue; var lo = Infinity, hi = -Infinity; NAV_GRID[key].forEach(function(ix){ var zz = NAVAREAS[ix].z; if(zz < lo) lo = zz; if(zz > hi) hi = zz; }); if(hi - lo > 100) m[key] = 1; }
     return m; })());
@@ -262,7 +262,7 @@ function visParts(vx, vy, vC, tx, ty, tC, walls, vz, tz, vLift, tLift){
   var no = {head: false, body: false};
   visReady();
   // высокие стены (2D, дёшево — первыми): центр цели и плечи; закрыто всё — не видно
-  var L = Math.hypot(tx - vx, ty - vy) || 1, s = VIS_SHOULDER / MAP.pxUnits, px = -(ty - vy) / L * s, py = (tx - vx) / L * s;
+  var L = DM.hypot(tx - vx, ty - vy) || 1, s = VIS_SHOULDER / MAP.pxUnits, px = -(ty - vy) / L * s, py = (tx - vx) / L * s;
   var chk = walls !== false;
   var cw = !chk || !visWallHit(vx, vy, tx, ty), lw = !chk || !visWallHit(vx, vy, tx - px, ty - py), rw = !chk || !visWallHit(vx, vy, tx + px, ty + py);
   if(!cw && !lw && !rw) return no;

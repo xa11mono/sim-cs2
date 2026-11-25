@@ -26,8 +26,8 @@ function contactInfo(b){
   // выше, оттуда не видно; zont1x в Palace держал контакт на шаги m0NESY под собой) contact hold — держать линию, по которой враг выйдет
   // (ответ про-аналитика 29.10: на далёкие шаги, пока враг не вошёл в сектор обстрела, и на гранату вдали — не реагировать). Враг, которого
   // сейчас не видно, — контакт, только если его место (с его этажом) видно отсюда или с поста: иначе держать нечего
-  var inSector = function(x, y, z){ return hasLOS(b.x, b.y, x, y, b.z, z) || (b.post && Math.hypot(b.post.x-b.x, b.post.y-b.y) < 160 && hasLOS(b.post.x, b.post.y, x, y, b.post.z != null ? b.post.z : b.z, z)); };
-  var take = function(x, y, seen, id, z){ var d = Math.hypot(x-b.x, y-b.y); if(d >= bd) return; if(!seen){ d = pathLenTo(b, x, y); if(d >= bd || !inSector(x, y, z)) return; }
+  var inSector = function(x, y, z){ return hasLOS(b.x, b.y, x, y, b.z, z) || (b.post && DM.hypot(b.post.x-b.x, b.post.y-b.y) < 160 && hasLOS(b.post.x, b.post.y, x, y, b.post.z != null ? b.post.z : b.z, z)); };
+  var take = function(x, y, seen, id, z){ var d = DM.hypot(x-b.x, y-b.y); if(d >= bd) return; if(!seen){ d = pathLenTo(b, x, y); if(d >= bd || !inSector(x, y, z)) return; }
     bd = d; best = {x:x, y:y, z:z, seen:seen, id:id || null}; };
   // (v435, М168, скрин владельца 26.10: после фрага «держит свой контакт» на месте убитого) источник — живой враг: убитый (киллфид)
   // контактом не бывает — ни то, где его видел, ни его звук (раньше их брали ещё 2,5 с после смерти и держали взгляд на трупе)
@@ -68,7 +68,7 @@ function contactInfo(b){
   var hs = b.heardSound; if(hs && !((hs.kind === "shots" || hs.kind === "hit") && !noticeShooter(b, hs.src)) && hs.team && hs.team !== b.team && hs.kind !== "nade" && tick - hs.tick <= CONTACT_AGE*TICK_HZ && !deadSrc(hs.src) && (hs.kind !== "call" || trade || myZ[zoneIdAt3(hs.x, hs.y, hs.z)])) take(hs.x, hs.y, hs.kind === "hit", hs.src, hs.z);   // (v560, В101: «по нему стреляли, не попали — не отреагировал») по нему стреляют — откуда, он знает (пули рядом): как увиденный — по прямой, без проверки сектора
   // (v448, док владельца 28.10 №4: у игрока 1 «якорь контакт холд, когда он далеко, не стрелялся и никого не видел») своя флешка —
   // контакт только если кинута себе под пик («флешу себе и выхожу»); раньше любая своя флешка (на сайт за 700 ед.) давала «держу свой контакт»
-  var N = b._lastNade; if(!best && N && N.type === "flash" && N.self && tick - N.t >= NADE.flash.fuse - 8 && tick - N.t < NADE.flash.fuse + 40 && Math.hypot(N.x-b.x, N.y-b.y) < CONTACT_R) best = {x:N.x, y:N.y, own:true};
+  var N = b._lastNade; if(!best && N && N.type === "flash" && N.self && tick - N.t >= NADE.flash.fuse - 8 && tick - N.t < NADE.flash.fuse + 40 && DM.hypot(N.x-b.x, N.y-b.y) < CONTACT_R) best = {x:N.x, y:N.y, own:true};
   return best ? {x:best.x, y:best.y, z:best.z, d:bd, seen:!!best.seen, own:!!best.own, id:best.id || null} : null;
 }
 function contactCritical(b, C){
@@ -91,10 +91,10 @@ var SPOT_PERSONAL = 70, FOLLOW_GAP = 70;   // проектные числа: «�
 function spotTaken(b, q, how){ return bots.some(function(o){
   if(o === b || !o.alive || o.team !== b.team) return false;
   if(how === "line"){ var oh = o.post && o.post.hold && taskProp(String(o.post.tag), "ownLine");
-    return !!oh && Math.hypot(o.post.x-q.x, o.post.y-q.y) < OWN_LINE_GAP; }   // (прогон 217) только места: позиция на посту мигала — пост ставился заново 12 раз за 5 с
+    return !!oh && DM.hypot(o.post.x-q.x, o.post.y-q.y) < OWN_LINE_GAP; }   // (прогон 217) только места: позиция на посту мигала — пост ставился заново 12 раз за 5 с
   var op = o.post && !taskProp(String(o.post.tag), "briefStop") ? o.post : null;   // (17.11) короткая остановка своего — не его место
-  if(how === "post") return !!op && Math.hypot(op.x-q.x, op.y-q.y) < SPOT_PERSONAL;
-  return Math.hypot(o.x-q.x, o.y-q.y) < SPOT_PERSONAL || (op && Math.hypot(op.x-q.x, op.y-q.y) < SPOT_PERSONAL); }); }
+  if(how === "post") return !!op && DM.hypot(op.x-q.x, op.y-q.y) < SPOT_PERSONAL;
+  return DM.hypot(o.x-q.x, o.y-q.y) < SPOT_PERSONAL || (op && DM.hypot(op.x-q.x, op.y-q.y) < SPOT_PERSONAL); }); }
 // (v418) свой рядом (≤ 600 — как «своих рядом» в счёте) сейчас в бою, и тот, с кем он стреляется, по знанию команды (≤ 1 с) — у этого
 // контакта (≤ 400). 600 — как nM ниже; 400 — проектное число («та же группа»)
 function contactMateFight(b, C){
@@ -119,7 +119,7 @@ function contactTick(b){
   // по событию: стало критично (contactCritical — CT впритык на дефуз, ставит / дефузит, в зоне взрыва) — ноги к своей задаче, взгляд — на контакте.
   // Раньше эта проверка была только для нового контакта, а начатый при той же инфе продлевался
   if(K && K.lock && contactCritical(b, C)){ b._contact = {x:K.x, y:K.y, id:K.id, until:K.until, lock:false}; if(b.post && /^contact/.test(b.post.tag)) clearPost(b); return; }
-  if(K && !(C.seen || C.d < 0.7*Math.hypot(K.x-b.x, K.y-b.y) || Math.hypot(C.x-K.x, C.y-K.y) < 120)) return;   // держит прежний контакт
+  if(K && !(C.seen || C.d < 0.7*DM.hypot(K.x-b.x, K.y-b.y) || DM.hypot(C.x-K.x, C.y-K.y) < 120)) return;   // держит прежний контакт
   // тот же — уточнить место и продлить: реакция держится, пока знание о нём свежее (≤ CONTACT_AGE) + CONTACT_HOLD после
   // (Б1, ENGINE_AUDIT Х3: раньше кончалась по таймеру при живом знании — пост снят, бот шёл назад на пост роли, через CONTACT_GAP
   // тот же враг давал контакт снова — половина «ходит туда-сюда»)
@@ -128,7 +128,7 @@ function contactTick(b){
   // (v438) уточнилось место врага, а с точки выхода его теперь не видно — точка выбирается заново (ниже), а не держится старая
   // не чаще раза в секунду (проектное число): враг на ходу, и точка, выбранная сейчас, через тик снова «не видит» — бот метался бы
   var swLost = K && K.tag === "contact:swing" && K.pt && tick - (b._contactT||0) >= TICK_HZ && !hasLOS(K.pt.x, K.pt.y, C.x, C.y, b.z);
-  if(K && Math.hypot(C.x-K.x, C.y-K.y) < 120 && !reMate && !swLost){ K.x = C.x; K.y = C.y; if(C.id) K.id = C.id; K.until = tick + CONTACT_HOLD*TICK_HZ; return; }
+  if(K && DM.hypot(C.x-K.x, C.y-K.y) < 120 && !reMate && !swLost){ K.x = C.x; K.y = C.y; if(C.id) K.id = C.id; K.until = tick + CONTACT_HOLD*TICK_HZ; return; }
   if(reMate) b._mateReT = tick;
   if(b._contactT && tick - b._contactT < CONTACT_GAP*TICK_HZ && !K) return;
   var look = {x:C.x, y:C.y};
@@ -207,7 +207,7 @@ function contactTick(b){
   if(((bomb.state === "carried" && bomb.carrier === b) || (tExec && bomb.state === "dropped" && teamTac.T.fetchId === b.id)) && aliveCount(b.team) > 1){ b._contact = {x:C.x, y:C.y, id:C.id, until: tick + CONTACT_HOLD*TICK_HZ, lock:false}; b._contactT = tick; return; }
   // (v555, отметка владельца м298 р1: «раш вышел и стоит, перестреливаются; почему не пойти втроём и не задушить одного, занять его зону»)
   // в выходе T на одного врага выходят вместе (размен сразу); вне выхода — по-прежнему один выходит, остальные держат
-  if(swing && !tExec && bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o._contact && o._contact.tag === "contact:swing" && tick < o._contact.until && Math.hypot(o._contact.x-C.x, o._contact.y-C.y) < 200; })) swing = false;   // на него уже выходит свой
+  if(swing && !tExec && bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o._contact && o._contact.tag === "contact:swing" && tick < o._contact.until && DM.hypot(o._contact.x-C.x, o._contact.y-C.y) < 200; })) swing = false;   // на него уже выходит свой
   // (v438, док владельца 27.10: точка «выхожу на него» на ящике Short / в Underpath без вида на врага — бот стоял 22 с) точка — на полу
   // своего уровня (не крыша ящика, не другой этаж: navAtLevel) и, если выходит, — оттуда видно место врага (3D-видимость с пола точки).
   // Нет такой — не выходит, держит (точку держать ищем так же, но вид не обязателен: держит угол, откуда враг придёт)
@@ -216,7 +216,7 @@ function contactTick(b){
     return hasLOS(q.x, q.y, look.x, look.y, a ? a.z : b.z, C.z); };
   var contactSpots = function(sw, rS){ var c0 = rS ? {x:b.x + (look.x-b.x)*0.5, y:b.y + (look.y-b.y)*0.5} : {x:b.x, y:b.y};   // заход — вокруг полпути к врагу (0,5, 12 точек — проектные)
     return pickSpots("ct"+b.id+Math.round(look.x/40)+","+Math.round(look.y/40)+(sw ? "s"+(rS||"") : "h"), c0, rS ? 12 : 6, {rMax: sw ? (rS || CONTACT_SWING) : 160, minGap:30, see:[look]})
-    .filter(function(q){ return Math.hypot(q.x-look.x, q.y-look.y) >= 120 && !spotTaken(b, q) && spotOk(q) && !inFire(q.x, q.y, b.z); }); };   // (v583a, Д30, прогон 284: «стоит в огне» 36 → 58 — точка контакта в огне; выбор «ближняя / дальняя» стал её находить)
+    .filter(function(q){ return DM.hypot(q.x-look.x, q.y-look.y) >= 120 && !spotTaken(b, q) && spotOk(q) && !inFire(q.x, q.y, b.z); }); };   // (v583a, Д30, прогон 284: «стоит в огне» 36 → 58 — точка контакта в огне; выбор «ближняя / дальняя» стал её находить)
   var cand = contactSpots(swing);
   // (v555, м298 р1: раш стоял в Tetris — точки «выйти на врага» с видом на Cross ближе 220 ед. нет, выход превращался в «держать угол») в выходе
   // T заход — дальше, в зону врага (до CONTACT_PUSH ед.): занять её, а не стоять на краю
@@ -233,10 +233,10 @@ function contactTick(b){
   // к себе точка, откуда видно врага (чуть выглянуть); средний — на дистанции своего оружия (как было); широкий — самая дальняя от себя (выйти широко)
   var pkU = swing ? hashRand(tick*43 + b.id.charCodeAt(b.id.length-1)*19 + roundNum*7) : 0, PKW = PEEK_KIND[b.team] || PEEK_KIND.T;
   var pkK = !swing ? null : pkU < PKW[0] ? "short" : pkU < PKW[0] + PKW[1] ? "mid" : "wide";
-  cand.sort(pkK === "short" ? function(a, c){ return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(c.x-b.x, c.y-b.y); }
-          : pkK === "wide" ? function(a, c){ return Math.hypot(c.x-b.x, c.y-b.y) - Math.hypot(a.x-b.x, a.y-b.y); }
-          : swing ? function(a, c){ return Math.abs(Math.hypot(a.x-look.x, a.y-look.y) - wD) - Math.abs(Math.hypot(c.x-look.x, c.y-look.y) - wD); }
-                  : function(a, c){ return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(c.x-b.x, c.y-b.y); });
+  cand.sort(pkK === "short" ? function(a, c){ return DM.hypot(a.x-b.x, a.y-b.y) - DM.hypot(c.x-b.x, c.y-b.y); }
+          : pkK === "wide" ? function(a, c){ return DM.hypot(c.x-b.x, c.y-b.y) - DM.hypot(a.x-b.x, a.y-b.y); }
+          : swing ? function(a, c){ return Math.abs(DM.hypot(a.x-look.x, a.y-look.y) - wD) - Math.abs(DM.hypot(c.x-look.x, c.y-look.y) - wD); }
+                  : function(a, c){ return DM.hypot(a.x-b.x, a.y-b.y) - DM.hypot(c.x-b.x, c.y-b.y); });
   var sp = cand[0]; if(!sp) return;
   var tag = swing ? "contact:swing" : "contact:hold";
   // (v378) задача важнее контакта (бомба, сейв — арбитр места, setPost) — ноги остаются на ней, взгляд — на контакт
@@ -265,31 +265,31 @@ function delaySafe(b){
   if(b._sawEnemy) return false;
   var BL = beliefLast[b.team] || {};
   for(var id in BL){ var e = BL[id], ob = teamBot(id);
-    if(ob && ob.alive && ob.team !== b.team && tick - e.tick <= CONTACT_AGE*TICK_HZ && Math.hypot(e.x-b.x, e.y-b.y) < DELAY_SAFE) return false; }
+    if(ob && ob.alive && ob.team !== b.team && tick - e.tick <= CONTACT_AGE*TICK_HZ && DM.hypot(e.x-b.x, e.y-b.y) < DELAY_SAFE) return false; }
   return true;
 }
 function flashSafeFor(b, t){
   return !bots.some(function(o){ if(o === b || !o.alive || o.team !== b.team) return false;
-    var k = flashDirK(o, t); return k && BAL.flashMax*k*Math.max(0, 1 - Math.hypot(o.x-t.x, o.y-t.y)/1100) > 0.35; });   // как хлопок (400), без увёртки и колла
+    var k = flashDirK(o, t); return k && BAL.flashMax*k*Math.max(0, 1 - DM.hypot(o.x-t.x, o.y-t.y)/1100) > 0.35; });   // как хлопок (400), без увёртки и колла
 }
 function delayCanThrow(o){ return o.alive && o.team === "CT" && o.nades && (o.nades.molly > 0 || o.nades.smoke > 0 || o.nades.he > 0) && !o.nadeTask && !o._sawEnemy; }
 function delayTarget(b){
   var K = b._contact;
   if(K && K.tag === "contact:hold" && tick < K.until)
-    return Math.hypot(K.x-b.x, K.y-b.y) >= DELAY_SAFE ? {x:K.x, y:K.y, why:"держу "+calloutName(K.x, K.y)} : null;   // враг уже в упор — оружие
+    return DM.hypot(K.x-b.x, K.y-b.y) >= DELAY_SAFE ? {x:K.x, y:K.y, why:"держу "+calloutName(K.x, K.y)} : null;   // враг уже в упор — оружие
   if(!delayCanThrow(b)) return null;
   var early = tick - roundStartTick < 25*TICK_HZ, best = null, sig = (teamIntel.CT && teamIntel.CT.sig) || [];
   ["A","B"].forEach(function(k){
     var ent = GEO[k] && GEO[k].tEntry; if(!ent) return;
     var src = {}, onS = {};
     sig.forEach(function(sg){ if(!sg.id || sg.id === "?") return;
-      if((sg.type === "sound" || sg.type === "spotted") && tick - sg.tick < 2.5*TICK_HZ && Math.hypot(sg.x-ent.x, sg.y-ent.y) < 700) src[sg.id] = 1;
-      if(sg.type === "spotted" && tick - sg.tick < 1.5*TICK_HZ && Math.hypot(sg.x-SITES[k].x, sg.y-SITES[k].y) < 220) onS[sg.id] = 1; });
+      if((sg.type === "sound" || sg.type === "spotted") && tick - sg.tick < 2.5*TICK_HZ && DM.hypot(sg.x-ent.x, sg.y-ent.y) < 700) src[sg.id] = 1;
+      if(sg.type === "spotted" && tick - sg.tick < 1.5*TICK_HZ && DM.hypot(sg.x-SITES[k].x, sg.y-SITES[k].y) < 220) onS[sg.id] = 1; });
     if(Object.keys(src).length < (early ? 1 : 2) || Object.keys(onS).length > 1) return;
-    var ok = function(o){ var d = Math.hypot(o.x-ent.x, o.y-ent.y); return d < NADE_THROW_RANGE*1.1 && d > 150; };
+    var ok = function(o){ var d = DM.hypot(o.x-ent.x, o.y-ent.y); return d < NADE_THROW_RANGE*1.1 && d > 150; };
     if(!ok(b)) return;
-    var dB = Math.hypot(b.x-ent.x, b.y-ent.y);
-    if(bots.some(function(o){ return o !== b && delayCanThrow(o) && ok(o) && Math.hypot(o.x-ent.x, o.y-ent.y) < dB; })) return;   // кидает ближайший
+    var dB = DM.hypot(b.x-ent.x, b.y-ent.y);
+    if(bots.some(function(o){ return o !== b && delayCanThrow(o) && ok(o) && DM.hypot(o.x-ent.x, o.y-ent.y) < dB; })) return;   // кидает ближайший
     if(!best || dB < best.d) best = {x:ent.x, y:ent.y, d:dB, why:"вход "+k};
   });
   // (В142, v580) не только входы на сайты: T, которых команда только что видела (≤ 1,5 с) или слышала (≤ 2,5 с) где угодно в радиусе
@@ -299,9 +299,9 @@ function delayTarget(b){
     var fresh = sig.filter(function(sg){ return sg.id && sg.id !== "?" && ((sg.type === "spotted" && tick - sg.tick < 1.5*TICK_HZ) || (sg.type === "sound" && tick - sg.tick < 2.5*TICK_HZ)); })
       .sort(function(p, q){ return q.tick - p.tick; });
     fresh.some(function(sg){
-      var dB = Math.hypot(b.x-sg.x, b.y-sg.y); if(dB < DELAY_SAFE || dB > NADE_THROW_RANGE) return false;
-      if(bots.some(function(o){ return o !== b && delayCanThrow(o) && Math.hypot(o.x-sg.x, o.y-sg.y) >= DELAY_SAFE && Math.hypot(o.x-sg.x, o.y-sg.y) < dB; })) return false;
-      var nN = {}; fresh.forEach(function(q){ if(Math.hypot(q.x-sg.x, q.y-sg.y) < DELAY_GROUP_R) nN[q.id] = 1; });
+      var dB = DM.hypot(b.x-sg.x, b.y-sg.y); if(dB < DELAY_SAFE || dB > NADE_THROW_RANGE) return false;
+      if(bots.some(function(o){ return o !== b && delayCanThrow(o) && DM.hypot(o.x-sg.x, o.y-sg.y) >= DELAY_SAFE && DM.hypot(o.x-sg.x, o.y-sg.y) < dB; })) return false;
+      var nN = {}; fresh.forEach(function(q){ if(DM.hypot(q.x-sg.x, q.y-sg.y) < DELAY_GROUP_R) nN[q.id] = 1; });
       best = {x:sg.x, y:sg.y, d:dB, why:calloutName(sg.x, sg.y), seen: sg.type === "spotted", n: Object.keys(nN).length}; return true; });
   }
   return best;
@@ -316,7 +316,7 @@ function ctDelayNade(b){
     if(!contactMateFight(b, t)) return;
     if(b.nades.he > 0 && !inSmoke) type = "he";
     else if(b.nades.flash > 0 && flashSafeFor(b, t)) type = "flash";
-  } else if(!fires.some(function(f){ return Math.hypot(f.x-t.x, f.y-t.y) < NADE.molly.radius; })){
+  } else if(!fires.some(function(f){ return DM.hypot(f.x-t.x, f.y-t.y) < NADE.molly.radius; })){
     // (v583a, Д30, владелец 18.11: «увидел — кинул подходящую гранату: заходят в Connector — молотов, в яме игроки — смок; не только HE / молотов»)
     // какая граната — жребий из тех, что есть, с весами про: гранаты CT до планта, сработавшие рядом с T (≤ 350 ед.; демки Mirage,
     // tools/motion/nade_react_pro.py): смоков 2,6 тыс., молотовов 2,6 тыс., HE 1,65 тыс.; T рядом двое и больше — у HE 61 %, у молотова 56 %, у смока
@@ -348,7 +348,7 @@ function hurtReactTick(b){
   // перестреливался с края; v561 — перенесено сюда из 290, хозяин «опасно — уйти») смок соперника раскрылся на нём, а он не на посту (идёт по
   // маршруту, проба): тут его ждут или сейчас выйдут — назад по своему следу из дыма. На посту — смена позиции поста (290, smokeShiftOnDetonate)
   var SM = null; if(b.alive && !(b.atPost && b.post && b.post.hold)) smokes.forEach(function(s){
-    if(s.team !== b.team && tick - s.born <= HURT_REACT && Math.hypot(s.x-b.x, s.y-b.y) < NADE.smoke.radius && (!SM || s.born > SM.born)) SM = s; });
+    if(s.team !== b.team && tick - s.born <= HURT_REACT && DM.hypot(s.x-b.x, s.y-b.y) < NADE.smoke.radius && (!SM || s.born > SM.born)) SM = s; });
   var smT = SM ? SM.born : 0;
   var evT = Math.max(b._hurtT || 0, shotT, smT); if(!b.alive || !evT || b._hurtDone === evT) return;
   b._hurtDone = evT;
@@ -356,7 +356,7 @@ function hurtReactTick(b){
   if(tick - evT > HURT_REACT || b._sawEnemy || b._fc || (kind === "hurt" && b._hurtSrc === "молотов")) return;
   if(kind === "smoke"){
     var tr = b._trail || [], back = null;
-    for(var ti = tr.length-1; ti >= 0 && !back; ti--){ var q = tr[ti]; if(Math.hypot(q.x-SM.x, q.y-SM.y) > NADE.smoke.radius + 30) back = q; }
+    for(var ti = tr.length-1; ti >= 0 && !back; ti--){ var q = tr[ti]; if(DM.hypot(q.x-SM.x, q.y-SM.y) > NADE.smoke.radius + 30) back = q; }
     if(back && taskCanSet(b, "repos:back") && setPost(b, {x:back.x, y:back.y}, {x:SM.x, y:SM.y}, true, "repos:back")){ taskKeep(b, tick + 3*TICK_HZ, "contact");
       logEvent(b.id+": смок соперника лёг на меня — назад из дыма"); }
     return;
@@ -368,7 +368,7 @@ function hurtReactTick(b){
   var cand = pickSpots("hurt"+Math.round(b.x/30)+","+Math.round(b.y/30)+"|"+Math.round(F.x/60)+","+Math.round(F.y/60), {x:b.x, y:b.y}, COVER_CANDS, {rMax:HURT_R, minGap:30, hideFrom:[F].concat(hurtT.exp)})
     .filter(function(q){ var a = b.z == null ? null : navAtLevel(q.x, q.y, b.z); if(b.z != null && !a) return false; q.z = a ? a.z : b.z;
       return !spotTaken(b, q); })
-    .sort(function(p, q){ return Math.hypot(p.x-b.x, p.y-b.y) - Math.hypot(q.x-b.x, q.y-b.y); });
+    .sort(function(p, q){ return DM.hypot(p.x-b.x, p.y-b.y) - DM.hypot(q.x-b.x, q.y-b.y); });
   var sp = coverPick(cand, coverZ(b), hurtT); if(!sp) return;   // (18.11) общий выбор укрытия (470): стрелок + известные + входы, где ждут; 3D, с шагом
   var sec = pathLenTo(b, sp.x, sp.y)/SPEED;
   if(sec > DETOUR_MAX.hurt || (!taskCanSet(b, "repos:hurt") && !detourOk(b, "hurt", sec))) return;

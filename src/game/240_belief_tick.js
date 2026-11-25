@@ -14,7 +14,7 @@ var BELIEF_STEP = 16; // тиков (0.25с)
 // карты: ближайший сайт в PM_SITE_R ед. (Short — B, Palace — A), иначе мид. Только то, что команда сама знала (beliefLast) — не
 // подсказка игры. Свой счёт на каждый матч и каждую сторону соперника (после смены сторон — заново)
 var PLAYER_MEM = {key: null, by: {}}, PM_SITE_R = 700, PM_MIN = 2, PM_GAIN = 2;   // проектные числа
-function pmRegion(pt){ var best = "M", bd = PM_SITE_R; ["A","B"].forEach(function(k){ var d = Math.hypot(pt.x-SITES[k].x, pt.y-SITES[k].y); if(d < bd){ bd = d; best = k; } }); return best; }
+function pmRegion(pt){ var best = "M", bd = PM_SITE_R; ["A","B"].forEach(function(k){ var d = DM.hypot(pt.x-SITES[k].x, pt.y-SITES[k].y); if(d < bd){ bd = d; best = k; } }); return best; }
 function pmBook(team, e){ var k = matchNum; if(PLAYER_MEM.key !== k){ PLAYER_MEM = {key: k, by: {}}; } var id = team+">"+e.team+":"+e.id; return PLAYER_MEM.by[id] || (PLAYER_MEM.by[id] = {A:0, B:0, M:0, n:0, last:-1}); }
 function pmNote(team, e, bl){
   if(!bl || bl.tick < roundStartTick || (bomb && bomb.state === "planted")) return;
@@ -94,7 +94,7 @@ function beliefTick(){
       var W = ZONE_DANGER_W[BZ.ids[zb]] || {};
       (ZONE_DANGER[BZ.ids[zb]]||[]).forEach(function(zid){
         var j = BZ.idx[zid]; if(j === undefined) return;
-        var c = BZ.cent[j], d = Math.hypot(c.x-b.x, c.y-b.y);
+        var c = BZ.cent[j], d = DM.hypot(c.x-b.x, c.y-b.y);
         if(d > CONE_R*1.4) return;
         if(!inFov(b, c.x, c.y) && d > FOV_NEAR*2) return;
         clearAll.push([j, Math.min(0.9, 0.35 + 0.9*(W[zid]||0))]);

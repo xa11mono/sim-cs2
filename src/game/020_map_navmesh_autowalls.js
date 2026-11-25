@@ -66,7 +66,7 @@ function zoneOf(x,y,z){
   NAVAREAS.forEach(function(zn){
     if(NAV_BLOCKED[zn.id] || !(zoneGraph[zn.id]||[]).length) return;
     var cx=0,cy=0; zn.points.forEach(function(p){cx+=p.x;cy+=p.y;}); cx/=zn.points.length; cy/=zn.points.length;
-    C.push({zn:zn, x:cx, y:cy, d:Math.hypot(cx-x,cy-y) + (z != null ? Math.abs(zn.z - z)*0.5 : 0)});
+    C.push({zn:zn, x:cx, y:cy, d:DM.hypot(cx-x,cy-y) + (z != null ? Math.abs(zn.z - z)*0.5 : 0)});
   });
   C.sort(function(a,b){ return a.d - b.d; });
   for(var i=0;i<Math.min(12, C.length);i++) if(!segCrossesManualWalls(x, y, C[i].x, C[i].y)) return C[i].zn;
@@ -78,7 +78,7 @@ function zoneOf(x,y,z){
 // pairs the .nav file itself declares adjacent via each area's conn list —
 // so we're not doing an all-pairs search over 1970 areas, just the real
 // neighbors) ----------
-function dist2(a,b){ return Math.hypot(a.x-b.x, a.y-b.y); }
+function dist2(a,b){ return DM.hypot(a.x-b.x, a.y-b.y); }
 function zoneEdges(z){
   var pts = z.points, out = [];
   for(var i=0;i<pts.length;i++) out.push([pts[i], pts[(i+1)%pts.length]]);
@@ -96,11 +96,11 @@ function zoneEdges(z){
 var PORTAL_TOL = 10, PORTAL_MIN_OVERLAP = 4;
 function segOverlap(ea, eb){
   var d1x=ea[1].x-ea[0].x, d1y=ea[1].y-ea[0].y;
-  var len1 = Math.hypot(d1x,d1y);
+  var len1 = DM.hypot(d1x,d1y);
   if(len1<1e-6) return null;
   d1x/=len1; d1y/=len1;
   var d2x=eb[1].x-eb[0].x, d2y=eb[1].y-eb[0].y;
-  var len2 = Math.hypot(d2x,d2y);
+  var len2 = DM.hypot(d2x,d2y);
   if(len2<1e-6) return null;
   d2x/=len2; d2y/=len2;
   var cross = Math.abs(d1x*d2y - d1y*d2x);

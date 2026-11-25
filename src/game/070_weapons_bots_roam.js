@@ -125,7 +125,7 @@ function buildAutoRoamRoute(team){
   var cands = [];
   ZONEMAP.zones.forEach(function(z){
     var c = ZONE_CENTROIDS[z.id]; if(!c) return;
-    var dOwn = Math.hypot(c.x-own.x, c.y-own.y), dEn = Math.hypot(c.x-enemy.x, c.y-enemy.y);
+    var dOwn = DM.hypot(c.x-own.x, c.y-own.y), dEn = DM.hypot(c.x-enemy.x, c.y-enemy.y);
     if(dOwn > dEn*0.95 || dOwn < 260) return; // своя половина, но не у самого спавна
     var sp = snapToWalkable(c.x, c.y);
     if(insideSolidWall(sp.x, sp.y)) return;
@@ -135,14 +135,14 @@ function buildAutoRoamRoute(team){
   var picked = [];
   cands.forEach(function(c){
     if(picked.length >= 4) return;
-    if(picked.some(function(p){ return Math.hypot(p.x-c.x, p.y-c.y) < 240; })) return;
+    if(picked.some(function(p){ return DM.hypot(p.x-c.x, p.y-c.y) < 240; })) return;
     picked.push(c);
   });
   // порядок обхода — ближайший сосед, начиная от ближайшей к своему спавну
   var route = [], left = picked.slice(), cur = {x:own.x, y:own.y};
   while(left.length){
     var bi = 0, bd = Infinity;
-    left.forEach(function(p,i){ var d = Math.hypot(p.x-cur.x, p.y-cur.y); if(d<bd){ bd=d; bi=i; } });
+    left.forEach(function(p,i){ var d = DM.hypot(p.x-cur.x, p.y-cur.y); if(d<bd){ bd=d; bi=i; } });
     cur = left.splice(bi,1)[0]; route.push(cur);
   }
   return route;

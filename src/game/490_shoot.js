@@ -39,7 +39,7 @@ function awpNoscope(sh, tg, dist){
   // (v526, владелец 10.11: «в упор некоторые успевают и в прицеле»; «если есть время прицелиться — в прицел») кто стоял и уже целился в это
   // место (держал угол), тот уже в прицеле — без прицела стреляет только застигнутый: на ходу / развернулся на врага
   if(sh._heldAim) return false;
-  var bA = Math.atan(BODY_HALF/Math.max(8, dist)), a = aimSigma(sh, tg, dist), w0 = shotSpread(sh, 0), ns = Math.hypot(w0, AWP_NOSCOPE/1000);
+  var bA = Math.atan(BODY_HALF/Math.max(8, dist)), a = aimSigma(sh, tg, dist), w0 = shotSpread(sh, 0), ns = DM.hypot(w0, AWP_NOSCOPE/1000);
   var pB = function(sp){ return 1 - Math.exp(-(bA*bA)/(2*(sp*sp + a*a))); };
   return pB(ns) >= FIRE_K * pB(w0);
 }
@@ -58,7 +58,7 @@ function saveShootOk(b, t){
   if(knowSeenByFoe(b, t)) return true;
   if(bots.some(function(m){ return m !== b && m.team === b.team && m.alive && m._visible && m._visible.indexOf(t) >= 0; })) return true;
   var P = (b.path || []).slice(b.pathIdx || 0); if(b._saveSpot) P.push([b._saveSpot.x, b._saveSpot.y]);
-  for(var i = 0; i < P.length; i++) if(Math.hypot(P[i][0]-t.x, P[i][1]-t.y) < SAVE_PATH_R) return true;
+  for(var i = 0; i < P.length; i++) if(DM.hypot(P[i][0]-t.x, P[i][1]-t.y) < SAVE_PATH_R) return true;
   return false;
 }
 var TAP_PAUSE = 0.5;   // с — пауза между очередями у про (медиана, все дистанции)
@@ -135,7 +135,7 @@ function tryShoot(shooter, target, dist){ var _ev = simEvIn("tryShoot", argument
     // догадке: раньше ~30% выстрелов были префаерами, и ТТК выглядел мгновенным
     var pfWin = 90, LI = shooter._intelPre;   // что знал до этого контакта
     if(shooter.holding && LI && (LI.src !== "call") && (tick - LI.tick) < pfWin &&
-       Math.hypot(target.x-LI.x, target.y-LI.y) < PREFIRE_RADIUS &&
+       DM.hypot(target.x-LI.x, target.y-LI.y) < PREFIRE_RADIUS &&
        // перевыход после потери: мгновенно — только если видел <0.5с назад,
        // иначе нужна хотя бы половина реакции (прицел "примерно там", а не на голове)
        ((tick - LI.tick) < 32 || cs >= Math.round(effReaction*0.5))){
@@ -203,7 +203,7 @@ function tryShoot(shooter, target, dist){ var _ev = simEvIn("tryShoot", argument
   // в голову попадают редко — как в CS, а не одинаковые 50% на любой дистанции.
   var sk = shooter.skill;
   var noscope = awpNoscope(shooter, target, dist), nsS = noscope ? AWP_NOSCOPE/1000 : 0;   // без прицела — разброс оружия без прицела (данные игры)
-  var wSpread = Math.hypot(shotSpread(shooter, (shooter._jc && shooter._jc.run ? SPEED*weaponSpeedMul(shooter) : Math.max(shooter.curSpeed || 0, Math.abs((shooter._keys || {}).v || 0)))), nsS);   // (v575) и качание A / D (540); в прыжке на бегу — как на полном ходу
+  var wSpread = DM.hypot(shotSpread(shooter, (shooter._jc && shooter._jc.run ? SPEED*weaponSpeedMul(shooter) : Math.max(shooter.curSpeed || 0, Math.abs((shooter._keys || {}).v || 0)))), nsS);   // (v575) и качание A / D (540); в прыжке на бегу — как на полном ходу
   var comp = 0.55 + 0.35*Math.max(0, Math.min(1, (sk-0.8)/0.4));
   var recoilErr = w.recoil/1000 * Math.max(0, burstIdx-1) * (1-comp) * 1.6;
   var spamErr = (w.spam||0)/1000 * heat;
@@ -223,7 +223,7 @@ function tryShoot(shooter, target, dist){ var _ev = simEvIn("tryShoot", argument
   // (Б4, контрстрейф) стрелять сейчас или сначала погасить скорость: игрок жмёт, когда попасть в корпус на ходу почти так же
   // вероятно, как стоя (не ниже FIRE_K от этого) — вблизи цель большая, и на ходу попадает (пистолет, ПП стреляют с бега),
   // вдали — сначала остановка. Иначе ждёт, пока сбросит скорость (контрстрейф — fightStrafe)
-  var w0 = Math.hypot(shotSpread(shooter, 0), nsS), sig0 = Math.sqrt(w0*w0 + rest2) * sM;
+  var w0 = DM.hypot(shotSpread(shooter, 0), nsS), sig0 = Math.sqrt(w0*w0 + rest2) * sM;
   var pBody = function(sg){ return 1 - Math.exp(-(bA*bA)/(2*sg*sg)); };
   if(wSpread > w0 && pBody(sigma) < FIRE_K * pBody(sig0)){ fireReady(shooter, target, 0); return simEvOut(_ev); }
   shooter._fire = null;
@@ -272,7 +272,7 @@ function tryShoot(shooter, target, dist){ var _ev = simEvIn("tryShoot", argument
   var ex = gr*Math.cos(2*Math.PI*gu2)*sgm + sp.x*(1-cmp), ey = gr*Math.sin(2*Math.PI*gu2)*sgm + sp.y*(1-cmp);
   var ux = aimSide*VIS_SHOULDER + ex/u1, uy = aimY + ey/u1;   // (М149) поперёк — от видимого плеча
   var hDev = ex;   // (v289) настоящая ошибка вбок, рад — по ней летит трассер промаха
-  if(Math.hypot(ux, uy-hH) < 5.5) hbZone = "head";
+  if(DM.hypot(ux, uy-hH) < 5.5) hbZone = "head";
   else if(uy >= hH-20*kC && uy < hH-6*kC && Math.abs(ux) < 15) hbZone = "chest";
   else if(uy >= hH-30*kC && uy < hH-20*kC && Math.abs(ux) < 13) hbZone = "stomach";
   else if(uy >= 0 && uy < hH-30*kC && Math.abs(ux) < 10) hbZone = "legs";
@@ -284,7 +284,7 @@ function tryShoot(shooter, target, dist){ var _ev = simEvIn("tryShoot", argument
     if(shooter.z != null && Math.abs(fz0 - shooter.z) > JUMP_UP) fz0 = shooter.z; if(target.z != null && Math.abs(fz1 - target.z) > JUMP_UP) fz1 = target.z;
     var vz0 = fz0 + (shooter.crouching ? VIS_EYE.crouch : VIS_EYE.stand);
     // (М149) пуля летит в свою точку и поперёк линии (ux): в плечо, видное из-за угла, — попадает, в середину за углом — нет
-    var bL = Math.hypot(target.x - shooter.x, target.y - shooter.y) || 1, bk = ux / PX_UNITS / bL;
+    var bL = DM.hypot(target.x - shooter.x, target.y - shooter.y) || 1, bk = ux / PX_UNITS / bL;
     var bx = target.x - (target.y - shooter.y)*bk, by = target.y + (target.x - shooter.x)*bk;
     if(!visMarch(shooter.x, shooter.y, vz0, bx, by, fz1 + Math.max(4, uy))){ hbZone = null; shooter._covShot = tick; } }
   // (v570) счёт своих пуль, ушедших в край / укрытие (видно по попаданиям в стену — как живому игроку): читает перестрелка (470, место пика)
@@ -325,7 +325,7 @@ function tryShoot(shooter, target, dist){ var _ev = simEvIn("tryShoot", argument
         var alt = pickSpots("repos"+Math.round(shooter.post.x/30)+","+Math.round(shooter.post.y/30), shooter.post, 3,
           {rMin:55, rMax:170, minGap:40, see: shooter.post.look ? [shooter.post.look] : [], hideFrom:[{x:target.x, y:target.y}]});
         var ap = alt[hashRand(tick + shooter.id.charCodeAt(0)) < 0.5 ? 0 : Math.min(1, alt.length-1)];
-        if(ap && Math.hypot(ap.x-shooter.post.x, ap.y-shooter.post.y) > 40){
+        if(ap && DM.hypot(ap.x-shooter.post.x, ap.y-shooter.post.y) > 40){
           var lk = shooter.post.look;
           taskKeep(shooter, 0, "shoot");
           setPost(shooter, ap, lk, true, "repos"); leaveHold(shooter);
@@ -347,7 +347,7 @@ function tryShoot(shooter, target, dist){ var _ev = simEvIn("tryShoot", argument
     var dev;
     if(hDev !== undefined) dev = hDev;
     else { var sgn = hashRand(seedS+3) < 0.5 ? -1 : 1; dev = sgn * (bA*1.15 + Math.abs(hashRand(seedS+7)-0.5)*2*sigma); }
-    var far = Math.min(w.range, Math.hypot(dx,dy)*1.6 + 60);
+    var far = Math.min(w.range, DM.hypot(dx,dy)*1.6 + 60);
     var ex = shooter.x + Math.cos(ang+dev)*far, ey = shooter.y + Math.sin(ang+dev)*far;
     var cl = bulletClip3(shooter, ex, ey, target, headOnly);   // (v583a, Д7) видна только голова — промах летит на уровне головы   // (v519) по 3D-геометрии (ящики), не только до стен редактора
     endX = cl.x; endY = cl.y;
@@ -364,7 +364,7 @@ function tryShoot(shooter, target, dist){ var _ev = simEvIn("tryShoot", argument
   // но разворачиваются на звук стрельбы; в кого попали — точно знает откуда)
   bots.forEach(function(o){
     if(!o.alive || o.team === shooter.team) return;
-    var dG = Math.hypot(o.x-shooter.x, o.y-shooter.y);
+    var dG = DM.hypot(o.x-shooter.x, o.y-shooter.y);
     if(o === target){ o.heardSound = hearReal(o, {x:shooter.x, y:shooter.y, tick:tick, team:shooter.team, src:shooter.id, kind:"hit"}); return; }
     // слышимость выстрела: на прямой видимости дальше, через стены глуше
     // (раньше было 900px во все стороны — слышали полкарты)

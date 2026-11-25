@@ -70,7 +70,7 @@ function hearReal(o, s){
   // нового дальнего: взгляд остаётся на нём (знание получает оба — через ears)
   var cur = o.heardSound;
   if(cur && cur.team && cur.team === s.team && s.kind !== "hit" && tick - cur.tick < 96 &&
-     Math.hypot(cur.x-o.x, cur.y-o.y) < 0.5*Math.hypot(s.x-o.x, s.y-o.y)) return cur;
+     DM.hypot(cur.x-o.x, cur.y-o.y) < 0.5*DM.hypot(s.x-o.x, s.y-o.y)) return cur;
   return s;
 }
 
@@ -136,12 +136,12 @@ function zoneIdAt3(x, y, z){
 function knowZoneAt(x, y, zh){
   var z = zoneIdAt3(x, y, zh); if(z) return z;
   var g = knowGraph(), best = null, bd = Infinity;
-  for(var id in g.c){ var d = Math.hypot(g.c[id].x-x, g.c[id].y-y) - g.r[id]; if(d < bd){ bd = d; best = id; } }
+  for(var id in g.c){ var d = DM.hypot(g.c[id].x-x, g.c[id].y-y) - g.r[id]; if(d < bd){ bd = d; best = id; } }
   return best;
 }
 function knowNearestSite(x, y){
   var best = null, bd = Infinity;
-  for(var k in SITES){ var d = Math.hypot(SITES[k].x-x, SITES[k].y-y); if(d < bd){ bd = d; best = k; } }
+  for(var k in SITES){ var d = DM.hypot(SITES[k].x-x, SITES[k].y-y); if(d < bd){ bd = d; best = k; } }
   return best;
 }
 function knowZoneName(zid){ return zid ? (zoneUserName(zid) || zid) : "?"; }
@@ -172,7 +172,7 @@ function knowEnemySpots(team, id){
 // ---------- гипотезы от последнего точного контакта ----------
 function knowBuild(K, side, last){
   var g = knowGraph(), Z0 = last.zone, hyps = [];
-  var moving = Math.hypot(last.vx||0, last.vy||0) > SPEED*0.3;
+  var moving = DM.hypot(last.vx||0, last.vy||0) > SPEED*0.3;
   var held = {type: "held", zone: Z0, x: last.x, y: last.y, weight: moving ? KNOW.heldMoving : KNOW.heldStill};
   var unk = {type: "moved_unknown", zone: null, weight: KNOW.unknownStart};
   var branches = [];
@@ -189,7 +189,7 @@ function knowBuild(K, side, last){
       var route = []; for(var z2 = D; z2 !== Z0; z2 = prev[z2]) route.unshift(z2);
       var prior = knowValue(D, side, K);
       if(moving && !last.nodir){
-        var c = g.c[route[0]], dx = c.x-last.x, dy = c.y-last.y, L = Math.hypot(dx, dy)*Math.hypot(last.vx, last.vy);
+        var c = g.c[route[0]], dx = c.x-last.x, dy = c.y-last.y, L = DM.hypot(dx, dy)*DM.hypot(last.vx, last.vy);
         var cos = L ? (dx*last.vx + dy*last.vy)/L : 0;
         prior *= Math.pow(KNOW.dirBoost, cos);
       }
@@ -219,7 +219,7 @@ function knowWindows(route, last){
   var fast = SPEED/TICK_HZ, slow = SPEED*0.8/TICK_HZ;
   route.forEach(function(z){
     var c = g.c[z], r = g.r[z];
-    d += Math.hypot(c.x-px, c.y-py); px = c.x; py = c.y;
+    d += DM.hypot(c.x-px, c.y-py); px = c.x; py = c.y;
     W.push({zone: z, t0: last.tick + Math.max(0, d-r)/fast, t1: last.tick + (d+r)/slow, done: false});
   });
   return W;
@@ -255,8 +255,8 @@ function knowSpotBase(side){
   if(!KNOW_SPOTS[side]) KNOW_SPOTS[side] = KNOW_POSITIONS.points.filter(function(p){ return p.side === side && p.type === "standard" && !p.push; })
     .map(function(p){
       var sp = side === "CT" ? CT_SPAWN : T_SPAWN, P = buildWaypointPath(sp.x, sp.y, 0, p.x, p.y, 0), L = 0, px = sp.x, py = sp.y;
-      (P || []).forEach(function(q){ L += Math.hypot(q[0]-px, q[1]-py); px = q[0]; py = q[1]; });
-      L += Math.hypot(p.x-px, p.y-py);
+      (P || []).forEach(function(q){ L += DM.hypot(q[0]-px, q[1]-py); px = q[0]; py = q[1]; });
+      L += DM.hypot(p.x-px, p.y-py);
       return {id: p.id, x: p.x, y: p.y, zone: knowZoneAt(p.x, p.y), run: L};
     });
   return KNOW_SPOTS[side];
@@ -312,7 +312,7 @@ function knowHearing(b){
     var s = E[i];
     if(s.kind === "defuse") K.defuseT = tick;
     if(!(s.kind in KNOW.soundL)) continue;
-    var d = Math.hypot(s.x-b.x, s.y-b.y), err = d*(s.occl ? 0.3 : 0.15) + 40;
+    var d = DM.hypot(s.x-b.x, s.y-b.y), err = d*(s.occl ? 0.3 : 0.15) + 40;
     var zone = knowZoneAt(s.x, s.y, s.z);
     K.heard.push({x: s.x, y: s.y, zone: zone, kind: s.kind, tick: tick, err: err});
     if(s.kind === "plant" && !K.planted) K.plantHeard = knowNearestSite(s.x, s.y);
@@ -330,7 +330,7 @@ function knowSources(K, test, sec){
     // раньше каждое место дальше srcApart считалось новым врагом. Теперь источник «идёт» за звуком: тот же, если до его
     // последнего звука не дальше srcApart + путь бегом за прошедшее время
     var q = null;
-    for(var qi = 0; qi < src.length && !q; qi++){ var Q = src[qi]; if(Math.hypot(Q.x - h.x, Q.y - h.y) < KNOW.srcApart + SPEED*Math.abs(h.tick - Q.tick)/TICK_HZ) q = Q; }
+    for(var qi = 0; qi < src.length && !q; qi++){ var Q = src[qi]; if(DM.hypot(Q.x - h.x, Q.y - h.y) < KNOW.srcApart + SPEED*Math.abs(h.tick - Q.tick)/TICK_HZ) q = Q; }
     if(q){ q.x = h.x; q.y = h.y; q.tick = h.tick; } else src.push({x: h.x, y: h.y, tick: h.tick, zone: h.zone});
   });
   return src;

@@ -6,6 +6,7 @@
 // нашей физикой из точки лайнапа. Берётся, если ложится ≤ 32 ед. от цели (порог совпадения с про, NADES.md) и быстрее броска стоя (подбор
 // nadeAim, как у бота) и не дольше 8,1 с (99 % смоков про). Из всех годных — медиана по времени. Физика — та же, что в игре (385).
 'use strict';
+require('../dmath/global.js');   // (Р2.3) DM — общая математика игры (файлы игры зовут DM.*)
 const path = require('path'), fs = require('fs'), ROOT = path.join(__dirname, '..', '..');
 const map = process.argv[2] || 'ancient';
 const W = require('./world.js').load(map), N = require(path.join(ROOT, 'src/game/385_nades_flight.js'));

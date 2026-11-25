@@ -35,8 +35,8 @@ function tFallbackTick(){
     var zb = bzOf(b.x, b.y); if(zb < 0) return;
     var L = beliefLast.T || {}, ids = 0, cx = 0, cy = 0;
     for(var eid in L){ var lo = L[eid]; if(tick - lo.tick > FB.window*TICK_HZ) continue; var eb = bots.filter(function(o){ return o.id === eid; })[0]; if(!eb || !eb.alive) continue;
-      if(Math.hypot(lo.x-b.x, lo.y-b.y) > 900) continue; ids++; cx += lo.x; cy += lo.y; }
-    var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === "T" && Math.hypot(o.x-b.x, o.y-b.y) <= 350; }).length;
+      if(DM.hypot(lo.x-b.x, lo.y-b.y) > 900) continue; ids++; cx += lo.x; cy += lo.y; }
+    var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === "T" && DM.hypot(o.x-b.x, o.y-b.y) <= 350; }).length;
     var died = intelDeathsNear("T", b.x, b.y, FB.deathR, FB.window*TICK_HZ) > 0;
     // повод: их больше, чем нас тут; погиб свой рядом без размена. (v518a, пак 09.11 п.6) «ранен» — не здесь: одна реакция на урон в любом
     // состоянии — hurtReactTick (350); было три частных правила (тут только фаза setup до планта, у CT — только впереди сайтов, 250 — только на посту)
@@ -44,7 +44,7 @@ function tFallbackTick(){
     var why = ((ids >= 2 && ids > mates + 1) || (solo && ids >= 1)) ? "их "+ids+" — отхожу" : (died && mates === 0) ? "минус рядом — отхожу" : null;
     if(!why) return;
     var th = ids ? {x:cx/ids, y:cy/ids} : (b.lastIntel ? {x:b.lastIntel.x, y:b.lastIntel.y} : null);
-    var dx = th ? b.x-th.x : 0, dy = th ? b.y-th.y : 0, dl = Math.hypot(dx, dy);
+    var dx = th ? b.x-th.x : 0, dy = th ? b.y-th.y : 0, dl = DM.hypot(dx, dy);
     var center = dl > 1 ? walk({x:b.x+dx/dl*FB.back, y:b.y+dy/dl*FB.back}) : null;
     var cand = center ? pickSpots("tfb"+tick+b.id, center, 4, {rMax:FB.rMax, minGap:40, hideFrom: th ? [th] : []}) : [];
     var sp = coverPick(cand.filter(function(q){ var zq = bzOf(q.x, q.y); return zq >= 0 && ED[zq] >= ED[zb] + FB.gainED; }), coverZ(b), coverThreats(b, th ? [th] : []));   // (18.11) общий выбор укрытия (470)
@@ -71,21 +71,21 @@ function rebalLookOf(o){
 function rebalSpot(b, k, taken, avoidPts, opt){
   var L = PRO_SPOTS["CT|pre"] || [], best = null, bs = -1e9;
   for(var i=0;i<L.length;i++){ var s = L[i];
-    if(Math.hypot(s[0]-SITES[k].x, s[1]-SITES[k].y) > REBAL.R || insideSolidWall(s[0], s[1])) continue;
+    if(DM.hypot(s[0]-SITES[k].x, s[1]-SITES[k].y) > REBAL.R || insideSolidWall(s[0], s[1])) continue;
     // (v441, док владельца 27.10, р6: karrigan «беру угол на Catwalk» пошёл с B в Window через Market) угол сайта — в REBAL.R от сайта и по
     // пути (до 1,3 × REBAL.R — проектное число), а не только по прямой: Window в 560 от B по прямой, по пути — через полкарты
     if(polyLen(pathPts(SITES[k].x, SITES[k].y, s[0], s[1])) > REBAL.R*1.3) continue;
-    if(bots.some(function(o){ return o !== b && o.alive && o.team === "CT" && Math.hypot(o.x-s[0], o.y-s[1]) < 70; })) continue;
+    if(bots.some(function(o){ return o !== b && o.alive && o.team === "CT" && DM.hypot(o.x-s[0], o.y-s[1]) < 70; })) continue;
     var modes = [[s[3], s[4]]]; if(s.length > 5) modes.push([s[5], s[6]]);
     modes.forEach(function(m){
       var t = rebalTarget(s[0], s[1], m[0]);
-      if(Math.hypot(t.x-s[0], t.y-s[1]) < 90) return;
-      if(opt && opt.see){ if(!hasLOS(s[0], s[1], opt.see.x, opt.see.y) || Math.hypot(s[0]-SITES[k].x, s[1]-SITES[k].y) > Math.hypot(opt.see.x-SITES[k].x, opt.see.y-SITES[k].y) - 60) return;
+      if(DM.hypot(t.x-s[0], t.y-s[1]) < 90) return;
+      if(opt && opt.see){ if(!hasLOS(s[0], s[1], opt.see.x, opt.see.y) || DM.hypot(s[0]-SITES[k].x, s[1]-SITES[k].y) > DM.hypot(opt.see.x-SITES[k].x, opt.see.y-SITES[k].y) - 60) return;
         if(_angOff(m[0], Math.atan2(opt.see.y-s[1], opt.see.x-s[0])) > 0.7) return; }
-      else if(taken.some(function(q){ return Math.hypot(q.x-t.x, q.y-t.y) < REBAL.freeR; }) || avoidPts.some(function(q){ return Math.hypot(q.x-t.x, q.y-t.y) < REBAL.freeR; })) return;
+      else if(taken.some(function(q){ return DM.hypot(q.x-t.x, q.y-t.y) < REBAL.freeR; }) || avoidPts.some(function(q){ return DM.hypot(q.x-t.x, q.y-t.y) < REBAL.freeR; })) return;
       // угол в сторону своего спавна/тыла — не угол
-      if(Math.hypot(t.x-CT_SPAWN.x, t.y-CT_SPAWN.y) < Math.hypot(s[0]-CT_SPAWN.x, s[1]-CT_SPAWN.y) - 120) return;
-      var sc = Math.log(1 + s[2]) + 1.2*m[1] - Math.hypot(s[0]-b.x, s[1]-b.y)/400;
+      if(DM.hypot(t.x-CT_SPAWN.x, t.y-CT_SPAWN.y) < DM.hypot(s[0]-CT_SPAWN.x, s[1]-CT_SPAWN.y) - 120) return;
+      var sc = Math.log(1 + s[2]) + 1.2*m[1] - DM.hypot(s[0]-b.x, s[1]-b.y)/400;
       if(sc > bs){ bs = sc; best = {pt:{x:s[0], y:s[1]}, look:{x:s[0] + Math.cos(m[0])*300, y:s[1] + Math.sin(m[0])*300}, t:t}; }
     });
   }
@@ -100,26 +100,26 @@ function siteRebalanceTick(){
     if(R.pt) setPost(o, R.pt, R.look, true, R.tag);   // (v378) держит свой новый угол: вернулся к нему, если его уводила задача важнее
     if(tick - R.t < REBAL.minHold*TICK_HZ) return;
     var q = bots.filter(function(x){ return x.id === R.by; })[0];
-    var still = q && q.alive && (R.fwd ? Math.hypot(q.x-R.fx, q.y-R.fy) < 220 : true);
+    var still = q && q.alive && (R.fwd ? DM.hypot(q.x-R.fx, q.y-R.fy) < 220 : true);
     if(!still){ o._rebal = null; voiceLog("CT", "rebalOff"+o.id+tick, o.id, "возвращаюсь на свой угол"); }
   });
   ["A","B"].forEach(function(k){
     var site = SITES[k];
-    var defs = cts.filter(function(o){ return o.atPost && o.post && !o._sawEnemy && !o.nadeTask && Math.hypot(o.post.x-site.x, o.post.y-site.y) < REBAL.R && taskProp(o.post.tag, "siteDefender"); });
+    var defs = cts.filter(function(o){ return o.atPost && o.post && !o._sawEnemy && !o.nadeTask && DM.hypot(o.post.x-site.x, o.post.y-site.y) < REBAL.R && taskProp(o.post.tag, "siteDefender"); });
     if(!defs.length) return;
     var T = defs.map(function(o){ return rebalLookOf(o); });
     defs.forEach(function(o, i){
       if(o._rebal) return;
-      var t = T[i], dO = Math.hypot(o.post.x-site.x, o.post.y-site.y), by = null, fwd = false;
+      var t = T[i], dO = DM.hypot(o.post.x-site.x, o.post.y-site.y), by = null, fwd = false;
       // тиммейт вышел туда, куда я смотрю (дальше от сайта, чем я)
       cts.forEach(function(q){ if(q === o || by) return;
-        if(!(q.curSpeed > 40*SPD_K) && Math.hypot(q.x-t.x, q.y-t.y) < REBAL.fwdR && Math.hypot(q.x-site.x, q.y-site.y) > dO + 80 && hasLOS(o.post.x, o.post.y, q.x, q.y)){ by = q; fwd = true; } });
+        if(!(q.curSpeed > 40*SPD_K) && DM.hypot(q.x-t.x, q.y-t.y) < REBAL.fwdR && DM.hypot(q.x-site.x, q.y-site.y) > dO + 80 && hasLOS(o.post.x, o.post.y, q.x, q.y)){ by = q; fwd = true; } });
       // другой защитник смотрит в ту же точку, и он к ней ближе
       // (v340, владелец: «NiKo: m0NESY держит тот же угол — беру угол» и «m0NESY: NiKo держит тот же угол…» одновременно) уступает
       // один: кто дальше от угла (поровну — второй по порядку); тому, кто сам уже уходит на другой угол (_rebal), не уступают
       if(!by) defs.forEach(function(q, j){ if(q === o || by || q._rebal) return;
-        var dq = Math.hypot(q.post.x-T[j].x, q.post.y-T[j].y), dMe = Math.hypot(o.post.x-t.x, o.post.y-t.y);
-        if(Math.hypot(T[j].x-t.x, T[j].y-t.y) < REBAL.same && (dq < dMe - 1 || (Math.abs(dq - dMe) <= 1 && j < i))) by = q; });
+        var dq = DM.hypot(q.post.x-T[j].x, q.post.y-T[j].y), dMe = DM.hypot(o.post.x-t.x, o.post.y-t.y);
+        if(DM.hypot(T[j].x-t.x, T[j].y-t.y) < REBAL.same && (dq < dMe - 1 || (Math.abs(dq - dMe) <= 1 && j < i))) by = q; });
       if(!by) return;
       var taken = T.filter(function(_, j){ return j !== i; }), avoid = cts.filter(function(q){ return q !== o; }).map(function(q){ return {x:q.x, y:q.y}; });
       var sp = rebalSpot(o, k, taken, fwd ? avoid.concat([t]) : [t]), why;
@@ -149,27 +149,27 @@ function infoFallbackTick(){
     // повод откатиться: 2+ разных врага рядом за 3с, погиб свой рядом, или ранен
     var L = beliefLast.CT || {}, ids = 0, cx = 0, cy = 0;
     for(var eid in L){ var lo = L[eid]; if(tick - lo.tick > FB.window*TICK_HZ) continue; var eb = bots.filter(function(o){ return o.id === eid; })[0]; if(!eb || !eb.alive) continue;
-      if(Math.hypot(lo.x-b.x, lo.y-b.y) > 900) continue; ids++; cx += lo.x; cy += lo.y; }
+      if(DM.hypot(lo.x-b.x, lo.y-b.y) > 900) continue; ids++; cx += lo.x; cy += lo.y; }
     // (v291, И31, владелец 14.10: раунд 1, тик 2858 — игрок 6 на Mid «минус рядом» от смерти на Back Site: 926 px по прямой,
     // 1150 пешком, другой конец карты) смерть рядом — по длине пути, а не по прямой
-    var died = teamIntel.CT.sig.some(function(sg){ return sg.type === "died" && tick - sg.tick <= FB.window*TICK_HZ && Math.hypot(sg.x-b.x, sg.y-b.y) < FB.deathR &&
+    var died = teamIntel.CT.sig.some(function(sg){ return sg.type === "died" && tick - sg.tick <= FB.window*TICK_HZ && DM.hypot(sg.x-b.x, sg.y-b.y) < FB.deathR &&
       polyLen(pathPts(b.x, b.y, sg.x, sg.y, b.z)) < FB.deathR; });
     var why = ids >= FB.enemies ? "их "+ids+" — откатываюсь" : died ? "минус рядом — откатываюсь" : null;   // (v518a) «ранен» — hurtReactTick (350)
     if(!why) return;
     var th = ids ? {x:cx/ids, y:cy/ids} : (b.lastIntel ? {x:b.lastIntel.x, y:b.lastIntel.y} : null);
     // назад = от угрозы, дальше от вражеского спавна
-    var dx = th ? b.x-th.x : 0, dy = th ? b.y-th.y : 0, dl = Math.hypot(dx, dy);
+    var dx = th ? b.x-th.x : 0, dy = th ? b.y-th.y : 0, dl = DM.hypot(dx, dy);
     var center = dl > 1 ? walk({x:b.x+dx/dl*FB.back, y:b.y+dy/dl*FB.back}) : null;
     var cand = [];
     if(center) cand = pickSpots("fb"+tick+b.id, center, 4, {rMax:FB.rMax, minGap:40, hideFrom: th ? [th] : []});
     // (v291, И31) откат — к своим: точка ближе к живому тиммейту, чем я сейчас, и не в зоне, где команда ждёт врага (раньше «назад
     // от одного известного врага» увело игрока 6 в T Upper — к двум живым T, подальше от своих). Нет такой — к ближайшему своему
     var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === "CT"; });
-    var mateD = function(q){ var m = Infinity; mates.forEach(function(o){ m = Math.min(m, Math.hypot(o.x-q.x, o.y-q.y)); }); return m; };
+    var mateD = function(q){ var m = Infinity; mates.forEach(function(o){ m = Math.min(m, DM.hypot(o.x-q.x, o.y-q.y)); }); return m; };
     var myMate = mateD(b);
     var sp = coverPick(cand.filter(function(q){ var zq = bzOf(q.x, q.y); return zq >= 0 && ED[zq] >= ED[zb] + FB.gainED &&
       mateD(q) < myMate && beliefCount("CT", [zq]) < 0.5; }), coverZ(b), coverThreats(b, th ? [th] : []));   // (18.11) общий выбор укрытия (470)
-    if(!sp && mates.length){ var nm = mates.slice().sort(function(a, c){ return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(c.x-b.x, c.y-b.y); })[0];
+    if(!sp && mates.length){ var nm = mates.slice().sort(function(a, c){ return DM.hypot(a.x-b.x, a.y-b.y) - DM.hypot(c.x-b.x, c.y-b.y); })[0];
       var nz = bzOf(nm.x, nm.y); if(!(nz >= 0 && beliefCount("CT", [nz]) >= 0.5)) sp = walk({x: nm.x, y: nm.y}); }
     if(!sp) return;
     b._fbRound = roundNum;

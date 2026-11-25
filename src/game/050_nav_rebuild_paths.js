@@ -33,7 +33,7 @@ function snapToWalkable(x, y){
   NAVAREAS.forEach(function(z){
     if(NAV_BLOCKED[z.id] || !(zoneGraph[z.id]||[]).length) return;
     var c = zoneCentroid(z);
-    var d = Math.hypot(c.x-x, c.y-y);
+    var d = DM.hypot(c.x-x, c.y-y);
     if(d < bd){ bd = d; best = c; }
   });
   return best ? {x:best.x, y:best.y} : {x:x, y:y};
@@ -139,7 +139,7 @@ function rebuildNav(){
           // lie on (or immediately next to) both polygons' actual boundary.
           var nearest = null, nd = Infinity;
           za.points.forEach(function(p){ zb.points.forEach(function(q){
-            var d = Math.hypot(p.x-q.x, p.y-q.y);
+            var d = DM.hypot(p.x-q.x, p.y-q.y);
             if(d < nd){ nd = d; nearest = {x:(p.x+q.x)/2, y:(p.y+q.y)/2}; }
           }); });
           mid = nearest;
@@ -152,7 +152,7 @@ function rebuildNav(){
         // seg[0] is LEFT and seg[1] is RIGHT; the reverse direction flips them.
         // переход через портал: от точки чуть внутри za до точки чуть внутри zb
         var ca = zoneCentroid(za), cb = zoneCentroid(zb);
-        var la = Math.max(1, Math.hypot(ca.x-mid.x, ca.y-mid.y)), lb = Math.max(1, Math.hypot(cb.x-mid.x, cb.y-mid.y));
+        var la = Math.max(1, DM.hypot(ca.x-mid.x, ca.y-mid.y)), lb = Math.max(1, DM.hypot(cb.x-mid.x, cb.y-mid.y));
         var ea = Math.min(14, la), eb = Math.min(14, lb);
         var pA = {x: mid.x + (ca.x-mid.x)/la*ea, y: mid.y + (ca.y-mid.y)/la*ea};
         var pB = {x: mid.x + (cb.x-mid.x)/lb*eb, y: mid.y + (cb.y-mid.y)/lb*eb};
@@ -161,8 +161,8 @@ function rebuildNav(){
           // так было в Dark → Lamp Room после калибровки навмеша): ищем
           // открытую часть этого же края и идём через неё, а не рвём связь
           var ok = null;
-          if(portal && Math.hypot(seg[1].x-seg[0].x, seg[1].y-seg[0].y) > 8){
-            var ex = seg[1].x-seg[0].x, ey = seg[1].y-seg[0].y, eL = Math.hypot(ex, ey), nx = -ey/eL, ny = ex/eL;
+          if(portal && DM.hypot(seg[1].x-seg[0].x, seg[1].y-seg[0].y) > 8){
+            var ex = seg[1].x-seg[0].x, ey = seg[1].y-seg[0].y, eL = DM.hypot(ex, ey), nx = -ey/eL, ny = ex/eL;
             if((ca.x-mid.x)*nx + (ca.y-mid.y)*ny < 0){ nx = -nx; ny = -ny; }   // n смотрит в za
             [0.12,0.25,0.38,0.62,0.75,0.88].some(function(t){
               var m = {x: seg[0].x + ex*t, y: seg[0].y + ey*t};
@@ -198,9 +198,9 @@ function rebuildNav(){
         var key = za.id < zb.id ? za.id+"|"+zb.id : zb.id+"|"+za.id; if(seenL[key]) continue; seenL[key] = 1;
         if(linkedAB(za, zb)) continue;
         var pt = computePortal(za, zb); if(!pt) continue;
-        var sg = pt.seg; if(Math.hypot(sg[1].x-sg[0].x, sg[1].y-sg[0].y) < NAV_LINK_MIN) continue;
+        var sg = pt.seg; if(DM.hypot(sg[1].x-sg[0].x, sg[1].y-sg[0].y) < NAV_LINK_MIN) continue;
         var m = pt.mid, zA = navFloorZ(za, m.x, m.y), zB = navFloorZ(zb, m.x, m.y); if(Math.abs(zA - zB) > 18) continue;
-        var ca = zoneCentroid(za), cb = zoneCentroid(zb), la = Math.max(1, Math.hypot(ca.x-m.x, ca.y-m.y)), lb = Math.max(1, Math.hypot(cb.x-m.x, cb.y-m.y));
+        var ca = zoneCentroid(za), cb = zoneCentroid(zb), la = Math.max(1, DM.hypot(ca.x-m.x, ca.y-m.y)), lb = Math.max(1, DM.hypot(cb.x-m.x, cb.y-m.y));
         var ea = Math.min(6, la), eb = Math.min(6, lb), pA = {x: m.x + (ca.x-m.x)/la*ea, y: m.y + (ca.y-m.y)/la*ea}, pB = {x: m.x + (cb.x-m.x)/lb*eb, y: m.y + (cb.y-m.y)/lb*eb};
         if(!visLine(pA.x, pA.y, zA + NAV_LINK_KNEE, pB.x, pB.y, zB + NAV_LINK_KNEE)) continue;
         zoneGraph[za.id].push({to:zb.id, mid:m, z:zb.z, left:sg[0], right:sg[1]});
@@ -214,9 +214,9 @@ function rebuildNav(){
   navDropLinks = 0;
   if(MAP3D){ var dropBest = {};
     NAVAREAS.forEach(function(za){ if(NAV_BLOCKED[za.id]) return; var P = za.points, c0 = zoneCentroid(za);
-      P.forEach(function(p, i){ var q = P[(i+1)%P.length], L = Math.hypot(q.x-p.x, q.y-p.y); if(L < 4) return;
+      P.forEach(function(p, i){ var q = P[(i+1)%P.length], L = DM.hypot(q.x-p.x, q.y-p.y); if(L < 4) return;
         var ux = (q.x-p.x)/L, uy = (q.y-p.y)/L, nx = uy, ny = -ux; if((c0.x-p.x)*nx + (c0.y-p.y)*ny > 0){ nx = -nx; ny = -ny; }   // наружу
-        var run = null, flush = function(){ if(run && run.n >= 2){ var k = za.id + ">" + run.b.id, len = Math.hypot(run.q.x-run.p.x, run.q.y-run.p.y);
+        var run = null, flush = function(){ if(run && run.n >= 2){ var k = za.id + ">" + run.b.id, len = DM.hypot(run.q.x-run.p.x, run.q.y-run.p.y);
             if(!dropBest[k] || dropBest[k].len < len) dropBest[k] = {a: za, b: run.b, p: run.p, q: run.q, len: len}; } run = null; };
         for(var t = 2; t <= L - 2; t += NAV_DROP_STEP){ var ex = p.x + ux*t, ey = p.y + uy*t, ox = ex + nx*NAV_DROP_OUT, oy = ey + ny*NAV_DROP_OUT, ix = ex - nx*3, iy = ey - ny*3;
           var zA = navFloorZ(za, ex, ey), own = navAt(ox, oy, zA), zb = navAt(ox, oy, zA - NAV_DROP_MAX), ok = false;
@@ -371,7 +371,7 @@ function navEdgeDz(a, edge){
     // от середины прохода внутрь каждого участка, этаж — ближайший к высоте участка (пандус так не даёт ложного уступа: пол непрерывный)
     var M = typeof m3 === "function" ? m3() : null; if(!M) return 0;
     var cen = function(A){ var x = 0, y = 0; A.points.forEach(function(q){ x += q.x; y += q.y; }); return {x:x/A.points.length, y:y/A.points.length}; };
-    var side = function(A){ var c = cen(A), dx = c.x-edge.mid.x, dy = c.y-edge.mid.y, L = Math.hypot(dx, dy) || 1; return visFloorAt(edge.mid.x + dx/L*10, edge.mid.y + dy/L*10, A.z); };
+    var side = function(A){ var c = cen(A), dx = c.x-edge.mid.x, dy = c.y-edge.mid.y, L = DM.hypot(dx, dy) || 1; return visFloorAt(edge.mid.x + dx/L*10, edge.mid.y + dy/L*10, A.z); };
     dz = side(b) - side(a);
   } else dz = navStepDz(a, b, edge.mid.x, edge.mid.y);
   return (edge._dz = dz);
@@ -422,7 +422,7 @@ function zoneDijkstra(fromId, toId, team){
   // к цели идти всё равно туда, и все пути кончаются у них (ретейк, плант); штраф — по длине пути внутри круга места (knownSegCost), а не
   // за переход: сколько ни нарезано участков, пройти круг насквозь стоит KNOWN_DETOUR × вес
   var tp0 = zoneDijkstra.toPt;
-  var KP = zoneDijkstra.fire && team ? knownPathSpots(team).filter(function(q){ return !tp0 || Math.hypot(q.x-tp0.x, q.y-tp0.y) > KNOWN_PATH_R; }) : [];
+  var KP = zoneDijkstra.fire && team ? knownPathSpots(team).filter(function(q){ return !tp0 || DM.hypot(q.x-tp0.x, q.y-tp0.y) > KNOWN_PATH_R; }) : [];
   // (док 6, п.6 «зависания»: в тике планта — 1069 поисков пути, 1,08 с; 707 из них — от бомбы к местам-кандидатам сейва, 349 — от бойца к
   // зонам ухода) поиск из одного начала в одной обстановке (тот же тик, команда, точка старта, огонь, известные враги, граф) продолжается
   // с места, где остановился прошлый, а не начинается заново: порядок обхода тот же, что у отдельного поиска до цели, — путь бит в бит
@@ -473,7 +473,7 @@ function zoneDijkstra(fromId, toId, team){
     if(!zoneDijkstra.nearest) return null;
     // (v375) цель недостижима — ближайший к ней участок, до которого путь есть (см. buildWaypointPath)
     var tc = zoneCentroid(zonesById[toId]), bestN = null, bd = Infinity;
-    Object.keys(visited).forEach(function(k){ var c = zoneCentroid(zonesById[k]); if(!c) return; var d = Math.hypot(c.x-tc.x, c.y-tc.y); if(d < bd){ bd = d; bestN = k; } });
+    Object.keys(visited).forEach(function(k){ var c = zoneCentroid(zonesById[k]); if(!c) return; var d = DM.hypot(c.x-tc.x, c.y-tc.y); if(d < bd){ bd = d; bestN = k; } });
     if(bestN == null) return null; toId = isNaN(+bestN) ? bestN : +bestN;
   }
   var path=[toId], cur=toId;
@@ -553,9 +553,9 @@ function funnel(corridor, start, end){
 function navClampInto(a, x, y){
   var P = a.points, n = P.length, bx = P[0].x, by = P[0].y, bd = Infinity, cx = 0, cy = 0;
   for(var i=0;i<n;i++){ var A = P[i], B = P[(i+1)%n], ex = B.x-A.x, ey = B.y-A.y, L2 = ex*ex + ey*ey; cx += A.x; cy += A.y;
-    var t = L2 ? Math.max(0, Math.min(1, ((x-A.x)*ex + (y-A.y)*ey)/L2)) : 0, px = A.x + ex*t, py = A.y + ey*t, d = Math.hypot(px-x, py-y);
+    var t = L2 ? Math.max(0, Math.min(1, ((x-A.x)*ex + (y-A.y)*ey)/L2)) : 0, px = A.x + ex*t, py = A.y + ey*t, d = DM.hypot(px-x, py-y);
     if(d < bd){ bd = d; bx = px; by = py; } }
-  cx /= n; cy /= n; var dc = Math.hypot(cx-bx, cy-by), k = dc > 0 ? Math.min(1, 2/dc) : 0;
+  cx /= n; cy /= n; var dc = DM.hypot(cx-bx, cy-by), k = dc > 0 ? Math.min(1, 2/dc) : 0;
   return {x: bx + (cx-bx)*k, y: by + (cy-by)*k};
 }
 // (v405, владелец 22.10: «зачем они все идут по одному пути») натянутый путь (funnel) у всех один — по одним и тем же углам. У каждого
@@ -576,7 +576,7 @@ function botLane(b){ var m = /(\d)$/.exec(b && b.id || ""); return m ? 0.1 + 0.2
 var NAV_DROP_STEP = 24;   // ед. игры: ступени лестниц на навмеше Mirage — до 18; обрыв уступа — 54 (проектное число между ними)
 function navSegNoDrop(x0, y0, z0, x1, y1, z1){
   if(z0 == null) return true;
-  var L = Math.hypot(x1-x0, y1-y0), n = Math.max(1, Math.ceil(L/8)), last = null;
+  var L = DM.hypot(x1-x0, y1-y0), n = Math.max(1, Math.ceil(L/8)), last = null;
   for(var i = 0; i <= n; i++){ var t = i/n, a = navAt(x0 + (x1-x0)*t, y0 + (y1-y0)*t, z0 + ((z1 == null ? z0 : z1) - z0)*t);
     if(!a) continue; if(last != null && Math.abs(a.z - last) > NAV_DROP_STEP) return false; last = a.z; }
   return true;
@@ -587,10 +587,10 @@ function laneShift(path, lane, x0, y0, z0, fixed){
   // сторону, и «наружу» смотрело в угол; пол и стены проверяются по сдвинутым (px, py)
   var out = path.slice(), px = x0, py = y0, pz = z0, rx = x0, ry = y0;
   for(var i = 0; i < out.length - 1; i++){ var P = path[i], N = path[i+1];
-    var ax = P[0]-rx, ay = P[1]-ry, bx = N[0]-P[0], by = N[1]-P[1], la = Math.hypot(ax, ay), lb = Math.hypot(bx, by);
+    var ax = P[0]-rx, ay = P[1]-ry, bx = N[0]-P[0], by = N[1]-P[1], la = DM.hypot(ax, ay), lb = DM.hypot(bx, by);
     rx = P[0]; ry = P[1];
     if(la < 1 || lb < 1 || (fixed || []).some(function(f){ return Math.abs(f.x-P[0]) < 0.5 && Math.abs(f.y-P[1]) < 0.5; })){ px = P[0]; py = P[1]; pz = P[2]; continue; }
-    var nx = ax/la - bx/lb, ny = ay/la - by/lb, ln = Math.hypot(nx, ny); if(ln < 0.1){ px = P[0]; py = P[1]; pz = P[2]; continue; }   // наружу от угла; почти прямо (< ~6°) — не угол
+    var nx = ax/la - bx/lb, ny = ay/la - by/lb, ln = DM.hypot(nx, ny); if(ln < 0.1){ px = P[0]; py = P[1]; pz = P[2]; continue; }   // наружу от угла; почти прямо (< ~6°) — не угол
     nx /= ln; ny /= ln;
     for(var k = 1; k >= 0.5; k -= 0.5){ var qx = P[0] + nx*d0*k, qy = P[1] + ny*d0*k;
       if(navSegOnLevel(px, py, pz, qx, qy, P[2]) && navSegOnLevel(qx, qy, P[2], N[0], N[1], N[2]) && !crossesWall(px, py, qx, qy) && !crossesWall(qx, qy, N[0], N[1]) &&
@@ -642,7 +642,7 @@ function buildWaypointPath0(fromX, fromY, fromZ, toX, toY, toZ, team, lane){
   // переходу внутри него, и обход через пол-карты выходил «дешевле». Обход берётся, только если он не длиннее пути через огонь больше чем
   // на FIRE_DETOUR (как и задумано в v438); иначе — путь через огонь: у края огня бот ждёт, пока погаснет (fireSafe, 540)
   if(route && fires.length){ zoneDijkstra.fire = false; var r0 = zoneDijkstra(fz.id, tz.id, team); zoneDijkstra.fire = true;
-    var rLen = function(R){ var L = 0, px = fromX, py = fromY; for(var ri = 0; ri < R.length-1; ri++){ var e = (zoneGraph[R[ri]]||[]).find(function(x){ return x.to === R[ri+1]; }); if(e && e.mid){ L += Math.hypot(e.mid.x-px, e.mid.y-py); px = e.mid.x; py = e.mid.y; } } return L + Math.hypot(toX-px, toY-py); };
+    var rLen = function(R){ var L = 0, px = fromX, py = fromY; for(var ri = 0; ri < R.length-1; ri++){ var e = (zoneGraph[R[ri]]||[]).find(function(x){ return x.to === R[ri+1]; }); if(e && e.mid){ L += DM.hypot(e.mid.x-px, e.mid.y-py); px = e.mid.x; py = e.mid.y; } } return L + DM.hypot(toX-px, toY-py); };
     if(r0 && rLen(route) > rLen(r0) + FIRE_DETOUR) route = r0; }
   if(!route){ if(!NAV_GRID) navGridBuild();
     var alts = (NAV_GRID[Math.floor(toX/NAV_GRID_C)+","+Math.floor(toY/NAV_GRID_C)]||[]).map(function(i){ return NAVAREAS[i]; })
@@ -696,7 +696,7 @@ function buildWaypointPath0(fromX, fromY, fromZ, toX, toY, toZ, team, lane){
   // другой высоты (> JUMP_UP), — тоже «плохой»: идём через середины переходов
   if(!bad){ if(!NAV_GRID) navGridBuild();
     var inR = {}; route.forEach(function(id){ inR[id] = 1; });
-    for(var k2=0;k2<path.length-1 && !bad;k2++){ if(gapSeg(path[k2], path[k2+1])) continue; var A = path[k2], B = path[k2+1], dd = Math.hypot(B[0]-A[0], B[1]-A[1]), ns = Math.ceil(dd/8);
+    for(var k2=0;k2<path.length-1 && !bad;k2++){ if(gapSeg(path[k2], path[k2+1])) continue; var A = path[k2], B = path[k2+1], dd = DM.hypot(B[0]-A[0], B[1]-A[1]), ns = Math.ceil(dd/8);
       for(var j=1;j<ns && !bad;j++){ var t = j/ns, x = A[0]+(B[0]-A[0])*t, y = A[1]+(B[1]-A[1])*t, zz = (A[2]||0)+((B[2]||0)-(A[2]||0))*t;
         var L = NAV_GRID[Math.floor(x/NAV_GRID_C)+","+Math.floor(y/NAV_GRID_C)] || [], hit = false, other = false;
         for(var q=0;q<L.length;q++){ var ar = NAVAREAS[L[q]]; if(NAV_BLOCKED[ar.id] || !pointInPoly(x, y, ar.points)) continue; if(inR[ar.id]) hit = true; else if(Math.abs(ar.z - zz) > JUMP_UP) other = true; else hit = true; }
@@ -730,5 +730,5 @@ function distToSeg(px,py, s){
   var len2 = dx*dx+dy*dy;
   var t = len2 < 1e-9 ? 0 : Math.max(0, Math.min(1, ((px-x1)*dx+(py-y1)*dy)/len2));
   var cx = x1+t*dx, cy = y1+t*dy;
-  return Math.hypot(px-cx, py-cy);
+  return DM.hypot(px-cx, py-cy);
 }

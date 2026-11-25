@@ -27,7 +27,7 @@ function smokeEnemyPossible(b, s, pt, seen){
   var foe = b.team === "CT" ? "T" : "CT", BL = beliefLast[b.team] || {}, R = smokeRadiusNow(s), alive = 0, away = 0;
   bots.forEach(function(e){
     if(e.team !== foe || !e.alive) return; alive++;
-    var L = BL[e.id]; if(L && tick - L.tick < 4*TICK_HZ && Math.hypot(L.x-s.x, L.y-s.y) > R + 400) away++;
+    var L = BL[e.id]; if(L && tick - L.tick < 4*TICK_HZ && DM.hypot(L.x-s.x, L.y-s.y) > R + 400) away++;
   });
   return alive > away;
 }
@@ -40,9 +40,9 @@ function smkEvidence0(b, s){
   var cand = [];
   if(b.lastIntel && tick - b.lastIntel.tick < 3*TICK_HZ) cand.push(b.lastIntel);
   if(b.heardSound && b.heardSound.team && b.heardSound.team !== b.team && tick - b.heardSound.tick < 3*TICK_HZ) cand.push(b.heardSound);
-  cand.forEach(function(q){ if(!mem && Math.hypot(q.x-b.x, q.y-b.y) < 800 && segHitsCircle(b.x, b.y, q.x, q.y, s.x, s.y, R)) mem = q; });
+  cand.forEach(function(q){ if(!mem && DM.hypot(q.x-b.x, q.y-b.y) < 800 && segHitsCircle(b.x, b.y, q.x, q.y, s.x, s.y, R)) mem = q; });
   if(mem) return {kind:"mem", pt:{x:mem.x, y:mem.y}};
-  var d = Math.hypot(s.x-b.x, s.y-b.y), ux = (s.x-b.x)/d, uy = (s.y-b.y)/d;
+  var d = DM.hypot(s.x-b.x, s.y-b.y), ux = (s.x-b.x)/d, uy = (s.y-b.y)/d;
   var beyond = {x:s.x + ux*R*1.3, y:s.y + uy*R*1.3};
   if(insideSolidWall(beyond.x, beyond.y)) return null;   // (v321, М18) за дымом стена — там никого
   if(enemyBeyondSmoke(b, s, R)) return {kind:"belief", pt:beyond};
@@ -50,13 +50,13 @@ function smkEvidence0(b, s){
   // (на Mirage вход на B по нему — E Box, и простреливали дым там, где врага быть не может)
   var entry = ["A","B"].some(function(k){ var g = GEO[k];
     var tE = (POS[k] && POS[k].entries && POS[k].entries.length) ? entryPts(k) : [g.tEntry];
-    return tE.some(function(p){ return Math.hypot(s.x-p.x, s.y-p.y) < 220; }) || Math.hypot(s.x-g.ctEntry.x, s.y-g.ctEntry.y) < 220; });
+    return tE.some(function(p){ return DM.hypot(s.x-p.x, s.y-p.y) < 220; }) || DM.hypot(s.x-g.ctEntry.x, s.y-g.ctEntry.y) < 220; });
   // (v359, владелец: «боты до сих пор стреляют в смоки, за которыми нет врагов») смок у входа — повод стрелять, только если команда
   // сейчас ждёт врага у этого входа: свежий звук / колл / видели в SMK_ENTRY_R ед. от смока за 6 с или колл «выход» на этот сайт.
   // Раньше смок у входа простреливали всегда, даже когда все враги были на другой стороне карты
   if(entry){
-    var sigE = (teamIntel[b.team].sig || []).some(function(g){ return tick - g.tick <= 6*TICK_HZ && (g.type === "spotted" || g.type === "sound") && !sigFoeDead(g) && Math.hypot(g.x-s.x, g.y-s.y) < SMK_ENTRY_R; });
-    var cl = b.team === "CT" && teamTac.CT && teamTac.CT.call, near = cl && SITES[cl.site] && Math.hypot(SITES[cl.site].x-s.x, SITES[cl.site].y-s.y) < 900 && cl.count >= 1.5;
+    var sigE = (teamIntel[b.team].sig || []).some(function(g){ return tick - g.tick <= 6*TICK_HZ && (g.type === "spotted" || g.type === "sound") && !sigFoeDead(g) && DM.hypot(g.x-s.x, g.y-s.y) < SMK_ENTRY_R; });
+    var cl = b.team === "CT" && teamTac.CT && teamTac.CT.call, near = cl && SITES[cl.site] && DM.hypot(SITES[cl.site].x-s.x, SITES[cl.site].y-s.y) < 900 && cl.count >= 1.5;
     if(sigE || near) return {kind:"entry", pt:beyond};
   }
   return null;
@@ -67,7 +67,7 @@ function smkEvidence0(b, s){
 function smokeHoleFlight(b, t, cl){
   cl = cl || bulletClip3(b, t.x, t.y, t);
   var ez0 = visFloorAt(b.x, b.y, b.z) + VIS_EYE.stand, ez1 = (t.z != null ? visFloorAt(t.x, t.y, t.z) : visFloorAt(b.x, b.y, b.z)) + VIS_BODY.stand[0];
-  var dP = Math.hypot(t.x-b.x, t.y-b.y) || 1, dC = Math.hypot(cl.x-b.x, cl.y-b.y);
+  var dP = DM.hypot(t.x-b.x, t.y-b.y) || 1, dC = DM.hypot(cl.x-b.x, cl.y-b.y);
   if(dC < dP) smokeBulletHole(b.x, b.y, cl.x, cl.y, ez0, ez0 + (ez1-ez0)*dC/dP); else smokeBulletHole(b.x, b.y, t.x, t.y, ez0, ez1);
 }
 var BLIND_SPREAD = 0.35;   // (v554) проектное число: рад — разброс очереди ослеплённого (не видит прицела), сквозь дым — 0.08
@@ -82,7 +82,7 @@ function blindBullet(b, pt){
   tracers.push({wc:tracerClass(b.weapon), wk:b.weapon && b.weapon.key, sil:!!(b.weapon && b.weapon.silenced), x1:b.x, y1:b.y, x2:cl.x, y2:cl.y, team:b.team, born:nowTs, hit:!!sv, miss:!sv}); if(tracers.length > 60) tracers.shift(); soundEv("sndShot", b.weapon, b.x, b.y);
   bots.forEach(function(o){ if(!o.alive || o.team === b.team) return;
     var hr = (hasLOS(o.x, o.y, b.x, b.y, o.z, b.z) ? GUN_HEAR_OPEN : GUN_HEAR_WALL) * (w.silenced ? 0.55 : 1);
-    if(Math.hypot(o.x-b.x, o.y-b.y) < hr) o.heardSound = hearReal(o, {x:b.x, y:b.y, tick:tick, team:b.team, src:b.id, kind:"shots"}); });
+    if(DM.hypot(o.x-b.x, o.y-b.y) < hr) o.heardSound = hearReal(o, {x:b.x, y:b.y, tick:tick, team:b.team, src:b.id, kind:"shots"}); });
   return true;
 }
 function smokeSpamTick(){
@@ -110,15 +110,15 @@ function smokeSpamTick(){
       if(b.weapon.scopeTicks && b.curSpeed > 0.34*SPEED*weaponSpeedMul(b) && !P.urgent) return;
       var aim = Math.atan2(P.pt.y-b.y, P.pt.x-b.x), foe = null;
       if(b.facing !== undefined && _angOff(aim, b.facing) > 0.2 && !P.blind) return;   // сначала довести прицел (слепой не видит прицела — как есть)
-      if(!P.blind) bots.forEach(function(e){ if(foe || !e.alive || e.team === b.team) return; var d = Math.hypot(e.x-b.x, e.y-b.y); if(d > 900) return;
+      if(!P.blind) bots.forEach(function(e){ if(foe || !e.alive || e.team === b.team) return; var d = DM.hypot(e.x-b.x, e.y-b.y); if(d > 900) return;
         if(_angOff(Math.atan2(e.y-b.y, e.x-b.x), aim) > 0.12 || !hasLOS(b.x, b.y, e.x, e.y, b.z) || !smokeBlocks(b.x, b.y, e.x, e.y)) return; foe = e; });
       // (отметка владельца 18.11, м5 р2 т6916, CT1 на Catwalk: «на радаре стреляет в пол») цель прямо под краем Catwalk — линия от глаз к
       // её груди упирается в бортик края через 32 ед. (3D-геометрия, bulletClip3), до смока пуля не долетает. Живой игрок так не простреливает:
       // упёрся — прострел снят (слепой не видит, куда стреляет, — как есть)
       if(!foe && !P.blind){ var cl0 = bulletClip3(b, P.pt.x, P.pt.y, P.pt), sm0 = P.s || smokes.filter(function(s){ return segHitsCircle(b.x, b.y, P.pt.x, P.pt.y, s.x, s.y, smokeRadiusNow(s)); })[0];
-        if(cl0.wall && (!sm0 || Math.hypot(cl0.x-b.x, cl0.y-b.y) < Math.hypot(sm0.x-b.x, sm0.y-b.y) - smokeRadiusNow(sm0))){ b._spam = null; return; } }
+        if(cl0.wall && (!sm0 || DM.hypot(cl0.x-b.x, cl0.y-b.y) < DM.hypot(sm0.x-b.x, sm0.y-b.y) - smokeRadiusNow(sm0))){ b._spam = null; return; } }
       var fired = false;
-      if(foe){ var a0 = b.ammo; b._smokeShot = true; tryShoot(b, foe, Math.hypot(foe.x-b.x, foe.y-b.y)); b._smokeShot = false; fired = b.ammo !== a0; if(fired) smokeHoleFlight(b, {x: foe.x, y: foe.y, z: foe.z}); }
+      if(foe){ var a0 = b.ammo; b._smokeShot = true; tryShoot(b, foe, DM.hypot(foe.x-b.x, foe.y-b.y)); b._smokeShot = false; fired = b.ammo !== a0; if(fired) smokeHoleFlight(b, {x: foe.x, y: foe.y, z: foe.z}); }
       else fired = blindBullet(b, P.blind ? {x:P.pt.x, y:P.pt.y, z:P.pt.z, spread:BLIND_SPREAD} : P.pt);
       if(fired && ++P.shot >= SMK.bullets){ P.shot = 0; P.bursts--; P.nextBurst = tick + (P.urgent ? 0 : SMK.burstGap); if(P.bursts <= 0) b._spam = null; }   // (v555) на дефуз — без пауз
       return;
@@ -127,7 +127,7 @@ function smokeSpamTick(){
     // (v272, просьба владельца 13.10) попали сквозь дым — откуда, бот знает (урон + звук выстрела, как живой игрок):
     // отвечает очередью в ту точку после своей реакции, даже на ходу. У про 8,9 % фрагов — сквозь смок (88 демок)
     var hs = b.heardSound;
-    var hsS = hs && hs.kind === "hit" && hs.team !== b.team && tick - hs.tick < TICK_HZ && Math.hypot(hs.x-b.x, hs.y-b.y) < 900 && hasLOS(b.x, b.y, hs.x, hs.y, b.z) ?
+    var hsS = hs && hs.kind === "hit" && hs.team !== b.team && tick - hs.tick < TICK_HZ && DM.hypot(hs.x-b.x, hs.y-b.y) < 900 && hasLOS(b.x, b.y, hs.x, hs.y, b.z) ?
       smokes.filter(function(s){ return segHitsCircle(b.x, b.y, hs.x, hs.y, s.x, s.y, smokeRadiusNow(s)); })[0] : null;
     if(hsS){
       b._spam = {pt:{x:hs.x, y:hs.y}, s:hsS, seen:true, bursts:SMK.burstsMin, shot:0, nextBurst:hs.tick + b.reactionTicks, until:tick + 4*TICK_HZ};
@@ -140,7 +140,7 @@ function smokeSpamTick(){
     var bp = null;
     if(hs && (hs.kind === "plant" || hs.kind === "defuse") && hs.team !== b.team && tick - hs.tick < TICK_HZ) bp = {x:hs.x, y:hs.y};
     else if(b.team === "T" && bomb && bomb.state === "planted" && tick - Math.max(b._defuseHeard||-9999, b._defuseCont||-9999) < TICK_HZ) bp = {x:bomb.x, y:bomb.y};
-    if(bp && Math.hypot(bp.x-b.x, bp.y-b.y) < 900 && hasLOS(b.x, b.y, bp.x, bp.y, b.z)){
+    if(bp && DM.hypot(bp.x-b.x, bp.y-b.y) < 900 && hasLOS(b.x, b.y, bp.x, bp.y, b.z)){
       var bS = smokes.filter(function(s){ return smkActive(s) && segHitsCircle(b.x, b.y, bp.x, bp.y, s.x, s.y, smokeRadiusNow(s)); })[0];
       // (v555, отметка владельца м300 р3: «дефузит в смоке, T выстрелил раз и всё — зажимает всю обойму») на плант / дефуз — до конца магазина
       if(bS){ b._spam = {pt:bp, s:bS, seen:true, urgent:true, bursts:Math.max(SMK.burstsMax, Math.ceil(b.ammo/SMK.bullets)), shot:0, nextBurst:tick + b.reactionTicks, until:tick + 4*TICK_HZ};
@@ -151,8 +151,8 @@ function smokeSpamTick(){
     // ≤ CONTACT_AGE с), до этого места линия свободна (кроме дыма) — очередь на звук сразу и на ходу, в бою тоже (владелец: «про сразу
     // стреляет в смок и двигается»). И если сам в этом дыму
     var hSm = hs && hs.team && hs.team !== b.team && (hs.kind === "steps" || hs.kind === "shots" || hs.kind === "hit") && tick - hs.tick < CONTACT_AGE*TICK_HZ ?
-      smokes.filter(function(sm){ return smkActive(sm) && Math.hypot(sm.x-hs.x, sm.y-hs.y) < smokeRadiusNow(sm) + 20; })[0] : null;
-    if(hSm && Math.hypot(hs.x-b.x, hs.y-b.y) < 900 && hasLOS(b.x, b.y, hs.x, hs.y, b.z, hs.z)){
+      smokes.filter(function(sm){ return smkActive(sm) && DM.hypot(sm.x-hs.x, sm.y-hs.y) < smokeRadiusNow(sm) + 20; })[0] : null;
+    if(hSm && DM.hypot(hs.x-b.x, hs.y-b.y) < 900 && hasLOS(b.x, b.y, hs.x, hs.y, b.z, hs.z)){
       b._spam = {pt:{x:hs.x, y:hs.y}, s:hSm, seen:true, bursts:SMK.burstsMax, shot:0, nextBurst:tick + b.reactionTicks, until:tick + 3*TICK_HZ};
       logEvent(b.id+": слышит врага в смоке "+calloutName(hSm.x, hSm.y)+" — стреляет на звук"); return;
     }
@@ -164,7 +164,7 @@ function smokeSpamTick(){
     smokes.forEach(function(s){
       if(b._spam || s.team === b.team || !s.team || !smkActive(s)) return;
       var k = smkKey(s); if(D[k] !== undefined) return;
-      var d = Math.hypot(s.x-b.x, s.y-b.y); if(d < 120 || d > 900 || !hasLOS(b.x, b.y, s.x, s.y, b.z)) return;
+      var d = DM.hypot(s.x-b.x, s.y-b.y); if(d < 120 || d > 900 || !hasLOS(b.x, b.y, s.x, s.y, b.z)) return;
       var ev = smkEvidence(b, s); if(!ev){ return; }
       var p = ev.kind === "mem" ? SMK.pMem : ev.kind === "belief" ? SMK.pBelief : SMK.pEntry;
       var go = hashRand(s.born*17 + b.id.charCodeAt(0)*131 + b.id.length*7 + Math.round(s.x)) < p;
@@ -189,7 +189,7 @@ function smokeHeTick(){
     var ask = null;
     bots.forEach(function(b){
       if(D[foe] || !b.alive || b.team !== foe || b.nadeTask || b._sawEnemy || b.planting || b.defusing || tick < (b.blindUntil||0)) return;
-      var d = Math.hypot(s.x-b.x, s.y-b.y); if(d < 200 || d > NADE_THROW_RANGE || !hasLOS(b.x, b.y, s.x, s.y, b.z)) return;
+      var d = DM.hypot(s.x-b.x, s.y-b.y); if(d < 200 || d > NADE_THROW_RANGE || !hasLOS(b.x, b.y, s.x, s.y, b.z)) return;
       var ev = smkEvidence(b, s); if(!ev || ev.kind === "entry") return;
       if(b.nades && b.nades.he > 0){
         if(assignNade(b, "he", {x:s.x, y:s.y}, "HE в смок — разогнать", {now:true})){ D[foe] = true; voiceLog(b.team, "hesmk"+k, b.id, "кидаю HE в смок "+calloutName(s.x, s.y)); }
@@ -202,7 +202,7 @@ function smokeHeTick(){
 function smokeShiftOnDetonate(s){
   bots.forEach(function(b){
     if(!b.alive || b.team === s.team || b._sawEnemy) return;
-    var d = Math.hypot(s.x-b.x, s.y-b.y);
+    var d = DM.hypot(s.x-b.x, s.y-b.y);
     if(!(b.atPost && b.post && b.post.hold)) return;   // (v561) смок соперника лёг на идущего — уходит назад из дыма: реакция на опасность, 350 (hurtReactTick)
     if(d > 700 || !hasLOS(b.x, b.y, s.x, s.y, b.z)) return;
     // (Г4, 04.11, разбор отметок п.21 и ответ владельца 7Б: «позиция полезна — держит край дыма; через дым задачу не выполнить — отходит на

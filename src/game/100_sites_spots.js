@@ -22,12 +22,12 @@ function pathPts(ax, ay, bx, by, az, bz){
 // пути, а не по прямой сквозь стены. Путь не короче прямой: дальше R по прямой — сразу «нет», без поиска пути; ближе NEAR_P_SAME — «да» (стена
 // между двумя точками в паре шагов дорогу почти не удлиняет). Путь — общий (без цены команды), высота — если известна. Одно место для всех
 var NEAR_P_SAME = 40;   // px — проектное число
-function nearP(ax, ay, az, bx, by, bz, R){ var d = Math.hypot(bx-ax, by-ay); if(d >= R) return false; if(d < NEAR_P_SAME) return true; return polyLen(pathPts(ax, ay, bx, by, az, bz)) < R; }
-function polyLen(pts){ var L=0; for(var i=1;i<pts.length;i++) L += Math.hypot(pts[i][0]-pts[i-1][0], pts[i][1]-pts[i-1][1]); return L; }
+function nearP(ax, ay, az, bx, by, bz, R){ var d = DM.hypot(bx-ax, by-ay); if(d >= R) return false; if(d < NEAR_P_SAME) return true; return polyLen(pathPts(ax, ay, bx, by, az, bz)) < R; }
+function polyLen(pts){ var L=0; for(var i=1;i<pts.length;i++) L += DM.hypot(pts[i][0]-pts[i-1][0], pts[i][1]-pts[i-1][1]); return L; }
 function pointAtDist(pts, d){ // точка на ломаной на расстоянии d от начала
   var acc = 0;
   for(var i=1;i<pts.length;i++){
-    var a = pts[i-1], b = pts[i], L = Math.hypot(b[0]-a[0], b[1]-a[1]);
+    var a = pts[i-1], b = pts[i], L = DM.hypot(b[0]-a[0], b[1]-a[1]);
     if(acc + L >= d){ var t = L>0 ? (d-acc)/L : 0; return {x:a[0]+(b[0]-a[0])*t, y:a[1]+(b[1]-a[1])*t}; }
     acc += L;
   }
@@ -76,7 +76,7 @@ function buildSites(){
 // хватало быть в 110px от центра — и плант получался рядом с сайтом, а не на нём
 function onSite(site, x, y){
   if(site.poly) return pointInPoly(x, y, site.poly);
-  return Math.hypot(x-site.x, y-site.y) < 110;
+  return DM.hypot(x-site.x, y-site.y) < 110;
 }
 // точка планта — центр проходимого полигона навмеша внутри зоны сайта,
 // ближайший к её центру (центроид вогнутой зоны может лежать вне её)
@@ -97,7 +97,7 @@ function sitePlantOptions(k){
   var ctIn = [g.ctEntry].concat(((POS[k] && POS[k].ctRetake) || []).map(function(n){ return zonePoint(n, def); })).filter(function(q){ return q && q.x != null; });
   (PP.length ? PP : (site.poly ? NAVAREAS.filter(function(z){ return !NAV_BLOCKED[z.id] && (zoneGraph[z.id]||[]).length; }).map(zoneCentroid) : [])).forEach(function(c){
     if(!PP.length && (!pointInPoly(c.x, c.y, site.poly) || insideSolidWall(c.x, c.y))) return;
-    var dd = Math.hypot(c.x-def.x, c.y-def.y);
+    var dd = DM.hypot(c.x-def.x, c.y-def.y);
     var sS = 2*ctIn.filter(function(q){ return !hasLOS(c.x, c.y, q.x, q.y); }).length/ctIn.length + (hasLOS(c.x, c.y, g.anchor.x, g.anchor.y) ? 0 : 0.5) - dd/400;
     var sO = (hasLOS(c.x, c.y, g.tEntry.x, g.tEntry.y) ? 2 : 0) + (hasLOS(c.x, c.y, g.tStage.x, g.tStage.y) ? 1 : 0) - dd/400;
     if(sS > bs){ bs = sS; safe = {x:c.x, y:c.y}; }
@@ -112,8 +112,8 @@ function sitePlantOptions(k){
     var bm = -Infinity;
     POS[k].tPost.forEach(function(n){ var zp = zonePoint(n, def); if(!zp) return;
       (PP.length ? PP : NAVAREAS.filter(function(z){ return !NAV_BLOCKED[z.id] && (zoneGraph[z.id]||[]).length; }).map(zoneCentroid)).forEach(function(c){
-        if(!PP.length && !pointInPoly(c.x, c.y, site.poly)) return; var d = Math.hypot(c.x-zp.x, c.y-zp.y); if(d > NADE_THROW_RANGE*0.8) return;
-        var sc = (hasLOS(zp.x, zp.y, c.x, c.y) ? 2 : 0) + (hasLOS(c.x, c.y, g.ctEntry.x, g.ctEntry.y) ? 0 : 1) - Math.hypot(c.x-def.x, c.y-def.y)/300;
+        if(!PP.length && !pointInPoly(c.x, c.y, site.poly)) return; var d = DM.hypot(c.x-zp.x, c.y-zp.y); if(d > NADE_THROW_RANGE*0.8) return;
+        var sc = (hasLOS(zp.x, zp.y, c.x, c.y) ? 2 : 0) + (hasLOS(c.x, c.y, g.ctEntry.x, g.ctEntry.y) ? 0 : 1) - DM.hypot(c.x-def.x, c.y-def.y)/300;
         if(sc > bm){ bm = sc; molly = {x:c.x, y:c.y}; } }); });
   }
   site._plantOpts = {def:def, safe:safe||def, open:open||def, molly:molly};
@@ -162,7 +162,7 @@ function sitePlantSpot(site){
     if(NAV_BLOCKED[z.id] || !(zoneGraph[z.id]||[]).length) return;
     var zc = zoneCentroid(z);
     if(!pointInPoly(zc.x, zc.y, site.poly)) return;
-    var d = Math.hypot(zc.x-c.x, zc.y-c.y);
+    var d = DM.hypot(zc.x-c.x, zc.y-c.y);
     if(d < bd){ bd = d; best = zc; }
   });
   return best ? {x:best.x, y:best.y} : {x:site.x, y:site.y};
@@ -191,7 +191,7 @@ function spotExposure(team, x, y){
       if(j === zc || !(ED[j] < my - 80)) continue;
       var smp = ZONE_SAMPLES[BZ.ids[j]] || (BZ.cent[j] ? [BZ.cent[j]] : []);
       for(var k=0;k<smp.length && k<5;k++){
-        var q = smp[k], d = Math.hypot(q.x-x, q.y-y); if(d < 60 || d > 1000) continue;
+        var q = smp[k], d = DM.hypot(q.x-x, q.y-y); if(d < 60 || d > 1000) continue;
         if(!hasLOS(x, y, q.x, q.y)) continue;
         var bi = Math.round(Math.atan2(q.y-y, q.x-x)/0.55); if(bi === -6) bi = 6;
         if(!bins[bi]){ bins[bi] = 1; n++; }
@@ -214,7 +214,7 @@ function pickSpots(key, center, count, o){
   NAVAREAS.forEach(function(z){
     if(NAV_BLOCKED[z.id] || !(zoneGraph[z.id]||[]).length) return;
     var c = zoneCentroid(z);
-    var d = Math.hypot(c.x-center.x, c.y-center.y);
+    var d = DM.hypot(c.x-center.x, c.y-center.y);
     if(d < rMin || d > rMax) return;
     if(insideSolidWall(c.x, c.y)) return;
     if(o.zone && zoneIdAt(c.x, c.y) !== o.zone) return;   // (Г4, 04.11, п.13) место — внутри названной зоны
@@ -228,13 +228,13 @@ function pickSpots(key, center, count, o){
     (o.seeW||[]).forEach(function(h){ if(hasLOS(c.x, c.y, h.pt.x, h.pt.y)) sc += h.w; });
     // раздел 11.1: "занимают под раскид" — держат точку с поправкой на то, куда
     // враг обычно кидает молотов/HE в этом матче, а не только от пуль
-    (o.avoidNades||[]).forEach(function(h){ var hd = Math.hypot(c.x-h.x, c.y-h.y); if(hd < 220) sc -= 1.4*(1 - hd/220); });
+    (o.avoidNades||[]).forEach(function(h){ var hd = DM.hypot(c.x-h.x, c.y-h.y); if(hd < 220) sc -= 1.4*(1 - hd/220); });
     // раздел 12: кроссфаер — вторая точка смотрит на тот же вход под другим
     // углом, чем первый защитник (50–120°): у кого-то из двоих всегда есть выстрел,
     // и заходящий не может взять обоих одним пиком
     if(o.cross){
       var X = o.cross, pt = X.pt;
-      if(hasLOS(c.x, c.y, pt.x, pt.y) && Math.hypot(c.x-X.from.x, c.y-X.from.y) > 90){
+      if(hasLOS(c.x, c.y, pt.x, pt.y) && DM.hypot(c.x-X.from.x, c.y-X.from.y) > 90){
         var a1 = Math.atan2(c.y-pt.y, c.x-pt.x), a2 = Math.atan2(X.from.y-pt.y, X.from.x-pt.x);
         var da = Math.abs(((a1-a2+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
         if(da > 0.87 && da < 2.1) sc += 1.5; else if(da > 0.5) sc += 0.6;
@@ -249,7 +249,7 @@ function pickSpots(key, center, count, o){
   var out = [];
   for(var i=0;i<cands.length && out.length<count;i++){
     var c = cands[i];
-    if(out.some(function(q){ return Math.hypot(q.x-c.x, q.y-c.y) < gap; })) continue;
+    if(out.some(function(q){ return DM.hypot(q.x-c.x, q.y-c.y) < gap; })) continue;
     out.push(c);
   }
   while(out.length < count) out.push({x:center.x, y:center.y}); // запас, если места не нашлось

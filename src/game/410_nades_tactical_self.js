@@ -48,16 +48,16 @@ function nadeCombos(){
       var key = team+":"+eid;
       if(tick < (comboCd[key]||0)) return;
       var s = seen[eid];
-      if(fires.some(function(f){ return Math.hypot(f.x-s.x, f.y-s.y) < 100; })) return;
+      if(fires.some(function(f){ return DM.hypot(f.x-s.x, f.y-s.y) < 100; })) return;
       var cands = mine.filter(function(b){
-        var dd = Math.hypot(b.x-s.x, b.y-s.y);
+        var dd = DM.hypot(b.x-s.x, b.y-s.y);
         return !b.nadeTask && !b.planting && !b.defusing && !b._sawEnemy &&
                dd >= 140 && dd <= NADE_THROW_RANGE && // не кидать себе под ноги в упор
                (b.nades.molly>0 || b.nades.he>0 || b.nades.flash>0);
       });
-      if(mine.some(function(o){ return o.alive && !cands.includes(o) && Math.hypot(o.x-s.x, o.y-s.y) < 130; })) return;
+      if(mine.some(function(o){ return o.alive && !cands.includes(o) && DM.hypot(o.x-s.x, o.y-s.y) < 130; })) return;
       if(cands.length < 2) return;
-      cands.sort(function(a,b2){ return Math.hypot(a.x-s.x,a.y-s.y) - Math.hypot(b2.x-s.x,b2.y-s.y); });
+      cands.sort(function(a,b2){ return DM.hypot(a.x-s.x,a.y-s.y) - DM.hypot(b2.x-s.x,b2.y-s.y); });
       var order = ["molly","he","flash"], typesUsed = {}, thrown = 0;
       for(var ci=0; ci<cands.length && thrown<2; ci++){
         var b = cands[ci];
@@ -92,7 +92,7 @@ var SELF = {
 var NADE_WORTH = {r:300, mass:0.3, infoR:500, infoT:4};
 function nadeWorth(team, pt){
   var zl = [];
-  BZ.cent.forEach(function(c, i){ if(c && Math.hypot(c.x-pt.x, c.y-pt.y) <= NADE_WORTH.r) zl.push(i); });
+  BZ.cent.forEach(function(c, i){ if(c && DM.hypot(c.x-pt.x, c.y-pt.y) <= NADE_WORTH.r) zl.push(i); });
   var z0 = bzOf(pt.x, pt.y); if(z0 >= 0 && zl.indexOf(z0) < 0) zl.push(z0);
   if(zl.length && beliefCount(team, zl) >= NADE_WORTH.mass) return true;
   var e = intelEstimate(team, pt.x, pt.y, NADE_WORTH.infoR, NADE_WORTH.infoT*TICK_HZ);
@@ -110,12 +110,12 @@ function selfPlantSmoke(b){
   if(b.team !== "T" || b.nades.smoke <= 0 || !bomb || bomb.state !== "carried" || !bomb.carrier || !bomb.carrier.alive) return false;
   var tt = teamTac.T, k = tt && tt.site; if(!k || !SITES[k] || tt.phase !== "execute" || nadeFlags["plantSmoke"+k]) return false;
   var p = {x:SITES[k].x, y:SITES[k].y}, c = bomb.carrier;
-  if(Math.hypot(c.x-p.x, c.y-p.y) > NADE_THROW_RANGE || Math.hypot(b.x-p.x, b.y-p.y) > NADE_THROW_RANGE) return false;
-  if(smokes.some(function(q){ return Math.hypot(q.x-p.x, q.y-p.y) < smokeRadiusNow(q); })) return false;
+  if(DM.hypot(c.x-p.x, c.y-p.y) > NADE_THROW_RANGE || DM.hypot(b.x-p.x, b.y-p.y) > NADE_THROW_RANGE) return false;
+  if(smokes.some(function(q){ return DM.hypot(q.x-p.x, q.y-p.y) < smokeRadiusNow(q); })) return false;
   var seen = null;
-  selfHyps(b, function(h){ if(!seen && Math.hypot(h.x-p.x, h.y-p.y) <= SELF.sightR && hasVision(h.x, h.y, p.x, p.y)) seen = h; });
+  selfHyps(b, function(h){ if(!seen && DM.hypot(h.x-p.x, h.y-p.y) <= SELF.sightR && hasVision(h.x, h.y, p.x, p.y)) seen = h; });
   // инфы нет — типичные места CT, которые бот ещё не видел пустыми (знание карты), откуда видно точку
-  if(!seen && b.know) (b.know.spots || []).forEach(function(q){ if(!seen && q.open && knowSpotReach(q) && Math.hypot(q.x-p.x, q.y-p.y) <= SELF.sightR && hasVision(q.x, q.y, p.x, p.y)) seen = q; });
+  if(!seen && b.know) (b.know.spots || []).forEach(function(q){ if(!seen && q.open && knowSpotReach(q) && DM.hypot(q.x-p.x, q.y-p.y) <= SELF.sightR && hasVision(q.x, q.y, p.x, p.y)) seen = q; });
   if(!seen) return false;
   if(!assignNade(b, "smoke", p, "смок под плант — точку видно с " + calloutName(seen.x, seen.y), {now:true})) return false;
   nadeFlags["plantSmoke"+k] = true;
@@ -126,7 +126,7 @@ function selfExitFlash(b){
   if(b.nades.flash <= 0 || !(b.path && b.pathIdx < b.path.length) || b.heading === undefined || b.curSpeed < 30) return false;
   var cone = SELF.cone*Math.PI/180, cands = [];
   b._selfDone = (b._selfDone && b._selfDone.r === roundNum) ? b._selfDone : {r: roundNum};
-  function ahead(x, y){ var d = Math.hypot(x-b.x, y-b.y); if(d > SELF.far || d < 60) return false;
+  function ahead(x, y){ var d = DM.hypot(x-b.x, y-b.y); if(d > SELF.far || d < 60) return false;
     var a = Math.atan2(y-b.y, x-b.x) - b.heading; return Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) <= cone; }
   selfHyps(b, function(h, id){ if(ahead(h.x, h.y)) cands.push({x:h.x, y:h.y, w:h.weight, key:id+":"+h.zone, info:true}); });
   if(!cands.length && b.know && b.know.alive) (b.know.spots || []).forEach(function(p){
@@ -136,22 +136,22 @@ function selfExitFlash(b){
     if(b._selfDone[c.key] || hasLOS(b.x, b.y, c.x, c.y, b.z)) return;   // уже на линии — это бой, не выход
     var px = b.x, py = b.y, run = 0, ex = null;
     for(var i = b.pathIdx; i < b.path.length && run <= SELF.ahead; i++){
-      var q = b.path[i]; run += Math.hypot(q[0]-px, q[1]-py); px = q[0]; py = q[1];
+      var q = b.path[i]; run += DM.hypot(q[0]-px, q[1]-py); px = q[0]; py = q[1];
       if(run <= SELF.ahead && hasLOS(px, py, c.x, c.y)){ ex = {x:px, y:py}; break; }
     }
     if(!ex) return;
-    if(bots.some(function(m){ return m !== b && m.alive && m.team === b.team && Math.hypot(m.x-ex.x, m.y-ex.y) < 150; })) return;   // свой уже там
-    if(!c.info && Math.hypot(c.x-ex.x, c.y-ex.y) > SELF.spotNear) return;   // дальний угол без инфы — прицелом
+    if(bots.some(function(m){ return m !== b && m.alive && m.team === b.team && DM.hypot(m.x-ex.x, m.y-ex.y) < 150; })) return;   // свой уже там
+    if(!c.info && DM.hypot(c.x-ex.x, c.y-ex.y) > SELF.spotNear) return;   // дальний угол без инфы — прицелом
     // (v294) типичное место без инфы — только если команда там врага ждёт (у CT «типичное место Connector» рвалось у врага в 38 %)
     if(!c.info && !nadeWorth(b.team, c)) return;
-    var d = Math.hypot(c.x-b.x, c.y-b.y);
+    var d = DM.hypot(c.x-b.x, c.y-b.y);
     // (v555, владелец 11.11: «флешка летит в типичное место, где врага нет — брать типичное место, где он вероятнее; флешек не меньше») типичное
     // место без инфы — по тому, насколько команда ждёт врага именно там (карта команды по его зоне), а не ближайшее; инфа — по-прежнему первой
     if(!c.info){ var zc = bzOf(c.x, c.y); c.w = zc >= 0 ? beliefCount(b.team, [zc]) : 0; }
     if(!best || (c.info && !best.c.info) || (c.info === best.c.info && (c.w > best.c.w || (c.w === best.c.w && d < best.d)))) best = {c:c, ex:ex, d:d};
   });
   if(!best) return false;
-  var c = best.c, ex = best.ex, dE = Math.hypot(c.x-ex.x, c.y-ex.y), kf = Math.min(1, 140/Math.max(1, dE));
+  var c = best.c, ex = best.ex, dE = DM.hypot(c.x-ex.x, c.y-ex.y), kf = Math.min(1, 140/Math.max(1, dE));
   b._selfDone[c.key] = true;
   return assignNade(b, "flash", {x: ex.x + (c.x-ex.x)*kf, y: ex.y + (c.y-ex.y)*kf}, "флешка под выход — " + (c.info ? "по знанию " : "типичное место ") + calloutName(c.x, c.y), {now:true, range:700});
 }
@@ -185,13 +185,13 @@ function heDodgeTick(){
     var R = NADE.he.radius, det = {x:n.tx, y:n.ty};
     bots.forEach(function(b){
       if(DZ[b.id] || !b.alive || b.planting || b.defusing || (b.primary === "AWP" && b.atPost) || b === n.thrower) return;
-      if(Math.hypot(b.x-det.x, b.y-det.y) > R || !hasLOS(b.x, b.y, det.x, det.y, b.z)) return;
+      if(DM.hypot(b.x-det.x, b.y-det.y) > R || !hasLOS(b.x, b.y, det.x, det.y, b.z)) return;
       var knows = (n.aware && n.aware[b.id]) || hasVision(b.x, b.y, n.x, n.y); if(!knows) return;
       DZ[b.id] = 1;   // решение — один раз на гранату, в миг, когда узнал о ней
       var reach = SPEED*eta*(eta > HE_DODGE_FULL ? 1 : 0.5);
       var sp = pickSpots("hed"+Math.round(b.x/30)+","+Math.round(b.y/30), {x:b.x, y:b.y}, 4, {rMax:Math.max(40, reach), minGap:20, hideFrom:[det]})
-        .filter(function(q){ return Math.hypot(q.x-b.x, q.y-b.y) <= reach && (Math.hypot(q.x-det.x, q.y-det.y) > R || !hasLOS(q.x, q.y, det.x, det.y)); })
-        .sort(function(p, q){ return Math.hypot(p.x-b.x, p.y-b.y) - Math.hypot(q.x-b.x, q.y-b.y); })[0];
+        .filter(function(q){ return DM.hypot(q.x-b.x, q.y-b.y) <= reach && (DM.hypot(q.x-det.x, q.y-det.y) > R || !hasLOS(q.x, q.y, det.x, det.y)); })
+        .sort(function(p, q){ return DM.hypot(p.x-b.x, p.y-b.y) - DM.hypot(q.x-b.x, q.y-b.y); })[0];
       if(sp && setPost(b, sp, det, true, "repos:he")){ taskKeep(b, tick + Math.round((eta + 0.5)*TICK_HZ), "he");
         if(!b._heDodgeLog || tick - b._heDodgeLog > 3*TICK_HZ){ b._heDodgeLog = tick; logEvent(b.id+": HE рядом — ухожу ("+eta.toFixed(1)+" с до взрыва)"); } }
     });
@@ -206,9 +206,9 @@ function nadeReact(){
     var tp = b.nades.molly > 0 ? "molly" : b.nades.he > 0 ? "he" : b.nades.flash > 0 ? "flash" : null; if(!tp) return;
     var BLd = beliefLast[b.team] || {}, tg = null, bd = Infinity;
     for(var eD in BLd){ var lo = BLd[eD]; if(tick - lo.tick > 3*TICK_HZ) continue; if(!bots.some(function(o){ return o.id === eD && o.alive; })) continue;
-      var dd = Math.hypot(lo.x-b.x, lo.y-b.y); if(dd > 140 && dd < NADE_THROW_RANGE && dd < bd){ bd = dd; tg = lo; } }
+      var dd = DM.hypot(lo.x-b.x, lo.y-b.y); if(dd > 140 && dd < NADE_THROW_RANGE && dd < bd){ bd = dd; tg = lo; } }
     if(!tg) return;
-    if(bots.some(function(o){ return o !== b && o.alive && o.team === b.team && Math.hypot(o.x-tg.x, o.y-tg.y) < 150; })) return;
+    if(bots.some(function(o){ return o !== b && o.alive && o.team === b.team && DM.hypot(o.x-tg.x, o.y-tg.y) < 150; })) return;
     b._dumpCd = tick + 3*TICK_HZ;
     if(assignNade(b, tp, {x:tg.x, y:tg.y}, "у меня "+b.hp+" — кидаю всё", {now:true}) && !b._dumpVoice){ b._dumpVoice = roundNum; voiceLog(b.team, "dump"+b.id, b.id, "у меня "+b.hp+" — выкидываю гранаты"); }
   });
@@ -219,9 +219,9 @@ function nadeReact(){
     for(var eH in HT){ var h = HT[eH]; if(h.hp > 28 || tick - h.tick > 8*TICK_HZ || h._heDone) continue;
       var lo = BLh[eH]; if(!lo || tick - lo.tick > 3*TICK_HZ) continue;
       if(!bots.some(function(o){ return o.id === eH && o.alive; })) continue;
-      if(bots.some(function(o){ return o.alive && o.team === team && Math.hypot(o.x-lo.x, o.y-lo.y) < 170; })) continue;
+      if(bots.some(function(o){ return o.alive && o.team === team && DM.hypot(o.x-lo.x, o.y-lo.y) < 170; })) continue;
       var th = bots.filter(function(b){ return b.alive && b.team === team && b.nades && b.nades.he > 0 && !b.nadeTask && !b._sawEnemy &&
-        Math.hypot(b.x-lo.x, b.y-lo.y) > 150 && Math.hypot(b.x-lo.x, b.y-lo.y) < NADE_THROW_RANGE && !hasLOS(b.x, b.y, lo.x, lo.y, b.z); })[0];
+        DM.hypot(b.x-lo.x, b.y-lo.y) > 150 && DM.hypot(b.x-lo.x, b.y-lo.y) < NADE_THROW_RANGE && !hasLOS(b.x, b.y, lo.x, lo.y, b.z); })[0];
       if(th && assignNade(th, "he", {x:lo.x, y:lo.y}, "HE добить "+eH, {now:true, eid:eH})){ h._heDone = true;
         voiceLog(team, "hefin"+eH, th.id, eH+" на "+h.hp+" за углом — HE"); }
     }
@@ -235,12 +235,12 @@ function nadeReact(){
     var L = beliefLast[team] || {}, pts = [];
     for(var eid in L){ var lo = L[eid]; if(tick - lo.tick > 3*TICK_HZ) continue; var e = bots.filter(function(o){ return o.id === eid; })[0]; if(e && e.alive) pts.push(lo); }
     for(var i=0;i<pts.length;i++) for(var j=i+1;j<pts.length;j++){
-      if(Math.hypot(pts[i].x-pts[j].x, pts[i].y-pts[j].y) > 160) continue;
+      if(DM.hypot(pts[i].x-pts[j].x, pts[i].y-pts[j].y) > 160) continue;
       var tg = {x:(pts[i].x+pts[j].x)/2, y:(pts[i].y+pts[j].y)/2};
-      if(bots.some(function(o){ return o.alive && o.team === team && Math.hypot(o.x-tg.x, o.y-tg.y) < 170; })) continue;
+      if(bots.some(function(o){ return o.alive && o.team === team && DM.hypot(o.x-tg.x, o.y-tg.y) < 170; })) continue;
       var th = bots.filter(function(b){ return b.alive && b.team === team && b.nades && b.nades.he > 0 && !b.nadeTask && !b._sawEnemy && !b.planting && !b.defusing &&
-        Math.hypot(b.x-tg.x, b.y-tg.y) > 250 && Math.hypot(b.x-tg.x, b.y-tg.y) < NADE_THROW_RANGE; })
-        .sort(function(a, b2){ return Math.hypot(a.x-tg.x, a.y-tg.y) - Math.hypot(b2.x-tg.x, b2.y-tg.y); })[0];
+        DM.hypot(b.x-tg.x, b.y-tg.y) > 250 && DM.hypot(b.x-tg.x, b.y-tg.y) < NADE_THROW_RANGE; })
+        .sort(function(a, b2){ return DM.hypot(a.x-tg.x, a.y-tg.y) - DM.hypot(b2.x-tg.x, b2.y-tg.y); })[0];
       if(th && assignNade(th, "he", tg, "HE в стак", {now:true})){ nadeReactCd[team] = tick + 10*TICK_HZ;
         voiceLog(team, "hestack"+tick, th.id, "их двое "+calloutName(tg.x, tg.y)+" — кидаю HE"); return; }
     }
@@ -251,15 +251,15 @@ function nadeReact(){
     if(!b.alive || b._sawEnemy || b.nadeTask || b.planting || b.defusing) return;
     if(!b.post || b.atPost || b.state !== "patrol" || tick < (b._selfFlashCd||0)) return;
     if(bomb.state === "carried" && bomb.carrier === b) return;
-    var alone = !bots.some(function(o){ return o !== b && o.alive && o.team === b.team && Math.hypot(o.x-b.x, o.y-b.y) < 220; });   // не один — пикнут вместе
-    var dP = Math.hypot(b.post.x-b.x, b.post.y-b.y); if(dP > 260 || dP < 50) return;
+    var alone = !bots.some(function(o){ return o !== b && o.alive && o.team === b.team && DM.hypot(o.x-b.x, o.y-b.y) < 220; });   // не один — пикнут вместе
+    var dP = DM.hypot(b.post.x-b.x, b.post.y-b.y); if(dP > 260 || dP < 50) return;
     var L = beliefLast[b.team] || {}, tgt = null;
     for(var eid in L){ var lo = L[eid]; if(tick - lo.tick > 5*TICK_HZ) continue;
       var e = bots.filter(function(o){ return o.id === eid; })[0]; if(!e || !e.alive) continue;
-      if(Math.hypot(lo.x-b.post.x, lo.y-b.post.y) > 420 || hasLOS(b.x, b.y, lo.x, lo.y, b.z)) continue;
+      if(DM.hypot(lo.x-b.post.x, lo.y-b.post.y) > 420 || hasLOS(b.x, b.y, lo.x, lo.y, b.z)) continue;
       tgt = lo; break; }
     if(!tgt) return;
-    if(nadesInAir.some(function(n){ return n.team === b.team && n.type === "flash" && Math.hypot((n.tx||n.x)-tgt.x, (n.ty||n.y)-tgt.y) < 150; })) return; // туда уже летит флешка
+    if(nadesInAir.some(function(n){ return n.team === b.team && n.type === "flash" && DM.hypot((n.tx||n.x)-tgt.x, (n.ty||n.y)-tgt.y) < 150; })) return; // туда уже летит флешка
     if(teamSaving(b.team)) return;   // (v247) сейв — не выходим
     if(nadeAskFlash(b, tgt, "флешу под пик "+b.id+" ("+calloutName(tgt.x, tgt.y)+")")){ b._selfFlashCd = tick + 12*TICK_HZ; return; }
     if(!alone || !b.nades || b.nades.flash <= 0) return;

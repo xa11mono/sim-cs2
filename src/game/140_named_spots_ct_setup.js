@@ -46,9 +46,9 @@ function outwardLook(p, e){
   // холд стоит ещё дальше наружу, чем сам вход (опорник "Cave" встал в Dark) —
   // смотрим наружу уже из СВОЕЙ зоны (из Dark — на Lamp Room), а не назад на Cave
   var zb0 = ze;
-  if(zp >= 0 && ze >= 0 && zp !== ze && BZ.DT[zp] < BZ.DT[ze] && Math.hypot(p.x-e.x, p.y-e.y) < 350) zb0 = zp;
-  if(ze >= 0 && (zp === ze || zb0 === zp || Math.hypot(p.x-e.x, p.y-e.y) < 120)){
-    var nearSite = function(i){ var c = BZ.cent[i]; return !c || ["A","B"].some(function(k){ return SITES[k] && Math.hypot(c.x-SITES[k].x, c.y-SITES[k].y) < 200; }); };
+  if(zp >= 0 && ze >= 0 && zp !== ze && BZ.DT[zp] < BZ.DT[ze] && DM.hypot(p.x-e.x, p.y-e.y) < 350) zb0 = zp;
+  if(ze >= 0 && (zp === ze || zb0 === zp || DM.hypot(p.x-e.x, p.y-e.y) < 120)){
+    var nearSite = function(i){ var c = BZ.cent[i]; return !c || ["A","B"].some(function(k){ return SITES[k] && DM.hypot(c.x-SITES[k].x, c.y-SITES[k].y) < 200; }); };
     var best = -1, bd = Infinity;
     (BZ.nbr[zb0]||[]).forEach(function(n){ if(nearSite(n)) return; if(BZ.DT[n] < bd){ bd = BZ.DT[n]; best = n; } });
     if(best >= 0 && bd < BZ.DT[zb0]) res = walk(BZ.cent[best]);
@@ -67,7 +67,7 @@ function lookFrom(p, list, fb, b){
   // находит cornerLook по пути; тут просто предпочитаем САМЫЙ БЛИЖНИЙ вход,
   // если стоим внутри его коридора, а не первый по списку с видимостью
   var near = null, nd = 350;
-  list.forEach(function(e){ if(!e) return; if(sightBlockedByAlly(b, p, e)) return; var d = Math.hypot(e.x-p.x, e.y-p.y); if(d < nd){ nd = d; near = e; } });
+  list.forEach(function(e){ if(!e) return; if(sightBlockedByAlly(b, p, e)) return; var d = DM.hypot(e.x-p.x, e.y-p.y); if(d < nd){ nd = d; near = e; } });
   if(near) return outwardLook(p, near) || near;
   for(var i=0;i<list.length;i++){ if(list[i] && !sightBlockedByAlly(b, p, list[i]) && hasLOS(p.x, p.y, list[i].x, list[i].y)) return list[i]; }
   // ничего не подошло по 350px/прямой видимости (это нормально — точную
@@ -75,12 +75,12 @@ function lookFrom(p, list, fb, b){
   // не закрыт союзником — берём ближайший из них, уже без ограничения в 350,
   // лишь бы не смотреть "сквозь" тиммейта
   var near2 = null, nd2 = Infinity;
-  list.forEach(function(e){ if(!e || sightBlockedByAlly(b, p, e)) return; var d = Math.hypot(e.x-p.x, e.y-p.y); if(d < nd2){ nd2 = d; near2 = e; } });
+  list.forEach(function(e){ if(!e || sightBlockedByAlly(b, p, e)) return; var d = DM.hypot(e.x-p.x, e.y-p.y); if(d < nd2){ nd2 = d; near2 = e; } });
   if(near2) return near2;
   // абсолютно все варианты закрыты союзником — лучше смотреть хоть куда-то
   // полезное, чем никуда: берём ближайший вообще, без фильтра по союзнику
   var near3 = null, nd3 = Infinity;
-  list.forEach(function(e){ if(!e) return; var d = Math.hypot(e.x-p.x, e.y-p.y); if(d < nd3){ nd3 = d; near3 = e; } });
+  list.forEach(function(e){ if(!e) return; var d = DM.hypot(e.x-p.x, e.y-p.y); if(d < nd3){ nd3 = d; near3 = e; } });
   return near3 || fb;
 }
 // ---- пул расстановок CT (раздел 12/13) ----
@@ -250,7 +250,7 @@ function ctSetupRole(b, role, ct){
     // стоят. Точка взгляда (луч угла про до стены, 2D) из 3D часто «не видна» (уступ, другой этаж) — и роль уходила на запасные места по зонам
     // (Cross посреди сайта, 120 ед. от места про). Нет мест с видом — ближайшее к месту про свободное, взгляд — тот же угол про
     if(!freeS.length && CPk) freeS = spS.filter(function(q){ return !spotTaken(b, q, "post") && crossOk(q); })
-      .sort(function(p, q){ return Math.hypot(p.x-cS.x, p.y-cS.y) - Math.hypot(q.x-cS.x, q.y-cS.y); });
+      .sort(function(p, q){ return DM.hypot(p.x-cS.x, p.y-cS.y) - DM.hypot(q.x-cS.x, q.y-cS.y); });
     if(CPk) freeS.forEach(function(q){ q.pro = 1; });   // (18.11) место про (ctspots) — точное в setPost
     if(freeS.length){ nm = zoneUserName(zoneIdAt(cS.x, cS.y)) || nm0; c = cS; lk = lkS; spots = freeS.slice(0, 3); spots._free = 1; spots._see = 1; spots._spot = 1; tryN = []; }
   }
@@ -285,7 +285,7 @@ function ctSetupRole(b, role, ct){
   if(cur && !spotTaken(b, cur, "post") && !spotTaken(b, cur, "line")) spC = cur;   // своё место — точка, которую роль дала (src), не сдвинутая
   // встал в той самой зоне, куда велено смотреть (роумер в Cave с взглядом
   // "на Cave") — смотрим дальше НАРУЖУ по пути к T, а не себе под ноги/на сайт
-  if(spC && lk && Math.hypot(spC.x-lk.x, spC.y-lk.y) < 150){ var ow = outwardLook(spC, lk); if(ow) lk = ow; }
+  if(spC && lk && DM.hypot(spC.x-lk.x, spC.y-lk.y) < 150){ var ow = outwardLook(spC, lk); if(ow) lk = ow; }
   var placed = setPost(b, spC, lk, true, tag);   // (v518a, пак 09.11 п.1) отказ арбитра — роль не обслужена (было: всегда «сделано»)
   if(placed && spots._spot && b.post) b.post.setupLook = 1;   // (15.11) угол роли из демок (lookYaw) — поручен задачей: арбитр взгляда держит его (270 lookAngleCand)
   if(early && !b._earlyLog){ b._earlyLog = roundNum; }
@@ -297,7 +297,7 @@ function ctSetupRole(b, role, ct){
 // своим или ближе CT_SPOT_GAP к нему, — не вариант. Выбор держится весь раунд (CT_SPOTS_RES), пока та же роль той же расстановки
 var CT_SPOTS_RES = {k: null, by: {}}, CT_SPOT_GAP = 60, CT_SPOT_PAIR0 = 0.05;   // ед.; доля «не встречались вместе» — проектные числа
 function ctSideOf(x, y){ var Sc = MAP.ctspots && MAP.ctspots.site; if(!Sc || !Sc.A || !Sc.B) return null;
-  var dA = Math.hypot(x - Sc.A[0], y - Sc.A[1]), dB = Math.hypot(x - Sc.B[0], y - Sc.B[1]); return dA < 0.6*dB ? "A" : dB < 0.6*dA ? "B" : "M"; }
+  var dA = DM.hypot(x - Sc.A[0], y - Sc.A[1]), dB = DM.hypot(x - Sc.B[0], y - Sc.B[1]); return dA < 0.6*dB ? "A" : dB < 0.6*dA ? "B" : "M"; }
 function ctRolePt(S, r){ var q = S.roles[r]; if(!q) return null; if(q.spot) return {x: q.spot[0], y: q.spot[1]}; return q.pos && q.pos[0] ? zonePoint(q.pos[0], GEO.ctMid) : null; }
 function ctSpotPick(b, S, role){
   var CS = MAP.ctspots; if(!CS || !CS.sides || !S || !S.roles) return null;
@@ -312,7 +312,7 @@ function ctSpotPick(b, S, role){
   if(!T){ var ks = Object.keys(TS).map(Number).sort(function(a, c){ return Math.abs(a - n) - Math.abs(c - n); }); T = TS[ks[0]]; }
   var others = Object.keys(RS.by).map(function(k){ return RS.by[k]; }).filter(function(o){ var ob = teamBot(o.id); return o.id !== b.id && o.side === side && o.i >= 0 && ob && ob.alive && ob.team === b.team; });
   var w = T.spots.map(function(sp, i){
-    if(others.some(function(o){ return (o.n === n && o.i === i) || Math.hypot(o.x - sp.x, o.y - sp.y) < CT_SPOT_GAP; })) return 0;
+    if(others.some(function(o){ return (o.n === n && o.i === i) || DM.hypot(o.x - sp.x, o.y - sp.y) < CT_SPOT_GAP; })) return 0;
     // пары — только из той же таблицы (тот же счёт CT на стороне): номер места из другой таблицы — другое место (было падение после пересчёта)
     var v = sp.share; others.forEach(function(o){ var P2 = (o.n === n && T.spots[o.i] && T.spots[o.i].pair) || {}; v *= (P2[i] || CT_SPOT_PAIR0); }); return v; });
   var tot = w.reduce(function(a, v){ return a + v; }, 0), pick = -1;

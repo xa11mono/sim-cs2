@@ -26,7 +26,7 @@ function beliefZoneKnownB(b, i){
 // в этой зоне (или рядом, ≤400) есть враг, которого видели/слышали ≤3с назад
 function freshThreatNear(team, c){
   var L = beliefLast[team] || {};
-  for(var eid in L){ var lo = L[eid]; if(tick - lo.tick <= 3*TICK_HZ && Math.hypot(lo.x-c.x, lo.y-c.y) < 400){ var e = bots.filter(function(o){ return o.id === eid; })[0]; if(e && e.alive) return true; } }
+  for(var eid in L){ var lo = L[eid]; if(tick - lo.tick <= 3*TICK_HZ && DM.hypot(lo.x-c.x, lo.y-c.y) < 400){ var e = bots.filter(function(o){ return o.id === eid; })[0]; if(e && e.alive) return true; } }
   return false;
 }
 
@@ -117,7 +117,7 @@ function mateWatches(o, pt){
 function isRearZone(team, zb, j, b){
   // сам слышал/видел врага в этой зоне за последние 3 с — не тыл, даже если команда ещё не знает
   var c0 = BZ.cent[j];
-  if(b && c0 && [b.heardSound, b.lastIntel].some(function(q){ return q && (!q.team || q.team !== team) && tick - q.tick <= 3*TICK_HZ && (bzOf(q.x, q.y) === j || Math.hypot(q.x-c0.x, q.y-c0.y) <= 400); })) return false;
+  if(b && c0 && [b.heardSound, b.lastIntel].some(function(q){ return q && (!q.team || q.team !== team) && tick - q.tick <= 3*TICK_HZ && (bzOf(q.x, q.y) === j || DM.hypot(q.x-c0.x, q.y-c0.y) <= 400); })) return false;
   var ED = enemySpawnDist(team);
   if(!(ED[j] > ED[zb] + LOOK.rearMargin)) return false;
   if(beliefZoneKnown(team, j) >= LOOK.rearInfo) return false;
@@ -130,7 +130,7 @@ function isRearZone(team, zb, j, b){
   // B Site, Drop, Arches считались его и выпадали из взгляда T3
   var c = BZ.cent[j], m = c ? bots.filter(function(o){ if(o === b || !o.alive || o.team !== team) return false;
     if(bzOf(o.x, o.y) === j) return true;
-    return Math.hypot(o.x-c.x, o.y-c.y) <= 400 && mateWatches(o, c); })[0] : null;
+    return DM.hypot(o.x-c.x, o.y-c.y) <= 400 && mateWatches(o, c); })[0] : null;
   if(m){ REAR_WHY = "тыл: держит " + m.id; return true; }
   return false;
 }
@@ -145,7 +145,7 @@ function enemywardLook(team, p){
   var ED = enemySpawnDist(team), zp = bzOf(p.x, p.y), best = null, bs = Infinity;
   if(zp >= 0) BZ.portal.forEach(function(row, i){ for(var js in row){ var j = +js, q = row[j];
     // проход из зоны i в зону j, смотрим "в сторону j"
-    var d = Math.hypot(q.x-p.x, q.y-p.y); if(d < 60 || d > 900) continue;
+    var d = DM.hypot(q.x-p.x, q.y-p.y); if(d < 60 || d > 900) continue;
     if(j === zp) continue;                          // проход в мою же зону (он у меня за спиной)
     if(!(ED[j] < ED[i])) continue;                  // только проходы, ведущие к врагу
     if(ED[j] > ED[zp] + LOOK.rearMargin) continue;  // не в тыл
@@ -164,7 +164,7 @@ function appearPoint(o, j){
   if(k in APPEAR) return APPEAR[k];
   var wp = buildWaypointPath(c.x, c.y, 0, o.x, o.y, 0), last = null;
   // идём по пути врага к нам: первая точка, которую видно, — место появления
-  for(var i=0; i<wp.length; i++){ var q = {x:wp[i][0], y:wp[i][1]}, d = Math.hypot(q.x-o.x, q.y-o.y);
+  for(var i=0; i<wp.length; i++){ var q = {x:wp[i][0], y:wp[i][1]}, d = DM.hypot(q.x-o.x, q.y-o.y);
     if(d < 50) break;
     if(hasLOS(o.x, o.y, q.x, q.y, o.z)){ last = q; break; } }
   if(++APPEAR_N > 20000){ APPEAR = {}; APPEAR_N = 0; }   // (v520, лаги м200 р2) счётчик, а не Object.keys на каждой записи
@@ -188,7 +188,7 @@ function _angOff(a, ref){ return Math.abs(((a-ref+Math.PI)%(2*Math.PI)+2*Math.PI
 // точка прохода между двумя зонами (середина общей границы полигонов)
 function bzPortalPt(za, zb){
   var A = za.points, B = zb.points, sx = 0, sy = 0, n = 0;
-  var dSeg = function(px, py, a, b){ var vx=b.x-a.x, vy=b.y-a.y, L=vx*vx+vy*vy, t = L ? Math.max(0, Math.min(1, ((px-a.x)*vx+(py-a.y)*vy)/L)) : 0; return Math.hypot(px-(a.x+vx*t), py-(a.y+vy*t)); };
+  var dSeg = function(px, py, a, b){ var vx=b.x-a.x, vy=b.y-a.y, L=vx*vx+vy*vy, t = L ? Math.max(0, Math.min(1, ((px-a.x)*vx+(py-a.y)*vy)/L)) : 0; return DM.hypot(px-(a.x+vx*t), py-(a.y+vy*t)); };
   for(var i=0;i<A.length;i++){ var a = A[i], a2 = A[(i+1)%A.length];
     for(var s=0;s<=8;s++){ var px = a.x+(a2.x-a.x)*s/8, py = a.y+(a2.y-a.y)*s/8;
       for(var k=0;k<B.length;k++){ if(dSeg(px, py, B[k], B[(k+1)%B.length]) < 10){ sx += px; sy += py; n++; break; } } } }
@@ -207,7 +207,7 @@ function portalWatched(team){
   var mates = bots.filter(function(o){ return o.alive && o.team === team && tick >= (o.blindUntil||0); });
   var W = {};
   BZ.portal.forEach(function(row, i){ for(var js in row){ var j = +js; if(j < i) continue; var p = row[j], ok = false;
-    for(var m=0;m<mates.length && !ok;m++){ var o = mates[m], d = Math.hypot(p.x-o.x, p.y-o.y);
+    for(var m=0;m<mates.length && !ok;m++){ var o = mates[m], d = DM.hypot(p.x-o.x, p.y-o.y);
       if(d < 90) ok = true;
       else if(d < CONE_R*1.4 && inFov(o, p.x, p.y) && hasVision(o.x, o.y, p.x, p.y)) ok = true; }
     if(ok){ W[i+","+j] = 1; W[j+","+i] = 1; } } });
@@ -227,7 +227,7 @@ function bzWalk(){
     for(;;){ var u = -1; for(var i=0;i<n;i++) if(!done[i] && D[i] < Infinity && (u < 0 || D[i] < D[u])) u = i;
       if(u < 0) break; done[u] = 1;
       BZ.nbr[u].forEach(function(v){ var p = BZ.portal[u][v] || BZ.cent[v];
-        var w = Math.hypot(p.x-BZ.cent[u].x, p.y-BZ.cent[u].y) + Math.hypot(BZ.cent[v].x-p.x, BZ.cent[v].y-p.y);
+        var w = DM.hypot(p.x-BZ.cent[u].x, p.y-BZ.cent[u].y) + DM.hypot(BZ.cent[v].x-p.x, BZ.cent[v].y-p.y);
         if(D[u] + w < D[v]) D[v] = D[u] + w; }); }
     return D; });
   return BZ_WALK;

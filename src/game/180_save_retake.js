@@ -12,12 +12,12 @@ function pickSaveSpot(b){
     // (v381, М134: по замеру v381 после правки ухода T от бомбы от взрыва гибли только CT на сейве — один в 923 px, где проверки урона
     // не было, второй не успел дойти) сейв — там, куда взрыв не достаёт (на любом расстоянии) и куда успеть дойти до взрыва
     if(bomb.state === "planted" && bombDamageAt(c.x, c.y) > 0) return;
-    if(bomb.state === "planted" && Math.hypot(c.x-b.baseX, c.y-b.baseY)*1.3/SPEED > bombTimeLeftTicks()/TICK_HZ - 1) return;   // 1,3 — путь длиннее прямой: проектное число
+    if(bomb.state === "planted" && DM.hypot(c.x-b.baseX, c.y-b.baseY)*1.3/SPEED > bombTimeLeftTicks()/TICK_HZ - 1) return;   // 1,3 — путь длиннее прямой: проектное число
     var dT = Infinity, seen = false;
-    ts.forEach(function(t){ dT = Math.min(dT, Math.hypot(c.x-t.x, c.y-t.y)); if(hasLOS(c.x,c.y,t.x,t.y)) seen = true; });
+    ts.forEach(function(t){ dT = Math.min(dT, DM.hypot(c.x-t.x, c.y-t.y)); if(hasLOS(c.x,c.y,t.x,t.y)) seen = true; });
     if(seen || dT < 500) return;
-    if(Math.hypot(c.x-CT_SPAWN.x, c.y-CT_SPAWN.y) < 220) return; // не на самом спавне
-    var dSelf = Math.hypot(c.x-b.baseX, c.y-b.baseY);
+    if(DM.hypot(c.x-CT_SPAWN.x, c.y-CT_SPAWN.y) < 220) return; // не на самом спавне
+    var dSelf = DM.hypot(c.x-b.baseX, c.y-b.baseY);
     var zcC = zoneIdAt(c.x, c.y), openC = zcC ? (ZONE_DANGER[zcC] || []).length : 0;   // (v375) не на виду — как у T
     var sc = Math.min(dT, 1200)*0.6 - dSelf - openC*40; // подальше от T, но не бежать через всю карту, укрыто
     cands.push({c:c, sc:sc, dT:dT, openC:openC});
@@ -58,7 +58,7 @@ function tSaveWant(ts, aT, aC, secLeft, site){
   // командой за SITE_SEEN_SEC (siteAssess: неизвестных 0) — не сейв
   if(siteAssess("T", "A").unknown === 0) return false;
   var gunVal = ts.reduce(function(a, b){ return a + (b.primary ? WEAPONS[b.primary].price : 0); }, 0) / aT;
-  var carOn = bomb.state === "carried" && bomb.carrier && bomb.carrier.alive && Math.hypot(bomb.carrier.x-site.x, bomb.carrier.y-site.y) < 380;
+  var carOn = bomb.state === "carried" && bomb.carrier && bomb.carrier.alive && DM.hypot(bomb.carrier.x-site.x, bomb.carrier.y-site.y) < 380;
   // (v442, док владельца 27.10, р6: сейвили вдвоём при 10 тыс. и 9 тыс. у команды) сохранять оружие стоит, только если без него команда
   // в следующем раунде не купит фулл всем: деньги команды + доход за поражение против фулла каждому и оружия сейвящих (проектная мерка)
   var Ts = bots.filter(function(o){ return o.team === "T"; }), inc = nextLossIncome("T");
@@ -96,14 +96,14 @@ function pickSaveSpotT(b){
     if(NAV_BLOCKED[z.id] || !(zoneGraph[z.id]||[]).length) return;
     var c = zoneCentroid(z);
     if(insideSolidWall(c.x, c.y)) return;
-    var dSite = Math.min(Math.hypot(c.x-SITES.A.x, c.y-SITES.A.y), Math.hypot(c.x-SITES.B.x, c.y-SITES.B.y));
+    var dSite = Math.min(DM.hypot(c.x-SITES.A.x, c.y-SITES.A.y), DM.hypot(c.x-SITES.B.x, c.y-SITES.B.y));
     if(dSite < 500) return;
     var dK = Infinity, seen = false;
-    known.forEach(function(k){ dK = Math.min(dK, Math.hypot(c.x-k.x, c.y-k.y)); });
+    known.forEach(function(k){ dK = Math.min(dK, DM.hypot(c.x-k.x, c.y-k.y)); });
     cts.forEach(function(t){ if(hasLOS(c.x, c.y, t.x, t.y)) seen = true; });
     if(seen || dK < 550) return;
-    var dSelf = Math.hypot(c.x-b.baseX, c.y-b.baseY);
-    var dTS = Math.hypot(c.x-T_SPAWN.x, c.y-T_SPAWN.y);
+    var dSelf = DM.hypot(c.x-b.baseX, c.y-b.baseY);
+    var dTS = DM.hypot(c.x-T_SPAWN.x, c.y-T_SPAWN.y);
     // (v375, отметка владельца: «сейвит в открытом месте») место сейва — укрытое: из скольких зон карты оно простреливается
     // (ZONE_DANGER, та же 3D-видимость) — штраф за каждую (40 — проектное число); раньше открытость не учитывалась
     var zc = zoneIdAt(c.x, c.y), open = zc ? (ZONE_DANGER[zc] || []).length : 0;
@@ -128,7 +128,7 @@ function pickSaveSpotT(b){
 function pathLenTo(b, x, y){
   var Q = PATHQ_Q, p = pathQ("l"+b.team+"|"+b.id+"|"+Math.round(b.baseX/Q)+","+Math.round(b.baseY/Q)+","+Math.round((b.z||0)/32)+">"+Math.round(x/Q)+","+Math.round(y/Q), function(){ return buildWaypointPath(b.baseX, b.baseY, b.z, x, y, 0, b.team, botLane(b)); });
   var L = 0, px = b.baseX, py = b.baseY;
-  p.forEach(function(q){ L += Math.hypot(q[0]-px, q[1]-py); px = q[0]; py = q[1]; });
+  p.forEach(function(q){ L += DM.hypot(q[0]-px, q[1]-py); px = q[0]; py = q[1]; });
   return L;
 }
 // где бомба по мнению CT: пока её никто не видел и не подошёл — по писку
@@ -136,7 +136,7 @@ function pathLenTo(b, x, y){
 function ctBombPos(){
   if(!bomb || bomb.state !== "planted") return {x:bomb.x, y:bomb.y};
   if(!bomb.ctSeen){
-    var seen = bots.some(function(o){ return o.alive && o.team === "CT" && (Math.hypot(o.x-bomb.x, o.y-bomb.y) < 300 || (Math.hypot(o.x-bomb.x, o.y-bomb.y) < 1100 && hasVision(o.x, o.y, bomb.x, bomb.y))); });
+    var seen = bots.some(function(o){ return o.alive && o.team === "CT" && (DM.hypot(o.x-bomb.x, o.y-bomb.y) < 300 || (DM.hypot(o.x-bomb.x, o.y-bomb.y) < 1100 && hasVision(o.x, o.y, bomb.x, bomb.y))); });
     if(seen){ bomb.ctSeen = tick; voiceLog("CT", "bombseen", "CT", "бомба "+calloutName(bomb.x, bomb.y).replace(/^на /, "")+"!"); }
   }
   if(bomb.ctSeen) return {x:bomb.x, y:bomb.y};
@@ -156,12 +156,12 @@ function computeApproaches(){
   NAVAREAS.forEach(function(z){
     if(NAV_BLOCKED[z.id] || !(zoneGraph[z.id]||[]).length) return;
     var c = zoneCentroid(z);
-    var d = Math.hypot(c.x-bp.x, c.y-bp.y);
+    var d = DM.hypot(c.x-bp.x, c.y-bp.y);
     if(d < 230 || d > 480 || insideSolidWall(c.x, c.y)) return;
     if(!hidden(c.x, c.y)) return; // укрытие: отсюда не видно ни бомбу, ни входы T (v348)
     var ang = Math.atan2(c.y-bp.y, c.x-bp.x);
     var sec = Math.floor(((ang + Math.PI) / (Math.PI*2)) * 6) % 6; // 6 секторов по 60°
-    var dCT = Math.hypot(c.x-CT_SPAWN.x, c.y-CT_SPAWN.y);
+    var dCT = DM.hypot(c.x-CT_SPAWN.x, c.y-CT_SPAWN.y);
     // предпочитаем то, что ближе к стороне CT и ближе к бомбе
     var sc = dCT*0.6 + d*0.4;
     if(!sectors[sec] || sc < sectors[sec].sc) sectors[sec] = {x:c.x, y:c.y, sc:sc, sec:sec};
@@ -180,7 +180,7 @@ function computeApproaches(){
     var named = [];
     POS[bomb.site].ctRetake.forEach(function(n){
       var zp = zonePoint(n, bp); if(!zp) return;
-      var d = Math.hypot(zp.x-bp.x, zp.y-bp.y); if(d < 180 || d > 650) return;
+      var d = DM.hypot(zp.x-bp.x, zp.y-bp.y); if(d < 180 || d > 650) return;
       var sp = pickSpots("rt:"+n, zp, 1, {rMax:110, minGap:40, hideFrom:[bp].concat(tIn)})[0] || zp;
       if(!hidden(sp.x, sp.y)) return;
       var ang = Math.atan2(sp.y-bp.y, sp.x-bp.x), sec = Math.floor(((ang + Math.PI) / (Math.PI*2)) * 6) % 6;
@@ -200,7 +200,7 @@ function computeApproaches(){
 // (v359, владелец: «когда игрок один, у него тоже "ждёт своих на ретейк"») один живой CT своих не ждёт — «ретейк в одиночку: подход»
 function gTag(b, R){ var i = R.assign[b.id]||0, a = R.approaches[i];
   if(bots.filter(function(o){ return o.team === "CT" && o.alive && !o._saveSpot; }).length <= 1) return "gatherSolo"+i;
-  return (a && bomb && Math.hypot(a.x-bomb.x, a.y-bomb.y) < 300 ? "gatherSite" : "gather")+i; }
+  return (a && bomb && DM.hypot(a.x-bomb.x, a.y-bomb.y) < 300 ? "gatherSite" : "gather")+i; }
 var RT_WAIT = 3, RT_GAP = 400;   // RT_GAP, ед.: второй CT от первого при заходе у про — медиана 411 (322 ретейка Mirage)
 var _rtw = 0;   // с — у про второй заходит через ~3 с после первого (комментарий «need» ниже; демки)
 function updateRetake(cts){
@@ -227,7 +227,7 @@ function updateRetake(cts){
     R.flankSet = true;
     var onMain = alive.filter(function(b){ return R.assign[b.id] === 0; });
     if(onMain.length === alive.length){
-      var far = onMain.slice().sort(function(a,b){ return Math.hypot(b.baseX-main.x,b.baseY-main.y) - Math.hypot(a.baseX-main.x,a.baseY-main.y); })[0];
+      var far = onMain.slice().sort(function(a,b){ return DM.hypot(b.baseX-main.x,b.baseY-main.y) - DM.hypot(a.baseX-main.x,a.baseY-main.y); })[0];
       R.assign[far.id] = 1;
     }
   }
@@ -262,7 +262,7 @@ function updateRetake(cts){
     // (док 6, п.9: р5 CT убили троих на сайте, стояли в 36–220 от бомбы — и ушли на точки сбора за 200–390, потом обратно; у про от смерти
     // последнего T у бомбы до конца дефуза — 6,6 с, медиана) точка сбора — чтобы зайти вместе, а не по одному; кто уже ближе к бомбе, чем его
     // точка сбора, — уже зашёл: он «на месте»
-    var atAp = function(b, a){ return a && (Math.hypot(a.x-b.baseX, a.y-b.baseY) < 70 || Math.hypot(b.baseX-bomb.x, b.baseY-bomb.y) < Math.hypot(a.x-bomb.x, a.y-bomb.y)); };
+    var atAp = function(b, a){ return a && (DM.hypot(a.x-b.baseX, a.y-b.baseY) < 70 || DM.hypot(b.baseX-bomb.x, b.baseY-bomb.y) < DM.hypot(a.x-bomb.x, a.y-bomb.y)); };
     var ready = alive.filter(function(b){ return atAp(b, R.approaches[R.assign[b.id]]); }).length;
     // (v583a, владелец 17.11: «сделай нормальный ретейк — посмотри, как ретейкают про»; 322 ретейка Mirage, CT ≥ 2: когда первый у бомбы, второй
     // от него — медиана 411 ед., заходят с одной стороны (разница 21°, зажим 15 %), а стоял ли первый перед заходом ≥ 2 с — 7 %: про не ждут
@@ -318,9 +318,9 @@ function updateRetake(cts){
   // дефуз под смоком: дефузер подходит к бомбе — смок на неё (его или тиммейта),
   // T с пост-плант позиций не видят того, кто дефузит
   if(R.phase === "go" && !nadeFlags.defSmoke && def && aliveCount("T") > 0){
-    var bpS = ctBombPos(), dDef = Math.hypot(def.x-bpS.x, def.y-bpS.y);
+    var bpS = ctBombPos(), dDef = DM.hypot(def.x-bpS.x, def.y-bpS.y);
     if(dDef < 420 && !smokeCovered(bpS.x, bpS.y)){
-      var smk = [def].concat(alive.filter(function(b){ return b !== def; })).filter(function(b){ return b.nades && b.nades.smoke > 0 && !b.nadeTask && Math.hypot(b.x-bpS.x, b.y-bpS.y) < NADE_THROW_RANGE; })[0];
+      var smk = [def].concat(alive.filter(function(b){ return b !== def; })).filter(function(b){ return b.nades && b.nades.smoke > 0 && !b.nadeTask && DM.hypot(b.x-bpS.x, b.y-bpS.y) < NADE_THROW_RANGE; })[0];
       if(smk && assignNade(smk, "smoke", bpS, "смок на бомбу — дефуз под ним", {now:true})){ nadeFlags.defSmoke = tick;
         voiceLog("CT", "defsmk", smk.id, smk === def ? "кидаю смок на бомбу, дефужу под ним" : "смок на бомбу — "+def.id+", дефузь под ним"); }
     }
@@ -332,7 +332,7 @@ function updateRetake(cts){
 // флешки: флешку кидает не он — «под флешку выходит не тот, кто кидает» (раньше оба — ближайший к бомбе, обычно один и тот же бот)
 function retakeEntryPick(R, alive, def){
   var ents = alive.filter(function(b){ return b !== def; });
-  ents.sort(function(a, c){ return ((R.assign[a.id] === 0 ? 0 : 300) + Math.hypot(a.x-bomb.x, a.y-bomb.y)) - ((R.assign[c.id] === 0 ? 0 : 300) + Math.hypot(c.x-bomb.x, c.y-bomb.y)); });
+  ents.sort(function(a, c){ return ((R.assign[a.id] === 0 ? 0 : 300) + DM.hypot(a.x-bomb.x, a.y-bomb.y)) - ((R.assign[c.id] === 0 ? 0 : 300) + DM.hypot(c.x-bomb.x, c.y-bomb.y)); });
   R.entryId = ents[0] ? ents[0].id : "-";
   if(ents[0]) voiceLog("CT", "rtentry", ents[0].id, "захожу первым, "+(def ? def.id+" дефузит за мной" : "прикрывайте"));
 }
@@ -343,11 +343,11 @@ function retakeUtil(R, alive){
   var bp = ctBombPos(), def = alive.filter(function(b){ return b.id === R.defId; })[0];
   var rank = function(b){ return b.id === R.entryId ? 2 : b === def ? 1 : 0; };
   var fls = alive.filter(function(b){ return b.nades && b.nades.flash > 0; })
-    .sort(function(a, c){ return rank(a) - rank(c) || Math.hypot(a.x-bp.x, a.y-bp.y) - Math.hypot(c.x-bp.x, c.y-bp.y); });
+    .sort(function(a, c){ return rank(a) - rank(c) || DM.hypot(a.x-bp.x, a.y-bp.y) - DM.hypot(c.x-bp.x, c.y-bp.y); });
   var fl = fls[0]; if(!fl) return null;
   var tgt = bp, L = beliefLast.CT, bestA = Infinity;
-  for(var id in L){ var e = L[id]; if(tick - e.tick > 10*TICK_HZ) continue; if(Math.hypot(e.x-bp.x, e.y-bp.y) > 650) continue;
-    var dd = Math.hypot(e.x-fl.x, e.y-fl.y); if(dd < bestA){ bestA = dd; tgt = {x:e.x, y:e.y}; } }
+  for(var id in L){ var e = L[id]; if(tick - e.tick > 10*TICK_HZ) continue; if(DM.hypot(e.x-bp.x, e.y-bp.y) > 650) continue;
+    var dd = DM.hypot(e.x-fl.x, e.y-fl.y); if(dd < bestA){ bestA = dd; tgt = {x:e.x, y:e.y}; } }
   if(!assignNade(fl, "flash", tgt, "ретейк", {bkey:"CT.retake.flash."+bomb.site, now:true, range:900})) return null;
   nadeFlags.retakeFlash = true;
   var gs = GEO[bomb.site];
@@ -356,7 +356,7 @@ function retakeUtil(R, alive){
   if(!nadeFlags.retakeAwpSmoke){
     var BLr = beliefLast.CT || {}, awpT = null;
     for(var eidR in BLr){ var loR = BLr[eidR]; if(loR.src !== "spotted" || tick - loR.tick > 10*TICK_HZ) continue; var eR = bots.filter(function(o){ return o.id === eidR; })[0];
-      if(eR && eR.alive && eR.primary === "AWP" && Math.hypot(loR.x-bp.x, loR.y-bp.y) < 1000){ awpT = loR; break; } }
+      if(eR && eR.alive && eR.primary === "AWP" && DM.hypot(loR.x-bp.x, loR.y-bp.y) < 1000){ awpT = loR; break; } }
     if(awpT){
       var ap0 = R.approaches[0] || bp;
       var smA = alive.filter(function(b){ return b !== fl && b.nades && b.nades.smoke > 0 && !b.nadeTask; })[0];
@@ -380,7 +380,7 @@ function retakePost(b, cts){
     // вход со стороны сайта. Пересмотр — только если «смотрящий» оказался впереди всех
     // (проектное правило: прямого источника нет, docs/DECISIONS.md v260)
     if(aliveCount("T") >= 2){
-      var dBp = function(o){ return Math.hypot(o.x-bp.x, o.y-bp.y); };
+      var dBp = function(o){ return DM.hypot(o.x-bp.x, o.y-bp.y); };
       var bwc = cts.filter(function(o){ return o.id === R.backWatch && o.alive; })[0];
       // (v518c, пак 09.11 п.8; Р-31: «смотрю спину» ×3) смотрящий спину закреплён, пока жив (раньше роль передавалась, когда он оказывался ближе
       // всех к бомбе, и каждая передача заново шла в войс); колл — один раз за раунд на игрока
@@ -394,7 +394,7 @@ function retakePost(b, cts){
     // (v560, В102, м1794418230042 р11 93,7 с CT1: точка сбора менялась каждые 0,1–0,3 с — бот в 484 от бомбы, его точка в 480: «ближе / дальше»
     // переключалось на каждом шаге, а «где стою» ехало вместе с ним) решение «жду здесь» — одно на ретейк, в плане ретейка, с местом, где решил
     var WS = R.waitAt || (R.waitAt = {});
-    if(!WS[b.id] && Math.hypot(b.baseX-bp.x, b.baseY-bp.y) < Math.hypot(a.x-bp.x, a.y-bp.y)) WS[b.id] = {x:b.baseX, y:b.baseY};
+    if(!WS[b.id] && DM.hypot(b.baseX-bp.x, b.baseY-bp.y) < DM.hypot(a.x-bp.x, a.y-bp.y)) WS[b.id] = {x:b.baseX, y:b.baseY};
     if(WS[b.id]){ setPost(b, WS[b.id], bp, true, gTag(b, R), 0); return; }
     setPost(b, a, bp, true, gTag(b, R), 0);
     return;
@@ -419,8 +419,8 @@ function retakePost(b, cts){
   if(R.goTick >= 0 && !R.allDead){
     if(!R.delay){
       R.delay = {}; var dm = 0;
-      R.approaches.forEach(function(ap){ dm = Math.max(dm, Math.hypot(ap.x-bomb.x, ap.y-bomb.y)); });
-      R.approaches.forEach(function(ap, i){ R.delay[i] = Math.min(2.5*TICK_HZ, Math.max(0, (dm - Math.hypot(ap.x-bomb.x, ap.y-bomb.y))/SPEED*TICK_HZ)); });
+      R.approaches.forEach(function(ap){ dm = Math.max(dm, DM.hypot(ap.x-bomb.x, ap.y-bomb.y)); });
+      R.approaches.forEach(function(ap, i){ R.delay[i] = Math.min(2.5*TICK_HZ, Math.max(0, (dm - DM.hypot(ap.x-bomb.x, ap.y-bomb.y))/SPEED*TICK_HZ)); });
     }
     var dl = R.delay[R.assign[b.id]||0] || 0;
     if(tick - R.goTick < dl){ setPost(b, a, bp, true, gTag(b, R), 0); return; }
@@ -433,7 +433,7 @@ function retakePost(b, cts){
 function retakeKitFor(b, bp){
   var left = bombTimeLeftTicks()/TICK_HZ, tNo = pathLenTo(b, bp.x, bp.y)/SPEED + 10, best = null, bt = tNo;
   groundItems.forEach(function(G){ if(G.kind !== "kit") return;
-    var t = (pathLenTo(b, G.x, G.y) + Math.hypot(G.x-bp.x, G.y-bp.y)*1.3)/SPEED + 5;   // 1,3 — путь длиннее прямой, как в ретейке выше
+    var t = (pathLenTo(b, G.x, G.y) + DM.hypot(G.x-bp.x, G.y-bp.y)*1.3)/SPEED + 5;   // 1,3 — путь длиннее прямой, как в ретейке выше
     if(t < bt && t + 1.5 < left){ bt = t; best = G; } });
   return best;
 }
@@ -453,15 +453,15 @@ function retakeDefGo(b, R, cts){
   // от бомбы (> 600). Иначе сначала чистит сайт (retakeClear). Числа 1,5 с и 600 — проектные
   var solo = cts.filter(function(o){ return !o._saveSpot; }).length <= 1, oneT = aliveCount("T") <= 1;
   if(solo || oneT){
-    if(Math.hypot(b.x-bomb.x, b.y-bomb.y) < 320 && !b._sawEnemy && tick - (b._lastSawT||-1e9) > 1.5*TICK_HZ){ if((b._nearBombT = b._nearBombT || tick) && tick - b._nearBombT > 1.5*TICK_HZ) return true; }
+    if(DM.hypot(b.x-bomb.x, b.y-bomb.y) < 320 && !b._sawEnemy && tick - (b._lastSawT||-1e9) > 1.5*TICK_HZ){ if((b._nearBombT = b._nearBombT || tick) && tick - b._nearBombT > 1.5*TICK_HZ) return true; }
     else b._nearBombT = 0;
-    var BLd = beliefLast.CT || {}, farT = Object.keys(BLd).some(function(e){ var q = BLd[e]; return q && tick - q.tick <= 5*TICK_HZ && bots.some(function(o){ return o.id === e && o.alive; }) && Math.hypot(q.x-bomb.x, q.y-bomb.y) > 600; });
+    var BLd = beliefLast.CT || {}, farT = Object.keys(BLd).some(function(e){ var q = BLd[e]; return q && tick - q.tick <= 5*TICK_HZ && bots.some(function(o){ return o.id === e && o.alive; }) && DM.hypot(q.x-bomb.x, q.y-bomb.y) > 600; });
     if(oneT && farT) return true;
     if(solo) return false;
   }
   var ent = R.entryId && bots.filter(function(o){ return o.id === R.entryId; })[0];
   if(!ent || !ent.alive || ent.hp <= LOW_HP) return true;
-  if(Math.hypot(ent.x-bomb.x, ent.y-bomb.y) < 280) return true;
+  if(DM.hypot(ent.x-bomb.x, ent.y-bomb.y) < 280) return true;
   return tick - R.goTick > 2.5*TICK_HZ;
 }
 // (17.11, перестройка) перенесено из 630 (файл показа) — решения сейва команды

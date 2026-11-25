@@ -27,7 +27,7 @@ function ctUnknownT(k){
     E.hyps.forEach(function(h){ if(h.type === "moved_unknown") n += h.weight || 0; }); });
   return n + ctHeardToward(k);
 }
-function ctNearSite(b, S, r){ return Math.hypot(b.x-S.x, b.y-S.y) < r && polyLen(pathPts(b.x, b.y, S.x, S.y, b.z)) < r; }
+function ctNearSite(b, S, r){ return DM.hypot(b.x-S.x, b.y-S.y) < r && polyLen(pathPts(b.x, b.y, S.x, S.y, b.z)) < r; }
 var CALL_WEAK = 0.5, CALL_WEAK_QUIET = 10;   // (v560) проектные числа: «слабый» колл, с тишины
 function ctBrain(){
   var ct = teamTac.CT;
@@ -44,20 +44,20 @@ function ctBrain(){
   // она — как замеченный носитель: колл и ротация идут на её сторону (раньше держали только без колла,
   // а колл при убитом носителе есть почти всегда — и никто не держал). Передача бомбы тиммейту — не выбитая.
   ct.bombDown = null;
-  var deathDrop = bomb.state === "dropped" && bots.some(function(o){ return o.team === "T" && !o.alive && Math.hypot(o.x-bomb.x, o.y-bomb.y) < 20; });
+  var deathDrop = bomb.state === "dropped" && bots.some(function(o){ return o.team === "T" && !o.alive && DM.hypot(o.x-bomb.x, o.y-bomb.y) < 20; });
   if(!deathDrop) ct.bombWatch = null;
   else {
     if(ct.bombWatch && ct.bombWatch.id && !cts.some(function(o){ return o.id === ct.bombWatch.id; })) ct.bombWatch.id = null; // держащий погиб — знание остаётся
     if(!ct.bombWatch){
-      var seer = cts.filter(function(o){ return Math.hypot(o.x-bomb.x, o.y-bomb.y) < 1000 && hasVision(o.x, o.y, bomb.x, bomb.y); })
-        .sort(function(a, c){ return Math.hypot(a.x-bomb.x, a.y-bomb.y) - Math.hypot(c.x-bomb.x, c.y-bomb.y); })[0];
+      var seer = cts.filter(function(o){ return DM.hypot(o.x-bomb.x, o.y-bomb.y) < 1000 && hasVision(o.x, o.y, bomb.x, bomb.y); })
+        .sort(function(a, c){ return DM.hypot(a.x-bomb.x, a.y-bomb.y) - DM.hypot(c.x-bomb.x, c.y-bomb.y); })[0];
       if(seer){ ct.bombWatch = {id:null, pt:null};
         voiceLog("CT", "bombw", seer.id, "бомба лежит "+calloutName(bomb.x, bomb.y).replace(/^на /, "")+", держим"); }
     }
     if(ct.bombWatch && !ct.bombWatch.id && cts.length >= 2){
       // держит ближайший к бомбе — с укрытия рядом с собой, откуда её видно (если он далеко — у бомбы)
-      var bw = cts.slice().sort(function(a, c){ return Math.hypot(a.x-bomb.x, a.y-bomb.y) - Math.hypot(c.x-bomb.x, c.y-bomb.y); })[0];
-      var bwNear = Math.hypot(bw.x-bomb.x, bw.y-bomb.y) < 450;
+      var bw = cts.slice().sort(function(a, c){ return DM.hypot(a.x-bomb.x, a.y-bomb.y) - DM.hypot(c.x-bomb.x, c.y-bomb.y); })[0];
+      var bwNear = DM.hypot(bw.x-bomb.x, bw.y-bomb.y) < 450;
       var bwp = pickSpots("bombwatch"+Math.round(bomb.x/30)+","+Math.round(bomb.y/30)+(bwNear ? "" : "f"), bwNear ? {x:bw.x, y:bw.y} : {x:bomb.x, y:bomb.y}, 2,
         {rMin:bwNear ? 0 : 150, rMax:bwNear ? 200 : 450, minGap:40, must:[{x:bomb.x, y:bomb.y}], hideFrom:[GEO.A.tStage, GEO.B.tStage]})[0] || {x:bw.x, y:bw.y};
       ct.bombWatch.id = bw.id; ct.bombWatch.pt = bwp;
@@ -73,8 +73,8 @@ function ctBrain(){
     var ko2 = k === "A" ? "B" : "A";
     var carS = ct.bombDown ? [{x:ct.bombDown.x, y:ct.bombDown.y, w:1}] : (teamIntel.CT.carrierId ? knowEnemySpots("CT", teamIntel.CT.carrierId) : []);
     var wHere = 0, wTo = 0;
-    carS.forEach(function(q){ var dk = Math.hypot(q.x-SITES[k].x, q.y-SITES[k].y);
-      if(dk < 400) wHere += q.w; else if(dk < 900 && dk + 250 < Math.hypot(q.x-SITES[ko2].x, q.y-SITES[ko2].y)) wTo += q.w; });
+    carS.forEach(function(q){ var dk = DM.hypot(q.x-SITES[k].x, q.y-SITES[k].y);
+      if(dk < 400) wHere += q.w; else if(dk < 900 && dk + 250 < DM.hypot(q.x-SITES[ko2].x, q.y-SITES[ko2].y)) wTo += q.w; });
     var carrierHere = wHere > 0.5, carrierTo = !carrierHere && wHere + wTo > 0.5;
     // войс: "минус на A" — тиммейта убили у сайта за последние 8с
     var deathsHere = intelDeathsNear("CT", SITES[k].x, SITES[k].y, 450, 8*64);
@@ -97,7 +97,7 @@ function ctBrain(){
     // про не читают их как выход; флешки — не довод (их кидают и в фейках)
     if(tick - roundStartTick > 18*TICK_HZ){
       (teamIntel.CT.nadeSeen||[]).forEach(function(q){ if(tick - q.tick > 6*TICK_HZ || q.type === "flash") return;
-        if(Math.hypot(q.x-SITES[k].x, q.y-SITES[k].y) < 600 || Math.hypot(q.x-GEO[k].tEntry.x, q.y-GEO[k].tEntry.y) < 300 || Math.hypot(q.x-GEO[k].ctEntry.x, q.y-GEO[k].ctEntry.y) < 300)
+        if(DM.hypot(q.x-SITES[k].x, q.y-SITES[k].y) < 600 || DM.hypot(q.x-GEO[k].tEntry.x, q.y-GEO[k].tEntry.y) < 300 || DM.hypot(q.x-GEO[k].ctEntry.x, q.y-GEO[k].ctEntry.y) < 300)
           nadeHere += q.type === "flash" ? 0.5 : 1; });
     }
     // (22.11, Ж23-П4) слышали на подходе к сайту (по пути) — тоже наблюдение у этого сайта: один враг (вес веток «слышали»)
@@ -244,9 +244,9 @@ function ctBrain(){
     // (v281, владелец 14.10: после зачистки B колл «все 1 на B» при последнем T на A) честное число: хвост 0,3 — это 0, а не 1
     var tAliveN = aliveCount("T"), here = Math.min(tAliveN, Math.round(ct.call.count));
     var elseO = 0, elseM = 0, elseAny = 0, hereKnown = 0;
-    var BLh = beliefLast.CT || {}; for(var eidH in BLh){ var eH = BLh[eidH], obH = teamBot(eidH); if(!obH || !obH.alive || tick - eH.tick > 8*TICK_HZ) continue; if(Math.hypot(eH.x-sc0.x, eH.y-sc0.y) < 900) hereKnown++; }   // (v365) знание команды по игрокам — beliefLast (beliefLast бывает пуст)
-    for(var eidR in beliefLast.CT){ var eR = beliefLast.CT[eidR]; if(tick - eR.tick > 8*TICK_HZ) continue; if(Math.hypot(eR.x-sc0.x, eR.y-sc0.y) < 900) continue;
-      elseAny++; if(Math.hypot(eR.x-SITES[ko].x, eR.y-SITES[ko].y) < 750) elseO++; else if(Math.hypot(eR.x-GEO.ctMid.x, eR.y-GEO.ctMid.y) < 650) elseM++; }
+    var BLh = beliefLast.CT || {}; for(var eidH in BLh){ var eH = BLh[eidH], obH = teamBot(eidH); if(!obH || !obH.alive || tick - eH.tick > 8*TICK_HZ) continue; if(DM.hypot(eH.x-sc0.x, eH.y-sc0.y) < 900) hereKnown++; }   // (v365) знание команды по игрокам — beliefLast (beliefLast бывает пуст)
+    for(var eidR in beliefLast.CT){ var eR = beliefLast.CT[eidR]; if(tick - eR.tick > 8*TICK_HZ) continue; if(DM.hypot(eR.x-sc0.x, eR.y-sc0.y) < 900) continue;
+      elseAny++; if(DM.hypot(eR.x-SITES[ko].x, eR.y-SITES[ko].y) < 750) elseO++; else if(DM.hypot(eR.x-GEO.ctMid.x, eR.y-GEO.ctMid.y) < 650) elseM++; }
     var unacc = Math.max(0, tAliveN - here - elseAny);
     ct.call.unacc = unacc;
     keepOther = elseO > 0 || unacc >= 2; keepMid = elseM > 0;
@@ -272,7 +272,7 @@ function ctBrain(){
     if(!ct.call.bombSeen && !ct.call.undefended && aliveCount("T") >= 3){
       var zA = 0, zB = 0, zM = 0;
       for(var eidS in beliefLast.CT){ var eS = beliefLast.CT[eidS]; if(tick - eS.tick > 10*TICK_HZ) continue;
-        if(Math.hypot(eS.x-SITES.A.x, eS.y-SITES.A.y) < 800) zA++; else if(Math.hypot(eS.x-SITES.B.x, eS.y-SITES.B.y) < 800) zB++; else if(Math.hypot(eS.x-GEO.ctMid.x, eS.y-GEO.ctMid.y) < 700 || Math.hypot(eS.x-GEO.tMid.x, eS.y-GEO.tMid.y) < 500) zM++; }
+        if(DM.hypot(eS.x-SITES.A.x, eS.y-SITES.A.y) < 800) zA++; else if(DM.hypot(eS.x-SITES.B.x, eS.y-SITES.B.y) < 800) zB++; else if(DM.hypot(eS.x-GEO.ctMid.x, eS.y-GEO.ctMid.y) < 700 || DM.hypot(eS.x-GEO.tMid.x, eS.y-GEO.tMid.y) < 500) zM++; }
       var bA = beliefMass("CT", BZ.siteNear.A||[]), bB = beliefMass("CT", BZ.siteNear.B||[]), bM = beliefMass("CT", BZ.midZ);
       var areas = ((zA || bA > 0.6) ? 1 : 0) + ((zB || bB > 0.6) ? 1 : 0) + ((zM || bM > 0.6) ? 1 : 0);
       spread = areas >= 3 && ct.call.count < 2.5;
@@ -286,7 +286,7 @@ function ctBrain(){
     // меняются по расстановке каждый раунд, и «опорник A» в этом раунде мог стоять на миде. Нужны: хотя бы один погиб у самого сайта и всего ≥ 2
     // у сайта / на миде (как было: опорник + ещё один с той стороны). 700 px — проектное число («у сайта» по прямой, как ctNearSite у колла)
     var deadCT = bots.filter(function(o){ return o.team === "CT" && !o.alive; });
-    var nearS = function(o){ return Math.hypot(o.x-SITES[ks].x, o.y-SITES[ks].y) < 700; }, nearM = function(o){ return Math.hypot(o.x-GEO.ctMid.x, o.y-GEO.ctMid.y) < 700; };
+    var nearS = function(o){ return DM.hypot(o.x-SITES[ks].x, o.y-SITES[ks].y) < 700; }, nearM = function(o){ return DM.hypot(o.x-GEO.ctMid.x, o.y-GEO.ctMid.y) < 700; };
     var aLost = deadCT.some(nearS) && deadCT.filter(function(o){ return nearS(o) || nearM(o); }).length >= 2;
     var pri = function(b){
       var r = b.tRole;
@@ -310,16 +310,16 @@ function ctBrain(){
     // Новых посылаем столько, сколько ещё не хватает с учётом уже идущих. Держащий выбитую бомбу — не ротирует.
     if(!ct.go || ct.go.site !== ks) ct.go = {site:ks, ids:{}, tick:tick};
     var goingFar = 0;
-    cts.forEach(function(b){ if(ct.go.ids[b.id]){ ct.rot[b.id] = true; if(Math.hypot(b.x-sc0.x, b.y-sc0.y) >= 450) goingFar++; } });
+    cts.forEach(function(b){ if(ct.go.ids[b.id]){ ct.rot[b.id] = true; if(DM.hypot(b.x-sc0.x, b.y-sc0.y) >= 450) goingFar++; } });
     // (отметка владельца 18.11 №7: «почему у тиммейта 3 раза путь пересобрался, пока седьмой стрелялся») опорник другого сайта уже у сайта колла
     // (пришёл к выбитой бомбе, ≤ 450) — играет этот сайт, а не уходит по роли на свой через перестрелку: в раздачу ротации шли только те, кто
     // дальше 450, и karrigan с A ушёл «опорником B» (473,385), потом «выйти на врага», потом снова на B
     // (18.11, «чинить механику целиком») не только опорник другого сайта — любая роль (мидер, ротатор, роумер), кто уже у сайта колла и не в
     // ротации; кроме опорника этого сайта (его пост и так здесь)
     cts.forEach(function(b){
-      if(b.tRole !== "anchor"+ks && !ct.rot[b.id] && !(ct.bombWatch && ct.bombWatch.id === b.id) && Math.hypot(b.x-sc0.x, b.y-sc0.y) < 450){ ct.rot[b.id] = true; ct.go.ids[b.id] = true; } });
-    cts.filter(function(b){ return pri(b) < 99 && !ct.rot[b.id] && !(ct.bombWatch && ct.bombWatch.id === b.id) && Math.hypot(b.x-sc0.x, b.y-sc0.y) >= 450; })
-       .sort(function(a,b){ return pri(a) - pri(b) || (Math.hypot(a.x-sc0.x,a.y-sc0.y) - Math.hypot(b.x-sc0.x,b.y-sc0.y)); })
+      if(b.tRole !== "anchor"+ks && !ct.rot[b.id] && !(ct.bombWatch && ct.bombWatch.id === b.id) && DM.hypot(b.x-sc0.x, b.y-sc0.y) < 450){ ct.rot[b.id] = true; ct.go.ids[b.id] = true; } });
+    cts.filter(function(b){ return pri(b) < 99 && !ct.rot[b.id] && !(ct.bombWatch && ct.bombWatch.id === b.id) && DM.hypot(b.x-sc0.x, b.y-sc0.y) >= 450; })
+       .sort(function(a,b){ return pri(a) - pri(b) || (DM.hypot(a.x-sc0.x,a.y-sc0.y) - DM.hypot(b.x-sc0.x,b.y-sc0.y)); })
        .slice(0, Math.max(0, send - goingFar)).forEach(function(b){ ct.rot[b.id] = true; ct.go.ids[b.id] = true;
          voiceLog("CT", "rot"+b.id+ks+roundNum, b.id, "ротейт "+ks);   // (v321, М23) кто ротирует
        });
@@ -340,7 +340,7 @@ function ctBrain(){
   if(!ct.flank && ct.call && !planted0 && ct.call.count >= 2 && tick - (ct.call.since||tick) > 2*TICK_HZ && secLeftCT > 25 && cts.length >= 2){
     var fs = ct.call.site;
     var cand = cts.filter(function(b){ return (b.tRole === "mid" || b.tRole === "roamer") && !(ct.rot && ct.rot[b.id]) &&
-      Math.hypot(b.x-SITES[fs].x, b.y-SITES[fs].y) > 500; })
+      DM.hypot(b.x-SITES[fs].x, b.y-SITES[fs].y) > 500; })
       .sort(function(a, b2){ return (a.tRole === "mid" ? 0 : 1) - (b2.tRole === "mid" ? 0 : 1); })[0];
     // (ответ владельца 9) маршрут у врага — не идти: на зоне маршрута фланга (набор карты) команда недавно (SITE_SEEN_SEC) видела / слышала T
     var CFr = ((MAP.tactics.plays.ctFlank || {}).route || {})[fs === "A" ? "A" : "B"] || [], BLc = beliefLast.CT || {};
@@ -371,7 +371,7 @@ function ctBrain(){
     var equip = cts.reduce(function(a,b){ return a + (b.primary ? WEAPONS[b.primary].price : 0) + (b.armor ? 650 : 0); }, 0) / Math.max(1, cts.length);
     // (v334, М63, отметка владельца: karrigan 1 на 4 с USP не сейвился, хотя рядом на Top Mid лежал АК) сохранить можно и то, что
     // подберёт по пути: лучшее оружие ≤ 450 ед. карты от CT, где врага по инфе нет, — в цену сейва
-    cts.forEach(function(b){ var add = 0; groundWeapons.forEach(function(G){ if(Math.hypot(G.x-b.x, G.y-b.y) < 450 && weaponValue(G.key) > weaponValue(b.primary) &&
+    cts.forEach(function(b){ var add = 0; groundWeapons.forEach(function(G){ if(DM.hypot(G.x-b.x, G.y-b.y) < 450 && weaponValue(G.key) > weaponValue(b.primary) &&
       intelEstimate("CT", G.x, G.y, 450, 5*TICK_HZ).n === 0) add = Math.max(add, WEAPONS[G.key].price); }); equip += add/Math.max(1, cts.length); });
     var hopeless = (cts.length === 1 && tsAlive >= BAL.saveGap) || (cts.length <= tsAlive - BAL.saveGap) || needSecs > secs;
     // (v158) у про после взрыва живы 2,1 CT, у ботов было 1,2: сейвят раньше
@@ -447,19 +447,19 @@ function ctBrain(){
     // плант не лезу": держит свою линию и играет ретейк вместе, а не бежит
     // в одиночку на 2–3 T, которые прикрывают ставящего
     var spSmart = true;
-    if(PHs && tick - PHs.tick < PLANT_TICKS + 32 && Math.hypot(b.x-PHs.x, b.y-PHs.y) < 480 && !ct.saving){
+    if(PHs && tick - PHs.tick < PLANT_TICKS + 32 && DM.hypot(b.x-PHs.x, b.y-PHs.y) < 480 && !ct.saving){
       var tNearP = Math.max(1, intelEstimate("CT", PHs.x, PHs.y, 450, 5*TICK_HZ).n);
-      var ctNearP = cts.filter(function(o){ return Math.hypot(o.x-PHs.x, o.y-PHs.y) < 600; }).length;
+      var ctNearP = cts.filter(function(o){ return DM.hypot(o.x-PHs.x, o.y-PHs.y) < 600; }).length;
       var secLeftP = ROUND_TIME_SEC - (simTime - roundStartTime);
       spSmart = ctNearP >= tNearP || secLeftP < 12 || hasLOS(b.x, b.y, PHs.x, PHs.y, b.z);
       if(!spSmart && b._noStopLog !== PHs.tick){ b._noStopLog = PHs.tick;
         voiceLog("CT", "nostop"+b.id, b.id, "их "+tNearP+", нас "+ctNearP+" — под плант не лезу, держу и играем ретейк"); }
     }
-    if(spSmart && PHs && tick - PHs.tick < PLANT_TICKS + 32 && Math.hypot(b.x-PHs.x, b.y-PHs.y) < 480 && !ct.saving){
+    if(spSmart && PHs && tick - PHs.tick < PLANT_TICKS + 32 && DM.hypot(b.x-PHs.x, b.y-PHs.y) < 480 && !ct.saving){
       var ppt = {x:PHs.x, y:PHs.y};
       var sps = pickSpots("stopplant"+Math.round(ppt.x/40)+","+Math.round(ppt.y/40), ppt, 4, {rMin:60, rMax:280, minGap:50, must:[ppt]});
       var bsp = null, bsd = Infinity;
-      sps.forEach(function(q){ var d = Math.hypot(q.x-b.x, q.y-b.y); if(d < bsd){ bsd = d; bsp = q; } });
+      sps.forEach(function(q){ var d = DM.hypot(q.x-b.x, q.y-b.y); if(d < bsd){ bsd = d; bsp = q; } });
       // (00_PLAN, пакет тактики, ответ владельца 6 от 04.11: «плант идёт (3,2 с): успевает убить — главное; нет — сильная позиция; не бежать
       // через открытое ради безнадёжной попытки») не успевает дойти до места, откуда видно ставящего, до конца планта — не бежит (ретейк)
       if(bsp && !hasLOS(b.x, b.y, PHs.x, PHs.y, b.z) && pathLenTo(b, bsp.x, bsp.y)/SPEED*TICK_HZ > PHs.tick + PLANT_TICKS - tick){
@@ -482,15 +482,15 @@ function ctBrain(){
       for(var q2=sg2.length-1; q2>=0; q2--){
         var g2 = sg2[q2]; if(tick - g2.tick > 5*TICK_HZ) break;
         if(g2.type !== "sound" || srcs[g2.id]) continue;
-        if(Math.hypot(g2.x-b.x, g2.y-b.y) > 650 || hasLOS(b.x, b.y, g2.x, g2.y, b.z)) continue;
+        if(DM.hypot(g2.x-b.x, g2.y-b.y) > 650 || hasLOS(b.x, b.y, g2.x, g2.y, b.z)) continue;
         srcs[g2.id] = true; sx += g2.x; sy += g2.y; sn++;
       }
       if(sn >= 2){
-        var sc0 = {x:sx/sn, y:sy/sn}, kk = Math.hypot(b.x-SITES.A.x, b.y-SITES.A.y) < Math.hypot(b.x-SITES.B.x, b.y-SITES.B.y) ? "A" : "B";
+        var sc0 = {x:sx/sn, y:sy/sn}, kk = DM.hypot(b.x-SITES.A.x, b.y-SITES.A.y) < DM.hypot(b.x-SITES.B.x, b.y-SITES.B.y) ? "A" : "B";
         var bestR = null, bestRN = null, brd = Infinity;
         POS[kk].ctHold.forEach(function(n){
           var q = namedSpot(n, b, {see:[sc0], key:"reang"}); if(!q) return;
-          var d = Math.hypot(q.x-b.x, q.y-b.y); if(d < 40 || d > 380 || !hasLOS(q.x, q.y, sc0.x, sc0.y)) return;
+          var d = DM.hypot(q.x-b.x, q.y-b.y); if(d < 40 || d > 380 || !hasLOS(q.x, q.y, sc0.x, sc0.y)) return;
           if(d < brd){ brd = d; bestR = q; bestRN = n; }
         });
         b._reangleNext = tick + 8*TICK_HZ;
@@ -521,15 +521,15 @@ function ctBrain(){
       for(var si=TIsig.length-1; si>=0; si--){
         var sgz = TIsig[si];
         if(tick - sgz.tick > 6*TICK_HZ) break;
-        if((sgz.type==="spotted" || sgz.type==="sound") && Math.hypot(sgz.x-siteC.x, sgz.y-siteC.y) < 450){ threatSig = sgz; break; }
+        if((sgz.type==="spotted" || sgz.type==="sound") && DM.hypot(sgz.x-siteC.x, sgz.y-siteC.y) < 450){ threatSig = sgz; break; }
       }
       var lookPt = threatSig ? {x:threatSig.x, y:threatSig.y} : gc.tEntry;
       // (плант 74%) ротация по одному в стак — не заходят по одному: первый у
       // входа CT ждёт второго (до ~5с), дальше заходят вместе
-      var defOn = cts.filter(function(o){ return Math.hypot(o.x-siteC.x, o.y-siteC.y) < 450; }).length;
-      if(call.count >= 2.6 && defOn <= 1 && Math.hypot(b.x-siteC.x, b.y-siteC.y) > 380 && !(bomb && bomb.state === "planted")){
+      var defOn = cts.filter(function(o){ return DM.hypot(o.x-siteC.x, o.y-siteC.y) < 450; }).length;
+      if(call.count >= 2.6 && defOn <= 1 && DM.hypot(b.x-siteC.x, b.y-siteC.y) > 380 && !(bomb && bomb.state === "planted")){
         var RG = ct._rg || (ct._rg = {}); var rg = RG[call.site] || (RG[call.site] = {since:tick, go:false});
-        var atEnt = cts.filter(function(o){ return ct.rot[o.id] && Math.hypot(o.x-gc.ctEntry.x, o.y-gc.ctEntry.y) < 280; }).length;
+        var atEnt = cts.filter(function(o){ return ct.rot[o.id] && DM.hypot(o.x-gc.ctEntry.x, o.y-gc.ctEntry.y) < 280; }).length;
         if(!rg.go && (atEnt >= 2 || tick - rg.since > 5*TICK_HZ || Object.keys(ct.rot).length <= 1)){ rg.go = true;
           if(atEnt >= 2) voiceLog("CT", "rgo"+call.site+roundNum, b.id, "мы вдвоём у входа — заходим вместе"); }
         if(!rg.go){
@@ -538,7 +538,7 @@ function ctBrain(){
           return;
         }
       }
-      if(ct.playRetake && ct.playRetake.site === call.site && Math.hypot(b.x-siteC.x, b.y-siteC.y) > 380){
+      if(ct.playRetake && ct.playRetake.site === call.site && DM.hypot(b.x-siteC.x, b.y-siteC.y) > 380){
         // ждём у входа CT, вне видимости с сайта: подтянуться к бомбе на ретейк
         var hs = pickSpots("prt"+call.site, gc.ctEntry, 4, {rMin:60, rMax:260, minGap:60, hideFrom:[siteC, gc.tEntry], see:[gc.ctEntry]});
         var hi2 = Object.keys(ct.rot).sort().indexOf(b.id);
@@ -552,7 +552,7 @@ function ctBrain(){
       var rSpots = pickSpots("rotateSpots"+call.site, gc.anchor, 5, {rMax:230, minGap:60, see:[lookPt], hideFrom:[gc.tStage],
         cross: apos ? {from:apos, pt:gc.tEntry} : null});
       var rPick = weightedPick(rSpots.length, roundNum*271 + (role==="rotator"?11:role==="roamer"?23:37));
-      if(Math.hypot(b.x-siteC.x, b.y-siteC.y) > 600) safeRotate(b, rSpots[rPick] || siteC, call.site);
+      if(DM.hypot(b.x-siteC.x, b.y-siteC.y) > 600) safeRotate(b, rSpots[rPick] || siteC, call.site);
       setPost(b, rSpots[rPick], lookPt, true, "rotate", role==="rotator"?1:-1);
       return;
     }
@@ -560,7 +560,7 @@ function ctBrain(){
     // лежит — держим её», ct.bombDown), CT ≤ 3 — опорник идёт к бомбе: на его сайте без бомбы ставить нечего. При 4–5 CT остаётся
     if((role === "anchorA" || role === "anchorB") && ct.bombDown && cts.length <= 3 && !(bomb && bomb.state === "planted")){
       var kMine = role === "anchorA" ? "A" : "B", kBomb = kMine === "A" ? "B" : "A", bd = ct.bombDown;
-      if(Math.hypot(bd.x-SITES[kBomb].x, bd.y-SITES[kBomb].y) + 250 < Math.hypot(bd.x-SITES[kMine].x, bd.y-SITES[kMine].y)){
+      if(DM.hypot(bd.x-SITES[kBomb].x, bd.y-SITES[kBomb].y) + 250 < DM.hypot(bd.x-SITES[kMine].x, bd.y-SITES[kMine].y)){
         var bdp = pickSpots("bdrot"+kBomb, GEO[kBomb].anchor, 3, {rMax:260, minGap:60, see:[{x:bd.x, y:bd.y}], hideFrom:[GEO[kBomb].tStage]})[0] || GEO[kBomb].anchor;
         var wasBd = b.post && b.post.tag === "rotate:bomb";
         if(setPost(b, bdp, {x:bd.x, y:bd.y}, true, "rotate:bomb") && !wasBd){ voiceLog("CT", "bdrot"+b.id+roundNum, b.id, "бомба "+kBomb+", иду с "+kMine); safeRotate(b, bdp, kBomb); }
@@ -597,7 +597,7 @@ function ctBrain(){
       var cl = ct.call;
       if(cl && cl.site === kA && cl.count >= 2.6 && !(bomb && bomb.state === "planted") &&
          ((cl.seen || 0) >= 2 || (cl.nades || 0) >= 2 || cl.bombSeen) &&
-         !cts.some(function(o){ return o !== b && Math.hypot(o.x-SITES[kA].x, o.y-SITES[kA].y) < 450; })){
+         !cts.some(function(o){ return o !== b && DM.hypot(o.x-SITES[kA].x, o.y-SITES[kA].y) < 450; })){
         if(!b._afPt || b._afPt.round !== roundNum || b._afPt.k !== kA){
           var afp = pickSpots("afall"+kA, GEO[kA].ctEntry, 3, {rMin:40, rMax:260, minGap:50, hideFrom:[GEO[kA].tEntry, SITES[kA]], see:[GEO[kA].ctEntry]})[0];
           b._afPt = {round:roundNum, k:kA, pt: afp || GEO[kA].ctEntry};
@@ -611,7 +611,7 @@ function ctBrain(){
       // (v570, прогон 217: Ancient «застрял (anchor): пост заново 12 раз за 5 с») «то же место» — точка, которую дала задача (post.src), а не
       // сдвинутая setPost'ом (было: сдвинутая шла назад в setPost, сдвигалась снова — два места по очереди каждый тик)
       var hp0 = postSrc(b);
-      if(b.post && b.post.tag === "anchor" && holdPt && Math.hypot(holdPt.x-hp0.x, holdPt.y-hp0.y) < 100) holdPt = {x:hp0.x, y:hp0.y};
+      if(b.post && b.post.tag === "anchor" && holdPt && DM.hypot(holdPt.x-hp0.x, holdPt.y-hp0.y) < 100) holdPt = {x:hp0.x, y:hp0.y};
       setPost(b, holdPt, lookFrom(holdPt, ents, GEO[kA].tEntry, b), true, "anchor");
     }
     else if(role === "mid"){
@@ -624,7 +624,7 @@ function ctBrain(){
       for(var smi=TImid.length-1; smi>=0; smi--){
         var sgm = TImid[smi];
         if(tick - sgm.tick > 6*TICK_HZ) break;
-        if((sgm.type==="spotted"||sgm.type==="sound") && Math.hypot(sgm.x-GEO.ctMid.x, sgm.y-GEO.ctMid.y) < 420){ midThreat = sgm; break; }
+        if((sgm.type==="spotted"||sgm.type==="sound") && DM.hypot(sgm.x-GEO.ctMid.x, sgm.y-GEO.ctMid.y) < 420){ midThreat = sgm; break; }
       }
       var midLook = midThreat ? {x:midThreat.x, y:midThreat.y} : GEO.ctMidLook;
       // мидер с AWP: не всегда мид — иногда встаёт снайпером на сайт (длинная
@@ -683,7 +683,7 @@ function ctBrain(){
         if(isAwp){
           var ac = pickSpots("midAwpLong", GEO.ctMid, 6, {rMax:340, minGap:50, see:[GEO.ctMidLook], hideFrom:[]})
             .filter(function(q){ return hasLOS(q.x, q.y, GEO.ctMidLook.x, GEO.ctMidLook.y); })
-            .sort(function(a, c){ return Math.hypot(c.x-GEO.ctMidLook.x, c.y-GEO.ctMidLook.y) - Math.hypot(a.x-GEO.ctMidLook.x, a.y-GEO.ctMidLook.y); });
+            .sort(function(a, c){ return DM.hypot(c.x-GEO.ctMidLook.x, c.y-GEO.ctMidLook.y) - DM.hypot(a.x-GEO.ctMidLook.x, a.y-GEO.ctMidLook.y); });
           if(ac[0]){ mp = ac[0]; if(b._mwV !== roundNum){ b._mwV = roundNum; logEvent(b.id+" (AWP): мид с дальней точки — дистанция моя"); } }
         }   // (v520) ветка «пистолет / ПП — ближний угол, спрятанный от мида» убрана: правило на оружие ставило мидера за стену (отметка владельца
             // 09.11 м200 р1); место — общий выбор мида (midOpts: видеть мид, прятаться от T-мида), обзор поста проверяет setPost (postViewPoint)

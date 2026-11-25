@@ -188,7 +188,7 @@ function coachPlan(side){
     var rtk = RH.filter(function(r){ return r.planted && r.winner === "CT"; }).length;
     if(rtk >= 2){ P.fake = true; P.facts.push({k: "fake", n: rtk, of: RH.length, log: "ставим, но они забирают ретейком ("+rtk+" из "+RH.length+") — быстро ротируют: фейк"}); }
   } else {
-    var aw = (RMEM.awp || []).filter(function(q){ return roundNum - q.round <= 3 && GEO.ctMid && Math.hypot(q.x-GEO.ctMid.x, q.y-GEO.ctMid.y) < 600; });
+    var aw = (RMEM.awp || []).filter(function(q){ return roundNum - q.round <= 3 && GEO.ctMid && DM.hypot(q.x-GEO.ctMid.x, q.y-GEO.ctMid.y) < 600; });
     var hasAwp = bots.some(function(b){ return b.team === "CT" && (b.primary === "AWP" || b.tRole === "mid"); });
     if(aw.length && hasAwp && rmemRecent(RMEM.midDeath, 3).length < 2){ P.midAgg = true; P.facts.push({k: "awpEarly", n: aw.length, log: "наш AWP на миде берёт фраги ("+aw.length+" за 3 р.) — ранний пик AWP"}); }
   }

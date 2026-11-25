@@ -19,7 +19,7 @@
 function iglTake(tt, evTick){ if(evTick <= (tt._evDone||-1)) return false; tt._evDone = evTick; return true; }
 function carrierAtSite(tt){
   if(bomb.state !== "carried" || !bomb.carrier || !bomb.carrier.alive) return false;
-  var S = SITES[tt.site]; return Math.hypot(bomb.carrier.x-S.x, bomb.carrier.y-S.y) < 330 || onSite(S, bomb.carrier.x, bomb.carrier.y);
+  var S = SITES[tt.site]; return DM.hypot(bomb.carrier.x-S.x, bomb.carrier.y-S.y) < 330 || onSite(S, bomb.carrier.x, bomb.carrier.y);
 }
 var CONT_SEC = 6, CONT_REGROUP = 6;   // с: решение о продолжении дефолта — за столько до выхода; перестроиться — столько (проектные числа)
 function tIglReplan(tt, site, other, secLeft){
@@ -34,8 +34,8 @@ function tIglReplan(tt, site, other, secLeft){
     tt._cont = tick;
     var tsC = bots.filter(function(b){ return b.team === "T" && b.alive; }), BLc = beliefLast.T || {};
     var contScore = function(t){ var sc = 0; t.groups.forEach(function(g){ (g.via || []).forEach(function(n){ var zp = zonePoint(n, site); if(!zp) return;
-      if(tsC.some(function(b){ return Math.hypot(b.x-zp.x, b.y-zp.y) < 250; })) sc += 1;
-      if(bots.some(function(o){ var e = BLc[o.id]; return o.alive && o.team === "CT" && e && tick - e.tick <= SITE_SEEN_SEC*TICK_HZ && Math.hypot(e.x-zp.x, e.y-zp.y) < 300; })) sc -= 2; }); }); return sc; };
+      if(tsC.some(function(b){ return DM.hypot(b.x-zp.x, b.y-zp.y) < 250; })) sc += 1;
+      if(bots.some(function(o){ var e = BLc[o.id]; return o.alive && o.team === "CT" && e && tick - e.tick <= SITE_SEEN_SEC*TICK_HZ && DM.hypot(e.x-zp.x, e.y-zp.y) < 300; })) sc -= 2; }); }); return sc; };
     var cands = T_TACTICS.filter(function(t){ return t.site === tt.site && (t.style === "exec" || t.style === "split") && t.groups && t.groups.length; });
     var bestC = null, bsC = -Infinity;
     cands.forEach(function(t, i){ var v = contScore(t) + hashRand(roundNum*271 + matchNum*13 + i)*0.5; if(v > bsC){ bsC = v; bestC = t; } });
@@ -51,7 +51,7 @@ function tIglReplan(tt, site, other, secLeft){
     // (1) убийца далеко от нашего сайта
     if(last && !tt._rpFast && tick - last.tick > 1.5*TICK_HZ && tick - last.tick < 4*TICK_HZ && last.kx !== null &&
        aliveT >= 3 && tt.execTick - tick > 6*TICK_HZ && !last.traded){
-      var dS = Math.hypot(last.kx-site.x, last.ky-site.y);
+      var dS = DM.hypot(last.kx-site.x, last.ky-site.y);
       if(dS > 1100 && iglTake(tt, last.tick)){
         tt._rpFast = true;
         tt.execTick = Math.max(tick + 4*TICK_HZ, Math.min(tt.execTick, tick + 6*TICK_HZ));
@@ -90,8 +90,8 @@ function tIglReplan(tt, site, other, secLeft){
         var h = RH[sg.id] || (RH[sg.id] = []); if(!h.length || sg.tick - h[h.length-1].tick >= TICK_HZ){ h.push({x:sg.x, y:sg.y, tick:sg.tick}); if(h.length > 3) h.shift(); } });
       var toward = [];
       for(var rid in RH){ var h = RH[rid]; if(h.length < 2) continue; var a0 = h[0], a1 = h[h.length-1]; if(tick - a1.tick > 6*TICK_HZ) continue;
-        var dS0 = Math.hypot(a0.x-site.x, a0.y-site.y), dS1 = Math.hypot(a1.x-site.x, a1.y-site.y);
-        var dO0 = Math.hypot(a0.x-SITES[other].x, a0.y-SITES[other].y), dO1 = Math.hypot(a1.x-SITES[other].x, a1.y-SITES[other].y);
+        var dS0 = DM.hypot(a0.x-site.x, a0.y-site.y), dS1 = DM.hypot(a1.x-site.x, a1.y-site.y);
+        var dO0 = DM.hypot(a0.x-SITES[other].x, a0.y-SITES[other].y), dO1 = DM.hypot(a1.x-SITES[other].x, a1.y-SITES[other].y);
         if(dS0 - dS1 > 120 && dO1 - dO0 > 80 && dS1 < 1400) toward.push(rid); }
       if(toward.length >= (aliveCT <= 3 ? 1 : 2) && !tSiteTaking(tt) && iglTake(tt, tick)){   // (22.11, Ж16) сайт берётся — не уходим
         tt._rotDone = tick;
@@ -99,7 +99,7 @@ function tIglReplan(tt, site, other, secLeft){
           tt.rebound = true;
           var ctrR = {x:0, y:0}, tsR = bots.filter(function(b){ return b.team === "T" && b.alive; });
           tsR.forEach(function(b){ ctrR.x += b.x/tsR.length; ctrR.y += b.y/tsR.length; });
-          var trvR = Math.hypot(ctrR.x-SITES[other].x, ctrR.y-SITES[other].y)*1.4/SPEED;
+          var trvR = DM.hypot(ctrR.x-SITES[other].x, ctrR.y-SITES[other].y)*1.4/SPEED;
           voiceLog("T", "rotread", "IGL", toward.length+" CT ротируют на "+tt.site+" — идём на "+other+", но углы чекаем, там может кто-то остаться");
           logEvent("IGL: слышим ротацию CT на "+tt.site+" → перекол на "+other+" (не значит, что там пусто)");
           tSetSite(tt, other); tt.phase = "setup";
@@ -119,7 +119,7 @@ function tIglReplan(tt, site, other, secLeft){
       var otherB = beliefCount("T", BZ.siteNear[other]||[]);
       var ctr = {x:0, y:0}, tsA = bots.filter(function(b){ return b.team === "T" && b.alive; });
       tsA.forEach(function(b){ ctr.x += b.x/tsA.length; ctr.y += b.y/tsA.length; });
-      var travel = Math.hypot(ctr.x-SITES[other].x, ctr.y-SITES[other].y)*1.4/SPEED;
+      var travel = DM.hypot(ctr.x-SITES[other].x, ctr.y-SITES[other].y)*1.4/SPEED;
       var goOther = otherB < 1.2 && secLeft > travel + 15 && !tSiteTaking(tt);   // (22.11, Ж16)
       tsA.forEach(function(b){ b._route = null; b._routeDone = null; b._stageInfo = null; });
       tt.takeAssign = null; tt.plantPick = null; tt.wave2 = null; tt.w1Contact = null; tt._popDone = false; tt._waitLog = false;
@@ -173,7 +173,7 @@ function stagePost(mem, k){
   if(SSk && g.tStageUp && mem.length >= 3){
     // двое-трое ниже, один-двое выше (Ancient B: T Lower → Ramp и T Upper → Rat/Dark): выход с двух сторон
     var nUp = mem.length >= 4 ? 2 : 1;
-    var srt = mem.slice().sort(function(a, c){ return Math.hypot(a.x-g.tStageUp.x, a.y-g.tStageUp.y) - Math.hypot(c.x-g.tStageUp.x, c.y-g.tStageUp.y); });
+    var srt = mem.slice().sort(function(a, c){ return DM.hypot(a.x-g.tStageUp.x, a.y-g.tStageUp.y) - DM.hypot(c.x-g.tStageUp.x, c.y-g.tStageUp.y); });
     var ups = srt.filter(function(b){ return b.tRole !== "entry"; }).slice(0, nUp), low = mem.filter(function(b){ return ups.indexOf(b) < 0; });
     var upLook = zonePoint(SSk.upLook, g.tStageUp) || g.tEntry;
     groupPost(low, g.tStage, g.tEntry, "stage"+k, opt);
@@ -219,7 +219,7 @@ function tSetSite(tt, site){ var _ev = simEvIn("tSetSite", arguments);
     // (v519, пак 09.11 п.12) и проба под старый сайт (у пробы свой тег probe…, раньше не снималась — после перекола бот ещё шёл «посмотреть» старый сайт)
     if(old && old !== site && tg && (tg.indexOf("stage" + old) === 0 || tg.indexOf("sitehold" + old) === 0 || tg.indexOf("clear" + old) === 0 || (tg.indexOf("probe" + old) === 0))){ clearPost(b); if(b._probe) b._probe = null; }
     var t = b.nadeTask;
-    if(old && old !== site && t && SITES[old] && Math.hypot(t.x-SITES[old].x, t.y-SITES[old].y) < Math.hypot(t.x-SITES[site].x, t.y-SITES[site].y)){
+    if(old && old !== site && t && SITES[old] && DM.hypot(t.x-SITES[old].x, t.y-SITES[old].y) < DM.hypot(t.x-SITES[site].x, t.y-SITES[site].y)){
       nadeCancel(b, "igl-site"); if(b.post && taskProp(b.post.tag, "lineupTask")) clearPost(b);
     }
   });
@@ -232,7 +232,7 @@ function ppTimeNamed(group, bp0, site, rMax){
   var P = POS[site] && POS[site].tPost; if(!P || !P.length) return false;
   // (v442, док владельца 27.10, р7: «их не слышно — отходим от бомбы», а встали на Firebox / A Trash у самой бомбы; замер: T ближе 150 к бомбе
   // 21 % против 12–19 % у про) «на время» — не ближе 320 к бомбе (та же мерка, что у groupPost ниже в 170 — rMin 320)
-  var pts = []; P.forEach(function(n){ var zp = zonePoint(n, bp0); if(zp && Math.hypot(zp.x-bp0.x, zp.y-bp0.y) <= rMax && Math.hypot(zp.x-bp0.x, zp.y-bp0.y) >= 320 && !pts.some(function(q){ return Math.hypot(q.x-zp.x, q.y-zp.y) < 110; })) pts.push({n:n, x:zp.x, y:zp.y}); });
+  var pts = []; P.forEach(function(n){ var zp = zonePoint(n, bp0); if(zp && DM.hypot(zp.x-bp0.x, zp.y-bp0.y) <= rMax && DM.hypot(zp.x-bp0.x, zp.y-bp0.y) >= 320 && !pts.some(function(q){ return DM.hypot(q.x-zp.x, q.y-zp.y) < 110; })) pts.push({n:n, x:zp.x, y:zp.y}); });
   if(!pts.length) return false;
   var used = {};
   // (v555, отметка владельца м300 р3: «стоит и смотрит в одно место, не двигается — может стоять, но должен чуть чередовать: широко пикнул,

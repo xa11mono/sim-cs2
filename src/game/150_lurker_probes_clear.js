@@ -81,7 +81,7 @@ function lurkerBrain(b, tt, other){
     // LURK_CHECK с (было 2,3 с на каждой — шёл весь выход). Проектные числа
     var site = SITES[tt.site], gs = GEO[tt.site];
     if(!b._lurkGo || b._lurkGo.round !== roundNum || b._lurkGo.site !== tt.site){
-      var nearOther = Math.hypot(b.x-LP.entry.x, b.y-LP.entry.y) < 500, soloOn = b._lurkSolo && b._lurkSolo.round === roundNum;
+      var nearOther = DM.hypot(b.x-LP.entry.x, b.y-LP.entry.y) < 500, soloOn = b._lurkSolo && b._lurkSolo.round === roundNum;
       b._route = null; b._routeDone = null;   // маршрут лёрка сетапа — закончен
       // (ответ владельца 05.11) прошёл свою сторону сам до выхода — поздний выход оттуда: с прохода ротации в спину сайту выхода
       b._lurkGo = {round:roundNum, site:tt.site, route: soloOn ? [GEO.rotator, gs.ctEntry] : nearOther ? [LP.entry, go.anchor, GEO.rotator, gs.ctEntry] : [gs.tStage || gs.tEntry, gs.tEntry], i:0, t:0};
@@ -122,7 +122,7 @@ var TDEATHS = {m:-1, list:[]};
 function tDeathAdd(v){ if(TDEATHS.m !== matchNum) TDEATHS = {m:matchNum, list:[]};
   TDEATHS.list.push({x:v.x, y:v.y, round:roundNum, id:v.id, tag: v.post ? v.post.tag : ""}); }
 function tDeathsNear(x, y, r, id){ if(TDEATHS.m !== matchNum) return 0;
-  return TDEATHS.list.filter(function(d){ return d.round < roundNum && Math.hypot(d.x-x, d.y-y) < r && (!id || d.id === id); }).length; }
+  return TDEATHS.list.filter(function(d){ return d.round < roundNum && DM.hypot(d.x-x, d.y-y) < r && (!id || d.id === id); }).length; }
 function tDeathSpots(){ return TDEATHS.m === matchNum ? TDEATHS.list.filter(function(d){ return d.round < roundNum; }) : []; }
 function tProbes(tt, ts){
   if(tick - roundStartTick < 10*TICK_HZ) return;
@@ -164,10 +164,10 @@ function tProbes(tt, ts){
     }
     if(P.ph === 0){ // ждёт в укрытии (пост группы уже стоит)
       // на этом выходе только что убили своего — не пикать туда же ещё раз
-      if(tick >= P.until && teamIntel.T.sig.some(function(sg){ return sg.type === "died" && tick - sg.tick < 10*TICK_HZ && Math.hypot(sg.x-to.x, sg.y-to.y) < 400; })){ P.until = tick + 6*TICK_HZ; return; }
+      if(tick >= P.until && teamIntel.T.sig.some(function(sg){ return sg.type === "died" && tick - sg.tick < 10*TICK_HZ && DM.hypot(sg.x-to.x, sg.y-to.y) < 400; })){ P.until = tick + 6*TICK_HZ; return; }
       // адаптация: здесь в этом матче уже умирали ≥2 раз — на сухую не пикаем
       if(tick >= P.until && tDeathsNear(to.x, to.y, 450) >= 2){
-        var hasU = ts.some(function(o){ return Math.hypot(o.x-pb.x, o.y-pb.y) < 500 && o.nades && (o.nades.flash > 0 || o.nades.smoke > 0); });
+        var hasU = ts.some(function(o){ return DM.hypot(o.x-pb.x, o.y-pb.y) < 500 && o.nades && (o.nades.flash > 0 || o.nades.smoke > 0); });
         if(!hasU){ P.until = tick + 30*TICK_HZ; if(!tt["_ad"+key]){ tt["_ad"+key] = true; logEvent("T: на «"+(zoneUserName(zoneIdAt(to.x, to.y)) || key)+"» уже умирали "+tDeathsNear(to.x, to.y, 450)+" раза — без гранат туда не пикаем"); } return; }
         P.needUtil = true;
       }
@@ -176,21 +176,21 @@ function tProbes(tt, ts){
         // пробу снимут, он первый на размен
         // (v423, Mirage м1 р2: AWP и саппорт со стадии A уходили напарником пробы B) напарник — из той же группы (стадии), не любой ближайший
         var bud = gr.filter(function(o){ return o !== pb && o.alive && o.tRole !== "lurker" && !(bomb.state === "carried" && bomb.carrier === o) &&
-          !(o._probeLock && o._probeLock >= tick-1) && Math.hypot(o.x-pb.x, o.y-pb.y) < 500; })
-          .sort(function(a, c){ return Math.hypot(a.x-pb.x, a.y-pb.y) - Math.hypot(c.x-pb.x, c.y-pb.y); })[0];
+          !(o._probeLock && o._probeLock >= tick-1) && DM.hypot(o.x-pb.x, o.y-pb.y) < 500; })
+          .sort(function(a, c){ return DM.hypot(a.x-pb.x, a.y-pb.y) - DM.hypot(c.x-pb.x, c.y-pb.y); })[0];
         P.buddy = bud ? bud.id : null;
         // гранаты под пробу: флешка от напарника/тиммейта (на мид — смок на линию
         // CT, если флешки нет); раньше — только на глубокую пробу, чаще на сухую
         if(roundGoal("T") !== "keepGuns"){
           var uFp = {x: to.x + (look.x-to.x)*0.3, y: to.y + (look.y-to.y)*0.3};
-          var uFl = ts.filter(function(o){ return o !== pb && !o.nadeTask && o.nades && o.nades.flash > 0 && Math.hypot(o.x-pb.x, o.y-pb.y) < 500; })[0];
-          var uSm = ts.filter(function(o){ return !o.nadeTask && o.nades && o.nades.smoke > 0 && Math.hypot(o.x-pb.x, o.y-pb.y) < 600; })[0];
+          var uFl = ts.filter(function(o){ return o !== pb && !o.nadeTask && o.nades && o.nades.flash > 0 && DM.hypot(o.x-pb.x, o.y-pb.y) < 500; })[0];
+          var uSm = ts.filter(function(o){ return !o.nadeTask && o.nades && o.nades.smoke > 0 && DM.hypot(o.x-pb.x, o.y-pb.y) < 600; })[0];
           if(uFl && (P.needUtil || P.n === 1 || hashRand(tick + 3) < 0.6)){ assignNade(uFl, "flash", uFp, "под пробу", {now:true, forC: nadeOwnerOf(pb)}); P.util = "flash"; }
           else if(uSm && (key === "M" || P.needUtil)){ var smP = {x: to.x + (look.x-to.x)*0.5, y: to.y + (look.y-to.y)*0.5}; if(assignNade(uSm, "smoke", smP, "смок под пробу", {now:true, forC: nadeOwnerOf(pb)})) P.util = "smoke"; }
         }
         // со второго раза — глубже, за фрагом, но только парой (есть кому
         // разменять) и если по инфе там не стак
-        var mate = ts.some(function(o){ return o !== pb && Math.hypot(o.x-pb.x, o.y-pb.y) < 380; });
+        var mate = ts.some(function(o){ return o !== pb && DM.hypot(o.x-pb.x, o.y-pb.y) < 380; });
         var eP = intelEstimate("T", to.x, to.y, 450, 6*TICK_HZ);
         P.deep = P.n >= 2 && mate && eP.n <= 1;
         var f = P.deep ? 0.95 : 0.6;
@@ -202,7 +202,7 @@ function tProbes(tt, ts){
         if(P.deep){
           voiceLog("T", "probe"+key+pb.id, pb.id, "подпушу "+(key === "M" ? "мид" : (zoneUserName(zoneIdAt(to.x, to.y)) || key.charAt(0)))+", посмотрю, сколько их там");
           // флешка под подпуш от ближайшего тиммейта (не вся раскидка — одна)
-          var fl = ts.filter(function(o){ return o !== pb && !o.nadeTask && o.nades && o.nades.flash > 0 && Math.hypot(o.x-pb.x, o.y-pb.y) < 500; })[0];
+          var fl = ts.filter(function(o){ return o !== pb && !o.nadeTask && o.nades && o.nades.flash > 0 && DM.hypot(o.x-pb.x, o.y-pb.y) < 500; })[0];
           if(fl && roundGoal("T") !== "keepGuns"){ var fp = {x: to.x + (look.x-to.x)*0.3, y: to.y + (look.y-to.y)*0.3}; assignNade(fl, "flash", fp, "под подпуш", {now:true, forC: nadeOwnerOf(pb)}); }
         }
       }
@@ -222,7 +222,7 @@ function tProbes(tt, ts){
       if(bu && bu._probe && bu._probe !== P && bu._probe.round === roundNum && bu._probe.ph === 1){ P.buddy = null; bu = null; }
       if(bu && bomb.state === "dropped" && (tt.fetchId === bu.id || (tt.fetchCover && tt.fetchCover.id === bu.id))){ P.buddy = null; bu = null; } // (v286) занят бомбой
       if(bu && !bu._sawEnemy && !tradeGoing(bu)){
-        var ln = Math.hypot(P.pt.x-from.x, P.pt.y-from.y) || 1, back = Math.min(150, ln*0.6);
+        var ln = DM.hypot(P.pt.x-from.x, P.pt.y-from.y) || 1, back = Math.min(150, ln*0.6);
         var bp = walk({x: P.pt.x + (from.x-P.pt.x)/ln*back, y: P.pt.y + (from.y-P.pt.y)/ln*back});
         setPost(bu, bp, look, true, "probePair"+key); bu._probeLock = tick;
       }
@@ -267,11 +267,11 @@ function probeViewPoint(from, to, look){
   // видно и вход, и дальнюю точку (опорника/сайт) — "дошёл до угла, где видно"
   var wp = buildWaypointPath(from.x, from.y, 0, to.x, to.y, 0), pts = [{x:from.x, y:from.y}];
   wp.forEach(function(w){ pts.push({x:w[0], y:w[1]}); });
-  var tot = 0; for(var i=1;i<pts.length;i++) tot += Math.hypot(pts[i].x-pts[i-1].x, pts[i].y-pts[i-1].y);
+  var tot = 0; for(var i=1;i<pts.length;i++) tot += DM.hypot(pts[i].x-pts[i-1].x, pts[i].y-pts[i-1].y);
   if(tot < 60) return null;
   var cum = 0;
   for(var j=1;j<pts.length;j++){
-    var A = pts[j-1], B = pts[j], L = Math.hypot(B.x-A.x, B.y-A.y), n = Math.max(1, Math.ceil(L/35));
+    var A = pts[j-1], B = pts[j], L = DM.hypot(B.x-A.x, B.y-A.y), n = Math.max(1, Math.ceil(L/35));
     for(var k=1;k<=n;k++){
       var p = {x: A.x + (B.x-A.x)*k/n, y: A.y + (B.y-A.y)*k/n}, c = cum + L*k/n;
       if(c < 0.55*tot) continue;
@@ -303,10 +303,10 @@ function posClearValid(team, id){ var c = POSCLR[team][id]; return !!c && tick <
 function posClearTick(team){
   var L = enemyPositions(team), R = REACH[team];
   bots.forEach(function(b){ if(!b.alive || b.team !== team || tick < (b.blindUntil||0)) return;
-    L.forEach(function(q){ var d = Math.hypot(q.x-b.x, q.y-b.y); if(d > 1100 || posClearValid(team, q.id)) return;
+    L.forEach(function(q){ var d = DM.hypot(q.x-b.x, q.y-b.y); if(d > 1100 || posClearValid(team, q.id)) return;
       if(!inFov(b, q.x, q.y) || !hasLOS(b.x, b.y, q.x, q.y, b.z) || smokeBlocks(b.x, b.y, q.x, q.y)) return;
       var until = Infinity;
-      if(R) for(var k = 0; k < R.length; k++){ if(R[k] > tick || !BZ.cent[k]) continue; var tt = tick + Math.hypot(BZ.cent[k].x-q.x, BZ.cent[k].y-q.y)/SPEED*TICK_HZ; if(tt < until) until = tt; }
+      if(R) for(var k = 0; k < R.length; k++){ if(R[k] > tick || !BZ.cent[k]) continue; var tt = tick + DM.hypot(BZ.cent[k].x-q.x, BZ.cent[k].y-q.y)/SPEED*TICK_HZ; if(tt < until) until = tt; }
       POSCLR[team][q.id] = {tick: tick, until: until, by: b.id}; }); });
 }
 // (v321, М24, отметка владельца) T, проходя мимо сайта, видит его зоны (pos.tClear, входы) — если там никого, говорит
@@ -337,7 +337,7 @@ function tClearCalls(){
     }
     var wb = who && ts.filter(function(b){ return b.id === who; })[0]; if(!wb) return;
     // сам сейчас видит врага — ему не до коллов; враг в зоне виден своим — не пусто
-    if(bots.some(function(e){ return e.team === "CT" && e.alive && Math.hypot(e.x-wb.x, e.y-wb.y) < 900 && hasVision(wb.x, wb.y, e.x, e.y); })) return;
+    if(bots.some(function(e){ return e.team === "CT" && e.alive && DM.hypot(e.x-wb.x, e.y-wb.y) < 900 && hasVision(wb.x, wb.y, e.x, e.y); })) return;
     if(bots.some(function(e){ return e.team === "CT" && e.alive && zoneIdAt(e.x, e.y) === zid && ts.some(function(b){ return hasVision(b.x, b.y, e.x, e.y); }); })) return;
     if(markClear("T", p.x, p.y, wb.id, ps.length > 0)) CLEARZ.T[zid].round = roundNum;
   });
@@ -350,7 +350,7 @@ function tClearCalls(){
 function zoneSeenAll(who, zid){
   var wb = who && bots.filter(function(o){ return o.id === who; })[0], smp = ZONE_SAMPLES[zid] || [];
   if(!wb || !wb.alive || !smp.length || tick < (wb.blindUntil||0)) return false;
-  return smp.every(function(q){ return Math.hypot(q.x-wb.x, q.y-wb.y) < 1100 && inFov(wb, q.x, q.y) && hasVision(wb.x, wb.y, q.x, q.y); });
+  return smp.every(function(q){ return DM.hypot(q.x-wb.x, q.y-wb.y) < 1100 && inFov(wb, q.x, q.y) && hasVision(wb.x, wb.y, q.x, q.y); });
 }
 var CLEAR_HEARD_SEC = 8;   // с: «шаги здесь» ещё свежие (проектное число)
 function markClear(team, x, y, who, posChecked){
@@ -375,7 +375,7 @@ function siteAssess(team, k){
   var S = SITES[k], BL = beliefLast[team] || {}, foe = team === "T" ? "CT" : "T", unknown = 0, near = 0;
   bots.forEach(function(o){ if(o.team !== foe || !o.alive) return; var q = BL[o.id];
     var fresh = q && tick - q.tick <= SITE_SEEN_SEC*TICK_HZ;
-    if(fresh && Math.hypot(q.x-S.x, q.y-S.y) <= SITE_AWAY) near++; else if(!fresh) unknown++; });
+    if(fresh && DM.hypot(q.x-S.x, q.y-S.y) <= SITE_AWAY) near++; else if(!fresh) unknown++; });
   var level = near ? "held" : unknown === 0 ? "empty" : unknown === 1 ? "weak" : "held";
   return {unknown: unknown, near: near, level: level, confirmed: level === "empty" && siteConfirmed(team, k)};
 }
@@ -404,9 +404,9 @@ function soloMayWalk(b){
   if(secLeft < 22) return false;
   var site = teamTac.T && SITES[teamTac.T.site]; if(!site) return false;
   // время на шаг до точки: скорость шифта ~ SPEED*WALK_SPEED_FRAC
-  var d = Math.hypot(site.x-b.x, site.y-b.y) * 1.3;
+  var d = DM.hypot(site.x-b.x, site.y-b.y) * 1.3;
   if(d / (SPEED*WALK_SPEED_FRAC) > secLeft - 12) return false;
   var cts = bots.filter(function(o){ return o.team === "CT" && o.alive; });
-  var allKnownFar = cts.every(function(o){ var e = beliefLast.T[o.id]; return e && tick - e.tick < 5*TICK_HZ && Math.hypot(e.x-site.x, e.y-site.y) > 1100; });
+  var allKnownFar = cts.every(function(o){ var e = beliefLast.T[o.id]; return e && tick - e.tick < 5*TICK_HZ && DM.hypot(e.x-site.x, e.y-site.y) > 1100; });
   return !allKnownFar;
 }

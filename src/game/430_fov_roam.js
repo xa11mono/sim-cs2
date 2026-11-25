@@ -6,7 +6,7 @@
 var FOV_DEG = BAL.fov, FOV_NEAR = 70, CONE_R = 520;
 function inFov(b, x, y){
   if(b.facing === undefined) return true;
-  var d = Math.hypot(x-b.x, y-b.y);
+  var d = DM.hypot(x-b.x, y-b.y);
   if(d < FOV_NEAR) return true;
   var a = Math.atan2(y-b.y, x-b.x);
   var off = Math.abs(((a - b.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
@@ -52,7 +52,7 @@ function updateRoamer(bot){
     var bi = -1, bd = Infinity;
     route.forEach(function(p,i){
       if(tick - p.cleared < ROAM_RECHECK_TICKS) return;
-      var d = Math.hypot(p.x-snd.x, p.y-snd.y);
+      var d = DM.hypot(p.x-snd.x, p.y-snd.y);
       if(d < bd){ bd = d; bi = i; }
     });
     if(bi >= 0 && bi !== bot.roamIdx % route.length){
@@ -62,7 +62,7 @@ function updateRoamer(bot){
     }
   }
   var cur = route[bot.roamIdx % route.length];
-  if(bot.roamTarget === cur && Math.hypot(cur.x-bot.baseX, cur.y-bot.baseY) < 45){
+  if(bot.roamTarget === cur && DM.hypot(cur.x-bot.baseX, cur.y-bot.baseY) < 45){
     bot.roamChecking = true;
     bot.roamCheckStart = tick; bot.roamCheckUntil = tick + ROAM_CHECK_TICKS;
     movePath(bot, [], "roam"); bot.pathIdx = 0;

@@ -25,7 +25,7 @@ beliefBuild(); beliefReset(); // раздел 13: карта вероятнос�
 function moveSoundEmit(bot, soundRadius, kind, label){
   bots.forEach(function(listener){
     if(listener===bot || !listener.alive || listener.team===bot.team) return;
-    var dHear = Math.hypot(listener.x-bot.x, listener.y-bot.y);
+    var dHear = DM.hypot(listener.x-bot.x, listener.y-bot.y);
     if(dHear > soundRadius) return;
     var occS = !hasLOS(listener.x, listener.y, bot.x, bot.y, listener.z, bot.z);
     if(occS && dHear > soundRadius*0.75) return;
@@ -44,7 +44,7 @@ function moveSoundEmit(bot, soundRadius, kind, label){
 // и дефузнуть (запас 1,5 с). Кто идёт шагом в этом раунде — жребий на раунд и бота (решение не дёргается каждый тик)
 function defuseWalk(bot){
   if(!(bomb && bomb.state === "planted" && bot.team === "CT" && bot.post && taskProp(bot.post.tag, "defuseTask"))) return false;
-  var d = Math.hypot(bomb.x-bot.baseX, bomb.y-bot.baseY); if(d >= 120) return false;
+  var d = DM.hypot(bomb.x-bot.baseX, bomb.y-bot.baseY); if(d >= 120) return false;
   if(bombTimeLeftTicks()/TICK_HZ <= d/(SPEED*WALK_SPEED_FRAC) + (bot.kit ? 5 : 10) + 1.5) return false;
   var u = hashRand(roundNum*389 + matchNum*71 + bot.id.charCodeAt(bot.id.length-1)*13);
   return u < (d < 60 ? 0.77 : 0.34);
@@ -60,7 +60,7 @@ function navSnap(bot){
   // JUMP_UP (v341 разрешало любую высоту — ошибка), вверх — только ступенька (18 ед.)
   NAVAREAS.forEach(function(a){ if(NAV_BLOCKED[a.id] || (bot.z != null && (a.z - bot.z > 18 || bot.z - a.z > JUMP_UP))) return;
     a.points.forEach(function(p, k){ var q = a.points[(k+1)%a.points.length], ex = q.x-p.x, ey = q.y-p.y, L2 = ex*ex+ey*ey || 1;
-      var t = Math.max(0, Math.min(1, ((bot.baseX-p.x)*ex + (bot.baseY-p.y)*ey)/L2)), px = p.x+ex*t, py = p.y+ey*t, d = Math.hypot(px-bot.baseX, py-bot.baseY);
+      var t = Math.max(0, Math.min(1, ((bot.baseX-p.x)*ex + (bot.baseY-p.y)*ey)/L2)), px = p.x+ex*t, py = p.y+ey*t, d = DM.hypot(px-bot.baseX, py-bot.baseY);
       if(d < nbd){ var cx = 0, cy = 0; a.points.forEach(function(r){ cx += r.x; cy += r.y; }); cx /= a.points.length; cy /= a.points.length;
         nbd = d; nb = {x: px + (cx-px)*0.15, y: py + (cy-py)*0.15, a: a}; } }); });
   if(nb){ bot.baseX = bot.x = nb.x; bot.baseY = bot.y = nb.y; bot.z = nb.a.z; bot._area = nb.a.id; bot.path = []; bot.pathIdx = 0; bot._offNav = 0; logEvent(bot.id+": вне навмеша — перенесён на ближайший пол (заплатка)"); }
@@ -127,7 +127,7 @@ function airKeysPlan(b, tn){
 function airKey(b){ var J = b._jc; if(!J || !J.keys) return 0; var a = tick - J.t; for(var i = 0; i < J.keys.length; i++) if(a >= J.keys[i][0] && a < J.keys[i][1]) return J.keys[i][2]; return 0; }
 function pathTurnAhead(b, dist){   // насколько повернёт путь через dist px (°, со знаком): направление сейчас → направление участка пути там
   var x = b.baseX, y = b.baseY, a0 = null, a1 = null;
-  for(var i = b.pathIdx; i < b.path.length; i++){ var w = b.path[i], d = Math.hypot(w[0]-x, w[1]-y); if(d < 1e-6) continue;
+  for(var i = b.pathIdx; i < b.path.length; i++){ var w = b.path[i], d = DM.hypot(w[0]-x, w[1]-y); if(d < 1e-6) continue;
     var a = Math.atan2(w[1]-y, w[0]-x); if(a0 === null) a0 = a; a1 = a; if(d >= dist) break; dist -= d; x = w[0]; y = w[1]; }
   return a0 === null ? 0 : Math.atan2(Math.sin(a1 - a0), Math.cos(a1 - a0))*180/Math.PI;   // со знаком
 }
@@ -141,9 +141,9 @@ function pathAheadDir(b, D){
   if(i > 0){ var p0 = P[i-1], p1 = P[i], dx = p1[0]-p0[0], dy = p1[1]-p0[1], l2 = dx*dx + dy*dy;
     if(l2 > 1e-6){ var t = Math.max(0, Math.min(1, ((x-p0[0])*dx + (y-p0[1])*dy)/l2)); x = p0[0] + dx*t; y = p0[1] + dy*t; } }
   var qx = x, qy = y;
-  for(var k = i; k < P.length; k++){ var w = P[k], d = Math.hypot(w[0]-x, w[1]-y); if(d < 1e-6) continue;
+  for(var k = i; k < P.length; k++){ var w = P[k], d = DM.hypot(w[0]-x, w[1]-y); if(d < 1e-6) continue;
     if(d >= D){ x += (w[0]-x)*D/d; y += (w[1]-y)*D/d; break; } D -= d; x = w[0]; y = w[1]; }
-  return Math.hypot(x-qx, y-qy) < 1 ? null : Math.atan2(y-qy, x-qx);
+  return DM.hypot(x-qx, y-qy) < 1 ? null : Math.atan2(y-qy, x-qx);
 }
 function jumpCheckTick(b){
   if(b._landAt && tick >= b._landAt && b.alive && roundState === "live") landSound(b, false, "up");   // (v335) запрыгнул — приземлился
@@ -161,16 +161,16 @@ function jumpCheckTick(b){
   if(BO && BO.length && !b._jc && !b._fc && !b._sawEnemy && !b.planting && !b.defusing && !b._climb && !b.onLadder && !b.nadeTask &&
      tick - (b.lastShotTick||-1e9) >= 2*TICK_HZ && tick - (b._shotAtT||-1e9) >= 2*TICK_HZ){
     for(var bi = 0; bi < BO.length; bi++){ var q = BO[bi];
-      if(q.side !== b.team || rtB < q.t[0] - BOOST.tPad || rtB > q.t[4] + BOOST.tPad || Math.hypot(q.x - b.x, q.y - b.y) > BOOST.R) continue;
+      if(q.side !== b.team || rtB < q.t[0] - BOOST.tPad || rtB > q.t[4] + BOOST.tPad || DM.hypot(q.x - b.x, q.y - b.y) > BOOST.R) continue;
       var bt = b._boostTry || (b._boostTry = {}); if(bt[bi] === roundNum + "|" + matchNum) continue;
       var mate = bots.filter(function(o){ return o !== b && o.alive && o.team === b.team && !o._boost && !o._fc && !o._sawEnemy && !o._jc && !o._climb && !o.onLadder &&
-        Math.hypot(o.x - b.x, o.y - b.y) <= BOOST.pair; })[0];
+        DM.hypot(o.x - b.x, o.y - b.y) <= BOOST.pair; })[0];
       if(!mate) continue;
       bt[bi] = roundNum + "|" + matchNum;   // одно решение на место за раунд — когда пара впервые у места
       // вероятность: подсадок у про за раунд / сколько раз за раунд у ботов складывается такой момент (botE — замер boost.sh, вписан в данные
       // tools/measure/motion/boost_calib.py); без замера — rate·k
       if(hashRand(tick*331 + b.id.charCodeAt(b.id.length-1)*17 + bi*7) >= Math.min(1, q.botE ? q.rate/q.botE : q.rate*BOOST.k)) continue;
-      var dn = Math.hypot(q.x - b.x, q.y - b.y) <= Math.hypot(q.x - mate.x, q.y - mate.y) ? b : mate, up = dn === b ? mate : b;
+      var dn = DM.hypot(q.x - b.x, q.y - b.y) <= DM.hypot(q.x - mate.x, q.y - mate.y) ? b : mate, up = dn === b ? mate : b;
       var until = tick + Math.round(peekQ(q.dur, hashRand(tick*53 + bi))*TICK_HZ);
       dn._boost = {pair: up.id, top: false, until: until, lift: 0}; up._boost = {pair: dn.id, top: true, until: until, lift: q.lift};
       up.baseX = dn.baseX; up.baseY = dn.baseY; up._jump = {t: tick, up: true};
@@ -183,7 +183,7 @@ function jumpCheckTick(b){
   if(J){
     var age = tick - J.t;
     if(age === (J.run ? Math.round(RUN_JUMP.air*TICK_HZ/2) : 20)){   // верх прыжка — видно поверх укрытий
-      bots.forEach(function(o){ if(!o.alive || o.team === b.team) return; var d = Math.hypot(o.x-b.x, o.y-b.y); if(d > 1100) return;
+      bots.forEach(function(o){ if(!o.alive || o.team === b.team) return; var d = DM.hypot(o.x-b.x, o.y-b.y); if(d > 1100) return;
         if(smokeBlocks(b.x, b.y, o.x, o.y)) return;
         var bS = visParts(b.x, b.y, false, o.x, o.y, o.crouching, true, b.z, o.z, JUMP_APEX, 0), oS = visParts(o.x, o.y, o.crouching, b.x, b.y, false, true, o.z, b.z, 0, JUMP_APEX);
         if((bS.head || bS.body) && tick >= (b.blindUntil||0) && _angOff(Math.atan2(o.y-b.y, o.x-b.x), b.facing) < 1.05){ intelPush(b.team, {type:"spotted", x:o.x, y:o.y, id:o.id, by:b.id, conf:1});
@@ -210,7 +210,7 @@ function jumpCheckTick(b){
   }
   if(!JS || !JS.length) return;
   if(b.curSpeed > 20 || b._sawEnemy || b.planting || b.defusing || tick - (b._shotAtT||-1e9) < 2*TICK_HZ || tick - (b.lastShotTick||-1e9) < 2*TICK_HZ) return;
-  var sp = null; for(var i=0;i<JS.length;i++){ var q = JS[i]; if(q.side === b.team && Math.hypot(q.x-b.x, q.y-b.y) < 50){ sp = q; break; } }
+  var sp = null; for(var i=0;i<JS.length;i++){ var q = JS[i]; if(q.side === b.team && DM.hypot(q.x-b.x, q.y-b.y) < 50){ sp = q; break; } }
   if(!sp) return;
   if(hashRand(tick*977 + b.id.charCodeAt(b.id.length-1)*31 + roundNum*7) < sp.rate/(JUMP_HOLD_SEC*TICK_HZ)){ b._jc = {t:tick}; b._jump = {t:tick, up:true}; }
 }
@@ -377,10 +377,10 @@ function stepTick(){
       // длина шага такая, что на полной скорости (225 ед./с, винтовка) — раз в FOOTSTEP_INTERVAL_RUN тиков, как было; с AWP реже,
       // с ножом чаще, при разгоне и торможении — в такт скорости
       var stride = SPEED*(bot.walking ? WALK_SPEED_FRAC*FOOTSTEP_INTERVAL_WALK : FOOTSTEP_INTERVAL_RUN)/TICK_HZ;
-      var mv = bot._stepP ? Math.min(Math.hypot(bot.baseX-bot._stepP.x, bot.baseY-bot._stepP.y), 3*SPEED/TICK_HZ) : 0;   // реально пройдено за тик (упёрся в стену — не шагает)
+      var mv = bot._stepP ? Math.min(DM.hypot(bot.baseX-bot._stepP.x, bot.baseY-bot._stepP.y), 3*SPEED/TICK_HZ) : 0;   // реально пройдено за тик (упёрся в стену — не шагает)
       // (v546, владелец 10.11: «добавь звук лестнице, когда он спускается и поднимается»; бег по лестнице слышно как бег, шагом — бесшумно)
       // на лестнице шаг — и по высоте (ед. игры → ед. карты, pxUnits); в прыжке (подъём из демок, щель) шагов нет — звучит только приземление
-      var CL = bot._climb; if(CL && CL.jump) mv = 0; else if(CL && bot._stepP && bot._stepP.z != null && bot.z != null) mv = Math.hypot(mv, (bot.z - bot._stepP.z)/(MAP.pxUnits || 2.5));
+      var CL = bot._climb; if(CL && CL.jump) mv = 0; else if(CL && bot._stepP && bot._stepP.z != null && bot.z != null) mv = DM.hypot(mv, (bot.z - bot._stepP.z)/(MAP.pxUnits || 2.5));
       bot._stepP = {x:bot.baseX, y:bot.baseY, z:bot.z}; bot._stepDist = (bot._stepDist||0) + mv;
       if(bot._stepDist >= stride){
         bot._stepDist -= stride; if(bot._stepDist > stride) bot._stepDist = 0;
@@ -389,7 +389,7 @@ function stepTick(){
         soundPings.push({x:bot.baseX, y:bot.baseY, team:bot.team, born:nowTs, radius:soundRadius}); if(CL) soundEv("sndLadder", bot.baseX, bot.baseY); else { soundEv("sndStep", bot.baseX, bot.baseY); }   // (v552) на лестнице — звук лестницы
         // (4) сам знает, что шумит: бежал в пределах слышимости места, где враг вероятен
         if(roundState === "live"){ var zN = bzOf(bot.x, bot.y); if(zN >= 0){ var nearZ = [zN].concat(BZ.nbr[zN]||[]);
-          if(nearZ.some(function(j){ var cj = BZ.cent[j]; return cj && Math.hypot(cj.x-bot.x, cj.y-bot.y) < soundRadius && reachPossible(bot.team, j) && beliefZoneKnownB(bot, j) >= 0.2; })) bot._noisyT = tick; } }
+          if(nearZ.some(function(j){ var cj = BZ.cent[j]; return cj && DM.hypot(cj.x-bot.x, cj.y-bot.y) < soundRadius && reachPossible(bot.team, j) && beliefZoneKnownB(bot, j) >= 0.2; })) bot._noisyT = tick; } }
         if(soundPings.length > 40) soundPings.shift();
         moveSoundEmit(bot, soundRadius, wet ? "water" : "steps", (wet ? "всплески в воде" : CL ? "лестница" : "шаги")+(bot.walking ? " (тихо)" : ""));
       }
@@ -414,7 +414,7 @@ function stepTick(){
         // (вплотную, <6px, точка считается пройденной в любом случае — иначе
         // бот, стоящий ровно в вершине у угла, так бы в ней и остался)
         while(bot.pathIdx < bot.path.length-1){
-          var wdCur = Math.hypot(bot.path[bot.pathIdx][0]-bot.baseX, bot.path[bot.pathIdx][1]-bot.baseY);
+          var wdCur = DM.hypot(bot.path[bot.pathIdx][0]-bot.baseX, bot.path[bot.pathIdx][1]-bot.baseY);
           // (v341, отметка владельца: karrigan по кругу у Catwalk) точку подъёма/спуска (> 40 ед. от своей высоты, проектное число) и
           // следующую за ней досрочно не пропускать: раньше подъём «срезался», и бот шёл к следующей точке понизу, под верхний этаж
           var wpA = bot.path[bot.pathIdx], wpB = bot.path[bot.pathIdx+1], lvlOk = bot.z == null || ((wpA[2] == null || Math.abs(wpA[2] - bot.z) <= 40) && (wpB[2] == null || Math.abs(wpB[2] - bot.z) <= 40));
@@ -426,7 +426,7 @@ function stepTick(){
         }
         var target = bot.path[bot.pathIdx];
         var dx = target[0]-bot.baseX, dy = target[1]-bot.baseY;
-        var dist = Math.hypot(dx,dy);
+        var dist = DM.hypot(dx,dy);
         var isLastLeg = bot.pathIdx === bot.path.length-1;
         var step = bot.curSpeed * dtSec;
         // (v370, владелец: «не стоят в толпе») идём за своим, который идёт туда же, — держим дистанцию, а не наступаем ему на пятки:
@@ -455,7 +455,7 @@ function stepTick(){
         // всего одна точка сравнения, а не отдельная предрасчитанная разметка.
         var legFromZ = bot.pathIdx > 0 ? bot.path[bot.pathIdx-1][2] : bot.z;
         var legToZ = target[2];
-        var legLen = Math.max(1, Math.hypot(target[0]-(bot.pathIdx>0?bot.path[bot.pathIdx-1][0]:bot.baseX), target[1]-(bot.pathIdx>0?bot.path[bot.pathIdx-1][1]:bot.baseY)));
+        var legLen = Math.max(1, DM.hypot(target[0]-(bot.pathIdx>0?bot.path[bot.pathIdx-1][0]:bot.baseX), target[1]-(bot.pathIdx>0?bot.path[bot.pathIdx-1][1]:bot.baseY)));
         bot.onStairs = Math.abs(legToZ - legFromZ) / legLen > STAIRS_SLOPE_THRESHOLD;
 
         // smooth turning: ease the actual movement heading toward the
@@ -544,7 +544,7 @@ function stepTick(){
         // runs almost flush along a jagged wall) must still count as stuck,
         // otherwise the bot "moves" by fractions of a pixel forever instead
         // of ever giving up on a bad straight-line path.
-        var actuallyMoved = Math.hypot(bot.baseX-startX, bot.baseY-startY);
+        var actuallyMoved = DM.hypot(bot.baseX-startX, bot.baseY-startY);
         // (v403) высота бота — одно место navFollowFloor (370): после шага здесь и после любого другого движения за тик (конец цикла)
         if(actuallyMoved > 0) navFollowFloor(bot);
         if(fireWait){ bot.stuckTicks = 0; bot._np = null; bot._netStuck = 0; bot._progTick = tick; bot._progBest = Infinity; bot._idleT = tick; bot._trail = []; }
@@ -552,7 +552,7 @@ function stepTick(){
         // "топчется": каждый тик куда-то сдвигается (веер проб у угла туда-сюда),
         // но за 1.5с никуда не ушёл — раньше это не считалось застреванием
         // (движение в тике было), и бот стоял у угла с кругами шагов
-        if(!bot._np || Math.hypot(bot.baseX-bot._np.x, bot.baseY-bot._np.y) > 14){ bot._np = {x:bot.baseX, y:bot.baseY, t:tick}; }
+        if(!bot._np || DM.hypot(bot.baseX-bot._np.x, bot.baseY-bot._np.y) > 14){ bot._np = {x:bot.baseX, y:bot.baseY, t:tick}; }
         else if(tick - bot._np.t > 96){
           bot._netStuck = (bot._netStuck||0) + 1;
           var wpN = bot.path[bot.pathIdx];
@@ -566,8 +566,8 @@ function stepTick(){
             if(toward && !navFloorNear(toward.x, toward.y, NAV_STEP_TOL)) toward = null;   // (v336) рывок — только на пол навмеша
             // (v341, отметка владельца: TeSeS «застрял и его тпшнуло» — на 380 ед.) snapToWalkable из стены ставит в центр ближайшего
             // участка, иногда далеко; рывок — не дальше 12 ед. (проектное число), иначе нет
-            if(toward && Math.hypot(toward.x-bot.baseX, toward.y-bot.baseY) > 12) toward = null;
-            if(toward && Math.hypot(toward.x-bot.baseX, toward.y-bot.baseY) > 4){ bot.baseX = toward.x; bot.baseY = toward.y; bot.x = toward.x; bot.y = toward.y; }
+            if(toward && DM.hypot(toward.x-bot.baseX, toward.y-bot.baseY) > 12) toward = null;
+            if(toward && DM.hypot(toward.x-bot.baseX, toward.y-bot.baseY) > 4){ bot.baseX = toward.x; bot.baseY = toward.y; bot.x = toward.x; bot.y = toward.y; }
             if(bot.pathIdx < bot.path.length-1) bot.pathIdx++;
             bot._netStuck = 0;
           } else { escapeWallLine(bot); bot.path = []; bot.pathIdx = 0; }
@@ -626,10 +626,10 @@ function stepTick(){
         // пути, если оно ниже и рядом (≤ 40 px, без стены); раз в 2 с
         var TRl = bot._trail || [];
         if(TRl.length >= 8 && tick - (bot._unstickT||-1e9) > 2*TICK_HZ && tick - (bot._idleT||-1e9) > 2*TICK_HZ && bot.z != null && bot.path.length && bot.pathIdx < bot.path.length &&
-           TRl.every(function(q){ return Math.hypot(q.x-TRl[0].x, q.y-TRl[0].y) < 4; })){
+           TRl.every(function(q){ return DM.hypot(q.x-TRl[0].x, q.y-TRl[0].y) < 4; })){
           bot._unstickT = tick;
           var pe = bot.path[bot.path.length-1], fr = buildWaypointPath(bot.baseX, bot.baseY, bot.z, pe[0], pe[1], pe[2], bot.team, botLane(bot), bot.walking), p0 = fr && fr[0];
-          if(p0 && p0[2] != null && p0[2] <= bot.z + 18 && Math.hypot(p0[0]-bot.baseX, p0[1]-bot.baseY) <= 40 && Math.hypot(p0[0]-bot.baseX, p0[1]-bot.baseY) > 2 && !crossesWall(bot.baseX, bot.baseY, p0[0], p0[1])){
+          if(p0 && p0[2] != null && p0[2] <= bot.z + 18 && DM.hypot(p0[0]-bot.baseX, p0[1]-bot.baseY) <= 40 && DM.hypot(p0[0]-bot.baseX, p0[1]-bot.baseY) > 2 && !crossesWall(bot.baseX, bot.baseY, p0[0], p0[1])){
             bot.baseX = bot.x = p0[0]; bot.baseY = bot.y = p0[1]; bot.z = p0[2]; var a0 = navAt(p0[0], p0[1], p0[2]); if(a0) bot._area = a0.id;
             bot.path = fr; bot.pathIdx = 1; bot._trail = [];
             logEvent(bot.id+": не может сойти с уступа по пути — спрыгнул на начало пути (заплатка)"); }
@@ -642,7 +642,7 @@ function stepTick(){
         if(bot.path.length && bot.pathIdx < bot.path.length && !navOnFloor(bot.baseX, bot.baseY, bot)){ if(++bot._offNav > 32) navSnap(bot); } else bot._offNav = 0;
         if(bot.path.length && bot.pathIdx < bot.path.length){
           var pw = bot.path[bot.pathIdx];
-          var pd = Math.hypot(pw[0]-bot.baseX, pw[1]-bot.baseY);
+          var pd = DM.hypot(pw[0]-bot.baseX, pw[1]-bot.baseY);
           if(pd < bot._progBest - 8){ bot._progBest = pd; bot._progTick = tick; }
           else if(tick - bot._progTick > 96){
             navUnlinkBlocked(bot, pw);
@@ -687,7 +687,7 @@ function stepTick(){
     }
     // (19.11, прогон v583q: Mirage «перенос на 13–15 px» 3 → 106) выглядывание оборвалось на середине (проверку роумера перебила задача — засада,
     // проба, заход в спину), врага не видно: смещение не обнуляется скачком, а гаснет за несколько тиков (×0,7 за тик, проектное число)
-    else if(offX === 0 && offY === 0 && Math.hypot(bot._prevOffX || 0, bot._prevOffY || 0) > 1){
+    else if(offX === 0 && offY === 0 && DM.hypot(bot._prevOffX || 0, bot._prevOffY || 0) > 1){
       var dx0 = bot._prevOffX*0.7, dy0 = bot._prevOffY*0.7; if(!crossesWall(bot.baseX, bot.baseY, bot.baseX+dx0, bot.baseY+dy0)){ offX = dx0; offY = dy0; } }
     bot._prevOffX = offX; bot._prevOffY = offY;
     // (v403, отметка владельца 22.10, Mirage A Default: CT4 «прошёл сквозь два укрытия») высота пересчитывалась только после шага

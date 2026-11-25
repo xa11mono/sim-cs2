@@ -14,7 +14,7 @@
 function routeZones(name, near){
   var ids = zonesByName(name); if(!ids.length) return null;
   var best = null, bd = Infinity;
-  ids.forEach(function(id){ var c = BZ.cent[BZ.idx[id]], d = near ? Math.hypot(c.x-near.x, c.y-near.y) : 0; if(d < bd){ bd = d; best = id; } });
+  ids.forEach(function(id){ var c = BZ.cent[BZ.idx[id]], d = near ? DM.hypot(c.x-near.x, c.y-near.y) : 0; if(d < bd){ bd = d; best = id; } });
   var z = zoneById(best); return z ? {id:best, ids:ids, poly:z.points, c:BZ.cent[BZ.idx[best]]} : null;
 }
 function routeIn(Z, b){ return Z.ids.indexOf(zoneIdAt3(b.x, b.y, b.z)) >= 0; }   // зона — с этажом (над Underpass — Mid, не Underpass)
@@ -28,9 +28,9 @@ function routeAim(Z, x0, y0, x1, y1){
     if(bd < 0) continue;
     for(var k = 0; k <= 8; k++){ var qx = A.x + (B.x-A.x)*k/8, qy = A.y + (B.y-A.y)*k/8;
       var ex = x1-x0, ey = y1-y0, L2 = ex*ex + ey*ey, u = L2 ? Math.max(0, Math.min(1, ((qx-x0)*ex + (qy-y0)*ey)/L2)) : 0;
-      var d = Math.hypot(qx - (x0 + ex*u), qy - (y0 + ey*u)); if(d < bd){ bd = d; best = {x:qx, y:qy}; } } }
+      var d = DM.hypot(qx - (x0 + ex*u), qy - (y0 + ey*u)); if(d < bd){ bd = d; best = {x:qx, y:qy}; } } }
   if(!best) return walk(Z.c);
-  var cx = Z.c.x - best.x, cy = Z.c.y - best.y, dc = Math.hypot(cx, cy), k2 = dc > 0 ? Math.min(1, 24/dc) : 0;   // 24 ед. внутрь — чтобы точка была в зоне
+  var cx = Z.c.x - best.x, cy = Z.c.y - best.y, dc = DM.hypot(cx, cy), k2 = dc > 0 ? Math.min(1, 24/dc) : 0;   // 24 ед. внутрь — чтобы точка была в зоне
   return walk({x: best.x + cx*k2, y: best.y + cy*k2});
 }
 // цель текущего шага — от места бота к следующей зоне маршрута (её центр — только направление) или к цели после маршрута
@@ -59,7 +59,7 @@ function routeTick(){
     var Z = R.zones[R.idx];
     // шаг пройден — бот в зоне шага или дошёл до точки шага. (v430, М167, м1 Mirage р3: энтри donk 12 с стоял в 30 ед. от Side Alley:
     // точка шага у края зоны, «дошёл» — в 34 ед. от неё, ещё снаружи, а шаг ждал «внутри зоны»)
-    var cpR = R.pts[R.idx], atCp = cpR && b.atPost && b.post && b.post.tag === "route:"+R.names[Math.min(R.idx, R.names.length-1)] && Math.hypot(b.post.x-cpR.x, b.post.y-cpR.y) < 1;
+    var cpR = R.pts[R.idx], atCp = cpR && b.atPost && b.post && b.post.tag === "route:"+R.names[Math.min(R.idx, R.names.length-1)] && DM.hypot(b.post.x-cpR.x, b.post.y-cpR.y) < 1;
     if(Z && (routeIn(Z, b) || atCp)){ R.idx++; routeSetAim(b, R); }
     if(R.idx >= R.zones.length){
       var W = R.want; b._routeDone = R.key+"|"+roundNum; b._route = null;
@@ -86,10 +86,10 @@ function proSnap(b, pt, look, tag){
   // открыто по её направлению не меньше PSN.open); таких нет — как раньше, любые
   for(var pass = 0; pass < 2 && !best; pass++)
   for(var i=0;i<L.length;i++){
-    var s = L[i], d = Math.hypot(s[0]-pt.x, s[1]-pt.y); if(d > PSN.R) continue;
+    var s = L[i], d = DM.hypot(s[0]-pt.x, s[1]-pt.y); if(d > PSN.R) continue;
     if(pass === 0 && look && !hasLOS(s[0], s[1], look.x, look.y)){ var la = Math.atan2(look.y-s[1], look.x-s[0]), rc = rayClipWalls(s[0], s[1], s[0]+Math.cos(la)*PSN.open, s[1]+Math.sin(la)*PSN.open); if(rc.wall) continue; }
     if(!hasLOS(s[0], s[1], pt.x, pt.y) || insideSolidWall(s[0], s[1])) continue;
-    if(bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o.post && Math.hypot(o.post.x-s[0], o.post.y-s[1]) < PSN.occ; })) continue;
+    if(bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o.post && DM.hypot(o.post.x-s[0], o.post.y-s[1]) < PSN.occ; })) continue;
     var modes = [[s[3], s[4]]]; if(s.length > 5) modes.push([s[5], s[6]]);
     var md = 0;
     if(look){ var wa = Math.atan2(look.y-s[1], look.x-s[0]); md = Math.min.apply(null, modes.map(function(m){ return _angOff(m[0], wa); })); if(md > PSN.maxOff) continue; }
@@ -153,8 +153,8 @@ function wallBoxes(){
     while(left.length && guard++ < 200){
       var e = poly[poly.length-1], hit = -1, rev = false;
       for(var q=0;q<left.length;q++){ var w = W[left[q]];
-        if(Math.hypot(w[0]-e[0], w[1]-e[1]) < 4){ hit = q; break; }
-        if(Math.hypot(w[2]-e[0], w[3]-e[1]) < 4){ hit = q; rev = true; break; } }
+        if(DM.hypot(w[0]-e[0], w[1]-e[1]) < 4){ hit = q; break; }
+        if(DM.hypot(w[2]-e[0], w[3]-e[1]) < 4){ hit = q; rev = true; break; } }
       if(hit < 0) break;
       var w2 = W[left[hit]]; poly.push(rev ? [w2[0], w2[1]] : [w2[2], w2[3]]); left.splice(hit, 1);
     }
@@ -354,7 +354,7 @@ function postViewPoint(pt, look){
   var a0 = navAt(pt.x, pt.y), best = null, bd = 1e9;
   NAVAREAS.forEach(function(z){
     if(NAV_BLOCKED[z.id] || !(zoneGraph[z.id]||[]).length) return;
-    var c = zoneCentroid(z), d = Math.hypot(c.x-pt.x, c.y-pt.y); if(d > POST_VIEW_R || d >= bd || insideSolidWall(c.x, c.y)) return;
+    var c = zoneCentroid(z), d = DM.hypot(c.x-pt.x, c.y-pt.y); if(d > POST_VIEW_R || d >= bd || insideSolidWall(c.x, c.y)) return;
     var a = navAt(c.x, c.y); if(!a || (a0 && Math.abs(a.z - a0.z) > JUMP_UP)) return;
     if(!hasLOS(c.x, c.y, look.x, look.y)) return;
     best = {x: c.x, y: c.y}; bd = d; });
@@ -372,7 +372,7 @@ function postSrc(b){ return b.post ? (b.post.src || b.post) : null; }
 function setPostDo(b, pt, look, hold, tag, spreadIdx){
   var pt0 = pt;   // (v570) точка, как её дала задача (до сдвигов ниже) — у поста src: задача сверяет своё место с ней, а не со сдвинутым
   // сменил позицию после фрага — роль в этом раунде ставит его уже на новую точку
-  if(b._hs && b._hs.round === roundNum && b._hs.tag === tag && pt && Math.hypot(pt.x-b._hs.pt.x, pt.y-b._hs.pt.y) < 320) pt = b._hs.pt;
+  if(b._hs && b._hs.round === roundNum && b._hs.tag === tag && pt && DM.hypot(pt.x-b._hs.pt.x, pt.y-b._hs.pt.y) < 320) pt = b._hs.pt;
   var lv = taskLevel(tag);
   // маршрут раша — путь к посту роли: пост роли, пока маршрут не пройден, становится его концом (R.want); задача уровня
   // TASK_ROUTE_CANCEL и выше (и у CT — поставленная бомба) маршрут снимает; задачи между ними — пауза маршрута (v349)
@@ -420,7 +420,7 @@ function setPostDo(b, pt, look, hold, tag, spreadIdx){
   // (v570) та же точка — пост держится, но если после сдвига туда же встал свой (его пост поставлен позже — сдвиг считался без него), один
   // из двоих (у кого id больше) считает место заново: было — двое CT на охоте в одной точке (1026, 1493) до конца раунда
   var ownL = hold && taskProp(String(tag), "ownLine") && !exact;
-  if(b.post && b.post.id === id && !(ownL && bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o.id < b.id && o.post && Math.hypot(o.post.x-b.post.x, o.post.y-b.post.y) < SPOT_PERSONAL; }))){ b.post.look = look || null; return true; }
+  if(b.post && b.post.id === id && !(ownL && bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o.id < b.id && o.post && DM.hypot(o.post.x-b.post.x, o.post.y-b.post.y) < SPOT_PERSONAL; }))){ b.post.look = look || null; return true; }
   var x = pt.x, y = pt.y;
   // (v370, владелец: «не стоят в толпе») точка, где уже стоит / куда идёт свой (≤ SPOT_PERSONAL), — встаём рядом поперёк взгляда,
   // а не в него. Одно место для всех постов (было: раздвиг на 22 ед. только по spreadIdx). Точные места (бомба, лайнап, подбор) — как есть
@@ -457,7 +457,7 @@ function setPostDo(b, pt, look, hold, tag, spreadIdx){
       x = nx; y = ny; return true; }); });
   }
   // (v570) пересчёт того же поста (свой встал рядом) дал то же место — пост и путь не трогаем (иначе путь сбрасывался бы каждый тик)
-  if(b.post && b.post.id === id && Math.hypot(b.post.x-x, b.post.y-y) < 2){ b.post.look = look || null; return true; }
+  if(b.post && b.post.id === id && DM.hypot(b.post.x-x, b.post.y-y) < 2){ b.post.look = look || null; return true; }
   (b._postSets || (b._postSets = [])).push(tick); if(b._postSets.length > 12) b._postSets.shift();   // (v570) диагностика для 545 (игра не читает)
   b.post = {id:id, x:x, y:y, z:(pt.z != null ? pt.z : navOnlyZ(x, y)), look:look||null, hold:hold, tag:tag, src:{x:pt0.x, y:pt0.y}};   // (v546) z — высота точки, если задана, или пол точки, если он там один (ящик); иначе null
   if(psn) b.post.pro = psn.sp;
@@ -520,8 +520,8 @@ function placeResetTask(b){ b._task = null; }
 function updatePost(b){
   if(!b.post || b.state !== "patrol"){ b.atPost = false; return; }
   var ep = fireSafe(b.post, b);
-  if(ep !== b.post && b.atPost && Math.hypot(ep.x-b.baseX, ep.y-b.baseY) > 34){ b.atPost = false; movePath(b, [], "post"); b.pathIdx = 0; }
-  var d = Math.hypot(ep.x-b.baseX, ep.y-b.baseY);
+  if(ep !== b.post && b.atPost && DM.hypot(ep.x-b.baseX, ep.y-b.baseY) > 34){ b.atPost = false; movePath(b, [], "post"); b.pathIdx = 0; }
+  var d = DM.hypot(ep.x-b.baseX, ep.y-b.baseY);
   if(b.post.hold){
     // точка планта: "дошёл" — это именно внутри зоны сайта, а не в 34px от точки
     // (иначе носитель останавливался у края зоны, снаружи, и не мог заложить)

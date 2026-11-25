@@ -6,6 +6,7 @@
 //   no_pro        — бросков про рядом нет
 // node tools/nades/smoke_long.js <карта>
 'use strict';
+require('../dmath/global.js');   // (Р2.3) DM — общая математика игры (файлы игры зовут DM.*)
 const path = require('path'), fs = require('fs'), ROOT = path.join(__dirname, '..', '..');
 const map = process.argv[2] || 'ancient';
 const W = require('./world.js').load(map), N = require(path.join(ROOT, 'src/game/385_nades_flight.js'));

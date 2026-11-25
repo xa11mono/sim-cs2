@@ -25,7 +25,7 @@ function nadeOrigin(n){
   var foe = n.team === "T" ? "CT" : "T";
   var pts = (n.trail || []).slice(-8).concat([[n.x, n.y]]);
   var saw = bots.filter(function(o){ return o.team === foe && o.alive && tick >= (o.blindUntil||0) &&
-    pts.some(function(p){ return Math.hypot(p[0]-o.x, p[1]-o.y) < 1100 && hasVision(o.x, o.y, p[0], p[1]); }); })[0];
+    pts.some(function(p){ return DM.hypot(p[0]-o.x, p[1]-o.y) < 1100 && hasVision(o.x, o.y, p[0], p[1]); }); })[0];
   if(!saw) return;
   var j = hashRand(tick*31 + n.ox*7), ja = hashRand(tick*17 + n.oy*3)*Math.PI*2, ex = n.ox + Math.cos(ja)*120*j, ey = n.oy + Math.sin(ja)*120*j;
   if(insideSolidWall(ex, ey)){ ex = n.ox; ey = n.oy; }
@@ -44,13 +44,13 @@ function detonate(n){ var _ev = simEvIn("detonate", arguments);
   else if(T === "molly"){
     // молотов, упавший в дым или рядом так, что огонь касается дыма, гаснет (как в CS2 — наоборот тоже: дым тушит огонь;
     // v321, М12: «чуть касается смока — тушится»)
-    if(!smokes.some(function(s){ return Math.hypot(s.x-n.x, s.y-n.y) < smokeRadiusNow(s) + NADE.molly.radius*MOLLY_SMOKE_TOUCH; }))
+    if(!smokes.some(function(s){ return DM.hypot(s.x-n.x, s.y-n.y) < smokeRadiusNow(s) + NADE.molly.radius*MOLLY_SMOKE_TOUCH; }))
     { fires.push({x:n.x, y:n.y, z:n.z != null ? visFloorAt(n.x, n.y, n.z) : null, born:tick, until:tick+NADE.molly.life, team:n.team, thrower:n.thrower}); fireRepath(n.x, n.y);   // (v555) z — пол, где горит (fireTouches, 370)
       // (v506, владелец 04.11: «инфа про молотов — просто знали, что кинули молотов, но чтобы это никуда не уводило») враг, который видит
       // огонь, говорит в войс «молотов на …» — только колл в панель войса: знание о врагах и решения не меняются (где разорвалась граната
       // врага, команда и так помнит — nadeSeen выше)
       if(roundState === "live"){ var mSaw = bots.filter(function(o){ return o.alive && o.team !== n.team && hasVision(o.x, o.y, n.x, n.y); })
-          .sort(function(p, q){ return Math.hypot(p.x-n.x, p.y-n.y) - Math.hypot(q.x-n.x, q.y-n.y); })[0];
+          .sort(function(p, q){ return DM.hypot(p.x-n.x, p.y-n.y) - DM.hypot(q.x-n.x, q.y-n.y); })[0];
         if(mSaw) voiceLog(mSaw.team, "molly"+Math.round(n.x/40)+","+Math.round(n.y/40)+"@"+roundNum, mSaw.id, "молотов "+calloutName(n.x, n.y)); } }
   }
   else if(T === "flash"){
@@ -58,7 +58,7 @@ function detonate(n){ var _ev = simEvIn("detonate", arguments);
     nadeFlags["pop:"+n.why] = tick; // общий "хлопнула" для ожидающих (ретейк, поп на убийцу)
     bots.forEach(function(b){
       if(!b.alive) return;
-      var d = n.z != null ? Math.hypot(b.x-n.x, b.y-n.y, (n.z - visFloorAt(b.x, b.y, b.z) - VIS_EYE.stand)/(MAP.pxUnits || 2.5)) : Math.hypot(b.x-n.x, b.y-n.y);   // (v519) в 3D
+      var d = n.z != null ? DM.hypot3(b.x-n.x, b.y-n.y, (n.z - visFloorAt(b.x, b.y, b.z) - VIS_EYE.stand)/(MAP.pxUnits || 2.5)) : DM.hypot(b.x-n.x, b.y-n.y);   // (v519) в 3D
       var dirK = flashDirK(b, n); if(!dirK) return;
       // враг, который видел/слышал летящую флешку, может успеть отвернуться —
       // тем вероятнее, чем выше навык (раньше флешка слепила "по учебнику" всегда)
@@ -86,7 +86,7 @@ function detonate(n){ var _ev = simEvIn("detonate", arguments);
   }
   else if(T === "he"){
     smokes.forEach(function(sm){
-      if(Math.hypot(sm.x-n.x, sm.y-n.y) < NADE.smoke.radius + 40){ sm.holeLen = Math.round(1.3*TICK_HZ); sm.holeUntil = tick + sm.holeLen;
+      if(DM.hypot(sm.x-n.x, sm.y-n.y) < NADE.smoke.radius + 40){ sm.holeLen = Math.round(1.3*TICK_HZ); sm.holeUntil = tick + sm.holeLen;
         logEvent("HE разогнал смок "+calloutName(sm.x, sm.y)); }
     });
     bots.forEach(function(b){
@@ -95,7 +95,7 @@ function detonate(n){ var _ev = simEvIn("detonate", arguments);
       // расстояние в 3D и линия той же 3D-геометрией карты, что полёт, до корпуса или головы. Было: расстояние по радару и «видно ли» от глаз
       // человека, стоящего на верхнем полу под гранатой (высота разрыва не бралась)
       var bf = visFloorAt(b.x, b.y, b.z), pu = MAP.pxUnits || 2.5, nz = n.z != null ? n.z : bf + VIS_EYE.crouch;
-      var d = Math.hypot(b.x-n.x, b.y-n.y, (nz - (bf + 36))/pu);
+      var d = DM.hypot3(b.x-n.x, b.y-n.y, (nz - (bf + 36))/pu);
       if(d > NADE.he.radius) return;
       if(n.z != null ? !(visMarch(n.x, n.y, nz + 4, b.x, b.y, bf + 36) || visMarch(n.x, n.y, nz + 4, b.x, b.y, bf + VIS_EYE.stand)) : !hasLOS(n.x, n.y, b.x, b.y, null, b.z)) return;
       var dmg = NADE.he.dmg * (1 - d/NADE.he.radius);
@@ -179,14 +179,14 @@ function applyDamage(att, b, dmg, src, o){ var _ev = simEvIn("applyDamage", argu
 // (v419) насколько флешка в точке n слепит b по направлению взгляда: 0 — не видит / дальше 1000, иначе 1 / 0,5 / 0,12 (прямо /
 // краем глаза / спиной). Одно место: хлопок (выше) и проверка перед броском «не слепит своих» (flashSafeFor, 350)
 function flashDirK(b, n){
-  var d = n.z != null ? Math.hypot(b.x-n.x, b.y-n.y, (n.z - visFloorAt(b.x, b.y, b.z) - VIS_EYE.stand)/(MAP.pxUnits || 2.5)) : Math.hypot(b.x-n.x, b.y-n.y);
+  var d = n.z != null ? DM.hypot3(b.x-n.x, b.y-n.y, (n.z - visFloorAt(b.x, b.y, b.z) - VIS_EYE.stand)/(MAP.pxUnits || 2.5)) : DM.hypot(b.x-n.x, b.y-n.y);
   if(d > 1000 || !flashSeen(b, n)) return 0;
   var a = Math.atan2(n.y-b.y, n.x-b.x);
   var off = b.facing === undefined ? 0 : Math.abs(((a - b.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
   // (v554, владелец 11.11: «что там с углом обзора») угол — в 3D: разрыв высоко над головой / под ногами — не «прямо в лицо», хотя по радару
   // направление то же (взгляд — по горизонтали, глаза на высоте роста)
-  if(n.z != null){ var K = MAP.pxUnits || 2.5, hd = Math.hypot(n.x-b.x, n.y-b.y)*K, vd = n.z - (visFloorAt(b.x, b.y, b.z) + VIS_EYE.stand);
-    off = Math.acos(Math.max(-1, Math.min(1, Math.cos(off)*hd/Math.max(1e-6, Math.hypot(hd, vd))))); }
+  if(n.z != null){ var K = MAP.pxUnits || 2.5, hd = DM.hypot(n.x-b.x, n.y-b.y)*K, vd = n.z - (visFloorAt(b.x, b.y, b.z) + VIS_EYE.stand);
+    off = Math.acos(Math.max(-1, Math.min(1, Math.cos(off)*hd/Math.max(1e-6, DM.hypot(hd, vd))))); }
   return off < 0.55 ? 1 : (off < 1.6 ? 0.5 : 0.12);  // смотрел прямо / краем глаза / спиной
 }
 function flashSeen(b, n){
@@ -225,7 +225,7 @@ function nadesTick(){
     var fr = fires[f];
     if(tick >= fr.until){ fires.splice(f,1); fireGoneRepath(fr); continue; }
     // дым, раскрывшийся на огне, тушит его
-    if(smokes.some(function(sm){ return Math.hypot(sm.x-fr.x, sm.y-fr.y) < smokeRadiusNow(sm) + NADE.molly.radius*MOLLY_SMOKE_TOUCH; })){ soundEv("sndNade", "extinguish", fr.x, fr.y); fires.splice(f,1); fireGoneRepath(fr); continue; }
+    if(smokes.some(function(sm){ return DM.hypot(sm.x-fr.x, sm.y-fr.y) < smokeRadiusNow(sm) + NADE.molly.radius*MOLLY_SMOKE_TOUCH; })){ soundEv("sndNade", "extinguish", fr.x, fr.y); fires.splice(f,1); fireGoneRepath(fr); continue; }
     bots.forEach(function(b){
       if(!b.alive) return;   // (v263, Б1) огонь жжёт и своих — множитель в applyDamage
       if(fireTouches(fr, b.x, b.y, b.z)){

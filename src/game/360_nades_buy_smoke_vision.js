@@ -22,7 +22,7 @@ var nadeLandHistory = {A:[], B:[]}; // раздел 11.1: где команда 
 function recordNadeLand(n){
   if(n.type !== "molly" && n.type !== "he") return;
   ["A","B"].forEach(function(k){
-    if(Math.hypot(n.x-SITES[k].x, n.y-SITES[k].y) < 750){
+    if(DM.hypot(n.x-SITES[k].x, n.y-SITES[k].y) < 750){
       nadeLandHistory[k].push({x:n.x, y:n.y, team:n.team});
       if(nadeLandHistory[k].length > 14) nadeLandHistory[k].shift();
     }
@@ -101,7 +101,7 @@ function segHitsCircle(x1,y1,x2,y2,cx,cy,r){
 // (М150, 21.10, владелец: «смок и молотов обрезаются по стенам — убери») дым и огонь — полный круг своего радиуса. Раньше
 // (v323, М36) круг обрезался стенами радара (areaRays): с А5/А6 они только рисунок, настоящих стен там нет. Сквозь настоящие
 // стены сквозь дым всё равно не видно — видимость идёт по 3D-геометрии игры
-function areaHas(o, r, px, py){ return Math.hypot(px - o.x, py - o.y) < r; }
+function areaHas(o, r, px, py){ return DM.hypot(px - o.x, py - o.y) < r; }
 function areaSegHits(o, r, x1, y1, x2, y2){ return segHitsCircle(x1,y1,x2,y2,o.x,o.y,r); }
 // (v548) дыра от пули — не «прозрачный» дым по всей высоте: сквозь дым видно только то, что попадает в окошко (smokeHoleParts, ниже)
 function smokeBlocks(x1,y1,x2,y2){
@@ -136,7 +136,7 @@ function smokeHolePass(s, r, x1, y1, z1, x2, y2, z2){
   var K = MAP.pxUnits || 2.5, n = Math.max(2, Math.ceil((t2 - t1)*Math.sqrt(a)*K/(SMOKE_HOLE.r/2)));
   for(var i = 0; i <= n; i++){ var t = t1 + (t2 - t1)*i/n, px = (x1 + dx*t)*K, py = (y1 + dy*t)*K, pz = z1 + (z2 - z1)*t;
     if(!H.some(function(h){ if(h.until <= tick) return false;
-        var ux = (h.x2-h.x1)*K, uy = (h.y2-h.y1)*K, uz = h.z2-h.z1, ul = Math.hypot(ux, uy, uz); if(ul < 1) return false;
+        var ux = (h.x2-h.x1)*K, uy = (h.y2-h.y1)*K, uz = h.z2-h.z1, ul = DM.hypot3(ux, uy, uz); if(ul < 1) return false;
         var wx = px - h.x1*K, wy = py - h.y1*K, wz = pz - h.z1, c = (wx*ux + wy*uy + wz*uz)/ul;
         return wx*wx + wy*wy + wz*wz - c*c <= SMOKE_HOLE.r*SMOKE_HOLE.r; })) return false; }
   return true;
@@ -170,11 +170,11 @@ function oneWaySees(v, t){
     var s = smokes[i], r = smokeRadiusNow(s);
     if(r <= 8 || !segHitsCircle(v.x, v.y, t.x, t.y, s.x, s.y, r)) continue;
     any = true;
-    var dv = Math.hypot(v.x-s.x, v.y-s.y), dt = Math.hypot(t.x-s.x, t.y-s.y);
+    var dv = DM.hypot(v.x-s.x, v.y-s.y), dt = DM.hypot(t.x-s.x, t.y-s.y);
     if(dv < r && dt >= r){
       var depth = (r - dv)/r;
       var ox = v.x-s.x, oy = v.y-s.y, lx = t.x-v.x, ly = t.y-v.y;
-      var cosA = (ox*lx + oy*ly)/Math.max(1, Math.hypot(ox, oy)*Math.hypot(lx, ly));
+      var cosA = (ox*lx + oy*ly)/Math.max(1, DM.hypot(ox, oy)*DM.hypot(lx, ly));
       if(!(depth <= 0.3 && cosA > 0.34)) ok = false;
     } else if(dv >= r && dt < r){
       if((r - dt)/r > 0.08) ok = false;       // цель в дыму глубже кромки — снаружи не видно

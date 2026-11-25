@@ -6,6 +6,7 @@
 // (2) направление по горизонтали меняется только в тик с касанием (нет поворота «из ничего»), (3) шаг за тик не больше
 // скорости × тик (нет телепорта), (4) нет NaN.
 'use strict';
+require('../dmath/global.js');   // (Р2.3) DM — общая математика игры (файлы игры зовут DM.*)
 const path = require('path');
 const ROOT = path.join(__dirname, '..', '..');
 const G = require(path.join(ROOT, 'src', 'game', '035_map3d.js'));

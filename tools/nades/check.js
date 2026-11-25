@@ -5,6 +5,7 @@
 // --fuse: у флешки / HE задержку вылета брать из времени разрыва (запал модуля постоянный), иначе — SPAWN модуля.
 // Пишет: --out (по умолчанию data/maps/<карта>/throws_check.json): на бросок {i, s, e, exy, dz, et, how, nb, sim:[x,y,z], tsim}.
 'use strict';
+require('../dmath/global.js');   // (Р2.3) DM — общая математика игры (файлы игры зовут DM.*)
 const fs = require('fs'), path = require('path');
 const ROOT = path.join(__dirname, '..', '..');
 const NP = require(path.join(ROOT, 'src', 'game', '385_nades_flight.js')), P = NP.NADE_P;

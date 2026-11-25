@@ -29,7 +29,7 @@ var HEAD_HALF = 2.2;  // полуразмер головы, px (~11 юнитов
 // (v263, Б1) первый живой игрок на пути пули от стрелка до (ex, ey), кроме skip: тело ближе полуширины модели
 // (BODY_HALF, 32 юнита CS2) к линии и стрелку его видно (не за стеной/укрытием)
 function bulletVictim(sh, ex, ey, skip){
-  var dx = ex-sh.x, dy = ey-sh.y, L = Math.hypot(dx, dy); if(L < 1) return null;
+  var dx = ex-sh.x, dy = ey-sh.y, L = DM.hypot(dx, dy); if(L < 1) return null;
   var ux = dx/L, uy = dy/L, best = null, bt = L;
   for(var i=0;i<bots.length;i++){
     var m = bots[i]; if(m === sh || m === skip || !m.alive) continue;
@@ -46,7 +46,7 @@ function bulletVictim(sh, ex, ey, skip){
 // урон — оружия на дистанции до него. Возвращает того, в кого попала, — или null
 function bulletLineHit(sh, ex, ey, skip, seed, note){
   var sv = bulletVictim(sh, ex, ey, skip); if(!sv) return null;
-  var w = sh.weapon, sd = Math.hypot(sv.x-sh.x, sv.y-sh.y), sz = hashRand(seed);
+  var w = sh.weapon, sd = DM.hypot(sv.x-sh.x, sv.y-sh.y), sz = hashRand(seed);
   var sm = sz < 0.22 ? 0.75 : (sz < 0.42 ? 1.25 : 1.0), sArm = sz >= 0.22 && sv.armor;
   var sdmg = w.dmg * Math.pow(w.rm, sd*PX_UNITS/500) * sm;
   sv._hitFx = {t:nowTs, head:false}; sv._tagUntil = tick + 16;
@@ -61,7 +61,7 @@ function bulletLineHit(sh, ex, ey, skip, seed, note){
 function bulletClip3(sh, ex, ey, tgt, headOnly){
   var c = rayClipWalls(sh.x, sh.y, ex, ey), M = typeof m3 === "function" ? m3() : null; if(!M || !tgt) return c;
   var az = visFloorAt(sh.x, sh.y, sh.z) + (sh.crouching ? VIS_EYE.crouch : VIS_EYE.stand), tz = visFloorAt(tgt.x, tgt.y, tgt.z) + (headOnly ? (tgt.crouching ? VIS_EYE.crouch : VIS_EYE.stand) - 2 : 40);
-  var dT = Math.hypot(tgt.x-sh.x, tgt.y-sh.y) || 1, L = Math.hypot(c.x-sh.x, c.y-sh.y), bz = az + (tz - az)*L/dT;
+  var dT = DM.hypot(tgt.x-sh.x, tgt.y-sh.y) || 1, L = DM.hypot(c.x-sh.x, c.y-sh.y), bz = az + (tz - az)*L/dT;
   var h = m3Cast(M, sh.x, sh.y, az, c.x, c.y, bz, "sight", true);
   return h && h.t < 1 ? {x: sh.x + (c.x-sh.x)*h.t, y: sh.y + (c.y-sh.y)*h.t, wall: true} : c;
 }
@@ -104,7 +104,7 @@ function itemPickupTick(){
     if(!b.alive) return;
     for(var i = groundItems.length-1; i >= 0; i--){
       var G = groundItems[i];
-      if(Math.hypot(G.x-b.x, G.y-b.y) > 38) continue;
+      if(DM.hypot(G.x-b.x, G.y-b.y) > 38) continue;
       var N = b.nades;
       if(G.kind === "kit"){ if(b.team !== "CT" || b.kit) continue; b.kit = true; }
       else if(G.kind === "nade"){
@@ -143,10 +143,10 @@ function knifeEnemyDist(b){
   bots.forEach(function(e){
     if(e.team === b.team || !e.alive) return;
     var B = K && K.enemies ? K.enemies[e.id] : null, sw = 0, sd = 0;
-    if(B && B.hyps) B.hyps.forEach(function(h){ var p = h.type === "held" ? h : (h.zone && g.c[h.zone]); if(!p || !(h.weight > 0)) return; sw += h.weight; sd = Math.min(sd || Infinity, Math.hypot(p.x-b.x, p.y-b.y)); });
+    if(B && B.hyps) B.hyps.forEach(function(h){ var p = h.type === "held" ? h : (h.zone && g.c[h.zone]); if(!p || !(h.weight > 0)) return; sw += h.weight; sd = Math.min(sd || Infinity, DM.hypot(p.x-b.x, p.y-b.y)); });
     if(sw > 0) best = Math.min(best, sd); else unknown = true;
   });
-  if(unknown) for(var j = 0; j < BZ.cent.length; j++) if(reachPossible(b.team, j)){ var d = Math.hypot(BZ.cent[j].x-b.x, BZ.cent[j].y-b.y); if(d < best) best = d; }
+  if(unknown) for(var j = 0; j < BZ.cent.length; j++) if(reachPossible(b.team, j)){ var d = DM.hypot(BZ.cent[j].x-b.x, BZ.cent[j].y-b.y); if(d < best) best = d; }
   return best;
 }
 // (v555, владелец 11.11, отметка м300 р3: «дефузит в смоке — T зажимает обойму; не убил, дефуз идёт — идёт резать: два удара спереди — смерть,
@@ -156,7 +156,7 @@ var KNIFE_REACH = 20, KNIFE_GAP = 64, KNIFE_STAB = 55, KNIFE_BACK = 180, KNIFE_G
 function knifeDefuseTick(b){
   if(b.team !== "T" || !bomb || bomb.state !== "planted" || tick - (b._defuseHeard || -9999) >= TICK_HZ || b._sawEnemy || b.planting) return false;
   var D = bots.filter(function(o){ return o.alive && o.defusing; })[0]; if(!D) return false;
-  var d = Math.hypot(D.x-b.x, D.y-b.y); if(d > KNIFE_GO) return false;
+  var d = DM.hypot(D.x-b.x, D.y-b.y); if(d > KNIFE_GO) return false;
   if(!(b.ammo <= 0 || b._reloading || !b._spam || d <= 3*KNIFE_REACH)) return false;
   b._knife = true; b._knDef = D.id;   // точку «к нему» даёт задача «сбить дефуз» (tBrain, 170); очередь в дым снимает её хозяин (290)
   if(d > KNIFE_REACH) return true;
@@ -229,7 +229,7 @@ function weaponPickupTick(){
   bots.forEach(function(b){
     if(!b.alive || b.planting || b.defusing) return;
     // оружие уже подобрал кто-то другой — пост "за оружием" снять (иначе стоял на пустом месте)
-    if(b.post && b.post.tag === "pickup" && !groundWeapons.some(function(G){ return Math.hypot(G.x-b.post.x, G.y-b.post.y) < 40; })){ clearPost(b); b._pickGo = null; }
+    if(b.post && b.post.tag === "pickup" && !groundWeapons.some(function(G){ return DM.hypot(G.x-b.post.x, G.y-b.post.y) < 40; })){ clearPost(b); b._pickGo = null; }
     // идёт за оружием — держим блок каждый тик: раньше блок жил 1 тик, и через
     // тик пост роли и "за оружием" перебивали друг друга (путь пересчитывался)
     else if(b.post && b.post.tag === "pickup" && b.state === "patrol" && !b._sawEnemy){
@@ -250,7 +250,7 @@ function weaponPickupTick(){
     // (v378) за оружием шёл, но задача важнее его увела (арбитр места) — помнит, где лежит, и вернётся, когда та кончится
     else if(b._pickGo && b._pickGo.round === roundNum && !(b.post && b.post.tag === "pickup")){
       var PG = b._pickGo;
-      if(!groundWeapons.some(function(G){ return Math.hypot(G.x-PG.x, G.y-PG.y) < 40; })) b._pickGo = null;
+      if(!groundWeapons.some(function(G){ return DM.hypot(G.x-PG.x, G.y-PG.y) < 40; })) b._pickGo = null;
       else if(b.state === "patrol" && !b._sawEnemy && !(bomb.state === "carried" && bomb.carrier === b) && pickDetour(b, PG) && setPost(b, {x:PG.x, y:PG.y}, null, true, "pickup")){
         logEvent(b.id+": возвращаюсь за оружием"); return; }
     }
@@ -258,7 +258,7 @@ function weaponPickupTick(){
     // подобрать под ногами
     for(var i=0;i<groundWeapons.length;i++){
       var G = groundWeapons[i];
-      if(Math.hypot(G.x-b.baseX, G.y-b.baseY) > 38 || pickValue(b, G.key) <= cur) continue; // 38 ≥ радиуса "дошёл" (34), иначе стоял рядом и не поднимал
+      if(DM.hypot(G.x-b.baseX, G.y-b.baseY) > 38 || pickValue(b, G.key) <= cur) continue; // 38 ≥ радиуса "дошёл" (34), иначе стоял рядом и не поднимал
       if(G.key === "AWP" && !awpAllowed(b) && cur >= 5) continue; // снайпу — снайперу
       groundWeapons.splice(i, 1);
       if(b.primary && !sellItem(b, b.primary)) groundWeapons.push({key:b.primary, x:b.x, y:b.y, t:tick, from:b.id});   // (v334) купил в этом раунде — продаёт
@@ -274,15 +274,15 @@ function weaponPickupTick(){
       // не срывается ради гана с важной позиции: после планта (ретейк/пост-плант)
       // и когда рядом свежая инфа о враге — только если ган почти под ногами
       var LKf = beliefLast[b.team] || {}, foeNear = false;
-      for(var eF in LKf){ if(tick - LKf[eF].tick < 3*TICK_HZ && Math.hypot(LKf[eF].x-b.x, LKf[eF].y-b.y) < 900){ foeNear = true; break; } }
+      for(var eF in LKf){ if(tick - LKf[eF].tick < 3*TICK_HZ && DM.hypot(LKf[eF].x-b.x, LKf[eF].y-b.y) < 900){ foeNear = true; break; } }
       // (v518a) после планта — как везде; терпит ли это главная задача — pickDetour (цена по пути), а не «бомба стоит — только под ногами»
       // (v559, В76 ч.2) цель раунда «на следующий закуп» (эко) — винтовка убитого и есть цель: идёт за ней дальше (×PICK_ECO_K, проектное число)
       var gBest = null, gd = (foeNear ? 80 : 170)*(roundGoal(b.team) === "economy" || roundGoal(b.team) === "hero" ? PICK_ECO_K : 1);
       groundWeapons.forEach(function(G){
         if(pickValue(b, G.key) < cur + 2) return;
         if(G.key === "AWP" && !awpAllowed(b) && cur >= 5) return;
-        if(b._pickIgnore && b._pickIgnore.round === roundNum && Math.hypot(G.x-b._pickIgnore.x, G.y-b._pickIgnore.y) < 40) return;
-        var dG = Math.hypot(G.x-b.x, G.y-b.y); if(dG < gd && hasLOS(b.x, b.y, G.x, G.y, b.z)){ gd = dG; gBest = G; } });
+        if(b._pickIgnore && b._pickIgnore.round === roundNum && DM.hypot(G.x-b._pickIgnore.x, G.y-b._pickIgnore.y) < 40) return;
+        var dG = DM.hypot(G.x-b.x, G.y-b.y); if(dG < gd && hasLOS(b.x, b.y, G.x, G.y, b.z)){ gd = dG; gBest = G; } });
       if(gBest && (b.state !== "patrol" || intelEstimate(b.team, gBest.x, gBest.y, 450, 3*TICK_HZ).n > 0) && pickDetour(b, gBest)){
         b._fpT = tick;
         if(b.state !== "patrol"){ fightState(b, "patrol", "нож"); fightHoldOff(b, "knife"); b.stateSince = tick; }
@@ -304,17 +304,17 @@ function weaponPickupTick(){
     // (v547, владелец 10.11: «в ретейке, пост-планте, сейве не подбирают, даже когда есть возможность») у задачи фазы (уровень ≥ 7) враги рядом
     // есть почти всегда — «бой рядом» её не отменяет: решают опасность у самого оружия (danger ниже) и терпит ли задача крюк (pickDetour)
     var LKp = beliefLast[b.team] || {}, phaseP = taskAlive(b) && b._task.lv >= 7;
-    if(!phaseP) for(var eP in LKp){ if(tick - LKp[eP].tick < 3*TICK_HZ && Math.hypot(LKp[eP].x-b.x, LKp[eP].y-b.y) < 1200/MAP.pxUnits) return; }
+    if(!phaseP) for(var eP in LKp){ if(tick - LKp[eP].tick < 3*TICK_HZ && DM.hypot(LKp[eP].x-b.x, LKp[eP].y-b.y) < 1200/MAP.pxUnits) return; }
     if((b.tRole === "anchorA" || b.tRole === "anchorB") && b.primary && WEAPONS[b.primary].tier >= 5) return;
     if(b._pickBan > tick) return;
     var best = null, bd = 420;
     groundWeapons.forEach(function(G){
-      if(b._pickIgnore && b._pickIgnore.round === roundNum && Math.hypot(G.x-b._pickIgnore.x, G.y-b._pickIgnore.y) < 40) return;
+      if(b._pickIgnore && b._pickIgnore.round === roundNum && DM.hypot(G.x-b._pickIgnore.x, G.y-b._pickIgnore.y) < 40) return;
       if(pickValue(b, G.key) < cur + (1) && !(G.key === "AWP" && awpAllowed(b) && pickValue(b, G.key) > cur)) return; // своя AWP — за второй не ходит (раньше шёл и стоял над ней)
       // то же правило, что при подборе: AWP с винтовкой в руках берёт только снайпер/мидер
       // (раньше шёл к AWP, а поднять "не имел права" — и стоял над ней)
       if(G.key === "AWP" && !awpAllowed(b) && cur >= 5) return;
-      var d = Math.hypot(G.x-b.x, G.y-b.y); if(d < bd){ bd = d; best = G; }
+      var d = DM.hypot(G.x-b.x, G.y-b.y); if(d < bd){ bd = d; best = G; }
     });
     if(!best) return;
     var danger = intelEstimate(b.team, best.x, best.y, 450, (savingNow ? 5 : 3)*TICK_HZ).n > 0;

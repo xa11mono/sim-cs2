@@ -55,12 +55,12 @@ function tCrossSmoke(L){
   var held = Object.keys(POS).some(function(k){ return (POS[k].ctHold || []).indexOf(zoneUserName(zid)) >= 0; });
   var clr = CLEARZ.T[zid] && tick - CLEARZ.T[zid].tick < 10*TICK_HZ;
   if(beliefCount("T", [zi]) < CROSS_BELIEF && !(held && !clr && aliveCount("CT") >= 2)) return false;
-  var thrower = bots.some(function(b){ return b.team === "T" && b.alive && b.nades && b.nades.smoke > 0 && !b.nadeTask && Math.hypot(b.x-L.from.x, b.y-L.from.y) < CROSS_NEAR; });
+  var thrower = bots.some(function(b){ return b.team === "T" && b.alive && b.nades && b.nades.smoke > 0 && !b.nadeTask && DM.hypot(b.x-L.from.x, b.y-L.from.y) < CROSS_NEAR; });
   if(!thrower) return false;
   var crossing = bots.some(function(b){
     if(b.team !== "T" || !b.alive || !b.path || !b.path.length) return false;
     for(var i = b.pathIdx||0; i < Math.min(b.path.length, (b.pathIdx||0) + 4); i++){ var q = b.path[i];
-      if(!hasLOS(b.x, b.y, L.to.x, L.to.y, b.z) && hasLOS(q[0], q[1], L.to.x, L.to.y) && Math.hypot(q[0]-b.x, q[1]-b.y) < 500) return true; }
+      if(!hasLOS(b.x, b.y, L.to.x, L.to.y, b.z) && hasLOS(q[0], q[1], L.to.x, L.to.y) && DM.hypot(q[0]-b.x, q[1]-b.y) < 500) return true; }
     return false; });
   if(!crossing) return false;
   nadeFlags._xsN = (nadeFlags._xsN||0) + 1;
@@ -76,11 +76,11 @@ function tSoloThrower(){
     F = null;
     if(hashRand(roundNum*6007 + matchNum*131 + 17) < SOLO_SHARE){
       var C = bots.filter(function(b){ return b.team === "T" && b.alive && b.nades && b.tRole !== "entry" && b.tRole !== "awp" && b.tRole !== "lurker" && !(bomb.state === "carried" && bomb.carrier === b); })
-        .map(function(b){ var S = teamTac.T && SITES[teamTac.T.site], dS = S ? Math.hypot(b.x-S.x, b.y-S.y) : 0;
+        .map(function(b){ var S = teamTac.T && SITES[teamTac.T.site], dS = S ? DM.hypot(b.x-S.x, b.y-S.y) : 0;
           var n = b.nades.smoke + b.nades.flash + b.nades.molly + b.nades.he;
           // кто ближе к сайту выхода (точки броска гранат выхода — там же), тот и раскидчик: дальний не успеет
           return {b:b, n:n, s:n + (b.tRole === "support" ? 0.5 : b.tRole === "igl" ? 0.25 : 0) - dS/800}; })
-        .filter(function(c){ var S = teamTac.T && SITES[teamTac.T.site]; return c.n >= 3 && !(S && (onSite(S, c.b.x, c.b.y) || Math.hypot(c.b.x-S.x, c.b.y-S.y) < 450)); })   // уже на сайте — назад за гранатами не пойдёт
+        .filter(function(c){ var S = teamTac.T && SITES[teamTac.T.site]; return c.n >= 3 && !(S && (onSite(S, c.b.x, c.b.y) || DM.hypot(c.b.x-S.x, c.b.y-S.y) < 450)); })   // уже на сайте — назад за гранатами не пойдёт
         .sort(function(a, c){ return c.s - a.s; })[0];
       if(C){ F = C.b.id; voiceLog("T", "solonade"+roundNum, C.b.id, "раскид на мне — пикайте под гранаты"); }
     }
@@ -130,7 +130,7 @@ function lineupTick(){
     // (v438, док владельца 27.10: m0NESY 5 с стоял с молотовом на точке — в 57 ед. от места падения стоял kyousuke) HE / молотов — не туда,
     // где стоит или куда идёт свой: ждёт, пока место освободится (момент лайнапа держит своё окно)
     if(go && (L.type === "molly" || L.type === "he")){ var Rk = NADE[L.type].radius + 40;
-      if(bots.some(function(o){ return o.alive && o.team === L.team && (Math.hypot(o.x-L.to.x, o.y-L.to.y) < Rk || (o.post && Math.hypot(o.post.x-L.to.x, o.post.y-L.to.y) < Rk)); })) go = false; }
+      if(bots.some(function(o){ return o.alive && o.team === L.team && (DM.hypot(o.x-L.to.x, o.y-L.to.y) < Rk || (o.post && DM.hypot(o.post.x-L.to.x, o.post.y-L.to.y) < Rk)); })) go = false; }
     if(!go) return;
     // кто кидает: ближайший к точке броска, но не энтри (он заходит первым) и не
     // носитель бомбы; в горячих фазах (выход, колл, ретейк, пост-плант) — только
@@ -168,9 +168,9 @@ function lineupTick(){
     var okBot = function(b){ if(!(b.team === L.team && b.alive && b.nades && b.nades[L.type] > 0 &&
       !b.planting && !b.defusing && !(bomb.state === "carried" && bomb.carrier === b))) return false;
       var S = spotOf(b); if(!S || (!(L.pro && L.grp) && !npCanUse(b, L.type, luM, luZ))) return false;
-      var F = S.from; return Math.hypot(b.x-F.x, b.y-F.y) < maxD && pathLenTo(b, F.x, F.y) < maxD && !luBehind(b, F); };
+      var F = S.from; return DM.hypot(b.x-F.x, b.y-F.y) < maxD && pathLenTo(b, F.x, F.y) < maxD && !luBehind(b, F); };
     // (v359, р7) кто уже стоит на сайте T (взял его) — с сайта за гранатой назад не уходит
-    var onTSite = function(b){ var S = L.team === "T" && tt && SITES[tt.site]; return !!S && (onSite(S, b.x, b.y) || Math.hypot(b.x-S.x, b.y-S.y) < 450) && Math.hypot(L.from.x-S.x, L.from.y-S.y) > Math.hypot(b.x-S.x, b.y-S.y) + 200; };
+    var onTSite = function(b){ var S = L.team === "T" && tt && SITES[tt.site]; return !!S && (onSite(S, b.x, b.y) || DM.hypot(b.x-S.x, b.y-S.y) < 450) && DM.hypot(L.from.x-S.x, L.from.y-S.y) > DM.hypot(b.x-S.x, b.y-S.y) + 200; };
     var cand = bots.filter(function(b){ return okBot(b) && !b.nadeTask && !onTSite(b); }).sort(function(a, b2){ return cost(a) - cost(b2); })[0];
     // (v429) запланированную цель кидает её хозяин по плану гранат. (00_PLAN п.7, ответ владельца 5, 05.11: «кидает тот, у кого есть граната,
     // бросок и маршрут не ломается, успевает») хозяин сейчас не может (занят, далеко, не по пути) — кидает тот, кто может (есть граната,
@@ -212,7 +212,7 @@ function lineupTick(){
     if(!cand && execT){
       var qb = bots.filter(function(b){ var t = b.nadeTask; if(!okBot(b) || !t || !t.lineup || !t.from || (b.nadeQueue||[]).length >= EXEC_QUEUE_N) return false;
         var need = (t.type === L.type ? 1 : 0) + (b.nadeQueue||[]).filter(function(q){ return q.type === L.type; }).length + 1;
-        return b.nades[L.type] >= need && Math.hypot(t.from.x-L.from.x, t.from.y-L.from.y) < EXEC_QUEUE_R; })
+        return b.nades[L.type] >= need && DM.hypot(t.from.x-L.from.x, t.from.y-L.from.y) < EXEC_QUEUE_R; })
         .sort(function(a, b2){ return (utilRole(a) ? 0 : 400) + cost(a) - (utilRole(b2) ? 0 : 400) - cost(b2); })[0];
       if(qb){
         nadeFlags[key] = true; nadeFlags["luok"+L.id] = true; proGroupDone(L);
@@ -227,7 +227,7 @@ function lineupTick(){
     if(!cand && L.pro && L.grp && L.team === "CT" && L.trigger === "timed"){
       var ow = bots.filter(function(b){ var t = b.nadeTask; if(!npOwner(b, L) || !okBot(b) || !t || !t.lineup || !t.from || (b.nadeQueue||[]).length >= EXEC_QUEUE_N) return false;
         var need = (t.type === L.type ? 1 : 0) + (b.nadeQueue||[]).filter(function(q){ return q.type === L.type; }).length + 1, F = spotOf(b).from;
-        return b.nades[L.type] >= need && Math.hypot(t.from.x-F.x, t.from.y-F.y) < EXEC_QUEUE_R; })[0];
+        return b.nades[L.type] >= need && DM.hypot(t.from.x-F.x, t.from.y-F.y) < EXEC_QUEUE_R; })[0];
       if(ow){
         var OS = spotOf(ow);
         nadeFlags[key] = true; nadeFlags["luok"+L.id] = true; proGroupDone(L);
@@ -257,7 +257,7 @@ function lineupTick(){
     // меньше дороги до точки броска по пути + LU_REACH_PAD с (проектное число); раньше только 7 / 12 / 20 с
     var LS = spotOf(cand);
     var luBase = hot ? ((L.trigger === "timed") ? 12 : 7) : 20, luP = buildWaypointPath(cand.baseX, cand.baseY, cand.z, LS.from.x, LS.from.y, 0), luLen = 0, luX = cand.baseX, luY = cand.baseY;
-    luP.forEach(function(q){ luLen += Math.hypot(q[0]-luX, q[1]-luY); luX = q[0]; luY = q[1]; });
+    luP.forEach(function(q){ luLen += DM.hypot(q[0]-luX, q[1]-luY); luX = q[0]; luY = q[1]; });
     var luSec = Math.max(luBase, Math.ceil(luLen/(SPEED*weaponSpeedMul(cand)) + LU_REACH_PAD));
     var luNB = execT && tt.phase === "setup" && !preExecNow(tt) ? tt.execTick - 4*TICK_HZ : 0;   // (Д27) раздали заранее — ждёт на точке до preExecNow
     if(luNB) luSec = Math.max(luSec, Math.ceil((luNB - tick)/TICK_HZ) + LU_REACH_PAD);
@@ -292,7 +292,7 @@ function luBehind(b, F){
   var P = b.post; if(!P || b.atPost || P.tag === "lineup") return false;
   // обе длины — одной меркой: путь команды (цена за известных врагов), от бота — с его этажа (pathPts берёт z 0: у Doors уходил на другой пол)
   var Q = PATHQ_Q, fp = pathQ("lb"+b.team+"|"+Math.round(F.x/Q)+","+Math.round(F.y/Q)+">"+Math.round(P.x/Q)+","+Math.round(P.y/Q), function(){ return buildWaypointPath(F.x, F.y, 0, P.x, P.y, 0, b.team); });
-  var L = 0, px = F.x, py = F.y; fp.forEach(function(q){ L += Math.hypot(q[0]-px, q[1]-py); px = q[0]; py = q[1]; });
+  var L = 0, px = F.x, py = F.y; fp.forEach(function(q){ L += DM.hypot(q[0]-px, q[1]-py); px = q[0]; py = q[1]; });
   // «не по пути»: крюк (до точки броска + от неё до своей точки − прямо) больше половины дороги до точки броска (½ — проектное число).
   // На снимке п.6: до Window 662, от Window до Short 861, от бота до Short 868 — крюк 655 из 662
   var mF = pathLenTo(b, F.x, F.y);

@@ -20,10 +20,10 @@ function flankSpot(b, mate, ep){
   if(aMe >= 0.87 && aMe <= 2.1){
     var pp = buildWaypointPath(b.baseX, b.baseY, b.z, ep.x, ep.y, 0, b.team), prev = {x:b.x, y:b.y, z:b.z}, run = 0;
     for(var i=0;i<pp.length && run <= 1000;i++){
-      var w = {x:pp[i][0], y:pp[i][1], z:pp[i][2]}, seg = Math.hypot(w.x-prev.x, w.y-prev.y);
+      var w = {x:pp[i][0], y:pp[i][1], z:pp[i][2]}, seg = DM.hypot(w.x-prev.x, w.y-prev.y);
       for(var k=1;k<=4;k++){ var q = {x:prev.x+(w.x-prev.x)*k/4, y:prev.y+(w.y-prev.y)*k/4}, qz = prev.z != null && w.z != null ? prev.z+(w.z-prev.z)*k/4 : b.z;
         if(run + seg*k/4 > 1000) break;
-        if(Math.hypot(q.x-ep.x, q.y-ep.y) < 200) return null;   // путь подходит к врагу ближе 200 раньше, чем открылась линия — не заход
+        if(DM.hypot(q.x-ep.x, q.y-ep.y) < 200) return null;   // путь подходит к врагу ближе 200 раньше, чем открылась линия — не заход
         if(hasLOS(q.x, q.y, ep.x, ep.y, qz)) return walk(q); }
       run += seg; prev = w; }
   }
@@ -33,7 +33,7 @@ function flankSpot(b, mate, ep){
     var a1 = Math.atan2(q.y-ep.y, q.x-ep.x), a2 = Math.atan2(mate.y-ep.y, mate.x-ep.x), da = _angOff(a1, a2);
     if(da < 0.87 || da > 2.1) return false;
     var pts = pathPts(b.x, b.y, q.x, q.y, b.z); if(!pts.length || polyLen(pts) > 1000) return false;
-    if(pts.some(function(w){ return Math.hypot(w[0]-ep.x, w[1]-ep.y) < 200; })) return false;
+    if(pts.some(function(w){ return DM.hypot(w[0]-ep.x, w[1]-ep.y) < 200; })) return false;
     sp = q; return true; });
   return sp;
 }
@@ -61,7 +61,7 @@ function flankAssist(b){
   var mate = null, E = null;
   bots.forEach(function(m){
     if(mate || m === b || !m.alive || m.team !== b.team || !m._sawEnemy || (m.contactStreak||0) < 20) return;
-    var d = Math.hypot(m.x-b.x, m.y-b.y); if(d <= (300) || d > 900) return;
+    var d = DM.hypot(m.x-b.x, m.y-b.y); if(d <= (300) || d > 900) return;
     var e = m._nearestEnemyBot; if(!e || !e.alive) return; mate = m; E = e; });
   if(!mate) return false;
   if(!flankClaim(b, E.id)) return false;
@@ -103,14 +103,14 @@ function assistPeek(b){
   var mate = null, E = null;
   bots.forEach(function(m){
     if(mate || m === b || !m.alive || m.team !== b.team || !m._sawEnemy || (m.contactStreak||0) < 20) return;
-    if(Math.hypot(m.x-b.x, m.y-b.y) > (300)) return;
-    var e = m._nearestEnemyBot; if(!e || !e.alive || Math.hypot(e.x-b.x, e.y-b.y) > 900) return;
+    if(DM.hypot(m.x-b.x, m.y-b.y) > (300)) return;
+    var e = m._nearestEnemyBot; if(!e || !e.alive || DM.hypot(e.x-b.x, e.y-b.y) > 900) return;
     mate = m; E = e;
   });
   if(!mate) return flankAssist(b);
   // (v570, прогон 214: «помощь ↔ контакт» — tug repos:assist → contact → repos:assist, Ancient 1 → 9, Mirage 1 → 11) идёт реакция на контакт
   // по этому врагу — решает она (350: свой рядом в бою с этой группой — выходит, contactMateFight); помощь не ставит свою точку поверх
-  var KC = b._contact; if(KC && tick < KC.until && Math.hypot(KC.x-E.x, KC.y-E.y) < 200) return false;
+  var KC = b._contact; if(KC && tick < KC.until && DM.hypot(KC.x-E.x, KC.y-E.y) < 200) return false;
   b._assistNext = tick + 24;
   // линия есть, но смотрит в другую сторону — разворот на врага по коллу тиммейта
   // (v570, отметка владельца м1 р3 28,7 с: «другие не давят, хотя слышат пистолет и чего-то ждут») — было: линия на врага по плоской карте
@@ -213,7 +213,7 @@ function ambFoes(b){
     var seen = b._visible && b._visible.indexOf(o) >= 0, hs = b.heardSound, heard = hs && hs.src === o.id && tick - hs.tick < AMB_HEAR*TICK_HZ;
     // (22.11, Ж23) услышанный — далеко ли, по месту звука, а не по его настоящему месту
     var px = seen ? o.x : heard ? hs.x : 0, py = seen ? o.y : heard ? hs.y : 0;
-    if((seen || heard) && Math.hypot(px-b.x, py-b.y) < AMB_R) out.push(o); });
+    if((seen || heard) && DM.hypot(px-b.x, py-b.y) < AMB_R) out.push(o); });
   return out;
 }
 // враг идёт не на меня. Вижу — по его ходу и взгляду (отвёрнуты от меня); только слышу — по звуку: шаги удаляются (расстояние до услышанного
@@ -224,7 +224,7 @@ function ambPassing(b, o){
   }
   var a = Math.atan2(b.y-o.y, b.x-o.x);
   var fOk = o.facing === undefined || _angOff(a, o.facing) > AMB_AWAY, hOk = !(o.curSpeed > 15*SPD_K) || o.heading === undefined || _angOff(a, o.heading) > AMB_AWAY;
-  return fOk && hOk && Math.hypot(o.x-b.x, o.y-b.y) > AMB_MIN;
+  return fOk && hOk && DM.hypot(o.x-b.x, o.y-b.y) > AMB_MIN;
 }
 function ambOn(b){ var A = b._amb; return !!(A && A.round === roundNum && b.alive && b.post && /^(ambush|backstab)$/.test(b.post.tag || "")); }
 // не стрелять: засада ждёт / заход в спину ещё не подошёл, а цель меня не видит и не повернулась ко мне. t — цель (без цели — любая)
@@ -233,7 +233,7 @@ function ambushHoldFire(b, t){
   var A = b._amb; if(ambSeenBy(b)) return false;
   if(A.ph === "wait") return true;
   if(!t) return false;
-  return ambPassing(b, t) && Math.hypot(t.x-b.x, t.y-b.y) > AMB_SHOOT && !(A.n === 1 && Math.hypot(t.x-b.x, t.y-b.y) > 1.6*AMB_SHOOT);
+  return ambPassing(b, t) && DM.hypot(t.x-b.x, t.y-b.y) > AMB_SHOOT && !(A.n === 1 && DM.hypot(t.x-b.x, t.y-b.y) > 1.6*AMB_SHOOT);
 }
 function ambEnd(b, why){ if(b._amb){ dlog(b, "засада", "конец — " + why); } b._amb = null; if(b.post && /^(ambush|backstab)$/.test(b.post.tag || "")) clearPost(b); return false; }
 // К2: проба / заход — враг впереди известен, а я у него в тылу: не бросаю, иду за ним в спину (вызов из пробы CT, 320)
@@ -263,14 +263,14 @@ function ambushTick(b){
     if(b.post && taskProp(b.post.tag, "holdsSite") && !hideSite && F.some(function(o){ return nearP(o.x, o.y, o.z, b.x, b.y, b.z, AMB_PASS); })) return false;   // идут на мой сайт рядом — держу (меня уже нашли; не нашли — пропускаю, 22.11)
     // один — «иду за ним», только если вижу его и других рядом не знаю (владелец: «он точно должен увидеть, что он один»); слышу / их больше — жду
     var solo = F.length === 1 && b._visible && b._visible.indexOf(F[0]) >= 0 && !bots.some(function(o){ var q = (beliefLast[b.team] || {})[o.id];
-      return o !== F[0] && o.alive && o.team !== b.team && q && tick - q.tick < 3*TICK_HZ && Math.hypot(q.x-b.x, q.y-b.y) < AMB_R; });
+      return o !== F[0] && o.alive && o.team !== b.team && q && tick - q.tick < 3*TICK_HZ && DM.hypot(q.x-b.x, q.y-b.y) < AMB_R; });
     A = b._amb = {round: roundNum, ph: solo ? "go" : "wait", ids: F.map(function(o){ return o.id; }), n: F.length, t0: tick, seen: tick, last: ambAt(b, F[0])};
     var w0 = ambAt(b, F[0]), where = calloutName(w0.x, w0.y).replace(/^на /, "");
     voiceLog(b.team, "amb"+b.id+roundNum, b.id, !solo ? (F.length >= 2 ? F.length+" идут" : "слышу")+" через "+where+" — пропускаю, зайду в спину" : "один на "+where+" — иду за ним");
   }
   // услышанные: расстояние до звука раз в секунду (по нему — «удаляются ли»)
   var hs = b.heardSound; A.hd = A.hd || {};
-  if(hs && hs.src && tick - hs.tick < AMB_HEAR*TICK_HZ){ var h = A.hd[hs.src] || (A.hd[hs.src] = {}), dd = Math.hypot(hs.x-b.x, hs.y-b.y);
+  if(hs && hs.src && tick - hs.tick < AMB_HEAR*TICK_HZ){ var h = A.hd[hs.src] || (A.hd[hs.src] = {}), dd = DM.hypot(hs.x-b.x, hs.y-b.y);
     if(!h.t || tick - h.t >= TICK_HZ){ h.d0 = h.d1 != null ? h.d1 : dd; h.d1 = dd; h.t = tick; } }
   // цели: кого воспринимаю из своих целей + новые рядом
   F.forEach(function(o){ if(A.ids.indexOf(o.id) < 0) A.ids.push(o.id); });
@@ -285,7 +285,7 @@ function ambushTick(b){
       // (22.11, Ж23, разбор м271222 р6: karrigan шёл за magixx по его настоящим координатам, слыша только шаги) куда идти: видимого — где он есть,
       // услышанного — где был звук (с ошибкой «на слух»), не его настоящее место
       var at = function(o){ return ambAt(b, o); };
-      var c = P.sort(function(p, q){ var a = at(p), d = at(q); return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(d.x-b.x, d.y-b.y); })[0], ca = at(c);
+      var c = P.sort(function(p, q){ var a = at(p), d = at(q); return DM.hypot(a.x-b.x, a.y-b.y) - DM.hypot(d.x-b.x, d.y-b.y); })[0], ca = at(c);
       A.last = {x: ca.x, y: ca.y, z: ca.z, id: c.id}; A.lastT = tick; } }
   else if(!A.via && !A.goal && b.atPost && b.post && b.post.tag === "backstab"){
     // (22.11, Ж23, владелец: «он уже сказал инфу и должен доигрывать ситуацию… у таких действий нет таймера — всё ситуационно») дошёл до
@@ -293,7 +293,7 @@ function ambushTick(b){
     // которому это место ведёт по пути (раз шли спокойно туда, где никого, — скорее всего, остальные уже там, будет плант): захожу к сайту
     // с их стороны (проход T на сайт), в спину, и доигрываю там. Было: 5 с без звука — засада кончена, на пост; потом — к чужой старой записи
     var kn = null; A.ids.forEach(function(id){ (knowEnemySpots(b.team, id) || []).forEach(function(q){ if(q.w >= 0.5 && (!kn || q.w > kn.w)) kn = q; }); });
-    var far = kn && Math.hypot(kn.x-b.x, kn.y-b.y) > 60;
+    var far = kn && DM.hypot(kn.x-b.x, kn.y-b.y) > 60;
     if(far){ A.seen = tick; A.last = {x: kn.x, y: kn.y}; }
     else {
       var gk = ambGoalSite(A.last); if(!gk || !GEO[gk]) return ambEnd(b, "потерял");
@@ -308,7 +308,7 @@ function ambushTick(b){
     var goSit = false;
     {
       var foesAlive = bots.filter(function(o){ return o.alive && o.team !== b.team; }), passed = A.ids.filter(function(id){ var o = teamBot(id); return o && o.alive; }).length;
-      var elsewhere = foesAlive.filter(function(o){ if(A.ids.indexOf(o.id) >= 0) return false; return (knowEnemySpots(b.team, o.id) || []).some(function(q){ return q.w >= 0.5 && Math.hypot(q.x-b.x, q.y-b.y) > AMB_R; }); }).length;
+      var elsewhere = foesAlive.filter(function(o){ if(A.ids.indexOf(o.id) >= 0) return false; return (knowEnemySpots(b.team, o.id) || []).some(function(q){ return q.w >= 0.5 && DM.hypot(q.x-b.x, q.y-b.y) > AMB_R; }); }).length;
       var PHs = teamIntel[b.team] && teamIntel[b.team].plantHeard, busy = !!(PHs && tick - PHs.tick < 5*TICK_HZ) || (bomb && bomb.state === "planted") ||
         bots.some(function(m){ return m !== b && m.alive && m.team === b.team && m._fc; });
       var goT = teamTac[b.team] && teamTac[b.team].go, mates = !!(goT && goT.ids && Object.keys(goT.ids).length && SITES[goT.site] && nearP(SITES[goT.site].x, SITES[goT.site].y, null, b.x, b.y, b.z, AMB_R));
@@ -320,7 +320,7 @@ function ambushTick(b){
       // (19.11, м3 р4, CT1: укрытие выбрал к Palace Exit — ближе к ним, там увидели) укрытие — не ближе к врагам, чем стою сейчас
       // (22.11, Ж23) от кого прятаться — где они по моему восприятию (видимые — где есть, услышанные — место звука A.last), не настоящие места
       if(!A.spot){ var TK = T.map(function(o){ return (b._visible && b._visible.indexOf(o) >= 0) ? o : A.last; }).filter(Boolean);
-        var TC = coverThreats(b, TK), dNear = function(p){ return Math.min.apply(null, TK.map(function(o){ return Math.hypot(o.x-p.x, o.y-p.y); })); }, d0 = dNear(b);
+        var TC = coverThreats(b, TK), dNear = function(p){ return Math.min.apply(null, TK.map(function(o){ return DM.hypot(o.x-p.x, o.y-p.y); })); }, d0 = dNear(b);
         A.spot = coverSafe({x:b.x, y:b.y}, b.z, TC) ? {x:b.x, y:b.y} : (coverPick(pickSpots("amb"+tick+b.id, {x:b.x, y:b.y}, COVER_CANDS, {rMin:0, rMax:120, minGap:20, hideFrom:TC})
           .filter(function(p){ return dNear(p) >= d0; }), coverZ(b), TC) || {x:b.x, y:b.y}); }
       setPost(b, A.spot, A.last, true, "ambush");
@@ -328,12 +328,12 @@ function ambushTick(b){
     }
   }
   // в спину их дорогой: сначала через via (их спавн), потом за ними
-  if(A.via){ if(Math.hypot(A.via.x-b.x, A.via.y-b.y) > 120 && !seenNow.some(function(o){ return b._visible && b._visible.indexOf(o) >= 0; })){ setPost(b, A.via, A.last, true, "backstab"); return ambOn(b) || ambEnd(b, "задача выше"); } A.via = null; }
+  if(A.via){ if(DM.hypot(A.via.x-b.x, A.via.y-b.y) > 120 && !seenNow.some(function(o){ return b._visible && b._visible.indexOf(o) >= 0; })){ setPost(b, A.via, A.last, true, "backstab"); return ambOn(b) || ambEnd(b, "задача выше"); } A.via = null; }
   // в спину: к последнему месту ближайшей цели, шагом; вплотную со спины — нож
   var tg = A.last.id ? teamBot(A.last.id) : null;
-  if(tg && tg.alive && seenNow.indexOf(tg) >= 0 && Math.hypot(tg.x-b.x, tg.y-b.y) <= 3*KNIFE_REACH && ambPassing(b, tg) && !b._reloading){
+  if(tg && tg.alive && seenNow.indexOf(tg) >= 0 && DM.hypot(tg.x-b.x, tg.y-b.y) <= 3*KNIFE_REACH && ambPassing(b, tg) && !b._reloading){
     b._knife = true;
-    if(Math.hypot(tg.x-b.x, tg.y-b.y) <= KNIFE_REACH && tick >= (b._stabT || 0)){
+    if(DM.hypot(tg.x-b.x, tg.y-b.y) <= KNIFE_REACH && tick >= (b._stabT || 0)){
       b._stabT = tick + KNIFE_GAP;
       applyDamage(b, tg, KNIFE_BACK, "knife", {wkey: "KNIFE_T", reward: 1500, note: " (нож, в спину)"});
       tg.heardSound = {x: b.x, y: b.y, z: b.z, tick: tick, team: b.team, src: b.id, kind: "hit"};

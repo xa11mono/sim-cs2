@@ -15,7 +15,7 @@ function resolveEngagements(){
     if(ct.team!=="CT"||!ct.alive) return;
     bots.forEach(function(t){
       if(t.team!=="T"||!t.alive) return;
-      var dist = Math.hypot(ct.x-t.x, ct.y-t.y);
+      var dist = DM.hypot(ct.x-t.x, ct.y-t.y);
       var maxRange = Math.max(ct.weapon.range, t.weapon.range);
       if(dist > maxRange) return;
       // шаг 5: обзор перекрывает дым; видит только тот, у кого враг в конусе
@@ -52,7 +52,7 @@ function resolveEngagements(){
     if(!b.alive || !b._sawEnemy) return;
     var T0 = b._tgt;
     if(T0 && T0.alive && b._visible.indexOf(T0) >= 0){
-      var d0 = Math.hypot(T0.x-b.x, T0.y-b.y);
+      var d0 = DM.hypot(T0.x-b.x, T0.y-b.y);
       if(d0 <= b._nearestEnemyDist*1.4 + 20){ b._nearestEnemyBot = T0; b._nearestEnemyDist = d0; return; }
     }
     var NT = b._nearestEnemyBot;
@@ -100,7 +100,7 @@ function resolveEngagements(){
       // (на бортике Catwalk, оттуда враг весь), порог «далеко» 40 — бот держал угол, не дойдя, и видел одну голову. Задача выхода — до точки
       // (FIGHT_MOVE_NEAR, проектное число), остальные — как было (40)
       var fmv = b.post && taskProp(b.post.tag, "fightMove");
-      var taskAway = (!b._fc || fmv) && b.post && !b.atPost && Math.hypot(b.post.x-b.baseX, b.post.y-b.baseY) > (fmv ? FIGHT_MOVE_NEAR : 40);
+      var taskAway = (!b._fc || fmv) && b.post && !b.atPost && DM.hypot(b.post.x-b.baseX, b.post.y-b.baseY) > (fmv ? FIGHT_MOVE_NEAR : 40);
       // (v450, док владельца 28.10 №5; м3 р1: носитель T4 с задачей «плант» в 270 ед. 14 с ходил «линия / укрытие» по слуху, ни разу не видя
       // врага) носитель в выходе, врага не видит — перестрелка по памяти кончилась, идёт ставить
       // (v450) и любой T в выходе, кто не видит врага дольше паузы про в перестрелке (PEEK_PRO.T.pause, верхний край — 2,7 с): перестрелка
@@ -109,7 +109,7 @@ function resolveEngagements(){
       var carGo = tEx && bomb.state === "carried" && bomb.carrier === b && b.post && taskProp(b.post.tag, "plantGo");
       var lostLong = tEx && tick - (b._lastSawT || -1e9) > PEEK_PRO.T.pause[4]*TICK_HZ;
       if((carGo || lostLong) && b._fc){ fcEnd(b, carGo ? "конец: несу бомбу ставить" : "конец: в выходе врага не вижу дольше паузы — иду по задаче"); }
-      if(carGo || lostLong) taskAway = taskAway || (b.post && !b.atPost && Math.hypot(b.post.x-b.baseX, b.post.y-b.baseY) > 40);
+      if(carGo || lostLong) taskAway = taskAway || (b.post && !b.atPost && DM.hypot(b.post.x-b.baseX, b.post.y-b.baseY) > 40);
       var stillWatching = b.holding && !taskAway && b.lastIntel && (tick - b.lastIntel.tick) < CAUTION_TICKS;
       if(!stillWatching && b.state !== "patrol"){ fightState(b, "patrol", taskAway ? "врага не вижу, задача в другом месте" : "врага не вижу, угол больше не держу"); b.holding = false; b.forcedRetreat = false; }
       return;
@@ -118,7 +118,7 @@ function resolveEngagements(){
     if(b.planting || b.defusing) return; // закладывает/дефузит — решение уже принято
     b.decisionTick = tick;
     var alliesNear = bots.filter(function(o){ return o!==b && o.team===b.team && o.alive && nearP(o.x, o.y, o.z, b.x, b.y, b.z, 550); }).length;
-    var enemiesSeen = bots.filter(function(o){ return o.team!==b.team && o.alive && Math.hypot(o.x-b.x,o.y-b.y) <= (b._nearestEnemyDist===Infinity? b.weapon.range : Math.max(b.weapon.range, b._nearestEnemyDist)) && hasVision(b.x,b.y,o.x,o.y) && inFov(b, o.x, o.y); }).length;
+    var enemiesSeen = bots.filter(function(o){ return o.team!==b.team && o.alive && DM.hypot(o.x-b.x,o.y-b.y) <= (b._nearestEnemyDist===Infinity? b.weapon.range : Math.max(b.weapon.range, b._nearestEnemyDist)) && hasVision(b.x,b.y,o.x,o.y) && inFov(b, o.x, o.y); }).length;
     var next = decideAction(b, b._nearestEnemyDist, alliesNear, enemiesSeen);
     // гистерезис: в отход и из отхода — не чаще раза в ~1.3с, иначе бот с низким
     // HP дёргался "отступаю / атакую / отступаю" каждые полсекунды
@@ -175,7 +175,7 @@ function resolveEngagements(){
     if(!b.alive || b.state !== "retreat"){ b._rtChk = null; return; }
     var foe = b._nearestEnemyBot || (b.lastIntel ? {x:b.lastIntel.x, y:b.lastIntel.y} : null);
     if(!foe) return;
-    var dF = Math.hypot(foe.x-b.baseX, foe.y-b.baseY);
+    var dF = DM.hypot(foe.x-b.baseX, foe.y-b.baseY);
     if(!b._rtChk){ b._rtChk = {t:tick, d:dF}; return; }
     if(tick - b._rtChk.t >= 16){
       if(dF < b._rtChk.d - 4){
