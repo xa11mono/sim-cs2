@@ -142,6 +142,7 @@ def main():
             else: cargo = shutil.which('cargo') or cargo
         r0sh([os.path.join(bindir, 'rustup.exe' if os.name == 'nt' else 'rustup'), 'target', 'add', 'wasm32-unknown-unknown'], out, 'rustup_wasm', env=env)
         r0sh([cargo, '--version'], out, 'cargo_version', env=env)
+        r0sh([os.path.join(bindir, 'rustc.exe' if os.name == 'nt' else 'rustc'), '-Vv'], out, 'rustc_version', env=env)
         ref = os.path.join(ROOT, 'tools', 'dmath', 'ref')
         if r0sh([cargo, 'build', '--release', '--manifest-path', os.path.join(ref, 'Cargo.toml')], out, 'build_dmath_ref', env=env) == 0:
             exe = os.path.join(ref, 'target', 'release', 'dmath_ref.exe' if os.name == 'nt' else 'dmath_ref')
@@ -153,7 +154,8 @@ def main():
             r0sh([os.path.join(prec, 'target', 'release', 'dump.exe' if os.name == 'nt' else 'dump'), '200000'], out, 'native_dump', cwd=prec, env=env)
             r0sh(['node', os.path.join(bench, 'node_cmp.js')], out, 'native_vs_wasm', cwd=bench, env=env)
             if os.path.exists(os.path.join(bench, 'node_result.json')): shutil.copy(os.path.join(bench, 'node_result.json'), os.path.join(out, 'math_native_wasm.json'))
-        nap = os.path.join(bench, 'nap')
+        nap = os.path.join(bench, 'nap')   # Cargo.lock закрепляет libloading 0.8.8 (windows-targets: готовые библиотеки импорта, без dlltool)
+        r0sh([cargo, 'tree', '--manifest-path', os.path.join(nap, 'Cargo.toml'), '-e', 'normal'], out, 'napi_tree', env=env)
         if r0sh([cargo, 'build', '--release', '--manifest-path', os.path.join(nap, 'Cargo.toml')], out, 'build_napi', env=env) == 0:
             lib = os.path.join(nap, 'target', 'release', 'nap.dll' if os.name == 'nt' else 'libnap.so')
             if os.path.exists(lib): shutil.copy(lib, os.path.join(nap, 'nap.node')); r0sh(['node', os.path.join(bench, 'napi_bench.js')], out, 'napi_bench', cwd=bench, env=env)
@@ -174,6 +176,8 @@ def main():
         r0sh([npx, 'install'] + [e for e in engines if e != 'chromium'], out, 'install', cwd=home)
         for e in engines: r0sh(['node', os.path.join(R0, 'xb_smoke.js'), sim, e, os.path.join(out, 'xb_%s.json' % e), str(j.get('match', 3)), str(j.get('ticks', 2000))], out, 'xb_' + e)
     # Р0.6 инварианты: {"inv": [{"label","ref","map","matches"?,"ticks"?,"special"?}]}
+    if req.get('inv'):   # локатору (I-22 / I-23 / I-30) нужен acorn — пакеты сборки (tools/rebuild/package.json) в рабочей папке исполнителя
+        r0sh([shutil.which('npm') or shutil.which('npm.cmd') or 'npm', 'install', '--prefix', os.path.join(ROOT, 'tools', 'rebuild')], r0out(req['inv'][0]), 'npm_rebuild')
     for j in req.get('inv', []):
         out = r0out(j); sim = os.path.join(sims, j['label'] + '.html'); build(j['ref'], j.get('map', 'ancient'), sim)
         for m in j.get('matches', [3, 7, 11, 13, 17, 19, 23, 29]):
