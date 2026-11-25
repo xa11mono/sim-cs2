@@ -10,7 +10,7 @@ const acorn = require("acorn"), walk = require("acorn-walk"), fs = require("fs")
 const ROOT = path.resolve(__dirname, "..", ".."), GAME = path.join(ROOT, "src", "game"), OUT = path.join(ROOT, "rebuild", "gen");
 // --check: только проверка владения (сборка, src/build.py) — ничего не пишет; нарушение поля с enforce — код выхода 1
 const CHECK = process.argv.includes("--check");
-let VARS_CROSS = [], VARS_CATS = {};   // (17.11) для проверок сборки (раздел 4 → проверка в конце)
+let VARS_CROSS = [], VARS_CATS = {}, STATE_G = null;   // (17.11) для проверок сборки (раздел 4 → проверка в конце)
 if (!CHECK) fs.mkdirSync(OUT, { recursive: true });
 const save = (f, s) => { if (!CHECK) fs.writeFileSync(f, s); };
 
@@ -100,14 +100,16 @@ const W = {}, WO = {}; FIELDS.forEach(f => { W[f] = {}; WO[f] = {}; });
 // (15.11, замечание владельца) одно имя поля у разных объектов: bot.state ≠ bomb.state ≠ редактор.state. Объект — бот, если в той же
 // функции у этого имени читают поля, какие есть только у бота (BOTP); `bots[i].x` — бот; остальное — «другой объект» (чей — по имени).
 const BOTP = new Set(["alive", "hp", "tRole", "team", "weapon", "baseX", "baseY", "nades", "primary", "money", "reactionTicks", "skill"]);
+const BOTW = {}, BOTL = {}, BOTR = {}, PROPS = new Map();   // (Р3.1) все поля бота: записи (файл:строка функция) и литералы создания — для реестра состояния
 const rootOf = e => { while (e && e.type === "MemberExpression") { if (e.object.type === "Identifier" && e.object.name === "bots" && e.computed) return "#bot"; e = e.object; } return e && e.type === "Identifier" ? e.name : e && e.type === "ThisExpression" ? "this" : null; };
 for (const { ast, off } of asts) walk.fullAncestor(ast, (n, _st, anc) => {
   let tgt = null;
   if (n.type === "AssignmentExpression") tgt = n.left; else if (n.type === "UpdateExpression") tgt = n.argument;
-  if (!tgt || tgt.type !== "MemberExpression" || tgt.computed || !FIELDS.includes(tgt.property.name)) return;
+  if (!tgt || tgt.type !== "MemberExpression" || tgt.computed) return;
   const fld = tgt.property.name, pos = n.start + off, fn = fnAt(pos), f = fileAt(pos)[2];
   const objTxt = all.slice(tgt.object.start + off, tgt.object.end + off);
-  if (fld === "phase") { if (!/tt|tac|teamTac|T0|TT/.test(objTxt)) return; (W[fld][fn + " · " + f.slice(0, 3)] = W[fld][fn + " · " + f.slice(0, 3)] || []).push(lineAt(pos)); return; }   // фаза плана T
+  const FLD = FIELDS.includes(fld);   // (Р3.1) остальные поля — только в реестр состояния (BOTW), в fields.md и проверку владения не идут
+  if (FLD && fld === "phase") { if (!/tt|tac|teamTac|T0|TT/.test(objTxt)) return; (W[fld][fn + " · " + f.slice(0, 3)] = W[fld][fn + " · " + f.slice(0, 3)] || []).push(lineAt(pos)); return; }   // фаза плана T
   const root = tgt.object.type === "Identifier" ? tgt.object.name : rootOf(tgt.object);
   const NONBOT = new Set(["bomb", "it", "S", "RP", "HGT_C", "E", "MAPED", "DEMOV", "SANDBOX"]), BOTN = new Set(["b", "bot", "bt", "sh", "shooter", "target", "vic", "victim", "att", "killer", "mate"]);
   let isBot = !NONBOT.has(root) && (root === "#bot" || /^bots\[/.test(objTxt) || BOTN.has(root));
@@ -115,13 +117,35 @@ for (const { ast, off } of asts) walk.fullAncestor(ast, (n, _st, anc) => {
   if (!isBot && !NONBOT.has(root)) for (let i = anc.length - 1; i >= 1; i--) { const a = anc[i], c = anc[i - 1];
     if (/Function/.test(a.type) && c.type === "CallExpression" && c.callee.type === "MemberExpression" && c.callee.object.type === "Identifier" && c.callee.object.name === "bots" && a.params.some(q => q.name === root)) { isBot = true; break; } }
   if (!isBot && !NONBOT.has(root) && tgt.object.type === "Identifier") {
-    const fnNode = [...anc].reverse().find(a => /Function/.test(a.type)) || ast; const props = new Set();
-    walk.simple(fnNode, { MemberExpression(m) { if (!m.computed && m.object.type === "Identifier" && m.object.name === root) props.add(m.property.name); } });
-    isBot = [...props].some(p => BOTP.has(p));
+    const fnNode = [...anc].reverse().find(a => /Function/.test(a.type)) || ast;
+    let pm = PROPS.get(fnNode); if (!pm) PROPS.set(fnNode, pm = new Map());   // (Р3.1) кэш: поля по имени объекта в функции
+    if (!pm.has(root)) { const props = new Set();
+      walk.simple(fnNode, { MemberExpression(m) { if (!m.computed && m.object.type === "Identifier" && m.object.name === root) props.add(m.property.name); } });
+      pm.set(root, [...props].some(p => BOTP.has(p))); }
+    isBot = pm.get(root);
   }
-  const k = fn + " · " + f.slice(0, 3), T = isBot ? W : WO;
+  const k = fn + " · " + f.slice(0, 3);
+  if (isBot) (BOTW[fld] = BOTW[fld] || []).push(f + ":" + lineAt(pos) + " " + fn);
+  if (!FLD) return;
+  const T = isBot ? W : WO;
   (T[fld][k] = T[fld][k] || []).push(lineAt(pos) + (isBot ? "" : " " + objTxt.slice(0, 24)));
 });
+// (Р3.1) поля, которые читают у объекта, который точно бот (имя из BOTN, bots[i]): пишут их и через другие имена (cm, best, o) —
+// эвристика записи их теряет; для реестра поле бота = записано у бота, или задано при создании, или читается у бота
+const BUILTIN = new Set([].concat(Object.getOwnPropertyNames(Array.prototype), Object.getOwnPropertyNames(String.prototype), Object.getOwnPropertyNames(Object.prototype)));
+const BOTN0 = new Set(["b", "bot", "bt", "sh", "shooter", "target", "vic", "victim", "att", "killer", "mate"]);
+for (const { ast, off } of asts) walk.fullAncestor(ast, (m, _s, anc) => {
+  if (m.type !== "MemberExpression" || m.computed || m.property.type !== "Identifier") return;
+  const o = m.object, isB = (o.type === "Identifier" && BOTN0.has(o.name)) || (o.type === "MemberExpression" && o.computed && o.object.type === "Identifier" && o.object.name === "bots");
+  if (!isB || BUILTIN.has(m.property.name)) return; const pos = m.start + off; if (+fileAt(pos)[2].slice(0, 3) >= 550) return;   // показ зовёт «b» и не бота
+  BOTR[m.property.name] = (BOTR[m.property.name] || 0) + 1;
+});
+// (Р3.1) поля бота, заданные при создании (литерал объекта с полями, какие есть только у бота) — тоже поля бота, даже если потом не пишутся
+for (const { ast, off } of asts) walk.simple(ast, { ObjectExpression(o) {
+  const keys = o.properties.filter(q => q.type === "Property" && !q.computed && q.key).map(q => q.key.name || q.key.value);
+  if (keys.filter(k => BOTP.has(k)).length < 3) return;
+  const pos = o.start + off; keys.forEach(k => { (BOTL[k] = BOTL[k] || []).push(fileAt(pos)[2] + ":" + lineAt(pos)); });
+} });
 {
   let md = "# Кто пишет поля бота (генерируется: `tools/rebuild/gen_maps.js`, статический разбор кода)\n\n" +
     "Запись — присваивание `бот.поле = …` / `++` в функции (файл — номер); то же имя у другого объекта (бомба, редактор, смок выхода) — отдельно. Хозяин — по CLAUDE.md §7; у полей без хозяина его пока нет (назначит перенос каналов).\n" +
@@ -228,15 +252,30 @@ console.log("пометок", R.length, "| полей", FIELDS.map(f => f + ":" 
   let body = main.ast.body; const iife = body.find(st => st.type === "ExpressionStatement" && st.expression.type === "CallExpression" && /Function/.test(st.expression.callee.type));
   if (iife) body = body.concat(iife.expression.callee.body.body);
   const V = {};
-  body.forEach(st => { if (st.type === "VariableDeclaration") st.declarations.forEach(d => { if (d.id.type === "Identifier") V[d.id.name] = { home: fileAt(st.start + main.off)[2].slice(0, 3), w: {}, r: {} }; }); });
+  const DECL = {};   // (Р3.1) реестр состояния: где объявлена (файл:строка)
+  body.forEach(st => { if (st.type === "VariableDeclaration") st.declarations.forEach(d => { if (d.id.type === "Identifier") { V[d.id.name] = { home: fileAt(st.start + main.off)[2].slice(0, 3), w: {}, r: {} }; DECL[d.id.name] = { at: where(d.start + main.off), init: d.init ? d.init.type : null, wf: {}, mf: {} }; } }); });
+  // (Р3.1) изменение содержимого: X.a = …, X.a++, delete X.a, X.push(…) / splice / set / add / … — запись в объект переменной, не в имя
+  const MUT = /^(push|pop|shift|unshift|splice|sort|reverse|fill|copyWithin|set|add|delete|clear)$/;
+  const memRoot = e => { while (e && e.type === "MemberExpression") e = e.object; return e && e.type === "Identifier" ? e.name : null; };
   walk.fullAncestor(main.ast, (n, _s, anc) => {
     if (n.type !== "Identifier" || !V[n.name]) return; const p = anc[anc.length - 2]; if (!p) return;
     if (p.type === "VariableDeclarator" && p.id === n) return;
     if ((p.type === "MemberExpression" && p.property === n && !p.computed) || (p.type === "Property" && p.key === n && !p.computed)) return;
-    const f = fileAt(n.start + main.off)[2].slice(0, 3);
+    const pos = n.start + main.off, f = fileAt(pos)[2].slice(0, 3);
     const isW = (p.type === "AssignmentExpression" && p.left === n) || (p.type === "UpdateExpression");
     const T = isW ? V[n.name].w : V[n.name].r; T[f] = (T[f] || 0) + 1;
+    if (isW) { const k = fnAt(pos) + " · " + f; DECL[n.name].wf[k] = (DECL[n.name].wf[k] || 0) + 1; }
   });
+  walk.fullAncestor(main.ast, (n) => {
+    let tgt = null;
+    if (n.type === "AssignmentExpression" || n.type === "UpdateExpression") tgt = n.type === "AssignmentExpression" ? n.left : n.argument;
+    else if (n.type === "UnaryExpression" && n.operator === "delete") tgt = n.argument;
+    else if (n.type === "CallExpression" && n.callee.type === "MemberExpression" && !n.callee.computed && MUT.test(n.callee.property.name)) tgt = n.callee.object;
+    if (!tgt || (tgt.type !== "MemberExpression" && n.type !== "CallExpression")) return;
+    const r = memRoot(tgt); if (!r || !DECL[r]) return;
+    const pos = n.start + main.off, k = fnAt(pos) + " · " + fileAt(pos)[2].slice(0, 3); DECL[r].mf[k] = (DECL[r].mf[k] || 0) + 1;
+  });
+  STATE_G = { V, DECL };
   let cats = {}; try { cats = JSON.parse(fs.readFileSync(path.join(ROOT, "rebuild", "var_cats.json"), "utf8")); } catch (e) {}
   VARS_CATS = cats;
   const cross = VARS_CROSS = Object.entries(V).filter(([k, v]) => Object.keys(v.w).some(f => f !== v.home)).sort((a, b) => Object.keys(b[1].w).length - Object.keys(a[1].w).length);
@@ -248,6 +287,30 @@ console.log("пометок", R.length, "| полей", FIELDS.map(f => f + ":" 
   save(path.join(OUT, "vars.md"), md);
   save(path.join(OUT, "vars.json"), JSON.stringify(Object.fromEntries(cross.map(([k, v]) => [k, v]))));
   console.log("общих переменных", Object.keys(V).length, "из чужих файлов пишут", cross.length);
+}
+
+// ---- (Р3.1, 25.11) реестр состояния — машинная часть: каждая общая переменная (объявление, кто пишет имя, кто меняет содержимое, кто
+// читает, в снимке ли сейчас и почему нет) и каждое поле бота (кто пишет, где задаётся при создании). Смысловая разметка (класс, хозяин,
+// срок жизни, политика снимка) — отдельно, rebuild/state_classes.json; неизвестное там «не размечено», а не догадка (владелец 25.11).
+// Снимок «сейчас» — src/marks_build.py snap_vars (одно место); на --check не считается (только проверка полноты).
+const stateNames = () => ({ g: Object.keys(STATE_G.DECL), b: [...new Set(Object.keys(BOTW).concat(Object.keys(BOTL), Object.keys(BOTR)))] });
+if (!CHECK) {
+  let snap = null, why = {};
+  try {
+    const py = process.env.SIM_PY || (process.platform === "win32" ? "python" : "python3");
+    const out = require("child_process").execFileSync(py, ["-c", "import sys, json; sys.path.insert(0, " + JSON.stringify(path.join(ROOT, "src")) + "); import marks_build as M; from gamesrc import game_source; " +
+      "s = game_source(); print(json.dumps({'snap': M.snap_vars(s), 'sets': {k: sorted(getattr(M, k)) for k in ('STATIC', 'SETTINGS', 'UI', 'EXTRA_STATIC')}}))"], { cwd: ROOT, maxBuffer: 1 << 26 }).toString();
+    const J = JSON.parse(out); snap = new Set(J.snap); for (const [k, L] of Object.entries(J.sets)) L.forEach(v => { why[v] = k; });
+  } catch (e) { console.error("реестр состояния: список снимка не получен (" + String(e.message).slice(0, 120) + ")"); }
+  const srt = o => Object.fromEntries(Object.entries(o).sort());
+  const G = {}; for (const [k, d] of Object.entries(STATE_G.DECL).sort((a, b) => a[0] < b[0] ? -1 : 1)) {
+    const v = STATE_G.V[k];
+    G[k] = { decl: d.at, init: d.init, w: srt(d.wf), m: srt(d.mf), r: srt(v.r),
+      snap: !snap ? null : snap.has(k) ? true : (why[k] || (/^(__|MK|mk)/.test(k) ? "служебное снимка" : "?")) };
+  }
+  const B = {}; for (const k of stateNames().b.sort()) B[k] = { w: (BOTW[k] || []).slice().sort(), lit: (BOTL[k] || []).slice().sort(), r: BOTR[k] || 0 };
+  save(path.join(OUT, "state.json"), JSON.stringify({ _: "реестр состояния, машинная часть (tools/rebuild/gen_maps.js); снимок сейчас: true — в __SNAP; строка — почему нет (marks_build.py); поля бота — в снимке вместе с bots; рантайм-фильтры mkSnapList / mkSnapshot — tools/rebuild/state_snap.js", globals: G, bot: B }, null, 1));
+  console.log("реестр состояния: переменных " + Object.keys(G).length + ", полей бота " + Object.keys(B).length);
 }
 
 // ---- (17.11, владелец: «чтобы нейронка не создавала новые файлы и дубли») защита устройства — ошибка сборки:
@@ -277,6 +340,20 @@ if (CHECK) {
     }
   }
   if (G.length) { G.forEach(g => console.error("ОШИБКА устройства: " + g)); process.exit(1); }
+}
+// ---- (Р3.1, владелец 25.11) полнота реестра состояния — ошибка сборки: у каждой общей переменной и каждого поля бота есть строка
+// смысловой разметки (rebuild/state_classes.json; новое имя — `python3 tools/rebuild/state_classes.py`, оно получит «не размечено» или
+// класс по правилу с доказательством); класс — из списка файла; строки исчезнувших имён убираются
+if (CHECK) {
+  let SC = null; try { SC = JSON.parse(fs.readFileSync(path.join(ROOT, "rebuild", "state_classes.json"), "utf8")); } catch (e) { console.error("ОШИБКА реестра состояния: нет rebuild/state_classes.json"); process.exit(1); }
+  const N = stateNames(), want = new Set(N.g.map(n => "g:" + n).concat(N.b.map(n => "b:" + n))), CL = new Set(SC._classes || []), E = [];
+  for (const k of want) if (!SC[k]) E.push("нет строки " + k + " — новая переменная / поле бота: python3 tools/rebuild/state_classes.py, затем разметка");
+  for (const [k, o] of Object.entries(SC)) { if (k[0] === "_") continue;
+    if (!want.has(k) || o.gone) E.push("строка " + k + " — такого имени в коде больше нет: убрать из реестра (state_classes.py)");
+    else if (!CL.has(o.class)) E.push("строка " + k + ": класс «" + o.class + "» не из списка _classes"); }
+  if (E.length) { E.slice(0, 30).forEach(e => console.error("ОШИБКА реестра состояния: " + e)); if (E.length > 30) console.error("… и ещё " + (E.length - 30)); process.exit(1); }
+  const un = Object.entries(SC).filter(([k, o]) => k[0] !== "_" && o.class === "не размечено").length;
+  console.log("реестр состояния: строк " + want.size + ", не размечено " + un);
 }
 // ---- проверка владения: запись поля из функции не из канала (owners.json → allow) — предупреждение, при enforce — ошибка
 if (CHECK) {
