@@ -52,12 +52,19 @@ MED_C_HINTS KF_IMG OBS OBS_K OBC RP RP_K RP_SNAPS RP_BF TS TS_K MINI WARM img im
 EXTRA_STATIC = set("PRO_PRIOR PRO_LOOK PRO_SPOTS ZDJ KPC DM".split())   # (Р2.2) DM — общая математика 005_dmath.ts: функции, не состояние. (v458) ZDJ / KPC — кэши поиска пути одного тика (в ZDJ — куча с функциями: снимок падал «could not be cloned», разминка не стартовала)   # v255: по замеру — за 2 матча не меняются, ~400 КБ снимка
 
 
+def snap_vars(s):
+    """Переменные, которые сборка кладёт в снимок отметки (__SNAP), по порядку. (Р3.1, 25.11) одно место: им пользуются сборка и реестр
+    состояния (tools/rebuild/state_gen.js — графа «в снимке сейчас»). Склейка s + каналы-модули (rebuild/modules.json)."""
+    from gamesrc import module_source
+    return [v for v in top_vars(s) + [x for x in top_vars(module_source()) if x not in top_vars(s)] if v not in STATIC | SETTINGS | UI | EXTRA_STATIC and not v.startswith('__') and not v.startswith('MK') and not v.startswith('mk')]
+
+
 def inject(s):
     assert s.count(MARK) == 1, "нет метки @@BUILD@@ в игре"
     # (17.11, перестройка — модули) переменные каналов-модулей (rebuild/modules.json) — тоже в снимок: их нет в склейке; запись — через
     # сеттер модуля (сборщик tools/rebuild/mod_build.js переписывает строки __SNAP на __set_<имя>)
     from gamesrc import module_source
-    V = [v for v in top_vars(s) + [x for x in top_vars(module_source()) if x not in top_vars(s)] if v not in STATIC | SETTINGS | UI | EXTRA_STATIC and not v.startswith('__') and not v.startswith('MK') and not v.startswith('mk')]
+    V = snap_vars(s)
     for must in ['tick', 'bots', 'bomb', 'roundNum', 'matchNum', 'smokes', 'score', 'roundState']:
         assert must in V, must
     snap = "var __SNAP = [\n" + ",\n".join('["%s", function(){ return %s; }, function(v){ try{ %s = v; }catch(e){} }]' % (v, v, v) for v in V) + "\n];\n"
