@@ -384,7 +384,7 @@ function fightCycleTick(b, dtSec, busy){
 // опасность пути: рядом (≤380px) со свежей (≤10с) позицией живого T или через
 // зону, где T по карте вероятностей почти наверняка есть
 function pathDanger(team, pts){
-  var BL = beliefLast[team] || {}, foes = [];
+  var BL = kvLast(team), foes = [];
   for(var eid in BL){ var lo = BL[eid]; if(tick - lo.tick > 10*TICK_HZ) continue; var e = bots.filter(function(o){ return o.id === eid; })[0]; if(e && e.alive) foes.push(lo); }
   for(var i = 0; i < pts.length; i++){
     var q = pts[i];
@@ -416,7 +416,7 @@ function safeRotate(b, dest, site){
 // ждём сбора и не кидаем гранат: дефузер идёт сразу, последние метры шифтом
 function ninjaOk(){
   var ts = bots.filter(function(o){ return o.team === "T" && o.alive; }); if(!ts.length) return false;
-  var BL = beliefLast.CT || {};
+  var BL = kvLast("CT");
   return ts.every(function(t){ var lo = BL[t.id]; return lo && tick - lo.tick < 8*TICK_HZ && DM.hypot(lo.x-bomb.x, lo.y-bomb.y) > 700; });
 }
 // ---- (7) перезарядка за укрытием ----
@@ -424,7 +424,7 @@ function exposedTo(b, maxD, maxAge, anyLos){
   // только реальная угроза выглянуть сейчас: свежая (≤4с) инфа и близко (≤600) —
   // иначе бот уходил с угла на каждую перезарядку и сайт оставался пустым
   maxD = maxD || 600; maxAge = maxAge || 4*TICK_HZ;
-  var BL = beliefLast[b.team] || {}, out = [];
+  var BL = kvLast(b.team), out = [];
   for(var eid in BL){ var lo = BL[eid]; if(tick - lo.tick > maxAge) continue; var e = bots.filter(function(o){ return o.id === eid; })[0]; if(!e || !e.alive) continue;
     if(DM.hypot(lo.x-b.x, lo.y-b.y) < maxD && (anyLos || hasLOS(b.x, b.y, lo.x, lo.y, b.z))) out.push({x:lo.x, y:lo.y}); }
   // (п.5 владельца 29.10, м1 р2 т12112: zont1x с 16 HP перезаряжался на виду — метку стрелка lkpTick стёр в тот же тик) по нему самому
@@ -517,7 +517,7 @@ function lowHpBack(b){
   var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === b.team; });
   if(!mates.length) return; // один — отходить не к кому
   if(mates.some(function(o){ return nearP(o.x, o.y, o.z, b.x, b.y, b.z, 350); })) return; // рядом уже есть свой (v532 — по пути)
-  var threat = exposedTo(b).concat([]); var BL = beliefLast[b.team] || {};
+  var threat = exposedTo(b).concat([]); var BL = kvLast(b.team);
   var near = false; for(var eid in BL){ var lo = BL[eid]; if(tick - lo.tick < 8*TICK_HZ && nearPath(lo.x, lo.y, 700)){ near = true; threat.push({x:lo.x, y:lo.y}); } }   // (v531) враг рядом — тоже по пути
   if(!near) return;
   // опорник на своём сайте с малым HP сайт не бросает — отходит, только если
@@ -625,7 +625,7 @@ function dangerWalk(b){
   // первые 20 с раунда, враг в 600–900, — шагом 50 % у ботов T против 30 % у про, и в 54 % таких моментов причиной был этот угол.
   // Теперь угол — только если враг мог уже быть там (без запаса) и есть живой враг, которого команда не видела / не слышала
   // за 5 с (проектное число, как «свежая» инфа в 540) дальше слышимости моего бега от пути. Все живые засвечены далеко — бегом
-  var foeAll = bots.filter(function(o){ return o.alive && o.team !== b.team; }), BLw = beliefLast[b.team] || {};
+  var foeAll = bots.filter(function(o){ return o.alive && o.team !== b.team; }), BLw = kvLast(b.team);
   var unacc = foeAll.some(function(o){ var e = BLw[o.id]; if(!e || tick - e.tick > 5*TICK_HZ) return true;
     return pts.some(function(q){ return DM.hypot(q[0]-e.x, q[1]-e.y) <= 1.5*STEP_HEAR_R(); }); });
   var uncW = function(j){ var R = REACH[foe]; return (R && !(R[j] <= tick)) ? 0 : uncheckedW(foe, j); };
@@ -646,7 +646,7 @@ function dangerWalk(b){
   // палил позицию. Если враг недавно (≤15с) был засвечен рядом с путём (≤650px)
   // и он жив — идём тихо, пока его не найдут снова
   if(!b._dwVal){
-    var L = beliefLast[b.team] || {}, BL = beliefLast[b.team] || {};
+    var L = kvLast(b.team), BL = kvLast(b.team);
     outer: for(var eid in BL){
       var lo = BL[eid]; if(!lo || tick - lo.tick > 15*TICK_HZ) continue;
       var foeB = bots.filter(function(o){ return o.id === eid; })[0]; if(!foeB || !foeB.alive) continue;

@@ -2,7 +2,7 @@
 // ближе BACK_R, ход от них дальше 115°) — пятится лицом к ним: «по ходу» / «за спиной» — от направления на врагов, иначе — по ходу движения
 function lookHeading(b){
   var h = b.heading; if(h === undefined) return h;
-  var BLk = beliefLast[b.team] || {}, ekx = 0, eky = 0;
+  var BLk = kvLast(b.team), ekx = 0, eky = 0;
   for(var ek in BLk){ var lk = BLk[ek]; if(!lk || tick - lk.tick > BACK_KNOW*TICK_HZ) continue; var eo = teamBot(ek); if(!eo || !eo.alive || eo.team === b.team) continue;
     if(DM.hypot(lk.x-b.x, lk.y-b.y) > BACK_R) continue; var ea = DM.atan2(lk.y-b.y, lk.x-b.x); ekx += DM.cos(ea); eky += DM.sin(ea); }
   return (ekx || eky) && _angOff(DM.atan2(eky, ekx), h) > 2.0 ? DM.atan2(eky, ekx) : h;
@@ -58,7 +58,7 @@ function lookCands0(b, W){
     var ref = (nBest >= 0 && nVal > beliefZoneKnown(team, j)) ? (BZ.portal && BZ.portal[j][nBest]) || BZ.cent[nBest] : null;
     // врага в этой зоне недавно (≤8с) видели/слышали — целимся туда, где он был,
     // а не в любую точку большой зоны (Mid — это полкарты)
-    var BLr = beliefLast[team] || {}, lkBest = null, lkAge = 1e9;
+    var BLr = kvLast(team), lkBest = null, lkAge = 1e9;
     for(var eidr in BLr){ var lr = BLr[eidr]; if(!lr || tick - lr.tick > 8*TICK_HZ || tick - lr.tick >= lkAge) continue;
       if(bzOf(lr.x, lr.y) !== j) continue;
       var er = bots.filter(function(o){ return o.id === eidr; })[0]; if(!er || !er.alive) continue;
@@ -145,7 +145,7 @@ function lookCands0(b, W){
   var cts = [];
   var hs = b.heardSound; if(hs && tick - hs.tick > LOOK_FRESH && tick - hs.tick <= 96) cts.push({x:hs.x, y:hs.y, age:tick-hs.tick, kind:hs.kind});
   if(b._contact && tick < b._contact.until && !lookContactFresh(b)) cts.push({x:b._contact.x, y:b._contact.y, age:32});
-  var BLc = beliefLast[team] || {};
+  var BLc = kvLast(team);
   for(var eid in BLc){ var lo = BLc[eid]; if(tick - lo.tick > 96 || tick - lo.tick <= LOOK_FRESH) continue;
     var eb = bots.filter(function(o){ return o.id === eid; })[0]; if(!eb || !eb.alive || ignoredShooter(b, eid)) continue; cts.push({x:lo.x, y:lo.y, age:tick-lo.tick, seen: lo.src === "spotted"}); }
   cts.forEach(function(q){
@@ -222,7 +222,7 @@ function lookMateAhead(b, mates, j, c, d, za, F, p){
   return 1;
 }
 function knownWayLook(b){
-  var BL = beliefLast[b.team] || {}, best = null;
+  var BL = kvLast(b.team), best = null;
   for(var id in BL){ var l = BL[id]; if(!l) continue; var age = (tick - l.tick)/TICK_HZ; if(age > KNOWN_SEC) continue;
     var e = bots.filter(function(o){ return o.id === id; })[0]; if(!e || !e.alive) continue;   // жив — видно по табло
     if(!best || age < best.age) best = {id:id, x:l.x, y:l.y, age:age}; }
@@ -554,7 +554,7 @@ function lookKnowCands(b){
   var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === b.team; });
   // (отметка владельца 18.11 м33, m0NESY; «чинить механику целиком») знание (звук, инфа команды, «где убили своего») берёт взгляд, только если
   // это место не дальше по пути, чем ближайший враг, известный команде (≤ BACK_KNOW с): дальнее — в общей оценке углов. Свой контакт — всегда
-  var BLk = beliefLast[b.team] || {}, kMin = Infinity;
+  var BLk = kvLast(b.team), kMin = Infinity;
   for(var ek in BLk){ var lk = BLk[ek], ok = teamBot(ek); if(!lk || !ok || !ok.alive || tick - lk.tick > BACK_KNOW*TICK_HZ) continue;
     var dk = polyLen(pathPts(lk.x, lk.y, b.x, b.y, null, b.z)); if(dk < kMin) kMin = dk; }
   var add = function(lvl, kind, q, k){
@@ -584,7 +584,7 @@ function lookKnowCands(b){
     if(DM.hypot(s.x-b.x, s.y-b.y) >= FB.deathR || polyLen(pathPts(b.x, b.y, s.x, s.y, b.z)) >= FB.deathR) continue;
     add(LOOK_LEVEL.sound, "death", {x: s.kx != null ? s.kx : s.x, y: s.kx != null ? s.ky : s.y, age: tick - s.tick}); break; }
   // команда знает сейчас: видят (радар) / слышали / сказали ≤ 1 с; в упор (≤ 250 px) — та же «свежая угроза», что у зоны
-  var BL = beliefLast[b.team] || {};
+  var BL = kvLast(b.team);
   for(var eid in BL){ var lo = BL[eid]; if(!lo || tick - lo.tick > LOOK_FRESH) continue;
     var eb = bots.filter(function(o){ return o.id === eid; })[0]; if(!eb || !eb.alive) continue;
     add(LOOK_LEVEL.team, "team", {x: lo.x, y: lo.y, age: tick - lo.tick}, lo.src === "spotted" && DM.hypot(lo.x-b.x, lo.y-b.y) <= 250 ? LOOK.freshK : 1); }

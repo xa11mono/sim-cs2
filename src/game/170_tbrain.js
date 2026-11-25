@@ -861,7 +861,7 @@ function tBrain(){
     // (v530, отметка владельца 10.11: «игрока 0 уводит далеко от бомбы, хотя он знает, что рядом враг» — уход за 18,7 с до взрыва при CT в 58 px
     // от бомбы) пока CT, о котором команда знает (видели / слышали ≤ 10 с — как «свежая позиция» в pathDanger), успевает дойти от того места
     // и дефузнуть (с китом — кита у врага игрок не видит, считает худшее), бомбу не бросают: уйти — отдать раунд
-    var BLf = beliefLast.T || {}, ctCanDefuse = false;
+    var BLf = kvLast("T"), ctCanDefuse = false;
     for(var fid in BLf){ var fq = BLf[fid], fo = teamBot(fid); if(!fo || !fo.alive || fo.team !== "CT" || tick - fq.tick > 10*TICK_HZ) continue;
       if(polyLen(pathPts(fq.x, fq.y, bomb.x, bomb.y, fo.z, bomb.z))/SPEED + DEFUSE_KIT_TICKS/TICK_HZ < leftS){ ctCanDefuse = true; break; } }
     if(ctCanDefuse) ts.forEach(function(b){ b._flee = null; if(b.post && b.post.tag === "flee") clearPost(b); });

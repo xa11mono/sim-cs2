@@ -32,7 +32,7 @@ function tIglReplan(tt, site, other, secLeft){
   // (выход — не раньше чем через CONT_REGROUP с). Тактика раунда в памяти матча — начало (tt.open)
   if(tt.phase === "setup" && tt.tac.style === "default" && !tt._cont && tt.site === tt.tac.site && aliveT >= 3 && tt.execTick > tick && (tt.defUntil ? tick >= tt.defUntil : tt.execTick - tick <= CONT_SEC*TICK_HZ)){
     tt._cont = tick;
-    var tsC = bots.filter(function(b){ return b.team === "T" && b.alive; }), BLc = beliefLast.T || {};
+    var tsC = bots.filter(function(b){ return b.team === "T" && b.alive; }), BLc = kvLast("T");
     var contScore = function(t){ var sc = 0; t.groups.forEach(function(g){ (g.via || []).forEach(function(n){ var zp = zonePoint(n, site); if(!zp) return;
       if(tsC.some(function(b){ return DM.hypot(b.x-zp.x, b.y-zp.y) < 250; })) sc += 1;
       if(bots.some(function(o){ var e = BLc[o.id]; return o.alive && o.team === "CT" && e && tick - e.tick <= SITE_SEEN_SEC*TICK_HZ && DM.hypot(e.x-zp.x, e.y-zp.y) < 300; })) sc -= 2; }); }); return sc; };

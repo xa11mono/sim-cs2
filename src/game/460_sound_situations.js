@@ -103,7 +103,7 @@ function finishPush(b){
   if(b.team === "CT" && nOwn <= nEn) return;
   var BR = teamIntel[b.team].buy; if(BR && BR.read === "eco" && b.primary && WEAPONS[b.primary].tier >= 5) return;
   var hpMax = nOwn >= nEn + 1 ? 35 : 20;   // 20 — ответ про-аналитика; 35 при перевесе — прежнее проектное число (v334)
-  var BL = beliefLast[b.team] || {}, tgt = null, tid = null;
+  var BL = kvLast(b.team), tgt = null, tid = null;
   for(var eid in HT){ var h = HT[eid]; if(h.hp > hpMax || tick - h.tick > 8*TICK_HZ) continue;
     var e = bots.filter(function(o){ return o.id === eid; })[0]; if(!e || !e.alive) continue;
     var lo = BL[eid]; if(!lo || tick - lo.tick > 4*TICK_HZ || DM.hypot(lo.x-b.x, lo.y-b.y) > 600) continue;
@@ -129,7 +129,7 @@ function smokeFadeTick(){
       var d = DM.hypot(b.x-sm.x, b.y-sm.y); if(d > 550 || d < NADE.smoke.radius) return;
       if(!hasLOS(b.x, b.y, sm.x, sm.y, b.z)) return;
       // враг вероятно за дымом: свежая инфа за ним (дальше центра от нас)
-      var BL = beliefLast[b.team] || {}, far = null;
+      var BL = kvLast(b.team), far = null;
       for(var eid in BL){ var lo = BL[eid]; if(tick - lo.tick > 10*TICK_HZ) continue; if(DM.hypot(lo.x-sm.x, lo.y-sm.y) < 450 && DM.hypot(lo.x-b.x, lo.y-b.y) > d){ far = lo; break; } }
       if(!far) return;
       sm._fadeReady[b.id] = 1;
@@ -146,7 +146,7 @@ function awpSmokeTick(){
   if(tick % 16) return;
   ["CT","T"].forEach(function(team){
     if(tick < awpSmokeCd[team]) return;
-    var BL = beliefLast[team] || {};
+    var BL = kvLast(team);
     for(var eid in BL){ var lo = BL[eid]; if(lo.src !== "spotted" || tick - lo.tick > 8*TICK_HZ) continue;
       var e = bots.filter(function(o){ return o.id === eid; })[0]; if(!e || !e.alive || e.primary !== "AWP") continue;
       var ap = {x:lo.x, y:lo.y};

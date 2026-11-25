@@ -136,7 +136,7 @@ function prePeekDecide(b, C, zB){
   var PD = b._ppDone || (b._ppDone = {}); if(PD.round !== roundNum){ PD = b._ppDone = {round:roundNum}; }
   if(PD[key]) return; PD[key] = 1;
   // инфа, что угол держат: свежая точка врага за углом или высокая вероятность
-  var L = beliefLast[b.team] || {}, holder = null;
+  var L = kvLast(b.team), holder = null;
   for(var e in L){ var q = L[e]; if(tick - q.tick < 8*TICK_HZ && DM.hypot(q.x-C.beyond.x, q.y-C.beyond.y) < 450){ holder = q; break; } }
   // (10) в прошлых раундах CT пикнули отсюда агрессивно — считаем, что угол держат
   if(!holder && b.team === "T"){ var ag = rmemRecent(RMEM.aggro, 2).filter(function(e){ return DM.hypot(e.x-C.beyond.x, e.y-C.beyond.y) < 380; })[0];

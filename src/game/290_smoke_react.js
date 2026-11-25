@@ -24,7 +24,7 @@ var SMK_ENTRY_R = 700;   // (v359) проектное число
 function smokeEnemyPossible(b, s, pt, seen){
   var zi = bzOf(pt.x, pt.y);
   if(!seen && zi >= 0 && !reachPossible(b.team, zi) && (BZ.nbr[zi]||[]).every(function(j){ return !reachPossible(b.team, j); })) return false;
-  var foe = b.team === "CT" ? "T" : "CT", BL = beliefLast[b.team] || {}, R = smokeRadiusNow(s), alive = 0, away = 0;
+  var foe = b.team === "CT" ? "T" : "CT", BL = kvLast(b.team), R = smokeRadiusNow(s), alive = 0, away = 0;
   bots.forEach(function(e){
     if(e.team !== foe || !e.alive) return; alive++;
     var L = BL[e.id]; if(L && tick - L.tick < 4*TICK_HZ && DM.hypot(L.x-s.x, L.y-s.y) > R + 400) away++;

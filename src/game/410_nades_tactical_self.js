@@ -204,7 +204,7 @@ function nadeReact(){
   bots.forEach(function(b){
     if(!b.alive || b.hp > 25 || b.nadeTask || b.planting || b.defusing || !b.nades || tick < (b._dumpCd||0)) return;
     var tp = b.nades.molly > 0 ? "molly" : b.nades.he > 0 ? "he" : b.nades.flash > 0 ? "flash" : null; if(!tp) return;
-    var BLd = beliefLast[b.team] || {}, tg = null, bd = Infinity;
+    var BLd = kvLast(b.team), tg = null, bd = Infinity;
     for(var eD in BLd){ var lo = BLd[eD]; if(tick - lo.tick > 3*TICK_HZ) continue; if(!bots.some(function(o){ return o.id === eD && o.alive; })) continue;
       var dd = DM.hypot(lo.x-b.x, lo.y-b.y); if(dd > 140 && dd < NADE_THROW_RANGE && dd < bd){ bd = dd; tg = lo; } }
     if(!tg) return;
@@ -215,7 +215,7 @@ function nadeReact(){
   // (16) HE по раненому за укрытием (HE до 57 урона, по броне вдвое меньше)
   ["CT","T"].forEach(function(team){
     var HT = teamIntel[team].hurt; if(!HT) return;
-    var BLh = beliefLast[team] || {};
+    var BLh = kvLast(team);
     for(var eH in HT){ var h = HT[eH]; if(h.hp > 28 || tick - h.tick > 8*TICK_HZ || h._heDone) continue;
       var lo = BLh[eH]; if(!lo || tick - lo.tick > 3*TICK_HZ) continue;
       if(!bots.some(function(o){ return o.id === eH && o.alive; })) continue;
@@ -232,7 +232,7 @@ function nadeReact(){
   // в 3 % случаев; у про такого броска нет (CT молотовы по времени — Mid, T Lower, Ramp — есть в лайнапах про)
   ["CT","T"].forEach(function(team){
     if(tick < nadeReactCd[team]) return;
-    var L = beliefLast[team] || {}, pts = [];
+    var L = kvLast(team), pts = [];
     for(var eid in L){ var lo = L[eid]; if(tick - lo.tick > 3*TICK_HZ) continue; var e = bots.filter(function(o){ return o.id === eid; })[0]; if(e && e.alive) pts.push(lo); }
     for(var i=0;i<pts.length;i++) for(var j=i+1;j<pts.length;j++){
       if(DM.hypot(pts[i].x-pts[j].x, pts[i].y-pts[j].y) > 160) continue;
@@ -253,7 +253,7 @@ function nadeReact(){
     if(bomb.state === "carried" && bomb.carrier === b) return;
     var alone = !bots.some(function(o){ return o !== b && o.alive && o.team === b.team && DM.hypot(o.x-b.x, o.y-b.y) < 220; });   // не один — пикнут вместе
     var dP = DM.hypot(b.post.x-b.x, b.post.y-b.y); if(dP > 260 || dP < 50) return;
-    var L = beliefLast[b.team] || {}, tgt = null;
+    var L = kvLast(b.team), tgt = null;
     for(var eid in L){ var lo = L[eid]; if(tick - lo.tick > 5*TICK_HZ) continue;
       var e = bots.filter(function(o){ return o.id === eid; })[0]; if(!e || !e.alive) continue;
       if(DM.hypot(lo.x-b.post.x, lo.y-b.post.y) > 420 || hasLOS(b.x, b.y, lo.x, lo.y, b.z)) continue;

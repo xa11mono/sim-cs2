@@ -39,7 +39,7 @@ function lurkerBrain(b, tt, other){
   if(tt.phase === "setup" && !lurkGoNow(tt)){
     var SO = b._lurkSolo && b._lurkSolo.round === roundNum && b._lurkSolo.site === other ? b._lurkSolo : null;
     if(!SO && !b._sawEnemy && ROUND_TIME_SEC - (simTime - roundStartTime) > EXU_LATE){
-      var route = [LP.entry, go.anchor, GEO.rotator].filter(Boolean), BLs = beliefLast.T || {};
+      var route = [LP.entry, go.anchor, GEO.rotator].filter(Boolean), BLs = kvLast("T");
       // опасно — известный команде (за SITE_SEEN_SEC) CT простреливает точку пути: с его места есть линия на неё
       var danger = route.some(function(p){ return bots.some(function(o){ var e = BLs[o.id]; return o.alive && o.team === "CT" && e && tick - e.tick <= SITE_SEEN_SEC*TICK_HZ && hasLOS(e.x, e.y, p.x, p.y); }); });
       var stack = siteAssess("T", tt.site).near >= 2;
@@ -372,7 +372,7 @@ function markClear(team, x, y, who, posChecked){
 // Свежая инфа о враге у самого сайта (≤ SITE_SEEN_SEC) — «защищён» всегда. Ответ {unknown, near, level: "empty" | "weak" | "held"}
 var SITE_SEEN_SEC = 8, SITE_AWAY = 900;   // с, px — как в калибровке (сторож rec2.js); 8 с — окно свежей инфы intelEstimate, 900 — проектное
 function siteAssess(team, k){
-  var S = SITES[k], BL = beliefLast[team] || {}, foe = team === "T" ? "CT" : "T", unknown = 0, near = 0;
+  var S = SITES[k], BL = kvLast(team), foe = team === "T" ? "CT" : "T", unknown = 0, near = 0;
   bots.forEach(function(o){ if(o.team !== foe || !o.alive) return; var q = BL[o.id];
     var fresh = q && tick - q.tick <= SITE_SEEN_SEC*TICK_HZ;
     if(fresh && DM.hypot(q.x-S.x, q.y-S.y) <= SITE_AWAY) near++; else if(!fresh) unknown++; });
@@ -407,6 +407,6 @@ function soloMayWalk(b){
   var d = DM.hypot(site.x-b.x, site.y-b.y) * 1.3;
   if(d / (SPEED*WALK_SPEED_FRAC) > secLeft - 12) return false;
   var cts = bots.filter(function(o){ return o.team === "CT" && o.alive; });
-  var allKnownFar = cts.every(function(o){ var e = beliefLast.T[o.id]; return e && tick - e.tick < 5*TICK_HZ && DM.hypot(e.x-site.x, e.y-site.y) > 1100; });
+  var allKnownFar = cts.every(function(o){ var e = kvLast("T")[o.id]; return e && tick - e.tick < 5*TICK_HZ && DM.hypot(e.x-site.x, e.y-site.y) > 1100; });
   return !allKnownFar;
 }

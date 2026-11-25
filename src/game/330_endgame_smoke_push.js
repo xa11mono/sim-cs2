@@ -73,7 +73,7 @@ function endgameBrain(){
     var bSite = null, cId = team === "CT" && nFoe <= 2 && !(bomb && bomb.state === "planted") ? teamIntel.CT.carrierId : null;
     // носитель погиб — бомба выпала там, где его последний раз видели с ней (teamIntel.carrier): её поднимет кто-то из оставшихся
     var cAlive = cId && bots.some(function(o){ return o.id === cId && o.alive; });
-    var cL = cId ? (cAlive ? (beliefLast.CT || {})[cId] : (teamIntel.CT.carrierLast || teamIntel.CT.carrier)) : null;
+    var cL = cId ? (cAlive ? kvLast("CT")[cId] : (teamIntel.CT.carrierLast || teamIntel.CT.carrier)) : null;
     if(cL) ["A","B"].forEach(function(k){ var dk = DM.hypot(cL.x-SITES[k].x, cL.y-SITES[k].y); if(dk <= EG_BOMB_SITE_R && (!bSite || dk < DM.hypot(cL.x-SITES[bSite].x, cL.y-SITES[bSite].y))) bSite = k; });
     if(!K && bSite){ var kId = cAlive ? cId : (bots.filter(function(o){ return o.team === foe && o.alive; })[0] || {}).id; if(kId) K = {id:kId, x:cL.x, y:cL.y, type:"spotted", tick:cL.tick}; }
     if(!K) return;
@@ -131,7 +131,7 @@ function endgameBrain(){
       // (v146) по демкам: у про при перевесе до планта T в 77% идут ставить (≈8с),
       // а не ищут последних; CT — время на их стороне. Добивать идёт только тот,
       // кто рядом со СВЕЖИМ врагом (≤3с, ≤700px) — остальные играют свою задачу
-      var klo = (beliefLast[team] || {})[K.id], kAge = klo ? tick - klo.tick : 1e9;
+      var klo = (kvLast(team))[K.id], kAge = klo ? tick - klo.tick : 1e9;
       if(klo && DM.hypot(klo.x-kp.x, klo.y-kp.y) > 300) kAge = Math.min(kAge, K.tick != null ? tick - K.tick : kAge);
       // (v297, И41, владелец 14.10: T4 шёл на пик в Cave, на 3,1 с инфы охоту отпустило — за тик развернуло на точку лёрка)
       // начать охоту — враг свежий (≤ 3 с, демки); продолжить начатую — пока инфе ≤ 6 с (окно сигнала выше). Отпустило, а до точки

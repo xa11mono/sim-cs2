@@ -503,7 +503,7 @@ function afterTaskPick(b, pt){
   var T = b._task;
   if(T && T.round === roundNum && (T.lv === 9 || T.lv === 6) && !taskAlive(b)) b._aft = {round:roundNum, x:b.baseX, y:b.baseY};
   var A = b._aft; if(!A || A.round !== roundNum || !pt) return null;
-  var BL = beliefLast[b.team] || {}, foe = b.team === "T" ? "CT" : "T", th = null;
+  var BL = kvLast(b.team), foe = b.team === "T" ? "CT" : "T", th = null;
   bots.some(function(o){ var e = BL[o.id]; if(!o.alive || o.team !== foe || !e || tick - e.tick > SITE_SEEN_SEC*TICK_HZ) return false;
     if(hasLOS(e.x, e.y, pt.x, pt.y) && !hasLOS(e.x, e.y, A.x, A.y)){ th = e; return true; } return false; });
   if(!th){ b._aft = null; return null; }

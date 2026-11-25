@@ -25,7 +25,7 @@ function beliefZoneKnownB(b, i){
 }
 // в этой зоне (или рядом, ≤400) есть враг, которого видели/слышали ≤3с назад
 function freshThreatNear(team, c){
-  var L = beliefLast[team] || {};
+  var L = kvLast(team);
   for(var eid in L){ var lo = L[eid]; if(tick - lo.tick <= 3*TICK_HZ && DM.hypot(lo.x-c.x, lo.y-c.y) < 400){ var e = bots.filter(function(o){ return o.id === eid; })[0]; if(e && e.alive) return true; } }
   return false;
 }

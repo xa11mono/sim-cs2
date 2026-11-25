@@ -1,7 +1,7 @@
 var SAVE_TOPN = 12;
 function pickSaveSpot(b){
   // только то, что команда знает (радар/слышали за 15с), а не настоящие позиции T
-  var ts = [], BLs = beliefLast.CT || {};
+  var ts = [], BLs = kvLast("CT");
   for(var eidS in BLs){ var loS = BLs[eidS]; if(tick - loS.tick > 15*TICK_HZ) continue; if(bots.some(function(o){ return o.id === eidS && o.alive; })) ts.push({x:loS.x, y:loS.y}); }
   var best = null, bs = -Infinity, cands = [];
   NAVAREAS.forEach(function(z, i){
@@ -87,9 +87,9 @@ function tSaveHold(){
     if(!b.planting) setPost(b, b._saveSpot, null, true, "save"); });
 }
 function pickSaveSpotT(b){
-  var cts = [], BLt = beliefLast.T || {};
+  var cts = [], BLt = kvLast("T");
   for(var eidT in BLt){ var loT = BLt[eidT]; if(tick - loT.tick > 15*TICK_HZ) continue; if(bots.some(function(o){ return o.id === eidT && o.alive; })) cts.push({x:loT.x, y:loT.y}); }
-  var known = []; for(var id in beliefLast.T){ known.push(beliefLast.T[id]); }
+  var known = []; for(var id in kvLast("T")){ known.push(kvLast("T")[id]); }
   var best = null, bs = -Infinity;
   NAVAREAS.forEach(function(z, i){
     if(i % 3) return;
@@ -345,7 +345,7 @@ function retakeUtil(R, alive){
   var fls = alive.filter(function(b){ return b.nades && b.nades.flash > 0; })
     .sort(function(a, c){ return rank(a) - rank(c) || DM.hypot(a.x-bp.x, a.y-bp.y) - DM.hypot(c.x-bp.x, c.y-bp.y); });
   var fl = fls[0]; if(!fl) return null;
-  var tgt = bp, L = beliefLast.CT, bestA = Infinity;
+  var tgt = bp, L = kvLast("CT"), bestA = Infinity;
   for(var id in L){ var e = L[id]; if(tick - e.tick > 10*TICK_HZ) continue; if(DM.hypot(e.x-bp.x, e.y-bp.y) > 650) continue;
     var dd = DM.hypot(e.x-fl.x, e.y-fl.y); if(dd < bestA){ bestA = dd; tgt = {x:e.x, y:e.y}; } }
   if(!assignNade(fl, "flash", tgt, "ретейк", {bkey:"CT.retake.flash."+bomb.site, now:true, range:900})) return null;
@@ -354,7 +354,7 @@ function retakeUtil(R, alive){
   var smr = alive.filter(function(b){ return b !== fl && b.nades && b.nades.smoke > 0; })[0];
   if(smr && !nadeFlags.retakeSmoke && retakeCutUseful()){ nadeFlags.retakeSmoke = true; assignNade(smr, "smoke", gs.tEntry, "отрезать вход T", {bkey:"CT.retake.smoke."+bomb.site, now:true}); }
   if(!nadeFlags.retakeAwpSmoke){
-    var BLr = beliefLast.CT || {}, awpT = null;
+    var BLr = kvLast("CT"), awpT = null;
     for(var eidR in BLr){ var loR = BLr[eidR]; if(loR.src !== "spotted" || tick - loR.tick > 10*TICK_HZ) continue; var eR = bots.filter(function(o){ return o.id === eidR; })[0];
       if(eR && eR.alive && eR.primary === "AWP" && DM.hypot(loR.x-bp.x, loR.y-bp.y) < 1000){ awpT = loR; break; } }
     if(awpT){
@@ -455,7 +455,7 @@ function retakeDefGo(b, R, cts){
   if(solo || oneT){
     if(DM.hypot(b.x-bomb.x, b.y-bomb.y) < 320 && !b._sawEnemy && tick - (b._lastSawT||-1e9) > 1.5*TICK_HZ){ if((b._nearBombT = b._nearBombT || tick) && tick - b._nearBombT > 1.5*TICK_HZ) return true; }
     else b._nearBombT = 0;
-    var BLd = beliefLast.CT || {}, farT = Object.keys(BLd).some(function(e){ var q = BLd[e]; return q && tick - q.tick <= 5*TICK_HZ && bots.some(function(o){ return o.id === e && o.alive; }) && DM.hypot(q.x-bomb.x, q.y-bomb.y) > 600; });
+    var BLd = kvLast("CT"), farT = Object.keys(BLd).some(function(e){ var q = BLd[e]; return q && tick - q.tick <= 5*TICK_HZ && bots.some(function(o){ return o.id === e && o.alive; }) && DM.hypot(q.x-bomb.x, q.y-bomb.y) > 600; });
     if(oneT && farT) return true;
     if(solo) return false;
   }

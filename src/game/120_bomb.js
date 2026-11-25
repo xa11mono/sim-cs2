@@ -142,7 +142,7 @@ function defuseContTick(){
 // Не успевают — бегут сразу (тогда фейк их и ловит). Агрессивный — иногда сразу
 // T может успеть к бомбе за время дефуза (по знанию CT): свежая инфа (≤ 8 с) — путь до бомбы бегом короче дефуза; нет свежей инфы — может
 function ctDefuseThreat(dTicks){
-  var BL = beliefLast.CT || {};
+  var BL = kvLast("CT");
   return bots.some(function(t){ if(t.team !== "T" || !t.alive) return false; var e = BL[t.id];
     if(!e || tick - e.tick > 8*TICK_HZ) return true;
     return polyLen(pathPts(e.x, e.y, bomb.x, bomb.y, e.z, bomb.z))/SPEED*TICK_HZ < dTicks; });
@@ -241,7 +241,7 @@ function bombTick(){
       // фейк-плант (раз за раунд): свои рядом держат углы, CT по инфе рядом —
       // начать и через ~1с бросить: CT на звук выйдут под прицел
       if(c._fakePlanted !== roundNum){
-        var BLf = beliefLast.T || {}, ctNearF = false;
+        var BLf = kvLast("T"), ctNearF = false;
         for(var eF in BLf){ if(tick - BLf[eF].tick < 6*TICK_HZ && DM.hypot(BLf[eF].x-c.x, BLf[eF].y-c.y) < 700) ctNearF = true; }
         var mateF = bots.some(function(o){ return o !== c && o.alive && o.team === "T" && DM.hypot(o.x-c.x, o.y-c.y) < 350; });
         if(ctNearF && mateF && bombTimeLeftTicks() && (ROUND_TIME_SEC - (simTime - roundStartTime)) > 25 && hashRand(roundNum*433 + matchNum*19) < 0.35){

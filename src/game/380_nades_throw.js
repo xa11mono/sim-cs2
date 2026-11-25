@@ -370,7 +370,7 @@ function nadeSelfWhyNot(b, type, pt){
   if(b.hp < NADE_LOW_HP && tick - (b._lastSawT || -1e9) < 3*TICK_HZ) return "мало HP в бою";
   if(type === "smoke") return null;   // дым режет линию — нужен только живой враг (смок поверх смока отсекает smokeCovered)
   // флешка / молотов / HE — туда, где по знанию команды враг сейчас может быть: свежая инфа рядом с точкой или вес карты команды в её зоне
-  var BL = beliefLast[b.team] || {};
+  var BL = kvLast(b.team);
   for(var e in BL){ var q = BL[e], o = teamBot(e); if(o && o.alive && tick - q.tick <= 6*TICK_HZ && DM.hypot(q.x-pt.x, q.y-pt.y) < NADE_FOE_R) return null; }
   if(BZ.ids.length){ var j = bzOf(pt.x, pt.y); if(j >= 0 && [j].concat(BZ.nbr[j] || []).some(function(k){ return reachPossible(b.team, k) && beliefZoneKnownB(b, k) >= NADE_FOE_P; })) return null; }
   return "там врага быть не может";
@@ -659,7 +659,7 @@ function updateNadeTask1(b){
 // шли до точки». Радиус — проектное число
 var NADE_SPOT_R = 450;
 function nadeThrowSpot(b, t){
-  var bl = (typeof beliefLast !== "undefined" && beliefLast[b.team]) || {}, foes = [];
+  var bl = kvLast(b.team), foes = [];
   for(var e in bl){ var q = bl[e]; if(q && tick - q.tick <= 8*TICK_HZ && bots.some(function(o){ return o.id === e && o.alive; })) foes.push({x:q.x, y:q.y}); }
   // (v373) кандидаты — места, откуда про кидали в эту точку (MAP.nadelanes), и точки рядом без стены на пути
   // бросок с места про — как у про (долетит ли — решит бросок); своё место — граната долетает по физике (nadeLands, физика гранат 30.10)

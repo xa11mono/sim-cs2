@@ -33,7 +33,7 @@ function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
   // (5) клатч T: один против нескольких — дуэли по одной. Видно/известно двоих
   // рядом — отойти за укрытие и взять следующего отдельно (кроме дефуза: тогда надо идти)
   if(bot.team === "T" && aliveCount("T") === 1 && aliveCount("CT") >= 2 && tick - (bot._defuseHeard||-9999) > 110){
-    var LKc = beliefLast.T || {}, kF = enemiesSeen;
+    var LKc = kvLast("T"), kF = enemiesSeen;
     for(var eC in LKc){ var qC = LKc[eC]; if(tick - qC.tick < 3*TICK_HZ && nearP(qC.x, qC.y, qC.z, bot.x, bot.y, bot.z, 700) && bots.some(function(o){ return o.id === eC && o.alive; })) kF = Math.max(kF, 1) + (enemiesSeen ? 0 : 0); }
     var kN = 0; for(var eC2 in LKc){ var q2 = LKc[eC2]; if(tick - q2.tick < 3*TICK_HZ && DM.hypot(q2.x-bot.x, q2.y-bot.y) < 700) kN++; }
     if(Math.max(enemiesSeen, kN) >= 2){ retreatScore += 0.4; engageScore -= 0.3;
@@ -44,7 +44,7 @@ function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
   // дуэль против 3–5 T. Считаем тех, кто реально рядом на размен (≤300px);
   // известно 2+ T, а разменять некому — отходит, а не стоит насмерть
   if(bot.team === "CT" && (r === "mid" || r === "roamer") && !(bomb && bomb.state === "planted")){
-    var LKo = beliefLast.CT || {}, knownF = 0;
+    var LKo = kvLast("CT"), knownF = 0;
     for(var eO in LKo){ var qO = LKo[eO]; if(tick - qO.tick < 4*TICK_HZ && nearP(qO.x, qO.y, qO.z, bot.x, bot.y, bot.z, 800) && bots.some(function(o){ return o.id === eO && o.alive; })) knownF++; }
     knownF = Math.max(knownF, enemiesSeen);
     var tradeM = bots.filter(function(o){ return o !== bot && o.alive && o.team === bot.team && nearP(o.x, o.y, o.z, bot.x, bot.y, bot.z, TRADE_R); }).length;
@@ -187,7 +187,7 @@ function leaveHold(b){ fightState(b, "patrol", "после фрага — ухо
 // а не по настоящим позициям врагов
 function postKillDecide(sh, tg, vp, here){
   if(!taskCanSet(sh, "repos")) return false;   // (v378) идёт по задаче важнее перестановки — арбитр места
-  var known = [], LK = beliefLast[sh.team] || {};
+  var known = [], LK = kvLast(sh.team);
   for(var eid in LK){ var q = LK[eid]; if(eid === tg.id || tick - q.tick > 5*TICK_HZ) continue;
     if(!bots.some(function(o){ return o.id === eid && o.alive; })) continue;
     if(nearP(q.x, q.y, q.z, vp.x, vp.y, vp.z, 700) || nearP(q.x, q.y, q.z, sh.x, sh.y, sh.z, 700)) known.push({id:eid, x:q.x, y:q.y}); }
@@ -260,7 +260,7 @@ function afterKillReact(sh, tg, w){
     if(altS){ sh._saveSpot = altS; logEvent(sh.id+": на сейве — меняю позицию после фрага ("+calloutName(altS.x, altS.y)+")"); return true; }
   }
   // (v248) враги рядом — по тому, что команда знает (ЛИП ≤ 5 с, живые по киллфиду), а не настоящие позиции
-  var LKk = beliefLast[sh.team] || {}, foesNear = [];
+  var LKk = kvLast(sh.team), foesNear = [];
   for(var eK in LKk){ var qK = LKk[eK]; if(eK === tg.id || tick - qK.tick > 5*TICK_HZ || DM.hypot(qK.x-sh.x, qK.y-sh.y) >= 1400) continue;
     if(bots.some(function(o){ return o.id === eK && o.alive; })) foesNear.push({id: eK, x: qK.x, y: qK.y}); }
   if(!foesNear.length) return false;   // (v370) без известных врагов — в укрытие (killMoveCover)
@@ -278,7 +278,7 @@ function afterKillReact(sh, tg, w){
     // новая точка: та же линия под другим углом, и не на виду у остальных
     // известных врагов (иначе по дороге его снимает второй)
     var others = [];
-    for(var eidA in beliefLast[sh.team]){ var eA = beliefLast[sh.team][eidA]; if(eidA !== tg.id && tick - eA.tick < 8*TICK_HZ && nearP(eA.x, eA.y, eA.z, sh.x, sh.y, sh.z, 1300)) others.push({x:eA.x, y:eA.y}); }
+    for(var eidA in kvLast(sh.team)){ var eA = kvLast(sh.team)[eidA]; if(eidA !== tg.id && tick - eA.tick < 8*TICK_HZ && nearP(eA.x, eA.y, eA.z, sh.x, sh.y, sh.z, 1300)) others.push({x:eA.x, y:eA.y}); }
     // держал пост (опорник/линия) — новый угол должен видеть и то, что он держал
     var seeA = [vp]; if(sh.post && sh.post.look && sh.post.tag !== "repos") seeA.push(sh.post.look);
     var alt = pickSpots("awpr"+tick+sh.id, here, 4, {rMin:100, rMax:260, minGap:60, see:seeA, hideFrom:others, cross:{from:here, pt:vp}});
@@ -320,7 +320,7 @@ function afterKillReact(sh, tg, w){
 function shiftHold(sh, vp, exceptId, why){
   if(!(sh.atPost && sh.post && sh.post.hold) || taskProp(sh.post.tag, "shiftHoldBusy")) return false;
   if(sh._hs && sh._hs.round === roundNum && tick - sh._hs.t < 8*TICK_HZ) return false;
-  var here = {x:sh.x, y:sh.y}, knownE = [], LKs = beliefLast[sh.team] || {};
+  var here = {x:sh.x, y:sh.y}, knownE = [], LKs = kvLast(sh.team);
   for(var eH in LKs){ var qH = LKs[eH]; if(eH !== exceptId && tick - qH.tick < 10*TICK_HZ && nearP(qH.x, qH.y, qH.z, sh.x, sh.y, sh.z, 1400)) knownE.push({x:qH.x, y:qH.y}); }
   var dvx = here.x - vp.x, dvy = here.y - vp.y, dvl = Math.max(1, DM.hypot(dvx, dvy));
   var back = walk({x: here.x + dvx/dvl*170, y: here.y + dvy/dvl*170});

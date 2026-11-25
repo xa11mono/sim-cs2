@@ -168,6 +168,22 @@ function teamBotReads() {
   return out;
 }
 const key = s => s.file.slice(0, 3) + ':' + s.fn + ':' + s.props.join(',');
+// (Р3.2 знание, шаг 2) KnowledgeView только для чтения: запись в знание команды (beliefLast, в т. ч. через kvLast(…)) — только у хозяев
+const KNOW_OWNERS = { beliefLast: ['190', '200', '240'] };
+function knowWrites() {
+  const bad = [];
+  for (const f of SRC.gameFiles().filter(f => /\.(js|ts)$/.test(f))) { const num = f.slice(0, 3); let ast;
+    try { ast = acorn.parse(SRC.readGame(f), { ecmaVersion: 'latest', allowReturnOutsideFunction: true, locations: true }); } catch (e) { continue; }
+    const root = n => { while (n.type === 'MemberExpression') n = n.object; return n; };
+    const hit = (t, line) => { const r = root(t);
+      const nm = r.type === 'Identifier' ? r.name : r.type === 'CallExpression' && r.callee.type === 'Identifier' && r.callee.name === 'kvLast' ? 'beliefLast' : null;
+      if (nm && KNOW_OWNERS[nm] && !(t.type === 'Identifier' && nm !== 'beliefLast') && !KNOW_OWNERS[nm].includes(num) && (t.type === 'MemberExpression' || r.type === 'CallExpression'))
+        bad.push(f + ':' + line + ' — запись в знание ' + nm + ' мимо хозяина (' + KNOW_OWNERS[nm].join(' / ') + ')'); };
+    walk.simple(ast, { AssignmentExpression(a) { hit(a.left, a.loc.start.line); }, UpdateExpression(u) { hit(u.argument, u.loc.start.line); },
+      UnaryExpression(u) { if (u.operator === 'delete') hit(u.argument, u.loc.start.line); } });
+  }
+  return bad;
+}
 // сверка с реестром известных мест: новое место или больше мест у ключа — ошибка; ушедшее из кода — напоминание убрать строку
 function check(sites) {
   sites = sites || analyze(); const dec = sites.filter(s => !s.perception), lines = [];
@@ -177,6 +193,7 @@ function check(sites) {
   for (const [k, L] of Object.entries(by)) if (!K[k] || L.length > (K[k].n || 1)) { bad += L.length - (K[k] ? K[k].n || 1 : 0);
     L.forEach(s => lines.push('  ✗ НОВОЕ чтение истины врага в решении: ' + s.file + ':' + s.line + ' ' + s.fn + ' — ' + s.props.join(', ') + ' (' + s.kind + '; реестр rebuild/truth_known.json)')); }
   Object.keys(K).filter(k => !by[k]).forEach(k => lines.push('  ушло из кода — убрать строку из rebuild/truth_known.json: ' + k));
+  const KW = knowWrites(); KW.forEach(l => lines.push('  ✗ ' + l)); bad += KW.length;
   const ist = Object.values(K).filter(v => v.class === 'истина').length;
   lines.unshift('чтения истины врага (решения): мест ' + dec.length + ', новых ' + bad + '; известных нарушений «истина» ' + ist + ' (BEHAVIOR_BACKLOG, после Р8)');
   return { bad, lines };

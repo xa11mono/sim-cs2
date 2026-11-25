@@ -241,7 +241,7 @@ function ambEnd(b, why){ if(b._amb){ dlog(b, "засада", "конец — " +
 // по рампе до спавна, оттуда в спину», а бот пошёл назад через Stairs и мид к B Apartments — это ротация, не заход)
 function ambushStartBack(b, ids, why, via, side){
   var F = ids.map(teamBot).filter(function(o){ return o && o.alive; }); if(!F.length || b.hp <= LOW_HP) return false;
-  var BL = beliefLast[b.team] || {}, q0 = BL[F[0].id] || F[0];
+  var BL = kvLast(b.team), q0 = BL[F[0].id] || F[0];
   b._amb = {round: roundNum, ph: "go", ids: F.map(function(o){ return o.id; }), n: F.length, t0: tick, seen: tick, last: {x: q0.x, y: q0.y, z: q0.z}, lastT: tick, via: via || null};
   voiceLog(b.team, "amb"+b.id+roundNum, b.id, why);
   return ambushTick(b, side);
@@ -263,7 +263,7 @@ function ambushTick(b, side){
     if(!F.length || ambSeenBy(b) || b.hp <= LOW_HP || b._fc || !F.every(function(o){ return !(b._visible && b._visible.indexOf(o) >= 0) || ambPassing(b, o); }) || !F.some(function(o){ return !(b._visible && b._visible.indexOf(o) >= 0) || o.curSpeed > 40*SPD_K; })) return false;   // идут мимо (видимые — не стоят; слышу — значит идут)
     if(b.post && taskProp(b.post.tag, "holdsSite") && !hideSite && F.some(function(o){ return nearP(o.x, o.y, o.z, b.x, b.y, b.z, AMB_PASS); })) return false;   // идут на мой сайт рядом — держу (меня уже нашли; не нашли — пропускаю, 22.11)
     // один — «иду за ним», только если вижу его и других рядом не знаю (владелец: «он точно должен увидеть, что он один»); слышу / их больше — жду
-    var solo = F.length === 1 && b._visible && b._visible.indexOf(F[0]) >= 0 && !bots.some(function(o){ var q = (beliefLast[b.team] || {})[o.id];
+    var solo = F.length === 1 && b._visible && b._visible.indexOf(F[0]) >= 0 && !bots.some(function(o){ var q = (kvLast(b.team))[o.id];
       return o !== F[0] && o.alive && o.team !== b.team && q && tick - q.tick < 3*TICK_HZ && DM.hypot(q.x-b.x, q.y-b.y) < AMB_R; });
     A = b._amb = {round: roundNum, ph: solo ? "go" : "wait", ids: F.map(function(o){ return o.id; }), n: F.length, t0: tick, seen: tick, last: ambAt(b, F[0])};
     var w0 = ambAt(b, F[0]), where = calloutName(w0.x, w0.y).replace(/^на /, "");

@@ -230,7 +230,7 @@ function ctClutch(b, ct){
   // «угадывал ближний сайт», хотя команда знала факты: где в этом раунде в последний раз видели живых T (радар, войс). Нет свежей инфы —
   // сайт, у которого их видели последним (большинство); не видели никого — как раньше, угадывает
   var seenSite = null;
-  if(!plantSite && !carSite && !infoSite){ var BLc = beliefLast.CT || {}, nA = 0, nB = 0;
+  if(!plantSite && !carSite && !infoSite){ var BLc = kvLast("CT"), nA = 0, nB = 0;
     for(var sid in BLc){ var sq = BLc[sid], so = teamBot(sid); if(!so || !so.alive || so.team !== "T" || sq.tick < roundStartTick) continue;
       if(DM.hypot(sq.x-SITES.A.x, sq.y-SITES.A.y) < DM.hypot(sq.x-SITES.B.x, sq.y-SITES.B.y)) nA++; else nB++; }
     if(nA !== nB) seenSite = nA > nB ? "A" : "B"; }
@@ -344,7 +344,7 @@ var INFO_MIN_R = 250, INFO_W = 0.05, INFO_START = 20, INFO_WAIT = [2, 9];   // �
 // они уже прошли дальше меня к нашим сайтам. Было: по числу зон до спавна (BZ.DT) — «в тылу» выходило, когда он был сбоку (владелец 19.11, м7 р3)
 var INFO_BEHIND = 150;
 function infoBehind(b){
-  var BL = beliefLast.CT || {}, known = bots.filter(function(t){ var q = BL[t.id]; return t.team === "T" && t.alive && q && tick - q.tick < 2*TICK_HZ; });
+  var BL = kvLast("CT"), known = bots.filter(function(t){ var q = BL[t.id]; return t.team === "T" && t.alive && q && tick - q.tick < 2*TICK_HZ; });
   if(!known.length) return false;
   var dS = function(x, y, z){ var P = pathPts(T_SPAWN.x, T_SPAWN.y, x, y, null, z); return P.length ? polyLen(P) : Infinity; };
   var me = dS(b.x, b.y, b.z); if(!isFinite(me)) return false;
@@ -381,7 +381,7 @@ function ctInfoCheck(b, ct, cts){
     // (владелец 18.11: «пробы не надо отменять за какое-то время; дошёл, контакта нет — идёт дальше: не увидел — не значит, что их там не может
     // быть») снимается: увидел врага; не идёт к точке (застрял — taskWalkOn, 110); команда узнала о T свежее (смысл проверки ушёл). Дошёл и
     // глянул (0,5 / 1,5 с — проектные): пусто — «чекнул — пусто» (markClear) и дальше вглубь — соседняя зона ближе к их спавну (infoNext)
-    var BLi = beliefLast.CT || {}, fresh = bots.some(function(t){ var q = BLi[t.id]; return t.team === "T" && t.alive && q && q.tick > I.t0; });
+    var BLi = kvLast("CT"), fresh = bots.some(function(t){ var q = BLi[t.id]; return t.team === "T" && t.alive && q && q.tick > I.t0; });
     if(b.atPost && !I.at) I.at = tick;
     var looked = b.atPost && I.at && tick - I.at > 0.5*TICK_HZ && (markClear("CT", I.x, I.y, b.id, hasVision(b.x, b.y, I.x, I.y)) || tick - I.at > 1.5*TICK_HZ);
     var stop = b._sawEnemy || fresh || (!b.atPost && !taskWalkOn(b, I.pt, I));
@@ -398,7 +398,7 @@ function ctInfoCheck(b, ct, cts){
     // ближе к их спавну, чем зона, где их знают): не бросаю — иду в спину (заход, 480)
     if(fresh && !b._sawEnemy && infoBehind(b)){ var ids = bots.filter(function(t){ var q = BLi[t.id]; return t.team === "T" && t.alive && q && q.tick > I.t0; }).map(function(t){ return t.id; });
       // их дорогой: через их спавн, если до него мне ближе, чем до них (я на их половине)
-      var sp = infoPoint(T_SPAWN), BLs = beliefLast.CT || {}, myS = sp ? pathLenTo(b, sp.x, sp.y) : Infinity;
+      var sp = infoPoint(T_SPAWN), BLs = kvLast("CT"), myS = sp ? pathLenTo(b, sp.x, sp.y) : Infinity;
       var via = sp && ids.every(function(id){ var q = BLs[id]; return q && myS < pathLenTo(b, q.x, q.y); }) ? sp : null;
       I.on = false; if(ambushStartBack(b, ids, via ? "я у них в тылу — иду их дорогой через спавн, зайду в спину" : "я у них в тылу — захожу в спину", via, "CT")) return true; }
     if(!stop){ setPost(b, I.pt, I.look, true, "probeInfo"); return b.post && b.post.tag === "probeInfo"; }
@@ -410,7 +410,7 @@ function ctInfoCheck(b, ct, cts){
   // (перебор зон с линиями видимости), продолжение начатой — каждый тик (дёшево)
   if((tick + (b.id.charCodeAt(b.id.length-1)||0)) % INFO_EVERY) return false;
   // команда давно ничего не знает о живых T
-  var BL = beliefLast.CT || {}, fresh = bots.some(function(t){ var q = BL[t.id]; return t.team === "T" && t.alive && q && tick - q.tick < INFO_QUIET*TICK_HZ; });
+  var BL = kvLast("CT"), fresh = bots.some(function(t){ var q = BL[t.id]; return t.team === "T" && t.alive && q && tick - q.tick < INFO_QUIET*TICK_HZ; });
   if(fresh) return false;
   // кто идёт: не опорник, оставшийся на своём сайте один
   if(/^anchor/.test(b.tRole || "") && !cts.some(function(o){ return o !== b && nearP(o.x, o.y, o.z, b.x, b.y, b.z, 600); })) return false;

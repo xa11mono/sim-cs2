@@ -1,0 +1,644 @@
+{
+ "_": "генерируется tools/rebuild/truth_reads.js: чтения истины врага в коде решений (perception — восприятие / движок, не нарушение)",
+ "sites": [
+  {
+   "file": "120_bomb.js",
+   "fn": "resetBomb",
+   "line": 81,
+   "props": [
+    "tRole"
+   ],
+   "kind": "к разбору",
+   "perception": false
+  },
+  {
+   "file": "120_bomb.js",
+   "fn": "bombTick",
+   "line": 246,
+   "props": [
+    "x",
+    "y"
+   ],
+   "kind": "к разбору",
+   "perception": true
+  },
+  {
+   "file": "120_bomb.js",
+   "fn": "bombTick",
+   "line": 267,
+   "props": [
+    "baseX",
+    "baseY",
+    "tRole"
+   ],
+   "kind": "к разбору",
+   "perception": true
+  },
+  {
+   "file": "120_bomb.js",
+   "fn": "bombTick",
+   "line": 299,
+   "props": [
+    "baseX",
+    "baseY",
+    "state"
+   ],
+   "kind": "к разбору",
+   "perception": true
+  },
+  {
+   "file": "130_tactics_match_adapt.js",
+   "fn": "timeoutCheck",
+   "line": 102,
+   "props": [
+    "x",
+    "y",
+    "z"
+   ],
+   "kind": "к разбору",
+   "perception": false
+  },
+  {
+   "file": "130_tactics_match_adapt.js",
+   "fn": "coachPlan",
+   "line": 192,
+   "props": [
+    "primary",
+    "tRole"
+   ],
+   "kind": "к разбору",
+   "perception": false
+  },
+  {
+   "file": "130_tactics_match_adapt.js",
+   "fn": "chooseTactic",
+   "line": 325,
+   "props": [
+    "tRole"
+   ],
+   "kind": "к разбору",
+   "perception": false
+  },
+  {
+   "file": "140_named_spots_ct_setup.js",
+   "fn": "ctSeatRoles",
+   "line": 159,
+   "props": [
+    "tRole"
+   ],
+   "kind": "к разбору",
+   "perception": false
+  },
+  {
+   "file": "150_lurker_probes_clear.js",
+   "fn": "tClearCalls",
+   "line": 323,
+   "props": [
+    "x",
+    "y"
+   ],
+   "kind": "к разбору",
+   "perception": false
+  },
+  {
+   "file": "150_lurker_probes_clear.js",
+   "fn": "tClearCalls",
+   "line": 340,
+   "props": [
+    "x",
+    "y"
+   ],
+   "kind": "к разбору",
+   "perception": false
+  },
+  {
+   "file": "150_lurker_probes_clear.js",
+   "fn": "tClearCalls",
+   "line": 341,
+   "props": [
+    "x",
+    "y"
+   ],
+   "kind": "к разбору",
+   "perception": false
+  },
+  {
+   "file": "190_team_intel_lkp_calls.js",
+   "fn": "intelDeath",
+   "line": 275,
+   "props": [
+    "defusing",
+    "planting",
+    "tRole",
+    "weapon",
+    "x",
+    "y",
+    "z"
+   ],
+   "kind": "к разбору",
+   "perception": false
+  },
+  {
+   "file": "190_team_intel_lkp_calls.js",
+   "fn": "intelDeath",
+   "line": 331,
+   "props": [
+    "defusing",
+    "planting",
+    "tRole",
+    "x",
+    "y",
+    "z"
+   ],
+   "kind": "к разбору",
+   "perception": false
+  },
+  {
+   "file": "190_team_intel_lkp_calls.js",
+   "fn": "intelDeath",
+   "line": 359,
+   "props": [
+    "nades",
+    "planting",
+    "x",
+    "y"
+   ],
+   "kind": "к разбору",
+   "perception": false
+  },
+  {
+   "file": "290_smoke_react.js",
+   "fn": "smokeSpamTick",
+   "line": 113,
+   "props": [
+    "x",
+    "y"
+   ],
+   "kind": "враг",
+   "perception": false
+  },
+  {
+   "file": "290_smoke_react.js",
+   "fn": "smokeShiftOnDetonate",
+   "line": 203,
+   "props": [
+    "lookTarget",
+    "post",
+    "x",
+    "y",
+    "z"
+   ],
+   "kind": "враг",
+   "perception": false
+  },
+  {
+   "file": "300_roles_fallback_rebalance.js",
+   "fn": "tFallbackTick",
+   "line": 39,
+   "props": [
+    "x",
+    "y"
+   ],
+   "kind": "к разбору",
+   "perception": false
+  },
+  {
+   "file": "300_roles_fallback_rebalance.js",
+   "fn": "rebalSpot",
+   "line": 78,
+   "props": [
+    "x",
+    "y"
+   ],
+   "kind": "к разбору",
+   "perception": false
+  },
+  {
+   "file": "300_roles_fallback_rebalance.js",
+   "fn": "siteRebalanceTick",
+   "line": 97,
+   "props": [
+    "curSpeed",
+    "nadeTask",
+    "post",
+    "x",
+    "y"
+   ],
+   "kind": "к разбору",
+   "perception": false
+  },
+  {
+   "file": "300_roles_fallback_rebalance.js",
+   "fn": "infoFallbackTick",
+   "line": 167,
+   "props": [
+    "x",
+    "y"
+   ],
+   "kind": "к разбору",
+   "perception": false
+  },
+  {
+   "file": "330_endgame_smoke_push.js",
+   "fn": "smokePushReason",
+   "line": 223,
+   "props": [
+    "x",
+    "y"
+   ],
+   "kind": "к разбору",
+   "perception": false
+  },
+  {
+   "file": "340_ctbrain.js",
+   "fn": "ctBrain",
+   "line": 47,
+   "props": [
+    "x",
+    "y"
+   ],
+   "kind": "враг",
+   "perception": false
+  },
+  {
+   "file": "366_exec_sync.js",
+   "fn": "fireSmokeTick",
+   "line": 246,
+   "props": [
+    "baseX",
+    "baseY",
+    "nadeTask",
+    "nades",
+    "path",
+    "pathIdx",
+    "planting",
+    "x",
+    "y",
+    "z"
+   ],
+   "kind": "к разбору",
+   "perception": false
+  },
+  {
+   "file": "390_nades_lineups.js",
+   "fn": "tCrossSmoke",
+   "line": 58,
+   "props": [
+    "nadeTask",
+    "nades",
+    "x",
+    "y"
+   ],
+   "kind": "к разбору",
+   "perception": false
+  },
+  {
+   "file": "390_nades_lineups.js",
+   "fn": "tCrossSmoke",
+   "line": 60,
+   "props": [
+    "path",
+    "pathIdx",
+    "x",
+    "y",
+    "z"
+   ],
+   "kind": "к разбору",
+   "perception": false
+  },
+  {
+   "file": "390_nades_lineups.js",
+   "fn": "tSoloThrower",
+   "line": 78,
+   "props": [
+    "nades",
+    "tRole",
+    "x",
+    "y"
+   ],
+   "kind": "к разбору",
+   "perception": false
+  },
+  {
+   "file": "390_nades_lineups.js",
+   "fn": "lineupTick",
+   "line": 121,
+   "props": [
+    "post",
+    "x",
+    "y"
+   ],
+   "kind": "к разбору",
+   "perception": false
+  },
+  {
+   "file": "400_nades_physics_damage.js",
+   "fn": "nadeOrigin",
+   "line": 27,
+   "props": [
+    "x",
+    "y"
+   ],
+   "kind": "враг",
+   "perception": true
+  },
+  {
+   "file": "400_nades_physics_damage.js",
+   "fn": "detonate",
+   "line": 52,
+   "props": [
+    "x",
+    "y"
+   ],
+   "kind": "враг",
+   "perception": true
+  },
+  {
+   "file": "420_nades_brains.js",
+   "fn": "nadeBrains",
+   "line": 71,
+   "props": [
+    "nadeTask",
+    "nades",
+    "tRole",
+    "x",
+    "y"
+   ],
+   "kind": "к разбору",
+   "perception": false
+  },
+  {
+   "file": "420_nades_brains.js",
+   "fn": "nadeBrains",
+   "line": 72,
+   "props": [
+    "nadeTask",
+    "nades",
+    "x",
+    "y"
+   ],
+   "kind": "к разбору",
+   "perception": false
+  },
+  {
+   "file": "460_sound_situations.js",
+   "fn": "bombPassTick",
+   "line": 72,
+   "props": [
+    "hp",
+    "tRole"
+   ],
+   "kind": "к разбору",
+   "perception": false
+  },
+  {
+   "file": "480_assist_flank_reload.js",
+   "fn": "ambFoes",
+   "line": 212,
+   "props": [
+    "x",
+    "y"
+   ],
+   "kind": "враг",
+   "perception": false
+  },
+  {
+   "file": "500_decide_afterkill_cover.js",
+   "fn": "decideAction",
+   "line": 96,
+   "props": [
+    "x",
+    "y",
+    "z"
+   ],
+   "kind": "к разбору",
+   "perception": false
+  },
+  {
+   "file": "510_engagements.js",
+   "fn": "engDecide",
+   "line": 140,
+   "props": [
+    "x",
+    "y"
+   ],
+   "kind": "враг",
+   "perception": false
+  },
+  {
+   "file": "520_economy.js",
+   "fn": "buyForPlayer",
+   "line": 363,
+   "props": [
+    "kit"
+   ],
+   "kind": "к разбору",
+   "perception": false
+  },
+  {
+   "file": "520_economy.js",
+   "fn": "buyForPlayer",
+   "line": 364,
+   "props": [
+    "money"
+   ],
+   "kind": "к разбору",
+   "perception": false
+  },
+  {
+   "file": "535_move_mode.js",
+   "fn": "moveSpeedTick",
+   "line": 129,
+   "props": [
+    "x",
+    "y"
+   ],
+   "kind": "к разбору",
+   "perception": false
+  },
+  {
+   "file": "535_move_mode.js",
+   "fn": "moveSpeedTick",
+   "line": 130,
+   "props": [
+    "tRole"
+   ],
+   "kind": "к разбору",
+   "perception": false
+  },
+  {
+   "file": "540_step_tick.js",
+   "fn": "jumpCheckTick",
+   "line": 186,
+   "props": [
+    "crouching",
+    "facing",
+    "x",
+    "y",
+    "z"
+   ],
+   "kind": "враг",
+   "perception": false
+  },
+  {
+   "file": "180_save_retake.js",
+   "fn": "ctBombPos",
+   "line": 137,
+   "props": [
+    "bomb.x,y"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "180_save_retake.js",
+   "fn": "gTag",
+   "line": 203,
+   "props": [
+    "bomb.x,y"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "180_save_retake.js",
+   "fn": "updateRetake",
+   "line": 265,
+   "props": [
+    "bomb.x,y"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "180_save_retake.js",
+   "fn": "retakeEntryPick",
+   "line": 335,
+   "props": [
+    "bomb.x,y"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "180_save_retake.js",
+   "fn": "retakePost",
+   "line": 422,
+   "props": [
+    "bomb.x,y"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "180_save_retake.js",
+   "fn": "retakeDefGo",
+   "line": 456,
+   "props": [
+    "bomb.x,y"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "320_pro_lineups_ct_early.js",
+   "fn": "flankPost",
+   "line": 84,
+   "props": [
+    "bomb.x,y"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "340_ctbrain.js",
+   "fn": "ctBrain",
+   "line": 47,
+   "props": [
+    "bomb.x,y"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "470_fight_cycle.js",
+   "fn": "ninjaOk",
+   "line": 420,
+   "props": [
+    "bomb.x,y"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "170_tbrain.js",
+   "fn": "tBrain",
+   "line": 865,
+   "props": [
+    "teamBot.z"
+   ],
+   "kind": "teamBot",
+   "perception": false
+  },
+  {
+   "file": "210_know_hyp.js",
+   "fn": "hearReal",
+   "line": 65,
+   "props": [
+    "teamBot.z"
+   ],
+   "kind": "teamBot",
+   "perception": false
+  },
+  {
+   "file": "350_contact_reaction.js",
+   "fn": "contactTick",
+   "line": 189,
+   "props": [
+    "teamBot.→duelOdds"
+   ],
+   "kind": "teamBot",
+   "perception": false
+  },
+  {
+   "file": "380_nades_throw.js",
+   "fn": "nadeOwnerOk",
+   "line": 419,
+   "props": [
+    "teamBot.post"
+   ],
+   "kind": "teamBot",
+   "perception": false
+  },
+  {
+   "file": "390_nades_lineups.js",
+   "fn": "tSoloThrower",
+   "line": 89,
+   "props": [
+    "teamBot.nades,tRole,x,y"
+   ],
+   "kind": "teamBot",
+   "perception": false
+  },
+  {
+   "file": "480_assist_flank_reload.js",
+   "fn": "flankAssist",
+   "line": 52,
+   "props": [
+    "teamBot.x,y,z"
+   ],
+   "kind": "teamBot",
+   "perception": false
+  },
+  {
+   "file": "480_assist_flank_reload.js",
+   "fn": "ambushTick",
+   "line": 334,
+   "props": [
+    "teamBot.x,y,→ambPassing,→applyDamage"
+   ],
+   "kind": "teamBot",
+   "perception": false
+  }
+ ]
+}

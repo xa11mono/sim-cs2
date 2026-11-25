@@ -273,7 +273,7 @@ function weaponPickupTick(){
        !(bomb.state === "carried" && bomb.carrier === b) && b._fpT !== tick){
       // не срывается ради гана с важной позиции: после планта (ретейк/пост-плант)
       // и когда рядом свежая инфа о враге — только если ган почти под ногами
-      var LKf = beliefLast[b.team] || {}, foeNear = false;
+      var LKf = kvLast(b.team), foeNear = false;
       for(var eF in LKf){ if(tick - LKf[eF].tick < 3*TICK_HZ && DM.hypot(LKf[eF].x-b.x, LKf[eF].y-b.y) < 900){ foeNear = true; break; } }
       // (v518a) после планта — как везде; терпит ли это главная задача — pickDetour (цена по пути), а не «бомба стоит — только под ногами»
       // (v559, В76 ч.2) цель раунда «на следующий закуп» (эко) — винтовка убитого и есть цель: идёт за ней дальше (×PICK_ECO_K, проектное число)
@@ -303,7 +303,7 @@ function weaponPickupTick(){
     // только со слабым оружием (пистолет / ПП); идёт второй линии игрок или тот, у кого хуже ствол
     // (v547, владелец 10.11: «в ретейке, пост-планте, сейве не подбирают, даже когда есть возможность») у задачи фазы (уровень ≥ 7) враги рядом
     // есть почти всегда — «бой рядом» её не отменяет: решают опасность у самого оружия (danger ниже) и терпит ли задача крюк (pickDetour)
-    var LKp = beliefLast[b.team] || {}, phaseP = taskAlive(b) && b._task.lv >= 7;
+    var LKp = kvLast(b.team), phaseP = taskAlive(b) && b._task.lv >= 7;
     if(!phaseP) for(var eP in LKp){ if(tick - LKp[eP].tick < 3*TICK_HZ && DM.hypot(LKp[eP].x-b.x, LKp[eP].y-b.y) < 1200/MAP.pxUnits) return; }
     if((b.tRole === "anchorA" || b.tRole === "anchorB") && b.primary && WEAPONS[b.primary].tier >= 5) return;
     if(b._pickBan > tick) return;

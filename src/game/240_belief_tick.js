@@ -123,3 +123,7 @@ function beliefCount(team, zoneList){
   return tot;
 }
 // (Г2, 04.11) beliefZone / beliefZoneFresh (×0,3 «чистому прогнозу») убраны — одно чтение карты команды: beliefZoneKnown (260)
+// ---- (Р3.2, канал «знание», шаг 2) KnowledgeView: чтение знания команды — только через хозяина. kvLast(team) — последнее известное место
+// каждого врага для команды team ({id: {x, y, z?, tick, src}}; пишут только хозяева: intelPush 190, сброс 200, beliefTick 240). Значение то же,
+// что прежнее чтение beliefLast[team] || {} (Э1); только чтение — решения не пишут в него (проверка сборки)
+function kvLast(team){ return beliefLast[team] || {}; }

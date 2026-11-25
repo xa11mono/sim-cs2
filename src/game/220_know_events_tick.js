@@ -296,7 +296,7 @@ function knowSetupRead(team){
   if(team !== "T" || roundState !== "live" || (bomb && bomb.state === "planted") || tick - roundStartTick > 40*TICK_HZ) return null;
   var foes = bots.filter(function(o){ return o.team !== team && o.alive; }); if(foes.length !== 5) return null;
   var SR = setupRegions(); if(!SR.splits.length) return null;
-  var seen = {A:0, mid:0, B:0}, n = 0, BL = beliefLast[team] || {};
+  var seen = {A:0, mid:0, B:0}, n = 0, BL = kvLast(team);
   foes.forEach(function(o){ var l = BL[o.id]; if(!l || l.src !== "spotted" || l.tick < roundStartTick) return; var r = setupRegionAt(l.x, l.y); if(r){ seen[r]++; n++; } });
   if(!n) return null;
   var C = SR.splits.filter(function(S){ return S.A >= seen.A && S.mid >= seen.mid && S.B >= seen.B; }); if(!C.length) return null;

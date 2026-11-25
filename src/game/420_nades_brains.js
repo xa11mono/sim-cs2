@@ -15,7 +15,7 @@ function nadeUseTick(b){
   if(b._sawEnemy || (b._fc && b._fc.ph === "line")) return;
   var have = function(t){ return b.nades[t] > 0; };
   if(!have("smoke") && !have("flash") && !have("he") && !have("molly")) return;
-  var foe = b.team === "T" ? "CT" : "T", BL = beliefLast[b.team] || {}, known = [];
+  var foe = b.team === "T" ? "CT" : "T", BL = kvLast(b.team), known = [];
   for(var e in BL){ var q = BL[e]; if(q && tick - q.tick <= 4*TICK_HZ && bots.some(function(o){ return o.id === e && o.alive; })) known.push({x:q.x, y:q.y}); }
   var mateNear = function(p){ return bots.some(function(o){ return o !== b && o.alive && o.team === b.team && DM.hypot(o.x-p.x, o.y-p.y) < 160; }); };
   var tt = teamTac.T, why = null, plan = null;
@@ -241,7 +241,7 @@ function nadeBrains(){
 function retakeCutUseful(){
   if(!bomb) return true;
   var ts = bots.filter(function(o){ return o.alive && o.team === "T"; });
-  var L = beliefLast.CT || {}, outside = 0, known = 0;
+  var L = kvLast("CT"), outside = 0, known = 0;
   ts.forEach(function(t){ var e = L[t.id]; if(!e || tick - e.tick > 12*TICK_HZ){ outside++; return; } known++; if(DM.hypot(e.x-bomb.x, e.y-bomb.y) > 650) outside++; });
   return outside > 0;
 }

@@ -18,7 +18,7 @@ var CONTACT_PUSH = 250;   // (v555) проектное число: ед. — T �
 // коллы) — только если враг на его участке (зона, где он стоит или его пост) или свой рядом только что погиб и он идёт менять
 // (_tradeUntil — реакция на смерть тиммейта, 190). Раньше бралась вся память команды в CONTACT_R
 function contactInfo(b){
-  var best = null, bd = CONTACT_R, BL = beliefLast[b.team] || {}, myZ = {}, trade = tradeAlert(b);
+  var best = null, bd = CONTACT_R, BL = kvLast(b.team), myZ = {}, trade = tradeAlert(b);
   myZ[zoneIdAt3(b.x, b.y, b.z)] = 1; if(b.post) myZ[zoneIdAt3(b.post.x, b.post.y, b.post.z != null ? b.post.z : b.z)] = 1;
   // (док 6, п.11: р10 бросок флешки T на T Ramp дал contact:hold kyousuke на Catwalk и m0NESY на миде — 470 / 531 по прямой, 1215 / 937 по пути)
   // враг, которого не видно, «рядом» по пути (откуда он дойдёт), а не по прямой сквозь стены; видимый — по прямой (он уже стреляет)
@@ -98,7 +98,7 @@ function spotTaken(b, q, how){ return bots.some(function(o){
 // (v418) свой рядом (≤ 600 — как «своих рядом» в счёте) сейчас в бою, и тот, с кем он стреляется, по знанию команды (≤ 1 с) — у этого
 // контакта (≤ 400). 600 — как nM ниже; 400 — проектное число («та же группа»)
 function contactMateFight(b, C){
-  var BL = beliefLast[b.team] || {};
+  var BL = kvLast(b.team);
   return bots.filter(function(o){
     if(o === b || !o.alive || o.team !== b.team || !o._sawEnemy || !o._fc || !o._nearestEnemyBot || !nearP(o.x, o.y, o.z, b.x, b.y, b.z, 600)) return false;
     var e = BL[o._nearestEnemyBot.id]; return e && tick - e.tick <= TICK_HZ && nearP(e.x, e.y, e.z, C.x, C.y, C.z, 400); })[0] || null;
@@ -138,7 +138,7 @@ function contactTick(b){
     if(b.team === "CT" && bomb && bomb.state === "planted" && b.nades && b.nades.smoke > 0 && !b.defusing && C.d > 150) assignNade(b, "smoke", look, "смок на врага рядом — иду к бомбе", {now:true, range:900});
     return;
   }
-  var foe = b.team === "CT" ? "T" : "CT", BL = beliefLast[b.team] || {}, nE = 0;
+  var foe = b.team === "CT" ? "T" : "CT", BL = kvLast(b.team), nE = 0;
   for(var id in BL){ var e = BL[id], ob = teamBot(id); if(ob && ob.alive && ob.team === foe && tick - BL[id].tick <= 5*TICK_HZ && nearP(e.x, e.y, e.z, b.x, b.y, b.z, 900)) nE++; }
   var nM = bots.filter(function(o){ return o !== b && o.alive && o.team === b.team && nearP(o.x, o.y, o.z, b.x, b.y, b.z, 600); }).length;
   // (v469, п.14 владельца, снимок м1 р6 т34149: после колла «T на B (~3)» m0NESY пошёл на B, через 2,5 с его остановил contact hold на
@@ -263,7 +263,7 @@ function contactTick(b){
 var DELAY_SAFE = 350, DELAY_GAP = 6, DELAY_GROUP_R = 175;   // DELAY_GROUP_R (Д30) — px ≈ 350 ед.: «T рядом с местом гранаты» как в замере про   // проектные числа: 350 — из ТЗ владельца (300–400, не из демок), 6 с — пауза между бросками
 function delaySafe(b){
   if(b._sawEnemy) return false;
-  var BL = beliefLast[b.team] || {};
+  var BL = kvLast(b.team);
   for(var id in BL){ var e = BL[id], ob = teamBot(id);
     if(ob && ob.alive && ob.team !== b.team && tick - e.tick <= CONTACT_AGE*TICK_HZ && DM.hypot(e.x-b.x, e.y-b.y) < DELAY_SAFE) return false; }
   return true;

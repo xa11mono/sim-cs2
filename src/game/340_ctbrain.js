@@ -244,8 +244,8 @@ function ctBrain(){
     // (v281, владелец 14.10: после зачистки B колл «все 1 на B» при последнем T на A) честное число: хвост 0,3 — это 0, а не 1
     var tAliveN = aliveCount("T"), here = Math.min(tAliveN, Math.round(ct.call.count));
     var elseO = 0, elseM = 0, elseAny = 0, hereKnown = 0;
-    var BLh = beliefLast.CT || {}; for(var eidH in BLh){ var eH = BLh[eidH], obH = teamBot(eidH); if(!obH || !obH.alive || tick - eH.tick > 8*TICK_HZ) continue; if(DM.hypot(eH.x-sc0.x, eH.y-sc0.y) < 900) hereKnown++; }   // (v365) знание команды по игрокам — beliefLast (beliefLast бывает пуст)
-    for(var eidR in beliefLast.CT){ var eR = beliefLast.CT[eidR]; if(tick - eR.tick > 8*TICK_HZ) continue; if(DM.hypot(eR.x-sc0.x, eR.y-sc0.y) < 900) continue;
+    var BLh = kvLast("CT"); for(var eidH in BLh){ var eH = BLh[eidH], obH = teamBot(eidH); if(!obH || !obH.alive || tick - eH.tick > 8*TICK_HZ) continue; if(DM.hypot(eH.x-sc0.x, eH.y-sc0.y) < 900) hereKnown++; }   // (v365) знание команды по игрокам — beliefLast (beliefLast бывает пуст)
+    for(var eidR in kvLast("CT")){ var eR = kvLast("CT")[eidR]; if(tick - eR.tick > 8*TICK_HZ) continue; if(DM.hypot(eR.x-sc0.x, eR.y-sc0.y) < 900) continue;
       elseAny++; if(DM.hypot(eR.x-SITES[ko].x, eR.y-SITES[ko].y) < 750) elseO++; else if(DM.hypot(eR.x-GEO.ctMid.x, eR.y-GEO.ctMid.y) < 650) elseM++; }
     var unacc = Math.max(0, tAliveN - here - elseAny);
     ct.call.unacc = unacc;
@@ -271,7 +271,7 @@ function ctBrain(){
     var spread = false;
     if(!ct.call.bombSeen && !ct.call.undefended && aliveCount("T") >= 3){
       var zA = 0, zB = 0, zM = 0;
-      for(var eidS in beliefLast.CT){ var eS = beliefLast.CT[eidS]; if(tick - eS.tick > 10*TICK_HZ) continue;
+      for(var eidS in kvLast("CT")){ var eS = kvLast("CT")[eidS]; if(tick - eS.tick > 10*TICK_HZ) continue;
         if(DM.hypot(eS.x-SITES.A.x, eS.y-SITES.A.y) < 800) zA++; else if(DM.hypot(eS.x-SITES.B.x, eS.y-SITES.B.y) < 800) zB++; else if(DM.hypot(eS.x-GEO.ctMid.x, eS.y-GEO.ctMid.y) < 700 || DM.hypot(eS.x-GEO.tMid.x, eS.y-GEO.tMid.y) < 500) zM++; }
       var bA = beliefMass("CT", BZ.siteNear.A||[]), bB = beliefMass("CT", BZ.siteNear.B||[]), bM = beliefMass("CT", BZ.midZ);
       var areas = ((zA || bA > 0.6) ? 1 : 0) + ((zB || bB > 0.6) ? 1 : 0) + ((zM || bM > 0.6) ? 1 : 0);
@@ -343,7 +343,7 @@ function ctBrain(){
       DM.hypot(b.x-SITES[fs].x, b.y-SITES[fs].y) > 500; })
       .sort(function(a, b2){ return (a.tRole === "mid" ? 0 : 1) - (b2.tRole === "mid" ? 0 : 1); })[0];
     // (ответ владельца 9) маршрут у врага — не идти: на зоне маршрута фланга (набор карты) команда недавно (SITE_SEEN_SEC) видела / слышала T
-    var CFr = ((MAP.tactics.plays.ctFlank || {}).route || {})[fs === "A" ? "A" : "B"] || [], BLc = beliefLast.CT || {};
+    var CFr = ((MAP.tactics.plays.ctFlank || {}).route || {})[fs === "A" ? "A" : "B"] || [], BLc = kvLast("CT");
     if(cand && CFr.some(function(n){ var zp = zonePoint(n, SITES[fs]), zz = zp && zoneIdAt(zp.x, zp.y); return zz && bots.some(function(o){ var e = BLc[o.id];
       return o.alive && o.team === "T" && e && tick - e.tick <= SITE_SEEN_SEC*TICK_HZ && zoneIdAt(e.x, e.y) === zz; }); })) cand = null;
     if(cand){

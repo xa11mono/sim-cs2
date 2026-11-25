@@ -33,7 +33,7 @@ function tFallbackTick(){
     if(!taskCanSet(b, "repos:fallback")) return;   // (v378) идёт по задаче не ниже отката — арбитр места
     if(b.post && taskProp(b.post.tag, "planStage")) return;   // на стадии / выходе по плану — не откатывается (решение плана, не важность)
     var zb = bzOf(b.x, b.y); if(zb < 0) return;
-    var L = beliefLast.T || {}, ids = 0, cx = 0, cy = 0;
+    var L = kvLast("T"), ids = 0, cx = 0, cy = 0;
     for(var eid in L){ var lo = L[eid]; if(tick - lo.tick > FB.window*TICK_HZ) continue; var eb = bots.filter(function(o){ return o.id === eid; })[0]; if(!eb || !eb.alive) continue;
       if(DM.hypot(lo.x-b.x, lo.y-b.y) > 900) continue; ids++; cx += lo.x; cy += lo.y; }
     var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === "T" && DM.hypot(o.x-b.x, o.y-b.y) <= 350; }).length;
@@ -147,7 +147,7 @@ function infoFallbackTick(){
     var siteED = Math.min(zA >= 0 ? ED[zA] : 1e9, zB >= 0 ? ED[zB] : 1e9);
     if(!(ED[zb] < siteED - 200)) return;
     // повод откатиться: 2+ разных врага рядом за 3с, погиб свой рядом, или ранен
-    var L = beliefLast.CT || {}, ids = 0, cx = 0, cy = 0;
+    var L = kvLast("CT"), ids = 0, cx = 0, cy = 0;
     for(var eid in L){ var lo = L[eid]; if(tick - lo.tick > FB.window*TICK_HZ) continue; var eb = bots.filter(function(o){ return o.id === eid; })[0]; if(!eb || !eb.alive) continue;
       if(DM.hypot(lo.x-b.x, lo.y-b.y) > 900) continue; ids++; cx += lo.x; cy += lo.y; }
     // (v291, И31, владелец 14.10: раунд 1, тик 2858 — игрок 6 на Mid «минус рядом» от смерти на Back Site: 926 px по прямой,

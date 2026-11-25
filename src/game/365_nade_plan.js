@@ -137,7 +137,7 @@ function npOwner(b, L){ return (b._nplan || []).some(function(it){ return it.lu 
 // (v429) может ли враг быть у точки — по тому, что команда знает: все живые враги недавно (≤ 4 с) замечены далеко (> 900) — нет.
 // Граната на тайминг «на всякий случай» в место, где врага точно нет, не летит (остаётся на потом). Как smokeEnemyPossible (290)
 function npFoeMaybe(team, pt){
-  var foe = team === "CT" ? "T" : "CT", BL = beliefLast[team] || {}, alive = 0, away = 0;
+  var foe = team === "CT" ? "T" : "CT", BL = kvLast(team), alive = 0, away = 0;
   bots.forEach(function(e){ if(e.team !== foe || !e.alive) return; alive++; var L = BL[e.id]; if(L && tick - L.tick < 4*TICK_HZ && DM.hypot(L.x-pt.x, L.y-pt.y) > 900) away++; });
   return alive > away;
 }
@@ -212,7 +212,7 @@ function nadeAskFlash(b, pt, why, type, forC){   // (22.11, Ж23) forC — за�
   // (v554) type — «he»: HE в смок (smokeHeTick, 290) просит того, у кого она есть; лимит на раунд — свой у каждого типа
   type = type || "flash"; var fl = type === "flash";
   var nk = matchNum+":"+roundNum+":"+b.team+(fl ? "" : ":"+type); if((FLASH_ASK_N[nk]||0) >= FLASH_ASK_PER_ROUND) return null;
-  var foe = b.team === "CT" ? "T" : "CT", BL = beliefLast[b.team] || {}, fuse = (NADE[type].fuse || NADE.flash.fuse)/TICK_HZ, lim = nadeAimLimit(type, false);
+  var foe = b.team === "CT" ? "T" : "CT", BL = kvLast(b.team), fuse = (NADE[type].fuse || NADE.flash.fuse)/TICK_HZ, lim = nadeAimLimit(type, false);
   var seenBy = function(F){ return bots.some(function(e){ if(e.team !== foe || !e.alive) return false; var q = BL[e.id];
     return q && tick - q.tick <= SITE_SEEN_SEC*TICK_HZ && hasLOS(q.x, q.y, F.x, F.y); }); };
   var LU = proLineups().filter(function(L){ return L.team === b.team && L.type === type && DM.hypot(L.to.x-pt.x, L.to.y-pt.y) <= lim; });
