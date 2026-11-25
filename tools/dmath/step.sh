@@ -8,8 +8,8 @@
 set -u
 F=$1; D=$2; PA=$3; PM=$4; T=${5:-8000}
 ROOT=$(cd "$(dirname "$0")/../.." && pwd); cd "$ROOT"; mkdir -p "$D"
-node tools/dmath/replace.js "$F" || exit 1
-for m in ancient mirage; do python3 src/build.py --map $m "$D/${F}_$m.html" > "$D/${F}_build_$m.log" 2>&1 || { echo "сборка $m не удалась"; exit 1; }; done
+[ "${SKIP_BUILD:-}" ] || node tools/dmath/replace.js "$F" || exit 1
+[ "${SKIP_BUILD:-}" ] || for m in ancient mirage; do python3 src/build.py --map $m "$D/${F}_$m.html" > "$D/${F}_build_$m.log" 2>&1 || { echo "сборка $m не удалась"; exit 1; }; done
 node tools/dmath/shim_page.js "$D/${F}_ancient.html" "$PA" "$D/${F}_shim_ancient.html" "$F" && node tools/dmath/shim_page.js "$D/${F}_mirage.html" "$PM" "$D/${F}_shim_mirage.html" "$F" || exit 1
 for m in ancient mirage; do P=$PA; [ $m = mirage ] && P=$PM
   node tools/sim.js diverge "$P" "$D/${F}_shim_$m.html" --ticks=$T --out="$D/${F}_shim_$m.json" > "$D/${F}_shim_$m.txt" 2>&1 &

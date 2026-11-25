@@ -14,7 +14,7 @@ const end = s.indexOf('\n', s.indexOf('var DM = (function(){') >= 0 ? s.indexOf(
 if (end < 0) { console.error('нет объявления DM в странице шага'); process.exit(1); }
 s = s.slice(0, end + 1) + '/* Р2.3 подмена: */ ' + shim + '\n' + s.slice(end + 1);
 // nadeguess: объект JSON внутри набора карты — "nadeguess":{…}; найти конец по скобкам (строки JSON — без скобок внутри кавычек)
-function grab(t) { const i = t.indexOf('"nadeguess":{'); if (i < 0) return null; let d = 0, j = i + 12, q = false;
+function grab(t) { const mm = /"nadeguess":\s*\{/.exec(t); if (!mm) return null; const i = mm.index; let d = 0, j = i + mm[0].length - 1, q = false;   // esbuild пишет с пробелом
   for (; j < t.length; j++) { const c = t[j]; if (q) { if (c === '\\') j++; else if (c === '"') q = false; continue; } if (c === '"') q = true; else if (c === '{') d++; else if (c === '}' && --d === 0) break; }
   return [i, j + 1]; }
 const a = grab(s), b = grab(p);
