@@ -95,7 +95,7 @@ function proSnap(b, pt, look, tag){
     if(look){ var wa = DM.atan2(look.y-s[1], look.x-s[0]); md = Math.min.apply(null, modes.map(function(m){ return _angOff(m[0], wa); })); if(md > PSN.maxOff) continue; }
     var mk = 1, qs = posAt(b.team, s[0], s[1]);   // (v246) тут в прошлом раунде не сработало — реже, как у про
     if(qs && !(bomb && bomb.state === "planted")){ var qv = posTable(b.team, nick(b.id), posWeaponClass(b))[qs.id] || 0; if(qv > 0) mk = posPref(b, qs, true)/qv; }
-    var sc = Math.log(1 + s[2]*mk) - 1.5*d/PSN.R - 0.8*md;
+    var sc = DM.log(1 + s[2]*mk) - 1.5*d/PSN.R - 0.8*md;
     if(sc > bs){ bs = sc; best = {pt:{x:s[0], y:s[1]}, sp:{m:modes, r:s[2], k:i}}; }
   }
   b._psV = best;

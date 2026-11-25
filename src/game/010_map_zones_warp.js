@@ -156,7 +156,7 @@ function solveLinear(A, b){
   for(var i2=0;i2<n;i2++) x[i2] = Math.abs(M[i2][i2])<1e-9 ? 0 : M[i2][n]/M[i2][i2];
   return x;
 }
-function tpsRbf(r2){ return r2 < 1e-9 ? 0 : r2 * Math.log(r2) * 0.5; } // стандартное радиальное базисное ядро TPS: r²·log(r) = r²·log(r²)/2, без sqrt
+function tpsRbf(r2){ return r2 < 1e-9 ? 0 : r2 * DM.log(r2) * 0.5; } // стандартное радиальное базисное ядро TPS: r²·log(r) = r²·log(r²)/2, без sqrt
 
 var navWarp = null; // {n, pts, wx/ax0/ax1/ax2 (поле смещения по X), wy/ay0/ay1/ay2 (по Y)} — пересчитывается rebuildNavWarp()
 function rebuildNavWarp(){

@@ -267,7 +267,7 @@ function tryShoot(shooter, target, dist){ var _ev = simEvIn("tryShoot", argument
   var kC = target.crouching ? 0.75 : 1, hH = 64*kC;            // центр головы
   var aimY = aimHead ? hH : 46*kC;
   var sp = sprayPat(w, burstIdx), cmp = Math.min(0.95, comp + 0.08);
-  var gu1 = Math.max(1e-9, hashRand(seedS+21)), gu2 = hashRand(seedS+22), gr = Math.sqrt(-2*Math.log(gu1));
+  var gu1 = Math.max(1e-9, hashRand(seedS+21)), gu2 = hashRand(seedS+22), gr = Math.sqrt(-2*DM.log(gu1));
   var sgm = sigma * (BAL.hbK || 1);
   var ex = gr*DM.cos(2*Math.PI*gu2)*sgm + sp.x*(1-cmp), ey = gr*DM.sin(2*Math.PI*gu2)*sgm + sp.y*(1-cmp);
   var ux = aimSide*VIS_SHOULDER + ex/u1, uy = aimY + ey/u1;   // (М149) поперёк — от видимого плеча

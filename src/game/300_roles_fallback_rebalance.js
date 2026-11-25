@@ -85,7 +85,7 @@ function rebalSpot(b, k, taken, avoidPts, opt){
       else if(taken.some(function(q){ return DM.hypot(q.x-t.x, q.y-t.y) < REBAL.freeR; }) || avoidPts.some(function(q){ return DM.hypot(q.x-t.x, q.y-t.y) < REBAL.freeR; })) return;
       // угол в сторону своего спавна/тыла — не угол
       if(DM.hypot(t.x-CT_SPAWN.x, t.y-CT_SPAWN.y) < DM.hypot(s[0]-CT_SPAWN.x, s[1]-CT_SPAWN.y) - 120) return;
-      var sc = Math.log(1 + s[2]) + 1.2*m[1] - DM.hypot(s[0]-b.x, s[1]-b.y)/400;
+      var sc = DM.log(1 + s[2]) + 1.2*m[1] - DM.hypot(s[0]-b.x, s[1]-b.y)/400;
       if(sc > bs){ bs = sc; best = {pt:{x:s[0], y:s[1]}, look:{x:s[0] + DM.cos(m[0])*300, y:s[1] + DM.sin(m[0])*300}, t:t}; }
     });
   }
