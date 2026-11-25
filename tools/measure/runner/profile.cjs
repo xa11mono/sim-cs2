@@ -20,11 +20,26 @@ const INPUTS = `(function() {
     return [...buffers].reduce((sum, buffer) => sum + buffer.byteLength, 0);
   }
   const keys = object => Object.keys(object || {}).length;
-  const jsonBytes = value => new TextEncoder().encode(JSON.stringify(value)).length;
+  const byteLength = text => new TextEncoder().encode(text).length;
+  const jsonBytes = value => byteLength(JSON.stringify(value));
+  const state = {
+    bots, score, roundState, bomb, teamEco, teamIntel, teamTac, nadesInAir, smokes, fires,
+    groundWeapons, groundItems, PLAYER_MEM, OPP, MEM_BOX, tacticalMemory: memSnapshot()
+  };
   return {
+    cursor: { match: matchNum, round: roundNum, tick },
+    statePackBytes: byteLength(mkPack(state)),
     isMap3dAlias: MAP.map3d === MAP3D, isNavmeshAlias: MAP.navmesh.areas === NAVAREAS,
     hasRawNavmeshCopy: NAVAREAS_RAW !== NAVAREAS,
     geometryBackingBytes: bufferBytes(M3), navBackingBytes: bufferBytes([NAV_GRID, NAV_ZONE, zoneGraph]),
+    geometryDetails: {
+      triangles: M3?.triFlag.length ?? 0,
+      hulls: M3?.hullFlag.length ?? 0,
+      sweepWorkspaceBytes: bufferBytes([M3?.nTriSeen, M3?.nHullSeen, M3?.nTriXY]),
+      grenadeColumnsBytes: bufferBytes(M3?.nade), skyColumnsBytes: bufferBytes([M3?.sky, M3?.skyZ]),
+      solidGridBytes: bufferBytes(M3_SOLID),
+      trianglePlanes: M3?.nTriPl?.size ?? 0, hullPlanes: keys(M3?.nHullPl)
+    },
     navAreas: NAVAREAS.length, rawNavAreas: NAVAREAS_RAW.length, navGraphNodes: keys(zoneGraph),
     navJsonBytes: { input: jsonBytes(MAP.navmesh), rawAreas: jsonBytes(NAVAREAS_RAW), areas: jsonBytes(NAVAREAS), graph: jsonBytes(zoneGraph) },
     caches: { WPM: WPM.n, ZDJ: keys(ZDJ.s), KPC: keys(KPC) },
@@ -52,14 +67,19 @@ async function main(pageFile, recFile) {
     await page.evaluate(src => __ev(src), source);
     const after = await heap();
     const inputsAfter = await page.evaluate(src => __ev(src), INPUTS);
-    const rows = await page.evaluate(() => Object.fromEntries(
-      Object.entries(globalThis.__measureRecord ?? {}).filter(([, value]) => Array.isArray(value)).map(([key, value]) => [key, value.length])
-    ));
+    const diagnostic = await page.evaluate(() => {
+      const record = globalThis.__measureRecord;
+      if (!record) return null;
+      const rows = Object.fromEntries(
+        Object.entries(record).filter(([, value]) => Array.isArray(value)).map(([key, value]) => [key, value.length])
+      );
+      return { rows, jsonBytes: new TextEncoder().encode(JSON.stringify(record)).length };
+    });
     await page.evaluate(() => { delete globalThis.__measureRecord; });
     const afterRelease = await heap();
     console.log(JSON.stringify({
       browser: browser.version(), htmlBytes: statSync(pageFile).size,
-      heap: { before, after, afterRelease }, inputsBefore, inputsAfter, rows
+      heap: { before, after, afterRelease }, inputsBefore, inputsAfter, diagnostic
     }, null, 2));
   } finally {
     await browser.close();
