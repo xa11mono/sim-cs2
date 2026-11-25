@@ -62,4 +62,7 @@ Node 22.23.5). Отпечатки облака и ПК тем не менее с
 **Следствия для устройства** (`docs/architecture/DECISIONS.md` АР-24…АР-26): кадры из Worker — через `postMessage`, общая память — только
 необязательное ускорение; Worker — из Blob-URL, не из `data:`; запасной режим — главный поток.
 
-Firefox, WebKit, Opera GX, Edge, Safari — не проверены (шаг Р0.14).
+**Р0.14, ПК (Windows 10, Playwright 1.63.0):** Chromium 153.0.8010.12, Firefox 155.0, WebKit 26.6 — страница игры, 2000 тиков без ошибок;
+WASM и `libm` бит в бит — везде; Worker из Blob — везде, модуль из Blob — Firefox и WebKit (Chromium — нет на странице без адреса), `data:` —
+везде на ПК; общей памяти нет. **Симуляция между движками различается** (хэш матча после 2000 тиков), `Math` Firefox = WebKit ≠ Chromium
+(`rebuild/evidence/R0/r0.14_xb_pc.json`). Реальные Chrome, Opera GX, Edge, Safari — не проверены.
