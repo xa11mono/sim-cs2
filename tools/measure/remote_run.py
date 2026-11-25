@@ -8,6 +8,7 @@ ref — ветка или коммит, чью игру играть; инстр
 import sys, os, json, subprocess, shutil, tempfile
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(os.path.dirname(HERE))
 PY = sys.executable
+sys.path.insert(0, HERE); import procguard   # (Р2.6) защита памяти ПК
 
 # вне папки репо: открытый Get-Content -Wait держит файл, и GitHub не мог почистить папку перед следующим заданием
 LOG = os.path.join(os.path.expanduser('~'), 'simcs2_run.log')   # смотреть на ПК: Get-Content $HOME\simcs2_run.log -Wait -Encoding UTF8
@@ -50,8 +51,9 @@ def build(ref, mapname, out):
     key = (subprocess.run(['git', 'rev-parse', 'FETCH_HEAD'], cwd=ROOT, capture_output=True, text=True).stdout.strip(), mapname)
     if key in BUILT and os.path.exists(BUILT[key]):
         if os.path.abspath(BUILT[key]) != os.path.abspath(out): shutil.copyfile(BUILT[key], out)
-        log('сборка %s %s — уже есть в этом прогоне (%s)' % (key[0][:10], mapname, os.path.basename(BUILT[key]))); return
+        log('сборка %s %s — уже есть в этом прогоне (%s)' % (key[0][:10], mapname, os.path.basename(BUILT[key]))); return key[0]
     _build(ref, mapname, out); BUILT[key] = out
+    return key[0]
 
 def _build(ref, mapname, out):
     tmp = tempfile.mkdtemp(prefix='simbuild_')
@@ -87,11 +89,12 @@ def main():
             str(j.get('step', 900)), str(j.get('n', 26)), '1600', '900', j.get('mode', 'both')], cwd=ROOT)
     # (15.11, перестройка) отпечаток бит в бит: {"fp": [{"label", "ref", "map", "matches"?}]} — fingerprint.js на каждый матч (параллельно
     # по par) → runs/<label>/fp_<m>.json; сравнение в облаке — diff двух меток (игру не меняет, только играет и хэширует)
-    fps = []
+    fps = []; FPMETA = {}
     for j in req.get('fp', []):
-        sim = os.path.join(sims, j['label'] + '.html'); build(j['ref'], j.get('map', 'ancient'), sim)
+        sim = os.path.join(sims, j['label'] + '.html'); sha = build(j['ref'], j.get('map', 'ancient'), sim)
         out = os.path.join(ROOT, 'tools', 'measure', 'runs', j['label']); os.makedirs(out, exist_ok=True)
         for m in j.get('matches', [3, 7, 11, 13, 17, 19, 23, 29]): fps.append((sim, m, os.path.join(out, 'fp_%d.json' % m), bool(j.get('fields')), j.get('engine', 'chromium')))
+        FPMETA[j['label']] = {'sha': sha, 'map': j.get('map', 'ancient'), 'engine': j.get('engine', 'chromium'), 'pw': PW_VER, 'fields': bool(j.get('fields'))}
     fpjs = open(os.path.join(HERE, 'fingerprint.js'), encoding='utf-8').read()
     fwjs = open(os.path.join(HERE, 'engine', 'field_watch.js'), encoding='utf-8').read()   # (15.11) "fields": true — ловец писателей полей
     # (15.11, перестройка) покрытие кода: {"cov": [{"label", "ref", "map", "matches"?, "rounds"?}]} — code_cov.js по матчу на процесс →
@@ -102,32 +105,31 @@ def main():
         out = os.path.join(ROOT, 'tools', 'measure', 'runs', j['label']); os.makedirs(out, exist_ok=True)
         for m in j.get('matches', [3, 7, 11, 13, 17, 19, 23, 29]):
             covs.append(['node', os.path.join(HERE, 'code_cov.js'), sim, os.path.join(out, 'cov_%d.json' % m), str(j.get('rounds', 99)), str(m)])
-    run = []
     # (Р2.6) "engine": "firefox" | "webkit" — отпечаток в другом движке (src/q.js, SIM_BROWSER); движки ставятся один раз
     need = sorted(set(e for *_, e in fps if e != 'chromium'))
     if need:
         home = os.path.join(os.path.expanduser('~'), '.simcs2_node'); npx = os.path.join(home, 'node_modules', '.bin', 'playwright.cmd' if os.name == 'nt' else 'playwright')
         sh([npx, 'install'] + need, cwd=home)
+    # (Р2.6, 25.11) пул с защитой памяти (procguard.py): прогон 323 (par 8, три движка) исчерпал память ПК (99 %, перезагрузка).
+    # Матч стартует, только если хватает свободной памяти; лимиты памяти и времени на матч; дерево процессов снимается целиком.
+    # Рядом с отпечатком: err_<m>.txt — ошибки движка / страницы (публикуются), guard_<m>.json — пик памяти, время, код, причина снятия
+    # "resume": true — готовые матчи прерванного прогона (~/simcs2_done) берутся, если совпали коммит игры, карта, движок, Playwright,
+    # код замера и q.js (meta); иначе играются заново
+    pool = procguard.Pool(par, req.get('guard'), os.environ.get('PLAYWRIGHT_BROWSERS_PATH'), log, resume=bool(req.get('resume')))
+    qsha = __import__('hashlib').sha256(open(os.path.join(ROOT, 'src', 'q.js'), 'rb').read()).hexdigest()
+    def fp_ok(path):
+        try: return 'hash' in json.load(open(path, encoding='utf-8'))
+        except Exception: return False
     for sim, m, out, fw, eng in fps:
-        while len(run) >= par:
-            for p, f in run:
-                if p.poll() is not None and f: f.close()
-            run = [(p, f) for p, f in run if p.poll() is None]
-            if len(run) >= par: __import__('time').sleep(2)
-        f = open(out, 'w', encoding='utf-8'); log('fp %s m%d' % (os.path.basename(sim), m))
         code = (fwjs + '\n' if fw else '') + fpjs.replace('__M__', str(m)); cf = out[:-5] + '.code.js'; open(cf, 'w', encoding='utf-8').write(code)
-        fe = open(out[:-5] + '.err', 'w', encoding='utf-8')   # (Р2.6) ошибки движка / страницы — рядом с отпечатком (прогон 320: пустой fp_11 Firefox без причины)
-        run.append((subprocess.Popen(['node', os.path.join(ROOT, 'src', 'q.js'), sim, '@' + cf], cwd=ROOT, stdout=f, stderr=fe, env=dict(os.environ, SIM_BROWSER=eng)), f))
+        d = os.path.dirname(out); lab = os.path.basename(d); files = [out, os.path.join(d, 'err_%d.txt' % m), os.path.join(d, 'guard_%d.json' % m)]
+        meta = dict(FPMETA[lab], match=m, code=__import__('hashlib').sha256(code.encode('utf-8')).hexdigest(), q=qsha)
+        pool.add({'name': 'fp %s m%d' % (os.path.basename(sim), m), 'cmd': ['node', os.path.join(ROOT, 'src', 'q.js'), sim, '@' + cf], 'cwd': ROOT,
+                  'env': dict(os.environ, SIM_BROWSER=eng), 'out': out, 'err': files[1], 'guard': files[2], 'engine': eng, 'valid': fp_ok,
+                  'save': {'dir': os.path.join(procguard.DONE, lab, 'm%d' % m), 'meta': meta, 'files': files}})
     for c in covs:
-        while len(run) >= par:
-            for p, f in run:
-                if p.poll() is not None and f: f.close()
-            run = [(p, f) for p, f in run if p.poll() is None]
-            if len(run) >= par: __import__('time').sleep(2)
-        log('cov ' + os.path.basename(c[4]) + ' ' + c[-1]); run.append((subprocess.Popen(c, cwd=ROOT), None))
-    for p, f in run:
-        p.wait()
-        if f: f.close()
+        pool.add({'name': 'cov ' + os.path.basename(c[4]) + ' ' + c[-1], 'cmd': c, 'cwd': ROOT, 'engine': 'chromium'})
+    pool.wait_all()
     # ловец полей — из fp_<m>.json в fw_<m>.json (отпечаток остаётся как без ловца — сравним с прошлыми); код замера — удалить
     for sim, m, out, fw, eng in fps:
         try: os.remove(out[:-5] + '.code.js')

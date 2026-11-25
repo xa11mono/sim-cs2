@@ -23,7 +23,7 @@ TMPROOT = tempfile.gettempdir()
 for d in os.listdir(TMPROOT):
     pth = os.path.join(TMPROOT, d)
     try:
-        if d.startswith(('pcres_', 'simbuild_', 'playwright_chromiumdev_profile-', 'playwright-artifacts-')) and os.path.isdir(pth):
+        if d.startswith(('pcres_', 'simbuild_', 'playwright_chromiumdev_profile-', 'playwright_firefoxdev_profile-', 'playwright_webkitdev_profile-', 'playwright-artifacts-')) and os.path.isdir(pth):
             rmdir(pth)
     except Exception: pass
 tmp = tempfile.mkdtemp(prefix='pcres_')
