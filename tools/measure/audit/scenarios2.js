@@ -1,11 +1,13 @@
 // Сценарии этапа 2 (регрессия): node src/q.js <сборка.html> "$(cat tools/measure/audit/scenarios2.js)" → JSON {сценарий: {ok, ...}}
 // ok = поведение как у живого игрока (цель этапа 2). Сборка до правок этапа 2 часть из них не проходит — это и есть дефект.
 (function(){
+  // (Р0.7, 24.11, находка У-5) высота и участок навмеша под точкой — как песочница sbPlace (677:35–37): без них проверки видимости (3D с v388) и пола идут с чужого этажа
+  function onFloor(o){ var a = navFloorNear(o.x, o.y, 40, null) || navAt(o.x, o.y, o.z || 0); if(a){ o.z = navFloorZ(a, o.x, o.y); o._area = a.id; } }
   var R = {};
   function setup(){ freshMatch(3); for(var i = 0; i < 5000 && roundState !== "live"; i++) stepTick(); for(var j = 0; j < 64; j++) stepTick(); }
   function bot(id){ return bots.filter(function(b){ return b.id === id; })[0]; }
-  function park(except){ bots.forEach(function(o){ if(except.indexOf(o) >= 0) return; o.x = o.baseX = (o.team === "CT" ? CT_SPAWN.x : T_SPAWN.x); o.y = o.baseY = (o.team === "CT" ? CT_SPAWN.y : T_SPAWN.y); }); }
-  function put(b, p){ b.x = b.baseX = p.x; b.y = b.baseY = p.y; b.px = p.x; b.py = p.y; b.curSpeed = 0; }
+  function park(except){ bots.forEach(function(o){ if(except.indexOf(o) >= 0) return; o.x = o.baseX = (o.team === "CT" ? CT_SPAWN.x : T_SPAWN.x); o.y = o.baseY = (o.team === "CT" ? CT_SPAWN.y : T_SPAWN.y); onFloor(o); }); }
+  function put(b, p){ b.x = b.baseX = p.x; b.y = b.baseY = p.y; b.px = p.x; b.py = p.y; b.curSpeed = 0; onFloor(b); }
   function open(p0, q){ if(insideSolidWall(q.x, q.y) || bzOf(q.x, q.y) < 0 || visWallHit(p0.x, p0.y, q.x, q.y) || !hasLOS(p0.x, p0.y, q.x, q.y)) return false;
     var v = visParts(p0.x, p0.y, false, q.x, q.y, false, false), w = visParts(q.x, q.y, false, p0.x, p0.y, false, false); return v.head && v.body && w.head && w.body && !smokeBlocks(p0.x, p0.y, q.x, q.y); }
   // стрелок, враг A в 380 px, враг B в 160 px чуть в стороне (в поле зрения); все линии открыты

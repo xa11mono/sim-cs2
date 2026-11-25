@@ -1,6 +1,8 @@
 // Сценарии этапа 3: node src/q.js <сборка.html> "$(cat tools/measure/audit/scenarios3.js)" → JSON {сценарий: {ok, ...}}
 // Сценарий засчитывается, только если нужное событие действительно произошло (поле valid).
 (function(){
+  // (Р0.7, 24.11, находка У-5) высота и участок навмеша под точкой — как песочница sbPlace (677:35–37): без них проверки видимости (3D с v388) и пола идут с чужого этажа
+  function onFloor(o){ var a = navFloorNear(o.x, o.y, 40, null) || navAt(o.x, o.y, o.z || 0); if(a){ o.z = navFloorZ(a, o.x, o.y); o._area = a.id; } }
   var R = {};
   function bot(id){ return bots.filter(function(b){ return b.id === id; })[0]; }
 
@@ -55,8 +57,8 @@
   // P2-2: своя флешка. Настоящий бросок (throwNade) T2 → хлопок; T3 (свой) и CT2 (враг) смотрят на точку хлопка (худший случай).
   // Засчитывается, только если хлопок случился и враг действительно ослеп (флешка «рабочая»). Ищем место, где свой далеко от
   // бросающего (>450 px) и не видит его — тогда знать о флешке он может только из колла «флешу!».
-  function park2(keep){ bots.forEach(function(o){ if(keep.indexOf(o) >= 0) return; o.x = o.baseX = (o.team === "CT" ? CT_SPAWN.x : T_SPAWN.x); o.y = o.baseY = (o.team === "CT" ? CT_SPAWN.y : T_SPAWN.y); }); }
-  function put2(o, p){ o.x = o.baseX = p.x; o.y = o.baseY = p.y; o.px = p.x; o.py = p.y; o.curSpeed = 0; o.hp = 100000; }
+  function park2(keep){ bots.forEach(function(o){ if(keep.indexOf(o) >= 0) return; o.x = o.baseX = (o.team === "CT" ? CT_SPAWN.x : T_SPAWN.x); o.y = o.baseY = (o.team === "CT" ? CT_SPAWN.y : T_SPAWN.y); onFloor(o); }); }
+  function put2(o, p){ o.x = o.baseX = p.x; o.y = o.baseY = p.y; o.px = p.x; o.py = p.y; o.curSpeed = 0; o.hp = 100000; onFloor(o); }
   function sees(a, b){ return hasVision(a.x, a.y, b.x, b.y) && !insideSolidWall(b.x, b.y) && bzOf(b.x, b.y) >= 0; }
   function flashGeo(wantCover){
     for(var k = 0; k < 20000; k++){

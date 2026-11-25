@@ -2,6 +2,8 @@
 // node src/q.js <сборка.html> "$(cat tools/measure/audit/scenarios.js)"   → JSON {сценарий: {ok, ...}}
 // ok = поведение как у живого игрока (после правок аудита). На сборке до правок часть сценариев даёт ok:false — это и есть дефект.
 (function(){
+  // (Р0.7, 24.11, находка У-5) высота и участок навмеша под точкой — как песочница sbPlace (677:35–37): без них проверки видимости (3D с v388) и пола идут с чужого этажа
+  function onFloor(o){ var a = navFloorNear(o.x, o.y, 40, null) || navAt(o.x, o.y, o.z || 0); if(a){ o.z = navFloorZ(a, o.x, o.y); o._area = a.id; } }
   var R = {};
   function setup(){
     freshMatch(3);
@@ -10,7 +12,7 @@
   }
   function bot(id){ return bots.filter(function(b){ return b.id === id; })[0]; }
   function park(except){                                     // остальных — далеко и «не в деле»
-    bots.forEach(function(o){ if(except.indexOf(o) >= 0) return; o.x = o.baseX = (o.team === "CT" ? CT_SPAWN.x : T_SPAWN.x); o.y = o.baseY = (o.team === "CT" ? CT_SPAWN.y : T_SPAWN.y); });
+    bots.forEach(function(o){ if(except.indexOf(o) >= 0) return; o.x = o.baseX = (o.team === "CT" ? CT_SPAWN.x : T_SPAWN.x); o.y = o.baseY = (o.team === "CT" ? CT_SPAWN.y : T_SPAWN.y); onFloor(o); });
   }
   // открытая пара точек: видно друг друга целиком, 300–500 px
   function openPair(){
@@ -29,7 +31,7 @@
   // 1. Реакция: «держащий», который до этого врага не видел, не стреляет в первый тик контакта (стрельба 2.6)
   try {
     setup(); var ct = bot("CT2"), t = bot("T2"), P = openPair(); park([ct, t]);
-    ct.x = ct.baseX = P[0].x; ct.y = ct.baseY = P[0].y; t.x = t.baseX = P[1].x; t.y = t.baseY = P[1].y;
+    ct.x = ct.baseX = P[0].x; ct.y = ct.baseY = P[0].y; t.x = t.baseX = P[1].x; t.y = t.baseY = P[1].y; onFloor(ct); onFloor(t);
     ct.facing = Math.atan2(t.y-ct.y, t.x-ct.x); ct.curSpeed = 0; t.curSpeed = 0; ct.state = "hold"; ct.holding = true;
     ct.decisionTick = tick + 100000; ct.lastIntel = null; ct._intelPre = null; ct.contactStreak = 0; ct.nextShotTick = 0; ct.blindUntil = 0; ct.throwUntil = 0; ct._knife = false; ct._drawUntil = 0;
     var a0 = ct.ammo, firstShot = null;
@@ -49,9 +51,9 @@
     }
     if(!back) throw new Error("нет тройки точек");
     park([c, a, b2]);
-    c.x = c.baseX = P2[0].x; c.y = c.baseY = P2[0].y; a.x = a.baseX = P2[1].x; a.y = a.baseY = P2[1].y;
+    c.x = c.baseX = P2[0].x; c.y = c.baseY = P2[0].y; a.x = a.baseX = P2[1].x; a.y = a.baseY = P2[1].y; onFloor(c); onFloor(a);
     var vb = visParts(c.x, c.y, false, back.x, back.y, false, false);
-    b2.x = b2.baseX = back.x; b2.y = b2.baseY = back.y;
+    b2.x = b2.baseX = back.x; b2.y = b2.baseY = back.y; onFloor(b2);
     c.facing = Math.atan2(a.y-c.y, a.x-c.x); c.contactStreak = 30; c.blindUntil = 0; a.blindUntil = 0; b2.blindUntil = 0;
     a.facing = Math.atan2(c.y-a.y, c.x-a.x); b2.facing = Math.atan2(c.y-b2.y, c.x-b2.x);
     resolveEngagements(); resolveEngagements();
@@ -116,10 +118,10 @@
   // 7. HE / молотов не бросается туда, где стоит свой (гранаты 2.7)
   try {
     setup(); var th = bot("CT2"), mt = bot("CT3"); th.nades.he = 1; th.nades.molly = Math.max(1, th.nades.molly|0);
-    var tgt = {x: th.x + 300, y: th.y}; mt.x = mt.baseX = tgt.x + 40; mt.y = mt.baseY = tgt.y;
+    var tgt = {x: th.x + 300, y: th.y}; mt.x = mt.baseX = tgt.x + 40; mt.y = mt.baseY = tgt.y; onFloor(mt);
     var heBefore = th.nades.he; throwNade(th, "he", tgt.x, tgt.y, false, "тест"); var heThrown = th.nades.he < heBefore;
     var mBefore = th.nades.molly; throwNade(th, "molly", tgt.x, tgt.y, false, "тест"); var mThrown = th.nades.molly < mBefore;
-    mt.x = mt.baseX = tgt.x + 600; th.nades.he = 1; throwNade(th, "he", tgt.x, tgt.y, false, "тест"); var heFree = th.nades.he < 1;
+    mt.x = mt.baseX = tgt.x + 600; onFloor(mt); th.nades.he = 1; throwNade(th, "he", tgt.x, tgt.y, false, "тест"); var heFree = th.nades.he < 1;
     R.no_nade_on_teammate = {ok: !heThrown && !mThrown && heFree, heOnMate: heThrown, mollyOnMate: mThrown, heWhenClear: heFree};
   } catch(e){ R.no_nade_on_teammate = {ok: false, err: String(e).slice(0, 200)}; }
 

@@ -1,11 +1,13 @@
 // Сценарии этапа 4: node src/q.js <сборка.html> "$(cat tools/measure/audit/scenarios4.js)" → JSON {сценарий: {ok, valid, ...}}
 // Засчитывается, только если нужное событие действительно случилось (valid).
 (function(){
+  // (Р0.7, 24.11, находка У-5) высота и участок навмеша под точкой — как песочница sbPlace (677:35–37): без них проверки видимости (3D с v388) и пола идут с чужого этажа
+  function onFloor(o){ var a = navFloorNear(o.x, o.y, 40, null) || navAt(o.x, o.y, o.z || 0); if(a){ o.z = navFloorZ(a, o.x, o.y); o._area = a.id; } }
   var R = {};
   function bot(id){ return bots.filter(function(b){ return b.id === id; })[0]; }
   function live(m){ freshMatch(m || 3); for(var i = 0; i < 5000 && roundState !== "live"; i++) stepTick(); for(var j = 0; j < 64; j++) stepTick(); }
-  function park(keep){ bots.forEach(function(o){ if(keep.indexOf(o) >= 0) return; o.x = o.baseX = (o.team === "CT" ? CT_SPAWN.x : T_SPAWN.x); o.y = o.baseY = (o.team === "CT" ? CT_SPAWN.y : T_SPAWN.y); }); }
-  function put(o, p){ o.x = o.baseX = p.x; o.y = o.baseY = p.y; o.px = p.x; o.py = p.y; o.curSpeed = 0; }
+  function park(keep){ bots.forEach(function(o){ if(keep.indexOf(o) >= 0) return; o.x = o.baseX = (o.team === "CT" ? CT_SPAWN.x : T_SPAWN.x); o.y = o.baseY = (o.team === "CT" ? CT_SPAWN.y : T_SPAWN.y); onFloor(o); }); }
+  function put(o, p){ o.x = o.baseX = p.x; o.y = o.baseY = p.y; o.px = p.x; o.py = p.y; o.curSpeed = 0; onFloor(o); }
   function openSpot(minR){   // точка, от которой влево и вправо на minR px нет стен (бросок по прямой не отскочит)
     for(var k = 0; k < 6000; k++){
       var z = NAVAREAS[Math.floor(hashRand(k*7+3)*NAVAREAS.length)], c = zoneCentroid(z), ok = !insideSolidWall(c.x, c.y) && bzOf(c.x, c.y) >= 0;
