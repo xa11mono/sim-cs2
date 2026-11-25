@@ -364,6 +364,12 @@ if (CHECK) {
   const un = Object.entries(SC).filter(([k, o]) => k[0] !== "_" && o.class === "не размечено").length;
   console.log("реестр состояния: строк " + want.size + ", не размечено " + un);
 }
+// ---- (Р3.5) карточки механик (rebuild/cards.json) сверяются с кодом: файл без карточки, функция карточки не в своём файле, хозяин поля
+// (owners.json) не в карточке — ошибка сборки
+if (CHECK) {
+  const CR = require("./cards.js").check(); CR.lines.forEach(l => (CR.bad ? console.error : console.log)(l));
+  if (CR.bad) { console.error("ОШИБКА: карточка механики расходится с кодом — поправить rebuild/cards.json вместе с кодом"); process.exit(1); }
+}
 // ---- (Р3.2 знание; приёмка Р3 / Р8 №2) решения не читают истину врага: новое чтение (не в rebuild/truth_known.json) — ошибка сборки
 if (CHECK) {
   const TR = require("./truth_reads.js").check(); TR.lines.forEach(l => (TR.bad ? console.error : console.log)(l));
