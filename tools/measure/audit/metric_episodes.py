@@ -35,6 +35,27 @@ def analyse(label):
         for e in (w.get('ev') or {}).get('stall', []):
             R['stall']['sampled'] += 1; R['stall']['by'][stall_cause(e[2])] += 1
             t = re.findall(r'«([^»]+)»', e[2]); R['stall']['tasks'][' / '.join(t[:2])] += 1
+        # (владелец 25.11) stall по категориям: физическое застревание / нет пути / блокировка задачи (на посту и держит — тактическое
+        # ожидание с отказом арбитража; не на посту и не идёт — кандидат в ошибочную блокировку) / «шаг свободен, стоит» / повтор эпизода
+        actx = collections.defaultdict(list)
+        for a in d.get('act') or []: actx[a[1]].append(a)
+        seenblk = set()
+        for e in (w.get('ev') or {}).get('stall', []):
+            tk, bid, txt = e[0], e[1], e[2]; L = actx.get(bid, []); i = bisect.bisect_right([a[0] for a in L], tk) - 1; A = dict(zip(ACT, L[i])) if i >= 0 else {}
+            if txt.startswith('залип'):
+                key = (bid, e[-1], tuple(re.findall(r'«([^»]+)»', txt)))
+                if key in seenblk: cat = 'повтор того же эпизода (тот же бот, раунд, пара задач)'
+                elif A.get('atPost') and (A.get('stopWhy') or '').startswith('на посту'): cat = 'блокировка задачи: бот на посту своей задачи и держит (ожидание / удержание; обоснованность отказа — по записи не доказуема)'
+                else: cat = 'блокировка задачи: бот не на посту и не идёт (кандидат в ошибочную блокировку)'
+                seenblk.add(key)
+            elif re.search(r'\): (стена|уступ|край пола|огонь)', txt): cat = 'физическое застревание (стена / уступ / край пола / огонь на шаге)'
+            elif 'нет пути' in txt: cat = 'невозможно двигаться: нет пути'
+            else: cat = 'шаг свободен, стоит — ' + ('в ожидании по задаче' if re.match(r'(gather|bombWait|utilWait|utilHold|smokeWait|retakeCover|rotateHold|waitPop|stage|exec:wait)', A.get('post') or '') else 'не ожидание по задаче')
+            R['stall'].setdefault('cat', collections.Counter())[cat] += 1
+        # danger «взрыв» / «огонь» — по задаче на момент события
+        for e in (w.get('ev') or {}).get('danger', []):
+            if 'флешка' in e[2]: continue
+            R['danger'].setdefault('other', collections.Counter())[e[2].split(' (')[0] + ' — задача ' + re.sub(r'[:|].*$', '', str(e[3]))] += 1
         R['danger']['n'] += (w.get('n') or {}).get('danger', 0); R['danger']['by'].update(w.get('dangerBy') or {})
         # контекст флешки: act по боту (ближайший ≤ тика), see (видел ли бросавшего раньше), blind
         act = collections.defaultdict(list)
@@ -59,7 +80,8 @@ def analyse(label):
             if len(R['danger']['flash']['examples']) < 12:
                 R['danger']['flash']['examples'].append({'match': m, 'tick': tk, 'bot': bid, 'thrower': thr, 'ctx': ctx, 'task': A.get('post'), 'state': A.get('state'),
                     'look': A.get('lookReason'), 'stop': A.get('stopWhy'), 'blinded': [b[2] for b in bl], 'sawThrowerAt': saw[-1] if saw else None})
-    for k in ('by', 'tasks'): R['stall'][k] = dict(R['stall'][k].most_common())
+    for k in ('by', 'tasks', 'cat'): R['stall'][k] = dict(R['stall'].get(k, collections.Counter()).most_common())
+    R['danger']['other'] = dict(R['danger'].get('other', collections.Counter()).most_common())
     R['danger']['by'] = dict(R['danger']['by']); R['danger']['flash']['ctx'] = dict(R['danger']['flash']['ctx'].most_common())
     return R
 
@@ -67,8 +89,9 @@ res = [analyse(l) for l in labels]
 for r in res:
     print('== %s: матчей %d, раундов %d' % (r['label'], r['matches'], r['rounds']))
     print('  stall всего %d, в выборке записи %d (%.0f %%):' % (r['stall']['n'], r['stall']['sampled'], 100 * r['stall']['sampled'] / max(1, r['stall']['n'])))
-    for k, v in list(r['stall']['by'].items())[:8]: print('     %4d  %s' % (v, k))
+    for k, v in r['stall']['cat'].items(): print('     %4d  %s' % (v, k))
     print('  danger всего %d по причинам: %s' % (r['danger']['n'], r['danger']['by']))
+    print('  danger «взрыв» / «огонь» в выборке по задаче:', dict(list(r['danger']['other'].items())[:8]))
     fl = r['danger']['flash']; print('  флешка без реакции — в выборке %d, контекст:' % fl['sampled'])
     for k, v in fl['ctx'].items(): print('     %4d  %s' % (v, k))
 if OUT: json.dump(res, open(OUT, 'w'), ensure_ascii=False, indent=1)

@@ -1,0 +1,539 @@
+[
+ {
+  "label": "v599a_pre_anc2",
+  "matches": 8,
+  "rounds": 162,
+  "stall": {
+   "n": 206,
+   "sampled": 202,
+   "by": {
+    "залип: блокировка задачи (не геометрия)": 154,
+    "застрял: шаг свободен, стоит (стоп: —)": 41,
+    "застрял: шаг свободен, стоит (стоп: тормозит у конца пути)": 6,
+    "застрял: шаг свободен, стоит (стоп: в прыжке)": 1
+   },
+   "tasks": {
+    "ambush / anchor": 26,
+    "rotate": 26,
+    "rotate / endhunt": 16,
+    "endhunt / anchor": 16,
+    "rotate / lineup": 12,
+    "bombwatch / endhunt": 11,
+    "repos / anchor": 4,
+    "mid": 4,
+    "postplant / lineup": 4,
+    "endhunt": 4,
+    "contact / anchor": 3,
+    "endhunt / anchor2A": 3,
+    "stageA": 3,
+    "save / lineup": 3,
+    "default": 3,
+    "ambush / rotate": 3,
+    "probePairA / stageA": 3,
+    "endhunt / mid": 3,
+    "smokeLine / stageB": 2,
+    "backstab / anchor": 2,
+    "ambush / clutch": 2,
+    "pickup": 2,
+    "fetch": 2,
+    "rebalB / anchor": 2,
+    "contact / postplant": 2,
+    "save": 2,
+    "lineup / anchor": 2,
+    "fill / anchor": 2,
+    "smokeWait / default": 2,
+    "route": 2,
+    "ambush / flank0": 2,
+    "endhunt / flank0": 2,
+    "contact / mid": 2,
+    "ambush / rebalB": 1,
+    "repos / flank0": 1,
+    "backstab / gatherSolo1": 1,
+    "rotate / rebalA": 1,
+    "backstab / lurkBack": 1,
+    "smokeWait / stageB": 1,
+    "lineup / default": 1,
+    "ambush / lurk3": 1,
+    "contact / fetch": 1,
+    "backstab / rotate": 1,
+    "contact / lurkBack": 1,
+    "contact / rotate": 1,
+    "repos / rotate": 1,
+    "repos / stageB": 1,
+    "repos / stageA": 1,
+    "ambush / fetch": 1,
+    "endhunt / midcover": 1,
+    "smokeLine / default": 1,
+    "contact / default": 1,
+    "endhunt / anchor2B": 1,
+    "retakeEntry / lineup": 1,
+    "rotate / repos": 1,
+    "repos / mid": 1,
+    "probeA / stageA": 1,
+    "rebalA / anchor": 1
+   }
+  },
+  "danger": {
+   "n": 93,
+   "by": {
+    "флешка без реакции": 63,
+    "стоит в огне": 16,
+    "взрыв": 14
+   },
+   "flash": {
+    "sampled": 63,
+    "ctx": {
+     "без объяснения в записи (кандидат в ошибку — разбор по снимку)": 23,
+     "ослеплён этой / другой флешкой": 23,
+     "в бою / держит контакт": 15,
+     "бросавшего не видел до хлопка (знания, куда поворачиваться, могло не быть)": 2
+    },
+    "examples": [
+     {
+      "match": "31",
+      "tick": 20143,
+      "bot": "CT4",
+      "thrower": "T2",
+      "ctx": "без объяснения в записи (кандидат в ошибку — разбор по снимку)",
+      "task": "pickup",
+      "state": "patrol",
+      "look": "look",
+      "stop": "тормозит у конца пути",
+      "blinded": [],
+      "sawThrowerAt": 13601
+     },
+     {
+      "match": "31",
+      "tick": 64105,
+      "bot": "T3",
+      "thrower": "CT1",
+      "ctx": "в бою / держит контакт",
+      "task": "plantspot",
+      "state": "engage",
+      "look": "enemy",
+      "stop": "стреляет по врагу",
+      "blinded": [],
+      "sawThrowerAt": 50737
+     },
+     {
+      "match": "31",
+      "tick": 72573,
+      "bot": "T2",
+      "thrower": "CT4",
+      "ctx": "ослеплён этой / другой флешкой",
+      "task": "pickup",
+      "state": "patrol",
+      "look": "sound",
+      "stop": "тормозит у конца пути",
+      "blinded": [
+       0.8
+      ],
+      "sawThrowerAt": 71960
+     },
+     {
+      "match": "31",
+      "tick": 115557,
+      "bot": "CT4",
+      "thrower": "T0",
+      "ctx": "ослеплён этой / другой флешкой",
+      "task": "rotate",
+      "state": "patrol",
+      "look": "look",
+      "stop": "на посту",
+      "blinded": [
+       0.4
+      ],
+      "sawThrowerAt": 109182
+     },
+     {
+      "match": "31",
+      "tick": 115602,
+      "bot": "T0",
+      "thrower": "CT2",
+      "ctx": "в бою / держит контакт",
+      "task": "contact:swing",
+      "state": "patrol",
+      "look": "contact",
+      "stop": "тормозит у конца пути",
+      "blinded": [],
+      "sawThrowerAt": 115504
+     },
+     {
+      "match": "31",
+      "tick": 115755,
+      "bot": "CT4",
+      "thrower": "T2",
+      "ctx": "без объяснения в записи (кандидат в ошибку — разбор по снимку)",
+      "task": "rotate",
+      "state": "patrol",
+      "look": "look",
+      "stop": "на посту",
+      "blinded": [],
+      "sawThrowerAt": 104871
+     },
+     {
+      "match": "31",
+      "tick": 115905,
+      "bot": "T0",
+      "thrower": "CT2",
+      "ctx": "без объяснения в записи (кандидат в ошибку — разбор по снимку)",
+      "task": "clearB:Site B",
+      "state": "patrol",
+      "look": "look",
+      "stop": "",
+      "blinded": [],
+      "sawThrowerAt": 115504
+     },
+     {
+      "match": "31",
+      "tick": 115905,
+      "bot": "T2",
+      "thrower": "CT2",
+      "ctx": "без объяснения в записи (кандидат в ошибку — разбор по снимку)",
+      "task": "tradeB",
+      "state": "patrol",
+      "look": "",
+      "stop": "",
+      "blinded": [],
+      "sawThrowerAt": 115355
+     },
+     {
+      "match": "31",
+      "tick": 119298,
+      "bot": "T0",
+      "thrower": "CT4",
+      "ctx": "ослеплён этой / другой флешкой",
+      "task": "repos:hurt",
+      "state": "patrol",
+      "look": "sound",
+      "stop": "на посту",
+      "blinded": [
+       0.7
+      ],
+      "sawThrowerAt": 109176
+     },
+     {
+      "match": "31",
+      "tick": 120003,
+      "bot": "CT4",
+      "thrower": "T0",
+      "ctx": "ослеплён этой / другой флешкой",
+      "task": "rotate",
+      "state": "patrol",
+      "look": "cover",
+      "stop": "ослеплён — стоит",
+      "blinded": [
+       1.6
+      ],
+      "sawThrowerAt": 116056
+     },
+     {
+      "match": "31",
+      "tick": 126474,
+      "bot": "T2",
+      "thrower": "CT3",
+      "ctx": "без объяснения в записи (кандидат в ошибку — разбор по снимку)",
+      "task": "repos:hurt",
+      "state": "patrol",
+      "look": "look",
+      "stop": "",
+      "blinded": [],
+      "sawThrowerAt": 121449
+     },
+     {
+      "match": "37",
+      "tick": 31347,
+      "bot": "CT2",
+      "thrower": "T4",
+      "ctx": "без объяснения в записи (кандидат в ошибку — разбор по снимку)",
+      "task": "repos:killmove",
+      "state": "patrol",
+      "look": "look",
+      "stop": "тормозит у конца пути",
+      "blinded": [],
+      "sawThrowerAt": 31150
+     }
+    ]
+   }
+  }
+ },
+ {
+  "label": "v599a_dm_anc2",
+  "matches": 8,
+  "rounds": 189,
+  "stall": {
+   "n": 305,
+   "sampled": 261,
+   "by": {
+    "залип: блокировка задачи (не геометрия)": 182,
+    "застрял: шаг свободен, стоит (стоп: —)": 69,
+    "застрял: шаг свободен, стоит (стоп: тормозит у конца пути)": 8,
+    "застрял: шаг свободен, стоит (стоп: в прыжке)": 1,
+    "застрял: шаг свободен, стоит (стоп: ждёт флешку своего)": 1
+   },
+   "tasks": {
+    "rotate": 41,
+    "rotate / lineup": 18,
+    "endhunt / anchor": 18,
+    "ambush / anchor": 17,
+    "rotate / endhunt": 15,
+    "bombwatch / endhunt": 15,
+    "smokeLine / default": 8,
+    "contact / postplant": 7,
+    "backstab": 6,
+    "postplant": 5,
+    "rotate / rebalA": 4,
+    "postplant / lineup": 4,
+    "pickup": 4,
+    "contact / anchor": 4,
+    "save / lineup": 4,
+    "smokeLine / stageB": 3,
+    "backstab / anchor": 3,
+    "endhunt / mid": 3,
+    "fetch": 3,
+    "mid": 3,
+    "endhunt / anchor2A": 3,
+    "stageA": 3,
+    "smokeWait / default": 3,
+    "backstab / lurkBack": 3,
+    "repos / flank0": 2,
+    "endhunt": 2,
+    "ambush / lurk1": 2,
+    "rebalB / anchor": 2,
+    "set": 2,
+    "rotate / rebalB": 2,
+    "probePairA / stageA": 2,
+    "smokeLine / tmid": 2,
+    "endhunt / flank0": 2,
+    "backstab / lurk1": 2,
+    "ambush / fetch": 2,
+    "repos": 2,
+    "lineup": 2,
+    "save": 2,
+    "backstab / lurk0": 2,
+    "ambush / rebalB": 1,
+    "backstab / retake": 1,
+    "backstab / fetch": 1,
+    "endhunt / midcover": 1,
+    "contact / tmid": 1,
+    "flee": 1,
+    "repos / siteholdB": 1,
+    "default": 1,
+    "contact / stageA": 1,
+    "contact / fetch": 1,
+    "backstab / rotate": 1,
+    "contact / rotate": 1,
+    "repos / rotate": 1,
+    "repos / stageB": 1,
+    "contact / mid": 1,
+    "ambush / lurk3": 1,
+    "plantspot": 1,
+    "fill / anchor": 1,
+    "lineup / default": 1,
+    "fetchCover / stageB": 1,
+    "backstab / tmid": 1,
+    "backstab / siteholdB": 1,
+    "backstab / postplant": 1,
+    "backstab / gatherSolo1": 1,
+    "rebalA / anchor": 1,
+    "backstab / gather1": 1,
+    "ambush / mid": 1,
+    "stageB": 1,
+    "repos / stageA": 1,
+    "ambush / rotate": 1,
+    "repos / default": 1,
+    "lineup / mid": 1,
+    "contact / stageB": 1,
+    "lineup / siteholdB": 1
+   }
+  },
+  "danger": {
+   "n": 126,
+   "by": {
+    "флешка без реакции": 82,
+    "стоит в огне": 23,
+    "взрыв": 21
+   },
+   "flash": {
+    "sampled": 82,
+    "ctx": {
+     "ослеплён этой / другой флешкой": 44,
+     "без объяснения в записи (кандидат в ошибку — разбор по снимку)": 26,
+     "в бою / держит контакт": 12
+    },
+    "examples": [
+     {
+      "match": "31",
+      "tick": 20143,
+      "bot": "CT4",
+      "thrower": "T2",
+      "ctx": "без объяснения в записи (кандидат в ошибку — разбор по снимку)",
+      "task": "pickup",
+      "state": "patrol",
+      "look": "look",
+      "stop": "тормозит у конца пути",
+      "blinded": [],
+      "sawThrowerAt": 13601
+     },
+     {
+      "match": "31",
+      "tick": 34218,
+      "bot": "T2",
+      "thrower": "CT2",
+      "ctx": "без объяснения в записи (кандидат в ошибку — разбор по снимку)",
+      "task": "default:T Upper",
+      "state": "patrol",
+      "look": "look",
+      "stop": "на посту",
+      "blinded": [],
+      "sawThrowerAt": 13654
+     },
+     {
+      "match": "31",
+      "tick": 50468,
+      "bot": "T1",
+      "thrower": "CT1",
+      "ctx": "ослеплён этой / другой флешкой",
+      "task": "default:Lamp Room",
+      "state": "patrol",
+      "look": "look",
+      "stop": "ослеплён — шаг назад",
+      "blinded": [
+       1.6
+      ],
+      "sawThrowerAt": 42675
+     },
+     {
+      "match": "31",
+      "tick": 50794,
+      "bot": "T1",
+      "thrower": "CT1",
+      "ctx": "ослеплён этой / другой флешкой",
+      "task": "lineup",
+      "state": "patrol",
+      "look": "",
+      "stop": "тормозит у конца пути",
+      "blinded": [
+       1.1
+      ],
+      "sawThrowerAt": 42675
+     },
+     {
+      "match": "31",
+      "tick": 53882,
+      "bot": "T1",
+      "thrower": "CT4",
+      "ctx": "ослеплён этой / другой флешкой",
+      "task": "stageA:CT Lane",
+      "state": "patrol",
+      "look": "",
+      "stop": "",
+      "blinded": [
+       0.5
+      ],
+      "sawThrowerAt": 28394
+     },
+     {
+      "match": "31",
+      "tick": 70076,
+      "bot": "T1",
+      "thrower": "CT4",
+      "ctx": "ослеплён этой / другой флешкой",
+      "task": "route:Mid",
+      "state": "patrol",
+      "look": "",
+      "stop": "ослеплён — шаг назад",
+      "blinded": [
+       1.6
+      ],
+      "sawThrowerAt": 65443
+     },
+     {
+      "match": "31",
+      "tick": 123923,
+      "bot": "CT3",
+      "thrower": "T4",
+      "ctx": "без объяснения в записи (кандидат в ошибку — разбор по снимку)",
+      "task": "rotate",
+      "state": "patrol",
+      "look": "look",
+      "stop": "тормозит у конца пути",
+      "blinded": [],
+      "sawThrowerAt": 107254
+     },
+     {
+      "match": "37",
+      "tick": 46745,
+      "bot": "CT1",
+      "thrower": "T0",
+      "ctx": "ослеплён этой / другой флешкой",
+      "task": "mid",
+      "state": "patrol",
+      "look": "glance",
+      "stop": "на посту",
+      "blinded": [
+       0.5
+      ],
+      "sawThrowerAt": 36381
+     },
+     {
+      "match": "37",
+      "tick": 46897,
+      "bot": "CT0",
+      "thrower": "T1",
+      "ctx": "ослеплён этой / другой флешкой",
+      "task": "ambush",
+      "state": "patrol",
+      "look": "look",
+      "stop": "тормозит у конца пути",
+      "blinded": [
+       1.2
+      ],
+      "sawThrowerAt": 26074
+     },
+     {
+      "match": "37",
+      "tick": 72111,
+      "bot": "CT1",
+      "thrower": "T2",
+      "ctx": "без объяснения в записи (кандидат в ошибку — разбор по снимку)",
+      "task": "rotate",
+      "state": "patrol",
+      "look": "look",
+      "stop": "тормозит у конца пути",
+      "blinded": [],
+      "sawThrowerAt": 71680
+     },
+     {
+      "match": "37",
+      "tick": 121579,
+      "bot": "CT2",
+      "thrower": "T2",
+      "ctx": "без объяснения в записи (кандидат в ошибку — разбор по снимку)",
+      "task": "bombwatch",
+      "state": "patrol",
+      "look": "",
+      "stop": "",
+      "blinded": [],
+      "sawThrowerAt": 121377
+     },
+     {
+      "match": "37",
+      "tick": 131510,
+      "bot": "T2",
+      "thrower": "CT1",
+      "ctx": "ослеплён этой / другой флешкой",
+      "task": "default:Mid",
+      "state": "patrol",
+      "look": "",
+      "stop": "ослеплён — шаг назад",
+      "blinded": [
+       1.7
+      ],
+      "sawThrowerAt": 121395
+     }
+    ]
+   }
+  }
+ }
+]
