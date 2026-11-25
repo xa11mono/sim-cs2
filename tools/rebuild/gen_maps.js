@@ -264,6 +264,18 @@ if (CHECK) {
     else if (LK[n].indexOf(ff) < 0) G.push("замок " + n + " пишет новый файл " + f + " — через интерфейс хозяина"); } });
   const seen = {}; tops.forEach(t => { const f = fileAt(t.s)[2]; if (seen[t.name] && seen[t.name] !== f) G.push("функция " + t.name + " — в двух файлах: " + seen[t.name] + " и " + f); else seen[t.name] = f; });
   VARS_CROSS.forEach(([k]) => { if (!(VARS_CATS[k] && VARS_CATS[k].cat)) G.push("общая переменная " + k + " пишется из чужого файла — сначала категория и хозяин (rebuild/var_cats.json) или интерфейс у хозяина"); });
+  // (Р2.4, 25.11) общая математика: в коде расчёта (src/game до 550, кроме 005_dmath.ts) нет Math.sin / cos / tan / atan / atan2 / asin / acos /
+  // exp / log / pow / hypot и прочих приближённых функций движка — только DM.* (одинаковые биты в любом браузере и в Rust). Ищется по
+  // лексемам (комментарии и строки не считаются); Math.sqrt / abs / floor / ceil / round / trunc / min / max / imul / sign — точные, можно
+  const APPROX = /^(sin|cos|tan|atan|atan2|asin|acos|exp|log|pow|hypot|sinh|cosh|tanh|asinh|acosh|atanh|expm1|log1p|log2|log10|cbrt|fround|random)$/;
+  for (const b of blocks) {
+    const toks = []; try { for (const t of acorn.tokenizer(b.src.replace(/@@[A-Z_]+@@/g, m => "0".padEnd(m.length, " ")), { ecmaVersion: "latest", allowReturnOutsideFunction: true })) toks.push(t); } catch (e) { continue; }
+    for (let i = 0; i + 2 < toks.length; i++) {
+      if (toks[i].type.label !== "name" || toks[i].value !== "Math" || toks[i + 1].type.label !== "." || !APPROX.test(String(toks[i + 2].value))) continue;
+      const pos = b.off + toks[i].start, f = fileAt(pos)[2];
+      if (+f.slice(0, 3) < 550 && f !== "005_dmath.ts") G.push("Math." + toks[i + 2].value + " в коде расчёта (" + where(pos) + ") — только DM." + toks[i + 2].value + " (src/game/005_dmath.ts, Р2)");
+    }
+  }
   if (G.length) { G.forEach(g => console.error("ОШИБКА устройства: " + g)); process.exit(1); }
 }
 // ---- проверка владения: запись поля из функции не из канала (owners.json → allow) — предупреждение, при enforce — ошибка

@@ -1,0 +1,2 @@
+ОШИБКА устройства: Math.sin в коде расчёта (470_fight_cycle.js:658) — только DM.sin (src/game/005_dmath.ts, Р2)
+ОШИБКА устройства: Math.pow в коде расчёта (470_fight_cycle.js:658) — только DM.pow (src/game/005_dmath.ts, Р2)

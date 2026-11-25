@@ -54,8 +54,8 @@
 | Р2.0 ответы владельца | **сделано** | v599a dce686e | `map_check --known`, `// тип:`, `tomain`, уточнение Т-2 |
 | Р2.1 старая сборка | **сделано** | v599a fbd7473 (`pre-dmath`) | архив — ветка `builds`; отметка пишет `env.src`; `mark_build.py`, `mark_replay.js`; `r2.1_old_build.json` |
 | Р2.2 `dmath` в игре | **сделано** | v599a | `src/game/005_dmath.ts` (`DM`, до обёртки игры); libm + hypot V8; контракт JS 0 нарушений; Rust = Node = Chromium бит в бит; игра не менялась |
-| Р2.3 замены | идёт | v599a | 1 hypot — 72c2e2c (Chromium Э1); 2 atan2 — a070fbc (Э3) |
-| Р2.4 правило сборки | — | | |
+| Р2.3 замены | **сделано** | v599a 72c2e2c … 6371c82 | 9 шагов: hypot (Э1 в Chromium), atan2, sin, cos, exp, log, pow (Э3), atan, acos (не расходятся до 8000 в Chromium); подмена каждого — бит в бит |
+| Р2.4 правило сборки | **сделано** | v599a | `gen_maps --check`: Math.sin / cos / … / hypot / random в коде расчёта — ошибка сборки; нарочное нарушение поймано (`r2.4_violation_test.txt`) |
 | Р2.5 новая база | — | | |
 | Р2.6 движки | идёт | | прогон 319 (до dmath): Firefox ≠ WebKit — `atan2` (Firefox = fdlibm, WebKit — правильное округление), тик 1; WebKit ≠ WebKit — кадр страницы (локатор исправлен) |
 
@@ -207,3 +207,7 @@
 - 25.11.2026 — Р2.3 шаг 7: `Math.pow` → `DM.pow` (5 files changed, 8 insertions(+), 8 deletions(-)). Подмена — бит в бит до 8000 (обе карты); шаг: ancient — не расходится до 8000; mirage — тик 1878, pow с теми же аргументами, 1 ulp (`r2.3_7_pow.json`).
 - 25.11.2026 — Р2.3 шаг 8: `Math.atan` → `DM.atan` (2 files changed, 5 insertions(+), 5 deletions(-)). Подмена — бит в бит до 8000 (обе карты); шаг: ancient — не расходится до 8000; mirage — не расходится до 8000 (`r2.3_8_atan.json`).
 - 25.11.2026 — Р2.3 шаг 9: `Math.acos` → `DM.acos` (1 file changed, 1 insertion(+), 1 deletion(-)). Подмена — бит в бит до 8000 (обе карты); шаг: ancient — не расходится до 8000; mirage — не расходится до 8000 (`r2.3_9_acos.json`).
+- 25.11.2026 — Р2.4: правило сборки в `tools/rebuild/gen_maps.js --check` — в коде расчёта (до 550, кроме `005_dmath.ts`) нет `Math.sin / cos /
+  tan / atan / atan2 / asin / acos / exp / log / pow / hypot / …` и `Math.random` (поиск по лексемам: комментарии не считаются); точные
+  `Math.sqrt / abs / floor / round / min / max` можно. Нынешний код — 0 нарушений; нарочное `Math.sin` + `Math.pow` в 470 → 2 ошибки с файлом и
+  строкой, код 1; то же в комментарии — не ошибка.
