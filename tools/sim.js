@@ -86,6 +86,35 @@ function measureCheck(args) {
   return bad.length ? 1 : 0;
 }
 
+// пакет контекста (Р0.9): правила + состояние перестройки + строки по теме из «Где что», решений и реестра недостатков — для агентов без
+// репозитория (ChatGPT, DeepSeek в чате). Только склейка существующих документов.
+function context(args) {
+  const topic = pos(args).join(' ').toLowerCase(), words = topic.split(/\s+/).filter(w => w.length > 2);
+  const rd = f => { try { return fs.readFileSync(path.join(ROOT, f), 'utf8'); } catch (e) { return ''; } };
+  const sect = (txt, start, stop) => { const i = txt.indexOf(start); if (i < 0) return ''; const j = stop ? txt.indexOf(stop, i + start.length) : -1; return txt.slice(i, j < 0 ? undefined : j); };
+  const pick = txt => !words.length ? [] : txt.split('\n').filter(l => l.startsWith('|') && words.some(w => l.toLowerCase().includes(w)));
+  const J = rd('rebuild/JOURNAL.md'), P = rd('rebuild/MASTER_PLAN.md'), m = (J.match(/\| этап \| \*\*(Р\d)/) || [])[1] || 'Р0';
+  const parts = [
+    '# Контекст sim-cs2' + (topic ? ' — тема: ' + topic : '') + ' (собрано tools/sim.js context)',
+    rd('AGENTS.md'),
+    '# Состояние перестройки (rebuild/JOURNAL.md §2)\n' + sect(J, '## 2. Сейчас', '## 3.'),
+    '# Текущий этап (rebuild/MASTER_PLAN.md)\n' + sect(P, '### ' + m + '.', '\n### '),
+  ];
+  const rows = [['Решения (docs/architecture/DECISIONS.md)', rd('docs/architecture/DECISIONS.md')], ['Отложенные игровые недостатки (rebuild/BEHAVIOR_BACKLOG.md)', rd('rebuild/BEHAVIOR_BACKLOG.md')]];
+  for (const [h, t] of rows) { const r = pick(t); if (r.length) parts.push('# ' + h + ' — по теме\n' + r.join('\n')); }
+  const out = parts.join('\n\n'), f = opt(args, 'out', '');
+  if (f) { fs.writeFileSync(f, out); console.log(f + ': ' + out.length + ' символов'); } else process.stdout.write(out + '\n');
+  return 0;
+}
+// граф кода Graphify (Р0.9): только локальный разбор кода (--code-only), ключи API из окружения убираются — внешние вызовы невозможны;
+// что разбирать — .graphifyignore; результат — graphify-out/ (не в git). Ставится отдельно: pip install graphifyy (или uv tool install graphifyy)
+function graph(args) {
+  const exe = process.env.GRAPHIFY || 'graphify', env = Object.assign({}, process.env);
+  for (const k of Object.keys(env)) if (/API_KEY|_TOKEN$|BASE_URL$/.test(k) && !/^(GITHUB|GH)_/.test(k)) delete env[k];
+  const r = cp.spawnSync(exe, ['extract', ROOT, '--code-only', '--no-viz'].concat(args), { cwd: ROOT, stdio: 'inherit', env });
+  if (r.error) { console.error('нет graphify: pip install graphifyy (или GRAPHIFY=путь)'); return 2; }
+  return r.status || 0;
+}
 const MARKS = { open: 'mark_open', story: 'mark_story', frames: 'mark_frames', video: 'mark_video', scenarios: 'scenarios', replay: 'replay_owner' };
 const CMDS = {
   help: () => { console.log(HELP); return 0; },
@@ -97,6 +126,8 @@ const CMDS = {
   scen: a => run('node', [path.join(ROOT, 'tools', 'marks', 'scenarios.js')].concat(a)),
   marks: a => MARKS[a[0]] ? run('node', [path.join(ROOT, 'tools', 'marks', MARKS[a[0]] + '.js')].concat(a.slice(1))) : (console.error('marks: ' + Object.keys(MARKS).join(' | ')), 2),
   measure: a => a[0] === 'check' ? measureCheck(a.slice(1)) : (console.error('measure check [request.json] — проверить задание; запуск — пуш ветки measure/<имя> (CLAUDE.md §8)'), 2),
+  context, graph,
+  inv: a => run('node', [path.join(ROOT, 'tools', 'measure', 'inv_run.js')].concat(a)),
   diverge: a => run('node', [path.join(ROOT, 'tools', 'measure', 'diverge.js')].concat(a)),
   health: a => run(PY, [path.join(ROOT, 'tools', 'health.py')].concat(pos(a).length ? pos(a) : ['sim.html'])),
 };
@@ -111,6 +142,9 @@ const HELP = `node tools/sim.js <команда> — единая точка в�
   measure check [request.json]            проверить задание прогона на ПК
   env [файл]                              среда: Playwright, Chromium, Node, ОС
   diverge A.html B.html [--match=3] [--ticks=…] [--every=64] [--inject-b=f.js] [--math]   первый тик расхождения, поля, вызов Math (Р0.5)
+  inv <sim.html> [--special|--neutral] [--ticks=…]   инварианты I-01…I-32 (Р0.6)
+  context [тема] [--out=файл]             текстовый пакет правил и состояния для агентов без репозитория (Р0.9)
+  graph                                   граф кода Graphify, только локально (graphify-out/, не в git) (Р0.9)
   health [sim.html]                       «здоровье» кода (tools/health.py)`;
 
 (async () => {

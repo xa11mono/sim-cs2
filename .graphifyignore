@@ -1,0 +1,13 @@
+# (Р0.9, 24.11) Graphify — только локальный разбор кода (владелец 24.11): документы, данные карт, сборки и результаты не разбираются
+docs/
+data/
+rebuild/
+dist/
+graphify-out/
+node_modules/
+.claude/
+*.html
+*.md
+tools/measure/runs/
+tools/measure/results/
+tools/measure/selftest/
