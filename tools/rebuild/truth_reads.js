@@ -51,6 +51,19 @@ function brainOf() {
       const cs = callers[f]; if (!cs || !cs.size) { out.add('?'); continue; } cs.forEach(c => st.push(c)); }
     return (memo[fn] = out.size === 1 && !out.has('?') ? [...out][0] : null); };
 }
+// (вид 2) бомба в коде CT: место бомбы (x / y / z) и носитель — истина, пока CT её не видел; знание CT о бомбе — ctBombPos (180: видели —
+// точно, иначе по писку с шумом). Функции, достижимые только из ctBrain (сама модель знания — тоже: не заложенная бомба там — точно)
+function bombReads(BR) {
+  const out = [];
+  for (const f of SRC.gameFiles().filter(f => /\.(js|ts)$/.test(f))) { if (+f.slice(0, 3) < 100 || +f.slice(0, 3) >= 545) continue; let ast;
+    try { ast = acorn.parse(SRC.readGame(f), { ecmaVersion: 'latest', allowReturnOutsideFunction: true, locations: true }); } catch (e) { continue; }
+    walk.simple(ast, { FunctionDeclaration(fd) { const fn = fd.id.name; if (BR(fn) !== 'CT') return;
+      const props = new Set(); let line = 0;
+      walk.simple(fd.body, { MemberExpression(m) { if (m.object.type === 'Identifier' && m.object.name === 'bomb' && !m.computed && /^(x|y|z|carrier)$/.test(m.property.name)) { props.add(m.property.name); line = line || m.loc.start.line; } } });
+      if (props.size) out.push({ file: f, fn: fn, line, props: ['bomb.' + [...props].sort().join(',')], kind: 'бомба', perception: false }); } });
+  }
+  return out;
+}
 function analyze() {
   const sites = [], BR = brainOf();
   for (const f of SRC.gameFiles().filter(f => /\.(js|ts)$/.test(f))) {
@@ -133,7 +146,7 @@ function analyze() {
             consider({ body: b }, d.id.name, fs_.loc.start.line, anc); } }
     });
   }
-  return sites;
+  return sites.concat(bombReads(BR));
 }
 const key = s => s.file.slice(0, 3) + ':' + s.fn + ':' + s.props.join(',');
 // сверка с реестром известных мест: новое место или больше мест у ключа — ошибка; ушедшее из кода — напоминание убрать строку
