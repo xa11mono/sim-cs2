@@ -20,10 +20,14 @@ function mkSnapList(){
 // раз отставал. Теперь снимок сам находит переменную, которую нельзя скопировать (элементы страницы, картинки, функции — это показ и
 // кэши, не игра), убирает её из списка навсегда и пишет в консоль. Копия — одна на все переменные: общие объекты (бот в bots и в целях)
 // остаются общими.
+// (Р3.1.4, 25.11) формат содержимого снимка: номер пишется в снимок (__fmt), при открытии старые форматы поднимаются переходниками
+// MK_SNAP_UP[n] (n → n+1) по порядку. Снимок без номера — формат 1 (всё до Р3.1.4). Новый формат — когда снимок начинает хранить то,
+// чего раньше не было (ремонт Т-1), со своим переходником для старых отметок
+var MK_SNAP_FMT = 1, MK_SNAP_UP = {};
 function mkSnapshot(){
   var list = mkSnapList();
   for(;;){
-    var o = {}; list.forEach(function(e){ o[e[0]] = e[1](); });
+    var o = {__fmt: MK_SNAP_FMT}; list.forEach(function(e){ o[e[0]] = e[1](); });
     try{ return structuredClone(o); }catch(err){
       var bad = list.filter(function(e){ try{ structuredClone(o[e[0]]); return false; }catch(x){ return true; } });
       if(!bad.length) throw err;
@@ -32,7 +36,8 @@ function mkSnapshot(){
     }
   }
 }
-function mkRestore(data){ var c = structuredClone(data); mkSnapList().forEach(function(e){ if(e[0] in c) e[2](c[e[0]]); }); mkRebaseShow(); }
+function mkRestore(data){ var c = structuredClone(data); for(var f = c.__fmt || 1; f < MK_SNAP_FMT; f++) if(MK_SNAP_UP[f]) MK_SNAP_UP[f](c);
+  mkSnapList().forEach(function(e){ if(e[0] in c) e[2](c[e[0]]); }); mkRebaseShow(); }
 // (18.11) показ (трассеры, круги звука) помнит время рождения по часам страницы (nowTs), а часы в снимок не входят: после открытия снимка
 // «возраст» выходил отрицательным — вспышка выстрела на весь экран (оранжевый кадр), круг звука с отрицательным радиусом ронял кадр.
 // Сдвиг: самое свежее из снимка — «сейчас» по часам этой страницы, остальные — на тот же сдвиг
