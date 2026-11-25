@@ -1,0 +1,133 @@
+{
+ "engine": "chromium 153.0.8010.12",
+ "node": "v24.21.0",
+ "n": 100000,
+ "corpus": true,
+ "functions": "sin 149651 =, cos 149688 =, atan 102878 =, acos 100041 =, exp 129181 =, log 100220 =, atan2 151086 =, pow 101610 =, hypot 151047 =, hypot3 101089 =",
+ "mismatch": [],
+ "nanBitsOnly": [],
+ "nodeHashes": {
+  "sin": {
+   "n": 149651,
+   "nan": 27,
+   "hash": "2152356c",
+   "hashNaNcanon": "771d7114"
+  },
+  "cos": {
+   "n": 149688,
+   "nan": 28,
+   "hash": "dd2a2729",
+   "hashNaNcanon": "8408095e"
+  },
+  "atan": {
+   "n": 102878,
+   "nan": 28,
+   "hash": "97b51839",
+   "hashNaNcanon": "23bb501a"
+  },
+  "acos": {
+   "n": 100041,
+   "nan": 75125,
+   "hash": "794c2563",
+   "hashNaNcanon": "6ad9f383"
+  },
+  "exp": {
+   "n": 129181,
+   "nan": 17,
+   "hash": "7588aa12",
+   "hashNaNcanon": "92662dd6"
+  },
+  "log": {
+   "n": 100220,
+   "nan": 50078,
+   "hash": "1b4748e5",
+   "hashNaNcanon": "3d444c2a"
+  },
+  "atan2": {
+   "n": 151086,
+   "nan": 121,
+   "hash": "235dcd8",
+   "hashNaNcanon": "8704f924"
+  },
+  "pow": {
+   "n": 101610,
+   "nan": 38211,
+   "hash": "49d28e84",
+   "hashNaNcanon": "334fbdd7"
+  },
+  "hypot": {
+   "n": 151047,
+   "nan": 113,
+   "hash": "f66b9d56",
+   "hashNaNcanon": "f66b9d56"
+  },
+  "hypot3": {
+   "n": 101089,
+   "nan": 141,
+   "hash": "cdae01f2",
+   "hashNaNcanon": "cdae01f2"
+  }
+ },
+ "pageHashes": {
+  "sin": {
+   "n": 149651,
+   "nan": 27,
+   "hash": "2152356c",
+   "hashNaNcanon": "771d7114"
+  },
+  "cos": {
+   "n": 149688,
+   "nan": 28,
+   "hash": "dd2a2729",
+   "hashNaNcanon": "8408095e"
+  },
+  "atan": {
+   "n": 102878,
+   "nan": 28,
+   "hash": "97b51839",
+   "hashNaNcanon": "23bb501a"
+  },
+  "acos": {
+   "n": 100041,
+   "nan": 75125,
+   "hash": "794c2563",
+   "hashNaNcanon": "6ad9f383"
+  },
+  "exp": {
+   "n": 129181,
+   "nan": 17,
+   "hash": "7588aa12",
+   "hashNaNcanon": "92662dd6"
+  },
+  "log": {
+   "n": 100220,
+   "nan": 50078,
+   "hash": "1b4748e5",
+   "hashNaNcanon": "3d444c2a"
+  },
+  "atan2": {
+   "n": 151086,
+   "nan": 121,
+   "hash": "235dcd8",
+   "hashNaNcanon": "8704f924"
+  },
+  "pow": {
+   "n": 101610,
+   "nan": 38211,
+   "hash": "49d28e84",
+   "hashNaNcanon": "334fbdd7"
+  },
+  "hypot": {
+   "n": 151047,
+   "nan": 113,
+   "hash": "f66b9d56",
+   "hashNaNcanon": "f66b9d56"
+  },
+  "hypot3": {
+   "n": 101089,
+   "nan": 141,
+   "hash": "cdae01f2",
+   "hashNaNcanon": "cdae01f2"
+  }
+ }
+}
