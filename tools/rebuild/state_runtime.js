@@ -39,7 +39,8 @@ const { PAGE } = require('./state_digest.js');
   for (const k of bk) { const at = []; for (let i = 1; i < cps.length; i++) if (JSON.stringify(cps[i].b[k]) !== JSON.stringify(cps[i - 1].b[k])) at.push(cps[i].name); bch[k] = at; }
   const sn = new Set(snap);
   const res = { sim: path.basename(SIM), match: MATCH, ticks: TICKS, points: cps.map(c => ({ name: c.name, tick: c.tick, round: c.round, ms: c.ms })),
-    globals: Object.fromEntries(G.map(n => [n, { changed: ch[n], snap: sn.has(n), absent: cps[0].g[n] === 'нет' }])),
+    // type: тип значения; функция — содержимое её замыкания хэш не видит («не меняется» для неё не доказано)
+    globals: Object.fromEntries(G.map(n => [n, { changed: ch[n], snap: sn.has(n), absent: cps[0].g[n] === 'нет', type: cps[cps.length - 1].ty[n] }])),
     bot: Object.fromEntries([...bk].sort().map(k => [k, { changed: bch[k] }])),
     changed_not_in_snapshot: G.filter(n => ch[n].length && !sn.has(n)) };
   fs.writeFileSync(OUT, JSON.stringify(res, null, 1));

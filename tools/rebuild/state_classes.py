@@ -45,6 +45,7 @@ def rule_global(n, g):
         if not RUN: return None
         ch = changed('globals', n)
         if ch: return None   # меняется через другое имя — разметка вручную
+        if any((r['globals'].get(n) or {}).get('type') == 'function' for r in RUN): return None   # замыкание: содержимое опыт не видит
         return 'неизменяемое', 'после объявления (%s) не пишется по имени и не меняется по содержимому; опыт: не меняется за матч (%s)' % (g['decl'], RUN_NAMES), 'загрузка'
     if wn & ROUND_RESET:
         return 'раунд', 'пишет resetRound (%s)' % ', '.join(sorted(f for fn, f in W if fn in ROUND_RESET)), 'раунд (resetRound)'

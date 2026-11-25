@@ -7,124 +7,141 @@
    "name": "после freshMatch",
    "tick": 0,
    "round": 1,
-   "ms": 241
+   "ms": 393
   },
   {
    "name": "1 шаг",
    "tick": 1,
    "round": 1,
-   "ms": 207
+   "ms": 305
   },
   {
    "name": "раунд 2",
    "tick": 5682,
    "round": 2,
-   "ms": 440
+   "ms": 443
   },
   {
    "name": "раунд 3",
    "tick": 10512,
    "round": 3,
-   "ms": 398
+   "ms": 475
   },
   {
    "name": "раунд 14",
    "tick": 80049,
    "round": 14,
-   "ms": 437
+   "ms": 545
   },
   {
    "name": "конец",
    "tick": 90000,
    "round": 15,
-   "ms": 488
+   "ms": 619
   }
  ],
  "globals": {
   "ACCEL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "AHEAD_GAP": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "AIM_A": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "AIM_AD": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "AIM_FIRE_CONE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "AIM_FLICK": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "AIM_HEAD_PISTOL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "AIM_LAG": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "AIM_TRACK_BAND": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "AIM_TRACK_MIN": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "AIM_TURN_RATE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "AMB_AWAY": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "AMB_HEAR": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "AMB_MIN": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "AMB_PASS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "AMB_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "AMB_SHOOT": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "APPEAR": {
    "changed": [
@@ -134,7 +151,8 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "APPEAR_N": {
    "changed": [
@@ -144,62 +162,74 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "ARMOR_BONUS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "ARMOR_PRICE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "ARMOR_REBUY": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "ASSIST_DMG": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "ASSIST_EDGE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "AWP_NOSCOPE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "BACK_KNOW": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "BACK_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "BAIT_MAX": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "BAL": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "BEEP_FINAL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "BEEP_NEXT": {
    "changed": [
@@ -209,87 +239,104 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "BELIEF_STEP": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "BLIND_FIRE_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "BLIND_SPREAD": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "BODY_HALF": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "BOMB_DMG": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "BOMB_HERE_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "BOMB_TICKS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "BOOST": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "BOT_INIT": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "BUILTIN_OFF": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "BUILTIN_OFF_BAKED": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "BUILTIN_OFF_KEY": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "string"
   },
   "BUY_GAIN": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "BUY_SHOW": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "BUY_SHOW_FIRST": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "BUY_SHOW_GAP": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "BZ": {
    "changed": [
@@ -299,46 +346,54 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "BZ_WALK": {
    "changed": [
     "раунд 2"
    ],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "C4_FINAL_SEC": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "CALL_WEAK": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "CALL_WEAK_QUIET": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "CAUTION_TICKS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "CLEARZ": {
    "changed": [
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "CLEAR_HEARD_SEC": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "CLIMB_AT": {
    "changed": [
@@ -348,177 +403,212 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "CLIMB_BY_EDGE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "CLIMB_DWELL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "CLIMB_FLOOR_TOL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "CLIMB_MAX_STEP": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "CLIMB_MID_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "CLIMB_TRUST_N": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "CLR_POS_SEC": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "CLR_REB_SEC": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "CONE_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "CONTACT_AGE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "CONTACT_GAP": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "CONTACT_HOLD": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "CONTACT_PUSH": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "CONTACT_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "CONTACT_SWING": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "CONT_REGROUP": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "CONT_SEC": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "CORNER_FIGHT_OFF": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "COVER": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "COVER_CANDS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "COV_AUTO": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "COV_C": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "COV_CAT": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "COV_CHEST": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "COV_HIGH": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "COV_ORDER": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "COV_OWN": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "COV_OWN_CODE": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "CROSS_BELIEF": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "CROSS_MAX": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "CROSS_NEAR": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "CS_ACCEL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "CS_FRIC": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "CS_STOP": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "CTSET_DBG": {
    "changed": [
@@ -528,37 +618,44 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "CT_PRO_ZONE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "CT_ROLE_PRI": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "CT_SETUPS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "CT_SHARE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "CT_SHARE_MIN": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "CT_SHIFT": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "CT_SIDE_THR": {
    "changed": [
@@ -566,24 +663,28 @@
     "раунд 14"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "CT_SITE_COVER": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "CT_SITE_D": {
    "changed": [
     "раунд 2"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "CT_SPAWN": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "CT_SPOTS_RES": {
    "changed": [
@@ -593,22 +694,26 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "CT_SPOT_GAP": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "CT_SPOT_PAIR0": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "CT_SPOT_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "CT_ZONE_RES": {
    "changed": [
@@ -618,262 +723,314 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "D3": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "D3_CUT": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "D3_CUTF": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "string"
   },
   "D3_ELFS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "string"
   },
   "D3_ELVS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "string"
   },
   "D3_FB": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "D3_FOV": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "D3_FP_AIM": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "D3_FP_HOLD": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "D3_FP_PEASE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "D3_FP_PRATE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "D3_FS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "string"
   },
   "D3_HIDE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "D3_KZ": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "D3_LFS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "string"
   },
   "D3_LOW": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "D3_LVS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "string"
   },
   "D3_NULLCTX": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "D3_NULLGRAD": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "D3_OVER_EVERY": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "D3_OVER_SEC": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "D3_SOFT": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "D3_SPAWN_SEC": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "D3_STYLES": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "D3_TR_HIT": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "D3_TR_SHOT": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "D3_VS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "string"
   },
   "D3_WFS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "string"
   },
   "D3_WVS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "string"
   },
   "DANGER_SAMPLES": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "DECISION_INTERVAL_TICKS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "DEFUSE_HEAR": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "DEFUSE_JUDGE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "DEFUSE_KEEP": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "DEFUSE_KIT_TICKS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "DEFUSE_NEAR": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "DEFUSE_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "DEFUSE_TICKS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "DEF_GROUP_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "DEF_STAGE_SEC": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "DELAY_GAP": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "DELAY_GROUP_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "DELAY_SAFE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "DEMOV": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "DETOUR_MAX": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "DLOG_MAX": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "DLOG_SEC": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "DM": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "DUCK_PRO": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "DUEL_LOSE_K": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "DV_PANEL_EL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "ECO_KNOW": {
    "changed": [
@@ -883,29 +1040,34 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "ED_CACHE": {
    "changed": [
     "раунд 2"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "EG_BOMB_SITE_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "ENTRY_WAIT": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "ESC_MAX_SEC": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "EWL": {
    "changed": [
@@ -915,27 +1077,32 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "EXEC_QUEUE_N": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "EXEC_QUEUE_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "EXEC_REACH": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "EXEC_WAIT_SEC": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "EXP_CACHE": {
    "changed": [
@@ -945,7 +1112,8 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "EXU": {
    "changed": [
@@ -955,132 +1123,158 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "EXU_FAST_MAX": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "EXU_LATE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "FALL_G": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "FATAL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "FB": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "FF_MUL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "FF_TK_CASH": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "FIGHT_COV": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "FIGHT_MATE_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "FIGHT_MOVE_NEAR": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "FIGHT_PUSH_LOSE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "FIGHT_PUSH_SLACK": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "FIGHT_STEP": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "FILL_FUNC_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "FILL_NEAR": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "FIRE_BODY": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "FIRE_DETOUR": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "FIRE_DZ": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "FIRE_GATHER_LEFT": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "FIRE_GONE_GAIN": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "FIRE_GONE_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "FIRE_HIT_MAX": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "FIRE_HIT_SEC": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "FIRE_K": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "FIRE_MARGIN": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "FLANK_CLAIM": {
    "changed": [
@@ -1088,7 +1282,8 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "FLASH_ASK_N": {
    "changed": [
@@ -1096,97 +1291,116 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "FLASH_ASK_PER_ROUND": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "FLASH_ASK_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "FLASH_ASK_WAIT": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "FLASH_EXIT_MAX": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "FLASH_POP_DZ": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "FLEE_DMG_STEP": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "FLEE_MOVE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "FLEE_SPARE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "FLEE_SPOT": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "FLOOR_HEAD": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "FOLLOW_GAP": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "FOOTSTEP_INTERVAL_RUN": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "FOOTSTEP_INTERVAL_WALK": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "FORCE_MIN": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "FORCE_SHARE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "FOV_DEG": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "FOV_NEAR": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "FRAME_CATCHUP_MS": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "FREEZE_FX": {
    "changed": [
@@ -1194,177 +1408,212 @@
     "раунд 14"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "FREEZE_HOLD": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "FREEZE_TURN": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "FREEZE_TURN_SPEED": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "GAP_AIR_MIN": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "GAP_NEAR": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "GAP_WALK_N": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "GEO": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "GOAL_NAME": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "GUN_HEAR_OPEN": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "GUN_HEAR_WALL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "HALF_ROUNDS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "HANDLE_TOL_PX": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "HAND_ERR_MAX": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "HAND_ERR_MAX_F": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "HAND_FIGHT": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "HAND_START": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "HEAD_HALF": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "HEIGHTS": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "HELMET_UPGRADE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "HE_ARMOR_K": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "HE_DODGE_FULL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "HE_DODGE_MIN": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "HGT_AUTO": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "HGT_C": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "HGT_LEDGE_TXT": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "HGT_NEAR": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "HGT_OWN": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "HGT_OWN_CODE": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "HGT_STOPS": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "HGT_TOP": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "HIT_TOL_PX": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "HL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "HL_KEY": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "string"
   },
   "HOLD": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "HOLD_CANDS": {
    "changed": [
@@ -1373,334 +1622,400 @@
     "раунд 14"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "HUD_K": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "HUD_KF_SHOWN": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "HUD_REDUCED": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "boolean"
   },
   "HUD_SB_FRZ": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "HUD_TW": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "HUD_TW_ON": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "boolean"
   },
   "HUD_VOICE_SHOWN": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "HURT_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "HURT_REACT": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "HURT_SND_GAP": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "INFO_BEHIND": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "INFO_EVERY": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "INFO_GO": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "INFO_MAX": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "INFO_MIN_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "INFO_PAR": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "INFO_QUIET": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "INFO_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "INFO_START": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "INFO_W": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "INFO_WAIT": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "INTEL_KEEP": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "JUMP_APEX": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "JUMP_FACE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "JUMP_FACE_BACK": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "JUMP_FACE_WAIT": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "JUMP_HOLD_SEC": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "JUMP_NEAR_WAIT": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "JUMP_TURN_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "JUMP_UP": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "KEYS_DRIFT": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "KEYS_PRO": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "KF_DIRTY": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "boolean"
   },
   "KF_FADE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "KF_ICON": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "KF_IMG": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "KF_LIFE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "KF_MOD_T": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "KG": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "KILL_MOVE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "KILL_NEAR_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "KILL_SITE_ON": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "KILL_SITE_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "KILL_SITE_SHARE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "KNIFE_BACK": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "KNIFE_D": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "KNIFE_GAP": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "KNIFE_GO": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "KNIFE_P": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "KNIFE_REACH": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "KNIFE_STAB": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "KNOW": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "KNOWN_CLOSE_K": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "KNOWN_DETOUR": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "KNOWN_PATH_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "KNOWN_SEC": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "KNOWN_W": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "KNOW_AGE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "KNOW_CORPSE_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "KNOW_LOG": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "KNOW_NEAR_SLACK": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "KNOW_POSITIONS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "KNOW_SAY": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "KNOW_SPOTS": {
    "changed": [
     "раунд 2"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "KNOW_TRACE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "KPC": {
    "changed": [
@@ -1710,109 +2025,130 @@
     "конец"
    ],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "KWL_CELL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "KWL_TTL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "LADDERS": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "LADDER_FAR": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "LADDER_NEAR": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "LADDER_SEEK": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "LADDER_SPEED": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "LAND_DELAY": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "LAND_HOLD": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "LAND_PUNISH_FRESH": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "LAND_PUNISH_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "LAND_PUNISH_SEC": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "LAND_SOUND_DROP": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "LANE_W": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "LAST_CLEAR": {
    "changed": [
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "LD_URG": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "LD_WHY": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "LINEUP": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "LINEUPS_BAKED": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "LINEUPS_KEY": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "string"
   },
   "LKP_PATH": {
    "changed": [
@@ -1822,47 +2158,56 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "LKP_PATH_TTL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "LOG_DIRTY": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "boolean"
   },
   "LOOK": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "LOOKDBG": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "LOOK_BEL_BOT": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "LOOK_FRESH": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "LOOK_LEVEL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "LOOK_PRO_YIELD": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "LOOK_REPLAN": {
    "changed": [
@@ -1871,109 +2216,130 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "LOOK_SMOKE_K": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "LOOK_WALL_CLOSE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "LOSS_BONUS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "LOWHP_MATE_PATH": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "LOW_HP": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "LURK_CHECK": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "LURK_DEATH_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "LURK_JOIN_SEC": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "LURK_PLANS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "LURK_ROUND_P": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "LU_AIM": {
    "changed": [
     "раунд 2"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "LU_AT": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "LU_COL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "LU_DETOUR_K": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "LU_DETOUR_MIN": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "LU_NEAR": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "LU_REACH_MARGIN": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "LU_REACH_PAD": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "LU_TRIG": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "LU_TYPE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "M3": {
    "changed": [
@@ -1983,109 +2349,130 @@
     "конец"
    ],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "M3_SKIN": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "M3_SOLID": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "MANUAL_WALLS": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "MAP": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "MAP3D": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "MAPED": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "MATCH_WIN": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "MATE_AIM": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "MAX_MONEY": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "MED_B": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "MED_B_HINTS": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "MED_C": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "MED_C_HINTS": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "MED_H": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "MED_H_HINTS": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "MED_W": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "MED_W_HINTS": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "MEM_BOX": {
    "changed": [
     "раунд 14"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "MINI": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "MOLLY_SMOKE_TOUCH": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "MOVE": {
    "changed": [
@@ -2095,77 +2482,92 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "MOVE_FAR": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "MOVE_LOOK_AHEAD": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "MOVE_MIN": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "MOVE_SEEN": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NADE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "NADE_AIM_DZ": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "NADE_AIM_OK": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NADE_AIM_SCATTER": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "NADE_BUDGET_N": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NADE_DROP_ORDER": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "NADE_FAIL": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "NADE_FOE_P": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NADE_FOE_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NADE_GAP": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NADE_GUESS_PAID": {
    "changed": [
@@ -2175,104 +2577,124 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "NADE_GUESS_SLACK": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NADE_HEAR_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NADE_HIT_GAP": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NADE_ICON": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "NADE_ICON_FILL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "NADE_IMG": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "NADE_LANE_FROM": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NADE_LANE_IDX": {
    "changed": [
     "раунд 2"
    ],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "NADE_LANE_TO": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NADE_LEVEL_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NADE_LEVEL_TOL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NADE_LOW_HP": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NADE_NO_FROM": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NADE_NO_TO": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NADE_PRECALC_I": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NADE_PRECALC_N": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NADE_RETRY_D": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NADE_ROBUST_Q": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NADE_ROOF_DZ": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NADE_SOLVE_MS": {
    "changed": [
@@ -2282,22 +2704,26 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "NADE_SPOT_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NADE_STILL_V": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NADE_THROW_RANGE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NADE_TICK": {
    "changed": [
@@ -2307,310 +2733,370 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "NADE_USE_GAP": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NADE_UTIL0": {
    "changed": [
     "раунд 2"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NADE_WISH": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "NADE_WISH_PRO": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "NADE_WORTH": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "NAVAREAS": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "NAVAREAS_RAW": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "NAVZ_FLOOR": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NAVZ_NEAR": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NAV_ANCHORS_KEY": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "string"
   },
   "NAV_BLOCKED": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "NAV_BOUNDARY_SEGS_RAW": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "NAV_BOUNDARY_VERTS_RAW": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "NAV_CLIMB_UP": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "NAV_DROP_COST": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NAV_DROP_MAX": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NAV_DROP_OUT": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NAV_DROP_STEP": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NAV_FLOOR_TOL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NAV_GAPS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "NAV_GAP_AT": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "NAV_GAP_TOL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NAV_GRID": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "NAV_GRID_C": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NAV_ID": {
    "changed": [
     "раунд 2"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "NAV_JUMP_COST": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NAV_JUMP_UP": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NAV_LAD": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "NAV_LINK_KNEE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NAV_LINK_MIN": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NAV_NEAR_DIRS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "NAV_OFF_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NAV_RIDGE_SIDE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NAV_RIDGE_W": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NAV_STEP_TOL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NAV_UNLINKED": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "NAV_VERTEX_PICK_TOL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NAV_ZONE": {
    "changed": [
     "раунд 2"
    ],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "NEAR_P_SAME": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NICKS": {
    "changed": [
     "раунд 14"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "NOTICE_P": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "NOTICE_WIN": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "NP_LABEL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "NP_ORDER": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "OBC": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "OBS": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "OBS_BOUNDS": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "OBS_K": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "OBS_NEAR_CALM": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "OBS_OFF": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "OBS_PLAN_MIN": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "OBS_ST": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "OBS_TR": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "OBS_WIDE_MAX": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "OPP": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "OPP_KEY": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "string"
   },
   "OT_HALF": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "OT_MAX": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "OT_MONEY": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "OUTWARD_CACHE": {
    "changed": [
@@ -2620,17 +3106,20 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "OWN_LINE_GAP": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "OWN_LINE_RINGS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "PATHQ": {
    "changed": [
@@ -2640,7 +3129,8 @@
     "конец"
    ],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "PATHQ_N": {
    "changed": [
@@ -2650,62 +3140,74 @@
     "конец"
    ],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "PATHQ_Q": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "PATHQ_TTL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "PEEK_KIND": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "PEEK_PRO": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "PEEK_Q": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "PEEK_SHORT_DWELL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "PEEK_WIDE_EXTRA": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "PICK_ECO_K": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "PLANT_CELL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "PLANT_MED": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "PLANT_TICKS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "PLAYER_MEM": {
    "changed": [
@@ -2715,17 +3217,20 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "PLAYER_PHOTO": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "PL_ANIM_MS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "PL_GRID": {
    "changed": [
@@ -2733,72 +3238,86 @@
     "раунд 14"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "PL_ICON": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "PL_KILL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "string"
   },
   "PL_MONEY": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "function"
   },
   "PL_SEEN": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "PL_SIL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "string"
   },
   "PL_SKULL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "string"
   },
   "PM_GAIN": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "PM_MIN": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "PM_SITE_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "POINT_POOL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "POINT_POOL_ZONEMAP_LEN": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "PORTAL_MIN_OVERLAP": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "PORTAL_TOL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "PORTAL_W": {
    "changed": [
@@ -2808,12 +3327,14 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "POS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "POSCLR": {
    "changed": [
@@ -2823,7 +3344,8 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "POSPREF": {
    "changed": [
@@ -2833,17 +3355,20 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "POST_ARRIVE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "POST_DWELL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "POST_VIEW": {
    "changed": [
@@ -2853,12 +3378,14 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "POST_VIEW_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "POS_SIDE": {
    "changed": [
@@ -2867,7 +3394,8 @@
     "раунд 14"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "PP": {
    "changed": [
@@ -2876,7 +3404,8 @@
     "раунд 14"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "PPN": {
    "changed": [
@@ -2886,82 +3415,98 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "PP_CHK_DUR": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "PP_CHK_EVERY": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "PP_CHK_MIN": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "PP_CHK_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "PP_DUP": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "PP_ENTRY": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "PP_LATE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "PP_LOOK_D": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "PP_SHIFT": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "PP_SHIFT_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "PP_SIDE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "PP_SIDE_K": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "PP_ZONE_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "PREFIRE_RADIUS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "PRE_EXEC_WALK": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "PROB": {
    "changed": [
@@ -2971,54 +3516,64 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "PROB_BLOCK_SEC": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "PROB_SHOW_SEC": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "PROB_STALL_MOVE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "PROB_STALL_SEC": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "PROB_TUG_SEC": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "PROFILES": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "PROLE_LABEL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "PROLE_NADES": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "PRO_COVER": {
    "changed": [
     "раунд 2"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "PRO_GROUPS": {
    "changed": [
@@ -3028,7 +3583,8 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "PRO_LINEUPS": {
    "changed": [
@@ -3038,74 +3594,88 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "PRO_LINEUPS_RAW": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "PRO_LOOK": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "PRO_LOOK_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "PRO_PISTOL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "PRO_PRIOR": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "PRO_PROLE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "PRO_ROLE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "PRO_SPOTS": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "PR_FIX": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "PSN": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "PSN_TAGS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "PX_UNITS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "RC_HALF": {
    "changed": [
     "раунд 14"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "string"
   },
   "REACH": {
    "changed": [
@@ -3115,7 +3685,8 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "REACH_E": {
    "changed": [
@@ -3125,59 +3696,70 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "REACH_SRC": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "REAR_EVERY": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "REAR_MATE_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "REAR_WHY": {
    "changed": [
     "раунд 2"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "string"
   },
   "REBAL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "RETAKE_STOP": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "RETAKE_V": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "RL_PATH_FREE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "RL_PEEK_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "RL_THREAT_W": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "RMEM": {
    "changed": [
@@ -3186,239 +3768,286 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "RND_PART": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "ROAM_CHECK_TICKS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "ROAM_QUIET_RADIUS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "ROAM_READY": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "boolean"
   },
   "ROAM_RECHECK_TICKS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "ROAM_ROUTES": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "ROLE_LABEL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "ROLE_SHORT": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "ROUND_RESTART_DELAY_SEC": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "ROUND_TIME_SEC": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "ROUND_TYPE_LABEL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "ROUTE_ENEMY_SIDE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "ROUTE_PORTAL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "ROUTE_SIDE_LINE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "RP": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "RP_BF": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "RP_EL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "RP_K": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "RP_LANG": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "RP_MODES": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "RP_NB": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "RP_RU": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "RP_SAY": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "RP_SNAPS": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "RT_GAP": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "RT_WAIT": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "RUN_COS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "RUN_JUMP": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "RUN_MARGIN": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "RUN_NEAR": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "RUN_OWN_A": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "RUN_PAST": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "RUN_SEC": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "RUN_STRAIGHT": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "RUN_V": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "SANDBOX": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "SAVE_PATH_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "SAVE_TOPN": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "SB_PANEL_EL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "SEAT_FIXED": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "SEAT_KEEP": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "SELF": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "SELL_SEC": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "SERIES": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "SETUP_REG": {
    "changed": [
     "раунд 2"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "SHIFT_TO": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "SHOW_Q": {
    "changed": [
@@ -3428,19 +4057,22 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "SHOW_Q_MAX": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "SIDE_TEAM": {
    "changed": [
     "раунд 14"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "SITES": {
    "changed": [
@@ -3448,127 +4080,152 @@
     "раунд 14"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "SITE_AWAY": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "SITE_SEEN_SEC": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "SL": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "SLW_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "SL_MORE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "SL_THREAT": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "SMK": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "SMK_ENTRY_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "SMOKE_GROW": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "SMOKE_HOLE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "SND": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "SND_CAP": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "SND_DATA": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "SND_GUN": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "SND_MAX": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "SND_R": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "SOLO_LU_PATH": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "SOLO_SHARE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "SOUND_CAUTION_TICKS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "SOUND_RADIUS_RUN": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "SOUND_RADIUS_WALK": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "SPAWN_EARLY_WIN": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "SPD_K": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "SPEED": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "SPN": {
    "changed": [
@@ -3578,72 +4235,86 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "SPOT_PERSONAL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "SPOT_TEAM": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "SPRAY_PATTERN": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "SPRAY_RESET_TICKS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "SPREAD_DIRS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "SPREAD_RINGS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "STACK_K": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "START_MONEY": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "STATE_LABEL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "STEP_BODY_Z": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "STEP_UP_Z": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "STRAFE_PRO": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "STRAFE_PRO_T": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "TACT_DBG": {
    "changed": [
@@ -3653,77 +4324,92 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "TAC_TEMPO": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "TAC_TEMPO_NAME": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "TAKE_ADV": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "TAKE_REACH": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "TAKE_STEP": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "TAP_P1": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "TAP_P23": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "TAP_PAUSE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "TAP_SPRAY": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "TASK_LEVEL": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "TASK_PROP": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "TASK_ROUTE_CANCEL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "TASK_STALE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "TASK_STUCK_SEC": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "TDEATHS": {
    "changed": [
@@ -3732,27 +4418,32 @@
     "раунд 14"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "TD_BUY": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "TD_STYLE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "TEAM": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "TEAMDBG": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "TEAMK": {
    "changed": [
@@ -3762,7 +4453,8 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "TEAM_LOG": {
    "changed": [
@@ -3772,41 +4464,48 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "TEAM_LOGO": {
    "changed": [
     "раунд 14"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "TEAM_NAME": {
    "changed": [
     "раунд 14"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "TEAM_PRIO": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "TEAM_ROLES": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "TICK_HZ": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "TICK_MS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "TOUT": {
    "changed": [
@@ -3816,7 +4515,8 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "TO_DEATHS": {
    "changed": [
@@ -3826,264 +4526,316 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "TO_FORCE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "boolean"
   },
   "TO_LAST": {
    "changed": [
     "раунд 14"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "TO_NOW": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "TO_PLAN_ROUNDS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "TO_SEC": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "TRACER_STYLE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "TRADE_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "TS": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "TSAVE_K": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "TS_K": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "TS_LAYS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "TS_LINE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "TS_SAY": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "TS_SEQ": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "T_SAVE_PRO": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "T_SPAWN": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "T_SPAWN_FIX_RAW": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "T_TACTICS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "USER_LINEUPS": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "USER_ZONES": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "USER_ZONES_KEY": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "string"
   },
   "UTIL_AT_ENTRY": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "UTIL_MIN_LEFT": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "UTIL_WAIT": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "UTIL_WAIT_RUSH": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "VIS": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "VIS_BODY": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "VIS_CEIL_H": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "VIS_CELL": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "VIS_DANGER_TIMER": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "VIS_EYE": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "VIS_FLOOR_EPS": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "VIS_GEN": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "VIS_HEAD": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "VIS_SHOULDER": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "VIS_SLAB": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "VIS_STACK": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "VOICE_DIRTY": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "boolean"
   },
   "VOICE_KEYS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "VOICE_KEY_KIND": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "VOICE_KIND": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "VOICE_KIND_T": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "VT": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "VT_PICK_R": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "WALK_SPEED_FRAC": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "WALLBANG": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "WALLS_SIG": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "string"
   },
   "WALL_POLYS": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "WALL_POLYS_CODE": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "WALL_SOLID_POLYS": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "WARM": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "WATER_Z": {
    "changed": [
@@ -4092,57 +4844,68 @@
     "раунд 14"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "WB_AUTO": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "WB_C": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "WB_MAT": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "WB_OWN": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "WB_OWN_CODE": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "WB_RULES": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "WEAPONS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "WHY_LOOK": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "WHY_POST": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "WIN_REWARD": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "WPM": {
    "changed": [
@@ -4152,27 +4915,32 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "WPN_KILL_CLASS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "WPN_KILL_M": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "WSK_EL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "WSPEED": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "ZDJ": {
    "changed": [
@@ -4182,171 +4950,204 @@
     "конец"
    ],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "ZIDX": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "ZIDX_C": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "ZI_DB": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "ZI_DE": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "ZI_LB": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "ZI_LE": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "ZI_ORD": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "ZONEMAP": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "ZONEMAP_RAW": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "ZONES_GEN": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "string"
   },
   "ZONE_CENTROIDS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "ZONE_DANGER": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "ZONE_DANGER_LINE": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "ZONE_DANGER_W": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "ZONE_DEFAULT_LABEL": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "ZONE_KIND_COLORS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "ZONE_KIND_LABELS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "ZONE_LAYER_BASELINE": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "ZONE_LAYER_KEY": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "string"
   },
   "ZONE_NAMES": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "ZONE_NAMES_BAKED": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "ZONE_NAMES_KEY": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "string"
   },
   "ZONE_SAMPLES": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "ZONE_SHAPES": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "ZONE_SHAPES_BAKED": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "ZONE_SHAPES_KEY": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "string"
   },
   "ZONE_SYNONYMS": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "_ED": {
    "changed": [
     "раунд 2"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "_POSL": {
    "changed": [
     "раунд 2"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "_WB": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "_WBn": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "_rtw": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "_zbnCache": {
    "changed": [
@@ -4355,19 +5156,22 @@
     "раунд 14"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "_zoneSide": {
    "changed": [
     "раунд 2"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "accumulator": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "aggrObs": {
    "changed": [
@@ -4377,45 +5181,52 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "alignPanel": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "awpSmokeCd": {
    "changed": [
     "раунд 14"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "bannerTimer": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "belief": {
    "changed": [
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "beliefLast": {
    "changed": [
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "beliefSeen": {
    "changed": [
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "bomb": {
    "changed": [
@@ -4425,139 +5236,166 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "bots": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "btnNavReset": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "btnNavWarpClear": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "btnNavWarpUndo": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "btnZoneDelete": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "btnZoneFinish": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "camDragOrig": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "camDragStart": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "camDragging": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "boolean"
   },
   "cardTimer": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "chkAlign": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "chkCover": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "chkHeights": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "chkLineups": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "chkLookDbg": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "chkNavWarp": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "chkTeamDbg": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "chkVis": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "chkWallbang": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "chkZoneAlign": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "chkZoneEdit": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "chkZoneVertexEdit": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "clutchInfo": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "clutchShown": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "comboCd": {
    "changed": [
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "covTip": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "ctHabit": {
    "changed": [
@@ -4567,7 +5405,8 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "ctRead": {
    "changed": [
@@ -4577,7 +5416,8 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "ctSetupHist": {
    "changed": [
@@ -4587,7 +5427,8 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "ctSetupMem": {
    "changed": [
@@ -4597,22 +5438,26 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "ctx": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "cv": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "econClosed": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "boolean"
   },
   "events": {
    "changed": [
@@ -4622,24 +5467,28 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "fires": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "frameWrapR": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "groundItems": {
    "changed": [
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "groundWeapons": {
    "changed": [
@@ -4648,74 +5497,88 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "hgtTip": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "hoverZoneId": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "img": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "imgFailed": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "boolean"
   },
   "imgReady": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "boolean"
   },
   "inNavDx": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "inNavDy": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "inNavScale": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "inZlDx": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "inZlDy": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "inZlScale": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "killfeed": {
    "changed": [
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "lastFrame": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "lastTacticId": {
    "changed": [
@@ -4724,69 +5587,82 @@
     "раунд 14"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "string"
   },
   "lineupPanel": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "lookDbgEl": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "luBuiltinOpen": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "boolean"
   },
   "luDrag": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "luHover": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "luPending": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "luSel": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "matchNum": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "nadeAimCache": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "function"
   },
   "nadeFlags": {
    "changed": [
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "nadeFx": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "nadeGuessStore": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "function"
   },
   "nadeLandHistory": {
    "changed": [
@@ -4795,7 +5671,8 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "nadeReactCd": {
    "changed": [
@@ -4803,132 +5680,158 @@
     "раунд 14"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "nadesInAir": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "navAnchors": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "navAutoLinks": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "navBlockedCount": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "navCutPortals": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "navDragOrig": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "navDragStart": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "navDragging": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "boolean"
   },
   "navDropLinks": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "navNarrowPortals": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "navRebuildTimer": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "navTallCut": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "navTallDone": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "boolean"
   },
   "navTransform": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "navWarp": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "navWarpCountEl": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "navWarpHint": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "navWarpPanel": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "navWarpPending": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "nowTs": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "paused": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "boolean"
   },
   "plSelected": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "pointsByName": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "portalCount": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "portalMissing": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "roundEndTime": {
    "changed": [
@@ -4938,7 +5841,8 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "roundHist": {
    "changed": [
@@ -4948,7 +5852,8 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "roundNum": {
    "changed": [
@@ -4958,7 +5863,8 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "roundStartTick": {
    "changed": [
@@ -4968,7 +5874,8 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "roundStartTime": {
    "changed": [
@@ -4978,14 +5885,16 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "roundState": {
    "changed": [
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "string"
   },
   "score": {
    "changed": [
@@ -4995,67 +5904,80 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "selectedZoneId": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "showCalls": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "showDanger": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "showLos": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "showNavmesh": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "showPoints": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "showPortals": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "showSound": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "showTracers": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "showWalls": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "showWhy": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "showZones": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "simTime": {
    "changed": [
@@ -5066,7 +5988,8 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "siteHeat": {
    "changed": [
@@ -5076,21 +5999,24 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "siteHeatPending": {
    "changed": [
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "smokes": {
    "changed": [
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "soundPings": {
    "changed": [
@@ -5100,14 +6026,16 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "spotCache": {
    "changed": [
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "tSiteHist": {
    "changed": [
@@ -5117,7 +6045,8 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "tacHist": {
    "changed": [
@@ -5127,7 +6056,8 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "tacMem": {
    "changed": [
@@ -5137,12 +6067,14 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "teamDbgEl": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "teamEco": {
    "changed": [
@@ -5152,14 +6084,16 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "teamIntel": {
    "changed": [
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "teamKnow": {
    "changed": [
@@ -5169,7 +6103,8 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "teamTac": {
    "changed": [
@@ -5179,7 +6114,8 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "tick": {
    "changed": [
@@ -5190,96 +6126,114 @@
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "tracers": {
    "changed": [
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "userZonesSaveTimer": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "view": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "voiceLines": {
    "changed": [
     "конец"
    ],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "wallSegs": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "wbTip": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "wrap": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "zlDragOrig": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "zlDragStart": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "zlDragging": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "boolean"
   },
   "zoneAlignPanel": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "zoneDrawCur": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "zoneDrawPts": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "zoneDrawing": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "boolean"
   },
   "zoneEditCountEl": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "zoneEditHint": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "zoneEditPanel": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "zoneGraph": {
    "changed": [
@@ -5289,97 +6243,116 @@
     "конец"
    ],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "zoneKindSelect": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "zoneLayer": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "zoneLayerRebuildTimer": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "zoneMoveOrig": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "zoneMoveStart": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "zoneMoving": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "boolean"
   },
   "zoneNameInput": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "zoneNameInput2": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "zoneNamePanel": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "zoneNameSel": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "zoneScaleBaseDist": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "zoneScaleCenter": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "zoneScaling": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "boolean"
   },
   "zoneVertexDragging": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "boolean"
   },
   "zoneVertexIdx": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "zonesById": {
    "changed": [],
    "snap": false,
-   "absent": false
+   "absent": false,
+   "type": "object"
   },
   "zsDrag": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "number"
   },
   "zsRebuildTimer": {
    "changed": [],
    "snap": true,
-   "absent": false
+   "absent": false,
+   "type": "object"
   }
  },
  "bot": {

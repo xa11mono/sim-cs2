@@ -22,8 +22,9 @@ const PAGE = `window.SR = {
       var ks = Object.keys(v); put('{' + ks.length); for(var j = 0; j < ks.length; j++){ put(ks[j]); enc(v[ks[j]]); } }
     enc(root, !isField); return x; },
   cp: function(names){ var g = {}, b = {};
-    names.forEach(function(n){ var v; try{ v = eval(n); }catch(e){ g[n] = 'нет'; return; } try{ g[n] = SR.dig(v, false); }catch(e){ g[n] = '!' + e; } });
+    var ty = {};
+    names.forEach(function(n){ var v; try{ v = eval(n); }catch(e){ g[n] = 'нет'; return; } ty[n] = typeof v; try{ g[n] = SR.dig(v, false); }catch(e){ g[n] = '!' + e; } });
     bots.forEach(function(bt){ Object.keys(bt).forEach(function(k){ try{ (b[k] = b[k] || []).push(SR.dig(bt[k], true)); }catch(e){ (b[k] = b[k] || []).push('!'); } }); });
-    return {tick: tick, round: roundNum, g: g, b: b}; }
+    return {tick: tick, round: roundNum, g: g, b: b, ty: ty}; }
 };`;
 module.exports = { PAGE };
