@@ -20,12 +20,12 @@
 
 | | |
 |---|---|
-| этап | **Р0 выполнен** (итог — `rebuild/R0_REPORT.md`); **Р1 — ждёт подтверждения владельца** |
-| следующий шаг | Р1.1 (после «да» владельца); открытое из Р0 — `R0_REPORT.md` §7 |
+| этап | **Р1 сделан (25.11)** — `rebuild/R1_REPORT.md`; **Р2 — только после подтверждения владельца** |
+| следующий шаг | ждать подтверждения Р2; вопрос владельцу — Р1-1 (`BEHAVIOR_BACKLOG.md` §2в); открытое из Р0 — реальные браузеры (позже) |
 | ветка | **`v599a`** (Р0; от `claude/intelligent-thompson-uei37s`, где аудит этапов 1–4; v597 / v598 могут быть заняты у владельца и DeepSeek) |
 | код игры | 334860d (= `main`), не менялся с начала аудита |
 | база отпечатков в выбранной среде (1.63.0) | облако — снимается (Р0.1); ПК — прогон `measure/v599a-env` |
-| ждёт владельца | выложить ветку v598; разрешение на `main` для `rebuild/`, `00_PLAN.md`, `docs/architecture/` |
+| ждёт владельца | выложить ветку v598; реальные Chrome / Opera GX / Edge / Safari — позже (не блокирует) |
 | блокеры | нет |
 
 ### Шаги Р0
@@ -37,15 +37,23 @@
 | Р0.3 точка входа | **сделано** (проверка `fp` против `fingerprint.sh` — после облачной базы) | v599a 35f7a01 | `node tools/sim.js help` |
 | Р0.4 события только на чтение | **сделано**; отпечатки 8 матчей — прогон `measure/v599a-r0` | v599a f0cab0b | локатор база/события: 0 расхождений до 20032 (обе карты); `rec2` до/после — равны |
 | Р0.5 локатор расхождения | **сделано** | v599a 7e01a4e | `tools/measure/diverge.js` (`sim.js diverge`); самопроверка: сам/сам — 0 до 12800; libm — тик 962, `heading`, `atan2` 1 ulp (`rebuild/evidence/R0/`) |
-| Р0.6 инварианты | **сделано** (I-23 / I-30 на ПК — повтор `measure/v599a-r0b`) | v599a 7ec5cf7, f42b0c3 | база ПК 16 матчей — `R0_REPORT.md` §3 |
+| Р0.6 инварианты | **сделано** | v599a 7ec5cf7, f42b0c3 | база ПК 16 матчей; I-23 / I-30 на ПК — прогон 317 (`r0.6_special_pc_*.json`) |
 | Р0.7 сцены с высотой | **сделано** | v599a 5793d49 | 8 сцен стали проходить; `switch_residual_classified` зависит от утечки между матчами (Т-2) |
 | Р0.8 реестр поведения | **сделано** | v599a ba3314a | `rebuild/scene_registry.json`: 22 preserve, 13 known, 3 unexplored |
 | Р0.9 инструкции агентов | **сделано** | v599a 08703c9 | `AGENTS.md`; `CLAUDE.md` → `@AGENTS.md`; `sim.js context`, `sim.js graph` (Graphify 0.9.119, `--code-only`: 455 файлов кода, 0 документов) |
 | Р0.10 уборка | **сделано** | v599a dfca3db | `.gitignore`; из списка DeepSeek в этом дереве удалять нечего |
 | Р0.11 база скорости на ПК | **сделано** | v599a f42b0c3 | тик 1,89 / 2,61 мс (Ancient / Mirage), разброс ≤ 0,5 %; `r0.11_speed_pc.json` |
 | Р0.12 прототип `dmath` | **сделано** | v599a 68ca091 | `tools/dmath`: 0 расхождений с libm (случайные, граничные, ≈927 тыс. аргументов игры); контракт `pow(1, NaN)`; скорость — `tools/dmath/README.md` |
-| Р0.13 Rust на ПК | **частично**: нативно и WASM — да; N-API — нет (`dlltool.exe`) | v599a f42b0c3 | `r0.13_rust_windows.json` |
+| Р0.13 Rust на ПК | **сделано**: нативно, WASM и N-API (прогон 318: вызов 24,5 нс) | v599a | `r0.13_rust_windows.json`, `r0.13_napi_pc.json` |
 | Р0.14 кросс-браузерность | **сделано** (состояние зафиксировано) | v599a f42b0c3 | Chromium / Firefox / WebKit работают, матчи между движками разные; `r0.14_xb_pc.json` |
+
+### Шаги Р1
+
+| шаг | статус | версия / коммит | примечание |
+|---|---|---|---|
+| Р1.1 TypeScript в сборке | **сделано** | v599a | `.ts` читается без типов одним местом `tools/rebuild/game_src.js` (mod_build, gen_maps, gamesrc, diverge, bal_fold); `tsconfig.json`; `sim.js typecheck`; typescript 6.0.2 закреплён; сборка = база (обе карты, `r1.1_build.json`); пробный `.ts` — та же страница |
+| Р1.2 `types.ts` | **сделано** | v599a | `src/types/types.ts` (12 типов смысла, только описание), `types_test.ts` (смешение меток — ошибка; проверено подменой); сборка = база; `r1.2_types.json` |
+| Р1.3 модуль 275 на TS | **сделано** | v599a | `275_look_turn.ts` — только аннотации; `src/types/core.d.ts` + проверка имён; `sim.html` обеих карт = база байт в байт; `r1.3_look_turn.json` |
 
 ## 3. Справка (чтобы не исследовать заново)
 
@@ -118,3 +126,28 @@
   собираются, libm Windows = Linux = WASM, `dmath` на Node 24 / Windows — 0 расхождений; N-API — нет `dlltool.exe`; Chromium 153 / Firefox
   155 / WebKit 26.6 — игра идёт без ошибок, матчи между движками разные; инварианты на 16 матчах. I-23 / I-30 на ПК не посчитались (локатор
   не находил `acorn`) — исправлено, повтор `measure/v599a-r0b`. Итог этапа — `rebuild/R0_REPORT.md`.
+- 25.11.2026 — владелец: Р0 принят условно; Р1 — после I-23 / I-30 на ПК; N-API — минимально; реальные браузеры — позже; перенос в `main`
+  разрешён. Сделано: `main` 05a8994 (`rebuild/`, `AGENTS.md`, `CLAUDE.md`, `00_PLAN.md`, без кода игры; `main` с 334860d не менялся); причина
+  разных Chromium — облачный образ кладёт Chrome for Testing 158 в папку сборки 1243 (Playwright 1.63.0 ждёт там 153) — `ENVIRONMENT.md`;
+  память Ancient — обязательная задача Р6; находки Р0 — `BEHAVIOR_BACKLOG.md` §2б; Р2.6 — локализовать Firefox / WebKit.
+- 25.11.2026 — Р0.6 — прогон 317: I-23 ✗ (Mirage тик 3008 — как в облаке; Ancient тик 4848), I-30 — с тика 1 (обе карты); `npm install
+  --prefix tools/rebuild` в задании `inv` — код 0. Р0.13 — N-API: `dlltool` не нужен с `libloading` 0.8.8; падало на `libnode.dll`
+  (`napi-build` для windows-gnu) — `build.rs` прототипа пропускает `setup()` на windows-gnu; проверка — `measure/v599a-r0d`.
+- 25.11.2026 — Р0.13 закрыт: прогон 318 — N-API собран (`cargo build --release` код 0) и вызван из Node 24.21.0: вызов 24,5 нс (WASM 5,6, JS
+  3,2); `libloading` 0.8.8 + `build.rs` без `napi_build::setup()` на windows-gnu. MinGW binutils (`dlltool.exe`) не ставились — после
+  закрепления `libloading` не нужны. Команды и версии — `rebuild/evidence/R0/r0.13_napi_pc.json`, `ENVIRONMENT.md` §5.
+- 25.11.2026 — Р1.1: `.ts` в сборке без изменения игры. Чтение исходника — одно место `tools/rebuild/game_src.js` (`stripTypeScriptTypes`,
+  режим strip: типы → пробелы); его берут `mod_build.js`, `gen_maps.js`, `gamesrc.py` (`read_game_file`), `diverge.js`, `bal_fold.js`.
+  `tsconfig.json` (strict, `erasableSyntaxOnly`), `tools/rebuild/typecheck.js` (`sim.js typecheck`, входит в `sim.js check`), typescript 6.0.2
+  в `tools/rebuild/package.json`. Проверки: сборка обеих карт = база (с поправкой на случайное имя временной папки esbuild — находка Р1-2);
+  пробный перевод 275 в `.ts` с аннотацией — `sim.html` и публикуемая страница те же, `gen_maps --check` чисто (откатен); локатор — 0 до
+  тика 640; `.js` — 740 предупреждений (база, Р1-3); найдено Р1-1 (`VERTEX_TOL_PX` не объявлена, редактор зон). `rebuild/evidence/R1/`.
+- 25.11.2026 — Р1.2: `src/types/types.ts` — `Px`, `GameUnits`, `PathLen`, `StraightDist`, `Seconds`, `Ticks`, `P2`, `P3`, `Angle`, `BotId`,
+  `ZoneId`, `TaskKind` — метки поверх number / string по аудиту смыслов (С-1, С-3, С-6/7, С-12), без чисел и поведения; глобальные для `.ts`,
+  в сборку не входят. `types_test.ts` — 7 обязательных ошибок (`@ts-expect-error`): прямая ≠ путь, секунды ≠ тики, ед. игры ≠ px и др.;
+  подмена метки `StraightDist` → ошибка проверки (код 1). typecheck — 0 ошибок; сборка = база.
+- 25.11.2026 — Р1.3: `275_look_turn.js` → `.ts` — только аннотации (10 `!` — все нужны, 2 `as`); без типов — те же 2617 лексем и
+  комментарии; что модуль берёт у игры — `src/types/core.d.ts`, `typecheck.js` проверяет, что имена есть в игре (подмена → код 1);
+  `modules.json`, `files.json`, ссылки в `owners.json`, `DEVICE.md`, `ARCHITECTURE.md`, комментарии 510 / 540 — на `.ts`; прежний `.js` —
+  `rebuild/evidence/R1/275_look_turn.orig.js`. `sim.html` Ancient и Mirage, публикуемая страница = база байт в байт; `rebuild/gen/`
+  пересобран (Р1-4). Итог этапа — `rebuild/R1_REPORT.md`; Р2 не начат.

@@ -1,0 +1,743 @@
+010_map_zones_warp.js:10 TS2339 Property 'zones' does not exist on type 'number'.
+010_map_zones_warp.js:18 TS2339 Property 'store' does not exist on type 'number'.
+010_map_zones_warp.js:19 TS2339 Property 'zoneLayer' does not exist on type 'number'.
+010_map_zones_warp.js:26 TS2339 Property 'zones' does not exist on type 'number'.
+010_map_zones_warp.js:27 TS2339 Property 'zones' does not exist on type 'number'.
+010_map_zones_warp.js:27 TS2339 Property 'store' does not exist on type 'number'.
+010_map_zones_warp.js:56 TS2339 Property 'navmesh' does not exist on type 'number'.
+010_map_zones_warp.js:62 TS2339 Property 'climbs' does not exist on type 'number'.
+010_map_zones_warp.js:62 TS2339 Property 'climbs' does not exist on type 'number'.
+010_map_zones_warp.js:126 TS2339 Property 'store' does not exist on type 'number'.
+030_map_walls_heights_cover_wallbang.js:6 TS2339 Property 'walls' does not exist on type 'number'.
+030_map_walls_heights_cover_wallbang.js:40 TS2339 Property 'heights' does not exist on type 'number'.
+030_map_walls_heights_cover_wallbang.js:73 TS2339 Property 'cover' does not exist on type 'number'.
+030_map_walls_heights_cover_wallbang.js:173 TS2339 Property 'wallbang' does not exist on type 'number'.
+035_map3d.js:14 TS2339 Property 'map3d' does not exist on type 'number'.
+035_map3d.js:27 TS2339 Property 'sightSolid' does not exist on type 'number'.
+035_map3d.js:123 TS2591 Cannot find name 'Buffer'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node` and then add 'node' to the types field in your tsconfig.
+035_map3d.js:258 TS2339 Property 'nx' does not exist on type '{ t: number; tri: any; } | { t: number; hull: any; plane: number; } | { t: number; fill: number; }'.
+035_map3d.js:258 TS2339 Property 'ny' does not exist on type '{ t: number; tri: any; } | { t: number; hull: any; plane: number; } | { t: number; fill: number; }'.
+035_map3d.js:258 TS2339 Property 'nz' does not exist on type '{ t: number; tri: any; } | { t: number; hull: any; plane: number; } | { t: number; fill: number; }'.
+035_map3d.js:258 TS2339 Property 'mat' does not exist on type '{ t: number; tri: any; } | { t: number; hull: any; plane: number; } | { t: number; fill: number; }'.
+035_map3d.js:259 TS2339 Property 'nx' does not exist on type '{ t: number; tri: any; } | { t: number; hull: any; plane: number; } | { t: number; fill: number; }'.
+035_map3d.js:259 TS2339 Property 'ny' does not exist on type '{ t: number; tri: any; } | { t: number; hull: any; plane: number; } | { t: number; fill: number; }'.
+035_map3d.js:259 TS2339 Property 'nz' does not exist on type '{ t: number; tri: any; } | { t: number; hull: any; plane: number; } | { t: number; fill: number; }'.
+035_map3d.js:259 TS2339 Property 'mat' does not exist on type '{ t: number; tri: any; } | { t: number; hull: any; plane: number; } | { t: number; fill: number; }'.
+035_map3d.js:262 TS2339 Property 'nx' does not exist on type '{ t: number; tri: any; } | { t: number; hull: any; plane: number; } | { t: number; fill: number; }'.
+035_map3d.js:262 TS2339 Property 'ny' does not exist on type '{ t: number; tri: any; } | { t: number; hull: any; plane: number; } | { t: number; fill: number; }'.
+035_map3d.js:262 TS2339 Property 'nz' does not exist on type '{ t: number; tri: any; } | { t: number; hull: any; plane: number; } | { t: number; fill: number; }'.
+035_map3d.js:262 TS2339 Property 'mat' does not exist on type '{ t: number; tri: any; } | { t: number; hull: any; plane: number; } | { t: number; fill: number; }'.
+035_map3d.js:360 TS2403 Subsequent variable declarations must have the same type.  Variable 'XY' must be of type 'Float32Array<ArrayBuffer>', but here has type 'any'.
+040_visibility.js:265 TS2339 Property 'pxUnits' does not exist on type 'number'.
+050_nav_rebuild_paths.js:39 TS2339 Property 'x' does not exist on type 'never'.
+050_nav_rebuild_paths.js:39 TS2339 Property 'y' does not exist on type 'never'.
+050_nav_rebuild_paths.js:97 TS2339 Property 'climbs' does not exist on type 'number'.
+050_nav_rebuild_paths.js:97 TS2339 Property 'climbs' does not exist on type 'number'.
+050_nav_rebuild_paths.js:98 TS2339 Property 'climbs' does not exist on type 'number'.
+050_nav_rebuild_paths.js:310 TS2339 Property 'navmesh' does not exist on type 'number'.
+050_nav_rebuild_paths.js:310 TS2339 Property 'navmesh' does not exist on type 'number'.
+050_nav_rebuild_paths.js:327 TS2339 Property 'climbs' does not exist on type 'number'.
+050_nav_rebuild_paths.js:327 TS2339 Property 'climbs' does not exist on type 'number'.
+050_nav_rebuild_paths.js:348 TS2339 Property 'quiet' does not exist on type '(fromId: any, toId: any, team: any) => any[]'.
+050_nav_rebuild_paths.js:424 TS2339 Property 'toPt' does not exist on type '(fromId: any, toId: any, team: any) => any[]'.
+050_nav_rebuild_paths.js:425 TS2339 Property 'fire' does not exist on type '(fromId: any, toId: any, team: any) => any[]'.
+050_nav_rebuild_paths.js:429 TS2339 Property 'from' does not exist on type '(fromId: any, toId: any, team: any) => any[]'.
+050_nav_rebuild_paths.js:429 TS2339 Property 'fire' does not exist on type '(fromId: any, toId: any, team: any) => any[]'.
+050_nav_rebuild_paths.js:430 TS2339 Property 'quiet' does not exist on type '(fromId: any, toId: any, team: any) => any[]'.
+050_nav_rebuild_paths.js:473 TS2339 Property 'nearest' does not exist on type '(fromId: any, toId: any, team: any) => any[]'.
+050_nav_rebuild_paths.js:477 TS18047 'bestN' is possibly 'null'.
+050_nav_rebuild_paths.js:477 TS18047 'bestN' is possibly 'null'.
+050_nav_rebuild_paths.js:607 TS2339 Property 'quiet' does not exist on type '(fromId: any, toId: any, team: any) => any[]'.
+050_nav_rebuild_paths.js:607 TS2339 Property 'quiet' does not exist on type '(fromId: any, toId: any, team: any) => any[]'.
+050_nav_rebuild_paths.js:639 TS2339 Property 'from' does not exist on type '(fromId: any, toId: any, team: any) => any[]'.
+050_nav_rebuild_paths.js:639 TS2339 Property 'toPt' does not exist on type '(fromId: any, toId: any, team: any) => any[]'.
+050_nav_rebuild_paths.js:639 TS2339 Property 'fire' does not exist on type '(fromId: any, toId: any, team: any) => any[]'.
+050_nav_rebuild_paths.js:644 TS2339 Property 'fire' does not exist on type '(fromId: any, toId: any, team: any) => any[]'.
+050_nav_rebuild_paths.js:644 TS2339 Property 'fire' does not exist on type '(fromId: any, toId: any, team: any) => any[]'.
+050_nav_rebuild_paths.js:654 TS2339 Property 'nearest' does not exist on type '(fromId: any, toId: any, team: any) => any[]'.
+050_nav_rebuild_paths.js:654 TS2339 Property 'nearest' does not exist on type '(fromId: any, toId: any, team: any) => any[]'.
+050_nav_rebuild_paths.js:656 TS2339 Property 'from' does not exist on type '(fromId: any, toId: any, team: any) => any[]'.
+050_nav_rebuild_paths.js:656 TS2339 Property 'toPt' does not exist on type '(fromId: any, toId: any, team: any) => any[]'.
+050_nav_rebuild_paths.js:656 TS2339 Property 'fire' does not exist on type '(fromId: any, toId: any, team: any) => any[]'.
+060_zone_danger_user_zones.js:16 TS2339 Property 'zones' does not exist on type 'number'.
+060_zone_danger_user_zones.js:16 TS2339 Property 'zones' does not exist on type 'number'.
+060_zone_danger_user_zones.js:122 TS2339 Property 'spawns' does not exist on type 'number'.
+060_zone_danger_user_zones.js:123 TS2339 Property 'spawns' does not exist on type 'number'.
+060_zone_danger_user_zones.js:133 TS2339 Property 'spawnFix' does not exist on type 'number'.
+060_zone_danger_user_zones.js:151 TS2339 Property 'store' does not exist on type 'number'.
+060_zone_danger_user_zones.js:176 TS2339 Property 'siteAFix' does not exist on type 'number'.
+060_zone_danger_user_zones.js:176 TS2339 Property 'siteAFix' does not exist on type 'number'.
+080_bal.js:37 TS2339 Property 'BAL_OVERRIDE' does not exist on type 'Window & typeof globalThis'.
+080_bal.js:37 TS2339 Property 'BAL_OVERRIDE' does not exist on type 'Window & typeof globalThis'.
+080_bal.js:37 TS2339 Property 'BAL_OVERRIDE' does not exist on type 'Window & typeof globalThis'.
+090_profiles_teams.js:41 TS2339 Property 'tactics' does not exist on type 'number'.
+090_profiles_teams.js:58 TS2339 Property 'tactics' does not exist on type 'number'.
+090_profiles_teams.js:58 TS2339 Property 'tactics' does not exist on type 'number'.
+100_sites_spots.js:45 TS2339 Property 'zones' does not exist on type 'number'.
+100_sites_spots.js:45 TS2339 Property 'zones' does not exist on type 'number'.
+100_sites_spots.js:45 TS2339 Property 'zones' does not exist on type 'number'.
+100_sites_spots.js:70 TS2339 Property 'tactics' does not exist on type 'number'.
+100_sites_spots.js:153 TS2339 Property 'pro' does not exist on type 'number'.
+100_sites_spots.js:153 TS2339 Property 'pro' does not exist on type 'number'.
+100_sites_spots.js:168 TS2339 Property 'x' does not exist on type 'never'.
+100_sites_spots.js:168 TS2339 Property 'y' does not exist on type 'never'.
+110_post_routes.js:72 TS2339 Property 'pro' does not exist on type 'number'.
+110_post_routes.js:505 TS2339 Property 'x' does not exist on type 'never'.
+110_post_routes.js:505 TS2339 Property 'y' does not exist on type 'never'.
+110_post_routes.js:506 TS2339 Property 'x' does not exist on type 'never'.
+110_post_routes.js:506 TS2339 Property 'y' does not exist on type 'never'.
+120_bomb.js:73 TS2339 Property 'x' does not exist on type 'never'.
+120_bomb.js:73 TS2339 Property 'y' does not exist on type 'never'.
+130_tactics_match_adapt.js:6 TS2339 Property 'tactics' does not exist on type 'number'.
+130_tactics_match_adapt.js:40 TS2339 Property 'store' does not exist on type 'number'.
+130_tactics_match_adapt.js:166 TS18047 'ex' is possibly 'null'.
+130_tactics_match_adapt.js:167 TS18047 'ex' is possibly 'null'.
+130_tactics_match_adapt.js:167 TS18047 'ex' is possibly 'null'.
+130_tactics_match_adapt.js:167 TS18047 'ex' is possibly 'null'.
+130_tactics_match_adapt.js:168 TS18047 'ex' is possibly 'null'.
+140_named_spots_ct_setup.js:3 TS2339 Property 'tactics' does not exist on type 'number'.
+140_named_spots_ct_setup.js:90 TS2339 Property 'tactics' does not exist on type 'number'.
+140_named_spots_ct_setup.js:92 TS2339 Property 'ctshare' does not exist on type 'number'.
+140_named_spots_ct_setup.js:152 TS2339 Property 'tactics' does not exist on type 'number'.
+140_named_spots_ct_setup.js:281 TS2872 This kind of expression is always truthy.
+140_named_spots_ct_setup.js:299 TS2339 Property 'ctspots' does not exist on type 'number'.
+140_named_spots_ct_setup.js:299 TS2339 Property 'ctspots' does not exist on type 'number'.
+140_named_spots_ct_setup.js:303 TS2339 Property 'ctspots' does not exist on type 'number'.
+140_named_spots_ct_setup.js:326 TS2339 Property 'zoneprops' does not exist on type 'number'.
+140_named_spots_ct_setup.js:326 TS2339 Property 'zoneprops' does not exist on type 'number'.
+150_lurker_probes_clear.js:13 TS2339 Property 'tactics' does not exist on type 'number'.
+150_lurker_probes_clear.js:118 TS2339 Property 'tactics' does not exist on type 'number'.
+160_igl_replan.js:44 TS2339 Property 'name' does not exist on type 'never'.
+160_igl_replan.js:45 TS2339 Property 'name' does not exist on type 'never'.
+160_igl_replan.js:146 TS2339 Property 'tactics' does not exist on type 'number'.
+160_igl_replan.js:172 TS2339 Property 'tactics' does not exist on type 'number'.
+170_tbrain.js:213 TS2339 Property 'tactics' does not exist on type 'number'.
+170_tbrain.js:413 TS2339 Property 'defaultpos' does not exist on type 'number'.
+170_tbrain.js:583 TS2339 Property 'tactics' does not exist on type 'number'.
+170_tbrain.js:840 TS2322 Type 'true' is not assignable to type 'never'.
+170_tbrain.js:904 TS2322 Type 'string | boolean' is not assignable to type 'boolean'.
+170_tbrain.js:907 TS2367 This comparison appears to be unintentional because the types 'boolean' and 'string' have no overlap.
+170_tbrain.js:908 TS2367 This comparison appears to be unintentional because the types 'boolean' and 'string' have no overlap.
+170_tbrain.js:936 TS2367 This comparison appears to be unintentional because the types 'boolean' and 'string' have no overlap.
+170_tbrain.js:938 TS2367 This comparison appears to be unintentional because the types 'boolean' and 'string' have no overlap.
+170_tbrain.js:1069 TS2403 Subsequent variable declarations must have the same type.  Variable 'cand' must be of type 'any[]', but here has type 'any'.
+180_save_retake.js:113 TS2339 Property 'x' does not exist on type 'never'.
+180_save_retake.js:113 TS2339 Property 'y' does not exist on type 'never'.
+180_save_retake.js:389 TS2339 Property 'id' does not exist on type 'never'.
+180_save_retake.js:390 TS2339 Property 'id' does not exist on type 'never'.
+180_save_retake.js:390 TS2339 Property 'id' does not exist on type 'never'.
+190_team_intel_lkp_calls.js:134 TS2339 Property 'zones' does not exist on type 'number'.
+190_team_intel_lkp_calls.js:135 TS2339 Property 'store' does not exist on type 'number'.
+190_team_intel_lkp_calls.js:147 TS2339 Property 'zones' does not exist on type 'number'.
+190_team_intel_lkp_calls.js:346 TS2339 Property 'id' does not exist on type 'never'.
+190_team_intel_lkp_calls.js:346 TS2339 Property 'x' does not exist on type 'never'.
+190_team_intel_lkp_calls.js:346 TS2339 Property 'y' does not exist on type 'never'.
+190_team_intel_lkp_calls.js:349 TS2339 Property 'id' does not exist on type 'never'.
+190_team_intel_lkp_calls.js:350 TS2339 Property '_fillLock' does not exist on type 'never'.
+190_team_intel_lkp_calls.js:351 TS2339 Property 'id' does not exist on type 'never'.
+210_know_hyp.js:41 TS2339 Property 'pro' does not exist on type 'number'.
+210_know_hyp.js:113 TS2339 Property 'zones' does not exist on type 'number'.
+210_know_hyp.js:113 TS2339 Property 'zones' does not exist on type 'number'.
+210_know_hyp.js:231 TS2339 Property 'weight' does not exist on type 'never'.
+210_know_hyp.js:232 TS2339 Property 'weight' does not exist on type 'never'.
+210_know_hyp.js:232 TS2339 Property 'weight' does not exist on type 'never'.
+210_know_hyp.js:234 TS2339 Property 'weight' does not exist on type 'never'.
+220_know_events_tick.js:283 TS2339 Property 'tactics' does not exist on type 'number'.
+220_know_events_tick.js:283 TS2339 Property 'tactics' does not exist on type 'number'.
+220_know_events_tick.js:402 TS2403 Subsequent variable declarations must have the same type.  Variable 'P' must be of type 'any[][]', but here has type 'any'.
+240_belief_tick.js:72 TS2339 Property 'htick' does not exist on type 'never'.
+240_belief_tick.js:72 TS2339 Property 'htick' does not exist on type 'never'.
+240_belief_tick.js:73 TS2339 Property 'x' does not exist on type 'never'.
+240_belief_tick.js:73 TS2339 Property 'y' does not exist on type 'never'.
+240_belief_tick.js:73 TS2339 Property 'htick' does not exist on type 'never'.
+240_belief_tick.js:73 TS2339 Property 'htick' does not exist on type 'never'.
+240_belief_tick.js:74 TS2339 Property 'x' does not exist on type 'never'.
+240_belief_tick.js:74 TS2339 Property 'y' does not exist on type 'never'.
+240_belief_tick.js:74 TS2339 Property 'x' does not exist on type 'never'.
+240_belief_tick.js:74 TS2339 Property 'y' does not exist on type 'never'.
+250_look_prepeek_corners.js:160 TS2339 Property 'y' does not exist on type 'never'.
+250_look_prepeek_corners.js:160 TS2339 Property 'x' does not exist on type 'never'.
+270_look_plan_smooth.js:55 TS2339 Property 'th' does not exist on type '{ bel: number; nbr: number; hab: number; unc: number; tim: number; wd: any; }'.
+270_look_plan_smooth.js:56 TS2339 Property 'skip' does not exist on type '{ bel: number; nbr: number; hab: number; unc: number; tim: number; wd: any; }'.
+270_look_plan_smooth.js:72 TS2339 Property 'skip' does not exist on type '{ bel: number; nbr: number; hab: number; unc: number; tim: number; wd: any; }'.
+270_look_plan_smooth.js:75 TS2339 Property 'skip' does not exist on type '{ bel: number; nbr: number; hab: number; unc: number; tim: number; wd: any; }'.
+270_look_plan_smooth.js:87 TS2339 Property 'skip' does not exist on type '{ bel: number; nbr: number; hab: number; unc: number; tim: number; wd: any; }'.
+270_look_plan_smooth.js:169 TS2741 Property 'wall' is missing in type '{ x: any; y: any; }' but required in type '{ x: any; y: any; wall: boolean; }'.
+270_look_plan_smooth.js:272 TS2339 Property '_lkPick' does not exist on type 'never'.
+270_look_plan_smooth.js:274 TS18047 'bestC' is possibly 'null'.
+270_look_plan_smooth.js:291 TS2339 Property 'j' does not exist on type 'never'.
+270_look_plan_smooth.js:341 TS2339 Property 'turnmodel' does not exist on type 'number'.
+270_look_plan_smooth.js:642 TS2339 Property 'lvl' does not exist on type 'never'.
+270_look_plan_smooth.js:642 TS2339 Property 'kind' does not exist on type 'never'.
+270_look_plan_smooth.js:644 TS2339 Property 'pt' does not exist on type 'never'.
+275_look_turn.js:124 TS2339 Property 'turnmodel' does not exist on type 'number'.
+280_pos_pref_hold.js:132 TS2362 The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+280_pos_pref_hold.js:132 TS2363 The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+280_pos_pref_hold.js:132 TS2322 Type 'string | number' is not assignable to type 'string'.
+280_pos_pref_hold.js:153 TS2339 Property 'spawnearly' does not exist on type 'number'.
+280_pos_pref_hold.js:153 TS2339 Property 'spawnearly' does not exist on type 'number'.
+280_pos_pref_hold.js:267 TS2339 Property 'pt' does not exist on type 'never'.
+280_pos_pref_hold.js:267 TS2339 Property 'pt' does not exist on type 'never'.
+280_pos_pref_hold.js:296 TS2339 Property 'look' does not exist on type 'never'.
+280_pos_pref_hold.js:296 TS2339 Property 'main' does not exist on type 'never'.
+280_pos_pref_hold.js:296 TS2339 Property 'main' does not exist on type 'never'.
+280_pos_pref_hold.js:297 TS2339 Property 'E' does not exist on type 'never'.
+280_pos_pref_hold.js:311 TS2339 Property 'postplant' does not exist on type 'number'.
+280_pos_pref_hold.js:311 TS2339 Property 'postplant' does not exist on type 'number'.
+280_pos_pref_hold.js:340 TS2339 Property '_ppChk' does not exist on type 'never'.
+280_pos_pref_hold.js:340 TS18047 'bpt' is possibly 'null'.
+280_pos_pref_hold.js:340 TS18047 'bpt' is possibly 'null'.
+280_pos_pref_hold.js:341 TS2339 Property 'id' does not exist on type 'never'.
+280_pos_pref_hold.js:368 TS2339 Property '_ppPro' does not exist on type 'never'.
+280_pos_pref_hold.js:370 TS2339 Property 'id' does not exist on type 'never'.
+280_pos_pref_hold.js:370 TS2339 Property 'id' does not exist on type 'never'.
+290_smoke_react.js:44 TS2339 Property 'x' does not exist on type 'never'.
+290_smoke_react.js:44 TS2339 Property 'y' does not exist on type 'never'.
+290_smoke_react.js:81 TS2741 Property 'wall' is missing in type '{ x: any; y: any; }' but required in type '{ x: any; y: any; wall: boolean; }'.
+290_smoke_react.js:121 TS2339 Property 'x' does not exist on type 'never'.
+290_smoke_react.js:121 TS2339 Property 'y' does not exist on type 'never'.
+290_smoke_react.js:121 TS2339 Property 'x' does not exist on type 'never'.
+290_smoke_react.js:121 TS2339 Property 'y' does not exist on type 'never'.
+290_smoke_react.js:121 TS2339 Property 'z' does not exist on type 'never'.
+300_roles_fallback_rebalance.js:127 TS2339 Property 'x' does not exist on type 'never'.
+300_roles_fallback_rebalance.js:127 TS2339 Property 'y' does not exist on type 'never'.
+300_roles_fallback_rebalance.js:127 TS2339 Property 'x' does not exist on type 'never'.
+300_roles_fallback_rebalance.js:127 TS2339 Property 'y' does not exist on type 'never'.
+300_roles_fallback_rebalance.js:127 TS2339 Property 'id' does not exist on type 'never'.
+300_roles_fallback_rebalance.js:130 TS2339 Property 'id' does not exist on type 'never'.
+300_roles_fallback_rebalance.js:130 TS2339 Property 'x' does not exist on type 'never'.
+300_roles_fallback_rebalance.js:130 TS2339 Property 'y' does not exist on type 'never'.
+300_roles_fallback_rebalance.js:183 TS2339 Property 'pro' does not exist on type 'number'.
+300_roles_fallback_rebalance.js:184 TS2339 Property 'pro' does not exist on type 'number'.
+300_roles_fallback_rebalance.js:185 TS2339 Property 'lineups' does not exist on type 'number'.
+310_pro_positions.js:68 TS2339 Property 'tactics' does not exist on type 'number'.
+310_pro_positions.js:72 TS2872 This kind of expression is always truthy.
+320_pro_lineups_ct_early.js:8 TS2339 Property 'lineups' does not exist on type 'number'.
+320_pro_lineups_ct_early.js:76 TS2339 Property 'tactics' does not exist on type 'number'.
+320_pro_lineups_ct_early.js:116 TS2872 This kind of expression is always truthy.
+320_pro_lineups_ct_early.js:301 TS2339 Property 'id' does not exist on type 'never'.
+320_pro_lineups_ct_early.js:371 TS2339 Property 'pt' does not exist on type 'never'.
+320_pro_lineups_ct_early.js:371 TS2339 Property 'c' does not exist on type 'never'.
+320_pro_lineups_ct_early.js:372 TS2339 Property 'pt' does not exist on type 'never'.
+330_endgame_smoke_push.js:38 TS2339 Property 'x' does not exist on type 'never'.
+330_endgame_smoke_push.js:38 TS2339 Property 'y' does not exist on type 'never'.
+330_endgame_smoke_push.js:103 TS2339 Property 'id' does not exist on type 'never'.
+340_ctbrain.js:138 TS2339 Property 'site' does not exist on type 'never'.
+340_ctbrain.js:139 TS2339 Property 'est' does not exist on type 'never'.
+340_ctbrain.js:139 TS2339 Property 'est' does not exist on type 'never'.
+340_ctbrain.js:139 TS2339 Property 'carrier' does not exist on type 'never'.
+340_ctbrain.js:139 TS2339 Property 'plant' does not exist on type 'never'.
+340_ctbrain.js:139 TS2339 Property 'deaths' does not exist on type 'never'.
+340_ctbrain.js:139 TS2339 Property 'nades' does not exist on type 'never'.
+340_ctbrain.js:140 TS2339 Property 'carrier' does not exist on type 'never'.
+340_ctbrain.js:140 TS2339 Property 'plant' does not exist on type 'never'.
+340_ctbrain.js:140 TS2339 Property 'count' does not exist on type 'never'.
+340_ctbrain.js:346 TS2339 Property 'tactics' does not exist on type 'number'.
+340_ctbrain.js:465 TS2339 Property 'x' does not exist on type 'never'.
+340_ctbrain.js:465 TS2339 Property 'y' does not exist on type 'never'.
+340_ctbrain.js:634 TS2339 Property 'tactics' does not exist on type 'number'.
+340_ctbrain.js:656 TS2339 Property 'tactics' does not exist on type 'number'.
+340_ctbrain.js:670 TS2339 Property 'tactics' does not exist on type 'number'.
+340_ctbrain.js:719 TS2339 Property 'tactics' does not exist on type 'number'.
+350_contact_reaction.js:72 TS2339 Property 'z' does not exist on type '{ x: any; y: any; own: boolean; }'.
+350_contact_reaction.js:72 TS2339 Property 'seen' does not exist on type '{ x: any; y: any; own: boolean; }'.
+350_contact_reaction.js:72 TS2339 Property 'id' does not exist on type '{ x: any; y: any; own: boolean; }'.
+350_contact_reaction.js:352 TS2339 Property 'born' does not exist on type 'never'.
+350_contact_reaction.js:359 TS18047 'SM' is possibly 'null'.
+350_contact_reaction.js:359 TS18047 'SM' is possibly 'null'.
+350_contact_reaction.js:360 TS18047 'SM' is possibly 'null'.
+350_contact_reaction.js:360 TS18047 'SM' is possibly 'null'.
+360_nades_buy_smoke_vision.js:136 TS2339 Property 'pxUnits' does not exist on type 'number'.
+365_nade_plan.js:80 TS2339 Property 'pro' does not exist on type 'number'.
+365_nade_plan.js:80 TS2339 Property 'nadeplan' does not exist on type 'number'.
+365_nade_plan.js:88 TS2339 Property 'nadeplan' does not exist on type 'number'.
+366_exec_sync.js:106 TS2552 Cannot find name 'NADE_P'. Did you mean 'NADE'?
+370_fire_nav_levels_ladders.js:126 TS2339 Property 'navmesh' does not exist on type 'number'.
+370_fire_nav_levels_ladders.js:126 TS2339 Property 'navmesh' does not exist on type 'number'.
+370_fire_nav_levels_ladders.js:135 TS2339 Property 'climbs' does not exist on type 'number'.
+370_fire_nav_levels_ladders.js:135 TS2339 Property 'climbs' does not exist on type 'number'.
+370_fire_nav_levels_ladders.js:167 TS2339 Property 'z' does not exist on type 'never'.
+370_fire_nav_levels_ladders.js:167 TS2339 Property 'z' does not exist on type 'never'.
+370_fire_nav_levels_ladders.js:172 TS2339 Property 'x' does not exist on type 'never'.
+370_fire_nav_levels_ladders.js:172 TS2339 Property 'y' does not exist on type 'never'.
+370_fire_nav_levels_ladders.js:172 TS2339 Property 'z' does not exist on type 'never'.
+380_nades_throw.js:42 TS2304 Cannot find name 'nadeAim'.
+380_nades_throw.js:44 TS2339 Property 'det' does not exist on type 'never'.
+380_nades_throw.js:44 TS2339 Property 'det' does not exist on type 'never'.
+380_nades_throw.js:44 TS2339 Property 'x' does not exist on type 'never'.
+380_nades_throw.js:44 TS2339 Property 'y' does not exist on type 'never'.
+380_nades_throw.js:69 TS2339 Property 'nadeguess' does not exist on type 'number'.
+380_nades_throw.js:69 TS2339 Property 'nadeguess' does not exist on type 'number'.
+380_nades_throw.js:76 TS2339 Property 'luaim' does not exist on type 'number'.
+380_nades_throw.js:77 TS2339 Property 'lineups' does not exist on type 'number'.
+380_nades_throw.js:77 TS2339 Property 'lineups' does not exist on type 'number'.
+380_nades_throw.js:77 TS2339 Property 'lineups' does not exist on type 'number'.
+380_nades_throw.js:77 TS2339 Property 'lineups' does not exist on type 'number'.
+380_nades_throw.js:166 TS2339 Property 'nadelanes' does not exist on type 'number'.
+380_nades_throw.js:166 TS2339 Property 'nadelanes' does not exist on type 'number'.
+380_nades_throw.js:182 TS2339 Property 'pro' does not exist on type 'number'.
+380_nades_throw.js:182 TS2339 Property 'pro' does not exist on type 'number'.
+380_nades_throw.js:287 TS2304 Cannot find name 'nadeLaunch'.
+380_nades_throw.js:288 TS2304 Cannot find name 'nadeFly'.
+380_nades_throw.js:297 TS2304 Cannot find name 'nadeState'.
+380_nades_throw.js:474 TS2339 Property 'runups' does not exist on type 'number'.
+385_nades_flight.js:246 TS2362 The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+385_nades_flight.js:246 TS2363 The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+385_nades_flight.js:283 TS18047 'best' is possibly 'null'.
+385_nades_flight.js:288 TS18047 'best' is possibly 'null'.
+385_nades_flight.js:288 TS18047 'best' is possibly 'null'.
+385_nades_flight.js:292 TS18047 'best' is possibly 'null'.
+385_nades_flight.js:297 TS18047 'best' is possibly 'null'.
+385_nades_flight.js:299 TS18047 'best' is possibly 'null'.
+385_nades_flight.js:304 TS18047 'best' is possibly 'null'.
+385_nades_flight.js:305 TS18047 'best' is possibly 'null'.
+385_nades_flight.js:313 TS18047 'best' is possibly 'null'.
+385_nades_flight.js:315 TS18047 'best' is possibly 'null'.
+385_nades_flight.js:316 TS18047 'best' is possibly 'null'.
+385_nades_flight.js:316 TS18047 'best' is possibly 'null'.
+385_nades_flight.js:317 TS18047 'best' is possibly 'null'.
+385_nades_flight.js:320 TS18047 'best' is possibly 'null'.
+385_nades_flight.js:320 TS2339 Property 't' does not exist on type 'never'.
+385_nades_flight.js:326 TS18047 'best' is possibly 'null'.
+390_nades_lineups.js:2 TS2339 Property 'lineups' does not exist on type 'number'.
+390_nades_lineups.js:3 TS2339 Property 'store' does not exist on type 'number'.
+390_nades_lineups.js:8 TS2339 Property 'lineups' does not exist on type 'number'.
+390_nades_lineups.js:8 TS2339 Property 'store' does not exist on type 'number'.
+400_nades_physics_damage.js:61 TS2339 Property 'pxUnits' does not exist on type 'number'.
+400_nades_physics_damage.js:97 TS2339 Property 'pxUnits' does not exist on type 'number'.
+400_nades_physics_damage.js:182 TS2339 Property 'pxUnits' does not exist on type 'number'.
+400_nades_physics_damage.js:188 TS2339 Property 'pxUnits' does not exist on type 'number'.
+400_nades_physics_damage.js:213 TS2552 Cannot find name 'nadeStep'. Did you mean 'sndStep'?
+410_nades_tactical_self.js:120 TS2339 Property 'x' does not exist on type 'never'.
+410_nades_tactical_self.js:120 TS2339 Property 'y' does not exist on type 'never'.
+410_nades_tactical_self.js:154 TS2339 Property 'c' does not exist on type 'never'.
+410_nades_tactical_self.js:154 TS2339 Property 'ex' does not exist on type 'never'.
+420_nades_brains.js:35 TS2339 Property 'pro' does not exist on type 'number'.
+420_nades_brains.js:43 TS2339 Property 'sc' does not exist on type '{ t: string; pts: any[]; w: any; }'.
+420_nades_brains.js:44 TS2339 Property 'sc' does not exist on type '{ t: string; pts: any[]; w: any; }'.
+435_match_events.js:78 TS2339 Property 'h' does not exist on type '(name: any, args: any) => { name: any; args: any; saved: any[]; }'.
+435_match_events.js:78 TS2339 Property 'h' does not exist on type '(name: any, args: any) => { name: any; args: any; saved: any[]; }'.
+435_match_events.js:80 TS2339 Property 'h' does not exist on type '(name: any, args: any) => { name: any; args: any; saved: any[]; }'.
+435_match_events.js:82 TS2339 Property 'errs' does not exist on type '(name: any, args: any) => { name: any; args: any; saved: any[]; }'.
+435_match_events.js:82 TS2339 Property 'errs' does not exist on type '(name: any, args: any) => { name: any; args: any; saved: any[]; }'.
+435_match_events.js:86 TS2339 Property 'h' does not exist on type '(name: any, args: any) => { name: any; args: any; saved: any[]; }'.
+435_match_events.js:86 TS2339 Property 'errs' does not exist on type '(name: any, args: any) => { name: any; args: any; saved: any[]; }'.
+435_match_events.js:86 TS2339 Property 'errs' does not exist on type '(name: any, args: any) => { name: any; args: any; saved: any[]; }'.
+440_voicepanel_console.js:22 TS2339 Property 'tagName' does not exist on type 'EventTarget'.
+450_combat_items_knife.js:26 TS2339 Property 'pxUnits' does not exist on type 'number'.
+450_combat_items_knife.js:286 TS2339 Property 'x' does not exist on type 'never'.
+450_combat_items_knife.js:286 TS2339 Property 'y' does not exist on type 'never'.
+450_combat_items_knife.js:289 TS2339 Property 'x' does not exist on type 'never'.
+450_combat_items_knife.js:289 TS2339 Property 'y' does not exist on type 'never'.
+450_combat_items_knife.js:289 TS2339 Property 'x' does not exist on type 'never'.
+450_combat_items_knife.js:289 TS2339 Property 'y' does not exist on type 'never'.
+450_combat_items_knife.js:290 TS2339 Property 'key' does not exist on type 'never'.
+450_combat_items_knife.js:307 TS2339 Property 'pxUnits' does not exist on type 'number'.
+450_combat_items_knife.js:320 TS2339 Property 'x' does not exist on type 'never'.
+450_combat_items_knife.js:320 TS2339 Property 'y' does not exist on type 'never'.
+450_combat_items_knife.js:324 TS2339 Property 'x' does not exist on type 'never'.
+450_combat_items_knife.js:324 TS2339 Property 'y' does not exist on type 'never'.
+450_combat_items_knife.js:324 TS2339 Property 'x' does not exist on type 'never'.
+450_combat_items_knife.js:324 TS2339 Property 'y' does not exist on type 'never'.
+450_combat_items_knife.js:324 TS2339 Property 'key' does not exist on type 'never'.
+460_sound_situations.js:17 TS2339 Property 'zones' does not exist on type 'number'.
+460_sound_situations.js:17 TS2339 Property 'zones' does not exist on type 'number'.
+470_fight_cycle.js:49 TS2339 Property 'exp' does not exist on type 'any[]'.
+470_fight_cycle.js:576 TS2339 Property 'x' does not exist on type 'never'.
+470_fight_cycle.js:576 TS2339 Property 'y' does not exist on type 'never'.
+470_fight_cycle.js:576 TS2339 Property 'x' does not exist on type 'never'.
+470_fight_cycle.js:576 TS2339 Property 'y' does not exist on type 'never'.
+470_fight_cycle.js:584 TS2339 Property 'id' does not exist on type 'never'.
+480_assist_flank_reload.js:67 TS18047 'E' is possibly 'null'.
+480_assist_flank_reload.js:69 TS18047 'E' is possibly 'null'.
+480_assist_flank_reload.js:69 TS18047 'E' is possibly 'null'.
+480_assist_flank_reload.js:80 TS18047 'E' is possibly 'null'.
+480_assist_flank_reload.js:80 TS18047 'E' is possibly 'null'.
+480_assist_flank_reload.js:81 TS18047 'E' is possibly 'null'.
+480_assist_flank_reload.js:113 TS18047 'E' is possibly 'null'.
+480_assist_flank_reload.js:113 TS18047 'E' is possibly 'null'.
+480_assist_flank_reload.js:119 TS18047 'E' is possibly 'null'.
+480_assist_flank_reload.js:119 TS18047 'E' is possibly 'null'.
+480_assist_flank_reload.js:119 TS18047 'E' is possibly 'null'.
+480_assist_flank_reload.js:119 TS18047 'E' is possibly 'null'.
+480_assist_flank_reload.js:120 TS18047 'E' is possibly 'null'.
+480_assist_flank_reload.js:120 TS18047 'E' is possibly 'null'.
+480_assist_flank_reload.js:120 TS18047 'E' is possibly 'null'.
+480_assist_flank_reload.js:120 TS18047 'E' is possibly 'null'.
+480_assist_flank_reload.js:120 TS18047 'E' is possibly 'null'.
+480_assist_flank_reload.js:120 TS18047 'E' is possibly 'null'.
+480_assist_flank_reload.js:120 TS18047 'E' is possibly 'null'.
+480_assist_flank_reload.js:120 TS18047 'E' is possibly 'null'.
+480_assist_flank_reload.js:121 TS18047 'E' is possibly 'null'.
+480_assist_flank_reload.js:121 TS18047 'E' is possibly 'null'.
+480_assist_flank_reload.js:122 TS2339 Property 'x' does not exist on type 'never'.
+480_assist_flank_reload.js:122 TS2339 Property 'y' does not exist on type 'never'.
+480_assist_flank_reload.js:135 TS2339 Property 'id' does not exist on type 'never'.
+480_assist_flank_reload.js:296 TS2339 Property 'x' does not exist on type 'never'.
+480_assist_flank_reload.js:296 TS2339 Property 'y' does not exist on type 'never'.
+480_assist_flank_reload.js:297 TS18047 'kn' is possibly 'null'.
+480_assist_flank_reload.js:297 TS18047 'kn' is possibly 'null'.
+490_shoot.js:351 TS2403 Subsequent variable declarations must have the same type.  Variable 'ex' must be of type 'number', but here has type 'any'.
+490_shoot.js:351 TS2403 Subsequent variable declarations must have the same type.  Variable 'ey' must be of type 'number', but here has type 'any'.
+500_decide_afterkill_cover.js:301 TS2339 Property 'z' does not exist on type '{ id: string; x: any; y: any; }'.
+520_economy.js:426 TS2339 Property 'pro' does not exist on type 'number'.
+520_economy.js:426 TS2339 Property 'pro' does not exist on type 'number'.
+520_economy.js:426 TS2339 Property 'pro' does not exist on type 'number'.
+530_round_sides_match.js:100 TS2339 Property 'keys' does not exist on type '{}'.
+530_round_sides_match.js:100 TS2339 Property 'vals' does not exist on type '{}'.
+530_round_sides_match.js:100 TS2339 Property 'vals' does not exist on type '{}'.
+530_round_sides_match.js:185 TS2339 Property 'spawnSpots' does not exist on type 'number'.
+530_round_sides_match.js:185 TS2339 Property 'spawnSpots' does not exist on type 'number'.
+540_step_tick.js:66 TS2339 Property 'x' does not exist on type 'never'.
+540_step_tick.js:66 TS2339 Property 'y' does not exist on type 'never'.
+540_step_tick.js:66 TS2339 Property 'a' does not exist on type 'never'.
+540_step_tick.js:66 TS2339 Property 'a' does not exist on type 'never'.
+540_step_tick.js:160 TS2339 Property 'pro' does not exist on type 'number'.
+540_step_tick.js:160 TS2339 Property 'pro' does not exist on type 'number'.
+540_step_tick.js:181 TS2339 Property 'pro' does not exist on type 'number'.
+540_step_tick.js:181 TS2339 Property 'pro' does not exist on type 'number'.
+540_step_tick.js:213 TS2403 Subsequent variable declarations must have the same type.  Variable 'sp' must be of type 'number', but here has type 'any'.
+540_step_tick.js:215 TS2339 Property 'rate' does not exist on type 'number'.
+540_step_tick.js:383 TS2339 Property 'pxUnits' does not exist on type 'number'.
+550_render_nav_zone_tools.js:2 TS2339 Property 'getContext' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:8 TS2339 Property 'radar' does not exist on type 'number'.
+550_render_nav_zone_tools.js:13 TS2339 Property 'width' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:13 TS2339 Property 'height' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:43 TS2339 Property 'exec' does not exist on type 'string | RegExp'.
+550_render_nav_zone_tools.js:43 TS2339 Property 'replace' does not exist on type 'string | RegExp'.
+550_render_nav_zone_tools.js:81 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:83 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:102 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:103 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:104 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:143 TS2322 Type 'number' is not assignable to type 'string'.
+550_render_nav_zone_tools.js:216 TS2322 Type 'number' is not assignable to type 'string'.
+550_render_nav_zone_tools.js:217 TS2339 Property 'disabled' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:221 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:224 TS2339 Property 'disabled' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:225 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:228 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:232 TS2339 Property 'disabled' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:256 TS2304 Cannot find name 'VERTEX_TOL_PX'.
+550_render_nav_zone_tools.js:267 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:267 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:267 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:271 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:271 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:271 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:280 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:280 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:281 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:281 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:282 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:282 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:284 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:284 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:285 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:286 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:287 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:288 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:289 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:289 TS2339 Property 'disabled' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:290 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:290 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:290 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:290 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:292 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:293 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:294 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+550_render_nav_zone_tools.js:296 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:6 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:9 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:50 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:50 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:51 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:51 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:52 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:61 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:61 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:91 TS2339 Property 'open' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:104 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:107 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:134 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:135 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:135 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:135 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:136 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:141 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:153 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:199 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:199 TS2339 Property 'placeholder' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:199 TS2339 Property 'ui' does not exist on type 'number'.
+560_lineup_zone_editor.js:200 TS2551 Property 'select' does not exist on type 'HTMLElement'. Did you mean 'onselect'?
+560_lineup_zone_editor.js:204 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:209 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:213 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:215 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:215 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:215 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:216 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:216 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:231 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:245 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:245 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:284 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:290 TS2339 Property 'disabled' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:317 TS2339 Property 'disabled' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:322 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:322 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:326 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:385 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:390 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:394 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:416 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:417 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+560_lineup_zone_editor.js:418 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+570_maped_core_walls.js:77 TS2339 Property 'db' does not exist on type 'number'.
+570_maped_core_walls.js:88 TS2339 Property 'db' does not exist on type 'number'.
+570_maped_core_walls.js:123 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+570_maped_core_walls.js:126 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+570_maped_core_walls.js:126 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+570_maped_core_walls.js:146 TS2339 Property 'disabled' does not exist on type 'HTMLElement'.
+570_maped_core_walls.js:245 TS2339 Property 'disabled' does not exist on type 'HTMLElement'.
+570_maped_core_walls.js:347 TS2339 Property 'tagName' does not exist on type 'EventTarget'.
+570_maped_core_walls.js:347 TS2339 Property 'type' does not exist on type 'EventTarget'.
+570_maped_core_walls.js:352 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+570_maped_core_walls.js:362 TS2339 Property 'claude' does not exist on type 'Window & typeof globalThis'.
+570_maped_core_walls.js:362 TS2304 Cannot find name 'claude'.
+570_maped_core_walls.js:364 TS2304 Cannot find name 'claude'.
+580_maped_heights.js:7 TS2363 The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+580_maped_heights.js:7 TS2362 The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+580_maped_heights.js:7 TS2363 The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+580_maped_heights.js:8 TS2339 Property 'map' does not exist on type 'number | number[]'.
+580_maped_heights.js:53 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+580_maped_heights.js:103 TS2339 Property 'height' does not exist on type 'HTMLElement'.
+580_maped_heights.js:123 TS2365 Operator '+' cannot be applied to types 'number | number[]' and 'number'.
+580_maped_heights.js:129 TS2339 Property 'name' does not exist on type 'number'.
+580_maped_heights.js:163 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+580_maped_heights.js:212 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+580_maped_heights.js:235 TS2339 Property 'disabled' does not exist on type 'Element'.
+580_maped_heights.js:236 TS2339 Property 'disabled' does not exist on type 'Element'.
+580_maped_heights.js:237 TS2339 Property 'disabled' does not exist on type 'HTMLElement'.
+580_maped_heights.js:237 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+580_maped_heights.js:238 TS2339 Property 'disabled' does not exist on type 'HTMLElement'.
+580_maped_heights.js:278 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+580_maped_heights.js:297 TS2339 Property 'height' does not exist on type 'HTMLElement'.
+580_maped_heights.js:343 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+590_maped_cover.js:60 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+590_maped_cover.js:60 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+590_maped_cover.js:75 TS2339 Property 'disabled' does not exist on type 'Element'.
+590_maped_cover.js:76 TS2339 Property 'disabled' does not exist on type 'HTMLElement'.
+590_maped_cover.js:76 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+590_maped_cover.js:77 TS2339 Property 'disabled' does not exist on type 'HTMLElement'.
+590_maped_cover.js:78 TS2339 Property 'disabled' does not exist on type 'HTMLElement'.
+590_maped_cover.js:120 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+590_maped_cover.js:143 TS2339 Property 'height' does not exist on type 'HTMLElement'.
+590_maped_cover.js:209 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+600_maped_wallbang.js:16 TS2403 Subsequent variable declarations must have the same type.  Variable 'id' must be of type 'string', but here has type 'any'.
+600_maped_wallbang.js:78 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+600_maped_wallbang.js:79 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+600_maped_wallbang.js:79 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+600_maped_wallbang.js:95 TS2339 Property 'disabled' does not exist on type 'Element'.
+600_maped_wallbang.js:97 TS2339 Property 'disabled' does not exist on type 'HTMLElement'.
+600_maped_wallbang.js:97 TS2339 Property 'disabled' does not exist on type 'HTMLElement'.
+600_maped_wallbang.js:98 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+600_maped_wallbang.js:99 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+600_maped_wallbang.js:106 TS2339 Property 'disabled' does not exist on type 'HTMLElement'.
+600_maped_wallbang.js:107 TS2339 Property 'disabled' does not exist on type 'HTMLElement'.
+610_vistool_lookdebug.js:11 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+610_vistool_lookdebug.js:95 TS2339 Property 'x' does not exist on type 'never'.
+610_vistool_lookdebug.js:95 TS2339 Property 'y' does not exist on type 'never'.
+610_vistool_lookdebug.js:95 TS2339 Property 'z' does not exist on type 'never'.
+610_vistool_lookdebug.js:95 TS2339 Property 'id' does not exist on type 'never'.
+610_vistool_lookdebug.js:106 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+610_vistool_lookdebug.js:123 TS2339 Property '_t' does not exist on type '(force: any) => void'.
+610_vistool_lookdebug.js:123 TS2339 Property '_t' does not exist on type '(force: any) => void'.
+610_vistool_lookdebug.js:179 TS2339 Property '_pat' does not exist on type '() => void'.
+610_vistool_lookdebug.js:180 TS2339 Property '_pat' does not exist on type '() => void'.
+610_vistool_lookdebug.js:182 TS2339 Property '_pat' does not exist on type '() => void'.
+612_team_debug.js:8 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+612_team_debug.js:71 TS2339 Property '_t' does not exist on type '(force: any) => void'.
+612_team_debug.js:71 TS2339 Property '_t' does not exist on type '(force: any) => void'.
+620_draw.js:3 TS2339 Property 'width' does not exist on type 'HTMLElement'.
+620_draw.js:3 TS2339 Property 'height' does not exist on type 'HTMLElement'.
+620_draw.js:10 TS2339 Property 'name' does not exist on type 'number'.
+620_draw.js:18 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+620_draw.js:30 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+620_draw.js:30 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+620_draw.js:56 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+620_draw.js:75 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+620_draw.js:76 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+620_draw.js:98 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+620_draw.js:112 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+620_draw.js:112 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+620_draw.js:126 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+620_draw.js:169 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+620_draw.js:169 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+620_draw.js:178 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+620_draw.js:192 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+620_draw.js:227 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+620_draw.js:278 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+620_draw.js:441 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+620_draw.js:465 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+620_draw.js:515 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+620_draw.js:525 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+620_draw.js:537 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+620_draw.js:605 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+620_draw.js:630 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+620_draw.js:659 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+620_draw.js:809 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+620_draw.js:846 TS2339 Property 'noHud' does not exist on type '() => void'.
+620_draw.js:865 TS2339 Property '_plN' does not exist on type '() => void'.
+620_draw.js:865 TS2339 Property '_plN' does not exist on type '() => void'.
+620_draw.js:865 TS2339 Property '_plN' does not exist on type '() => void'.
+620_draw.js:866 TS2339 Property '_econN' does not exist on type '() => void'.
+620_draw.js:866 TS2339 Property '_econN' does not exist on type '() => void'.
+620_draw.js:866 TS2339 Property '_econN' does not exist on type '() => void'.
+620_draw.js:873 TS2339 Property 'width' does not exist on type 'HTMLElement'.
+620_draw.js:873 TS2339 Property 'height' does not exist on type 'HTMLElement'.
+620_draw.js:876 TS2339 Property 'width' does not exist on type 'HTMLElement'.
+620_draw.js:876 TS2339 Property 'height' does not exist on type 'HTMLElement'.
+620_draw.js:878 TS2339 Property 'width' does not exist on type 'HTMLElement'.
+620_draw.js:878 TS2339 Property 'height' does not exist on type 'HTMLElement'.
+620_draw.js:884 TS2339 Property 'width' does not exist on type 'HTMLElement'.
+620_draw.js:884 TS2339 Property 'height' does not exist on type 'HTMLElement'.
+625_view3d.js:150 TS2339 Property 'width' does not exist on type 'HTMLElement'.
+625_view3d.js:150 TS2339 Property 'height' does not exist on type 'HTMLElement'.
+625_view3d.js:459 TS2339 Property 'getContext' does not exist on type 'HTMLElement'.
+625_view3d.js:486 TS2339 Property 'width' does not exist on type 'HTMLElement'.
+625_view3d.js:486 TS2339 Property 'height' does not exist on type 'HTMLElement'.
+625_view3d.js:495 TS2339 Property 'height' does not exist on type 'HTMLElement'.
+625_view3d.js:696 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+625_view3d.js:764 TS2339 Property 'width' does not exist on type 'HTMLElement'.
+625_view3d.js:764 TS2339 Property 'height' does not exist on type 'HTMLElement'.
+625_view3d.js:765 TS2339 Property 'width' does not exist on type 'HTMLElement'.
+625_view3d.js:765 TS2339 Property 'height' does not exist on type 'HTMLElement'.
+625_view3d.js:779 TS2339 Property 'id' does not exist on type 'never'.
+625_view3d.js:780 TS2339 Property 'id' does not exist on type 'never'.
+625_view3d.js:780 TS2339 Property 'id' does not exist on type 'never'.
+625_view3d.js:780 TS2339 Property 'id' does not exist on type 'never'.
+625_view3d.js:780 TS2339 Property 'id' does not exist on type 'never'.
+625_view3d.js:783 TS2339 Property 'classList' does not exist on type '(Anonymous function)'.
+630_killfeed_banners_econ.js:32 TS2339 Property '_ar' does not exist on type 'HTMLImageElement'.
+630_killfeed_banners_econ.js:49 TS2339 Property '_s' does not exist on type '() => void'.
+630_killfeed_banners_econ.js:49 TS2339 Property '_s' does not exist on type '() => void'.
+630_killfeed_banners_econ.js:95 TS2339 Property 'b' does not exist on type 'never'.
+630_killfeed_banners_econ.js:95 TS2339 Property 'b' does not exist on type 'never'.
+630_killfeed_banners_econ.js:95 TS2339 Property 'b' does not exist on type 'never'.
+630_killfeed_banners_econ.js:95 TS2339 Property 'b' does not exist on type 'never'.
+630_killfeed_banners_econ.js:95 TS2339 Property 'b' does not exist on type 'never'.
+630_killfeed_banners_econ.js:95 TS2339 Property 'b' does not exist on type 'never'.
+630_killfeed_banners_econ.js:95 TS2339 Property 'b' does not exist on type 'never'.
+630_killfeed_banners_econ.js:107 TS2339 Property 'closest' does not exist on type 'EventTarget'.
+630_killfeed_banners_econ.js:107 TS2339 Property 'closest' does not exist on type 'EventTarget'.
+630_killfeed_banners_econ.js:109 TS2339 Property 'closest' does not exist on type 'EventTarget'.
+630_killfeed_banners_econ.js:109 TS2339 Property 'closest' does not exist on type 'EventTarget'.
+630_killfeed_banners_econ.js:110 TS2339 Property 'focus' does not exist on type 'Element'.
+635_hud_fx.js:14 TS2339 Property '_set' does not exist on type '() => void'.
+635_hud_fx.js:14 TS2339 Property '_set' does not exist on type '() => void'.
+635_hud_fx.js:59 TS2339 Property '_paused' does not exist on type 'HTMLElement'.
+635_hud_fx.js:59 TS2339 Property '_paused' does not exist on type 'HTMLElement'.
+635_hud_fx.js:64 TS2339 Property '_bomb' does not exist on type 'HTMLElement'.
+635_hud_fx.js:64 TS2339 Property '_bomb' does not exist on type 'HTMLElement'.
+635_hud_fx.js:71 TS2339 Property '_pulse' does not exist on type 'HTMLElement'.
+635_hud_fx.js:71 TS2339 Property '_pulse' does not exist on type 'HTMLElement'.
+635_hud_fx.js:72 TS2339 Property '_pulse' does not exist on type 'HTMLElement'.
+635_hud_fx.js:76 TS2339 Property '_pulse' does not exist on type 'HTMLElement'.
+635_hud_fx.js:76 TS2339 Property '_pulse' does not exist on type 'HTMLElement'.
+635_hud_fx.js:79 TS2339 Property '_pulse' does not exist on type 'HTMLElement'.
+640_scoreboard_players.js:50 TS2339 Property '_f' does not exist on type 'HTMLElement'.
+640_scoreboard_players.js:50 TS2339 Property '_f' does not exist on type 'HTMLElement'.
+640_scoreboard_players.js:56 TS2339 Property '_html' does not exist on type 'HTMLElement'.
+640_scoreboard_players.js:96 TS2339 Property 'helmet' does not exist on type '{}'.
+640_scoreboard_players.js:96 TS2339 Property 'armor' does not exist on type '{}'.
+640_scoreboard_players.js:97 TS2339 Property 'kit' does not exist on type '{}'.
+640_scoreboard_players.js:98 TS2339 Property 'c4' does not exist on type '{}'.
+640_scoreboard_players.js:218 TS2339 Property '_key' does not exist on type 'HTMLElement'.
+640_scoreboard_players.js:218 TS2339 Property '_key' does not exist on type 'HTMLElement'.
+640_scoreboard_players.js:218 TS2339 Property '_cards' does not exist on type 'HTMLElement'.
+640_scoreboard_players.js:218 TS2339 Property '_tag' does not exist on type 'HTMLElement'.
+640_scoreboard_players.js:219 TS2339 Property '_tag' does not exist on type 'HTMLElement'.
+640_scoreboard_players.js:220 TS2339 Property '_cards' does not exist on type 'HTMLElement'.
+640_scoreboard_players.js:229 TS2339 Property '_hp' does not exist on type 'HTMLElement'.
+640_scoreboard_players.js:229 TS2339 Property '_hp' does not exist on type 'HTMLElement'.
+640_scoreboard_players.js:249 TS2339 Property 'id' does not exist on type 'never'.
+645_decision_log.js:15 TS2630 Cannot assign to 'teamBrains' because it is a function.
+660_warmup.js:27 TS2552 Cannot find name 'mkSnapshot'. Did you mean 'memSnapshot'?
+660_warmup.js:27 TS2552 Cannot find name 'mkSnapshot'. Did you mean 'memSnapshot'?
+660_warmup.js:38 TS2304 Cannot find name 'mkRestore'.
+660_warmup.js:38 TS2552 Cannot find name 'mkRestore'. Did you mean 'memRestore'?
+660_warmup.js:39 TS2304 Cannot find name 'MK'.
+660_warmup.js:39 TS2304 Cannot find name 'MK'.
+660_warmup.js:39 TS2304 Cannot find name 'MK'.
+660_warmup.js:39 TS2304 Cannot find name 'MK'.
+660_warmup.js:53 TS2339 Property 'y' does not exist on type 'never'.
+660_warmup.js:53 TS2339 Property 'x' does not exist on type 'never'.
+660_warmup.js:59 TS2339 Property 'id' does not exist on type 'never'.
+660_warmup.js:59 TS2339 Property 'id' does not exist on type 'never'.
+670_observer.js:72 TS2339 Property 'x' does not exist on type 'never'.
+670_observer.js:72 TS2339 Property 'y' does not exist on type 'never'.
+670_observer.js:74 TS2339 Property 'x' does not exist on type 'never'.
+670_observer.js:74 TS2339 Property 'y' does not exist on type 'never'.
+670_observer.js:263 TS2339 Property 'id' does not exist on type 'never'.
+670_observer.js:349 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+670_observer.js:350 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+670_observer.js:350 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+670_observer.js:351 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+670_observer.js:366 TS2339 Property 'closest' does not exist on type 'EventTarget'.
+670_observer.js:366 TS2339 Property 'closest' does not exist on type 'EventTarget'.
+670_observer.js:373 TS2339 Property 'id' does not exist on type 'never'.
+670_observer.js:374 TS2339 Property 'tagName' does not exist on type 'EventTarget'.
+675_replay.js:149 TS2339 Property 'id' does not exist on type 'never'.
+675_replay.js:177 TS2339 Property 'att' does not exist on type 'never'.
+675_replay.js:177 TS2339 Property 'attTeam' does not exist on type 'never'.
+675_replay.js:177 TS2339 Property 't' does not exist on type 'never'.
+675_replay.js:177 TS2339 Property 't' does not exist on type 'never'.
+675_replay.js:177 TS2339 Property 'att' does not exist on type 'never'.
+675_replay.js:231 TS2339 Property 'ctx' does not exist on type '{ root: HTMLElement; cv: HTMLElement; tag: Element; l3: Element; feed: Element; slow: Element; emo: Element; vox: Element; shade: Element; skip: Element; title: Element; }'.
+675_replay.js:231 TS2339 Property 'getContext' does not exist on type 'HTMLElement'.
+675_replay.js:436 TS2339 Property 'noHud' does not exist on type '() => void'.
+675_replay.js:441 TS2339 Property 'noHud' does not exist on type '() => void'.
+675_replay.js:567 TS2362 The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+675_replay.js:567 TS2363 The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+675_replay.js:570 TS2339 Property 'say' does not exist on type '{ id: any; side: any; }'.
+675_replay.js:570 TS2339 Property 'lang' does not exist on type '{ id: any; side: any; }'.
+675_replay.js:571 TS2339 Property 'voice' does not exist on type '{ id: any; side: any; }'.
+675_replay.js:633 TS2304 Cannot find name 'mkOpenSnap'.
+675_replay.js:638 TS2304 Cannot find name 'mkOpenSnap'.
+675_replay.js:642 TS2304 Cannot find name 'mkFp'.
+675_replay.js:642 TS2304 Cannot find name 'mkFp'.
+675_replay.js:663 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+675_replay.js:663 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+675_replay.js:663 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+675_replay.js:663 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+675_replay.js:664 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+675_replay.js:664 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+675_replay.js:664 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+676_timeout_show.js:164 TS2322 Type 'string | number' is not assignable to type 'string'.
+676_timeout_show.js:164 TS2365 Operator '+' cannot be applied to types 'number' and 'string | number'.
+676_timeout_show.js:164 TS2365 Operator '+=' cannot be applied to types 'number' and 'string | number'.
+677_sandbox.js:59 TS2339 Property 'closest' does not exist on type 'EventTarget'.
+677_sandbox.js:59 TS2339 Property 'closest' does not exist on type 'EventTarget'.
+678_demo_view.js:11 TS2339 Property 'demorounds' does not exist on type 'number'.
+678_demo_view.js:11 TS2339 Property 'demorounds' does not exist on type 'number'.
+678_demo_view.js:85 TS2339 Property 'closest' does not exist on type 'EventTarget'.
+678_demo_view.js:92 TS2339 Property '_t' does not exist on type '(force: any) => void'.
+678_demo_view.js:92 TS2339 Property '_t' does not exist on type '(force: any) => void'.
+680_sound_frame_buttons.js:36 TS2551 Property 'webkitAudioContext' does not exist on type 'Window & typeof globalThis'. Did you mean 'AudioContext'?
+680_sound_frame_buttons.js:191 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+680_sound_frame_buttons.js:191 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+680_sound_frame_buttons.js:192 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+680_sound_frame_buttons.js:192 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+680_sound_frame_buttons.js:262 TS2304 Cannot find name 'mkAfterTicks'.
+680_sound_frame_buttons.js:279 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+680_sound_frame_buttons.js:280 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+680_sound_frame_buttons.js:282 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+680_sound_frame_buttons.js:282 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+680_sound_frame_buttons.js:282 TS2339 Property 'checked' does not exist on type 'HTMLElement'.
+680_sound_frame_buttons.js:285 TS2339 Property '__ev' does not exist on type 'Window & typeof globalThis'.
+680_sound_frame_buttons.js:319 TS2339 Property 'value' does not exist on type 'HTMLElement'.
+680_sound_frame_buttons.js:321 TS2551 Property 'select' does not exist on type 'HTMLElement'. Did you mean 'onselect'?
+typecheck --js (только предупреждения): tsc 6.0.2, предупреждений 740
+  по файлам: 550_render_nav_zone_tools.js 48, 560_lineup_zone_editor.js 46, 620_draw.js 43, 050_nav_rebuild_paths.js 30, 480_assist_flank_reload.js 29, 675_replay.js 26, 280_pos_pref_hold.js 20, 380_nades_throw.js 20, 385_nades_flight.js 18, 580_maped_heights.js 18, 340_ctbrain.js 17, 625_view3d.js 17, 035_map3d.js 16, 450_combat_items_knife.js 16, 640_scoreboard_players.js 16, 630_killfeed_banners_econ.js 15, 680_sound_frame_buttons.js 14, 270_look_plan_smooth.js 13, 570_maped_core_walls.js 13, 670_observer.js 13, 635_hud_fx.js 12, 660_warmup.js 12, 300_roles_fallback_rebalance.js 11, 540_step_tick.js 11, 600_maped_wallbang.js 11, 610_vistool_lookdebug.js 11, 010_map_zones_warp.js 10, 140_named_spots_ct_setup.js 10, 170_tbrain.js 10, 240_belief_tick.js 10, 590_maped_cover.js 10, 190_team_intel_lkp_calls.js 9, 370_fire_nav_levels_ladders.js 9, 060_zone_danger_user_zones.js 8, 100_sites_spots.js 8, 290_smoke_react.js 8, 350_contact_reaction.js 8, 435_match_events.js 8, 130_tactics_match_adapt.js 7, 210_know_hyp.js 7, 320_pro_lineups_ct_early.js 7, 470_fight_cycle.js 6, 110_post_routes.js 5, 180_save_retake.js 5, 400_nades_physics_damage.js 5, 530_round_sides_match.js 5, 678_demo_view.js 5, 030_map_walls_heights_cover_wallbang.js 4, 160_igl_replan.js 4, 390_nades_lineups.js 4, 410_nades_tactical_self.js 4, 080_bal.js 3, 090_profiles_teams.js 3, 220_know_events_tick.js 3, 330_endgame_smoke_push.js 3, 365_nade_plan.js 3, 420_nades_brains.js 3, 520_economy.js 3, 612_team_debug.js 3, 676_timeout_show.js 3, 120_bomb.js 2, 150_lurker_probes_clear.js 2, 250_look_prepeek_corners.js 2, 310_pro_positions.js 2, 460_sound_situations.js 2, 490_shoot.js 2, 677_sandbox.js 2, 040_visibility.js 1, 275_look_turn.js 1, 360_nades_buy_smoke_vision.js 1, 366_exec_sync.js 1, 440_voicepanel_console.js 1, 500_decide_afterkill_cover.js 1, 645_decision_log.js 1
+  по кодам: TS2339 626, TS18047 53, TS2304 17, TS2403 7, TS2322 6, TS2363 5, TS2552 5, TS2362 4, TS2367 4, TS2365 3, TS2551 3, TS2872 3, TS2741 2, TS2591 1, TS2630 1

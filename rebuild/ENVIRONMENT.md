@@ -82,3 +82,24 @@ Node 22.23.5). Отпечатки облака и ПК тем не менее с
 WASM и `libm` бит в бит — везде; Worker из Blob — везде, модуль из Blob — Firefox и WebKit (Chromium — нет на странице без адреса), `data:` —
 везде на ПК; общей памяти нет. **Симуляция между движками различается** (хэш матча после 2000 тиков), `Math` Firefox = WebKit ≠ Chromium
 (`rebuild/evidence/R0/r0.14_xb_pc.json`). Реальные Chrome, Opera GX, Edge, Safari — не проверены.
+
+## 5. Rust на ПК владельца (Р0.13, прогоны 314–318)
+
+Ставит задание `rust` в `tools/measure/remote_run.py` (папка `~/.simcs2_rust`, `RUSTUP_HOME` / `CARGO_HOME` внутри; PATH системы не трогается;
+без Visual Studio):
+
+```
+rustup-init.exe -y --no-modify-path --profile minimal --default-host x86_64-pc-windows-gnu --default-toolchain stable
+rustup target add wasm32-unknown-unknown
+cargo build --release --manifest-path docs/reports/audit_2026-11-24/stage4/bench/nap/Cargo.toml
+```
+
+| что | версия |
+|---|---|
+| rustc / cargo | 1.100.0 (0ef1bc386 2026-11-09) / 1.100.0 (3acc79c0c 2026-11-05), хост `x86_64-pc-windows-gnu` |
+| N-API | napi 2.16.17, napi-derive 2.16.13, napi-sys 2.4.0, napi-build 2.7.0 |
+| загрузка символов Node | libloading **0.8.8** (закреплён в `Cargo.lock`) → windows-targets 0.53.5 / windows_x86_64_gnu 0.53.1 (готовые библиотеки импорта) |
+
+Два препятствия windows-gnu и решения: (1) `libloading` ≥ 0.8.9 идёт через windows-link (raw-dylib) и требует `dlltool.exe` из MinGW
+binutils — закреплён 0.8.8, binutils не ставились (не нужны); (2) `napi_build::setup()` на windows-gnu ищет `libnode.dll` — `build.rs` его
+не вызывает на windows-gnu (символы Node подгружает `napi-sys` при загрузке модуля). Итог — `rebuild/evidence/R0/r0.13_napi_pc.json`.

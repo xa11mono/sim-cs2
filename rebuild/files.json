@@ -33,7 +33,7 @@
   "250_look_prepeek_corners.js",
   "260_look_threat.js",
   "270_look_plan_smooth.js",
-  "275_look_turn.js",
+  "275_look_turn.ts",
   "280_pos_pref_hold.js",
   "290_smoke_react.js",
   "300_roles_fallback_rebalance.js",

@@ -1,0 +1,7 @@
+{"step": "Р1.2 types.ts — типы смысла без поведения", "date": "2026-11-25", "tsc": "6.0.2",
+ "files": ["src/types/types.ts", "src/types/types_test.ts"],
+ "types": ["Px", "GameUnits", "PathLen", "StraightDist", "Seconds", "Ticks", "P2", "P3", "Angle", "BotId", "ZoneId", "TaskKind"],
+ "source": "SEMANTIC_AUDIT.md С-1, С-3, С-6/С-7, С-12; FINAL_ARCHITECTURE.md Ф-2, Ф-5; новых чисел нет",
+ "typecheck": "файлов 2, ошибок 0",
+ "negative": "StraightDist с меткой PathLen → types_test.ts:11 TS2578 (неиспользованная @ts-expect-error), код 1 — проверка ловит смешение; откатено",
+ "build": "sim.html Ancient sha256_norm b34c8392775e21c7 = база (types.ts в сборку не входит)"}
