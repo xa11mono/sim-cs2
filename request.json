@@ -1,0 +1,65 @@
+{
+ "par": 8,
+ "jobs": [
+  {
+   "label": "v599a_dm_anc2",
+   "ref": "46c81eae881dae4890bc74fbabe9b49938560a4b",
+   "map": "ancient",
+   "matches": [
+    31,
+    37,
+    41,
+    43,
+    47,
+    53,
+    59,
+    61
+   ]
+  },
+  {
+   "label": "v599a_pre_anc2",
+   "ref": "fbd74738577ebe1f900f3e9f0e9215dd2178caf6",
+   "map": "ancient",
+   "matches": [
+    31,
+    37,
+    41,
+    43,
+    47,
+    53,
+    59,
+    61
+   ]
+  },
+  {
+   "label": "v599a_dm_mir2",
+   "ref": "46c81eae881dae4890bc74fbabe9b49938560a4b",
+   "map": "mirage",
+   "matches": [
+    31,
+    37,
+    41,
+    43,
+    47,
+    53,
+    59,
+    61
+   ]
+  },
+  {
+   "label": "v599a_pre_mir2",
+   "ref": "fbd74738577ebe1f900f3e9f0e9215dd2178caf6",
+   "map": "mirage",
+   "matches": [
+    31,
+    37,
+    41,
+    43,
+    47,
+    53,
+    59,
+    61
+   ]
+  }
+ ]
+}

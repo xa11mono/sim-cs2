@@ -1,0 +1,73 @@
+playwright 1.63.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\v599a_dm_anc2\env.json
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\v599a_pre_anc2\env.json
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\v599a_dm_mir2\env.json
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\v599a_pre_mir2\env.json
+> git fetch --quiet origin 46c81eae881dae4890bc74fbabe9b49938560a4b
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_8umo43xs FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_8umo43xs\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v599a_dm_anc2.html
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+модули: 110_post_routes.js, 190_team_intel_lkp_calls.js, 220_know_events_tick.js, 275_look_turn.ts, 360_nades_buy_smoke_vision.js, 365_nade_plan.js, 366_exec_sync.js, 370_fire_nav_levels_ladders.js, 380_nades_throw.js, 385_nades_flight.js, 390_nades_lineups.js, 400_nades_physics_damage.js, 410_nades_tactical_self.js, 420_nades_brains.js, 470_fight_cycle.js, 480_assist_flank_reload.js, 490_shoot.js, 500_decide_afterkill_cover.js, 510_engagements.js, 535_move_mode.js, 540_step_tick.js — ядро отдаёт 283 имён, берёт 667
+пометок 1734 | полей facing:7 walking:4 curSpeed:5 post:3 _task:4 _reposUntil:1 _waitPopUntil:1 _avoidPeekUntil:1 _tradeUntil:2 _tradeLock:1 state:2 nadeTask:10 holding:4 crouching:1 path:7 phase:2 | функций 1289
+общих переменных 973 из чужих файлов пишут 86
+> git fetch --quiet origin fbd74738577ebe1f900f3e9f0e9215dd2178caf6
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_q2uqqoly FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_q2uqqoly\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v599a_pre_anc2.html
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+модули: 110_post_routes.js, 190_team_intel_lkp_calls.js, 220_know_events_tick.js, 275_look_turn.ts, 360_nades_buy_smoke_vision.js, 365_nade_plan.js, 366_exec_sync.js, 370_fire_nav_levels_ladders.js, 380_nades_throw.js, 385_nades_flight.js, 390_nades_lineups.js, 400_nades_physics_damage.js, 410_nades_tactical_self.js, 420_nades_brains.js, 470_fight_cycle.js, 480_assist_flank_reload.js, 490_shoot.js, 500_decide_afterkill_cover.js, 510_engagements.js, 535_move_mode.js, 540_step_tick.js — ядро отдаёт 283 имён, берёт 667
+пометок 1734 | полей facing:7 walking:4 curSpeed:5 post:3 _task:4 _reposUntil:1 _waitPopUntil:1 _avoidPeekUntil:1 _tradeUntil:2 _tradeLock:1 state:2 nadeTask:10 holding:4 crouching:1 path:7 phase:2 | функций 1289
+общих переменных 972 из чужих файлов пишут 86
+> git fetch --quiet origin 46c81eae881dae4890bc74fbabe9b49938560a4b
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_v3uneew7 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_v3uneew7\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v599a_dm_mir2.html
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+модули: 110_post_routes.js, 190_team_intel_lkp_calls.js, 220_know_events_tick.js, 275_look_turn.ts, 360_nades_buy_smoke_vision.js, 365_nade_plan.js, 366_exec_sync.js, 370_fire_nav_levels_ladders.js, 380_nades_throw.js, 385_nades_flight.js, 390_nades_lineups.js, 400_nades_physics_damage.js, 410_nades_tactical_self.js, 420_nades_brains.js, 470_fight_cycle.js, 480_assist_flank_reload.js, 490_shoot.js, 500_decide_afterkill_cover.js, 510_engagements.js, 535_move_mode.js, 540_step_tick.js — ядро отдаёт 283 имён, берёт 667
+пометок 1734 | полей facing:7 walking:4 curSpeed:5 post:3 _task:4 _reposUntil:1 _waitPopUntil:1 _avoidPeekUntil:1 _tradeUntil:2 _tradeLock:1 state:2 nadeTask:10 holding:4 crouching:1 path:7 phase:2 | функций 1289
+общих переменных 973 из чужих файлов пишут 86
+> git fetch --quiet origin fbd74738577ebe1f900f3e9f0e9215dd2178caf6
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_y7y8ohr8 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_y7y8ohr8\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v599a_pre_mir2.html
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+модули: 110_post_routes.js, 190_team_intel_lkp_calls.js, 220_know_events_tick.js, 275_look_turn.ts, 360_nades_buy_smoke_vision.js, 365_nade_plan.js, 366_exec_sync.js, 370_fire_nav_levels_ladders.js, 380_nades_throw.js, 385_nades_flight.js, 390_nades_lineups.js, 400_nades_physics_damage.js, 410_nades_tactical_self.js, 420_nades_brains.js, 470_fight_cycle.js, 480_assist_flank_reload.js, 490_shoot.js, 500_decide_afterkill_cover.js, 510_engagements.js, 535_move_mode.js, 540_step_tick.js — ядро отдаёт 283 имён, берёт 667
+пометок 1734 | полей facing:7 walking:4 curSpeed:5 post:3 _task:4 _reposUntil:1 _waitPopUntil:1 _avoidPeekUntil:1 _tradeUntil:2 _tradeLock:1 state:2 nadeTask:10 holding:4 crouching:1 path:7 phase:2 | функций 1289
+общих переменных 972 из чужих файлов пишут 86
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=v599a_dm_anc2,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v599a_dm_anc2.html --job=v599a_pre_anc2,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v599a_pre_anc2.html --job=v599a_dm_mir2,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v599a_dm_mir2.html --job=v599a_pre_mir2,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v599a_pre_mir2.html --matches=31,37,41,43,47,53,59,61 --par=8
+матчей в очереди: 32, одновременно: 8
+v599a_dm_anc2 match 43  rc 0 7019150 — готово 1/32, 7 мин
+v599a_dm_anc2 match 31  rc 0 7985977 — готово 2/32, 8 мин
+v599a_dm_anc2 match 41  rc 0 8411457 — готово 3/32, 8 мин
+v599a_dm_anc2 match 37  rc 0 9120183 — готово 4/32, 8 мин
+v599a_dm_anc2 match 59  rc 0 8679885 — готово 5/32, 9 мин
+v599a_dm_anc2 match 47  rc 0 9412824 — готово 6/32, 9 мин
+v599a_dm_anc2 match 61  rc 0 12369816 — готово 7/32, 12 мин
+v599a_dm_anc2 match 53  rc 0 12534667 — готово 8/32, 12 мин
+v599a_pre_anc2 match 47  rc 0 5163084 — готово 9/32, 14 мин
+v599a_pre_anc2 match 37  rc 0 6265966 — готово 10/32, 14 мин
+v599a_pre_anc2 match 31  rc 0 8094671 — готово 11/32, 14 мин
+v599a_pre_anc2 match 43  rc 0 8275529 — готово 12/32, 15 мин
+v599a_pre_anc2 match 41  rc 0 8683456 — готово 13/32, 16 мин
+v599a_pre_anc2 match 53  rc 0 8501474 — готово 14/32, 17 мин
+v599a_pre_anc2 match 59  rc 0 6181028 — готово 15/32, 17 мин
+v599a_pre_anc2 match 61  rc 0 11835175 — готово 16/32, 24 мин
+v599a_dm_mir2 match 41  rc 0 7668797 — готово 17/32, 25 мин
+v599a_dm_mir2 match 43  rc 0 9135326 — готово 18/32, 25 мин
+v599a_dm_mir2 match 53  rc 0 7869805 — готово 19/32, 26 мин
+v599a_dm_mir2 match 47  rc 0 8413342 — готово 20/32, 26 мин
+v599a_dm_mir2 match 37  rc 0 9039615 — готово 21/32, 27 мин
+v599a_dm_mir2 match 59  rc 0 8930762 — готово 22/32, 28 мин
+v599a_dm_mir2 match 31  rc 0 12824558 — готово 23/32, 29 мин
+v599a_pre_mir2 match 41  rc 0 7808809 — готово 24/32, 36 мин
+v599a_pre_mir2 match 53  rc 0 7689187 — готово 25/32, 37 мин
+v599a_pre_mir2 match 47  rc 0 7274098 — готово 26/32, 38 мин
+v599a_pre_mir2 match 31  rc 0 10609064 — готово 27/32, 39 мин
+v599a_pre_mir2 match 59  rc 0 8841955 — готово 28/32, 39 мин
+v599a_pre_mir2 match 43  rc 0 12047355 — готово 29/32, 40 мин
+v599a_dm_mir2 match 61  rc 0 12970436 — готово 30/32, 40 мин
+v599a_pre_mir2 match 37  rc 0 12272825 — готово 31/32, 41 мин
+v599a_pre_mir2 match 61  rc 0 12841070 — готово 32/32, 49 мин
+done
+all done
