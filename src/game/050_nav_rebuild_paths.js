@@ -249,6 +249,11 @@ function rebuildNav(){
   // re-alignment, not the very first call at load).
   if(typeof bots !== "undefined"){
     bots.forEach(function(b){ movePath(b, [], "nav-rebuild"); b.pathIdx = 0; });
+    // (Т-4, 25.11, У-14) перестройка во время игры (редактор карты): связи выше прыжка снимаются сразу, а не при первом поиске пути —
+    // иначе до него граф читали с несрезанными связями. При загрузке (ботов ещё нет, 050:254) — как было: срез при первом поиске пути
+    // (laddersBuild нужен файл 370, он ещё не загружен); единственный читатель до среза при загрузке — snapToWalkable (только «есть ли
+    // связи у участка»), срез ни один участок связей не лишает (Ancient −11 из 5967, Mirage −22 из 7884) — rebuild/evidence/R3/t4.json
+    if(!navTallDone) navCutTall();
   }
 }
 rebuildNav();

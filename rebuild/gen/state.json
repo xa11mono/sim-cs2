@@ -2142,7 +2142,7 @@
    "snap": true
   },
   "FIRE_DETOUR": {
-   "decl": "050_nav_rebuild_paths.js:385",
+   "decl": "050_nav_rebuild_paths.js:390",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -2490,7 +2490,7 @@
    "snap": true
   },
   "GAP_AIR_MIN": {
-   "decl": "050_nav_rebuild_paths.js:322",
+   "decl": "050_nav_rebuild_paths.js:327",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -2510,7 +2510,7 @@
    "snap": true
   },
   "GAP_WALK_N": {
-   "decl": "050_nav_rebuild_paths.js:322",
+   "decl": "050_nav_rebuild_paths.js:327",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -3451,7 +3451,7 @@
    "snap": true
   },
   "KNOWN_CLOSE_K": {
-   "decl": "050_nav_rebuild_paths.js:412",
+   "decl": "050_nav_rebuild_paths.js:417",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -3461,7 +3461,7 @@
    "snap": true
   },
   "KNOWN_DETOUR": {
-   "decl": "050_nav_rebuild_paths.js:386",
+   "decl": "050_nav_rebuild_paths.js:391",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -3471,7 +3471,7 @@
    "snap": true
   },
   "KNOWN_PATH_R": {
-   "decl": "050_nav_rebuild_paths.js:386",
+   "decl": "050_nav_rebuild_paths.js:391",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -3589,7 +3589,7 @@
    "snap": true
   },
   "KPC": {
-   "decl": "050_nav_rebuild_paths.js:389",
+   "decl": "050_nav_rebuild_paths.js:394",
    "init": "ObjectExpression",
    "w": {},
    "m": {
@@ -3678,7 +3678,7 @@
    "snap": true
   },
   "LAND_DELAY": {
-   "decl": "050_nav_rebuild_paths.js:301",
+   "decl": "050_nav_rebuild_paths.js:306",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -3729,7 +3729,7 @@
    "snap": true
   },
   "LAND_SOUND_DROP": {
-   "decl": "050_nav_rebuild_paths.js:306",
+   "decl": "050_nav_rebuild_paths.js:311",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -3740,7 +3740,7 @@
    "snap": true
   },
   "LANE_W": {
-   "decl": "050_nav_rebuild_paths.js:565",
+   "decl": "050_nav_rebuild_paths.js:570",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -5097,7 +5097,7 @@
    "snap": true
   },
   "NAV_DROP_COST": {
-   "decl": "050_nav_rebuild_paths.js:298",
+   "decl": "050_nav_rebuild_paths.js:303",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -5137,7 +5137,7 @@
    "snap": true
   },
   "NAV_DROP_STEP": {
-   "decl": "050_nav_rebuild_paths.js:576",
+   "decl": "050_nav_rebuild_paths.js:581",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -5157,7 +5157,7 @@
    "snap": true
   },
   "NAV_GAPS": {
-   "decl": "050_nav_rebuild_paths.js:322",
+   "decl": "050_nav_rebuild_paths.js:327",
    "init": "ArrayExpression",
    "w": {
     "navGapsAdd · 050": 1
@@ -5171,7 +5171,7 @@
    "snap": true
   },
   "NAV_GAP_AT": {
-   "decl": "050_nav_rebuild_paths.js:322",
+   "decl": "050_nav_rebuild_paths.js:327",
    "init": "ObjectExpression",
    "w": {
     "navGapsAdd · 050": 1
@@ -5250,7 +5250,7 @@
    "snap": true
   },
   "NAV_JUMP_COST": {
-   "decl": "050_nav_rebuild_paths.js:298",
+   "decl": "050_nav_rebuild_paths.js:303",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -5271,7 +5271,7 @@
    "snap": true
   },
   "NAV_LAD": {
-   "decl": "050_nav_rebuild_paths.js:307",
+   "decl": "050_nav_rebuild_paths.js:312",
    "init": "ObjectExpression",
    "w": {
     "navCutTall · 050": 1
@@ -6895,7 +6895,7 @@
    "snap": true
   },
   "ROUTE_ENEMY_SIDE": {
-   "decl": "050_nav_rebuild_paths.js:281",
+   "decl": "050_nav_rebuild_paths.js:286",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -6905,7 +6905,7 @@
    "snap": true
   },
   "ROUTE_PORTAL": {
-   "decl": "050_nav_rebuild_paths.js:379",
+   "decl": "050_nav_rebuild_paths.js:384",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -6915,7 +6915,7 @@
    "snap": true
   },
   "ROUTE_SIDE_LINE": {
-   "decl": "050_nav_rebuild_paths.js:281",
+   "decl": "050_nav_rebuild_paths.js:286",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -9040,7 +9040,7 @@
    "snap": true
   },
   "WPM": {
-   "decl": "050_nav_rebuild_paths.js:604",
+   "decl": "050_nav_rebuild_paths.js:609",
    "init": "ObjectExpression",
    "w": {},
    "m": {
@@ -9094,7 +9094,7 @@
    "snap": true
   },
   "ZDJ": {
-   "decl": "050_nav_rebuild_paths.js:387",
+   "decl": "050_nav_rebuild_paths.js:392",
    "init": "ObjectExpression",
    "w": {},
    "m": {
@@ -9518,7 +9518,7 @@
    "snap": true
   },
   "_zoneSide": {
-   "decl": "050_nav_rebuild_paths.js:281",
+   "decl": "050_nav_rebuild_paths.js:286",
    "init": "Literal",
    "w": {
     "zoneSideMap · 050": 2
@@ -10971,7 +10971,7 @@
    "snap": true
   },
   "navTallCut": {
-   "decl": "050_nav_rebuild_paths.js:307",
+   "decl": "050_nav_rebuild_paths.js:312",
    "init": "Literal",
    "w": {
     "navCutTall · 050": 3
@@ -10981,7 +10981,7 @@
    "snap": true
   },
   "navTallDone": {
-   "decl": "050_nav_rebuild_paths.js:307",
+   "decl": "050_nav_rebuild_paths.js:312",
    "init": "Literal",
    "w": {
     "navCutTall · 050": 1,
@@ -10989,7 +10989,7 @@
    },
    "m": {},
    "r": {
-    "050": 2
+    "050": 3
    },
    "snap": true
   },
