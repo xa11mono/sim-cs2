@@ -85,7 +85,9 @@ function swapSides(){
 var MATCH_DIRTY = false;
 function freshMatch(n, keepProfile){ matchBegin(n, keepProfile, true); }
 function matchBegin(n, keepProfile, pause){
-  if(MATCH_DIRTY && typeof mkMatchClean === "function") mkMatchClean();
+  // (Р3.4, 25.11) и первый матч страницы, если до него игра уже делала шаги по часам страницы (кадры до остановки инструментом, ≈1,2 с:
+  // предрасчёт подсказок броска и др.) — состояние перед матчем не должно зависеть от часов страницы и нагрузки браузера
+  if((MATCH_DIRTY || tick > 0) && typeof mkMatchClean === "function") mkMatchClean();
   MATCH_DIRTY = true;
   if(typeof WARM !== "undefined" && WARM.on){ WARM = {on:false}; }   // кнопку «пропустить разминку» прячет кадр (680, warmSkipSync)   // (v306) новый матч / перемотка — разминка кончилась
   if(pause) clockPause(true);
