@@ -93,7 +93,8 @@ function deepDiff(sa, sb, limit) {
     rep.fields = {}; names.forEach(n => { rep.fields[n] = deepDiff(pa[n], pb[n], 6); });
     if (MATH) {
       const [la, lb] = await Promise.all([A, B].map(p => p.evaluate(() => __ev('JSON.stringify(DV.log)')).then(JSON.parse)));
-      const i = la.findIndex((c, k) => JSON.stringify(c) !== JSON.stringify(lb[k]));
+      const key = c => c ? JSON.stringify(c.slice(0, 3)) : null;   // имя, аргументы, ответ (метка 'DM' — не сравнивается)
+      const i = la.findIndex((c, k) => key(c) !== key(lb[k]));
       rep.math = { calls: [la.length, lb.length], first: i < 0 ? null : { index: i, a: la[i], b: lb[i] } };
     }
     if (SORT) {
