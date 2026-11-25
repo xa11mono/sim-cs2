@@ -181,7 +181,7 @@ function applyDamage(att, b, dmg, src, o){ var _ev = simEvIn("applyDamage", argu
 function flashDirK(b, n){
   var d = n.z != null ? DM.hypot3(b.x-n.x, b.y-n.y, (n.z - visFloorAt(b.x, b.y, b.z) - VIS_EYE.stand)/(MAP.pxUnits || 2.5)) : DM.hypot(b.x-n.x, b.y-n.y);
   if(d > 1000 || !flashSeen(b, n)) return 0;
-  var a = Math.atan2(n.y-b.y, n.x-b.x);
+  var a = DM.atan2(n.y-b.y, n.x-b.x);
   var off = b.facing === undefined ? 0 : Math.abs(((a - b.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
   // (v554, владелец 11.11: «что там с углом обзора») угол — в 3D: разрыв высоко над головой / под ногами — не «прямо в лицо», хотя по радару
   // направление то же (взгляд — по горизонтали, глаза на высоте роста)

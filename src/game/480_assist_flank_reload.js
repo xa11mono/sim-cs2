@@ -16,7 +16,7 @@ function flankSpot(b, mate, ep){
   // (Г4, 04.11, разбор отметок п.26: точка «дожать» бралась на пути без высоты — видимость с верхнего этажа (Vent) считалась с пола, а
   // настоящий путь туда шёл через мид в 90 px от врага, 1313 px) путь — настоящий путь бота (его этаж, путь команды), видимость — с высотой
   // точки пути; длина до точки ≤ 1000 и мимо врага ближе 200 — те же условия, что у обхода ниже
-  var aMe = _angOff(Math.atan2(b.y-ep.y, b.x-ep.x), Math.atan2(mate.y-ep.y, mate.x-ep.x));
+  var aMe = _angOff(DM.atan2(b.y-ep.y, b.x-ep.x), DM.atan2(mate.y-ep.y, mate.x-ep.x));
   if(aMe >= 0.87 && aMe <= 2.1){
     var pp = buildWaypointPath(b.baseX, b.baseY, b.z, ep.x, ep.y, 0, b.team), prev = {x:b.x, y:b.y, z:b.z}, run = 0;
     for(var i=0;i<pp.length && run <= 1000;i++){
@@ -30,7 +30,7 @@ function flankSpot(b, mate, ep){
   var cand = pickSpots("flank"+tick+b.id, ep, 4, {rMin:150, rMax:420, minGap:40, must:[ep], cross:{from:{x:mate.x, y:mate.y}, pt:ep}});
   var sp = null;
   cand.some(function(q){
-    var a1 = Math.atan2(q.y-ep.y, q.x-ep.x), a2 = Math.atan2(mate.y-ep.y, mate.x-ep.x), da = _angOff(a1, a2);
+    var a1 = DM.atan2(q.y-ep.y, q.x-ep.x), a2 = DM.atan2(mate.y-ep.y, mate.x-ep.x), da = _angOff(a1, a2);
     if(da < 0.87 || da > 2.1) return false;
     var pts = pathPts(b.x, b.y, q.x, q.y, b.z); if(!pts.length || polyLen(pts) > 1000) return false;
     if(pts.some(function(w){ return DM.hypot(w[0]-ep.x, w[1]-ep.y) < 200; })) return false;
@@ -83,7 +83,7 @@ function flankAssist(b){
 }
 var ASSIST_EDGE = {fwd: [30, 45, 60, 75, 90, 110, 130], side: [0, 40, -40, 80, -80]};   // (v570) проектные числа: шаг вперёд ≈ полкорпуса, в стороны ≈ «личное место»
 function assistEdgeSpot(b, E){
-  var a = Math.atan2(E.y-b.y, E.x-b.x), c = Math.cos(a), s = Math.sin(a), best = null;
+  var a = DM.atan2(E.y-b.y, E.x-b.x), c = Math.cos(a), s = Math.sin(a), best = null;
   ASSIST_EDGE.fwd.some(function(f){ return ASSIST_EDGE.side.some(function(l){
     var x = b.x + c*f - s*l, y = b.y + s*f + c*l;
     if(!navAt(x, y) || insideSolidWall(x, y) || segCrossesManualWalls(b.x, b.y, x, y)) return false;
@@ -165,7 +165,7 @@ function updateReload(b){
     if(b.ammo <= 0 && !b.planting && !b.defusing){
       var exE = exposedTo(b, 900, 4*TICK_HZ, true);
       if(exE.length && !coverForReload(b, exE) && !(b._rlCoverT && tick - b._rlCoverT < 3*TICK_HZ && b.post && b.post.tag === "repos:rlcover")){
-        var ea = Math.atan2(exE[0].y-b.y, exE[0].x-b.x), sgn = hashRand(tick + b.id.charCodeAt(1)) < 0.5 ? 1 : -1;
+        var ea = DM.atan2(exE[0].y-b.y, exE[0].x-b.x), sgn = hashRand(tick + b.id.charCodeAt(1)) < 0.5 ? 1 : -1;
         var sq = walk({x: b.x + Math.cos(ea + sgn*Math.PI/2)*50, y: b.y + Math.sin(ea + sgn*Math.PI/2)*50});
         if(sq && !stepBlocked(b.x, b.y, sq.x, sq.y, b)){ taskKeep(b, 0, "assist"); setPost(b, sq, exE[0], true, "repos:rlcover"); if(b.post && b.post.tag === "repos:rlcover") taskKeep(b, tick + Math.round(w.reload*TICK_HZ), "assist"); }
       }
@@ -222,7 +222,7 @@ function ambPassing(b, o){
   if(!(b._visible && b._visible.indexOf(o) >= 0)){
     var A = b._amb, h = A && A.hd && A.hd[o.id]; return !!(h && h.d1 != null && h.d1 > h.d0 + 5);
   }
-  var a = Math.atan2(b.y-o.y, b.x-o.x);
+  var a = DM.atan2(b.y-o.y, b.x-o.x);
   var fOk = o.facing === undefined || _angOff(a, o.facing) > AMB_AWAY, hOk = !(o.curSpeed > 15*SPD_K) || o.heading === undefined || _angOff(a, o.heading) > AMB_AWAY;
   return fOk && hOk && DM.hypot(o.x-b.x, o.y-b.y) > AMB_MIN;
 }

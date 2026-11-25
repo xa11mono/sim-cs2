@@ -275,7 +275,7 @@ function holdSpot(b, T){
       // из своих не держит — штраф, а не бонус кроссфайра: сначала закрыть входы, потом кроссфайр на один
       else if(mainE && m.see && DM.hypot(m.see.pt.x-mainE.pt.x, m.see.pt.y-mainE.pt.y) < 60 && uncov.length) s -= HOLD.cross;
       else if(mainE && m.see && DM.hypot(m.see.pt.x-mainE.pt.x, m.see.pt.y-mainE.pt.y) < 60 && dm > 90){
-        var a1 = Math.atan2(c.y-mainE.pt.y, c.x-mainE.pt.x), a2 = Math.atan2(m.pt.y-mainE.pt.y, m.pt.x-mainE.pt.x);
+        var a1 = DM.atan2(c.y-mainE.pt.y, c.x-mainE.pt.x), a2 = DM.atan2(m.pt.y-mainE.pt.y, m.pt.x-mainE.pt.x);
         var da = _angOff(a1, a2); if(da > 0.87 && da < 2.1) s += HOLD.cross; else if(da > 0.5) s += HOLD.cross*0.4;
       }
     });
@@ -359,10 +359,10 @@ function ppProGroup(members, bp, site, tag){
       // (отметка владельца 18.11, м5 р1: «все пошли в рампу — одной гранатой закроешь; лучше распределять, как на B — каждый своё») кто с кем
       // стоит у про (pair, демки): множитель — во сколько раз место чаще занято при уже выбранном, чем вообще; и разведение: место с той же
       // стороны от бомбы (направление от бомбы ближе PP_SIDE), что уже занятое, — ×PP_SIDE_K
-      var bs0 = Math.atan2(s.y-Z.y, s.x-Z.x);
+      var bs0 = DM.atan2(s.y-Z.y, s.x-Z.x);
       chosen.forEach(function(c){ var j = Z.spots.indexOf(c); if(c === s || j < 0) return;
         if(c.pair && s.share > 0) sc *= Math.max(0.25, Math.min(2, ((c.pair[i] || 0) + 0.02)/s.share));
-        if(_angOff(Math.atan2(c.y-Z.y, c.x-Z.x), bs0) < PP_SIDE) sc *= PP_SIDE_K; });
+        if(_angOff(DM.atan2(c.y-Z.y, c.x-Z.x), bs0) < PP_SIDE) sc *= PP_SIDE_K; });
       if(sc > bs){ bs = sc; bb = b; bi = i; } }); });
     if(!bb || bs <= 0) break;
     bb._ppPro = {key: key, i: bi}; taken[bi] = (taken[bi] || 0) + 1; chosen.push(Z.spots[bi]);
@@ -372,7 +372,7 @@ function ppProGroup(members, bp, site, tag){
   ppCheckStep(members, bp);
   members.forEach(function(b){ var A = b._ppPro; if(!A || A.key !== key){ return; }
     var C = b._ppChk; if(C && tick - C.t0 < PP_CHK_DUR*TICK_HZ){ setPost(b, C.pt, C.look, true, tag); if(b.post){ b.post.ppAlt = 1; b.post.setupLook = 1; b.post.lookMoving = 1; } return; }
-    var s = Z.spots[A.i], a = s.look && s.look[0] ? s.look[0][0] : Math.atan2(bp.y-s.y, bp.x-s.x);
+    var s = Z.spots[A.i], a = s.look && s.look[0] ? s.look[0][0] : DM.atan2(bp.y-s.y, bp.x-s.x);
     setPost(b, {x: s.x, y: s.y, pro: 1}, {x: s.x + Math.cos(a)*PP_LOOK_D, y: s.y + Math.sin(a)*PP_LOOK_D}, true, tag);
     if(b.post) b.post.ppAlt = 1;   // место пост-планта: угол про не навязывается — взгляд по дележу команды (270, владелец 17.11: «живее»)
   });

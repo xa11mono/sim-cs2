@@ -87,7 +87,7 @@ function tryShoot(shooter, target, dist){ var _ev = simEvIn("tryShoot", argument
   // и должен сначала развернуть прицел (в реальном CS тот же эффект).
   var effReaction = shooter.reactionTicks;
   if(cs <= 1){
-    var hAim = Math.atan2(target.y-shooter.y, target.x-shooter.x);
+    var hAim = DM.atan2(target.y-shooter.y, target.x-shooter.x);
     var hD = shooter.facing === undefined ? Math.PI : Math.abs(((hAim - shooter.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
     // раздел 14: реакция. Кто уже целился в эту точку (держит угол ИЛИ заходит
     // с прицелом на типичный угол) — реагирует быстрее; кто смотрел в сторону —
@@ -160,7 +160,7 @@ function tryShoot(shooter, target, dist){ var _ev = simEvIn("tryShoot", argument
   // вблизи цель большая, можно стрелять сразу; вдали надо довести прицел
   var aimD = 0;
   if(shooter.facing !== undefined){
-    var aimA = Math.atan2(target.y-shooter.y, target.x-shooter.x);
+    var aimA = DM.atan2(target.y-shooter.y, target.x-shooter.x);
     aimD = Math.abs(((aimA - shooter.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
     if(aimD > Math.min(AIM_FIRE_CONE, Math.max(0.05, 2.5*bA))){ fireReady(shooter, target, 0); return simEvOut(_ev); }
   }
@@ -340,7 +340,7 @@ function tryShoot(shooter, target, dist){ var _ev = simEvIn("tryShoot", argument
     // промах: пуля уходит мимо на величину реальной ошибки и летит дальше
     // цели до первой стены (раньше трассер обрывался в воздухе у цели)
     var dx = target.x-shooter.x, dy = target.y-shooter.y;
-    var ang = Math.atan2(dy,dx);
+    var ang = DM.atan2(dy,dx);
     // (v289, И29, владелец 14.10: «вблизи стреляют прям вообще мимо») промах летит по настоящей ошибке выстрела (хитбоксы):
     // над головой / между зонами / в край укрытия — почти через силуэт, вбок — на сколько ушла пуля. Раньше любой промах
     // рисовался вбок не меньше ширины тела +15 % (на 30 px — от 12°), и по этой же линии считалась шальная пуля

@@ -265,7 +265,7 @@ function throwNadeTry(b, type, tx, ty, lob, why, trusted, from){
   // (прогон 126, Mirage м53: молотов «T Ramp» с ошибкой подбора 378 ед. — в пределах прежних 400 — ударил в стену в 25 px и загорелся у
   // своего, тот застрял в огне: 30 «переносов»). Радиус — NADE (px радара → ед. игры); флешке радиуса нет — как было (× 4)
   if(S.e3 > nadeAimLimit(type, trusted)){ NADE_FAIL = "не долетит: стена / потолок"; nadeNoteFail(b, type, tx, ty); return false; }
-  var a = Math.atan2(ty-b.y, tx-b.x), M = m3(), F = m3Game(M, b.x, b.y);
+  var a = DM.atan2(ty-b.y, tx-b.x), M = m3(), F = m3Game(M, b.x, b.y);
   // вылет — тот бросок, что подобрала физика (S): в полёте — состояние физики (ед. игры: p, v, t, касания — 385), x, y, z — где
   // граната сейчас (радар; z — ед. игры), tx, ty — где сработает по расчёту той же физики (другие решения смотрят туда)
   // лайнап не идеален: исполнение со своей ошибкой — ошибка прицела (поворот и наклон), куда граната с ней упадёт — решает физика.
@@ -482,7 +482,7 @@ var RUN_OWN_A = [0, 10, -10];   // ° — направления разбега 
 function nadeRunPlan(b, t){
   if(t.runOwnTried || t.here || t.runR || !m3()) return false;
   var M = m3(), k = M.unit / M.cell, sp = Math.round(SPEED * weaponSpeedMul(b) * k), bz = b.z != null ? b.z : visFloorAt(b.baseX, b.baseY),
-      lim = nadeAimLimit(t.type, false), a0 = Math.atan2(-(t.y - b.baseY), t.x - b.baseX);   // y игры вверх, y радара вниз
+      lim = nadeAimLimit(t.type, false), a0 = DM.atan2(-(t.y - b.baseY), t.x - b.baseX);   // y игры вверх, y радара вниз
   for(var i = t.runOwnI || 0; i < RUN_OWN_A.length; i++){
     if(!nadeBudgetLeft()){ t.runOwnI = i; return true; }   // (Д3) подбор этого тика исчерпан — следующий угол в следующем тике, задание ждёт
     var a = a0 + RUN_OWN_A[i]*Math.PI/180, dir = [Math.cos(a), Math.sin(a)], V = [Math.round(dir[0]*sp), Math.round(dir[1]*sp), 0];
@@ -503,7 +503,7 @@ function nadeRunPlan(b, t){
 var RUN_STRAIGHT = 1.2;   // проектное число
 function runupStart(t, R){
   var sp = R.speed / (m3() ? m3().unit / m3().cell : 1), d0 = sp*sp/(2*ACCEL) + RUN_MARGIN;   // px
-  var a0 = Math.atan2(-R.dir[1], R.dir[0]);   // y игры вверх, y радара вниз
+  var a0 = DM.atan2(-R.dir[1], R.dir[0]);   // y игры вверх, y радара вниз
   var Ds = [2, 3, 4, 1], As = [0, 10, -10, 20, -20];
   for(var i = 0; i < Ds.length; i++) for(var j = 0; j < As.length; j++){
     var a = a0 + As[j]*Math.PI/180, d = d0*Ds[i], p = {x: t.from.x - Math.cos(a)*d, y: t.from.y - Math.sin(a)*d};

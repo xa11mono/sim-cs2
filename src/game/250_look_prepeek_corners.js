@@ -24,14 +24,14 @@ function smokeEdge(o, p){
 // колонна к T Ramp — у каждого свой «на линии», взгляд уводился в сторону в ~половине тиков). «Бежит» — как в lookArbiter (> 60·SPD_K),
 // «туда же» — ходы в пределах 60° (cos > 0,5 — проектное число)
 function lookOnMate(b, p){
-  var dp = DM.hypot(p.x-b.x, p.y-b.y), ap = Math.atan2(p.y-b.y, p.x-b.x);
+  var dp = DM.hypot(p.x-b.x, p.y-b.y), ap = DM.atan2(p.y-b.y, p.x-b.x);
   var run = b.curSpeed > 60*SPD_K && b.heading !== undefined, zf;
   return bots.some(function(o){ if(o === b || !o.alive || o.team !== b.team) return false;
     // (отметка владельца 18.11, м1 р2: «игрок 5 не учитывает андер») свой у точки — только на её этаже; на линии — на её или моём (mateOnLevel, 270) (mateOnLevel, 270)
     if(zf === undefined) zf = lookPtFloor(b, p); var atP = mateOnLevel(o, zf), onL = atP || mateOnLevel(o, b.z);
     if(run && o.curSpeed > 60*SPD_K && o.heading !== undefined && Math.cos(o.heading - b.heading) > 0.5) return false;
     var dm = DM.hypot(o.x-b.x, o.y-b.y); if(dm < 20) return false;
-    var off = Math.abs(((Math.atan2(o.y-b.y, o.x-b.x)-ap+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
+    var off = Math.abs(((DM.atan2(o.y-b.y, o.x-b.x)-ap+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
     // свой ближе точки на той же линии (смотрит ему в спину) или стоит у самой
     // точки и смотрит туда же (держит этот угол сам)
     return (onL && off < 0.2 && dm < dp + 40 && dm > 60) || (atP && DM.hypot(o.x-p.x, o.y-p.y) < 90 && dm < dp + 150); });
@@ -45,13 +45,13 @@ function lookOnMate(b, p){
 // же зоне, isRearZone её не отсекает, а «не за спину» было только на ходу) стоя на посту — то же правило от угла поста: ничего дальше 1,5 рад
 function openDirLook(b){
   var moving = b.curSpeed > 60*SPD_K && b.heading !== undefined;
-  var postA = b.post && b.post.look ? Math.atan2(b.post.look.y-b.y, b.post.look.x-b.x) : null;
+  var postA = b.post && b.post.look ? DM.atan2(b.post.look.y-b.y, b.post.look.x-b.x) : null;
   var refA = moving ? lookHeading(b) : postA;   // (18.11) отходит от врагов — «впереди» — к ним (270)
   // (v448, док владельца 28.10 №4: «перебивает взгляд у игрока 1» — м1 т1768: на развороте взял «открытое» на T Spawn в 1,27 рад от бега,
   // через 0,1 с бег выпрямился, а взгляд остался за спиной сбоку) на бегу «впереди» — в 0,9 рад от направления бега (как у взгляда про
   // на ходу, 270), стоя — в 1,5 рад от угла поста, как было
   var aheadMax = moving ? 0.9 : 1.5;
-  var ahead = function(q){ return refA === null || _angOff(Math.atan2(q.y-b.y, q.x-b.x), refA) <= aheadMax; };
+  var ahead = function(q){ return refA === null || _angOff(DM.atan2(q.y-b.y, q.x-b.x), refA) <= aheadMax; };
   if(b._odl && tick - b._odl.t < 90 && b._odl.post === (b.post && b.post.id) && (!b._odl.p || ahead(b._odl.p))) return b._odl.p;
   var zi = bzOf(b.x, b.y), cands = [], seen = {};
   var addZ = function(j){ if(j < 0 || seen[j]) return; seen[j] = 1;
@@ -59,7 +59,7 @@ function openDirLook(b){
     (ZONE_SAMPLES[BZ.ids[j]] || (BZ.cent[j] ? [BZ.cent[j]] : [])).forEach(function(q){ var d = DM.hypot(q.x-b.x, q.y-b.y);
       if(d < 120 || d > 900 || !ahead(q) || !hasLOS(b.x, b.y, q.x, q.y, b.z) || lookOnMate(b, q)) return;
       var sc = beliefZoneKnownB(b, j) + (reachPossible(b.team, j) ? 0.35 : 0) + d/3000;
-      if(postA !== null){ var off = Math.abs(((Math.atan2(q.y-b.y, q.x-b.x)-postA+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI); sc += 0.15*Math.cos(off); }
+      if(postA !== null){ var off = Math.abs(((DM.atan2(q.y-b.y, q.x-b.x)-postA+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI); sc += 0.15*Math.cos(off); }
       cands.push({p:q, sc:sc}); }); };
   if(zi >= 0){ addZ(zi); (BZ.nbr[zi]||[]).forEach(function(j){ addZ(j); (BZ.nbr[j]||[]).forEach(addZ); }); }
   cands.sort(function(a, c){ return c.sc - a.sc; });
@@ -74,7 +74,7 @@ function openDirLook(b){
 function holdRelevant(b, pt){
   if(!(b.atPost && b.post && b.post.hold && b.post.look)) return true;
   if(DM.hypot(pt.x-b.x, pt.y-b.y) <= 550) return true;
-  var wantA = Math.atan2(b.post.look.y-b.y, b.post.look.x-b.x), srcA = Math.atan2(pt.y-b.y, pt.x-b.x);
+  var wantA = DM.atan2(b.post.look.y-b.y, b.post.look.x-b.x), srcA = DM.atan2(pt.y-b.y, pt.x-b.x);
   return Math.abs(((srcA-wantA+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI) <= 1.15;
 }
 // ================= ПИКИ ДО КОНТАКТА (v135) =================
@@ -157,7 +157,7 @@ function prePeekDecide(b, C, zB){
     var bj = beliefZoneKnownB(b, j); if(bj < 0.04) return;
     var smp = ZONE_SAMPLES[BZ.ids[j]] || (BZ.cent[j] ? [BZ.cent[j]] : []), bestQ = null, bdq = Infinity;
     smp.forEach(function(q){ var dq = DM.hypot(q.x-C.beyond.x, q.y-C.beyond.y); if(dq > 60 && dq < 900 && dq < bdq && hasLOS(C.beyond.x, C.beyond.y, q.x, q.y)){ bdq = dq; bestQ = q; } });
-    if(bestQ) dirs.push({pt:bestQ, a:Math.atan2(bestQ.y-C.beyond.y, bestQ.x-C.beyond.x), w:bj, d:bdq}); };
+    if(bestQ) dirs.push({pt:bestQ, a:DM.atan2(bestQ.y-C.beyond.y, bestQ.x-C.beyond.x), w:bj, d:bdq}); };
   addD(zB); (BZ.nbr[zB]||[]).forEach(function(j){ addD(j); (BZ.nbr[j]||[]).forEach(addD); });
   dirs.sort(function(a, c){ return a.d - c.d; });
   var second = dirs.slice(1).filter(function(x){ return Math.abs(((x.a-dirs[0].a+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI) > 0.9; })[0];
@@ -267,11 +267,11 @@ var CORNER_FIGHT_OFF = 0.35;   // рад (≈ 20°) — проектное чи�
 function cornerLook(b, p, from){
   var r = cornerLook0(b, p, from);
   if(!r || !p || !b) return r;
-  var aDir = Math.atan2(p.y-b.y, p.x-b.x);
+  var aDir = DM.atan2(p.y-b.y, p.x-b.x);
   // (v568, отметка владельца м3 р1 47 с, CT1: «постреляли, ушёл в укрытие и смотрит вообще не туда, откуда стреляли») в перестрелке (идёт цикл
   // боя _fc) враг выйдет на ту же линию, через которую стреляли, а не из прохода по пути пешком: угол по пути дальше CORNER_FIGHT_OFF от
   // направления на врага — смотреть на врага (держать свою линию). Вне боя — как было (1,3 рад)
-  if(DM.hypot(r.x-b.x, r.y-b.y) > 1 && _angOff(Math.atan2(r.y-b.y, r.x-b.x), aDir) > (b._fc ? CORNER_FIGHT_OFF : 1.3)){
+  if(DM.hypot(r.x-b.x, r.y-b.y) > 1 && _angOff(DM.atan2(r.y-b.y, r.x-b.x), aDir) > (b._fc ? CORNER_FIGHT_OFF : 1.3)){
     var dl = Math.min(220, DM.hypot(p.x-b.x, p.y-b.y)); return {x: b.x + Math.cos(aDir)*dl, y: b.y + Math.sin(aDir)*dl}; }
   return r;
 }
@@ -319,7 +319,7 @@ function openLook(b, look){
   var k = Math.round(look.x/24)+","+Math.round(look.y/24)+"|"+Math.round(b.x/12)+","+Math.round(b.y/12);
   if(b._olK === k) return b._olV;
   b._olK = k; b._olV = look;
-  var a = Math.atan2(look.y-b.y, look.x-b.x), dl = DM.hypot(look.x-b.x, look.y-b.y);
+  var a = DM.atan2(look.y-b.y, look.x-b.x), dl = DM.hypot(look.x-b.x, look.y-b.y);
   if(dl < 60) return look;
   var free = function(an, r){ var c = rayClipWalls(b.x, b.y, b.x+Math.cos(an)*r, b.y+Math.sin(an)*r); return DM.hypot(c.x-b.x, c.y-b.y); };
   if(free(a, 120) >= 45) return look;

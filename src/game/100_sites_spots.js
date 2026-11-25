@@ -193,7 +193,7 @@ function spotExposure(team, x, y){
       for(var k=0;k<smp.length && k<5;k++){
         var q = smp[k], d = DM.hypot(q.x-x, q.y-y); if(d < 60 || d > 1000) continue;
         if(!hasLOS(x, y, q.x, q.y)) continue;
-        var bi = Math.round(Math.atan2(q.y-y, q.x-x)/0.55); if(bi === -6) bi = 6;
+        var bi = Math.round(DM.atan2(q.y-y, q.x-x)/0.55); if(bi === -6) bi = 6;
         if(!bins[bi]){ bins[bi] = 1; n++; }
         break;
       }
@@ -235,7 +235,7 @@ function pickSpots(key, center, count, o){
     if(o.cross){
       var X = o.cross, pt = X.pt;
       if(hasLOS(c.x, c.y, pt.x, pt.y) && DM.hypot(c.x-X.from.x, c.y-X.from.y) > 90){
-        var a1 = Math.atan2(c.y-pt.y, c.x-pt.x), a2 = Math.atan2(X.from.y-pt.y, X.from.x-pt.x);
+        var a1 = DM.atan2(c.y-pt.y, c.x-pt.x), a2 = DM.atan2(X.from.y-pt.y, X.from.x-pt.x);
         var da = Math.abs(((a1-a2+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
         if(da > 0.87 && da < 2.1) sc += 1.5; else if(da > 0.5) sc += 0.6;
       }

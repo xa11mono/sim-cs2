@@ -128,8 +128,8 @@ function airKey(b){ var J = b._jc; if(!J || !J.keys) return 0; var a = tick - J.
 function pathTurnAhead(b, dist){   // насколько повернёт путь через dist px (°, со знаком): направление сейчас → направление участка пути там
   var x = b.baseX, y = b.baseY, a0 = null, a1 = null;
   for(var i = b.pathIdx; i < b.path.length; i++){ var w = b.path[i], d = DM.hypot(w[0]-x, w[1]-y); if(d < 1e-6) continue;
-    var a = Math.atan2(w[1]-y, w[0]-x); if(a0 === null) a0 = a; a1 = a; if(d >= dist) break; dist -= d; x = w[0]; y = w[1]; }
-  return a0 === null ? 0 : Math.atan2(Math.sin(a1 - a0), Math.cos(a1 - a0))*180/Math.PI;   // со знаком
+    var a = DM.atan2(w[1]-y, w[0]-x); if(a0 === null) a0 = a; a1 = a; if(d >= dist) break; dist -= d; x = w[0]; y = w[1]; }
+  return a0 === null ? 0 : DM.atan2(Math.sin(a1 - a0), Math.cos(a1 - a0))*180/Math.PI;   // со знаком
 }
 // (v583a, Д3 / Д8, владелец 17.11: «бежит и смотрит то влево, то вправо», «когда цели нет — смотрит по ходу, а ход виляет») куда смотреть
 // «по ходу»: направление пути впереди, от проекции бота на текущий отрезок пути — у живого игрока мышь не связана с клавишами: качание A / D
@@ -143,7 +143,7 @@ function pathAheadDir(b, D){
   var qx = x, qy = y;
   for(var k = i; k < P.length; k++){ var w = P[k], d = DM.hypot(w[0]-x, w[1]-y); if(d < 1e-6) continue;
     if(d >= D){ x += (w[0]-x)*D/d; y += (w[1]-y)*D/d; break; } D -= d; x = w[0]; y = w[1]; }
-  return DM.hypot(x-qx, y-qy) < 1 ? null : Math.atan2(y-qy, x-qx);
+  return DM.hypot(x-qx, y-qy) < 1 ? null : DM.atan2(y-qy, x-qx);
 }
 function jumpCheckTick(b){
   if(b._landAt && tick >= b._landAt && b.alive && roundState === "live") landSound(b, false, "up");   // (v335) запрыгнул — приземлился
@@ -186,9 +186,9 @@ function jumpCheckTick(b){
       bots.forEach(function(o){ if(!o.alive || o.team === b.team) return; var d = DM.hypot(o.x-b.x, o.y-b.y); if(d > 1100) return;
         if(smokeBlocks(b.x, b.y, o.x, o.y)) return;
         var bS = visParts(b.x, b.y, false, o.x, o.y, o.crouching, true, b.z, o.z, JUMP_APEX, 0), oS = visParts(o.x, o.y, o.crouching, b.x, b.y, false, true, o.z, b.z, 0, JUMP_APEX);
-        if((bS.head || bS.body) && tick >= (b.blindUntil||0) && _angOff(Math.atan2(o.y-b.y, o.x-b.x), b.facing) < 1.05){ intelPush(b.team, {type:"spotted", x:o.x, y:o.y, id:o.id, by:b.id, conf:1});
+        if((bS.head || bS.body) && tick >= (b.blindUntil||0) && _angOff(DM.atan2(o.y-b.y, o.x-b.x), b.facing) < 1.05){ intelPush(b.team, {type:"spotted", x:o.x, y:o.y, id:o.id, by:b.id, conf:1});
           voiceLog(b.team, "jc"+o.id+Math.floor(tick/(4*TICK_HZ)), b.id, "чек прыжком: вижу "+nick(o.id)+" — "+calloutName(o.x, o.y)); }
-        if((oS.head || oS.body) && tick >= (o.blindUntil||0) && o.facing !== undefined && _angOff(Math.atan2(b.y-o.y, b.x-o.x), o.facing) < 1.05) intelPush(o.team, {type:"spotted", x:b.x, y:b.y, id:b.id, by:o.id, conf:1}); });
+        if((oS.head || oS.body) && tick >= (o.blindUntil||0) && o.facing !== undefined && _angOff(DM.atan2(b.y-o.y, b.x-o.x), o.facing) < 1.05) intelPush(o.team, {type:"spotted", x:b.x, y:b.y, id:b.id, by:o.id, conf:1}); });
     }
     if(J.run && age >= Math.round(RUN_JUMP.air*TICK_HZ)){   // (v575, В144) приземление с бега — громко, ход теряет долю (у про ×0,65)
       landSound(b, false); b._jc = null; landLook(b); return;
@@ -461,7 +461,7 @@ function stepTick(){
         // smooth turning: ease the actual movement heading toward the
         // direction to target, capped at TURN_RATE — this is what replaces
         // the old instant-snap "walk in dead-straight lines" motion
-        var desiredHeading = dist > 0.01 ? Math.atan2(dy,dx) : (bot.heading!==undefined ? bot.heading : 0);
+        var desiredHeading = dist > 0.01 ? DM.atan2(dy,dx) : (bot.heading!==undefined ? bot.heading : 0);
         if(bot.heading === undefined) bot.heading = desiredHeading;
         var da = desiredHeading - bot.heading;
         da = ((da + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI; // shortest signed angle
@@ -584,7 +584,7 @@ function stepTick(){
           // на звук/врага, взгляд мгновенно щёлкал бы обратно по ходу движения
           // (v575, В140) поправка — порцией: ход ушёл от взгляда больше чем на 3° — доворот до конца (≤ 0,6°); мелкие сдвиги хода (шаги по навмешу)
           // прицел не тянут. Было: доворот каждый тик — на бегу прицел неподвижен 36 % (у про 52 %)
-          var mvA = pathAheadDir(bot, MOVE_LOOK_AHEAD); if(mvA === null) mvA = Math.atan2(bot.baseY-startY, bot.baseX-startX);   // (v583a, Д8) по пути, не за качанием
+          var mvA = pathAheadDir(bot, MOVE_LOOK_AHEAD); if(mvA === null) mvA = DM.atan2(bot.baseY-startY, bot.baseX-startX);   // (v583a, Д8) по пути, не за качанием
           var mvD = ((mvA - bot.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI;
           if(Math.abs(mvD) >= 0.05) bot._aimFix = true; else if(Math.abs(mvD) <= 0.01) bot._aimFix = false;
           if(bot._aimFix){ var mvStep = TURN_RATE * dtSec; lookTurnBy(bot, Math.max(-mvStep, Math.min(mvStep, mvD)), "move"); }   // (В147) не рукой: у про на бегу взгляд идёт по ходу ровно (мерка формы run_lookoff; рукой — разница 10 → 65 %)
@@ -662,7 +662,7 @@ function stepTick(){
     var offX = 0, offY = 0;
     if(bot.roamChecking && bot.state === "patrol" && bot.roamLookPt){
       // на чеке роумер не стоит столбом, а джиглит угол — короткие выглядывания
-      var rla = Math.atan2(bot.roamLookPt.y-bot.baseY, bot.roamLookPt.x-bot.baseX) + Math.PI/2;
+      var rla = DM.atan2(bot.roamLookPt.y-bot.baseY, bot.roamLookPt.x-bot.baseX) + Math.PI/2;
       var ramp;
       // цикл ~2,1с: выглянуть 0,35с → постоять 0,5с → назад 0,35с → пауза
       var cyc = (tick - bot.roamCheckStart) % 136, e3 = function(u){ u = Math.max(0, Math.min(1, u)); return u*u*(3-2*u); };

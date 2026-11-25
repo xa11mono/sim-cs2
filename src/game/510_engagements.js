@@ -156,9 +156,9 @@ function resolveEngagements(){
       // не видно и которое дальше от него, чем сам бот.
       var foe = b._nearestEnemyBot;
       if(foe){
-        var fa = Math.atan2(foe.y-b.baseY, foe.x-b.baseX);
+        var fa = DM.atan2(foe.y-b.baseY, foe.x-b.baseX);
         var w0 = wp.length ? wp[0] : [rt.x, rt.y];
-        var wa = Math.atan2(w0[1]-b.baseY, w0[0]-b.baseX);
+        var wa = DM.atan2(w0[1]-b.baseY, w0[0]-b.baseX);
         var dA = Math.abs(((wa - fa + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
         if(dA < 1.2){ var cov = findCover(b, foe); if(cov) wp = buildWaypointPath(b.baseX, b.baseY, b.z, cov.x, cov.y, 0); }
       }

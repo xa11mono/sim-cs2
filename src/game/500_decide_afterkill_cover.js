@@ -341,7 +341,7 @@ function shiftHold(sh, vp, exceptId, why){
 // бот сейчас, и первый шаг пути к укрытию не ведёт в его сторону
 function findCover(b, foe){
   var dFoe = DM.hypot(foe.x-b.baseX, foe.y-b.baseY);
-  var fa = Math.atan2(foe.y-b.baseY, foe.x-b.baseX);
+  var fa = DM.atan2(foe.y-b.baseY, foe.x-b.baseX);
   var C = [];
   NAVAREAS.forEach(function(z){
     if(NAV_BLOCKED[z.id] || !(zoneGraph[z.id]||[]).length) return;
@@ -349,7 +349,7 @@ function findCover(b, foe){
     var d = DM.hypot(c.x-b.baseX, c.y-b.baseY);
     if(d < 40 || d > 420) return;
     if(DM.hypot(c.x-foe.x, c.y-foe.y) <= dFoe + 20) return;
-    var ca = Math.atan2(c.y-b.baseY, c.x-b.baseX);
+    var ca = DM.atan2(c.y-b.baseY, c.x-b.baseX);
     var dA = Math.abs(((ca - fa + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
     if(dA < 1.3) return;
     C.push({x:c.x, y:c.y, z:z.z, d:d});

@@ -64,7 +64,7 @@ function rebalTarget(px, py, a){ var c = rayClipWalls(px, py, px + Math.cos(a)*5
 function rebalLookOf(o){
   var px = o.post.x, py = o.post.y, a;
   if(o.post.pro && o._proM && o._proM.k === o.post.pro.k && o.post.pro.m[o._proM.i]) a = o.post.pro.m[o._proM.i][0];
-  else if(o.post.look) a = Math.atan2(o.post.look.y-py, o.post.look.x-px);
+  else if(o.post.look) a = DM.atan2(o.post.look.y-py, o.post.look.x-px);
   else a = o.facing || 0;
   return rebalTarget(px, py, a);
 }
@@ -81,7 +81,7 @@ function rebalSpot(b, k, taken, avoidPts, opt){
       var t = rebalTarget(s[0], s[1], m[0]);
       if(DM.hypot(t.x-s[0], t.y-s[1]) < 90) return;
       if(opt && opt.see){ if(!hasLOS(s[0], s[1], opt.see.x, opt.see.y) || DM.hypot(s[0]-SITES[k].x, s[1]-SITES[k].y) > DM.hypot(opt.see.x-SITES[k].x, opt.see.y-SITES[k].y) - 60) return;
-        if(_angOff(m[0], Math.atan2(opt.see.y-s[1], opt.see.x-s[0])) > 0.7) return; }
+        if(_angOff(m[0], DM.atan2(opt.see.y-s[1], opt.see.x-s[0])) > 0.7) return; }
       else if(taken.some(function(q){ return DM.hypot(q.x-t.x, q.y-t.y) < REBAL.freeR; }) || avoidPts.some(function(q){ return DM.hypot(q.x-t.x, q.y-t.y) < REBAL.freeR; })) return;
       // угол в сторону своего спавна/тыла — не угол
       if(DM.hypot(t.x-CT_SPAWN.x, t.y-CT_SPAWN.y) < DM.hypot(s[0]-CT_SPAWN.x, s[1]-CT_SPAWN.y) - 120) return;

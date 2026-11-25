@@ -74,7 +74,7 @@ var BLIND_SPREAD = 0.35;   // (v554) проектное число: рад — �
 function blindBullet(b, pt){
   var w = b.weapon; if(!w || b.ammo <= 0) return false;
   b.ammo--; b.lastShotTick = tick; b.nextShotTick = tick + (w.fireIntervalTicks||6);
-  var a = Math.atan2(pt.y-b.y, pt.x-b.x) + (hashRand(tick*31 + b.id.charCodeAt(1))-0.5)*(pt.spread || 0.08);
+  var a = DM.atan2(pt.y-b.y, pt.x-b.x) + (hashRand(tick*31 + b.id.charCodeAt(1))-0.5)*(pt.spread || 0.08);
   var cl = bulletClip3(b, b.x + Math.cos(a)*(w.range||900), b.y + Math.sin(a)*(w.range||900), {x:pt.x, y:pt.y, z:pt.z});   // (v519) по 3D-геометрии
   smokeHoleFlight(b, pt, cl);
   var sv = bulletLineHit(b, cl.x, cl.y, null, tick*37 + b.id.charCodeAt(1)*11, b._spam && b._spam.blind ? "вслепую" : "сквозь дым");   // (Г1) пуля сквозь дым попадает в того, кто на линии
@@ -108,10 +108,10 @@ function smokeSpamTick(){
       // не стреляет, стоит — стреляет. Ради прострела не останавливается (как часто останавливаться — владелец: редко; числа нет)
       // (v555) звук дефуза / планта — стреляет и с AWP на ходу (дефуз важнее точности; в дыму всё равно не видно)
       if(b.weapon.scopeTicks && b.curSpeed > 0.34*SPEED*weaponSpeedMul(b) && !P.urgent) return;
-      var aim = Math.atan2(P.pt.y-b.y, P.pt.x-b.x), foe = null;
+      var aim = DM.atan2(P.pt.y-b.y, P.pt.x-b.x), foe = null;
       if(b.facing !== undefined && _angOff(aim, b.facing) > 0.2 && !P.blind) return;   // сначала довести прицел (слепой не видит прицела — как есть)
       if(!P.blind) bots.forEach(function(e){ if(foe || !e.alive || e.team === b.team) return; var d = DM.hypot(e.x-b.x, e.y-b.y); if(d > 900) return;
-        if(_angOff(Math.atan2(e.y-b.y, e.x-b.x), aim) > 0.12 || !hasLOS(b.x, b.y, e.x, e.y, b.z) || !smokeBlocks(b.x, b.y, e.x, e.y)) return; foe = e; });
+        if(_angOff(DM.atan2(e.y-b.y, e.x-b.x), aim) > 0.12 || !hasLOS(b.x, b.y, e.x, e.y, b.z) || !smokeBlocks(b.x, b.y, e.x, e.y)) return; foe = e; });
       // (отметка владельца 18.11, м5 р2 т6916, CT1 на Catwalk: «на радаре стреляет в пол») цель прямо под краем Catwalk — линия от глаз к
       // её груди упирается в бортик края через 32 ед. (3D-геометрия, bulletClip3), до смока пуля не долетает. Живой игрок так не простреливает:
       // упёрся — прострел снят (слепой не видит, куда стреляет, — как есть)

@@ -8,7 +8,7 @@ function inFov(b, x, y){
   if(b.facing === undefined) return true;
   var d = DM.hypot(x-b.x, y-b.y);
   if(d < FOV_NEAR) return true;
-  var a = Math.atan2(y-b.y, x-b.x);
+  var a = DM.atan2(y-b.y, x-b.x);
   var off = Math.abs(((a - b.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
   return off <= FOV_DEG*Math.PI/360;
 }

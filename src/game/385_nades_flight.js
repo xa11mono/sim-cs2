@@ -176,7 +176,7 @@
     o = o || {};
     var dx = aim[0] - from[0], dy = aim[1] - from[1];
     if (DM.hypot(dx, dy) < 1) return null;
-    var yaw0 = Math.atan2(dy, dx) / D2R, yaw = yaw0, best = null;
+    var yaw0 = DM.atan2(dy, dx) / D2R, yaw = yaw0, best = null;
     var vel = o.vel;
     function score(r) {
       // (физика гранат, 30.10) ошибка — по месту в 3D (высота — с весом o.wz, по умолчанию 1): раньше высота шла с весом 0,5 и

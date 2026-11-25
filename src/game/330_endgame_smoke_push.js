@@ -29,9 +29,9 @@ function egWaitPartner(b, mine, kp){
 function egCutPoint(b, lead, kp){
   var kz = bzOf(kp.x, kp.y); if(kz < 0) return null;
   var near = {}; near[kz] = 1; (BZ.nbr[kz] || []).forEach(function(j){ near[j] = 1; (BZ.nbr[j] || []).forEach(function(q){ near[q] = 1; }); });
-  var la = Math.atan2(lead.y-kp.y, lead.x-kp.x), lL = pathLenTo(lead, kp.x, kp.y), best = null;
+  var la = DM.atan2(lead.y-kp.y, lead.x-kp.x), lL = pathLenTo(lead, kp.x, kp.y), best = null;
   Object.keys(near).forEach(function(js){ var j = +js, c = BZ.cent[j]; if(!c || j === kz) return;
-    var a = Math.abs(Math.atan2(Math.sin(Math.atan2(c.y-kp.y, c.x-kp.x) - la), Math.cos(Math.atan2(c.y-kp.y, c.x-kp.x) - la)));
+    var a = Math.abs(DM.atan2(Math.sin(DM.atan2(c.y-kp.y, c.x-kp.x) - la), Math.cos(DM.atan2(c.y-kp.y, c.x-kp.x) - la)));
     if(a < 100*Math.PI/180) return;
     var L = pathLenTo(b, c.x, c.y); if(L > 1.6*lL + 300) return;
     if(!best || a - L/2000 > best.s) best = {s: a - L/2000, x: c.x, y: c.y}; });

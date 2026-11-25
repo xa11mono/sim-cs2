@@ -162,7 +162,7 @@ function knifeDefuseTick(b){
   if(d > KNIFE_REACH) return true;
   if(tick < (b._stabT || 0)) return true;
   b._stabT = tick + KNIFE_GAP;
-  var back = D.facing !== undefined && _angOff(Math.atan2(b.y-D.y, b.x-D.x), D.facing) > 2*Math.PI/3;
+  var back = D.facing !== undefined && _angOff(DM.atan2(b.y-D.y, b.x-D.x), D.facing) > 2*Math.PI/3;
   applyDamage(b, D, back ? KNIFE_BACK : KNIFE_STAB, "knife", {wkey:"KNIFE_T", reward:1500, note:" (нож"+(back ? ", в спину" : "")+")"});
   D.heardSound = {x:b.x, y:b.y, z:b.z, tick:tick, team:b.team, src:b.id, kind:"hit"};
   return true;

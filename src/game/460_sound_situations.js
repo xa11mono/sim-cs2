@@ -4,7 +4,7 @@
 // (±15–20°), дистанция гуляет сильнее (±30%). Раньше услышанная точка = реальная
 // + случайный сдвиг в ЛЮБУЮ сторону, одинаковый для открытого места и стен.
 function hearPos(o, sx, sy, seed, occl){
-  var d = DM.hypot(sx-o.x, sy-o.y), a = Math.atan2(sy-o.y, sx-o.x);
+  var d = DM.hypot(sx-o.x, sy-o.y), a = DM.atan2(sy-o.y, sx-o.x);
   var sa = occl ? 0.30 : 0.10, sd = occl ? 0.30 : 0.15;
   var ra = hashRand(seed) + hashRand(seed*7+3) - 1;       // треугольное −1…1: чаще около нуля
   var rd = hashRand(seed*13+5) + hashRand(seed*17+11) - 1;
@@ -133,7 +133,7 @@ function smokeFadeTick(){
       for(var eid in BL){ var lo = BL[eid]; if(tick - lo.tick > 10*TICK_HZ) continue; if(DM.hypot(lo.x-sm.x, lo.y-sm.y) < 450 && DM.hypot(lo.x-b.x, lo.y-b.y) > d){ far = lo; break; } }
       if(!far) return;
       sm._fadeReady[b.id] = 1;
-      var a = Math.atan2(sm.y-b.y, sm.x-b.x), ex = {x: sm.x + Math.cos(a)*NADE.smoke.radius, y: sm.y + Math.sin(a)*NADE.smoke.radius};
+      var a = DM.atan2(sm.y-b.y, sm.x-b.x), ex = {x: sm.x + Math.cos(a)*NADE.smoke.radius, y: sm.y + Math.sin(a)*NADE.smoke.radius};
       b.lastIntel = {x:ex.x, y:ex.y, tick:tick, src:"call"}; // прицел на выход из дыма — префайр, если выйдет
       b.heardSound = {x:ex.x, y:ex.y, tick:tick, team:b.team === "CT" ? "T" : "CT", src:"?", kind:"call"};
       if(!sm._fadeVoice){ sm._fadeVoice = 1; voiceLog(b.team, "fade"+Math.round(sm.x)+b.team, b.id, "смок спадает — готовьтесь"); }

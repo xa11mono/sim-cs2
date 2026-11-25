@@ -87,12 +87,12 @@ function proSnap(b, pt, look, tag){
   for(var pass = 0; pass < 2 && !best; pass++)
   for(var i=0;i<L.length;i++){
     var s = L[i], d = DM.hypot(s[0]-pt.x, s[1]-pt.y); if(d > PSN.R) continue;
-    if(pass === 0 && look && !hasLOS(s[0], s[1], look.x, look.y)){ var la = Math.atan2(look.y-s[1], look.x-s[0]), rc = rayClipWalls(s[0], s[1], s[0]+Math.cos(la)*PSN.open, s[1]+Math.sin(la)*PSN.open); if(rc.wall) continue; }
+    if(pass === 0 && look && !hasLOS(s[0], s[1], look.x, look.y)){ var la = DM.atan2(look.y-s[1], look.x-s[0]), rc = rayClipWalls(s[0], s[1], s[0]+Math.cos(la)*PSN.open, s[1]+Math.sin(la)*PSN.open); if(rc.wall) continue; }
     if(!hasLOS(s[0], s[1], pt.x, pt.y) || insideSolidWall(s[0], s[1])) continue;
     if(bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o.post && DM.hypot(o.post.x-s[0], o.post.y-s[1]) < PSN.occ; })) continue;
     var modes = [[s[3], s[4]]]; if(s.length > 5) modes.push([s[5], s[6]]);
     var md = 0;
-    if(look){ var wa = Math.atan2(look.y-s[1], look.x-s[0]); md = Math.min.apply(null, modes.map(function(m){ return _angOff(m[0], wa); })); if(md > PSN.maxOff) continue; }
+    if(look){ var wa = DM.atan2(look.y-s[1], look.x-s[0]); md = Math.min.apply(null, modes.map(function(m){ return _angOff(m[0], wa); })); if(md > PSN.maxOff) continue; }
     var mk = 1, qs = posAt(b.team, s[0], s[1]);   // (v246) тут в прошлом раунде не сработало — реже, как у про
     if(qs && !(bomb && bomb.state === "planted")){ var qv = posTable(b.team, nick(b.id), posWeaponClass(b))[qs.id] || 0; if(qv > 0) mk = posPref(b, qs, true)/qv; }
     var sc = Math.log(1 + s[2]*mk) - 1.5*d/PSN.R - 0.8*md;
@@ -106,7 +106,7 @@ function proSnap(b, pt, look, tag){
 function proSpotLook(b){
   var P = b.post.pro; if(!P) return null;
   if(b._lkPick && b._lkPick.fresh && b._lkPt) return null;
-  var M = P.m, ref = b._lkPt ? Math.atan2(b._lkPt.y-b.y, b._lkPt.x-b.x) : (b.post.look ? Math.atan2(b.post.look.y-b.post.y, b.post.look.x-b.post.x) : null);
+  var M = P.m, ref = b._lkPt ? DM.atan2(b._lkPt.y-b.y, b._lkPt.x-b.x) : (b.post.look ? DM.atan2(b.post.look.y-b.post.y, b.post.look.x-b.post.x) : null);
   var S = b._proM;
   if(!S || S.k !== P.k || S.r !== roundNum || tick - S.t > 3*TICK_HZ){
     var bi = 0, bsc = -1e9;
@@ -429,7 +429,7 @@ function setPostDo(b, pt, look, hold, tag, spreadIdx){
   // (v570) держит угол (ownLine) — сначала место не ближе OWN_LINE_GAP к своим, кто держит (кроссфайер, а не плечом к плечу), кольцами
   // дальше — до OWN_LINE_RINGS (за краем сайта — тоже: место рядом, откуда виден тот же угол); нет такого — как было (личное место 70)
   if(ownL && spotTaken(b, {x:x, y:y}, "line")){
-    var la1 = look ? Math.atan2(look.y-y, look.x-x) : 0, xa = x, ya = y, losA = look && hasLOS(xa, ya, look.x, look.y), got = false;
+    var la1 = look ? DM.atan2(look.y-y, look.x-x) : 0, xa = x, ya = y, losA = look && hasLOS(xa, ya, look.x, look.y), got = false;
     // (v570, прогон 221: со «своей линией» Ancient wait 33 → 42 — точки дефолта T уезжали до 310 из своих зон, группа собиралась дольше)
     // дальше первого кольца — только в той же зоне карты (место из демок про — зона), а не через полкарты
     var zA = zoneIdAt(xa, ya);
@@ -448,7 +448,7 @@ function setPostDo(b, pt, look, hold, tag, spreadIdx){
     // (v570, отметки владельца м1 р3 15,7 с и р4 57,3 с: «все по 1-3-1 стоят в одной точке», «слишком кучно стоят снова») — было: только
     // 4 точки на 80 ед.; в тесном месте все 4 заняты / за стеной — бот вставал прямо в точку своего (двое CT в (1014, 1577)). Теперь — кольца
     // дальше (до SPREAD_MAX), сначала поперёк взгляда; та же проверка: пол, без стены, не занято, виден прежний пост, обзор не отнимается
-    var la = look ? Math.atan2(look.y-y, look.x-x) : 0, x0 = x, y0 = y, losPost = look && hasLOS(x0, y0, look.x, look.y);
+    var la = look ? DM.atan2(look.y-y, look.x-x) : 0, x0 = x, y0 = y, losPost = look && hasLOS(x0, y0, look.x, look.y);
     SPREAD_RINGS.some(function(r){ return SPREAD_DIRS.some(function(da){
       var nx = x0 + Math.cos(la+da)*r, ny = y0 + Math.sin(la+da)*r;
       if(insideSolidWall(nx, ny) || segCrossesManualWalls(x0, y0, nx, ny) || !navAt(nx, ny) || spotTaken(b, {x:nx, y:ny}) || spreadBlast(x0, y0, nx, ny)) return false;

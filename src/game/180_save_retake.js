@@ -159,7 +159,7 @@ function computeApproaches(){
     var d = DM.hypot(c.x-bp.x, c.y-bp.y);
     if(d < 230 || d > 480 || insideSolidWall(c.x, c.y)) return;
     if(!hidden(c.x, c.y)) return; // укрытие: отсюда не видно ни бомбу, ни входы T (v348)
-    var ang = Math.atan2(c.y-bp.y, c.x-bp.x);
+    var ang = DM.atan2(c.y-bp.y, c.x-bp.x);
     var sec = Math.floor(((ang + Math.PI) / (Math.PI*2)) * 6) % 6; // 6 секторов по 60°
     var dCT = DM.hypot(c.x-CT_SPAWN.x, c.y-CT_SPAWN.y);
     // предпочитаем то, что ближе к стороне CT и ближе к бомбе
@@ -183,7 +183,7 @@ function computeApproaches(){
       var d = DM.hypot(zp.x-bp.x, zp.y-bp.y); if(d < 180 || d > 650) return;
       var sp = pickSpots("rt:"+n, zp, 1, {rMax:110, minGap:40, hideFrom:[bp].concat(tIn)})[0] || zp;
       if(!hidden(sp.x, sp.y)) return;
-      var ang = Math.atan2(sp.y-bp.y, sp.x-bp.x), sec = Math.floor(((ang + Math.PI) / (Math.PI*2)) * 6) % 6;
+      var ang = DM.atan2(sp.y-bp.y, sp.x-bp.x), sec = Math.floor(((ang + Math.PI) / (Math.PI*2)) * 6) % 6;
       if(named.some(function(q){ var dd = Math.abs(q.sec - sec); return Math.min(dd, 6-dd) < 2; })) return;
       named.push({x:sp.x, y:sp.y, sec:sec, name:n});
     });

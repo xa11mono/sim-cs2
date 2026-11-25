@@ -39,7 +39,7 @@ function lookTick(): void{
     // (раньше за 0,2с после броска взгляд щёлкал обратно — самый частый "рывок")
     if(look && b.throwUntil && tick < b.throwUntil && !b._sawEnemy) look = null;
     if(look){
-      var want = Math.atan2(look.y-b.y, look.x-b.x);
+      var want = DM.atan2(look.y-b.y, look.x-b.x);
       if(b.facing === undefined) b.facing = want;
       var dd = want - b.facing;
       dd = ((dd + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI;
@@ -48,10 +48,10 @@ function lookTick(): void{
       // (новое намерение, доводка). Было: каждый сдвиг тела на 2° — рывок, пауза, доводка: стоя 30 мелких поворотов в минуту против 9 у про,
       // шагом 61 против 39 (turn_rate.py); с ведением «как в бою» (запаздывание AIM_LAG) у близкой точки отставание 3–4° — рывок с перелётом
       // «та же» — направление на неё сдвинулось меньше AIM_TRACK_BAND (точка «из-за угла» сдвигается сама, пока бот идёт)
-      var W0 = b._lkW, same = !b._sawEnemy && W0 && W0.t === tick - 1 && _angOff(want, Math.atan2(W0.y - b.y, W0.x - b.x)) < AIM_TRACK_BAND;
+      var W0 = b._lkW, same = !b._sawEnemy && W0 && W0.t === tick - 1 && _angOff(want, DM.atan2(W0.y - b.y, W0.x - b.x)) < AIM_TRACK_BAND;
       b._lkW = {x: look.x, y: look.y, w: want, t: tick};
       var hBusy = b._hand && tick < b._hand.t0 + b._hand.T + b._hand.gap;
-      if(same && !hBusy){ var dr = want - W0!.w; dr = Math.atan2(Math.sin(dr), Math.cos(dr)); b.facing += dr; dd -= dr; }   // мышь едет вместе со сдвигом (тип: same истинно только при W0 (условие строкой выше))
+      if(same && !hBusy){ var dr = want - W0!.w; dr = DM.atan2(Math.sin(dr), Math.cos(dr)); b.facing += dr; dd -= dr; }   // мышь едет вместе со сдвигом (тип: same истинно только при W0 (условие строкой выше))
       if(slUrg){
         // (В147) поворот к врагу — рукой (handTurn, модель «перестрелка» из демок): рывок с колоколом скорости, промах, пауза, доводка.
         // Прицел, ушедший меньше AIM_TRACK_BAND, стоит (в бою прицел про неподвижен ~50 % времени). Было: рывок FLICK (> 45°, проектные
@@ -157,7 +157,7 @@ function freezePick(q: readonly number[], u: number): number{ var k = Math.min(3
 function freezeLookTick(): void{
   bots.forEach(function(b, i){
     if(!b.alive) return;
-    if(!isFinite(b.facing as number)) b.facing = Math.atan2(1024-b.y, 1024-b.x);   // ещё не смотрел никуда — к середине карты (тип: isFinite(undefined) = false — это и есть проверка «взгляда ещё нет»)
+    if(!isFinite(b.facing as number)) b.facing = DM.atan2(1024-b.y, 1024-b.x);   // ещё не смотрел никуда — к середине карты (тип: isFinite(undefined) = false — это и есть проверка «взгляда ещё нет»)
     // (v430, М167, владелец: «на закупке крутятся, троятся; на мини-карте нормально») взгляд на начало тика — для сглаживания
     // рисования (620_draw), как в живом раунде (строка «bot.pfacing» ниже): на закупке не запоминался, и большой радар каждый
     // тик заново проводил взгляд от угла прошлого раунда до нынешнего
