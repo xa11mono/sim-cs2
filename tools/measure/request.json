@@ -1,3 +1,6 @@
-{"par": 8, "jobs": [
-  {"label": "b2_mir_a5", "ref": "d71ba75743497183374dc3762db1de5484583fbc", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29]}
-]}
+{"par": 8,
+ "rust": [{"label": "v599a_rust"}],
+ "prof": [{"label": "v599a_prof_anc", "ref": "85da1f78cadde3900a3074298e90c178b957f7bb", "map": "ancient", "repeat": 3}, {"label": "v599a_prof_mir", "ref": "85da1f78cadde3900a3074298e90c178b957f7bb", "map": "mirage", "repeat": 3}],
+ "fp": [{"label": "v599a_r04_anc", "ref": "f0cab0bc279ce0ede90fc7aaedcff55f77eddc2c", "map": "ancient"}, {"label": "v599a_r04_mir", "ref": "f0cab0bc279ce0ede90fc7aaedcff55f77eddc2c", "map": "mirage"}],
+ "xb": [{"label": "v599a_xb_mir", "ref": "85da1f78cadde3900a3074298e90c178b957f7bb", "map": "mirage"}, {"label": "v599a_xb_anc", "ref": "85da1f78cadde3900a3074298e90c178b957f7bb", "map": "ancient"}],
+ "inv": [{"label": "v599a_inv_anc", "ref": "85da1f78cadde3900a3074298e90c178b957f7bb", "map": "ancient", "special": true}, {"label": "v599a_inv_mir", "ref": "85da1f78cadde3900a3074298e90c178b957f7bb", "map": "mirage", "special": true}]}
