@@ -1,0 +1,5 @@
+2 ctBrain+tBrain | 100_sites_spots.js:271 groupPost; 140_named_spots_ct_setup.js:8 namedSpot
+23 ctBrain | 140_named_spots_ct_setup.js:247 ctSetupRole; 140_named_spots_ct_setup.js:260 ctSetupRole; 180_save_retake.js:184 computeApproaches; 180_save_retake.js:413 retakePost; 180_save_retake.js:443 retakeClear; 320_pro_lineups_ct_early.js:172 ctEarlyPeek
+10 tBrain | 150_lurker_probes_clear.js:63 lurkerBrain; 160_igl_replan.js:151 bStageFix; 160_igl_replan.js:153 bStageFix; 160_igl_replan.js:250 ppTimeNamed; 170_tbrain.js:586 tBrain; 170_tbrain.js:644 tBrain
+4 ctBrain+корень:dvToggle+корень:frame+корень:rpJump | 190_team_intel_lkp_calls.js:300 intelDeath; 190_team_intel_lkp_calls.js:346 intelDeath; 190_team_intel_lkp_calls.js:349 intelDeath; 480_assist_flank_reload.js:324 ambushTick
+27 корень:dvToggle+корень:frame+корень:rpJump | 300_roles_fallback_rebalance.js:49 tFallbackTick; 300_roles_fallback_rebalance.js:164 infoFallbackTick; 330_endgame_smoke_push.js:18 egWaitPartner; 330_endgame_smoke_push.js:191 endgameBrain; 330_endgame_smoke_push.js:192 endgameBrain; 350_contact_reaction.js:218 contactTick
