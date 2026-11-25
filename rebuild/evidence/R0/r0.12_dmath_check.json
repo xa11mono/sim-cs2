@@ -1,0 +1,621 @@
+{
+ "env": {
+  "node": "v22.23.5",
+  "v8": "12.4.254.21-node.57",
+  "os": "linux"
+ },
+ "libm": "0.2.16",
+ "n": 200000,
+ "functions": {
+  "sin": {
+   "random": {
+    "n": 200000,
+    "mismatch": 0,
+    "examples": [],
+    "jsMathDiffersFromLibm": 1636,
+    "jsExamples": [
+     {
+      "args": [
+       5.474195044276497
+      ],
+      "math": -0.7235905931120901,
+      "libm": -0.72359059311209
+     },
+     {
+      "args": [
+       -1115776.6496762633
+      ],
+      "math": -0.7324752115766722,
+      "libm": -0.7324752115766721
+     },
+     {
+      "args": [
+       -14.7952945753932
+      ],
+      "math": -0.7911388250690297,
+      "libm": -0.7911388250690298
+     }
+    ]
+   },
+   "edge": {
+    "n": 45,
+    "mismatch": 0,
+    "examples": [],
+    "jsMathDiffersFromLibm": 0,
+    "jsExamples": []
+   },
+   "speed": {
+    "dmath_ns": 144.2,
+    "math_ns": 50.4
+   },
+   "corpus": {
+    "n": 198470,
+    "mismatch": 0,
+    "examples": [],
+    "jsMathDiffersFromLibm": 1546,
+    "jsExamples": [
+     {
+      "args": [
+       -0.8320070553103975
+      ],
+      "math": -0.7392843968854024,
+      "libm": -0.7392843968854025
+     },
+     {
+      "args": [
+       -0.8959356826904226
+      ],
+      "math": -0.7807940266766593,
+      "libm": -0.7807940266766592
+     },
+     {
+      "args": [
+       1.8957014448600156
+      ],
+      "math": 0.9476810187845455,
+      "libm": 0.9476810187845454
+     }
+    ]
+   }
+  },
+  "cos": {
+   "random": {
+    "n": 200000,
+    "mismatch": 0,
+    "examples": [],
+    "jsMathDiffersFromLibm": 1665,
+    "jsExamples": [
+     {
+      "args": [
+       -1913000.0891163945
+      ],
+      "math": -0.8772678327282318,
+      "libm": -0.8772678327282317
+     },
+     {
+      "args": [
+       -1433543.0730134249
+      ],
+      "math": -0.9775406969316529,
+      "libm": -0.977540696931653
+     },
+     {
+      "args": [
+       -1880726.8226519227
+      ],
+      "math": 0.9827905852648784,
+      "libm": 0.9827905852648785
+     }
+    ]
+   },
+   "edge": {
+    "n": 45,
+    "mismatch": 0,
+    "examples": [],
+    "jsMathDiffersFromLibm": 0,
+    "jsExamples": []
+   },
+   "speed": {
+    "dmath_ns": 146.8,
+    "math_ns": 55.2
+   },
+   "corpus": {
+    "n": 198618,
+    "mismatch": 0,
+    "examples": [],
+    "jsMathDiffersFromLibm": 1391,
+    "jsExamples": [
+     {
+      "args": [
+       -2.771261822689527
+      ],
+      "math": -0.9322076610281229,
+      "libm": -0.9322076610281228
+     },
+     {
+      "args": [
+       -0.7175242480421133
+      ],
+      "math": 0.7534358963276606,
+      "libm": 0.7534358963276607
+     },
+     {
+      "args": [
+       -0.46929964331403085
+      ],
+      "math": 0.8918852514504629,
+      "libm": 0.891885251450463
+     }
+    ]
+   }
+  },
+  "atan": {
+   "random": {
+    "n": 200000,
+    "mismatch": 0,
+    "examples": [],
+    "jsMathDiffersFromLibm": 0,
+    "jsExamples": []
+   },
+   "edge": {
+    "n": 45,
+    "mismatch": 0,
+    "examples": [],
+    "jsMathDiffersFromLibm": 0,
+    "jsExamples": []
+   },
+   "speed": {
+    "dmath_ns": 39,
+    "math_ns": 28.2
+   },
+   "corpus": {
+    "n": 11377,
+    "mismatch": 0,
+    "examples": [],
+    "jsMathDiffersFromLibm": 0,
+    "jsExamples": []
+   }
+  },
+  "acos": {
+   "random": {
+    "n": 200000,
+    "mismatch": 0,
+    "examples": [],
+    "jsMathDiffersFromLibm": 0,
+    "jsExamples": []
+   },
+   "edge": {
+    "n": 45,
+    "mismatch": 0,
+    "examples": [],
+    "jsMathDiffersFromLibm": 0,
+    "jsExamples": []
+   },
+   "speed": {
+    "dmath_ns": 29.4,
+    "math_ns": 25.4
+   },
+   "corpus": {
+    "n": 31,
+    "mismatch": 0,
+    "examples": [],
+    "jsMathDiffersFromLibm": 0,
+    "jsExamples": []
+   }
+  },
+  "exp": {
+   "random": {
+    "n": 200000,
+    "mismatch": 0,
+    "examples": [],
+    "jsMathDiffersFromLibm": 0,
+    "jsExamples": []
+   },
+   "edge": {
+    "n": 45,
+    "mismatch": 0,
+    "examples": [],
+    "jsMathDiffersFromLibm": 1,
+    "jsExamples": [
+     {
+      "args": [
+       1
+      ],
+      "math": 2.718281828459045,
+      "libm": 2.7182818284590455
+     }
+    ]
+   },
+   "speed": {
+    "dmath_ns": 52.8,
+    "math_ns": 23.1
+   },
+   "corpus": {
+    "n": 116589,
+    "mismatch": 0,
+    "examples": [],
+    "jsMathDiffersFromLibm": 0,
+    "jsExamples": []
+   }
+  },
+  "log": {
+   "random": {
+    "n": 200000,
+    "mismatch": 0,
+    "examples": [],
+    "jsMathDiffersFromLibm": 131,
+    "jsExamples": [
+     {
+      "args": [
+       2705.7771966802643
+      ],
+      "math": 7.9031444685634415,
+      "libm": 7.903144468563441
+     },
+     {
+      "args": [
+       5342.01180562477
+      ],
+      "math": 8.583357603630917,
+      "libm": 8.583357603630919
+     },
+     {
+      "args": [
+       2361.3211466009484
+      ],
+      "math": 7.766976549267436,
+      "libm": 7.766976549267435
+     }
+    ]
+   },
+   "edge": {
+    "n": 45,
+    "mismatch": 0,
+    "examples": [],
+    "jsMathDiffersFromLibm": 0,
+    "jsExamples": []
+   },
+   "speed": {
+    "dmath_ns": 54.8,
+    "math_ns": 22.3
+   },
+   "corpus": {
+    "n": 745,
+    "mismatch": 0,
+    "examples": [],
+    "jsMathDiffersFromLibm": 10,
+    "jsExamples": [
+     {
+      "args": [
+       0.15894956584088504
+      ],
+      "math": -1.8391683230484641,
+      "libm": -1.839168323048464
+     },
+     {
+      "args": [
+       0.7269495595246553
+      ],
+      "math": -0.31889818552736304,
+      "libm": -0.318898185527363
+     },
+     {
+      "args": [
+       0.7414809628389776
+      ],
+      "math": -0.29910579158541156,
+      "libm": -0.2991057915854115
+     }
+    ]
+   }
+  },
+  "sqrt": {
+   "random": {
+    "n": 200000,
+    "mismatch": 0,
+    "examples": [],
+    "jsMathDiffersFromLibm": 0,
+    "jsExamples": []
+   },
+   "edge": {
+    "n": 45,
+    "mismatch": 0,
+    "examples": [],
+    "jsMathDiffersFromLibm": 0,
+    "jsExamples": []
+   },
+   "speed": {
+    "dmath_ns": 16.5,
+    "math_ns": 14.4
+   },
+   "corpus": {
+    "n": 199054,
+    "mismatch": 0,
+    "examples": [],
+    "jsMathDiffersFromLibm": 0,
+    "jsExamples": []
+   }
+  },
+  "atan2": {
+   "random": {
+    "n": 200000,
+    "mismatch": 0,
+    "examples": [],
+    "jsMathDiffersFromLibm": 66,
+    "jsExamples": [
+     {
+      "args": [
+       -1.4135302031065505e+195,
+       -4.743403258939738e+176
+      ],
+      "math": -1.5707963267948966,
+      "libm": -1.5707963267948968
+     },
+     {
+      "args": [
+       -2.036314386496599e+261,
+       -7.579741778141916e+242
+      ],
+      "math": -1.5707963267948966,
+      "libm": -1.5707963267948968
+     },
+     {
+      "args": [
+       1.974797266472514e+100,
+       -1.089850398642537e+81
+      ],
+      "math": 1.5707963267948966,
+      "libm": 1.5707963267948968
+     }
+    ]
+   },
+   "edge": {
+    "n": 2025,
+    "mismatch": 0,
+    "examples": [],
+    "jsMathDiffersFromLibm": 3,
+    "jsExamples": [
+     {
+      "args": [
+       1e+22,
+       -745.1332191019411
+      ],
+      "math": 1.5707963267948966,
+      "libm": 1.5707963267948968
+     },
+     {
+      "args": [
+       1e+22,
+       -745.14
+      ],
+      "math": 1.5707963267948966,
+      "libm": 1.5707963267948968
+     },
+     {
+      "args": [
+       1e+22,
+       -708.4
+      ],
+      "math": 1.5707963267948966,
+      "libm": 1.5707963267948968
+     }
+    ]
+   },
+   "speed": {
+    "dmath_ns": 49.2,
+    "math_ns": 42.6
+   },
+   "corpus": {
+    "n": 199985,
+    "mismatch": 0,
+    "examples": [],
+    "jsMathDiffersFromLibm": 0,
+    "jsExamples": []
+   }
+  },
+  "pow": {
+   "random": {
+    "n": 200000,
+    "mismatch": 0,
+    "examples": [],
+    "jsMathDiffersFromLibm": 5763,
+    "jsExamples": [
+     {
+      "args": [
+       0.0728064151480794,
+       0.9536398106720299
+      ],
+      "math": 0.08220905922141414,
+      "libm": 0.08220905922141412
+     },
+     {
+      "args": [
+       0.23557284045964477,
+       0.9138691441621631
+      ],
+      "math": 0.2668115407957633,
+      "libm": 0.26681154079576336
+     },
+     {
+      "args": [
+       0.49971660096198317,
+       0.6462445312645286
+      ],
+      "math": 0.6387073129102083,
+      "libm": 0.6387073129102082
+     }
+    ]
+   },
+   "edge": {
+    "n": 2025,
+    "mismatch": 0,
+    "examples": [],
+    "jsMathDiffersFromLibm": 20,
+    "jsExamples": [
+     {
+      "args": [
+       5e-324,
+       0.7853981633974483
+      ],
+      "math": 1.1909465057657675e-254,
+      "libm": 1.1909465057657673e-254
+     },
+     {
+      "args": [
+       1,
+       null
+      ],
+      "math": null,
+      "libm": 1
+     },
+     {
+      "args": [
+       1,
+       null
+      ],
+      "math": null,
+      "libm": 1
+     }
+    ]
+   },
+   "speed": {
+    "dmath_ns": 129.4,
+    "math_ns": 71.9
+   },
+   "corpus": {
+    "n": 2083,
+    "mismatch": 0,
+    "examples": [],
+    "jsMathDiffersFromLibm": 70,
+    "jsExamples": [
+     {
+      "args": [
+       0.85,
+       1.7979093453915558
+      ],
+      "math": 0.7466234513390295,
+      "libm": 0.7466234513390294
+     },
+     {
+      "args": [
+       0.85,
+       1.7982207456492287
+      ],
+      "math": 0.7465856668496013,
+      "libm": 0.7465856668496014
+     },
+     {
+      "args": [
+       0.79,
+       1.3090660683115103
+      ],
+      "math": 0.7344920490897623,
+      "libm": 0.7344920490897624
+     }
+    ]
+   }
+  },
+  "hypot": {
+   "random": {
+    "n": 200000,
+    "mismatch": 0,
+    "examples": [],
+    "jsMathDiffersFromLibm": 37689,
+    "jsExamples": [
+     {
+      "args": [
+       1031.9433817639947,
+       -1026.0614496655762
+      ],
+      "math": 1455.2351155934675,
+      "libm": 1455.2351155934678
+     },
+     {
+      "args": [
+       -1644.7566132992506,
+       2914.6559019573033
+      ],
+      "math": 3346.7063426309396,
+      "libm": 3346.70634263094
+     },
+     {
+      "args": [
+       -530.4841585457325,
+       -727.5954983197153
+      ],
+      "math": 900.4491388429934,
+      "libm": 900.4491388429935
+     }
+    ]
+   },
+   "edge": {
+    "n": 2025,
+    "mismatch": 0,
+    "examples": [],
+    "jsMathDiffersFromLibm": 319,
+    "jsExamples": [
+     {
+      "args": [
+       1,
+       2.356194490192345
+      ],
+      "math": 2.559619595879975,
+      "libm": 2.5596195958799743
+     },
+     {
+      "args": [
+       1,
+       1600000
+      ],
+      "math": 1600000.0000003122,
+      "libm": 1600000.0000003125
+     },
+     {
+      "args": [
+       1,
+       -745.14
+      ],
+      "math": 745.1406710145408,
+      "libm": 745.1406710145407
+     }
+    ]
+   },
+   "speed": {
+    "dmath_ns": 49.2,
+    "math_ns": 34.6
+   },
+   "corpus": {
+    "n": 199832,
+    "mismatch": 0,
+    "examples": [],
+    "jsMathDiffersFromLibm": 72572,
+    "jsExamples": [
+     {
+      "args": [
+       1276.5695652173913,
+       207.23416149068328
+      ],
+      "math": 1293.2810415868883,
+      "libm": 1293.281041586888
+     },
+     {
+      "args": [
+       -15.025884930306802,
+       -4.1390031717699
+      ],
+      "math": 15.585524219439726,
+      "libm": 15.585524219439728
+     },
+     {
+      "args": [
+       -70.90341492116818,
+       -43.45199764641882
+      ],
+      "math": 83.15870577965796,
+      "libm": 83.15870577965798
+     }
+    ]
+   }
+  }
+ }
+}

@@ -1,0 +1,9 @@
+[package]
+name = "dmath_ref"
+version = "0.1.0"
+edition = "2021"
+# (Р0.12) эталон для прототипа dmath: Rust libm той же версии, что перенесена в tools/dmath/dmath.js
+[dependencies]
+libm = "=0.2.16"
+[profile.release]
+opt-level = 3
