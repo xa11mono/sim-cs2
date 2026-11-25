@@ -243,7 +243,7 @@ function nbrThreat(team, j, nn, zb){
     if(k !== nn && !reachPossible(team, k)) continue;
     var bk = beliefZoneKnown(team, k); if(bk > 0){
       var seen = k !== nn && BZ.nbr[nn].some(function(p){ return PW[p+","+nn] && W[k][p] + W[p][nn] <= dn + 1; });
-      t += bk * Math.exp(-dn / LOOK.nearPx) * (seen ? LOOK.watchedNbr : 1); } }
+      t += bk * DM.exp(-dn / LOOK.nearPx) * (seen ? LOOK.watchedNbr : 1); } }
   return t;
 }
 // (v261, В5) шум слышен, а видимого угла, откуда выйдет враг, нет (стоит в углу за ящиком) — игрок всё равно

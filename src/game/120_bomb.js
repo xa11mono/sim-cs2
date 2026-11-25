@@ -18,7 +18,7 @@ function bombPathLen(x, y){
 }
 function bombDamageAt(x, y){
   var L = bombPathLen(x, y); if(!isFinite(L)) return 0;
-  return Math.round(BOMB_DMG.max * Math.exp(-L*L/(2*BOMB_DMG.sigma*BOMB_DMG.sigma)));
+  return Math.round(BOMB_DMG.max * DM.exp(-L*L/(2*BOMB_DMG.sigma*BOMB_DMG.sigma)));
 }
 // куда бежать от бомбы: раньше все T бежали в свою точку сбора (tStage), даже
 // если стояли по другую сторону сайта — и бежали ЧЕРЕЗ бомбу. Теперь — ближайшая

@@ -186,7 +186,7 @@ function duelTTK(sh, tg, d, hp, armored, skill){
   var dmg = w.dmg * Math.pow(w.rm || 1, d*PX_UNITS/500) * (armored ? (w.armorPen || 1) : 1);
   var S = {x: sh.x, y: sh.y, px: sh.px, py: sh.py, skill: skill, weapon: w, crouching: sh.crouching};
   // попадание и в голову — та же модель, что у выстрела (tryShoot: тело BODY_HALF, голова HEAD_HALF; в голову — урон ×4, как в CS2)
-  var dd = Math.max(8, d), a = aimSigma(S, tg, d), s2 = Math.pow(shotSpread(S, 0), 2) + a*a, pIn = function(h){ var A = Math.atan(h/dd); return 1 - Math.exp(-(A*A)/(2*s2)); };
+  var dd = Math.max(8, d), a = aimSigma(S, tg, d), s2 = Math.pow(shotSpread(S, 0), 2) + a*a, pIn = function(h){ var A = Math.atan(h/dd); return 1 - DM.exp(-(A*A)/(2*s2)); };
   var pAny = Math.max(0.02, pIn(BODY_HALF)), pHead = Math.min(pAny, pIn(HEAD_HALF)), perShot = (pAny - pHead)*dmg + pHead*dmg*4;
   var shots = Math.ceil(Math.max(1, hp)/Math.max(0.5, perShot));
   return {t: shots*60/w.rpm, shots: shots};

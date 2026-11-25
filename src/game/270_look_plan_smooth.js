@@ -51,7 +51,7 @@ function lookCands0(b, W){
     // Зона, куда враг не может попасть незаметно (тупик за спиной своего), даёт 0
     var R = REACH[team];
     if(R){ var rmin = R[j]; BZ.nbr[j].forEach(function(nn){ if(nn !== zb && R[nn] < rmin) rmin = R[nn]; });
-      if(isFinite(rmin)){ var tw0 = LOOK.timingW * Math.exp(-Math.max(0, rmin - tick)/(LOOK.timingSec*TICK_HZ)); th += tw0; if(dz) dz.tim = tw0; } }
+      if(isFinite(rmin)){ var tw0 = LOOK.timingW * DM.exp(-Math.max(0, rmin - tick)/(LOOK.timingSec*TICK_HZ)); th += tw0; if(dz) dz.tim = tw0; } }
     if(dz) dz.th = th;
     if(th <= 0){ if(dz) dz.skip = "угрозы нет"; return; }
     // 2) точка взгляда: видимая точка зоны, ближайшая к проходу, откуда идёт угроза
@@ -245,7 +245,7 @@ function knownWayLook(b){
   // (Г2, 04.11, разбор отметок п.28: T1 смотрел в андер, где стоит T0) на этом пути стоит свой — враг сначала выйдет на него: путь закрыт
   // своим — то же правило, что у взгляда на звук (lookKnowPt: «путь закрывает свой» → LOOK.mateThere)
   var cov = bots.some(function(o){ return o !== b && o.alive && o.team === b.team && P.some(function(w){ return DM.hypot(w[0]-b.x, w[1]-b.y) > 60 && DM.hypot(w[0]-o.x, w[1]-o.y) <= 120; }); });
-  return {pt:far, sc:KNOWN_W*Math.exp(-best.age/KNOWN_SEC)*(cov ? LOOK.mateThere : 1), id:best.id, age:best.age, cov:cov};
+  return {pt:far, sc:KNOWN_W*DM.exp(-best.age/KNOWN_SEC)*(cov ? LOOK.mateThere : 1), id:best.id, age:best.age, cov:cov};
 }
 // раз в 8 тиков: кандидаты всем + делёж направлений внутри команды
 var LOOK_SMOKE_K = 0.6;   // (владелец 17.11: «дым тоже надо смотреть») проектное: видимый угол той же угрозы важнее, но дым не выпадает; угол в дым закрепляется за взявшим — смотрит один

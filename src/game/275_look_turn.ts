@@ -95,7 +95,7 @@ function lookTick(): void{
 // движется половину времени
 function lookTrack(b: Bot, dd: number): void{
   if(Math.abs(dd) >= AIM_TRACK_BAND) b._aimTrk = true; else if(Math.abs(dd) <= AIM_TRACK_BAND/5) b._aimTrk = false;
-  if(b._aimTrk){ var tr = Math.max(AIM_TRACK_MIN, Math.abs(dd)*(1 - Math.exp(-1/(AIM_LAG*TICK_HZ)))); b.facing! += Math.max(-tr, Math.min(tr, dd)); }   // тип: lookTrack зовётся из lookTick после записи взгляда (строка 43)
+  if(b._aimTrk){ var tr = Math.max(AIM_TRACK_MIN, Math.abs(dd)*(1 - DM.exp(-1/(AIM_LAG*TICK_HZ)))); b.facing! += Math.max(-tr, Math.min(tr, dd)); }   // тип: lookTrack зовётся из lookTick после записи взгляда (строка 43)
   b._aimFix = false;
 }
 // (В147) «рука» — как человек ведёт мышь к цели: рывок (мин. рывок: s = 10τ³ − 15τ⁴ + 6τ⁵ — колокол скорости) за T тиков на угол

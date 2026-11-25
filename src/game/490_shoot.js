@@ -24,7 +24,7 @@ function shotSpread(sh, v){ var w = sh.weapon, f = Math.min(1, v / (SPEED*weapon
 // (Б4) до какой скорости гасить, чтобы выстрел был «стоит того» (то же правило FIRE_K, что в tryShoot, без отдачи), px/с
 function fireVAcc(sh, tg, dist){
   var bA = Math.atan(BODY_HALF/Math.max(8, dist)), a = aimSigma(sh, tg, dist), vmax = SPEED*weaponSpeedMul(sh);
-  var pB = function(v){ var s2 = Math.pow(shotSpread(sh, v), 2) + a*a; return 1 - Math.exp(-(bA*bA)/(2*s2)); };
+  var pB = function(v){ var s2 = Math.pow(shotSpread(sh, v), 2) + a*a; return 1 - DM.exp(-(bA*bA)/(2*s2)); };
   var p0 = pB(0);
   for(var k = 20; k > 0; k--){ var v = vmax*k/20; if(pB(v) >= FIRE_K*p0) return v; }
   return 0;
@@ -40,7 +40,7 @@ function awpNoscope(sh, tg, dist){
   // место (держал угол), тот уже в прицеле — без прицела стреляет только застигнутый: на ходу / развернулся на врага
   if(sh._heldAim) return false;
   var bA = Math.atan(BODY_HALF/Math.max(8, dist)), a = aimSigma(sh, tg, dist), w0 = shotSpread(sh, 0), ns = DM.hypot(w0, AWP_NOSCOPE/1000);
-  var pB = function(sp){ return 1 - Math.exp(-(bA*bA)/(2*(sp*sp + a*a))); };
+  var pB = function(sp){ return 1 - DM.exp(-(bA*bA)/(2*(sp*sp + a*a))); };
   return pB(ns) >= FIRE_K * pB(w0);
 }
 // (Б4) готовность к выстрелу для движения в дуэли (fightCycleTick): через сколько тиков бот мог бы выстрелить в эту цель
@@ -224,7 +224,7 @@ function tryShoot(shooter, target, dist){ var _ev = simEvIn("tryShoot", argument
   // вероятно, как стоя (не ниже FIRE_K от этого) — вблизи цель большая, и на ходу попадает (пистолет, ПП стреляют с бега),
   // вдали — сначала остановка. Иначе ждёт, пока сбросит скорость (контрстрейф — fightStrafe)
   var w0 = DM.hypot(shotSpread(shooter, 0), nsS), sig0 = Math.sqrt(w0*w0 + rest2) * sM;
-  var pBody = function(sg){ return 1 - Math.exp(-(bA*bA)/(2*sg*sg)); };
+  var pBody = function(sg){ return 1 - DM.exp(-(bA*bA)/(2*sg*sg)); };
   if(wSpread > w0 && pBody(sigma) < FIRE_K * pBody(sig0)){ fireReady(shooter, target, 0); return simEvOut(_ev); }
   shooter._fire = null;
   shooter.burstCount = burstIdx + 1;
@@ -233,7 +233,7 @@ function tryShoot(shooter, target, dist){ var _ev = simEvIn("tryShoot", argument
   shooter.nextShotTick = tick + w.fireIntervalTicks;
   shooter.ammo--;
   shooter._heat = heat + 1; if(shooter._tap) shooter._tap.n++;
-  var pIn = function(R){ return 1 - Math.exp(-(R*R)/(2*sigma*sigma)); };
+  var pIn = function(R){ return 1 - DM.exp(-(R*R)/(2*sigma*sigma)); };
   var seedS = tick*104729 + shooter.id.charCodeAt(0)*31 + shooter.id.length*7 + target.id.charCodeAt(0)*17 + Math.floor(shooter.nextShotTick*8);
   // сильные игроки чаще целятся в голову; AWP — всегда в корпус
   var pAimHead = 0.25 + 0.45*Math.max(0, Math.min(1, (sk-0.8)/0.4));

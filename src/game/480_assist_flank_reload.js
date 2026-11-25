@@ -184,7 +184,7 @@ var SPRAY_PATTERN = [0, 0.06, 0.13, 0.22, 0.33, 0.46, 0.60, 0.74, 0.86, 0.95];
 function sprayPat(w, i){
   if(!w.recoil || i <= 0) return {x:0, y:0};
   var Y = w.recoil*0.62, X = w.recoil*0.2, d2r = Math.PI/180;
-  var y = Y*(1 - Math.exp(-i/4.2));
+  var y = Y*(1 - DM.exp(-i/4.2));
   var x = i < 7 ? 0.03*i : X*DM.sin((i-7)/2.6) * (w.key === "AK" ? 1.2 : 1);
   return {x:x*d2r, y:y*d2r};
 }

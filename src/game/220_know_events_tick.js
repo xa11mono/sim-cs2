@@ -332,9 +332,9 @@ function knowTick(){
 var KNOW_AGE = [[0, 1], [2, 0.95], [5, 0.651], [10, 0.425], [20, 0.268], [40, 0.129]];
 function knowAgeP(t){
   if(t <= 0) return 1;
-  for(var i = 1; i < KNOW_AGE.length; i++) if(t <= KNOW_AGE[i][0]){ var a = KNOW_AGE[i-1], c = KNOW_AGE[i]; return Math.exp(Math.log(a[1]) + (Math.log(c[1])-Math.log(a[1]))*(t-a[0])/(c[0]-a[0])); }
+  for(var i = 1; i < KNOW_AGE.length; i++) if(t <= KNOW_AGE[i][0]){ var a = KNOW_AGE[i-1], c = KNOW_AGE[i]; return DM.exp(Math.log(a[1]) + (Math.log(c[1])-Math.log(a[1]))*(t-a[0])/(c[0]-a[0])); }
   var L = KNOW_AGE[KNOW_AGE.length-1], P = KNOW_AGE[KNOW_AGE.length-2];   // дальше 40 с — тот же наклон
-  return Math.exp(Math.log(L[1]) + (Math.log(L[1])-Math.log(P[1]))*(t-L[0])/(L[0]-P[0]));
+  return DM.exp(Math.log(L[1]) + (Math.log(L[1])-Math.log(P[1]))*(t-L[0])/(L[0]-P[0]));
 }
 function knowAge(b){
   var K = b.know; if(!K || tick % BELIEF_STEP) return;
