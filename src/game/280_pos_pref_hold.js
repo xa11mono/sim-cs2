@@ -334,7 +334,7 @@ function ppCheckStep(members, bp){
     if(members.some(function(o){ return o.post && hasLOS(o.post.x, o.post.y, z.c.x, z.c.y) && !smokeBlocks(o.post.x, o.post.y, z.c.x, z.c.y); })) return;   // видно с места — повернётся сам (делёж)
     var best = null, bpt = null, bd = Infinity;
     members.forEach(function(o){ if(!o.atPost || !o.post || (o._ppChk && tick - o._ppChk.t0 < PP_CHK_EVERY*TICK_HZ)) return;
-      var sp = pickSpots("ppchk" + z.j + o.id + Math.round(o.post.x) + "," + Math.round(o.post.y), {x: o.post.x, y: o.post.y}, 1, {rMin: 16, rMax: PP_CHK_R, see: [z.c], minGap: 20})[0];
+      var sp = pickSpots("ppchk" + z.j + o.id + Math.round(o.post.x) + "," + Math.round(o.post.y), {x: o.post.x, y: o.post.y}, 1, {team: "T", rMin: 16, rMax: PP_CHK_R, see: [z.c], minGap: 20})[0];
       if(!sp || !hasLOS(sp.x, sp.y, z.c.x, z.c.y) || smokeBlocks(sp.x, sp.y, z.c.x, z.c.y)) return;
       var d = DM.hypot(sp.x-o.x, sp.y-o.y); if(d < bd){ bd = d; best = o; bpt = sp; } });
     if(best){ best._ppChk = {j: z.j, pt: {x: bpt.x, y: bpt.y}, look: {x: z.c.x, y: z.c.y}, t0: tick};

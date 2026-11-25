@@ -59,7 +59,7 @@ function ctBrain(){
       var bw = cts.slice().sort(function(a, c){ return DM.hypot(a.x-bomb.x, a.y-bomb.y) - DM.hypot(c.x-bomb.x, c.y-bomb.y); })[0];
       var bwNear = DM.hypot(bw.x-bomb.x, bw.y-bomb.y) < 450;
       var bwp = pickSpots("bombwatch"+Math.round(bomb.x/30)+","+Math.round(bomb.y/30)+(bwNear ? "" : "f"), bwNear ? {x:bw.x, y:bw.y} : {x:bomb.x, y:bomb.y}, 2,
-        {rMin:bwNear ? 0 : 150, rMax:bwNear ? 200 : 450, minGap:40, must:[{x:bomb.x, y:bomb.y}], hideFrom:[GEO.A.tStage, GEO.B.tStage]})[0] || {x:bw.x, y:bw.y};
+        {team: "CT", rMin:bwNear ? 0 : 150, rMax:bwNear ? 200 : 450, minGap:40, must:[{x:bomb.x, y:bomb.y}], hideFrom:[GEO.A.tStage, GEO.B.tStage]})[0] || {x:bw.x, y:bw.y};
       ct.bombWatch.id = bw.id; ct.bombWatch.pt = bwp;
     }
     if(ct.bombWatch) ct.bombDown = {x:bomb.x, y:bomb.y};
@@ -457,7 +457,7 @@ function ctBrain(){
     }
     if(spSmart && PHs && tick - PHs.tick < PLANT_TICKS + 32 && DM.hypot(b.x-PHs.x, b.y-PHs.y) < 480 && !ct.saving){
       var ppt = {x:PHs.x, y:PHs.y};
-      var sps = pickSpots("stopplant"+Math.round(ppt.x/40)+","+Math.round(ppt.y/40), ppt, 4, {rMin:60, rMax:280, minGap:50, must:[ppt]});
+      var sps = pickSpots("stopplant"+Math.round(ppt.x/40)+","+Math.round(ppt.y/40), ppt, 4, {team: "CT", rMin:60, rMax:280, minGap:50, must:[ppt]});
       var bsp = null, bsd = Infinity;
       sps.forEach(function(q){ var d = DM.hypot(q.x-b.x, q.y-b.y); if(d < bsd){ bsd = d; bsp = q; } });
       // (00_PLAN, пакет тактики, ответ владельца 6 от 04.11: «плант идёт (3,2 с): успевает убить — главное; нет — сильная позиция; не бежать
@@ -533,14 +533,14 @@ function ctBrain(){
         if(!rg.go && (atEnt >= 2 || tick - rg.since > 5*TICK_HZ || Object.keys(ct.rot).length <= 1)){ rg.go = true;
           if(atEnt >= 2) voiceLog("CT", "rgo"+call.site+roundNum, b.id, "мы вдвоём у входа — заходим вместе"); }
         if(!rg.go){
-          var hs0 = pickSpots("rg"+call.site, gc.ctEntry, 3, {rMin:40, rMax:220, minGap:55, hideFrom:[siteC, gc.tEntry], see:[gc.ctEntry]});
+          var hs0 = pickSpots("rg"+call.site, gc.ctEntry, 3, {team: "CT", rMin:40, rMax:220, minGap:55, hideFrom:[siteC, gc.tEntry], see:[gc.ctEntry]});
           setPost(b, hs0[Object.keys(ct.rot).sort().indexOf(b.id) % Math.max(1, hs0.length)] || gc.ctEntry, siteC, true, "rotateHold");
           return;
         }
       }
       if(ct.playRetake && ct.playRetake.site === call.site && DM.hypot(b.x-siteC.x, b.y-siteC.y) > 380){
         // ждём у входа CT, вне видимости с сайта: подтянуться к бомбе на ретейк
-        var hs = pickSpots("prt"+call.site, gc.ctEntry, 4, {rMin:60, rMax:260, minGap:60, hideFrom:[siteC, gc.tEntry], see:[gc.ctEntry]});
+        var hs = pickSpots("prt"+call.site, gc.ctEntry, 4, {team: "CT", rMin:60, rMax:260, minGap:60, hideFrom:[siteC, gc.tEntry], see:[gc.ctEntry]});
         var hi2 = Object.keys(ct.rot).sort().indexOf(b.id);
         setPost(b, hs[Math.max(0, hi2) % Math.max(1, hs.length)] || gc.ctEntry, gc.ctEntry, true, "rotateHold");
         return;
@@ -549,7 +549,7 @@ function ctBrain(){
       // не оставить точку вообще пустой — просто не всегда одна и та же открытая
       // точка и не всегда взгляд строго во вход по умолчанию
       var apos = anchorPosOf(call.site);
-      var rSpots = pickSpots("rotateSpots"+call.site, gc.anchor, 5, {rMax:230, minGap:60, see:[lookPt], hideFrom:[gc.tStage],
+      var rSpots = pickSpots("rotateSpots"+call.site, gc.anchor, 5, {team: "CT", rMax:230, minGap:60, see:[lookPt], hideFrom:[gc.tStage],
         cross: apos ? {from:apos, pt:gc.tEntry} : null});
       var rPick = weightedPick(rSpots.length, roundNum*271 + (role==="rotator"?11:role==="roamer"?23:37));
       if(DM.hypot(b.x-siteC.x, b.y-siteC.y) > 600) safeRotate(b, rSpots[rPick] || siteC, call.site);
@@ -561,7 +561,7 @@ function ctBrain(){
     if((role === "anchorA" || role === "anchorB") && ct.bombDown && cts.length <= 3 && !(bomb && bomb.state === "planted")){
       var kMine = role === "anchorA" ? "A" : "B", kBomb = kMine === "A" ? "B" : "A", bd = ct.bombDown;
       if(DM.hypot(bd.x-SITES[kBomb].x, bd.y-SITES[kBomb].y) + 250 < DM.hypot(bd.x-SITES[kMine].x, bd.y-SITES[kMine].y)){
-        var bdp = pickSpots("bdrot"+kBomb, GEO[kBomb].anchor, 3, {rMax:260, minGap:60, see:[{x:bd.x, y:bd.y}], hideFrom:[GEO[kBomb].tStage]})[0] || GEO[kBomb].anchor;
+        var bdp = pickSpots("bdrot"+kBomb, GEO[kBomb].anchor, 3, {team: "CT", rMax:260, minGap:60, see:[{x:bd.x, y:bd.y}], hideFrom:[GEO[kBomb].tStage]})[0] || GEO[kBomb].anchor;
         var wasBd = b.post && b.post.tag === "rotate:bomb";
         if(setPost(b, bdp, {x:bd.x, y:bd.y}, true, "rotate:bomb") && !wasBd){ voiceLog("CT", "bdrot"+b.id+roundNum, b.id, "бомба "+kBomb+", иду с "+kMine); safeRotate(b, bdp, kBomb); }
         return;
@@ -576,7 +576,7 @@ function ctBrain(){
       // раздел 11.1: точки оценены и по второму направлению обзора (мид —
       // коннектор, "двойное покрытие"), и со штрафом за места, куда T в этом
       // матче уже кидали молотов/HE по этому сайту ("занимают под раскид")
-      var opts = pickSpots("anchorOpts"+kA, GEO[kA].anchor, 5, {rMax:230, minGap:60,
+      var opts = pickSpots("anchorOpts"+kA, GEO[kA].anchor, 5, {team: "CT", rMax:230, minGap:60,
         see:[GEO[kA].tEntry], seeW:[{pt:GEO.ctMid, w:0.6}], hideFrom:[GEO[kA].tStage],
         avoidNades: enemyNadeSpots("CT", kA)});
       var pickI = weightedPick(opts.length, roundNum*131 + matchNum*977 + (kA==="A"?1:2));
@@ -599,7 +599,7 @@ function ctBrain(){
          ((cl.seen || 0) >= 2 || (cl.nades || 0) >= 2 || cl.bombSeen) &&
          !cts.some(function(o){ return o !== b && DM.hypot(o.x-SITES[kA].x, o.y-SITES[kA].y) < 450; })){
         if(!b._afPt || b._afPt.round !== roundNum || b._afPt.k !== kA){
-          var afp = pickSpots("afall"+kA, GEO[kA].ctEntry, 3, {rMin:40, rMax:260, minGap:50, hideFrom:[GEO[kA].tEntry, SITES[kA]], see:[GEO[kA].ctEntry]})[0];
+          var afp = pickSpots("afall"+kA, GEO[kA].ctEntry, 3, {team: "CT", rMin:40, rMax:260, minGap:50, hideFrom:[GEO[kA].tEntry, SITES[kA]], see:[GEO[kA].ctEntry]})[0];
           b._afPt = {round:roundNum, k:kA, pt: afp || GEO[kA].ctEntry};
           voiceLog("CT", "afall"+kA+roundNum, b.id, "их ~"+Math.round(cl.count)+" на "+kA+", я один — отхожу к CT, тяну время, ретейк с ротацией");
         }
@@ -655,7 +655,7 @@ function ctBrain(){
           if(!b._midBack || b._midBack.round !== roundNum){
             var MHb = (MAP.tactics.plays.midHold || {}).back;   // куда мидер отходит (набор карты)
             var deep = (MHb && namedSpot(MHb, GEO.ctMid, {hideFrom:[GEO.tMid], see:[GEO.ctMid], key:"midback"})) ||
-                       pickSpots("midback", GEO.ctMid, 2, {rMin:180, rMax:420, minGap:60, hideFrom:[GEO.tMid, GEO.ctMidLook]})[0];
+                       pickSpots("midback", GEO.ctMid, 2, {team: "CT", rMin:180, rMax:420, minGap:60, hideFrom:[GEO.tMid, GEO.ctMidLook]})[0];
             b._midBack = {round:roundNum, pt:deep || GEO.ctMid, until: tick + 12*TICK_HZ};
             voiceLog("CT", "midback", b.id, "на миде их "+nMid+" — отхожу глубже, не дуэлю один");
           }
@@ -664,7 +664,7 @@ function ctBrain(){
           return;
         }
       }
-      var midOpts = pickSpots("ctMidOpts", GEO.ctMid, 5, {rMax:190, minGap:55, see:[midLook], hideFrom:[GEO.tMid]});
+      var midOpts = pickSpots("ctMidOpts", GEO.ctMid, 5, {team: "CT", rMax:190, minGap:55, see:[midLook], hideFrom:[GEO.tMid]});
       var midPick = weightedPick(midOpts.length, roundNum*191 + matchNum*433);
       // вперёд — реже; чаще глубже (набор карты: tactics.plays.midHold; Ancient — Jungle/Red Room, вперёд Top Mid/Sniper Nest)
       var MH = MAP.tactics.plays.midHold || {};
@@ -681,7 +681,7 @@ function ctBrain(){
       if(!midThreat){
         var wT = b.weapon ? b.weapon.tier : 0, isAwp = b.weapon && (b.weapon.key === "AWP" || b.weapon.key === "SSG");
         if(isAwp){
-          var ac = pickSpots("midAwpLong", GEO.ctMid, 6, {rMax:340, minGap:50, see:[GEO.ctMidLook], hideFrom:[]})
+          var ac = pickSpots("midAwpLong", GEO.ctMid, 6, {team: "CT", rMax:340, minGap:50, see:[GEO.ctMidLook], hideFrom:[]})
             .filter(function(q){ return hasLOS(q.x, q.y, GEO.ctMidLook.x, GEO.ctMidLook.y); })
             .sort(function(a, c){ return DM.hypot(c.x-GEO.ctMidLook.x, c.y-GEO.ctMidLook.y) - DM.hypot(a.x-GEO.ctMidLook.x, a.y-GEO.ctMidLook.y); });
           if(ac[0]){ mp = ac[0]; if(b._mwV !== roundNum){ b._mwV = roundNum; logEvent(b.id+" (AWP): мид с дальней точки — дистанция моя"); } }

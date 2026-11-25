@@ -13,4 +13,4 @@ const callers={}; for(const [n,c] of Object.entries(calls)) for(const m of c){ (
 // корни: tBrain, ctBrain (SPOT_TEAM задан); всё, что вызывает не из них, — «другое»
 function roots(fn){ const seen=new Set(), out=new Set(), st=[fn]; while(st.length){ const f=st.pop(); if(seen.has(f)) continue; seen.add(f); if(f==='tBrain'||f==='ctBrain'){ out.add(f); continue; } const cs=callers[f]; if(!cs||!cs.size){ out.add('корень:'+f); continue; } cs.forEach(x=>st.push(x)); } return [...out].sort(); }
 const R={}; sites.forEach(s=>{ const r=roots(s.fn); const k=s.team?'team задан':r.join('+'); (R[k]=R[k]||[]).push(s.at+' '+s.fn); });
-for(const [k,v] of Object.entries(R)) console.log(v.length, k, '|', v.slice(0,6).join('; '));
+for(const [k,v] of Object.entries(R)) console.log(v.length, k, '|', v.join('; '));

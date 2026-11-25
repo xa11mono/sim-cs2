@@ -181,7 +181,7 @@ function computeApproaches(){
     POS[bomb.site].ctRetake.forEach(function(n){
       var zp = zonePoint(n, bp); if(!zp) return;
       var d = DM.hypot(zp.x-bp.x, zp.y-bp.y); if(d < 180 || d > 650) return;
-      var sp = pickSpots("rt:"+n, zp, 1, {rMax:110, minGap:40, hideFrom:[bp].concat(tIn)})[0] || zp;
+      var sp = pickSpots("rt:"+n, zp, 1, {team: "CT", rMax:110, minGap:40, hideFrom:[bp].concat(tIn)})[0] || zp;
       if(!hidden(sp.x, sp.y)) return;
       var ang = DM.atan2(sp.y-bp.y, sp.x-bp.x), sec = Math.floor(((ang + Math.PI) / (Math.PI*2)) * 6) % 6;
       if(named.some(function(q){ var dd = Math.abs(q.sec - sec); return Math.min(dd, 6-dd) < 2; })) return;
@@ -410,7 +410,7 @@ function retakePost(b, cts){
       // (v370) заходить первым некому (один или первый погиб) — сам чистит сайт, как первый, а не стоит у бомбы
       var entB = R.entryId && R.entryId !== b.id && bots.filter(function(o){ return o.id === R.entryId && o.alive; })[0];
       if(!entB) return retakeClear(b, R, cts, a, bp);
-      var dsp = pickSpots("retakeD"+bomb.site+"_"+(R.assign[b.id]||0), bp, 1, {rMin:120, rMax:320, minGap:60, must:[bp], see:[a]})[0];
+      var dsp = pickSpots("retakeD"+bomb.site+"_"+(R.assign[b.id]||0), bp, 1, {team: "CT", rMin:120, rMax:320, minGap:60, must:[bp], see:[a]})[0];
       setPost(b, dsp || a, bp, true, "retakeCover"); return;
     }
     setPost(b, bp, null, true, "defuse"); return;
@@ -440,7 +440,7 @@ function retakeKitFor(b, bp){
 function retakeClear(b, R, cts, a, bp){
   // прикрытие/фланг — места с видом на бомбу, со своей стороны захода
   var others = cts.filter(function(c){ return c.retakeRole !== "defuser" && !c.defusing && R.assign[c.id] === R.assign[b.id]; });
-  var spots = pickSpots("retake"+bomb.site+"_"+(R.assign[b.id]||0), bp, others.length, {rMin:80, rMax:300, minGap:90, must:[bp], see:[a]});
+  var spots = pickSpots("retake"+bomb.site+"_"+(R.assign[b.id]||0), bp, others.length, {team: "CT", rMin:80, rMax:300, minGap:90, must:[bp], see:[a]});
   var oi = Math.max(0, others.indexOf(b));
   setPost(b, spots[oi] || bp, bp, true, (b.id === R.entryId) ? "retakeEntry" : "retake");
 }

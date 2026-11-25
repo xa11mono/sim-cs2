@@ -244,7 +244,7 @@ function ctSetupRole(b, role, ct){
     var cS = {x: spotP[0], y: spotP[1]}, lkS = null;
     if(yawP != null){ var RS = proLookRay(cS.x, cS.y, yawP, PRO_LOOK_R); lkS = {x: cS.x + DM.cos(yawP)*RS, y: cS.y + DM.sin(yawP)*RS}; }
     else lkS = (P.lookPt && {x: P.lookPt[0], y: P.lookPt[1]}) || ref;
-    var spS = pickSpots("cts:"+S.id+":"+role+":spot", cS, 6, {rMax: CT_SPOT_R, minGap: 30, see: [lkS]});
+    var spS = pickSpots("cts:"+S.id+":"+role+":spot", cS, 6, {team: "CT", rMax: CT_SPOT_R, minGap: 30, see: [lkS]});
     var freeS = spS.filter(function(q){ return hasLOS(q.x, q.y, lkS.x, lkS.y) && !spotTaken(b, q, "post") && crossOk(q); });
     // (v583a, Д29, владелец 18.11 по видео: «открытая позиция» — CT4 на Cross, м5 р5) место про из ctspots — само по себе ответ «где стоять»: про там
     // стоят. Точка взгляда (луч угла про до стены, 2D) из 3D часто «не видна» (уступ, другой этаж) — и роль уходила на запасные места по зонам
@@ -257,7 +257,7 @@ function ctSetupRole(b, role, ct){
   for(var ti = 0; ti < tryN.length; ti++){
     var c1 = zonePoint(tryN[ti], ref); if(!c1) continue;
     var lk1 = (P.lookPt && {x: P.lookPt[0], y: P.lookPt[1]}) || (P.look && zonePoint(P.look, c1)) || ref;
-    var sp1 = pickSpots("cts:"+S.id+":"+role+":"+tryN[ti], c1, 6, {rMax:150, minGap:45, see:[lk1], hideFrom:hideMid});
+    var sp1 = pickSpots("cts:"+S.id+":"+role+":"+tryN[ti], c1, 6, {team: "CT", rMax:150, minGap:45, see:[lk1], hideFrom:hideMid});
     // (v441, док владельца 27.10, р6: мидер kyousuke с местом «B Short» встал в Stove — за дверью Apps, на стороне T) точка — в зоне своего
     // места: в 150 от точки зоны легко попасть в соседнюю, а соседняя бывает уже чужой стороной. Нет такой — как было
     var in1 = sp1.filter(function(q){ return zoneUserName(zoneIdAt(q.x, q.y)) === tryN[ti]; }); sp1 = in1.length ? in1 : sp1;

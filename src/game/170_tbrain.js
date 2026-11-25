@@ -583,7 +583,7 @@ function tBrain(){
       var CS = MAP.tactics.plays.midTake.ctSide[tt.site === "A" ? "A" : "B"];   // куда выходят на стороне CT и куда смотрят
       var st = zonePoint(CS.stage, SITES[tt.site]);
       var lk = zonePoint(CS.look, st) || SITES[tt.site];
-      if(st) setPost(b, pickSpots("midflank"+tt.site, st, 2, {rMax:150, minGap:40, see:[lk], hideFrom:[SITES[tt.site]]})[fl2idx(b)], lk, true, "stage"+tt.site+":CTside");
+      if(st) setPost(b, pickSpots("midflank"+tt.site, st, 2, {team: "T", rMax:150, minGap:40, see:[lk], hideFrom:[SITES[tt.site]]})[fl2idx(b)], lk, true, "stage"+tt.site+":CTside");
     });
   } else if(tt.phase === "execute"){
     if(lurker) lurkerBrain(lurker, tt, other);
@@ -641,7 +641,7 @@ function tBrain(){
         var PC = POS[tt.site] || {}; (PC.ctHold || []).concat(PC.ctSecond || []).forEach(function(n){ var zp = zonePoint(n, S0); if(zp) hf.push(zp); });
         // (v350) там, где стоит, его не видно — ждёт на месте; видно — в ближайшее укрытие до 80 ед. (было 150 — отходил далеко)
         var seen = hf.some(function(q){ return hasLOS(b.x, b.y, q.x, q.y, b.z); });
-        var cov = seen ? pickSpots("utilw"+Math.round(b.x/30)+","+Math.round(b.y/30)+tt.site, {x:b.x, y:b.y}, 1, {rMax:80, minGap:20, hideFrom:hf})[0] : null;
+        var cov = seen ? pickSpots("utilw"+Math.round(b.x/30)+","+Math.round(b.y/30)+tt.site, {x:b.x, y:b.y}, 1, {team: "T", rMax:80, minGap:20, hideFrom:hf})[0] : null;
         if(cov && hf.some(function(q){ return hasLOS(cov.x, cov.y, q.x, q.y); })) cov = null;
         b._utilW = {round: roundNum, t: tick, x: cov ? cov.x : b.x, y: cov ? cov.y : b.y}; }
       // (v485) предел UTIL_WAIT — и для критичного смока: без предела (v481) носитель дольше висел «ждать гранаты ↔ ставить» (прогон 133,
@@ -731,7 +731,7 @@ function tBrain(){
           if(o.post && o.post.tag === "utilHold" && DM.hypot(postSrc(o).x-eB.x, postSrc(o).y-eB.y) < 160) return;
           var hfF = [SITES[tt.site], GEO[tt.site].anchor, GEO[tt.site].ctEntry].filter(Boolean), PCf = POS[tt.site] || {};
           (PCf.ctHold || []).concat(PCf.ctSecond || []).forEach(function(n){ var zp = zonePoint(n, SITES[tt.site]); if(zp) hfF.push(zp); });
-          var hp = pickSpots("uhold"+o.id+Math.round(fp.x/30)+","+Math.round(fp.y/30), fp, 1, {rMax:90, minGap:24, hideFrom:hfF})[0];
+          var hp = pickSpots("uhold"+o.id+Math.round(fp.x/30)+","+Math.round(fp.y/30), fp, 1, {team: "T", rMax:90, minGap:24, hideFrom:hfF})[0];
           if(hp && hfF.some(function(q){ return hasLOS(hp.x, hp.y, q.x, q.y); })) hp = null;
           setPost(o, hp || fp, SITES[tt.site], true, "utilHold"); return; }   // за энтри — в укрытии от мест CT (v353)
         if(o.post && o.post.tag === "rushFollow" && DM.hypot(postSrc(o).x-fp.x, postSrc(o).y-fp.y) < 40) return;   // не дёргать путь каждый тик; (v570) сверка — с точкой задачи (src): пост, сдвинутый раздвиганием на 80, «далеко» всегда — путь ставился каждый тик
@@ -920,7 +920,7 @@ function tBrain(){
         late.forEach(function(b){ if(!b._saveSpot) b._saveSpot = pickSaveSpotT(b); setPost(b, b._saveSpot, null, true, "save"); b._stopPlantUntil = 0; });
         antiDef = [];
       } else if(dfz) antiDef = antiDef.filter(function(b){ return late.indexOf(b) < 0; });
-      var spA = pickSpots("antidef"+Math.round(bpA.x/30)+","+Math.round(bpA.y/30), bpA, 4, {rMin:50, rMax:300, minGap:45, must:[bpA]});
+      var spA = pickSpots("antidef"+Math.round(bpA.x/30)+","+Math.round(bpA.y/30), bpA, 4, {team: "T", rMin:50, rMax:300, minGap:45, must:[bpA]});
       // (п.16 владельца 29.10, м1 р4 т30561: «они оба стоят в одной позиции») каждый — ближайшая к себе из точек, которую ещё не занял свой
       var adUsed = antiDef.filter(function(o){ return o._adSpot && o._adSpot.round === roundNum; }).map(function(o){ return o._adSpot.pt; });
       antiDef.forEach(function(b){
@@ -1066,7 +1066,7 @@ function tBrain(){
       var g0 = group[0], g1 = group[1];
       if(g0.post && g1.post && DM.hypot(g0.post.x-g1.post.x, g0.post.y-g1.post.y) < 250){
         tt._ppSplitDone = tick;
-        var cand = pickSpots("ppsplit"+Math.round(bp0.x/30), bp0, 4, {rMin:150, rMax:420, minGap:60, must:[bp0]})
+        var cand = pickSpots("ppsplit"+Math.round(bp0.x/30), bp0, 4, {team: "T", rMin:150, rMax:420, minGap:60, must:[bp0]})
           .filter(function(q){ return DM.hypot(q.x-g0.post.x, q.y-g0.post.y) > 300; })[0];
         if(cand){ g1._ppSplit = {round:roundNum, pt:cand}; setPost(g1, cand, bp0, true, "postplant:split");
           voiceLog("T", "ppsplit", g1.id, "расходимся — я с другого угла на бомбу"); }

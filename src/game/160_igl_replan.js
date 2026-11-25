@@ -148,9 +148,9 @@ function bStageFix(){
     var g = GEO[k]; if(!g || g._lowSet) continue;
     var lo = zonePoint(SS[k].low, SITES[k]); if(!lo) continue;
     g._lowSet = true; g._tStageOrig = g.tStage;
-    g.tStage = pickSpots(k.toLowerCase()+"stageLow", lo, 1, {rMax:140, minGap:40, hideFrom:[SITES[k], g.anchor], see:[g.tEntry]})[0] || lo;
+    g.tStage = pickSpots(k.toLowerCase()+"stageLow", lo, 1, {team: "T", rMax:140, minGap:40, hideFrom:[SITES[k], g.anchor], see:[g.tEntry]})[0] || lo;
     var up = zonePoint(SS[k].up, SITES[k]);
-    if(up) g.tStageUp = pickSpots(k.toLowerCase()+"stageUp", up, 1, {rMax:140, minGap:40, hideFrom:[SITES[k], g.anchor]})[0] || up;
+    if(up) g.tStageUp = pickSpots(k.toLowerCase()+"stageUp", up, 1, {team: "T", rMax:140, minGap:40, hideFrom:[SITES[k], g.anchor]})[0] || up;
   }
 }
 var AHEAD_GAP = 120;   // (v450) ед. карты: «уже впереди точки подготовки» — проектное число
@@ -247,7 +247,7 @@ function ppTimeNamed(group, bp0, site, rMax){
         // (v560, В87, разбор владельца 11.11: «точки в открытых зонах под несколько выходов, а не в глубоких закрытых») соседняя точка — видит бомбу
         // и один другой вход, а от остальных входов спрятана (а не «видит ещё вход» любой ценой)
         var hideE = E.map(function(e){ return e.pt; }).filter(function(q){ return !other.length || q !== other[0]; });
-        A.alt = other.length ? (pickSpots("ppalt"+b.id+roundNum+A.i, {x:P.x, y:P.y}, 4, {rMin:40, rMax:PP_SHIFT_R, minGap:30, see:[other[0], bp0], hideFrom:hideE})
+        A.alt = other.length ? (pickSpots("ppalt"+b.id+roundNum+A.i, {x:P.x, y:P.y}, 4, {team: "T", rMin:40, rMax:PP_SHIFT_R, minGap:30, see:[other[0], bp0], hideFrom:hideE})
           .filter(function(q){ return hasLOS(q.x, q.y, bp0.x, bp0.y) && hideE.filter(function(h){ return hasLOS(q.x, q.y, h.x, h.y); }).length <= 1; })[0] || null) : null; }
     }
     return A.on && A.alt ? A.alt : P;

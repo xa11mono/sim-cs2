@@ -60,7 +60,7 @@ function lurkerBrain(b, tt, other){
     }
     // не стоит столбом весь сетап: чередует укрытие и короткий выгляд на
     // проход сайта ("есть ли кто?") — ~5с в укрытии, ~2.5с на выгляде
-    var hide = pickSpots("lurkStage"+other+LP.name, LP.stage, 1, {rMax:200, minGap:40, hideFrom:[SITES[other], go.anchor], see:[LP.entry]})[0];
+    var hide = pickSpots("lurkStage"+other+LP.name, LP.stage, 1, {team: "T", rMax:200, minGap:40, hideFrom:[SITES[other], go.anchor], see:[LP.entry]})[0];
     var peek = walk({x: LP.stage.x + (LP.entry.x-LP.stage.x)*0.6, y: LP.stage.y + (LP.entry.y-LP.stage.y)*0.6});
     if(b._lurkPh === undefined){ b._lurkPh = 0; b._lurkArr = 0; }
     var atPeek = b._lurkPh === 1;

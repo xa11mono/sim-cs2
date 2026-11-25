@@ -169,7 +169,7 @@ function ctEarlyPeek(b, ct){
   if(!E.pt && b.tRole === "mid" && !midSide && !b.post) return false;
   if(!E.pt){
     var from = b.tRole === "mid" ? (midSide ? GEO.ctMid : b.post) : g.tEntry;
-    E.pt = pickSpots("early"+k+b.tRole, from, 1, {rMax:220, minGap:40, see:[stg]})[0];
+    E.pt = pickSpots("early"+k+b.tRole, from, 1, {team: "CT", rMax:220, minGap:40, see:[stg]})[0];
     if(!E.pt){ E.st = 2; return false; }
     E.st = 1;
     voiceLog("CT", "early"+b.id, b.id, "выгляну за инфой "+calloutName(E.pt.x, E.pt.y));
@@ -269,15 +269,15 @@ function ctClutch(b, ct){
       if(sig !== C.sig){
         C.sig = sig;
         // главный вход видеть обязательно (must), остальные — по возможности закрыть
-        var sp = pickSpots("clutchdyn"+sig, g.anchor, 1, {rMax:340, minGap:60, must:[see[0]], see:see, hideFrom:hide})[0] ||
-                 pickSpots("clutchdyn2"+sig, g.anchor, 1, {rMax:340, minGap:60, see:see, hideFrom:hide})[0];
+        var sp = pickSpots("clutchdyn"+sig, g.anchor, 1, {team: "CT", rMax:340, minGap:60, must:[see[0]], see:see, hideFrom:hide})[0] ||
+                 pickSpots("clutchdyn2"+sig, g.anchor, 1, {team: "CT", rMax:340, minGap:60, see:see, hideFrom:hide})[0];
         if(sp){ C.pt = sp; C.ptSite = k; C.look = see[0];
           voiceLog("CT", "clutchpos"+sig, b.id, "встаю под "+calloutName(see[0].x, see[0].y).replace(/^на /,"")+(hide.length ? ", закрываюсь от остальных входов" : "")); }
       }
     }
   }
   if(!C.pt || C.ptSite !== k){
-    var sps = pickSpots("clutch"+k, g.anchor, 3, {rMax:260, minGap:60, see:[g.tEntry], hideFrom:[g.tStage]});
+    var sps = pickSpots("clutch"+k, g.anchor, 3, {team: "CT", rMax:260, minGap:60, see:[g.tEntry], hideFrom:[g.tStage]});
     C.pt = sps[weightedPick(sps.length, roundNum*37 + matchNum*11)] || g.anchor; C.ptSite = k;
   }
   setPost(b, C.pt, C.look || g.tEntry, true, "clutch:"+k);
@@ -307,7 +307,7 @@ function midCoverPost(b, cts){
   if(midCoverPick(cts) !== b.id) return false;
   var M2 = b._midCover;
   if(!M2 || M2.round !== roundNum){
-    var sps2 = pickSpots("midcover", GEO.ctMid, 3, {rMin:60, rMax:300, minGap:60, see:[GEO.ctMidLook], hideFrom:[GEO.tMid]});
+    var sps2 = pickSpots("midcover", GEO.ctMid, 3, {team: "CT", rMin:60, rMax:300, minGap:60, see:[GEO.ctMidLook], hideFrom:[GEO.tMid]});
     M2 = b._midCover = {round:roundNum, pt: sps2[0] || GEO.ctMid};
     voiceLog("CT", "midcover"+roundNum, b.id, "минус мид — я ближе всех, беру мид");
   }
@@ -319,7 +319,7 @@ function midCoverPost(b, cts){
   if(tick - roundStartTick < 5*TICK_HZ) return false;
   var M = b._midCover;
   if(!M || M.round !== roundNum){
-    var sps = pickSpots("midcover", GEO.ctMid, 3, {rMin:60, rMax:300, minGap:60, see:[GEO.ctMidLook], hideFrom:[GEO.tMid]});
+    var sps = pickSpots("midcover", GEO.ctMid, 3, {team: "CT", rMin:60, rMax:300, minGap:60, see:[GEO.ctMidLook], hideFrom:[GEO.tMid]});
     M = b._midCover = {round:roundNum, pt: sps[0] || GEO.ctMid};
     voiceLog("CT", "midcover", b.id, "минус мид — держу мид сам, с укрытия");
   }
@@ -390,7 +390,7 @@ function ctInfoCheck(b, ct, cts){
     // (480); тишина — сама по себе инфа (markClear уже сказал «пусто») — дальше вглубь
     if(looked && !stop && !I.waitT){ var nw = infoNext(b, I.j, cts), from = nw ? nw.c : {x:I.x, y:I.y}, TC = coverThreats(b, [from]);
       I.waitT = tick + Math.round((INFO_WAIT[0] + (INFO_WAIT[1]-INFO_WAIT[0])*hashRand(tick*17 + b.id.charCodeAt(b.id.length-1)*7))*TICK_HZ);   // (владелец 19.11: «сколько сидеть — рандомно»)
-      I.hide = coverPick(pickSpots("infow"+tick+b.id, {x:b.x, y:b.y}, COVER_CANDS, {rMin:0, rMax:120, minGap:20, hideFrom:TC.concat(TC.exp)}), coverZ(b), TC) || {x:b.x, y:b.y};
+      I.hide = coverPick(pickSpots("infow"+tick+b.id, {x:b.x, y:b.y}, COVER_CANDS, {team: "CT", rMin:0, rMax:120, minGap:20, hideFrom:TC.concat(TC.exp)}), coverZ(b), TC) || {x:b.x, y:b.y};
       I.hideLook = from; voiceLog("CT", "infow"+b.id+roundNum+I.n, b.id, calloutName(I.x, I.y).replace(/^на /, "")+" пусто — жду тут"); }
     if(I.waitT && tick < I.waitT && !stop){ setPost(b, I.hide, I.hideLook, true, "probeHide"); return b.post && b.post.tag === "probeHide"; }
     if(looked && !stop){ I.waitT = 0; var nx = infoNext(b, I.j, cts); if(nx){ infoGo(I, b, nx); voiceLog("CT", "info"+b.id+roundNum+I.n+"_"+nx.j, b.id, "пусто, иду дальше — "+calloutName(nx.c.x, nx.c.y).replace(/^на /, "")); } else stop = true; }
