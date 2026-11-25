@@ -70,7 +70,7 @@ function proRolePost(b, key, names, ref, look, tag){
   var P = b._proRole;
   if(!(P && P.round === roundNum && P.m === matchNum && P.key === key)){
     var nm = names[proPick("CT", names, roundNum*389 + matchNum*53 + key.length*7 + b.id.charCodeAt(2||1), "CT|setup")];
-    var p = namedSpot(nm, ref, {see: look ? [look] : [], key:"pr"+key+nm});
+    var p = namedSpot(nm, ref, {team: "CT", see: look ? [look] : [], key:"pr"+key+nm});
     if(!p) return false;
     // (v149) взгляд с этой точки — туда, откуда враг придёт раньше всего,
     // а не заданная заранее точка (с Back Halls "на мид" = в свой коридор)

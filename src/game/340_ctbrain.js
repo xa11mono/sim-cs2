@@ -489,7 +489,7 @@ function ctBrain(){
         var sc0 = {x:sx/sn, y:sy/sn}, kk = DM.hypot(b.x-SITES.A.x, b.y-SITES.A.y) < DM.hypot(b.x-SITES.B.x, b.y-SITES.B.y) ? "A" : "B";
         var bestR = null, bestRN = null, brd = Infinity;
         POS[kk].ctHold.forEach(function(n){
-          var q = namedSpot(n, b, {see:[sc0], key:"reang"}); if(!q) return;
+          var q = namedSpot(n, b, {team: "CT", see:[sc0], key:"reang"}); if(!q) return;
           var d = DM.hypot(q.x-b.x, q.y-b.y); if(d < 40 || d > 380 || !hasLOS(q.x, q.y, sc0.x, sc0.y)) return;
           if(d < brd){ brd = d; bestR = q; bestRN = n; }
         });
@@ -588,7 +588,7 @@ function ctBrain(){
       var off = hashRand(roundNum*577 + matchNum*31 + (kA==="A"?3:4)) < offP;
       off = false;
       if(off) ni = names.length - 1 - Math.floor(hashRand(roundNum*11 + matchNum)*Math.min(3, names.length));
-      var nsp = namedSpot(names[ni], GEO[kA].anchor, {see:ents, hideFrom:[GEO[kA].tStage], key:"hold"+kA});
+      var nsp = namedSpot(names[ni], GEO[kA].anchor, {team: "CT", see:ents, hideFrom:[GEO[kA].tStage], key:"hold"+kA});
       var holdPt = nsp || opts[pickI];
       if(nsp && b._holdLog !== roundNum){ b._holdLog = roundNum; logEvent(b.id+": держит "+kA+" с «"+names[ni]+"»"+(off ? " (офф-угол)" : "")); }
       // (плант 74%) опорник один на сайте, а туда идут 3+ (колл/гранаты выхода):
@@ -636,7 +636,7 @@ function ctBrain(){
         if(AWPS){
           var AW = AWPS[Math.floor(hashRand(roundNum*7 + matchNum)*AWPS.length)];
           var awl = zonePoint(AW.l, SITES[AW.k]);
-          var awp = namedSpot(AW.n, SITES[AW.k], {see: awl ? [awl] : [], hideFrom:[GEO[AW.k].tStage], key:"awp"+AW.k});
+          var awp = namedSpot(AW.n, SITES[AW.k], {team: "CT", see: awl ? [awl] : [], hideFrom:[GEO[AW.k].tStage], key:"awp"+AW.k});
           if(awp){
             if(b._awpLog !== roundNum){ b._awpLog = roundNum; logEvent(b.id+" (AWP): играет на "+AW.k+" с «"+AW.n+"», держит «"+AW.l+"»"); }
             setPost(b, awp, awl || GEO[AW.k].tEntry, true, "mid");
@@ -654,7 +654,7 @@ function ctBrain(){
         if(nMid >= (midCare ? 1 : 2) || (b._midBack && b._midBack.round === roundNum && tick < b._midBack.until)){
           if(!b._midBack || b._midBack.round !== roundNum){
             var MHb = (MAP.tactics.plays.midHold || {}).back;   // куда мидер отходит (набор карты)
-            var deep = (MHb && namedSpot(MHb, GEO.ctMid, {hideFrom:[GEO.tMid], see:[GEO.ctMid], key:"midback"})) ||
+            var deep = (MHb && namedSpot(MHb, GEO.ctMid, {team: "CT", hideFrom:[GEO.tMid], see:[GEO.ctMid], key:"midback"})) ||
                        pickSpots("midback", GEO.ctMid, 2, {team: "CT", rMin:180, rMax:420, minGap:60, hideFrom:[GEO.tMid, GEO.ctMidLook]})[0];
             b._midBack = {round:roundNum, pt:deep || GEO.ctMid, until: tick + 12*TICK_HZ};
             voiceLog("CT", "midback", b.id, "на миде их "+nMid+" — отхожу глубже, не дуэлю один");
@@ -673,7 +673,7 @@ function ctBrain(){
       // (10) мидер рано умирал в 2 из 3 последних раундов — в этом раунде глубже
       if(MH.care && rmemRecent(RMEM.midDeath, 3).length >= 2){ mNames = MH.care; mi = weightedPick(MH.care.length, roundNum*191 + matchNum*433 + 7);
         if(b._midCareV !== roundNum){ b._midCareV = roundNum; voiceLog("CT", "midcare"+roundNum, b.id, "меня на миде рано снимают — сегодня играю глубже"); } }
-      var mp = !midThreat ? namedSpot(mNames[mi], GEO.ctMid, {see:[GEO.ctMidLook, GEO.tMid], hideFrom:[GEO.tMid], key:"mid"}) : null;
+      var mp = !midThreat ? namedSpot(mNames[mi], GEO.ctMid, {team: "CT", see:[GEO.ctMidLook, GEO.tMid], hideFrom:[GEO.tMid], key:"mid"}) : null;
       // (мидер) разбор ранних смертей: в 6 из 14 у мидера был пистолет против AK
       // на 450–530px (заведомо проигранная дуэль), AWP умирал на 250px в упор.
       // Позиция — под оружие: пистолет/ПП — ближний угол у двери (длинные линии
@@ -699,7 +699,7 @@ function ctBrain(){
         var ks = "A";
         var ap2 = anchorPosOf(ks);
         if(!secondOnSite(b, ks, ap2))
-        groupPost([b], GEO[ks].anchor, GEO[ks].tEntry, "anchor2"+ks, {rMin:70, rMax:230, minGap:60, see:[GEO[ks].tEntry], hideFrom:[GEO[ks].tStage],
+        groupPost([b], GEO[ks].anchor, GEO[ks].tEntry, "anchor2"+ks, {team: "CT", rMin:70, rMax:230, minGap:60, see:[GEO[ks].tEntry], hideFrom:[GEO[ks].tStage],
           cross: ap2 ? {from:ap2, pt:GEO[ks].tEntry} : null});
       } else {
         // 1-1-1: ротатор бегает по первой инфе (это делает блок ротаций выше);
@@ -708,7 +708,7 @@ function ctBrain(){
         var midAlive = cts.some(function(o){ return o.tRole === "mid"; });
         if(!midAlive){
           var mn = POS.M.ctHold[weightedPick(POS.M.ctHold.length, roundNum*17 + 3)];
-          var mpp = namedSpot(mn, GEO.ctMid, {see:[GEO.ctMidLook, GEO.tMid], hideFrom:[GEO.tMid], key:"rotmid"}) || GEO.ctMid;
+          var mpp = namedSpot(mn, GEO.ctMid, {team: "CT", see:[GEO.ctMidLook, GEO.tMid], hideFrom:[GEO.tMid], key:"rotmid"}) || GEO.ctMid;
           if(b._rotMidLog !== roundNum){ b._rotMidLog = roundNum; logEvent(b.id+": мидер погиб — занимает мид («"+mn+"»)"); }
           setPost(b, mpp, GEO.ctMidLook, true, "mid");
         } else {
@@ -718,7 +718,7 @@ function ctBrain(){
           var hotR = siteHeat.A >= siteHeat.B ? "A" : "B";
           var rpn = (MAP.tactics.plays.rotatorHot || {})[hotR];
           var rEnts = [GEO[hotR].tEntry].concat(entryPts(hotR)).concat([SITES[hotR]]);
-          var rp = (namedSpot(rpn, SITES[hotR], {see:rEnts, key:"rot"+hotR})) || GEO.rotator;
+          var rp = (namedSpot(rpn, SITES[hotR], {team: "CT", see:rEnts, key:"rot"+hotR})) || GEO.rotator;
           var rl = lookFrom(rp, rEnts, SITES[hotR], b);
           setPost(b, rp, rl, true, "rotator");
         }
@@ -727,7 +727,7 @@ function ctBrain(){
     else if(role === "roamer" && ct.stack){
       // раздел 12: стак — роумер не бродит, а третьим встаёт на "горячий" сайт
       var sk = ct.stack, apS = anchorPosOf(sk);
-      groupPost([b], GEO[sk].anchor, GEO[sk].tEntry, "stack"+sk, {rMin:60, rMax:260, minGap:60, see:[GEO[sk].tEntry], hideFrom:[GEO[sk].tStage],
+      groupPost([b], GEO[sk].anchor, GEO[sk].tEntry, "stack"+sk, {team: "CT", rMin:60, rMax:260, minGap:60, see:[GEO[sk].tEntry], hideFrom:[GEO[sk].tStage],
         cross: apS ? {from:apS, pt:GEO[sk].tEntry} : null});
     }
     else if(role === "roamer" && (ct.setup ? ct.setup.rot === "212" : BAL.ctSetup === "2-1-2")){
@@ -736,7 +736,7 @@ function ctBrain(){
       // и часто уходил на тот же A, а на B оставался один опорник)
       var hot = siteHeat.A >= siteHeat.B ? "A" : "B", ko2 = hot === "A" ? "B" : "A", apR = anchorPosOf(ko2);
       if(!(proRolePost(b, "roam", PRO_ROLE.roam212, GEO.B.anchor, GEO.B.tEntry, "anchor2B")))
-      groupPost([b], GEO[ko2].anchor, GEO[ko2].tEntry, "anchor2"+ko2, {rMin:70, rMax:230, minGap:60, see:[GEO[ko2].tEntry], hideFrom:[GEO[ko2].tStage],
+      groupPost([b], GEO[ko2].anchor, GEO[ko2].tEntry, "anchor2"+ko2, {team: "CT", rMin:70, rMax:230, minGap:60, see:[GEO[ko2].tEntry], hideFrom:[GEO[ko2].tStage],
         cross: apR ? {from:apR, pt:GEO[ko2].tEntry} : null});
     }
     // роумер — свой маршрут (пост роли). (v136) Раньше снимал ЛЮБОЙ пост каждый тик — временные затеи чередовались с ним.

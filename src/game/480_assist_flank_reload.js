@@ -239,14 +239,15 @@ function ambEnd(b, why){ if(b._amb){ dlog(b, "засада", "конец — " +
 // К2: проба / заход — враг впереди известен, а я у него в тылу: не бросаю, иду за ним в спину (вызов из пробы CT, 320)
 // via — точка, через которую идти (их спавн): в спину — их же дорогой, а не кратчайшим путём через свою половину (владелец 19.11, м7 р3: «дальше
 // по рампе до спавна, оттуда в спину», а бот пошёл назад через Stairs и мид к B Apartments — это ротация, не заход)
-function ambushStartBack(b, ids, why, via){
+function ambushStartBack(b, ids, why, via, side){
   var F = ids.map(teamBot).filter(function(o){ return o && o.alive; }); if(!F.length || b.hp <= LOW_HP) return false;
   var BL = beliefLast[b.team] || {}, q0 = BL[F[0].id] || F[0];
   b._amb = {round: roundNum, ph: "go", ids: F.map(function(o){ return o.id; }), n: F.length, t0: tick, seen: tick, last: {x: q0.x, y: q0.y, z: q0.z}, lastT: tick, via: via || null};
   voiceLog(b.team, "amb"+b.id+roundNum, b.id, why);
-  return ambushTick(b);
+  return ambushTick(b, side);
 }
-function ambushTick(b){
+// side — сторона мозга, из которого вызвано (Р3.2, место ш.2б: явная вместо SPOT_TEAM): из ctBrain через ambushStartBack — "CT", из contactTick — нет
+function ambushTick(b, side){
   if(!b.alive || roundState !== "live" || b.planting || b.defusing || (bomb && bomb.state === "carried" && bomb.carrier === b)) { if(b._amb) ambEnd(b, "занят"); return false; }
   var A = b._amb && b._amb.round === roundNum ? b._amb : null;
   if(A && (ambSeenBy(b) || b.hp <= LOW_HP)) return ambEnd(b, ambSeenBy(b) ? "меня увидели — бой" : "мало HP");
@@ -321,7 +322,7 @@ function ambushTick(b){
       // (22.11, Ж23) от кого прятаться — где они по моему восприятию (видимые — где есть, услышанные — место звука A.last), не настоящие места
       if(!A.spot){ var TK = T.map(function(o){ return (b._visible && b._visible.indexOf(o) >= 0) ? o : A.last; }).filter(Boolean);
         var TC = coverThreats(b, TK), dNear = function(p){ return Math.min.apply(null, TK.map(function(o){ return DM.hypot(o.x-p.x, o.y-p.y); })); }, d0 = dNear(b);
-        A.spot = coverSafe({x:b.x, y:b.y}, b.z, TC) ? {x:b.x, y:b.y} : (coverPick(pickSpots("amb"+tick+b.id, {x:b.x, y:b.y}, COVER_CANDS, {rMin:0, rMax:120, minGap:20, hideFrom:TC})
+        A.spot = coverSafe({x:b.x, y:b.y}, b.z, TC) ? {x:b.x, y:b.y} : (coverPick(pickSpots("amb"+tick+b.id, {x:b.x, y:b.y}, COVER_CANDS, {team: side, rMin:0, rMax:120, minGap:20, hideFrom:TC})
           .filter(function(p){ return dNear(p) >= d0; }), coverZ(b), TC) || {x:b.x, y:b.y}); }
       setPost(b, A.spot, A.last, true, "ambush");
       return ambOn(b) || ambEnd(b, "задача выше");
@@ -335,7 +336,7 @@ function ambushTick(b){
     b._knife = true;
     if(DM.hypot(tg.x-b.x, tg.y-b.y) <= KNIFE_REACH && tick >= (b._stabT || 0)){
       b._stabT = tick + KNIFE_GAP;
-      applyDamage(b, tg, KNIFE_BACK, "knife", {wkey: "KNIFE_T", reward: 1500, note: " (нож, в спину)"});
+      applyDamage(b, tg, KNIFE_BACK, "knife", {side: side, wkey: "KNIFE_T", reward: 1500, note: " (нож, в спину)"});
       tg.heardSound = {x: b.x, y: b.y, z: b.z, tick: tick, team: b.team, src: b.id, kind: "hit"};
     }
   }

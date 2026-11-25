@@ -385,7 +385,7 @@ function teamBrains(){
   routeTick();
   bots.forEach(function(b){ contactTick(b); hurtReactTick(b); });   // (v367) реакция на контакт — до мозгов, их посты её не перебивают; (v518a) и на урон
   bots.forEach(function(b){ ctDelayNade(b); });   // (v419) задержать гранатой — после реакции на контакт (знает, держит ли угол)
-  SPOT_TEAM = "T"; tBrain(); SPOT_TEAM = "CT"; ctBrain(); SPOT_TEAM = null; endgameBrain(); lineupTick(); smokeEdgeTick(); smokeLineTick(); fireSmokeTick(); weaponPickupTick(); itemPickupTick(); lkpTick();
+  tBrain(); ctBrain(); endgameBrain(); lineupTick(); smokeEdgeTick(); smokeLineTick(); fireSmokeTick(); weaponPickupTick(); itemPickupTick(); lkpTick();
   bots.forEach(function(b){ if(b.alive && b._heardReload) reloadPeek(b); });
   if(tick % 4 === 0) bots.forEach(function(b){ if(b.alive) assistPeek(b); });
   if(tick % 8 === 2) bots.forEach(function(b){ if(b.alive) lowHpBack(b); });

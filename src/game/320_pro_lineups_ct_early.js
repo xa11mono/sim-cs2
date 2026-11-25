@@ -117,7 +117,7 @@ function secondOnSite(b, k, ap){
   var p = null;
   for(var t=0; t<names.length && !p; t++){
     var nm = names[(ni + t) % names.length];
-    var q = namedSpot(nm, SITES[k], {see:ents, hideFrom:[GEO[k].tStage], cross: ap ? {from:ap, pt:GEO[k].tEntry} : null, key:"2nd"+k+(ap?Math.round(ap.x/40):"")});
+    var q = namedSpot(nm, SITES[k], {team: "CT", see:ents, hideFrom:[GEO[k].tStage], cross: ap ? {from:ap, pt:GEO[k].tEntry} : null, key:"2nd"+k+(ap?Math.round(ap.x/40):"")});
     if(q && (!ap || DM.hypot(q.x-ap.x, q.y-ap.y) > 90)){ p = q; if(b._holdLog !== roundNum){ b._holdLog = roundNum; logEvent(b.id+": вторым на "+k+" — «"+nm+"»"); } }
   }
   if(!p) return false;
@@ -400,7 +400,7 @@ function ctInfoCheck(b, ct, cts){
       // их дорогой: через их спавн, если до него мне ближе, чем до них (я на их половине)
       var sp = infoPoint(T_SPAWN), BLs = beliefLast.CT || {}, myS = sp ? pathLenTo(b, sp.x, sp.y) : Infinity;
       var via = sp && ids.every(function(id){ var q = BLs[id]; return q && myS < pathLenTo(b, q.x, q.y); }) ? sp : null;
-      I.on = false; if(ambushStartBack(b, ids, via ? "я у них в тылу — иду их дорогой через спавн, зайду в спину" : "я у них в тылу — захожу в спину", via)) return true; }
+      I.on = false; if(ambushStartBack(b, ids, via ? "я у них в тылу — иду их дорогой через спавн, зайду в спину" : "я у них в тылу — захожу в спину", via, "CT")) return true; }
     if(!stop){ setPost(b, I.pt, I.look, true, "probeInfo"); return b.post && b.post.tag === "probeInfo"; }
     I.on = false; if(b.post && /^probe(Info|Hide)$/.test(b.post.tag)) clearPost(b); return false;
   }

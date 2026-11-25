@@ -385,7 +385,7 @@ function tBrain(){
     }
   }
   var stageOpt = function(k){ return {rMax:200, minGap:50, hideFrom:[SITES[k], GEO[k].anchor], see:[GEO[k].tEntry], avoidNades: tDeathSpots()}; };
-  var midOpt = {rMax:160, minGap:50, see:[GEO.tMidLook]};
+  var midOpt = {team: "T", rMax:160, minGap:50, see:[GEO.tMidLook]};
   if(!tt.tMidPick){
     var tm = POS.M.tHold, tmi = weightedPick(tm.length, roundNum*389 + matchNum*7);
     tt.tMidPick = tm[tmi] === "TMID" ? null : tm[tmi];
@@ -462,7 +462,7 @@ function tBrain(){
           var lk = [GEO.A.tEntry, GEO.B.tEntry, GEO.tMidLook].filter(Boolean).sort(function(a, c){ return DM.hypot(a.x-Zp.x, a.y-Zp.y) - DM.hypot(c.x-Zp.x, c.y-Zp.y); })[0];
           // (v519, А-27: «не должно быть якорей в полностью открытых местах» — стоял в центре мида под Short, Connector, Window) место — укрытое
           // от сторон CT (мид CT, сайты), видеть вход — как было
-          groupPost([b], Zp, lk, tag, {rMax:160, minGap:50, see:[lk], zone: zn0 ? zoneIdAt(Zp.x, Zp.y) : null, hideFrom:[GEO.ctMid, GEO.A.anchor, GEO.B.anchor].filter(Boolean)});   // (Г4, п.13: «default:Side Alley» стоял на T Spawn)
+          groupPost([b], Zp, lk, tag, {team: "T", rMax:160, minGap:50, see:[lk], zone: zn0 ? zoneIdAt(Zp.x, Zp.y) : null, hideFrom:[GEO.ctMid, GEO.A.anchor, GEO.B.anchor].filter(Boolean)});   // (Г4, п.13: «default:Side Alley» стоял на T Spawn)
         });
       } else {
         groupPost(pick(["support"]), tt.tMidPt || GEO.tMid, GEO.tMidLook, "tmid", midOpt);
@@ -495,7 +495,7 @@ function tBrain(){
             logEvent("T: сплит — в группе «"+(G.stage || "?")+"» погиб свой — "+(GN.dec[gi] === "merge" ? "к основной группе" : "держат позицию")); }
           if(GN.dec[gi] === "merge"){ var GM = tac.groups[gMain], spM = GM.stage ? (zonePoint(GM.stage, g.tStage) || g.tStage) : g.tStage, lkM = GM.look ? (zonePoint(GM.look, spM) || g.tEntry) : g.tEntry;
             mem.forEach(function(b){ b._route = null; b._stageInfo = {from:spM, to:lkM, look: GM.look ? SITES[tt.site] : g.anchor, round:roundNum}; });
-            groupPost(mem, spM, lkM, "stage"+tt.site+(GM.stage ? ":"+GM.stage : ""), {rMax:200, minGap:50, hideFrom:[SITES[tt.site], lkM], see:[lkM]});
+            groupPost(mem, spM, lkM, "stage"+tt.site+(GM.stage ? ":"+GM.stage : ""), {team: "T", rMax:200, minGap:50, hideFrom:[SITES[tt.site], lkM], see:[lkM]});
             return; }
         }
         // после дефолта маршрут "от спавна" уже не нужен — идут к своей точке кратчайшим путём
@@ -505,7 +505,7 @@ function tBrain(){
         var lk = G.look ? (zonePoint(G.look, sp) || g.tEntry) : g.tEntry;
         var tag = "stage"+tt.site+(G.stage ? ":"+G.stage : "");
         mem.forEach(function(b){ b._stageInfo = {from:sp, to:lk, look: G.look ? SITES[tt.site] : g.anchor, round:roundNum}; });
-        groupPost(mem, sp, lk, tag, {rMax:200, minGap:50, hideFrom:[SITES[tt.site], lk], see:[lk]});
+        groupPost(mem, sp, lk, tag, {team: "T", rMax:200, minGap:50, hideFrom:[SITES[tt.site], lk], see:[lk]});
       });
     } else if(tac.style === "exec"){
       stagePost(pick(["entry","awp","igl"]), tt.site);
@@ -538,7 +538,7 @@ function tBrain(){
           if(fakers[0]) voiceLog("T", "fake"+fk, fakers[0].id, "делаю фейк на "+fk+", вы ждите на "+tt.site); }
         var fakeDied = teamIntel.T.sig.some(function(sg){ return sg.type === "died" && tick - sg.tick < 10*TICK_HZ && DM.hypot(sg.x-gf.tEntry.x, sg.y-gf.tEntry.y) < 450; });
         if(fakeDied){ stagePost(fakers, fk); if(!tt._fakeHoldLog){ tt._fakeHoldLog = true; logEvent("T: на фейке сняли своего — второй не лезет туда же, держит"); } }
-        else groupPost(fakers, gf.tEntry, gf.anchor, "fake"+fk, {rMax:120, minGap:40, see:[gf.anchor]});
+        else groupPost(fakers, gf.tEntry, gf.anchor, "fake"+fk, {team: "T", rMax:120, minGap:40, see:[gf.anchor]});
         // раздел 13: "купились ли CT на фейк" — IGL примерно оценивает это по
         // своей же инфе (не телепатия): опорник фейкового сайта, которого
         // фейкеры видели вначале, пропал из поля зрения/по последней инфе
@@ -758,7 +758,7 @@ function tBrain(){
       if(!isMF(b) || b === carrier || b.planting || b === fetcher) return; // за бомбой — не держать сайт (раньше посты чередовались и он стоял)
       var bestN = null, bdd = Infinity;
       POS[tt.site].tClear.forEach(function(n){ var zp = zonePoint(n, b); if(!zp) return; var d = DM.hypot(zp.x-b.x, zp.y-b.y); if(d < bdd){ bdd = d; bestN = n; } });
-      var fp = bestN ? namedSpot(bestN, b, {see:[g.tEntry, plantPt], key:"mf"+tt.site}) : plantPt;
+      var fp = bestN ? namedSpot(bestN, b, {team: "T", see:[g.tEntry, plantPt], key:"mf"+tt.site}) : plantPt;
       setPost(b, fp, plantPt, true, "sitehold"+tt.site+":CT-"+(bestN||""));
     });
     // раздел 12: "байт и трейд" — пока энтри лезет в первый угол, поддержка не
@@ -795,7 +795,7 @@ function tBrain(){
           nm = best; if(nm){ tt.takeAssign[b.id] = nm; used[nm] = true;
             if(smokeUp && !tt._smokeTakeLog){ tt._smokeTakeLog = true; logEvent("T: смоки встали — занимают позиции под смоком ("+nm+")"); } }
         }
-        var tp = nm ? namedSpot(nm, site, {see:[g.ctEntry], key:"take"+tt.site}) : null;
+        var tp = nm ? namedSpot(nm, site, {team: "T", see:[g.ctEntry], key:"take"+tt.site}) : null;
         // энтри чистит углы по очереди: ближний угол → следующий от него, на
         // каждом короткий чек (~0.5с); чисто — колл "чекнул X — пусто" и дальше
         if(b.tRole === "entry" && !rush){
@@ -811,7 +811,7 @@ function tBrain(){
           }
           if(C.list.length){
             var cur = C.list[Math.min(C.i, C.list.length-1)];
-            var cp = namedSpot(cur, site, {see:[g.ctEntry], key:"clr"+tt.site});
+            var cp = namedSpot(cur, site, {team: "T", see:[g.ctEntry], key:"clr"+tt.site});
             var nxt = C.list[C.i+1] ? zonePoint(C.list[C.i+1], site) : null;
             if(cp){
               if(b.atPost && b.post && b.post.tag === "clear"+tt.site+":"+cur && C.i < C.list.length){
@@ -838,15 +838,15 @@ function tBrain(){
               if(DM.hypot(zp.x-g.ctEntry.x, zp.y-g.ctEntry.y) > dC - TAKE_STEP) return; var dz = DM.hypot(zp.x-cz.x, zp.y-cz.y); if(dz > TAKE_REACH) return;
               if(dz < bn){ bn = dz; nx2 = n; } });
             if(nx2){ delete used[nm]; used[nx2] = true; tt.takeAssign[b.id] = nx2; voiceLog("T", "adv"+b.id+nx2+roundNum, b.id, "чисто, иду "+calloutName(zonePoint(nx2, site).x, zonePoint(nx2, site).y)); nm = nx2;
-              tp = namedSpot(nm, site, {see:[g.ctEntry], key:"take"+tt.site}); b._takeAt = {nm:nm, round:roundNum, arr:0}; }
+              tp = namedSpot(nm, site, {team: "T", see:[g.ctEntry], key:"take"+tt.site}); b._takeAt = {nm:nm, round:roundNum, arr:0}; }
             else TA.arr = tick + 10*TICK_HZ;   // глубже некуда — держит
           }
         }
         if(tp) setPost(b, tp, g.ctEntry, true, (b.tRole === "entry" ? "clear" : "sitehold")+tt.site+":"+nm);
-        else groupPost([b], plantPt, g.ctEntry, "sitehold"+tt.site, {rMin:40, rMax:210, minGap:60, see:[g.ctEntry]});
+        else groupPost([b], plantPt, g.ctEntry, "sitehold"+tt.site, {team: "T", rMin:40, rMax:210, minGap:60, see:[g.ctEntry]});
       });
     }
-    groupPost(rest.filter(function(b){ return b.tRole==="awp" && b.primary==="AWP"; }), g.tEntry, g.ctEntry, "awpline"+tt.site, {rMax:130, minGap:50, see:[g.ctEntry, plantPt]});
+    groupPost(rest.filter(function(b){ return b.tRole==="awp" && b.primary==="AWP"; }), g.tEntry, g.ctEntry, "awpline"+tt.site, {team: "T", rMax:130, minGap:50, see:[g.ctEntry, plantPt]});
   } else if(tt.phase === "postplant"){
     var gs = GEO[bomb.site];
     // прочь от бомбы (радиус взрыва убивает и своих). (v373, сторож: на Ancient T с постом «flee» за 2 с до взрыва ещё в зоне —
@@ -1017,7 +1017,7 @@ function tBrain(){
       // (v443) «я один» — только если T правда один: группа пост-планта без лёркера и охотников бывала из одного при живых других
       if(!tt._tcPP){ tt._tcPP = tick; if(aliveCount("T") === 1) voiceLog("T", "tcpp", group[0].id, "я один на пост-планте — прячусь, играю на время, выйду на звук дефуза"); }
       if(!ppTimeNamed(group, bp0, bomb.site, DEFUSE_HEAR-90))
-        groupPost(group, bp0, gs.ctEntry, "postplant:time", {rMin:300, rMax:Math.min(600, DEFUSE_HEAR-90), minGap:110, hideFrom:[gs.ctEntry, bp0]});
+        groupPost(group, bp0, gs.ctEntry, "postplant:time", {team: "T", rMin:300, rMax:Math.min(600, DEFUSE_HEAR-90), minGap:110, hideFrom:[gs.ctEntry, bp0]});
       return;
     }
     // (v469, п.9 владельца 29.10, р5 м1: после планта точки переназначались трижды — через 4 с тишины все уходили «на время» на T Ramp и CT,
@@ -1049,17 +1049,17 @@ function tBrain(){
           // (1) раньше — просто ближайшая к боту позиция (часто на самом сайте,
           // под входом CT). Теперь "стоимость": видна ли бомба, со скольких
           // выходов CT видно точку, не стоит ли прямо на линии входа CT
-          var sp = namedSpot(n, bp0, {must:[bp0], see:[gs.ctEntry], rMax:160, key:"pp"+Math.round(bp0.x/30)}) || zp;
+          var sp = namedSpot(n, bp0, {team: "T", must:[bp0], see:[gs.ctEntry], rMax:160, key:"pp"+Math.round(bp0.x/30)}) || zp;
           var ex = spotExposure("T", sp.x, sp.y), db = DM.hypot(sp.x-bp0.x, sp.y-bp0.y);
           d = d/500 + 0.9*ex + (hasLOS(sp.x, sp.y, bp0.x, bp0.y) ? 0 : 3) + (db < 150 ? 1.2 : 0) + (hasLOS(sp.x, sp.y, gs.ctEntry.x, gs.ctEntry.y) && db < 260 ? 0.8 : 0) +
               0.6*hashRand(roundNum*131 + matchNum*17 + n.length*7 + b.id.length);
           if(d < bd){ bd = d; best = n; } });
         nm = best; tt.ppAssign[b.id] = nm || "-"; if(nm){ usedP[nm] = true; logEvent(b.id+": пост-плант с «"+nm+"»"); }
       }
-      var pp = nm && nm !== "-" ? namedSpot(nm, bp0, {must:[bp0], see:[gs.ctEntry], rMax:160, key:"pp"+Math.round(bp0.x/30)}) : null;
+      var pp = nm && nm !== "-" ? namedSpot(nm, bp0, {team: "T", must:[bp0], see:[gs.ctEntry], rMax:160, key:"pp"+Math.round(bp0.x/30)}) : null;
       if(pp && hasLOS(pp.x, pp.y, bp0.x, bp0.y)) setPost(b, pp, bp0, true, "postplant:"+nm); else ppLeft.push(b);
     });
-    groupPost(ppLeft, bp0, gs.ctEntry, "postplant", {rMin:90, rMax:340, minGap:70, must:[bp0], hideFrom:[gs.ctEntry], see:[gs.ctEntry]});
+    groupPost(ppLeft, bp0, gs.ctEntry, "postplant", {team: "T", rMin:90, rMax:340, minGap:70, must:[bp0], hideFrom:[gs.ctEntry], see:[gs.ctEntry]});
     // (S10) двое после планта в одной точке — один пик CT забирает обоих:
     // второй расходится на другой угол к бомбе (кроссфайр)
     if(group.length === 2 && !tt._ppSplitDone){

@@ -159,7 +159,7 @@ function applyDamage(att, b, dmg, src, o){ var _ev = simEvIn("applyDamage", argu
   b.primary = null; b.secondary = b.team==="CT" ? "USP" : "GLOCK"; b.armor = false; b.helmet = false; b.armorHp = 0; b.kit = false;
   b.planting = false; b.defusing = false; b.nades = emptyNades(); nadeCancel(b, "death");
   dropBomb(b);
-  intelDeath(b, foe);   // своего убил свой — в войсе «минус», без «убил X»: враг тут ни при чём
+  intelDeath(b, foe, o.side);   // o.side — сторона мозга, из которого убили (засада из ctBrain), для выбора мест размена   // своего убил свой — в войсе «минус», без «убил X»: враг тут ни при чём
   if(foe){ LOOK_REPLAN[foe.team] = true; foe._killHowT = tick; }   // _killHowT — для обсервера (показ)
   if(foe) hlKill(foe);   // (v447) хайлайт: серия в ударе
   if(foe){ foe.kills++; foe.roundKills++; foe.money = Math.min(MAX_MONEY, foe.money + (o.reward || 300)); ecoKnowKill(foe, o.reward || 300); }   // (Г1) награда видна в киллфиде

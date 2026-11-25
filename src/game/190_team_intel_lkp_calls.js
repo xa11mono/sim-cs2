@@ -217,7 +217,7 @@ function knownRole(o){
   var r = setupRegionAt(h.x, h.y);
   return r === "A" ? "anchorA" : r === "B" ? "anchorB" : r === "mid" ? "mid" : null;
 }
-function intelDeath(victim, killer){
+function intelDeath(victim, killer, side){
   if(!victim || roundState !== "live") return;
   // (v519, пак 09.11 п.10; А-38: «убили мид, убили двоих опорников A, а опорник другого сайта до сих пор стоит» — «T у другого сайта» считался
   // по последней позиции уже убитого) смерть видна в киллфиде всем: убитый стирается из памяти команды сразу, одно место, а не в каждом читателе
@@ -297,7 +297,7 @@ function intelDeath(victim, killer){
       if(BAL.execErr && o.prof && hashRand(tick*29 + o.id.charCodeAt(1)*11) < (1-prof(o, "disc"))*0.12){ noteMistake(o, "не разменял "+victim.id); return; }
       // выходит НЕ в ту же точку, где умер тиммейт (туда у убийцы уже стоит
       // прицел), а под другим углом — чтобы тому пришлось доводить прицел
-      var swAll = pickSpots("tradeR"+tick+o.id, {x:victim.x, y:victim.y}, 5, {rMax:170, minGap:30, see:[kp]}), swC = swAll.filter(function(q){ return !spotTaken(o, q); });   // (v370) не в одну точку с напарником
+      var swAll = pickSpots("tradeR"+tick+o.id, {x:victim.x, y:victim.y}, 5, {team: side, rMax:170, minGap:30, see:[kp]}), swC = swAll.filter(function(q){ return !spotTaken(o, q); });   // (v370) не в одну точку с напарником
       if(!swC.length) swC = swAll;
       var aV = DM.atan2(victim.y-kp.y, victim.x-kp.x), sw = null, sBest = -1;
       swC.forEach(function(q){ var da = Math.abs(((DM.atan2(q.y-kp.y, q.x-kp.x)-aV+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
@@ -343,10 +343,10 @@ function intelDeath(victim, killer){
       // (v561, этап 5 docs/tasks/PLAN_TACTICS_V2.md; PRO_PLAY §6з: «подмена — сохранить функцию, а не пройти маршрут») задача погибшего — держать
       // линию на fl; подменяющий берёт её с ближайшего к себе пригодного места (видит fl, в пределах FILL_FUNC_R от места погибшего), а не идёт
       // точно в его точку
-      var fpC = fl ? pickSpots("fill"+tick+fBest.id, {x:(fc.x+fBest.x)/2, y:(fc.y+fBest.y)/2}, 4, {rMax:FILL_FUNC_R, minGap:30, see:[fl]})
+      var fpC = fl ? pickSpots("fill"+tick+fBest.id, {x:(fc.x+fBest.x)/2, y:(fc.y+fBest.y)/2}, 4, {team: side, rMax:FILL_FUNC_R, minGap:30, see:[fl]})
         .filter(function(q){ return DM.hypot(q.x-fc.x, q.y-fc.y) <= FILL_FUNC_R; })
         .sort(function(p, q){ return DM.hypot(p.x-fBest.x, p.y-fBest.y) - DM.hypot(q.x-fBest.x, q.y-fBest.y); }) : [];
-      var fp = fpC[0] || (fl && pickSpots("fill"+tick+fBest.id, fc, 1, {rMax:170, minGap:30, see:[fl]})[0]) || fc;
+      var fp = fpC[0] || (fl && pickSpots("fill"+tick+fBest.id, fc, 1, {team: side, rMax:170, minGap:30, see:[fl]})[0]) || fc;
       if(setPost(fBest, fp, fl, true, "fill")){ fBest._fillLock = {until: tick + 15*TICK_HZ, team: victim.team, pt: fp, ph: victim.team === "T" ? teamTac.T.phase : null};
       voiceLog(victim.team, "fill"+victim.id, fBest.id, "закрываю "+calloutName(fc.x, fc.y).replace(/^на /, "")+" за "+victim.id); }
     }

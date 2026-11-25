@@ -155,7 +155,7 @@ function bStageFix(){
 }
 var AHEAD_GAP = 120;   // (v450) ед. карты: «уже впереди точки подготовки» — проектное число
 function stagePost(mem, k){
-  var g = GEO[k], opt = {rMax:200, minGap:50, hideFrom:[SITES[k], g.anchor], see:[g.tEntry], avoidNades: tDeathSpots()};
+  var g = GEO[k], opt = {team: "T", rMax:200, minGap:50, hideFrom:[SITES[k], g.anchor], see:[g.tEntry], avoidNades: tDeathSpots()};
   // (v450, владелец 28.10: м1 р6 — «почти вышли на B, у игрока 0 появляется якорь stageB, который ведёт назад. Зачем?») точка подготовки —
   // одна на всех, и кто уже прошёл дальше неё к сайту (после перекола, после дефолта), шёл назад «собираться». Теперь он ждёт там, где
   // стоит, — в укрытии рядом (≤ 160 ед., не видно с сайта и с якоря CT, видно вход), а выход начинается и от него. «Дальше» — ближе к сайту
@@ -166,7 +166,7 @@ function stagePost(mem, k){
     if(!(dSt > 0)) return true;
     var dB = pathLenTo(b, SITES[k].x, SITES[k].y); if(!(dB > 0) || dB > dSt - AHEAD_GAP) return true;
     if(b.post && /^stage/.test(b.post.tag) && taskProp(b.post.tag, "waitsAhead")) return false;   // уже ждёт впереди
-    groupPost([b], {x:b.x, y:b.y}, g.tEntry, "stage"+k+":ahead", {rMax:160, minGap:40, hideFrom:[SITES[k], g.anchor], see:[g.tEntry]});
+    groupPost([b], {x:b.x, y:b.y}, g.tEntry, "stage"+k+":ahead", {team: "T", rMax:160, minGap:40, hideFrom:[SITES[k], g.anchor], see:[g.tEntry]});
     return false; });
   if(!mem.length) return;
   var SSk = (MAP.tactics.plays.stageSplit || {})[k];
@@ -178,7 +178,7 @@ function stagePost(mem, k){
     var upLook = zonePoint(SSk.upLook, g.tStageUp) || g.tEntry;
     groupPost(low, g.tStage, g.tEntry, "stage"+k, opt);
     ups.forEach(function(b){ b._stageInfo = {from:g.tStageUp, to:upLook, look:SITES[k], round:roundNum}; });
-    groupPost(ups, g.tStageUp, upLook, "stage"+k+":"+SSk.up, {rMax:160, minGap:50, hideFrom:[SITES[k], g.anchor], see:[upLook]});
+    groupPost(ups, g.tStageUp, upLook, "stage"+k+":"+SSk.up, {team: "T", rMax:160, minGap:50, hideFrom:[SITES[k], g.anchor], see:[upLook]});
     return;
   }
   groupPost(mem, g.tStage, g.tEntry, "stage"+k, opt);

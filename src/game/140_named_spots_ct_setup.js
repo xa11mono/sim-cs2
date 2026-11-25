@@ -5,7 +5,7 @@ var POS = MAP.tactics.pos;
 function namedSpot(name, near, o){
   var zp = zonePoint(name, near); if(!zp) return null;
   o = o || {};
-  var sp = pickSpots("nm:"+name+":"+(o.key||""), zp, 1, {rMax:o.rMax||110, minGap:40, see:o.see||[], hideFrom:o.hideFrom||[], must:o.must, cross:o.cross})[0];
+  var sp = pickSpots("nm:"+name+":"+(o.key||""), zp, 1, {team: o.team, rMax:o.rMax||110, minGap:40, see:o.see||[], hideFrom:o.hideFrom||[], must:o.must, cross:o.cross})[0];
   return sp || zp;
 }
 function entryPts(k){ return POS[k].entries.map(function(n){ return zonePoint(n, SITES[k]); }).filter(Boolean); }

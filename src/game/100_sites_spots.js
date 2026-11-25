@@ -178,7 +178,7 @@ var spotCache = {};
 // (2) открытые углы: сколько РАЗНЫХ направлений со стороны врага (зоны ближе
 // к его спавну, чем моя) видят точку. Про встаёт так, чтобы его видели с
 // одного выхода за раз; точка под 3–4 выходами — смерть от первого же захода
-var SPOT_TEAM = null, ED_CACHE = {CT:null, T:null}, EXP_CACHE = {};
+var ED_CACHE = {CT:null, T:null}, EXP_CACHE = {};
 function spotExposure(team, x, y){
   if(!BZ.ids.length || !team) return 0;
   var ck = team+Math.round(x/12)+","+Math.round(y/12); if(EXP_CACHE[ck] !== undefined) return EXP_CACHE[ck];
@@ -203,8 +203,9 @@ function spotExposure(team, x, y){
   return n;
 }
 function pickSpots(key, center, count, o){
-  var expT = ((o && o.team) || SPOT_TEAM);
-  var ppTeam = ((o && o.team) || SPOT_TEAM), ppL = ppTeam ? ppLayer(ppTeam) : null;
+  // сторона — только явная (Р3.2, место ш.2б: SPOT_TEAM убран; вызовы мозгов T / CT передают team, остальные — без стороны)
+  var expT = (o && o.team) || null;
+  var ppTeam = expT, ppL = ppTeam ? ppLayer(ppTeam) : null;
   var ck = key+"|"+count+"|"+Math.round(center.x)+","+Math.round(center.y) + (expT ? "|e"+expT : "") +
     (o && o.cross ? "|x"+Math.round(o.cross.from.x/40)+","+Math.round(o.cross.from.y/40) : "") + (ppL ? "|p"+ppL : "") + (o && o.zone ? "|z"+o.zone : "");
   if(spotCache[ck]) return spotCache[ck];
