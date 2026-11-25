@@ -17,25 +17,8 @@ if (files.length < 2) { console.error('node tools/measure/diverge.js A.html B.ht
 const MATCH = +opt('match', 3), TICKS = +opt('ticks', 20000), EVERY = Math.max(1, +opt('every', 64)), MATH = args.includes('--math'), SORT = args.includes('--sort');
 const ENG = { a: opt('browser-a', 'chromium'), b: opt('browser-b', 'chromium') };
 
-// Не хэшируются: (1) кэши, чьё содержимое не меняет результат (как SNAP_SKIP в rec2.js); (2) очереди показа; (3) все переменные верхнего
-// уровня из файлов показа и инструментов (src/game/550… и выше: рисование, HUD, редакторы, обсервер, повтор, песочница, звук, кадр) —
-// их обновляет кадр страницы по её часам; находятся разбором исходника, а не списком руками.
-function showVars() {
-  let acorn; try { acorn = require('acorn'); } catch (e) { try { acorn = require(path.join(__dirname, '..', 'rebuild', 'node_modules', 'acorn')); }   // пакеты сборки (src/build.py ставит их сам)
-    catch (e2) { console.error('нет acorn: npm i --prefix tools/rebuild или NODE_PATH'); process.exit(2); } }
-  // как tools/rebuild/gen_maps.js: склейка src/game (html + js), основной <script>, тело общей обёртки, дом переменной — файл объявления
-  const { all, spans } = require(path.join(__dirname, '..', 'rebuild', 'game_src.js')).concat();   // (Р1.1) .ts — без типов, позиции те же
-  const fileAt = pos => (spans.find(sp => pos >= sp[0] && pos < sp[1]) || spans[spans.length - 1])[2];
-  let main = null;
-  for (const m of all.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)) { const off = m.index + m[0].indexOf('>') + 1; if (!main || m[1].length > main.src.length) main = { off, src: m[1] }; }
-  const ast = acorn.parse(main.src.replace(/@@[A-Z_]+@@/g, m => '0'.padEnd(m.length, ' ')), { ecmaVersion: 'latest', allowReturnOutsideFunction: true });
-  let body = ast.body; const iife = body.find(st => st.type === 'ExpressionStatement' && st.expression.type === 'CallExpression' && /Function/.test(st.expression.callee.type));
-  if (iife) body = body.concat(iife.expression.callee.body.body);
-  const out = [];
-  body.forEach(st => { if (st.type === 'VariableDeclaration' && +fileAt(st.start + main.off).slice(0, 3) >= 550) st.declarations.forEach(d => d.id.type === 'Identifier' && out.push(d.id.name)); });
-  return out;
-}
-const SHOWV = showVars();
+const DVS = require('./dv_state.js'), SHOWV = DVS.showVars();
+
 // NADE_SOLVE_MS — время подборов броска по часам (380, «только для проверки»); tracers, soundPings, killfeed, nowTs — показ с часами страницы
 // (born / t: nowTs), расчёт только обрезает длину и чистит (490:379, 540:393, 530:88, 435:96) — проверено grep 24.11
 const SKIP = opt('skip', '^(WPM|ZDJ|KPC|MK.*|SHOW_Q|VOICE_DIRTY|LOG_DIRTY|KF_DIRTY|NADE_SOLVE_MS|tracers|soundPings|killfeed|nowTs|' + SHOWV.join('|') + ')$');
@@ -46,43 +29,15 @@ const inj = k => { const f = opt('inject-' + k, ''); return f ? fs.readFileSync(
 const startCode = k => { const v = opt('start-' + k, ''); return !v ? `freshMatch(${MATCH});` : v[0] === '@' ? fs.readFileSync(v.slice(1), 'utf8') : v; };
 const SNAP_AT = +opt('snap-at', 0);
 
-const SETUP = `window.DV = {
-  skip: new RegExp(${JSON.stringify(SKIP)}), skipf: new RegExp(${JSON.stringify(SKIPF)}),
-  h: function(s){ var x = 2166136261 >>> 0; for(var i = 0; i < s.length; i++) x = Math.imul(x ^ s.charCodeAt(i), 16777619) >>> 0; return x; },
-  list: function(){ return mkSnapList().filter(function(e){ return !DV.skip.test(e[0]); }); },
-  // дерево для хэша и сравнения: объект — один раз (повтор — {"#": номер}); Map, Set, типизированные массивы, -0, NaN, ±∞; поля показа — пропуск
-  tree: function(root){ var ids = new Map();
-    function enc(v){
-      if(v === undefined) return {u: 1};
-      if(typeof v === 'number') return v !== v ? {n: 'NaN'} : v === Infinity ? {n: 'I'} : v === -Infinity ? {n: '-I'} : (v === 0 && 1/v < 0) ? {n: '-0'} : v;
-      if(typeof v === 'function') return {f: v.name || 1};
-      if(v === null || typeof v !== 'object') return v;
-      if(ids.has(v)) return {'#': ids.get(v)}; ids.set(v, ids.size);
-      if(Array.isArray(v)) return v.map(enc);
-      if(ArrayBuffer.isView(v)) return {t: Array.prototype.map.call(v, enc)};
-      if(v instanceof Map){ var m = []; v.forEach(function(x, k){ m.push([enc(k), enc(x)]); }); return {m: m}; }
-      if(v instanceof Set){ var a = []; v.forEach(function(x){ a.push(enc(x)); }); return {s: a}; }
-      var o = {}; Object.keys(v).forEach(function(k){ if(!DV.skipf.test(k)) o[k] = enc(v[k]); }); return o; }
-    return enc(root); },
-  str: function(e){ try{ return JSON.stringify(DV.tree(e[1]())); }catch(x){ return '!' + x; } },
-  state: function(){ var o = {}; DV.list().forEach(function(e){ o[e[0]] = DV.h(DV.str(e)); }); return o; },
-  pack: function(names){ var o = {}; DV.list().forEach(function(e){ if(names.indexOf(e[0]) >= 0) o[e[0]] = DV.str(e); }); return o; },
-  // журнал Math — только вызовы внутри stepTick (кадр страницы между шагами тоже зовёт Math)
-  mathOn: function(){ if(DV.M) return; DV.M = {}; DV.log = [];
-    ['sin','cos','tan','atan','atan2','asin','acos','exp','log','pow','hypot','sqrt'].forEach(function(f){ var o = Math[f]; DV.M[f] = o;
-      Math[f] = function(){ var r = o.apply(Math, arguments); if(DV.inTick && DV.log.length < 200000) DV.log.push([f, Array.prototype.slice.call(arguments), r]); return r; }; }); },
-  // журнал сортировок (только внутри stepTick): исходная сортировка движка вызывается как есть, записывается перестановка
-  sortOn: function(){ if(DV.S) return; var os = DV.S = Array.prototype.sort; DV.slog = [];
-    Array.prototype.sort = function(cmp){
-      if(!DV.inTick || DV.slog.length >= 100000) return os.call(this, cmp);
-      var orig = Array.prototype.slice.call(this), n = 0, nan = 0;
-      var r = os.call(this, cmp ? function(a, b){ n++; var v = cmp(a, b); if(v !== v) nan++; return v; } : undefined);
-      DV.slog.push([cmp ? String(cmp).replace(/\s+/g, ' ').slice(0, 220) : '(по умолчанию)', orig.length, Array.prototype.map.call(this, function(x){ return orig.indexOf(x); }).join(','), n, nan]);
-      return r; }; }
-};`;
+const SETUP = DVS.setupCode(SKIP, SKIPF);
+// (Р2.6, прогон 319) кадр страницы (680 frame: requestAnimationFrame) между шагами локатора идёт по часам страницы: тики при снятой паузе,
+// рисование и показ пишут поля в объекты игры — в WebKit одна и та же сборка «расходилась сама с собой» на тике 1. Кадр останавливается:
+// игру ведут только шаги локатора. --live-frames — оставить кадр (как было до 25.11)
+const LIVE = args.includes('--live-frames');
 async function open(browser, file, inject, start) {   // browser — движок своей стороны
   const p = await browser.newPage(); await p.route(/^https?:/, r => r.abort());
   await p.goto(url.pathToFileURL(path.resolve(file)).href); await p.waitForTimeout(1200);
+  if (!LIVE) await DVS.stopFrames(p);
   await p.evaluate(c => __ev(c), SETUP + '\n' + inject + '\n' + start + '\n1');
   return p;
 }

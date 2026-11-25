@@ -305,7 +305,8 @@ async function mkSubmit(){
 function mkEnv(){
   var n = typeof navigator !== "undefined" ? navigator : {}, ua = n.userAgentData, v = document.getElementById("simVersion");
   return { ua: n.userAgent || null, brands: ua && ua.brands ? ua.brands.map(function(b){ return b.brand + " " + b.version; }).join(", ") : null,
-    platform: (ua && ua.platform) || n.platform || null, build: v ? v.textContent : null };
+    platform: (ua && ua.platform) || n.platform || null, build: v ? v.textContent : null,
+    src: typeof MK_BUILD !== "undefined" ? MK_BUILD : null };   // (Р2.1) отпечаток исходника игры — по нему tools/marks/mark_build.js собирает ту же сборку
 }
 async function mkSave(m, status){
   var doc = { match: m.match, tick: m.tick, round: m.round, roundTime: m.roundTime, category: m.category, priority: m.priority,

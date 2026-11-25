@@ -62,4 +62,8 @@ def inject(s):
         assert must in V, must
     snap = "var __SNAP = [\n" + ",\n".join('["%s", function(){ return %s; }, function(v){ try{ %s = v; }catch(e){} }]' % (v, v, v) for v in V) + "\n];\n"
     mod = open(os.path.join(HERE, 'marks.js'), encoding='utf-8').read()
-    return s.replace(MARK, snap + mod)
+    # (Р2.1, 25.11) отпечаток исходника игры (склейка + модули; .ts — без типов) — отметка записывает его (mkEnv), инструмент
+    # tools/marks/mark_build.js по нему находит коммит и собирает ту самую сборку: старая отметка открывается своей сборкой
+    import hashlib
+    build = hashlib.sha256((s + module_source()).encode('utf-8')).hexdigest()[:16]
+    return s.replace(MARK, snap + 'var MK_BUILD = "%s";\n' % build + mod)
