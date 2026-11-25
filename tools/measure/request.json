@@ -1,3 +1,60 @@
-{"par": 8, "jobs": [
-  {"label": "b2_mir_a5", "ref": "d71ba75743497183374dc3762db1de5484583fbc", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29]}
-]}
+{
+ "par": 4,
+ "fp": [
+  {
+   "label": "v599a_dm_mir_ff_r",
+   "ref": "46c81eae881dae4890bc74fbabe9b49938560a4b",
+   "map": "mirage",
+   "engine": "firefox",
+   "matches": [
+    11,
+    13
+   ]
+  },
+  {
+   "label": "v599a_dm_mir_cr_r",
+   "ref": "46c81eae881dae4890bc74fbabe9b49938560a4b",
+   "map": "mirage",
+   "matches": [
+    11,
+    13
+   ]
+  }
+ ],
+ "dmath": [
+  {
+   "label": "v599a_dm_page2",
+   "engines": [
+    "chromium",
+    "firefox",
+    "webkit"
+   ]
+  }
+ ],
+ "div": [
+  {
+   "label": "v599a_dmdiv_mir13_crff",
+   "ref": "46c81eae881dae4890bc74fbabe9b49938560a4b",
+   "map": "mirage",
+   "match": 13,
+   "ticks": 4600,
+   "every": 32,
+   "a": "chromium",
+   "b": "firefox",
+   "math": true,
+   "sort": true
+  },
+  {
+   "label": "v599a_dmdiv_mir11_crff",
+   "ref": "46c81eae881dae4890bc74fbabe9b49938560a4b",
+   "map": "mirage",
+   "match": 11,
+   "ticks": 20000,
+   "every": 64,
+   "a": "chromium",
+   "b": "firefox",
+   "math": true,
+   "sort": true
+  }
+ ]
+}
