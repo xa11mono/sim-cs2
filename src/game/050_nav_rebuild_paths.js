@@ -345,12 +345,12 @@ function navGapsAdd(){
     NAV_GAPS.push(G); NAV_GAP_AT[navGapKey(pb.x, pb.y)] = G; });
 }
 // (v546, владелец 10.11: «чтобы бот мог выбирать разные пути: спрыгнуть, спуститься по ящикам, по лестнице — в разных ситуациях») цена
-// перехода = время + шум по режиму бота (zoneDijkstra.quiet — бот идёт шагом, решение хозяина шага 535): прыжок / приземление стоит время
+// перехода = время + шум по режиму бота (контекст поиска ctx.quiet — бот идёт шагом, решение хозяина шага 535): прыжок / приземление стоит время
 // LAND_DELAY с бега; лестница — время подъёма (шагом — медленнее); громкое (прыжок через щель, спрыгнуть выше LAND_SOUND_DROP) для того,
 // кто идёт тихо, — прежние NAV_JUMP_COST / NAV_DROP_COST (обход, только если он заметно длиннее). Запрыгнуть на ящик можно тихо (шагом
 // вплотную — landSound, 540), это только время. Раньше у всех прыжок вверх стоил 120 — ящики и прыжки через щель путь не выбирал никогда
-function navJumpCost(a, edge){
-  var q = !!zoneDijkstra.quiet, k = q ? "_jcq" : "_jcf";
+function navJumpCost(a, edge, quiet){
+  var q = !!quiet, k = q ? "_jcq" : "_jcf";
   if(edge[k] != null) return edge[k];
   var v = navJumpCost0(a, edge, q); if(navTallDone) edge[k] = v;   // до navCutTall лестницы (NAV_LAD) ещё не известны — не запоминать
   return v;
@@ -415,7 +415,10 @@ function knownSegCost(a, b, q){
   return KNOWN_DETOUR*q.w*(t1 - t0)*Math.sqrt(L2)/(2*R)*(1 + KNOWN_CLOSE_K*Math.max(0, 1 - dmin/R));
 }
 var KNOWN_CLOSE_K = 2;   // (v570) проектное число
-function zoneDijkstra(fromId, toId, team){
+// (Р3.2, канал «ход») параметры поиска — явный контекст ctx {from, toPt, fire, nearest, quiet} (был: свойства функции zoneDijkstra.*,
+// их задавал и сбрасывал buildWaypointPath0); без ctx — как в покое (всё выключено)
+function zoneDijkstra(fromId, toId, team, ctx){
+  ctx = ctx || {};
   if(fromId===toId) return [fromId];
   var side = team === "CT" ? zoneSideMap() : null;
   // (v450, док владельца 28.10 №5: игрокам 2 и 4 после контакта на миде «дали путь через врагов» — к лайнапу и в Палас) путь движения
@@ -426,13 +429,13 @@ function zoneDijkstra(fromId, toId, team){
   // прямой путь (925) набирал 24 штрафа, обход (1855) — 15; снимки м1 р2, р4, р8) места врагов рядом с целью (≤ KNOWN_PATH_R) не штрафуются —
   // к цели идти всё равно туда, и все пути кончаются у них (ретейк, плант); штраф — по длине пути внутри круга места (knownSegCost), а не
   // за переход: сколько ни нарезано участков, пройти круг насквозь стоит KNOWN_DETOUR × вес
-  var tp0 = zoneDijkstra.toPt;
-  var KP = zoneDijkstra.fire && team ? knownPathSpots(team).filter(function(q){ return !tp0 || DM.hypot(q.x-tp0.x, q.y-tp0.y) > KNOWN_PATH_R; }) : [];
+  var tp0 = ctx.toPt;
+  var KP = ctx.fire && team ? knownPathSpots(team).filter(function(q){ return !tp0 || DM.hypot(q.x-tp0.x, q.y-tp0.y) > KNOWN_PATH_R; }) : [];
   // (док 6, п.6 «зависания»: в тике планта — 1069 поисков пути, 1,08 с; 707 из них — от бомбы к местам-кандидатам сейва, 349 — от бойца к
   // зонам ухода) поиск из одного начала в одной обстановке (тот же тик, команда, точка старта, огонь, известные враги, граф) продолжается
   // с места, где остановился прошлый, а не начинается заново: порядок обхода тот же, что у отдельного поиска до цели, — путь бит в бит
-  var fx0 = zoneDijkstra.from, fireOn = !!(zoneDijkstra.fire && fires.length);
-  var key = fromId + "|" + (team||"") + (zoneDijkstra.quiet ? "|q" : "") + "|" + (fx0 ? fx0.x + "," + fx0.y : "") + "|" + (fireOn ? fires.map(function(f){ return f.x + "," + f.y + "," + f.born; }).join(";") : "") + "|" +
+  var fx0 = ctx.from, fireOn = !!(ctx.fire && fires.length);
+  var key = fromId + "|" + (team||"") + (ctx.quiet ? "|q" : "") + "|" + (fx0 ? fx0.x + "," + fx0.y : "") + "|" + (fireOn ? fires.map(function(f){ return f.x + "," + f.y + "," + f.born; }).join(";") : "") + "|" +
             KP.map(function(q){ return q.x + "," + q.y + "," + q.w; }).join(";");
   var DJ = ZDJ.tick === tick && ZDJ.m === matchNum && ZDJ.graph === zoneGraph ? ZDJ.s : (ZDJ.tick = tick, ZDJ.m = matchNum, ZDJ.graph = zoneGraph, ZDJ.s = {});
   var S = DJ[key];
@@ -440,13 +443,13 @@ function zoneDijkstra(fromId, toId, team){
   var dist = S.dist, prev = S.prev, visited = S.visited, entry = S.entry, heap = S.heap;
   var relax = function(u){
     // (v406, владелец 22.10: «зачем все идут в одну точку, а не прямо вниз» — спавн T → T Ramp) длина — от точки, через которую в участок
-    // вошли (середина перехода; у начала — сама точка старта, zoneDijkstra.from), а не от центра участка: по центрам мелко нарезанная
+    // вошли (середина перехода; у начала — сама точка старта, ctx.from), а не от центра участка: по центрам мелко нарезанная
     // рампа «стоила» дороже бордюра того же пути. Переход между участками — ROUTE_PORTAL (было 40 — проектное число)
     var fromCentroid = entry[u] || zoneCentroid(zonesById[u]);
     var EL = zoneGraph[u] || [], nKP = KP.length;
     for(var ei = 0; ei < EL.length; ei++){ var edge = EL[ei];
       if(visited[edge.to]) continue;
-      var w = dist2(fromCentroid, edge.mid) + ROUTE_PORTAL + navJumpCost(zonesById[u], edge); // small fixed cost per portal crossing
+      var w = dist2(fromCentroid, edge.mid) + ROUTE_PORTAL + navJumpCost(zonesById[u], edge, ctx.quiet); // small fixed cost per portal crossing
       if(side && side[edge.to] !== undefined && side[edge.to] < ROUTE_SIDE_LINE) w *= ROUTE_ENEMY_SIDE;   // (v259) CT — по своей стороне
       // (v438, док владельца 27.10: «боты часто идут в молик») переход в горящем огне — дороже на FIRE_DETOUR: путь обходит молотов, если обход
       // не длиннее; иначе идёт через огонь (как и раньше — fireCommit / ждёт у края). Только путь движения (buildWaypointPath)
@@ -475,7 +478,7 @@ function zoneDijkstra(fromId, toId, team){
     }
   }
   if(dist[toId]===undefined){
-    if(!zoneDijkstra.nearest) return null;
+    if(!ctx.nearest) return null;
     // (v375) цель недостижима — ближайший к ней участок, до которого путь есть (см. buildWaypointPath)
     var tc = zoneCentroid(zonesById[toId]), bestN = null, bd = Infinity;
     Object.keys(visited).forEach(function(k){ var c = zoneCentroid(zonesById[k]); if(!c) return; var d = DM.hypot(c.x-tc.x, c.y-tc.y); if(d < bd){ bd = d; bestN = k; } });
@@ -609,7 +612,7 @@ function laneShift(path, lane, x0, y0, z0, fixed){
 var WPM = {graph: null, m: -1, n: 0, s: {}};
 // quiet (v546) — путь для того, кто идёт шагом (bot.walking): громкие переходы дороже (navJumpCost)
 function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team, lane, quiet){
-  if(quiet){ zoneDijkstra.quiet = true; try { return buildWaypointPath0(fromX, fromY, fromZ, toX, toY, toZ, team, lane); } finally { zoneDijkstra.quiet = false; } }
+  if(quiet) return buildWaypointPath0(fromX, fromY, fromZ, toX, toY, toZ, team, lane, true);
   if(team) return buildWaypointPath0(fromX, fromY, fromZ, toX, toY, toZ, team, lane);
   if(WPM.graph !== zoneGraph || WPM.m !== matchNum || WPM.n > 20000){ WPM.graph = zoneGraph; WPM.m = matchNum; WPM.n = 0; WPM.s = {}; }
   var key = fromX+","+fromY+","+fromZ+">"+toX+","+toY+","+toZ+"|"+lane+"|"+(fires.length ? tick+":"+fires.map(function(f){ return f.x+","+f.y+","+f.born; }).join(";") : "");   // огонь растёт со временем — с огнём только в том же тике
@@ -617,7 +620,7 @@ function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team, lane, quiet
   if(!v){ v = WPM.s[key] = buildWaypointPath0(fromX, fromY, fromZ, toX, toY, toZ, team, lane); WPM.n++; }
   return v.map(function(q){ return q.slice(); });
 }
-function buildWaypointPath0(fromX, fromY, fromZ, toX, toY, toZ, team, lane){
+function buildWaypointPath0(fromX, fromY, fromZ, toX, toY, toZ, team, lane, quiet){
   // (v341, отметка владельца: karrigan в щели у края нижнего пола — путь начинался с верхней полоски (−140) над ним, туда хода
   // нет, бот уходил с пола и его переносило по кругу) начало пути — пол рядом на высоте бота, а не ближайший центр участка
   if(!navTallDone) navCutTall();
@@ -641,24 +644,23 @@ function buildWaypointPath0(fromX, fromY, fromZ, toX, toY, toZ, team, lane){
   if(!pointInPoly(toX, toY, tz.points)){ var cq = navClampInto(tz, toX, toY); toX = cq.x; toY = cq.y; }
   if(!toZ) toZ = navFloorZ(tz, toX, toY);
   if(fz.id === tz.id) return [[toX,toY,toZ||0]];
-  zoneDijkstra.from = {x: fromX, y: fromY}; zoneDijkstra.toPt = {x: toX, y: toY}; zoneDijkstra.fire = true;
-  var route = zoneDijkstra(fz.id, tz.id, team);
+  var ctx = {from: {x: fromX, y: fromY}, toPt: {x: toX, y: toY}, fire: true, nearest: false, quiet: !!quiet};
+  var route = zoneDijkstra(fz.id, tz.id, team, ctx);
   // (v450, м19 р1: путь T0 к Tetris из-за молотова на T Ramp ушёл через спавн и Палас — ~1500 ед. обхода) цена огня копится по каждому
   // переходу внутри него, и обход через пол-карты выходил «дешевле». Обход берётся, только если он не длиннее пути через огонь больше чем
   // на FIRE_DETOUR (как и задумано в v438); иначе — путь через огонь: у края огня бот ждёт, пока погаснет (fireSafe, 540)
-  if(route && fires.length){ zoneDijkstra.fire = false; var r0 = zoneDijkstra(fz.id, tz.id, team); zoneDijkstra.fire = true;
+  if(route && fires.length){ var r0 = zoneDijkstra(fz.id, tz.id, team, Object.assign({}, ctx, {fire: false}));
     var rLen = function(R){ var L = 0, px = fromX, py = fromY; for(var ri = 0; ri < R.length-1; ri++){ var e = (zoneGraph[R[ri]]||[]).find(function(x){ return x.to === R[ri+1]; }); if(e && e.mid){ L += DM.hypot(e.mid.x-px, e.mid.y-py); px = e.mid.x; py = e.mid.y; } } return L + DM.hypot(toX-px, toY-py); };
     if(r0 && rLen(route) > rLen(r0) + FIRE_DETOUR) route = r0; }
   if(!route){ if(!NAV_GRID) navGridBuild();
     var alts = (NAV_GRID[Math.floor(toX/NAV_GRID_C)+","+Math.floor(toY/NAV_GRID_C)]||[]).map(function(i){ return NAVAREAS[i]; })
       .filter(function(a){ return a !== tz && !NAV_BLOCKED[a.id] && pointInPoly(toX, toY, a.points); }).sort(function(a, c){ return Math.abs(a.z - tLvl) - Math.abs(c.z - tLvl); });
-    for(var ai=0; ai<alts.length && !route; ai++){ route = zoneDijkstra(fz.id, alts[ai].id, team); if(route) tz = alts[ai]; } }
+    for(var ai=0; ai<alts.length && !route; ai++){ route = zoneDijkstra(fz.id, alts[ai].id, team, ctx); if(route) tz = alts[ai]; } }
   // (v375, отметка владельца: T0 на Tetris «застревает, его выкидывает, прыгает» — бомба лежала там, куда пути по навмешу нет;
   // раньше шёл по прямой к цели, в ящик/стену, и бился о него; сторож: «застой» с путём из одной точки) цели не достичь —
   // путь к ближайшему достижимому месту рядом с ней
-  if(!route){ zoneDijkstra.nearest = true; route = zoneDijkstra(fz.id, tz.id, team); zoneDijkstra.nearest = false;
+  if(!route){ route = zoneDijkstra(fz.id, tz.id, team, Object.assign({}, ctx, {nearest: true}));
     if(route && route[route.length-1] !== tz.id){ var lz = zonesById[route[route.length-1]]; if(lz){ var lc = zoneCentroid(lz); toX = lc.x; toY = lc.y; toZ = lz.z; tz = lz; } } }
-  zoneDijkstra.from = null; zoneDijkstra.toPt = null; zoneDijkstra.fire = false;
   if(!route) return [[toX,toY,toZ||0]]; // disconnected zones — direct line fallback rather than a stuck bot
   var corridor = [], cPair = [];   // cPair — участки по обе стороны перехода (v340)
   for(var i=0;i<route.length-1;i++){

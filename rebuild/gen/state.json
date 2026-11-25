@@ -3740,7 +3740,7 @@
    "snap": true
   },
   "LANE_W": {
-   "decl": "050_nav_rebuild_paths.js:570",
+   "decl": "050_nav_rebuild_paths.js:573",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -4054,7 +4054,7 @@
    "snap": true
   },
   "LU_AT": {
-   "decl": "380_nades_throw.js:468",
+   "decl": "380_nades_throw.js:472",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -4095,7 +4095,7 @@
    "snap": true
   },
   "LU_NEAR": {
-   "decl": "380_nades_throw.js:469",
+   "decl": "380_nades_throw.js:473",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -4615,7 +4615,7 @@
    "m": {},
    "r": {
     "366": 2,
-    "380": 16
+    "380": 18
    },
    "snap": "нет: STATIC"
   },
@@ -4871,7 +4871,7 @@
    "snap": true
   },
   "NADE_SPOT_R": {
-   "decl": "380_nades_throw.js:656",
+   "decl": "380_nades_throw.js:660",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -4881,7 +4881,7 @@
    "snap": true
   },
   "NADE_STILL_V": {
-   "decl": "380_nades_throw.js:454",
+   "decl": "380_nades_throw.js:458",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -5149,7 +5149,7 @@
    "snap": true
   },
   "NAV_DROP_STEP": {
-   "decl": "050_nav_rebuild_paths.js:581",
+   "decl": "050_nav_rebuild_paths.js:584",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -7079,7 +7079,7 @@
    "snap": true
   },
   "RUN_COS": {
-   "decl": "380_nades_throw.js:470",
+   "decl": "380_nades_throw.js:474",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -7100,7 +7100,7 @@
    "snap": true
   },
   "RUN_MARGIN": {
-   "decl": "380_nades_throw.js:471",
+   "decl": "380_nades_throw.js:475",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -7110,7 +7110,7 @@
    "snap": true
   },
   "RUN_NEAR": {
-   "decl": "380_nades_throw.js:471",
+   "decl": "380_nades_throw.js:475",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -7121,7 +7121,7 @@
    "snap": true
   },
   "RUN_OWN_A": {
-   "decl": "380_nades_throw.js:481",
+   "decl": "380_nades_throw.js:485",
    "init": "ArrayExpression",
    "w": {},
    "m": {},
@@ -7131,7 +7131,7 @@
    "snap": true
   },
   "RUN_PAST": {
-   "decl": "380_nades_throw.js:471",
+   "decl": "380_nades_throw.js:475",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -7141,7 +7141,7 @@
    "snap": true
   },
   "RUN_SEC": {
-   "decl": "380_nades_throw.js:471",
+   "decl": "380_nades_throw.js:475",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -7151,7 +7151,7 @@
    "snap": true
   },
   "RUN_STRAIGHT": {
-   "decl": "380_nades_throw.js:503",
+   "decl": "380_nades_throw.js:507",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -7161,7 +7161,7 @@
    "snap": true
   },
   "RUN_V": {
-   "decl": "380_nades_throw.js:470",
+   "decl": "380_nades_throw.js:474",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -9052,7 +9052,7 @@
    "snap": true
   },
   "WPM": {
-   "decl": "050_nav_rebuild_paths.js:609",
+   "decl": "050_nav_rebuild_paths.js:612",
    "init": "ObjectExpression",
    "w": {},
    "m": {
@@ -10216,7 +10216,8 @@
    "w": {
     "d3Draw2D · 625": 2,
     "rpWorldDraw · 675": 2,
-    "strafeKeysTick · 540": 1
+    "strafeKeysTick · 540": 1,
+    "zoneDijkstra · 050": 1
    },
    "m": {
     "(верх файла) · 570": 18,
@@ -10250,7 +10251,8 @@
     "625": 1,
     "670": 24,
     "675": 3,
-    "678": 34
+    "678": 34,
+    "050": 13
    },
    "snap": true
   },
@@ -14157,14 +14159,14 @@
   },
   "_nv": {
    "w": [
-    "380_nades_throw.js:449 nadeVelTrack"
+    "380_nades_throw.js:453 nadeVelTrack"
    ],
    "lit": [],
    "r": 2
   },
   "_nvP": {
    "w": [
-    "380_nades_throw.js:449 nadeVelTrack"
+    "380_nades_throw.js:453 nadeVelTrack"
    ],
    "lit": [],
    "r": 2
@@ -16001,9 +16003,9 @@
     "360_nades_buy_smoke_vision.js:37 (верх файла)",
     "366_exec_sync.js:127 exuReassign",
     "366_exec_sync.js:133 exuReassign",
-    "380_nades_throw.js:565 updateNadeTask1",
-    "380_nades_throw.js:571 updateNadeTask1",
-    "380_nades_throw.js:617 updateNadeTask1",
+    "380_nades_throw.js:569 updateNadeTask1",
+    "380_nades_throw.js:575 updateNadeTask1",
+    "380_nades_throw.js:621 updateNadeTask1",
     "390_nades_lineups.js:205 lineupTick",
     "420_nades_brains.js:250 nadeCancel",
     "420_nades_brains.js:254 resetNades"
@@ -16019,33 +16021,33 @@
     "366_exec_sync.js:131 exuReassign",
     "366_exec_sync.js:132 exuReassign",
     "380_nades_throw.js:399 assignNadeDo",
-    "380_nades_throw.js:437 nadeQueueNext",
-    "380_nades_throw.js:439 nadeQueueNext",
-    "380_nades_throw.js:519 runupTick",
-    "380_nades_throw.js:534 runupTick",
-    "380_nades_throw.js:546 runupTick",
-    "380_nades_throw.js:548 runupTick",
-    "380_nades_throw.js:554 updateNadeTask1",
-    "380_nades_throw.js:561 updateNadeTask1",
+    "380_nades_throw.js:441 nadeQueueNext",
+    "380_nades_throw.js:443 nadeQueueNext",
+    "380_nades_throw.js:523 runupTick",
+    "380_nades_throw.js:538 runupTick",
+    "380_nades_throw.js:550 runupTick",
+    "380_nades_throw.js:552 runupTick",
+    "380_nades_throw.js:558 updateNadeTask1",
     "380_nades_throw.js:565 updateNadeTask1",
-    "380_nades_throw.js:566 updateNadeTask1",
-    "380_nades_throw.js:567 updateNadeTask1",
+    "380_nades_throw.js:569 updateNadeTask1",
+    "380_nades_throw.js:570 updateNadeTask1",
     "380_nades_throw.js:571 updateNadeTask1",
-    "380_nades_throw.js:574 updateNadeTask1",
-    "380_nades_throw.js:599 updateNadeTask1",
-    "380_nades_throw.js:617 updateNadeTask1",
-    "380_nades_throw.js:631 updateNadeTask1",
-    "380_nades_throw.js:636 updateNadeTask1",
-    "380_nades_throw.js:643 updateNadeTask1",
-    "380_nades_throw.js:645 updateNadeTask1",
-    "380_nades_throw.js:648 updateNadeTask1",
+    "380_nades_throw.js:575 updateNadeTask1",
+    "380_nades_throw.js:578 updateNadeTask1",
+    "380_nades_throw.js:603 updateNadeTask1",
+    "380_nades_throw.js:621 updateNadeTask1",
+    "380_nades_throw.js:635 updateNadeTask1",
+    "380_nades_throw.js:640 updateNadeTask1",
+    "380_nades_throw.js:647 updateNadeTask1",
+    "380_nades_throw.js:649 updateNadeTask1",
+    "380_nades_throw.js:652 updateNadeTask1",
     "390_nades_lineups.js:202 lineupTick",
     "390_nades_lineups.js:264 lineupTick",
     "420_nades_brains.js:250 nadeCancel",
     "420_nades_brains.js:254 resetNades"
    ],
    "lit": [],
-   "r": 105
+   "r": 106
   },
   "nades": {
    "w": [
@@ -16823,38 +16825,6 @@
   "teamDbgPanel._t": {
    "w": [
     "612_team_debug.js:71 teamDbgPanel"
-   ]
-  },
-  "zoneDijkstra.fire": {
-   "w": [
-    "050_nav_rebuild_paths.js:644 buildWaypointPath0",
-    "050_nav_rebuild_paths.js:649 buildWaypointPath0",
-    "050_nav_rebuild_paths.js:649 buildWaypointPath0",
-    "050_nav_rebuild_paths.js:661 buildWaypointPath0"
-   ]
-  },
-  "zoneDijkstra.from": {
-   "w": [
-    "050_nav_rebuild_paths.js:644 buildWaypointPath0",
-    "050_nav_rebuild_paths.js:661 buildWaypointPath0"
-   ]
-  },
-  "zoneDijkstra.nearest": {
-   "w": [
-    "050_nav_rebuild_paths.js:659 buildWaypointPath0",
-    "050_nav_rebuild_paths.js:659 buildWaypointPath0"
-   ]
-  },
-  "zoneDijkstra.quiet": {
-   "w": [
-    "050_nav_rebuild_paths.js:612 buildWaypointPath",
-    "050_nav_rebuild_paths.js:612 buildWaypointPath"
-   ]
-  },
-  "zoneDijkstra.toPt": {
-   "w": [
-    "050_nav_rebuild_paths.js:644 buildWaypointPath0",
-    "050_nav_rebuild_paths.js:661 buildWaypointPath0"
    ]
   }
  }
