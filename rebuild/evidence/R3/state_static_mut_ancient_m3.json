@@ -1,0 +1,33 @@
+{
+ "sim": "ancient.html",
+ "match": 3,
+ "points": {
+  "20000": {
+   "added": {
+    "MAP .zid": 46,
+    "MAP ._npz": 2,
+    "zoneGraph ._jcq": 4674,
+    "zoneGraph ._jcf": 565
+   },
+   "changed": {}
+  },
+  "45000": {
+   "added": {
+    "MAP .zid": 46,
+    "MAP ._npz": 2,
+    "zoneGraph ._jcq": 4847,
+    "zoneGraph ._jcf": 760
+   },
+   "changed": {}
+  },
+  "70000": {
+   "added": {
+    "MAP .zid": 46,
+    "MAP ._npz": 2,
+    "zoneGraph ._jcq": 4943,
+    "zoneGraph ._jcf": 828
+   },
+   "changed": {}
+  }
+ }
+}

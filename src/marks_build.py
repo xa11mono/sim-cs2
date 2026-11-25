@@ -76,4 +76,6 @@ def inject(s):
     keep = sorted(k[2:] for k, o in REG.items() if k.startswith('g:') and o.get('class') in ('постоянная память', 'серия'))
     # (Т-1б) корни неизменяемых данных, на объекты которых ссылается состояние (реестр, колонка refs) — снимок пишет такие ссылки путём
     roots = sorted(set(r for k, o in REG.items() if not k.startswith('_') for r in (o.get('refs') or [])))
-    return s.replace(MARK, snap + 'var MK_BUILD = "%s";\nvar MK_KEEP = %s, MK_REF_ROOTS = %s;\n' % (build, json.dumps(keep), json.dumps(roots)) + mod)
+    # (Т-1б) поля-кэши, которые игра дописывает в объекты этих корней (реестр, строки f:корень.поле) — снимок несёт их (marks.js mkSnapExt)
+    sf = sorted(set(k.split('.', 1)[1] for k in REG if k.startswith('f:')))
+    return s.replace(MARK, snap + 'var MK_BUILD = "%s";\nvar MK_KEEP = %s, MK_REF_ROOTS = %s, MK_STATIC_FIELDS = %s;\n' % (build, json.dumps(keep), json.dumps(roots), json.dumps(sf)) + mod)

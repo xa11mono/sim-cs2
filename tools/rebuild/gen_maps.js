@@ -356,7 +356,7 @@ if (CHECK) {
   let SC = null; try { SC = JSON.parse(fs.readFileSync(path.join(ROOT, "rebuild", "state_classes.json"), "utf8")); } catch (e) { console.error("ОШИБКА реестра состояния: нет rebuild/state_classes.json"); process.exit(1); }
   const N = stateNames(), want = new Set(N.g.map(n => "g:" + n).concat(N.b.map(n => "b:" + n), N.h.map(n => "h:" + n))), CL = new Set(SC._classes || []), E = [];
   for (const k of want) if (!SC[k]) E.push("нет строки " + k + " — новая переменная / поле бота: python3 tools/rebuild/state_classes.py, затем разметка");
-  for (const [k, o] of Object.entries(SC)) { if (k[0] === "_") continue;
+  for (const [k, o] of Object.entries(SC)) { if (k[0] === "_" || k.startsWith("f:")) continue;   // f: — поля-кэши в данных, из опыта (state_static_mut.js), не из разбора кода
     if (!want.has(k) || o.gone) E.push("строка " + k + " — такого имени в коде больше нет: убрать из реестра (state_classes.py)");
     else if (!CL.has(o.class)) E.push("строка " + k + ": класс «" + o.class + "» не из списка _classes");
     else if (!o.snap || !o.cmp) E.push("строка " + k + ": нет политики снимка (snap) или сравнения (cmp) — реестр пересчитан не тем скриптом?"); }

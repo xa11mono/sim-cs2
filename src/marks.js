@@ -89,7 +89,21 @@ function mkSnapExt(){
   var G = nadeGuessStore.all(), base = (MAP.nadeguess && MAP.nadeguess.g) || {}, own = {}, k, live = {};
   for(k in G) if(!(k in base) || base[k] !== G[k]) own[k] = G[k];
   for(k in PATHQ){ var q = PATHQ[k]; if(q && tick - q.t <= PATHQ_TTL && q.t <= tick) live[k] = q; }
-  return {guess: own, rt: nadeGuess.rt, pathq: live, pathqN: PATHQ_N};
+  return {guess: own, rt: nadeGuess.rt, pathq: live, pathqN: PATHQ_N, sf: mkStaticFields()};
+}
+// (Т-1б) поля-кэши, которые игра дописывает в объекты неизменяемых данных (MK_STATIC_FIELDS — из реестра, строки f:): [путь объекта, поле, значение]
+function mkStaticFields(){
+  if(typeof MK_STATIC_FIELDS === "undefined" || !MK_STATIC_FIELDS.length) return null;
+  var I = mkRefIndex(), out = [];
+  I.m.forEach(function(e, x){ for(var i = 0; i < MK_STATIC_FIELDS.length; i++){ var f = MK_STATIC_FIELDS[i];
+    if(Object.prototype.hasOwnProperty.call(x, f)) out.push([mkRefPath(I, e), f, x[f]]); } });
+  return out;
+}
+function mkStaticFieldsRestore(sf){
+  if(!sf || typeof MK_STATIC_FIELDS === "undefined") return;
+  var I = mkRefIndex();
+  I.m.forEach(function(e, x){ for(var i = 0; i < MK_STATIC_FIELDS.length; i++) if(Object.prototype.hasOwnProperty.call(x, MK_STATIC_FIELDS[i])) delete x[MK_STATIC_FIELDS[i]]; });
+  sf.forEach(function(r){ var p = r[0], o; try{ o = eval(p[0]); for(var j = 1; j < p.length && o != null; j++) o = o[p[j]]; }catch(e){ o = null; } if(o && typeof o === "object") o[r[1]] = r[2]; });
 }
 function mkExtRestore(x){
   if(!x) return;
@@ -97,6 +111,7 @@ function mkExtRestore(x){
   for(k in G) delete G[k]; for(k in base) G[k] = base[k]; for(k in x.guess) G[k] = x.guess[k];
   var R = nadeGuess.rt; for(k in R) delete R[k]; for(k in x.rt) R[k] = x.rt[k];
   PATHQ = x.pathq; PATHQ_N = x.pathqN;
+  if(x.sf) mkStaticFieldsRestore(x.sf);
 }
 // граф связей → состояние снимка: Lp — вырезанные связи страницы до восстановления, NAV_UNLINKED — уже из снимка. Общая история —
 // одинаковое начало списков; вырезанное страницей позже — вернуть (ребро и место хранит запись, 370 navUnlinkBlocked), вырезанное в снимке

@@ -34,6 +34,10 @@ for f in sorted(glob.glob(os.path.join(ROOT, 'rebuild', 'evidence', 'R3', 'state
 REFS = {}   # общие ссылки на неизменяемые данные (tools/rebuild/state_refs.js → rebuild/evidence/R3/state_refs_*.json): держатель → корни
 for f in sorted(glob.glob(os.path.join(ROOT, 'rebuild', 'evidence', 'R3', 'state_refs_*.json'))):
     for who, R in json.load(open(f, encoding='utf-8'))['holders'].items(): REFS.setdefault(who, set()).update(R)
+SMUT = {}   # поля, которые игра дописывает в объекты неизменяемых данных (tools/rebuild/state_static_mut.js): «корень .поле» → сколько
+for f in sorted(glob.glob(os.path.join(ROOT, 'rebuild', 'evidence', 'R3', 'state_static_mut_*.json'))):
+    for pt in json.load(open(f, encoding='utf-8'))['points'].values():
+        for k, n in list(pt['added'].items()) + list(pt['changed'].items()): SMUT[k] = max(SMUT.get(k, 0), n)
 STAMP = re.compile(r'(T|T0|Next|Until|At|Cd|Tick|Since)$')
 def changed(kind, n):
     return [p for r in RUN for p in (r[kind].get(n) or {}).get('changed', [])]
@@ -125,6 +129,12 @@ def main():
         if key[0] == 'h': o['snap'] = 'нет: свойство функции — вне переменных снимка'; continue
         m = ST['globals'][key[2:]].get('snap')
         o['snap'] = 'да' if m is True or m is None else 'нет: ' + str(m)
+    # (Т-1б) поля-кэши в неизменяемых данных (опыт): строки f:корень.поле — снимок несёт их у объектов корней (marks.js mkSnapExt)
+    for k, n in SMUT.items():
+        root, fld = k.split(' .'); key = 'f:' + root + '.' + fld
+        o = old.get(key) if old.get(key, {}).get('src') == 'ручная' else None
+        out[key] = o or {'class': 'кэш', 'owner': '', 'life': 'страница (ленивое поле в данных)', 'snap': 'да: __ext.sf (Т-1б)', 'cmp': 'да', 'src': 'правило',
+                          'why': 'опыт: игра дописывает поле .%s в объекты %s по ходу матча (до %d объектов) — ленивый кэш в «неизменяемых» данных' % (fld, root, n)}
     # (Т-1б) refs — на какие корни вне снимка ссылается значение (опыт); снимок пишет такие ссылки путём (marks.js mkSnapRefs)
     for key, o in out.items():
         if key in REFS: o['refs'] = sorted(REFS[key])
