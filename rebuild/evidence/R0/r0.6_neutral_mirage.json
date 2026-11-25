@@ -1,0 +1,11 @@
+{
+ "sim": "/tmp/claude-0/-home-user-sim-cs2/83f1975d-d3f7-5e99-871b-83ba561ce111/scratchpad/sim_mirage_ev.html",
+ "match": 3,
+ "ticks": 8000,
+ "neutral": {
+  "withInv": 2979204001,
+  "without": 2979204001,
+  "same": true,
+  "tick": 8000
+ }
+}

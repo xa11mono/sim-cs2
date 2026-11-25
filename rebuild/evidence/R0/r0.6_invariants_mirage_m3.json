@@ -1,0 +1,2170 @@
+{
+ "sim": "/tmp/claude-0/-home-user-sim-cs2/83f1975d-d3f7-5e99-871b-83ba561ce111/scratchpad/sim_mirage_ev.html",
+ "match": 3,
+ "ticks": 20000,
+ "endTick": 20000,
+ "round": 4,
+ "evErrs": [],
+ "inv": {
+  "I-01": {
+   "n": 0,
+   "eps": []
+  },
+  "I-02": {
+   "n": 36,
+   "eps": [
+    {
+     "tick": 960,
+     "round": 1,
+     "bot": "CT0",
+     "data": {
+      "post": null,
+      "state": "patrol"
+     }
+    },
+    {
+     "tick": 960,
+     "round": 1,
+     "bot": "CT1",
+     "data": {
+      "post": null,
+      "state": "patrol"
+     }
+    },
+    {
+     "tick": 960,
+     "round": 1,
+     "bot": "CT2",
+     "data": {
+      "post": null,
+      "state": "patrol"
+     }
+    },
+    {
+     "tick": 960,
+     "round": 1,
+     "bot": "CT3",
+     "data": {
+      "post": null,
+      "state": "patrol"
+     }
+    },
+    {
+     "tick": 960,
+     "round": 1,
+     "bot": "CT4",
+     "data": {
+      "post": null,
+      "state": "patrol"
+     }
+    },
+    {
+     "tick": 960,
+     "round": 1,
+     "bot": "T0",
+     "data": {
+      "post": null,
+      "state": "patrol"
+     }
+    },
+    {
+     "tick": 960,
+     "round": 1,
+     "bot": "T1",
+     "data": {
+      "post": null,
+      "state": "patrol"
+     }
+    },
+    {
+     "tick": 960,
+     "round": 1,
+     "bot": "T2",
+     "data": {
+      "post": null,
+      "state": "patrol"
+     }
+    },
+    {
+     "tick": 960,
+     "round": 1,
+     "bot": "T3",
+     "data": {
+      "post": null,
+      "state": "patrol"
+     }
+    },
+    {
+     "tick": 960,
+     "round": 1,
+     "bot": "T4",
+     "data": {
+      "post": null,
+      "state": "patrol"
+     }
+    },
+    {
+     "tick": 2911,
+     "round": 1,
+     "bot": "CT4",
+     "data": {
+      "post": "probeInfo",
+      "state": "patrol"
+     }
+    },
+    {
+     "tick": 2912,
+     "round": 1,
+     "bot": "CT4",
+     "data": {
+      "post": "probeInfo",
+      "state": "patrol"
+     }
+    },
+    {
+     "tick": 2913,
+     "round": 1,
+     "bot": "CT4",
+     "data": {
+      "post": "probeInfo",
+      "state": "patrol"
+     }
+    },
+    {
+     "tick": 2914,
+     "round": 1,
+     "bot": "CT4",
+     "data": {
+      "post": "probeInfo",
+      "state": "patrol"
+     }
+    },
+    {
+     "tick": 2915,
+     "round": 1,
+     "bot": "CT4",
+     "data": {
+      "post": "probeInfo",
+      "state": "patrol"
+     }
+    },
+    {
+     "tick": 2916,
+     "round": 1,
+     "bot": "CT4",
+     "data": {
+      "post": "probeInfo",
+      "state": "patrol"
+     }
+    },
+    {
+     "tick": 2917,
+     "round": 1,
+     "bot": "CT4",
+     "data": {
+      "post": "probeInfo",
+      "state": "patrol"
+     }
+    },
+    {
+     "tick": 2918,
+     "round": 1,
+     "bot": "CT4",
+     "data": {
+      "post": "probeInfo",
+      "state": "patrol"
+     }
+    },
+    {
+     "tick": 2919,
+     "round": 1,
+     "bot": "CT4",
+     "data": {
+      "post": "probeInfo",
+      "state": "patrol"
+     }
+    },
+    {
+     "tick": 2920,
+     "round": 1,
+     "bot": "CT4",
+     "data": {
+      "post": "probeInfo",
+      "state": "patrol"
+     }
+    }
+   ]
+  },
+  "I-03": {
+   "n": 272,
+   "eps": [
+    {
+     "tick": 3886,
+     "round": 1,
+     "bot": "CT2",
+     "data": {
+      "walking": false,
+      "why": "видел врага рядом"
+     }
+    },
+    {
+     "tick": 3887,
+     "round": 1,
+     "bot": "CT2",
+     "data": {
+      "walking": false,
+      "why": "видел врага рядом"
+     }
+    },
+    {
+     "tick": 3888,
+     "round": 1,
+     "bot": "CT2",
+     "data": {
+      "walking": false,
+      "why": "видел врага рядом"
+     }
+    },
+    {
+     "tick": 3889,
+     "round": 1,
+     "bot": "CT2",
+     "data": {
+      "walking": false,
+      "why": "видел врага рядом"
+     }
+    },
+    {
+     "tick": 3890,
+     "round": 1,
+     "bot": "CT2",
+     "data": {
+      "walking": false,
+      "why": "видел врага рядом"
+     }
+    },
+    {
+     "tick": 3891,
+     "round": 1,
+     "bot": "CT2",
+     "data": {
+      "walking": false,
+      "why": "видел врага рядом"
+     }
+    },
+    {
+     "tick": 3892,
+     "round": 1,
+     "bot": "CT2",
+     "data": {
+      "walking": false,
+      "why": "видел врага рядом"
+     }
+    },
+    {
+     "tick": 7339,
+     "round": 2,
+     "bot": "CT2",
+     "data": {
+      "walking": false,
+      "why": "опасное место"
+     }
+    },
+    {
+     "tick": 7340,
+     "round": 2,
+     "bot": "CT2",
+     "data": {
+      "walking": false,
+      "why": "опасное место"
+     }
+    },
+    {
+     "tick": 7341,
+     "round": 2,
+     "bot": "CT2",
+     "data": {
+      "walking": false,
+      "why": "опасное место"
+     }
+    },
+    {
+     "tick": 7342,
+     "round": 2,
+     "bot": "CT2",
+     "data": {
+      "walking": false,
+      "why": "опасное место"
+     }
+    },
+    {
+     "tick": 7343,
+     "round": 2,
+     "bot": "CT2",
+     "data": {
+      "walking": false,
+      "why": "опасное место"
+     }
+    },
+    {
+     "tick": 7344,
+     "round": 2,
+     "bot": "CT2",
+     "data": {
+      "walking": false,
+      "why": "опасное место"
+     }
+    },
+    {
+     "tick": 7345,
+     "round": 2,
+     "bot": "CT2",
+     "data": {
+      "walking": false,
+      "why": "опасное место"
+     }
+    },
+    {
+     "tick": 7346,
+     "round": 2,
+     "bot": "CT2",
+     "data": {
+      "walking": false,
+      "why": "опасное место"
+     }
+    },
+    {
+     "tick": 7347,
+     "round": 2,
+     "bot": "CT2",
+     "data": {
+      "walking": false,
+      "why": "опасное место"
+     }
+    },
+    {
+     "tick": 7348,
+     "round": 2,
+     "bot": "CT2",
+     "data": {
+      "walking": false,
+      "why": "опасное место"
+     }
+    },
+    {
+     "tick": 7349,
+     "round": 2,
+     "bot": "CT2",
+     "data": {
+      "walking": false,
+      "why": "опасное место"
+     }
+    },
+    {
+     "tick": 7350,
+     "round": 2,
+     "bot": "CT2",
+     "data": {
+      "walking": false,
+      "why": "опасное место"
+     }
+    },
+    {
+     "tick": 7351,
+     "round": 2,
+     "bot": "CT2",
+     "data": {
+      "walking": false,
+      "why": "опасное место"
+     }
+    }
+   ]
+  },
+  "I-04": {
+   "n": 0,
+   "eps": []
+  },
+  "I-05": {
+   "n": 263,
+   "eps": [
+    {
+     "tick": 2126,
+     "round": 1,
+     "bot": "T2",
+     "data": {
+      "post": "repos:fallback"
+     }
+    },
+    {
+     "tick": 2127,
+     "round": 1,
+     "bot": "T2",
+     "data": {
+      "post": "repos:fallback"
+     }
+    },
+    {
+     "tick": 2128,
+     "round": 1,
+     "bot": "T2",
+     "data": {
+      "post": "repos:fallback"
+     }
+    },
+    {
+     "tick": 2129,
+     "round": 1,
+     "bot": "T2",
+     "data": {
+      "post": "repos:fallback"
+     }
+    },
+    {
+     "tick": 2130,
+     "round": 1,
+     "bot": "T2",
+     "data": {
+      "post": "repos:fallback"
+     }
+    },
+    {
+     "tick": 2131,
+     "round": 1,
+     "bot": "T2",
+     "data": {
+      "post": "repos:fallback"
+     }
+    },
+    {
+     "tick": 2132,
+     "round": 1,
+     "bot": "T2",
+     "data": {
+      "post": "repos:fallback"
+     }
+    },
+    {
+     "tick": 2133,
+     "round": 1,
+     "bot": "T2",
+     "data": {
+      "post": "repos:fallback"
+     }
+    },
+    {
+     "tick": 2134,
+     "round": 1,
+     "bot": "T2",
+     "data": {
+      "post": "repos:fallback"
+     }
+    },
+    {
+     "tick": 2135,
+     "round": 1,
+     "bot": "T2",
+     "data": {
+      "post": "repos:fallback"
+     }
+    },
+    {
+     "tick": 2136,
+     "round": 1,
+     "bot": "T2",
+     "data": {
+      "post": "repos:fallback"
+     }
+    },
+    {
+     "tick": 2137,
+     "round": 1,
+     "bot": "T2",
+     "data": {
+      "post": "repos:fallback"
+     }
+    },
+    {
+     "tick": 2138,
+     "round": 1,
+     "bot": "T2",
+     "data": {
+      "post": "repos:fallback"
+     }
+    },
+    {
+     "tick": 2139,
+     "round": 1,
+     "bot": "T2",
+     "data": {
+      "post": "repos:fallback"
+     }
+    },
+    {
+     "tick": 2140,
+     "round": 1,
+     "bot": "T2",
+     "data": {
+      "post": "repos:fallback"
+     }
+    },
+    {
+     "tick": 2141,
+     "round": 1,
+     "bot": "T2",
+     "data": {
+      "post": "repos:fallback"
+     }
+    },
+    {
+     "tick": 2142,
+     "round": 1,
+     "bot": "T2",
+     "data": {
+      "post": "repos:fallback"
+     }
+    },
+    {
+     "tick": 2143,
+     "round": 1,
+     "bot": "T2",
+     "data": {
+      "post": "repos:fallback"
+     }
+    },
+    {
+     "tick": 2144,
+     "round": 1,
+     "bot": "T2",
+     "data": {
+      "post": "repos:fallback"
+     }
+    },
+    {
+     "tick": 2145,
+     "round": 1,
+     "bot": "T2",
+     "data": {
+      "post": "repos:fallback"
+     }
+    }
+   ]
+  },
+  "I-06": {
+   "n": 0,
+   "eps": []
+  },
+  "I-07": {
+   "n": 0,
+   "eps": [],
+   "hist": {
+    "tmid": 438,
+    "set": 421,
+    "stackA": 421,
+    "lineup": 640,
+    "anchor": 2574,
+    "lurkStageA": 310,
+    "rotate": 223,
+    "probeM": 129,
+    "repos": 2,
+    "fill": 1,
+    "stageB": 477,
+    "midcover": 1,
+    "mid": 930,
+    "clearB": 99,
+    "siteholdB": 173,
+    "tradeB": 75,
+    "endhunt": 176,
+    "postplant": 688,
+    "gather": 616,
+    "contact": 1,
+    "hunt": 96,
+    "default": 415,
+    "after": 175,
+    "coverplant": 7,
+    "retakeEntry": 170,
+    "retakeCover": 88,
+    "retake": 117,
+    "backstab": 17,
+    "ambush": 1,
+    "route": 226,
+    "rebalA": 1,
+    "rotator": 96,
+    "probeB": 53,
+    "stageA": 816,
+    "smokeWait": 1,
+    "probeA": 29,
+    "fakeA": 212,
+    "rotateHold": 309,
+    "siteholdA": 245,
+    "tradeR": 1,
+    "gatherSolo": 96
+   }
+  },
+  "I-08": {
+   "n": 1077,
+   "eps": [
+    {
+     "tick": 1428,
+     "round": 1,
+     "bot": "CT3",
+     "data": {
+      "x": 864,
+      "y": 920,
+      "z": -132
+     }
+    },
+    {
+     "tick": 2214,
+     "round": 1,
+     "bot": "CT2",
+     "data": {
+      "x": 700,
+      "y": 1052,
+      "z": -180.50958378882189
+     }
+    },
+    {
+     "tick": 2766,
+     "round": 1,
+     "bot": "CT4",
+     "data": {
+      "x": 1145,
+      "y": 1314,
+      "z": -40.59375
+     }
+    },
+    {
+     "tick": 2767,
+     "round": 1,
+     "bot": "CT4",
+     "data": {
+      "x": 1147,
+      "y": 1314,
+      "z": -40.8125
+     }
+    },
+    {
+     "tick": 2768,
+     "round": 1,
+     "bot": "CT4",
+     "data": {
+      "x": 1148,
+      "y": 1314,
+      "z": -41.03125
+     }
+    },
+    {
+     "tick": 2769,
+     "round": 1,
+     "bot": "CT4",
+     "data": {
+      "x": 1150,
+      "y": 1314,
+      "z": -41.25
+     }
+    },
+    {
+     "tick": 2770,
+     "round": 1,
+     "bot": "CT4",
+     "data": {
+      "x": 1151,
+      "y": 1314,
+      "z": -41.46875
+     }
+    },
+    {
+     "tick": 2771,
+     "round": 1,
+     "bot": "CT4",
+     "data": {
+      "x": 1153,
+      "y": 1314,
+      "z": -41.6875
+     }
+    },
+    {
+     "tick": 2772,
+     "round": 1,
+     "bot": "CT4",
+     "data": {
+      "x": 1154,
+      "y": 1314,
+      "z": -41.90625
+     }
+    },
+    {
+     "tick": 2773,
+     "round": 1,
+     "bot": "CT4",
+     "data": {
+      "x": 1156,
+      "y": 1314,
+      "z": -42.125
+     }
+    },
+    {
+     "tick": 2774,
+     "round": 1,
+     "bot": "CT4",
+     "data": {
+      "x": 1157,
+      "y": 1313,
+      "z": -42.34375
+     }
+    },
+    {
+     "tick": 2775,
+     "round": 1,
+     "bot": "CT4",
+     "data": {
+      "x": 1158,
+      "y": 1313,
+      "z": -42.5625
+     }
+    },
+    {
+     "tick": 2776,
+     "round": 1,
+     "bot": "CT4",
+     "data": {
+      "x": 1160,
+      "y": 1313,
+      "z": -42.78125
+     }
+    },
+    {
+     "tick": 2777,
+     "round": 1,
+     "bot": "CT4",
+     "data": {
+      "x": 1161,
+      "y": 1313,
+      "z": -43
+     }
+    },
+    {
+     "tick": 2778,
+     "round": 1,
+     "bot": "CT4",
+     "data": {
+      "x": 1163,
+      "y": 1313,
+      "z": -43.21875
+     }
+    },
+    {
+     "tick": 2779,
+     "round": 1,
+     "bot": "CT4",
+     "data": {
+      "x": 1164,
+      "y": 1313,
+      "z": -43.4375
+     }
+    },
+    {
+     "tick": 2780,
+     "round": 1,
+     "bot": "CT4",
+     "data": {
+      "x": 1166,
+      "y": 1313,
+      "z": -43.65625
+     }
+    },
+    {
+     "tick": 2781,
+     "round": 1,
+     "bot": "CT4",
+     "data": {
+      "x": 1167,
+      "y": 1313,
+      "z": -43.875
+     }
+    },
+    {
+     "tick": 2782,
+     "round": 1,
+     "bot": "CT4",
+     "data": {
+      "x": 1169,
+      "y": 1313,
+      "z": -44.09375
+     }
+    },
+    {
+     "tick": 2783,
+     "round": 1,
+     "bot": "CT4",
+     "data": {
+      "x": 1170,
+      "y": 1313,
+      "z": -44.3125
+     }
+    }
+   ]
+  },
+  "I-09": {
+   "n": 14,
+   "eps": [
+    {
+     "tick": 11909,
+     "round": 3,
+     "bot": "CT4",
+     "data": {
+      "text": "перенос на 15 px"
+     }
+    },
+    {
+     "tick": 12006,
+     "round": 3,
+     "bot": "CT4",
+     "data": {
+      "text": "перенос на 14 px"
+     }
+    },
+    {
+     "tick": 12063,
+     "round": 3,
+     "bot": "CT4",
+     "data": {
+      "text": "перенос на 13 px"
+     }
+    },
+    {
+     "tick": 12117,
+     "round": 3,
+     "bot": "CT4",
+     "data": {
+      "text": "перенос на 15 px"
+     }
+    },
+    {
+     "tick": 12191,
+     "round": 3,
+     "bot": "CT4",
+     "data": {
+      "text": "перенос на 13 px"
+     }
+    },
+    {
+     "tick": 12255,
+     "round": 3,
+     "bot": "CT4",
+     "data": {
+      "text": "перенос на 15 px"
+     }
+    },
+    {
+     "tick": 12318,
+     "round": 3,
+     "bot": "CT4",
+     "data": {
+      "text": "перенос на 15 px"
+     }
+    },
+    {
+     "tick": 12389,
+     "round": 3,
+     "bot": "CT4",
+     "data": {
+      "text": "перенос на 15 px"
+     }
+    },
+    {
+     "tick": 12458,
+     "round": 3,
+     "bot": "CT4",
+     "data": {
+      "text": "перенос на 15 px"
+     }
+    },
+    {
+     "tick": 12529,
+     "round": 3,
+     "bot": "CT4",
+     "data": {
+      "text": "перенос на 15 px"
+     }
+    },
+    {
+     "tick": 12600,
+     "round": 3,
+     "bot": "CT4",
+     "data": {
+      "text": "перенос на 15 px"
+     }
+    },
+    {
+     "tick": 12667,
+     "round": 3,
+     "bot": "CT4",
+     "data": {
+      "text": "перенос на 15 px"
+     }
+    },
+    {
+     "tick": 13847,
+     "round": 3,
+     "bot": "T4",
+     "data": {
+      "text": "перенос на 43 px"
+     }
+    },
+    {
+     "tick": 15469,
+     "round": 3,
+     "bot": "T1",
+     "data": {
+      "text": "перенос на 42 px"
+     }
+    }
+   ]
+  },
+  "I-10": {
+   "n": 0,
+   "eps": []
+  },
+  "I-11": {
+   "n": 5,
+   "eps": [
+    {
+     "tick": 7854,
+     "round": 2,
+     "bot": "CT1",
+     "data": {
+      "from": [
+       1010,
+       1040
+      ],
+      "z": [
+       -164.09765625,
+       -164.390625
+      ],
+      "why": "пауза: подбор броска — в следующем тике"
+     }
+    },
+    {
+     "tick": 7855,
+     "round": 2,
+     "bot": "CT1",
+     "data": {
+      "from": [
+       1010,
+       1040
+      ],
+      "z": [
+       -164.390625,
+       -164.87890625
+      ],
+      "why": "пауза: подбор броска — в следующем тике"
+     }
+    },
+    {
+     "tick": 7856,
+     "round": 2,
+     "bot": "CT1",
+     "data": {
+      "from": [
+       1010,
+       1040
+      ],
+      "z": [
+       -164.87890625,
+       -165.5625
+      ],
+      "why": "пауза: подбор броска — в следующем тике"
+     }
+    },
+    {
+     "tick": 7857,
+     "round": 2,
+     "bot": "CT1",
+     "data": {
+      "from": [
+       1010,
+       1040
+      ],
+      "z": [
+       -165.5625,
+       -166.44140625
+      ],
+      "why": "пауза: подбор броска — в следующем тике"
+     }
+    },
+    {
+     "tick": 7858,
+     "round": 2,
+     "bot": "CT1",
+     "data": {
+      "from": [
+       1010,
+       1040
+      ],
+      "z": [
+       -166.44140625,
+       -167.515625
+      ],
+      "why": "пауза: подбор броска — в следующем тике"
+     }
+    }
+   ]
+  },
+  "I-12": {
+   "n": 3,
+   "eps": [
+    {
+     "tick": 7856,
+     "round": 2,
+     "bot": "CT1",
+     "data": {
+      "n": 4,
+      "why": "пауза: подбор броска — в следующем тике"
+     }
+    },
+    {
+     "tick": 7857,
+     "round": 2,
+     "bot": "CT1",
+     "data": {
+      "n": 5,
+      "why": "пауза: подбор броска — в следующем тике"
+     }
+    },
+    {
+     "tick": 7858,
+     "round": 2,
+     "bot": "CT1",
+     "data": {
+      "n": 6,
+      "why": "пауза: подбор броска — в следующем тике"
+     }
+    }
+   ]
+  },
+  "I-13": {
+   "n": 209,
+   "eps": [
+    {
+     "tick": 961,
+     "round": 1,
+     "bot": null,
+     "data": {
+      "ms": 467,
+      "nadeTasks": 0
+     }
+    },
+    {
+     "tick": 980,
+     "round": 1,
+     "bot": null,
+     "data": {
+      "ms": 381,
+      "nadeTasks": 1
+     }
+    },
+    {
+     "tick": 981,
+     "round": 1,
+     "bot": null,
+     "data": {
+      "ms": 171,
+      "nadeTasks": 1
+     }
+    },
+    {
+     "tick": 1082,
+     "round": 1,
+     "bot": null,
+     "data": {
+      "ms": 50,
+      "nadeTasks": 0
+     }
+    },
+    {
+     "tick": 1238,
+     "round": 1,
+     "bot": null,
+     "data": {
+      "ms": 86,
+      "nadeTasks": 0
+     }
+    },
+    {
+     "tick": 1660,
+     "round": 1,
+     "bot": null,
+     "data": {
+      "ms": 92,
+      "nadeTasks": 0
+     }
+    },
+    {
+     "tick": 2136,
+     "round": 1,
+     "bot": null,
+     "data": {
+      "ms": 65,
+      "nadeTasks": 0
+     }
+    },
+    {
+     "tick": 2656,
+     "round": 1,
+     "bot": null,
+     "data": {
+      "ms": 52,
+      "nadeTasks": 0
+     }
+    },
+    {
+     "tick": 3575,
+     "round": 1,
+     "bot": null,
+     "data": {
+      "ms": 291,
+      "nadeTasks": 1
+     }
+    },
+    {
+     "tick": 3657,
+     "round": 1,
+     "bot": null,
+     "data": {
+      "ms": 162,
+      "nadeTasks": 1
+     }
+    },
+    {
+     "tick": 3830,
+     "round": 1,
+     "bot": null,
+     "data": {
+      "ms": 75,
+      "nadeTasks": 1
+     }
+    },
+    {
+     "tick": 4766,
+     "round": 1,
+     "bot": null,
+     "data": {
+      "ms": 97,
+      "nadeTasks": 0
+     }
+    },
+    {
+     "tick": 6643,
+     "round": 2,
+     "bot": null,
+     "data": {
+      "ms": 100,
+      "nadeTasks": 0
+     }
+    },
+    {
+     "tick": 6662,
+     "round": 2,
+     "bot": null,
+     "data": {
+      "ms": 293,
+      "nadeTasks": 1
+     }
+    },
+    {
+     "tick": 7215,
+     "round": 2,
+     "bot": null,
+     "data": {
+      "ms": 130,
+      "nadeTasks": 1
+     }
+    },
+    {
+     "tick": 7216,
+     "round": 2,
+     "bot": null,
+     "data": {
+      "ms": 62,
+      "nadeTasks": 0
+     }
+    },
+    {
+     "tick": 7456,
+     "round": 2,
+     "bot": null,
+     "data": {
+      "ms": 57,
+      "nadeTasks": 1
+     }
+    },
+    {
+     "tick": 7850,
+     "round": 2,
+     "bot": null,
+     "data": {
+      "ms": 93,
+      "nadeTasks": 2
+     }
+    },
+    {
+     "tick": 7853,
+     "round": 2,
+     "bot": null,
+     "data": {
+      "ms": 112,
+      "nadeTasks": 2
+     }
+    },
+    {
+     "tick": 7854,
+     "round": 2,
+     "bot": null,
+     "data": {
+      "ms": 160,
+      "nadeTasks": 2
+     }
+    }
+   ]
+  },
+  "I-14": {
+   "n": 0,
+   "eps": [],
+   "hist": {
+    "x": 40,
+    "y": 40,
+    "z": 40,
+    "baseX": 40,
+    "baseY": 40,
+    "px": 40,
+    "py": 40,
+    "money": 37,
+    "secondary": 6,
+    "armor": 22,
+    "_seatSide": 20,
+    "armorHp": 7,
+    "_moveWhy": 4,
+    "primary": 24,
+    "deaths": 23,
+    "kills": 18,
+    "helmet": 10
+   }
+  },
+  "I-16": {
+   "n": 233,
+   "eps": [
+    {
+     "tick": 1535,
+     "round": 1,
+     "bot": "CT0",
+     "data": {
+      "field": "heardSound",
+      "src": "T4",
+      "kind": "steps",
+      "enemy": "T4"
+     }
+    },
+    {
+     "tick": 1615,
+     "round": 1,
+     "bot": "T0",
+     "data": {
+      "field": "heardSound",
+      "src": "CT3",
+      "kind": "steps",
+      "enemy": "CT3"
+     }
+    },
+    {
+     "tick": 1633,
+     "round": 1,
+     "bot": "T0",
+     "data": {
+      "field": "heardSound",
+      "src": "CT3",
+      "kind": "steps",
+      "enemy": "CT3"
+     }
+    },
+    {
+     "tick": 1633,
+     "round": 1,
+     "bot": "T1",
+     "data": {
+      "field": "heardSound",
+      "src": "CT3",
+      "kind": "steps",
+      "enemy": "CT3"
+     }
+    },
+    {
+     "tick": 1637,
+     "round": 1,
+     "bot": "T4",
+     "data": {
+      "field": "heardSound",
+      "src": "CT1",
+      "kind": "nade",
+      "enemy": "CT1"
+     }
+    },
+    {
+     "tick": 1659,
+     "round": 1,
+     "bot": "CT3",
+     "data": {
+      "field": "heardSound",
+      "src": "T3",
+      "kind": "steps",
+      "enemy": "T1"
+     }
+    },
+    {
+     "tick": 1691,
+     "round": 1,
+     "bot": "CT3",
+     "data": {
+      "field": "heardSound",
+      "src": "T3",
+      "kind": "steps",
+      "enemy": "T1"
+     }
+    },
+    {
+     "tick": 1765,
+     "round": 1,
+     "bot": "CT3",
+     "data": {
+      "field": "heardSound",
+      "src": "T3",
+      "kind": "steps",
+      "enemy": "T3"
+     }
+    },
+    {
+     "tick": 1802,
+     "round": 1,
+     "bot": "CT3",
+     "data": {
+      "field": "heardSound",
+      "src": "T3",
+      "kind": "steps",
+      "enemy": "T1"
+     }
+    },
+    {
+     "tick": 1838,
+     "round": 1,
+     "bot": "CT3",
+     "data": {
+      "field": "heardSound",
+      "src": "T3",
+      "kind": "steps",
+      "enemy": "T1"
+     }
+    },
+    {
+     "tick": 1857,
+     "round": 1,
+     "bot": "CT3",
+     "data": {
+      "field": "heardSound",
+      "src": "T3",
+      "kind": "steps",
+      "enemy": "T3"
+     }
+    },
+    {
+     "tick": 1878,
+     "round": 1,
+     "bot": "CT3",
+     "data": {
+      "field": "heardSound",
+      "src": "T3",
+      "kind": "steps",
+      "enemy": "T1"
+     }
+    },
+    {
+     "tick": 1886,
+     "round": 1,
+     "bot": "CT0",
+     "data": {
+      "field": "heardSound",
+      "src": "T4",
+      "kind": "steps",
+      "enemy": "T4"
+     }
+    },
+    {
+     "tick": 1902,
+     "round": 1,
+     "bot": "CT3",
+     "data": {
+      "field": "heardSound",
+      "src": "T3",
+      "kind": "steps",
+      "enemy": "T1"
+     }
+    },
+    {
+     "tick": 1953,
+     "round": 1,
+     "bot": "CT0",
+     "data": {
+      "field": "heardSound",
+      "src": "T4",
+      "kind": "reload",
+      "enemy": "T4"
+     }
+    },
+    {
+     "tick": 2040,
+     "round": 1,
+     "bot": "CT3",
+     "data": {
+      "field": "heardSound",
+      "src": "T0",
+      "kind": "steps",
+      "enemy": "T0"
+     }
+    },
+    {
+     "tick": 2058,
+     "round": 1,
+     "bot": "CT3",
+     "data": {
+      "field": "heardSound",
+      "src": "T0",
+      "kind": "steps",
+      "enemy": "T0"
+     }
+    },
+    {
+     "tick": 2076,
+     "round": 1,
+     "bot": "CT3",
+     "data": {
+      "field": "heardSound",
+      "src": "T0",
+      "kind": "steps",
+      "enemy": "T0"
+     }
+    },
+    {
+     "tick": 2101,
+     "round": 1,
+     "bot": "CT3",
+     "data": {
+      "field": "heardSound",
+      "src": "T0",
+      "kind": "steps",
+      "enemy": "T0"
+     }
+    },
+    {
+     "tick": 2136,
+     "round": 1,
+     "bot": "CT1",
+     "data": {
+      "field": "heardSound",
+      "src": "T4",
+      "kind": "nade",
+      "enemy": "T4"
+     }
+    }
+   ]
+  },
+  "I-17": {
+   "n": 0,
+   "eps": [],
+   "hist": {
+    "repos": 437,
+    "contact": 512,
+    "plantspot": 205,
+    "tradeR": 223,
+    "stageB": 375,
+    "stageA": 97
+   }
+  },
+  "I-18": {
+   "n": 0,
+   "eps": [],
+   "hist": {
+    "holding": 7463
+   }
+  },
+  "I-19": {
+   "n": 0,
+   "eps": []
+  },
+  "I-20": {
+   "n": 4,
+   "eps": [
+    {
+     "tick": 2348,
+     "round": 1,
+     "bot": "CT1",
+     "data": {
+      "t0": 2124
+     }
+    },
+    {
+     "tick": 5520,
+     "round": 1,
+     "bot": "CT4",
+     "data": {
+      "t0": 5296
+     }
+    },
+    {
+     "tick": 9548,
+     "round": 2,
+     "bot": "T3",
+     "data": {
+      "t0": 9324
+     }
+    },
+    {
+     "tick": 10087,
+     "round": 2,
+     "bot": "CT0",
+     "data": {
+      "t0": 9863
+     }
+    }
+   ]
+  },
+  "I-21": {
+   "n": 51083,
+   "eps": [
+    {
+     "tick": 960,
+     "round": 1,
+     "bot": "CT3",
+     "data": {
+      "facing": -3.219350492450268
+     }
+    },
+    {
+     "tick": 960,
+     "round": 1,
+     "bot": "T4",
+     "data": {
+      "facing": 14.313186441580665
+     }
+    },
+    {
+     "tick": 961,
+     "round": 1,
+     "bot": "CT3",
+     "data": {
+      "facing": -3.219350492450268
+     }
+    },
+    {
+     "tick": 961,
+     "round": 1,
+     "bot": "T4",
+     "data": {
+      "facing": 14.313186441580665
+     }
+    },
+    {
+     "tick": 962,
+     "round": 1,
+     "bot": "T4",
+     "data": {
+      "facing": 14.313186441580665
+     }
+    },
+    {
+     "tick": 963,
+     "round": 1,
+     "bot": "T4",
+     "data": {
+      "facing": 14.313186441580665
+     }
+    },
+    {
+     "tick": 964,
+     "round": 1,
+     "bot": "T4",
+     "data": {
+      "facing": 14.313186441580665
+     }
+    },
+    {
+     "tick": 965,
+     "round": 1,
+     "bot": "T4",
+     "data": {
+      "facing": 14.313186441580665
+     }
+    },
+    {
+     "tick": 966,
+     "round": 1,
+     "bot": "T4",
+     "data": {
+      "facing": 14.313186441580665
+     }
+    },
+    {
+     "tick": 967,
+     "round": 1,
+     "bot": "T4",
+     "data": {
+      "facing": 14.313186441580665
+     }
+    },
+    {
+     "tick": 968,
+     "round": 1,
+     "bot": "CT4",
+     "data": {
+      "facing": -3.164279021006883
+     }
+    },
+    {
+     "tick": 968,
+     "round": 1,
+     "bot": "T4",
+     "data": {
+      "facing": 14.313186441580665
+     }
+    },
+    {
+     "tick": 969,
+     "round": 1,
+     "bot": "CT4",
+     "data": {
+      "facing": -3.258029021006883
+     }
+    },
+    {
+     "tick": 969,
+     "round": 1,
+     "bot": "T4",
+     "data": {
+      "facing": 14.313186441580665
+     }
+    },
+    {
+     "tick": 970,
+     "round": 1,
+     "bot": "CT4",
+     "data": {
+      "facing": -3.351779021006883
+     }
+    },
+    {
+     "tick": 970,
+     "round": 1,
+     "bot": "T1",
+     "data": {
+      "facing": 3.2124146156520235
+     }
+    },
+    {
+     "tick": 970,
+     "round": 1,
+     "bot": "T4",
+     "data": {
+      "facing": 14.313186441580665
+     }
+    },
+    {
+     "tick": 971,
+     "round": 1,
+     "bot": "CT4",
+     "data": {
+      "facing": -3.445529021006883
+     }
+    },
+    {
+     "tick": 971,
+     "round": 1,
+     "bot": "T1",
+     "data": {
+      "facing": 3.3061646156520235
+     }
+    },
+    {
+     "tick": 971,
+     "round": 1,
+     "bot": "T4",
+     "data": {
+      "facing": 14.313186441580665
+     }
+    }
+   ]
+  },
+  "I-25": {
+   "n": 144,
+   "eps": [
+    {
+     "tick": 1774,
+     "round": 1,
+     "bot": "T4",
+     "data": {
+      "seen": "CT1",
+      "kind": "steps"
+     }
+    },
+    {
+     "tick": 1814,
+     "round": 1,
+     "bot": "CT0",
+     "data": {
+      "seen": "T4",
+      "kind": "shots"
+     }
+    },
+    {
+     "tick": 1814,
+     "round": 1,
+     "bot": "T4",
+     "data": {
+      "seen": "CT1",
+      "kind": "steps"
+     }
+    },
+    {
+     "tick": 1819,
+     "round": 1,
+     "bot": "T4",
+     "data": {
+      "seen": "CT1",
+      "kind": "steps"
+     }
+    },
+    {
+     "tick": 1824,
+     "round": 1,
+     "bot": "CT0",
+     "data": {
+      "seen": "T4",
+      "kind": "shots"
+     }
+    },
+    {
+     "tick": 1834,
+     "round": 1,
+     "bot": "CT1",
+     "data": {
+      "seen": "T4",
+      "kind": "steps"
+     }
+    },
+    {
+     "tick": 1871,
+     "round": 1,
+     "bot": "T4",
+     "data": {
+      "seen": "CT1",
+      "kind": "steps"
+     }
+    },
+    {
+     "tick": 1960,
+     "round": 1,
+     "bot": "T4",
+     "data": {
+      "seen": "CT1",
+      "kind": "steps"
+     }
+    },
+    {
+     "tick": 1978,
+     "round": 1,
+     "bot": "T4",
+     "data": {
+      "seen": "CT1",
+      "kind": "steps"
+     }
+    },
+    {
+     "tick": 1983,
+     "round": 1,
+     "bot": "CT0",
+     "data": {
+      "seen": "T4",
+      "kind": "steps"
+     }
+    },
+    {
+     "tick": 1983,
+     "round": 1,
+     "bot": "CT1",
+     "data": {
+      "seen": "T4",
+      "kind": "steps"
+     }
+    },
+    {
+     "tick": 2001,
+     "round": 1,
+     "bot": "CT0",
+     "data": {
+      "seen": "T4",
+      "kind": "steps"
+     }
+    },
+    {
+     "tick": 2022,
+     "round": 1,
+     "bot": "CT0",
+     "data": {
+      "seen": "T4",
+      "kind": "steps"
+     }
+    },
+    {
+     "tick": 2065,
+     "round": 1,
+     "bot": "CT0",
+     "data": {
+      "seen": "T4",
+      "kind": "steps"
+     }
+    },
+    {
+     "tick": 2102,
+     "round": 1,
+     "bot": "T4",
+     "data": {
+      "seen": "CT0",
+      "kind": "steps"
+     }
+    },
+    {
+     "tick": 2110,
+     "round": 1,
+     "bot": "CT0",
+     "data": {
+      "seen": "T4",
+      "kind": "steps"
+     }
+    },
+    {
+     "tick": 2114,
+     "round": 1,
+     "bot": "T4",
+     "data": {
+      "seen": "CT0",
+      "kind": "steps"
+     }
+    },
+    {
+     "tick": 2136,
+     "round": 1,
+     "bot": "CT1",
+     "data": {
+      "from": "call",
+      "to": "nade"
+     }
+    },
+    {
+     "tick": 2170,
+     "round": 1,
+     "bot": "T4",
+     "data": {
+      "seen": "CT1",
+      "kind": "steps"
+     }
+    },
+    {
+     "tick": 2183,
+     "round": 1,
+     "bot": "CT1",
+     "data": {
+      "seen": "T4",
+      "kind": "steps"
+     }
+    }
+   ]
+  },
+  "I-26": {
+   "n": 0,
+   "eps": [],
+   "hist": {
+    "html": 2574,
+    "ctSetupRole": 2573,
+    "runupTick": 277,
+    "updateNadeTask1": 640,
+    "lurkerBrain": 310,
+    "lowHpBack": 2,
+    "intelDeath": 1,
+    "midCoverPost": 1,
+    "retakePost": 616,
+    "contactTick": 1,
+    "secondOnSite": 339,
+    "proRolePost": 290,
+    "retakeClear": 170,
+    "reloadPeek": 1,
+    "ambushTick": 17
+   }
+  },
+  "I-27": {
+   "n": 0,
+   "eps": [],
+   "hist": {
+    "lurkerBrain": 1727,
+    "groupPost": 27046,
+    "ctSetupRole": 49972,
+    "html": 19907,
+    "namedSpot": 10750,
+    "contactSpots": 4980,
+    "flankSpot": 32,
+    "postKillDecide": 2,
+    "finishPush": 8,
+    "lowHpBack": 25,
+    "intelDeath": 2,
+    "assistPeek": 48,
+    "killMoveCover": 12,
+    "midCoverPost": 1,
+    "hurtReactTick": 19,
+    "nadeThrowSpot": 16,
+    "coverForReload": 5,
+    "shiftHold": 2,
+    "retakeClear": 2119,
+    "utilWait0": 1,
+    "retakePost": 88,
+    "reloadPeek": 3,
+    "tBrain": 52,
+    "ambushTick": 3
+   }
+  },
+  "I-28": {
+   "n": 0,
+   "eps": []
+  },
+  "I-31": {
+   "n": 46,
+   "eps": [
+    {
+     "tick": 3840,
+     "round": 1,
+     "bot": "T2",
+     "data": {
+      "want": "contact:hold",
+      "holds": "repos:finish",
+      "lv": 9,
+      "by": "contactTick"
+     }
+    },
+    {
+     "tick": 5314,
+     "round": 1,
+     "bot": "T3",
+     "data": {
+      "want": "contact:hold",
+      "holds": "repos:killmove",
+      "lv": 9,
+      "by": "contactTick"
+     }
+    },
+    {
+     "tick": 9841,
+     "round": 2,
+     "bot": "CT4",
+     "data": {
+      "want": "backstab",
+      "holds": "ambush",
+      "lv": 9,
+      "by": "ambushTick"
+     }
+    },
+    {
+     "tick": 9842,
+     "round": 2,
+     "bot": "CT4",
+     "data": {
+      "want": "backstab",
+      "holds": "ambush",
+      "lv": 9,
+      "by": "ambushTick"
+     }
+    },
+    {
+     "tick": 9843,
+     "round": 2,
+     "bot": "CT4",
+     "data": {
+      "want": "backstab",
+      "holds": "ambush",
+      "lv": 9,
+      "by": "ambushTick"
+     }
+    },
+    {
+     "tick": 9844,
+     "round": 2,
+     "bot": "CT4",
+     "data": {
+      "want": "backstab",
+      "holds": "ambush",
+      "lv": 9,
+      "by": "ambushTick"
+     }
+    },
+    {
+     "tick": 9845,
+     "round": 2,
+     "bot": "CT4",
+     "data": {
+      "want": "backstab",
+      "holds": "ambush",
+      "lv": 9,
+      "by": "ambushTick"
+     }
+    },
+    {
+     "tick": 9846,
+     "round": 2,
+     "bot": "CT4",
+     "data": {
+      "want": "backstab",
+      "holds": "ambush",
+      "lv": 9,
+      "by": "ambushTick"
+     }
+    },
+    {
+     "tick": 9847,
+     "round": 2,
+     "bot": "CT4",
+     "data": {
+      "want": "backstab",
+      "holds": "ambush",
+      "lv": 9,
+      "by": "ambushTick"
+     }
+    },
+    {
+     "tick": 9848,
+     "round": 2,
+     "bot": "CT4",
+     "data": {
+      "want": "backstab",
+      "holds": "ambush",
+      "lv": 9,
+      "by": "ambushTick"
+     }
+    },
+    {
+     "tick": 9849,
+     "round": 2,
+     "bot": "CT4",
+     "data": {
+      "want": "backstab",
+      "holds": "ambush",
+      "lv": 9,
+      "by": "ambushTick"
+     }
+    },
+    {
+     "tick": 9850,
+     "round": 2,
+     "bot": "CT4",
+     "data": {
+      "want": "backstab",
+      "holds": "ambush",
+      "lv": 9,
+      "by": "ambushTick"
+     }
+    },
+    {
+     "tick": 9851,
+     "round": 2,
+     "bot": "CT4",
+     "data": {
+      "want": "backstab",
+      "holds": "ambush",
+      "lv": 9,
+      "by": "ambushTick"
+     }
+    },
+    {
+     "tick": 9852,
+     "round": 2,
+     "bot": "CT4",
+     "data": {
+      "want": "backstab",
+      "holds": "ambush",
+      "lv": 9,
+      "by": "ambushTick"
+     }
+    },
+    {
+     "tick": 9853,
+     "round": 2,
+     "bot": "CT4",
+     "data": {
+      "want": "backstab",
+      "holds": "ambush",
+      "lv": 9,
+      "by": "ambushTick"
+     }
+    },
+    {
+     "tick": 9854,
+     "round": 2,
+     "bot": "CT4",
+     "data": {
+      "want": "backstab",
+      "holds": "ambush",
+      "lv": 9,
+      "by": "ambushTick"
+     }
+    },
+    {
+     "tick": 9855,
+     "round": 2,
+     "bot": "CT4",
+     "data": {
+      "want": "backstab",
+      "holds": "ambush",
+      "lv": 9,
+      "by": "ambushTick"
+     }
+    },
+    {
+     "tick": 9856,
+     "round": 2,
+     "bot": "CT4",
+     "data": {
+      "want": "backstab",
+      "holds": "ambush",
+      "lv": 9,
+      "by": "ambushTick"
+     }
+    },
+    {
+     "tick": 14288,
+     "round": 3,
+     "bot": "CT3",
+     "data": {
+      "want": "anchor",
+      "holds": "after:hold",
+      "lv": 1,
+      "by": "ctSetupRole"
+     }
+    },
+    {
+     "tick": 14288,
+     "round": 3,
+     "bot": "CT3",
+     "data": {
+      "want": "anchor",
+      "holds": "after:hold",
+      "lv": 1,
+      "by": "html"
+     }
+    }
+   ]
+  }
+ }
+}

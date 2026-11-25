@@ -3,7 +3,9 @@
 // Состояние — переменные снимка отметки (mkSnapList, src/marks.js) без кэшей и показа. Два прохода: грубый (каждые --every тиков),
 // затем с начала (матч повторяем) по тику внутри найденного окна.
 //   node tools/measure/diverge.js A.html B.html [--match=3] [--ticks=20000] [--every=64] [--inject-a=f.js] [--inject-b=f.js]
-//        [--skip=регулярка] [--skip-field=регулярка] [--math] [--out=отчёт.json]
+//        [--skip=регулярка] [--skip-field=регулярка] [--math] [--out=отчёт.json] [--start-a=код|@файл] [--start-b=код|@файл] [--snap-at=T]
+// --start-*: код старта вместо freshMatch(--match) (инвариант I-22 — newMatch после матча; I-30 — перестановка ботов);
+// --snap-at=T: страница B не играет сама, а открывает снимок отметки страницы A на тике T (инвариант I-23: снимок = игра).
 // --inject-*: код выполняется в странице до freshMatch (самопроверка — tools/measure/selftest/math_libm.js). Нужен acorn (NODE_PATH).
 const { chromium } = require('playwright'), url = require('url'), fs = require('fs'), path = require('path');
 const args = process.argv.slice(2), opt = (n, d) => { const a = args.find(x => x.startsWith('--' + n + '=')); return a ? a.slice(n.length + 3) : d; };
@@ -37,6 +39,8 @@ const SKIP = opt('skip', '^(WPM|ZDJ|KPC|MK.*|SHOW_Q|VOICE_DIRTY|LOG_DIRTY|KF_DIR
 // 490:306); код расчёта 000–545 их не читает (grep 24.11)
 const SKIPF = opt('skip-field', '^(_visFacing|_hitFx)$');
 const inj = k => { const f = opt('inject-' + k, ''); return f ? fs.readFileSync(f, 'utf8') : ''; };
+const startCode = k => { const v = opt('start-' + k, ''); return !v ? `freshMatch(${MATCH});` : v[0] === '@' ? fs.readFileSync(v.slice(1), 'utf8') : v; };
+const SNAP_AT = +opt('snap-at', 0);
 
 const SETUP = `window.DV = {
   skip: new RegExp(${JSON.stringify(SKIP)}), skipf: new RegExp(${JSON.stringify(SKIPF)}),
@@ -64,10 +68,10 @@ const SETUP = `window.DV = {
     ['sin','cos','tan','atan','atan2','asin','acos','exp','log','pow','hypot','sqrt'].forEach(function(f){ var o = Math[f]; DV.M[f] = o;
       Math[f] = function(){ var r = o.apply(Math, arguments); if(DV.inTick && DV.log.length < 200000) DV.log.push([f, Array.prototype.slice.call(arguments), r]); return r; }; }); }
 };`;
-async function open(browser, file, inject) {
+async function open(browser, file, inject, start) {
   const p = await browser.newPage(); await p.route(/^https?:/, r => r.abort());
   await p.goto(url.pathToFileURL(path.resolve(file)).href); await p.waitForTimeout(1200);
-  await p.evaluate(c => __ev(c), SETUP + '\n' + inject + `\nfreshMatch(${MATCH}); 1`);
+  await p.evaluate(c => __ev(c), SETUP + '\n' + inject + '\n' + start + '\n1');
   return p;
 }
 const step = (p, n, hash) => p.evaluate(([n, hash]) => __ev(`for(var i = 0; i < ${n}; i++){ DV.inTick = 1; stepTick(); DV.inTick = 0; } JSON.stringify({tick: tick, st: ${hash} ? DV.state() : null})`), [n, hash]).then(JSON.parse);
@@ -85,8 +89,17 @@ function deepDiff(sa, sb, limit) {
 }
 (async () => {
   const browser = await chromium.launch(), t0 = Date.now();
-  let A = await open(browser, files[0], inj('a')), B = await open(browser, files[1], inj('b'));
-  const rep = { a: files[0], b: files[1], match: MATCH, every: EVERY, skipShowVars: SHOWV.length, skipField: SKIPF, found: false };
+  // страница B со снимка страницы A (I-23): A доигрывает до T, снимок → B (mkOpenSnap, как отметка); дальше обе идут от T
+  async function openPair() {
+    const A = await open(browser, files[0], inj('a'), startCode('a'));
+    if (!SNAP_AT) return [A, await open(browser, files[1], inj('b'), startCode('b'))];
+    const snap = await A.evaluate(T => __ev(`for(var i = 0; i < ${T}; i++) stepTick(); mkPack(mkSnapshot())`), SNAP_AT);
+    const B = await open(browser, files[1], inj('b'), 'freshMatch(' + MATCH + ');');
+    await B.evaluate(s => { __ev('mkOpenSnap(' + JSON.stringify(s) + '); 1'); }, snap);
+    return [A, B];
+  }
+  let [A, B] = await openPair();
+  const rep = { a: files[0], b: files[1], match: MATCH, every: EVERY, startA: startCode('a'), startB: SNAP_AT ? 'снимок A на тике ' + SNAP_AT : startCode('b'), skipShowVars: SHOWV.length, skipField: SKIPF, found: false };
   let ok = (await step(A, 0, false)).tick, bad = -1;
   const start = ok;
   for (let t = 0; t < TICKS; t += EVERY) {
@@ -97,7 +110,7 @@ function deepDiff(sa, sb, limit) {
   if (bad < 0) { rep.checkedTo = ok; console.log('расхождения нет до тика ' + ok + ' (матч ' + MATCH + ', проверка каждые ' + EVERY + ' тиков)'); }
   else {
     // второй проход: с начала до последнего совпавшего тика, дальше по одному
-    await A.close(); await B.close(); A = await open(browser, files[0], inj('a')); B = await open(browser, files[1], inj('b'));
+    await A.close(); await B.close(); [A, B] = await openPair();
     if (ok > start) await Promise.all([step(A, ok - start, false), step(B, ok - start, false)]);
     let ra, rb, vars = [];
     for (let k = 0; k <= EVERY + 1; k++) {
