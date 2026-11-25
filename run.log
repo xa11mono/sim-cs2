@@ -1,0 +1,350 @@
+playwright 1.63.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\v602a_t3_mir\env.json
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\v604a_t2_anc\env.json
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\v604a_t2_mir\env.json
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\v606a_t1b_anc\env.json
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\v606a_t1b_mir\env.json
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\v607a_r32_anc\env.json
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\v607a_r32_mir\env.json
+> git fetch --quiet origin e7e472ca3dea12676e82ffe00c27bab0982a2822
+> git fetch --quiet origin e7e472ca3dea12676e82ffe00c27bab0982a2822
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild__f9jbdhj FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild__f9jbdhj\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v602a_t3_mir.html
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+модули: 110_post_routes.js, 190_team_intel_lkp_calls.js, 220_know_events_tick.js, 275_look_turn.ts, 360_nades_buy_smoke_vision.js, 365_nade_plan.js, 366_exec_sync.js, 370_fire_nav_levels_ladders.js, 380_nades_throw.js, 385_nades_flight.js, 390_nades_lineups.js, 400_nades_physics_damage.js, 410_nades_tactical_self.js, 420_nades_brains.js, 470_fight_cycle.js, 480_assist_flank_reload.js, 490_shoot.js, 500_decide_afterkill_cover.js, 510_engagements.js, 535_move_mode.js, 540_step_tick.js — ядро отдаёт 283 имён, берёт 664
+пометок 1734 | полей facing:7 walking:4 curSpeed:5 post:3 _task:4 _reposUntil:1 _waitPopUntil:1 _avoidPeekUntil:1 _tradeUntil:2 _tradeLock:1 state:2 nadeTask:10 holding:4 crouching:1 path:7 phase:2 | функций 1289
+общих переменных 974 из чужих файлов пишут 86
+реестр состояния: строк 1456, не размечено 0
+> git fetch --quiet origin 6b10fcf8fc38cacd6c8262806bf22872baa0c4fe
+> git fetch --quiet origin 6b10fcf8fc38cacd6c8262806bf22872baa0c4fe
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_9z9mh7ge FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_9z9mh7ge\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v604a_t2_anc.html
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+модули: 110_post_routes.js, 190_team_intel_lkp_calls.js, 220_know_events_tick.js, 275_look_turn.ts, 360_nades_buy_smoke_vision.js, 365_nade_plan.js, 366_exec_sync.js, 370_fire_nav_levels_ladders.js, 380_nades_throw.js, 385_nades_flight.js, 390_nades_lineups.js, 400_nades_physics_damage.js, 410_nades_tactical_self.js, 420_nades_brains.js, 470_fight_cycle.js, 480_assist_flank_reload.js, 490_shoot.js, 500_decide_afterkill_cover.js, 510_engagements.js, 535_move_mode.js, 540_step_tick.js — ядро отдаёт 283 имён, берёт 664
+пометок 1734 | полей facing:7 walking:4 curSpeed:5 post:3 _task:4 _reposUntil:1 _waitPopUntil:1 _avoidPeekUntil:1 _tradeUntil:2 _tradeLock:1 state:2 nadeTask:10 holding:4 crouching:1 path:7 phase:2 | функций 1290
+общих переменных 975 из чужих файлов пишут 86
+реестр состояния: строк 1457, не размечено 0
+> git fetch --quiet origin 6b10fcf8fc38cacd6c8262806bf22872baa0c4fe
+> git fetch --quiet origin 6b10fcf8fc38cacd6c8262806bf22872baa0c4fe
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_agupom1r FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_agupom1r\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v604a_t2_mir.html
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+модули: 110_post_routes.js, 190_team_intel_lkp_calls.js, 220_know_events_tick.js, 275_look_turn.ts, 360_nades_buy_smoke_vision.js, 365_nade_plan.js, 366_exec_sync.js, 370_fire_nav_levels_ladders.js, 380_nades_throw.js, 385_nades_flight.js, 390_nades_lineups.js, 400_nades_physics_damage.js, 410_nades_tactical_self.js, 420_nades_brains.js, 470_fight_cycle.js, 480_assist_flank_reload.js, 490_shoot.js, 500_decide_afterkill_cover.js, 510_engagements.js, 535_move_mode.js, 540_step_tick.js — ядро отдаёт 283 имён, берёт 664
+пометок 1734 | полей facing:7 walking:4 curSpeed:5 post:3 _task:4 _reposUntil:1 _waitPopUntil:1 _avoidPeekUntil:1 _tradeUntil:2 _tradeLock:1 state:2 nadeTask:10 holding:4 crouching:1 path:7 phase:2 | функций 1290
+общих переменных 975 из чужих файлов пишут 86
+реестр состояния: строк 1457, не размечено 0
+> git fetch --quiet origin c357ea1688130f088a0dc3a181fb4409deae4be0
+> git fetch --quiet origin c357ea1688130f088a0dc3a181fb4409deae4be0
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_wdxbjo9p FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_wdxbjo9p\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v606a_t1b_anc.html
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+модули: 110_post_routes.js, 190_team_intel_lkp_calls.js, 220_know_events_tick.js, 275_look_turn.ts, 360_nades_buy_smoke_vision.js, 365_nade_plan.js, 366_exec_sync.js, 370_fire_nav_levels_ladders.js, 380_nades_throw.js, 385_nades_flight.js, 390_nades_lineups.js, 400_nades_physics_damage.js, 410_nades_tactical_self.js, 420_nades_brains.js, 470_fight_cycle.js, 480_assist_flank_reload.js, 490_shoot.js, 500_decide_afterkill_cover.js, 510_engagements.js, 535_move_mode.js, 540_step_tick.js — ядро отдаёт 283 имён, берёт 664
+пометок 1734 | полей facing:7 walking:4 curSpeed:5 post:3 _task:4 _reposUntil:1 _waitPopUntil:1 _avoidPeekUntil:1 _tradeUntil:2 _tradeLock:1 state:2 nadeTask:10 holding:4 crouching:1 path:7 phase:2 | функций 1291
+общих переменных 975 из чужих файлов пишут 86
+реестр состояния: строк 1475, не размечено 0
+> git fetch --quiet origin c357ea1688130f088a0dc3a181fb4409deae4be0
+> git fetch --quiet origin c357ea1688130f088a0dc3a181fb4409deae4be0
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_8p1vrqpg FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_8p1vrqpg\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v606a_t1b_mir.html
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+модули: 110_post_routes.js, 190_team_intel_lkp_calls.js, 220_know_events_tick.js, 275_look_turn.ts, 360_nades_buy_smoke_vision.js, 365_nade_plan.js, 366_exec_sync.js, 370_fire_nav_levels_ladders.js, 380_nades_throw.js, 385_nades_flight.js, 390_nades_lineups.js, 400_nades_physics_damage.js, 410_nades_tactical_self.js, 420_nades_brains.js, 470_fight_cycle.js, 480_assist_flank_reload.js, 490_shoot.js, 500_decide_afterkill_cover.js, 510_engagements.js, 535_move_mode.js, 540_step_tick.js — ядро отдаёт 283 имён, берёт 664
+пометок 1734 | полей facing:7 walking:4 curSpeed:5 post:3 _task:4 _reposUntil:1 _waitPopUntil:1 _avoidPeekUntil:1 _tradeUntil:2 _tradeLock:1 state:2 nadeTask:10 holding:4 crouching:1 path:7 phase:2 | функций 1291
+общих переменных 975 из чужих файлов пишут 86
+реестр состояния: строк 1475, не размечено 0
+> git fetch --quiet origin 91dbf64a3c0aad7bc73a69fcff24fe31b8423482
+> git fetch --quiet origin 91dbf64a3c0aad7bc73a69fcff24fe31b8423482
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_1qmr1r5q FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_1qmr1r5q\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v607a_r32_anc.html
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+модули: 110_post_routes.js, 190_team_intel_lkp_calls.js, 220_know_events_tick.js, 275_look_turn.ts, 360_nades_buy_smoke_vision.js, 365_nade_plan.js, 366_exec_sync.js, 370_fire_nav_levels_ladders.js, 380_nades_throw.js, 385_nades_flight.js, 390_nades_lineups.js, 400_nades_physics_damage.js, 410_nades_tactical_self.js, 420_nades_brains.js, 470_fight_cycle.js, 480_assist_flank_reload.js, 490_shoot.js, 500_decide_afterkill_cover.js, 510_engagements.js, 535_move_mode.js, 540_step_tick.js — ядро отдаёт 283 имён, берёт 664
+пометок 1734 | полей facing:7 walking:4 curSpeed:5 post:3 _task:4 _reposUntil:1 _waitPopUntil:1 _avoidPeekUntil:1 _tradeUntil:2 _tradeLock:1 state:2 nadeTask:10 holding:4 crouching:1 path:7 phase:2 | функций 1292
+общих переменных 975 из чужих файлов пишут 86
+реестр состояния: строк 1470, не размечено 0
+> git fetch --quiet origin 91dbf64a3c0aad7bc73a69fcff24fe31b8423482
+> git fetch --quiet origin 91dbf64a3c0aad7bc73a69fcff24fe31b8423482
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_v680h6su FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_v680h6su\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v607a_r32_mir.html
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+модули: 110_post_routes.js, 190_team_intel_lkp_calls.js, 220_know_events_tick.js, 275_look_turn.ts, 360_nades_buy_smoke_vision.js, 365_nade_plan.js, 366_exec_sync.js, 370_fire_nav_levels_ladders.js, 380_nades_throw.js, 385_nades_flight.js, 390_nades_lineups.js, 400_nades_physics_damage.js, 410_nades_tactical_self.js, 420_nades_brains.js, 470_fight_cycle.js, 480_assist_flank_reload.js, 490_shoot.js, 500_decide_afterkill_cover.js, 510_engagements.js, 535_move_mode.js, 540_step_tick.js — ядро отдаёт 283 имён, берёт 664
+пометок 1734 | полей facing:7 walking:4 curSpeed:5 post:3 _task:4 _reposUntil:1 _waitPopUntil:1 _avoidPeekUntil:1 _tradeUntil:2 _tradeLock:1 state:2 nadeTask:10 holding:4 crouching:1 path:7 phase:2 | функций 1292
+общих переменных 975 из чужих файлов пишут 86
+реестр состояния: строк 1470, не размечено 0
+guard: память 15977 МБ, свободно 9013; запас 3195, критично 1536; на матч ≤ 6144 МБ, ≤ 90 мин; par ≤ 8; объект задания: да; продолжение: да
+start fp v602a_t3_mir.html m3 (идёт 1, свободно 9014 МБ)
+start fp v602a_t3_mir.html m7 (идёт 2, свободно 9014 МБ)
+start fp v602a_t3_mir.html m11 (идёт 3, свободно 9011 МБ)
+start fp v602a_t3_mir.html m13 (идёт 4, свободно 8994 МБ)
+start fp v602a_t3_mir.html m17 (идёт 5, свободно 8987 МБ)
+start fp v602a_t3_mir.html m19 (идёт 6, свободно 8975 МБ)
+start fp v602a_t3_mir.html m23 (идёт 7, свободно 8960 МБ)
+start fp v602a_t3_mir.html m29 (идёт 8, свободно 8941 МБ)
+mem: свободно 6925 / 15977 МБ; par ≤ 8; очередь 48; идёт 8: fp v602a_t3_mir.html m3 518 МБ / 5 проц., fp v602a_t3_mir.html m7 520 МБ / 5 проц., fp v602a_t3_mir.html m11 521 МБ / 5 проц., fp v602a_t3_mir.html m13 521 МБ / 5 проц., fp v602a_t3_mir.html m17 516 МБ / 5 проц., fp v602a_t3_mir.html m19 506 МБ / 5 проц., fp v602a_t3_mir.html m23 517 МБ / 5 проц., fp v602a_t3_mir.html m29 520 МБ / 5 проц.
+mem: свободно 3908 / 15977 МБ; par ≤ 8; очередь 48; идёт 8: fp v602a_t3_mir.html m3 839 МБ / 5 проц., fp v602a_t3_mir.html m7 861 МБ / 5 проц., fp v602a_t3_mir.html m11 906 МБ / 5 проц., fp v602a_t3_mir.html m13 861 МБ / 5 проц., fp v602a_t3_mir.html m17 842 МБ / 5 проц., fp v602a_t3_mir.html m19 862 МБ / 5 проц., fp v602a_t3_mir.html m23 856 МБ / 5 проц., fp v602a_t3_mir.html m29 858 МБ / 5 проц.
+mem: свободно 3437 / 15977 МБ; par ≤ 8; очередь 48; идёт 8: fp v602a_t3_mir.html m3 1014 МБ / 5 проц., fp v602a_t3_mir.html m7 891 МБ / 5 проц., fp v602a_t3_mir.html m11 944 МБ / 5 проц., fp v602a_t3_mir.html m13 893 МБ / 5 проц., fp v602a_t3_mir.html m17 877 МБ / 5 проц., fp v602a_t3_mir.html m19 912 МБ / 5 проц., fp v602a_t3_mir.html m23 911 МБ / 5 проц., fp v602a_t3_mir.html m29 939 МБ / 5 проц.
+mem: свободно 3237 / 15977 МБ; par ≤ 8; очередь 48; идёт 8: fp v602a_t3_mir.html m3 960 МБ / 5 проц., fp v602a_t3_mir.html m7 934 МБ / 5 проц., fp v602a_t3_mir.html m11 1016 МБ / 5 проц., fp v602a_t3_mir.html m13 943 МБ / 5 проц., fp v602a_t3_mir.html m17 913 МБ / 5 проц., fp v602a_t3_mir.html m19 941 МБ / 5 проц., fp v602a_t3_mir.html m23 929 МБ / 5 проц., fp v602a_t3_mir.html m29 936 МБ / 5 проц.
+mem: свободно 3068 / 15977 МБ; par ≤ 8; очередь 48; идёт 8: fp v602a_t3_mir.html m3 995 МБ / 5 проц., fp v602a_t3_mir.html m7 931 МБ / 5 проц., fp v602a_t3_mir.html m11 978 МБ / 5 проц., fp v602a_t3_mir.html m13 983 МБ / 5 проц., fp v602a_t3_mir.html m17 973 МБ / 5 проц., fp v602a_t3_mir.html m19 966 МБ / 5 проц., fp v602a_t3_mir.html m23 958 МБ / 5 проц., fp v602a_t3_mir.html m29 948 МБ / 5 проц.
+mem: свободно 2936 / 15977 МБ; par ≤ 8; очередь 48; идёт 8: fp v602a_t3_mir.html m3 996 МБ / 5 проц., fp v602a_t3_mir.html m7 1002 МБ / 5 проц., fp v602a_t3_mir.html m11 993 МБ / 5 проц., fp v602a_t3_mir.html m13 985 МБ / 5 проц., fp v602a_t3_mir.html m17 1005 МБ / 5 проц., fp v602a_t3_mir.html m19 962 МБ / 5 проц., fp v602a_t3_mir.html m23 995 МБ / 5 проц., fp v602a_t3_mir.html m29 982 МБ / 5 проц.
+mem: свободно 2686 / 15977 МБ; par ≤ 8; очередь 48; идёт 8: fp v602a_t3_mir.html m3 1067 МБ / 5 проц., fp v602a_t3_mir.html m7 992 МБ / 5 проц., fp v602a_t3_mir.html m11 1035 МБ / 5 проц., fp v602a_t3_mir.html m13 984 МБ / 5 проц., fp v602a_t3_mir.html m17 965 МБ / 5 проц., fp v602a_t3_mir.html m19 1055 МБ / 5 проц., fp v602a_t3_mir.html m23 1043 МБ / 5 проц., fp v602a_t3_mir.html m29 1041 МБ / 5 проц.
+mem: свободно 2624 / 15977 МБ; par ≤ 8; очередь 48; идёт 8: fp v602a_t3_mir.html m3 1036 МБ / 5 проц., fp v602a_t3_mir.html m7 1006 МБ / 5 проц., fp v602a_t3_mir.html m11 1058 МБ / 5 проц., fp v602a_t3_mir.html m13 972 МБ / 5 проц., fp v602a_t3_mir.html m17 1038 МБ / 5 проц., fp v602a_t3_mir.html m19 1036 МБ / 5 проц., fp v602a_t3_mir.html m23 1024 МБ / 5 проц., fp v602a_t3_mir.html m29 1048 МБ / 5 проц.
+mem: свободно 2922 / 15977 МБ; par ≤ 8; очередь 48; идёт 8: fp v602a_t3_mir.html m3 1055 МБ / 5 проц., fp v602a_t3_mir.html m7 1048 МБ / 5 проц., fp v602a_t3_mir.html m11 1016 МБ / 5 проц., fp v602a_t3_mir.html m13 970 МБ / 5 проц., fp v602a_t3_mir.html m17 1011 МБ / 5 проц., fp v602a_t3_mir.html m19 1046 МБ / 5 проц., fp v602a_t3_mir.html m23 1037 МБ / 5 проц., fp v602a_t3_mir.html m29 1024 МБ / 5 проц.
+mem: свободно 2800 / 15977 МБ; par ≤ 8; очередь 48; идёт 8: fp v602a_t3_mir.html m3 1076 МБ / 5 проц., fp v602a_t3_mir.html m7 1015 МБ / 5 проц., fp v602a_t3_mir.html m11 1060 МБ / 5 проц., fp v602a_t3_mir.html m13 1036 МБ / 5 проц., fp v602a_t3_mir.html m17 1015 МБ / 5 проц., fp v602a_t3_mir.html m19 1026 МБ / 5 проц., fp v602a_t3_mir.html m23 1054 МБ / 5 проц., fp v602a_t3_mir.html m29 1035 МБ / 5 проц.
+mem: свободно 2773 / 15977 МБ; par ≤ 8; очередь 48; идёт 8: fp v602a_t3_mir.html m3 1040 МБ / 5 проц., fp v602a_t3_mir.html m7 1020 МБ / 5 проц., fp v602a_t3_mir.html m11 1046 МБ / 5 проц., fp v602a_t3_mir.html m13 1062 МБ / 5 проц., fp v602a_t3_mir.html m17 1005 МБ / 5 проц., fp v602a_t3_mir.html m19 1047 МБ / 5 проц., fp v602a_t3_mir.html m23 1086 МБ / 5 проц., fp v602a_t3_mir.html m29 1038 МБ / 5 проц.
+mem: свободно 2755 / 15977 МБ; par ≤ 8; очередь 48; идёт 8: fp v602a_t3_mir.html m3 1020 МБ / 5 проц., fp v602a_t3_mir.html m7 1027 МБ / 5 проц., fp v602a_t3_mir.html m11 1056 МБ / 5 проц., fp v602a_t3_mir.html m13 1051 МБ / 5 проц., fp v602a_t3_mir.html m17 1038 МБ / 5 проц., fp v602a_t3_mir.html m19 1051 МБ / 5 проц., fp v602a_t3_mir.html m23 1077 МБ / 5 проц., fp v602a_t3_mir.html m29 1034 МБ / 5 проц.
+mem: свободно 2731 / 15977 МБ; par ≤ 8; очередь 48; идёт 8: fp v602a_t3_mir.html m3 1077 МБ / 5 проц., fp v602a_t3_mir.html m7 1075 МБ / 5 проц., fp v602a_t3_mir.html m11 1109 МБ / 5 проц., fp v602a_t3_mir.html m13 1087 МБ / 5 проц., fp v602a_t3_mir.html m17 1053 МБ / 5 проц., fp v602a_t3_mir.html m19 1095 МБ / 5 проц., fp v602a_t3_mir.html m23 1082 МБ / 5 проц., fp v602a_t3_mir.html m29 1163 МБ / 5 проц.
+mem: свободно 2744 / 15977 МБ; par ≤ 8; очередь 48; идёт 8: fp v602a_t3_mir.html m3 1105 МБ / 5 проц., fp v602a_t3_mir.html m7 1107 МБ / 5 проц., fp v602a_t3_mir.html m11 1073 МБ / 5 проц., fp v602a_t3_mir.html m13 1123 МБ / 5 проц., fp v602a_t3_mir.html m17 1060 МБ / 5 проц., fp v602a_t3_mir.html m19 1098 МБ / 5 проц., fp v602a_t3_mir.html m23 1082 МБ / 5 проц., fp v602a_t3_mir.html m29 1065 МБ / 5 проц.
+end fp v602a_t3_mir.html m17: код 0, 442 с, пик 1097 МБ, процессов до 5
+mem: свободно 3624 / 15977 МБ; par ≤ 8; очередь 48; идёт 7: fp v602a_t3_mir.html m3 1085 МБ / 5 проц., fp v602a_t3_mir.html m7 1062 МБ / 5 проц., fp v602a_t3_mir.html m11 1081 МБ / 5 проц., fp v602a_t3_mir.html m13 1060 МБ / 5 проц., fp v602a_t3_mir.html m19 1102 МБ / 5 проц., fp v602a_t3_mir.html m23 1124 МБ / 5 проц., fp v602a_t3_mir.html m29 1065 МБ / 5 проц.
+end fp v602a_t3_mir.html m23: код 0, 459 с, пик 1130 МБ, процессов до 5
+start fp v604a_t2_anc.html m3 (идёт 7, свободно 4427 МБ)
+start fp v604a_t2_anc.html m7 (идёт 8, свободно 4426 МБ)
+end fp v602a_t3_mir.html m13: код 0, 476 с, пик 1126 МБ, процессов до 5
+mem: свободно 4144 / 15977 МБ; par ≤ 8; очередь 46; идёт 7: fp v602a_t3_mir.html m3 1046 МБ / 5 проц., fp v602a_t3_mir.html m7 1050 МБ / 5 проц., fp v602a_t3_mir.html m11 1129 МБ / 5 проц., fp v602a_t3_mir.html m19 1072 МБ / 5 проц., fp v602a_t3_mir.html m29 1123 МБ / 5 проц., fp v604a_t2_anc.html m3 889 МБ / 5 проц., fp v604a_t2_anc.html m7 884 МБ / 5 проц.
+mem: свободно 3686 / 15977 МБ; par ≤ 8; очередь 46; идёт 7: fp v602a_t3_mir.html m3 1113 МБ / 5 проц., fp v602a_t3_mir.html m7 1086 МБ / 5 проц., fp v602a_t3_mir.html m11 1114 МБ / 5 проц., fp v602a_t3_mir.html m19 1110 МБ / 5 проц., fp v602a_t3_mir.html m29 1105 МБ / 5 проц., fp v604a_t2_anc.html m3 1155 МБ / 5 проц., fp v604a_t2_anc.html m7 1107 МБ / 5 проц.
+end fp v602a_t3_mir.html m3: код 0, 533 с, пик 1134 МБ, процессов до 5
+end fp v602a_t3_mir.html m11: код 0, 534 с, пик 1147 МБ, процессов до 5
+start fp v604a_t2_anc.html m11 (идёт 6, свободно 5355 МБ)
+start fp v604a_t2_anc.html m13 (идёт 7, свободно 5354 МБ)
+start fp v604a_t2_anc.html m17 (идёт 8, свободно 5352 МБ)
+mem: свободно 3780 / 15977 МБ; par ≤ 8; очередь 43; идёт 8: fp v602a_t3_mir.html m7 1105 МБ / 5 проц., fp v602a_t3_mir.html m19 1095 МБ / 5 проц., fp v602a_t3_mir.html m29 1136 МБ / 5 проц., fp v604a_t2_anc.html m3 1234 МБ / 5 проц., fp v604a_t2_anc.html m7 1224 МБ / 5 проц., fp v604a_t2_anc.html m11 780 МБ / 5 проц., fp v604a_t2_anc.html m13 778 МБ / 5 проц., fp v604a_t2_anc.html m17 781 МБ / 5 проц.
+mem: свободно 2554 / 15977 МБ; par ≤ 8; очередь 43; идёт 8: fp v602a_t3_mir.html m7 1101 МБ / 5 проц., fp v602a_t3_mir.html m19 1123 МБ / 5 проц., fp v602a_t3_mir.html m29 1151 МБ / 5 проц., fp v604a_t2_anc.html m3 1370 МБ / 5 проц., fp v604a_t2_anc.html m7 1425 МБ / 5 проц., fp v604a_t2_anc.html m11 1219 МБ / 5 проц., fp v604a_t2_anc.html m13 1153 МБ / 5 проц., fp v604a_t2_anc.html m17 1131 МБ / 5 проц.
+end fp v602a_t3_mir.html m19: код 0, 578 с, пик 1136 МБ, процессов до 5
+end fp v602a_t3_mir.html m7: код 0, 590 с, пик 1154 МБ, процессов до 5
+mem: свободно 3631 / 15977 МБ; par ≤ 8; очередь 43; идёт 6: fp v602a_t3_mir.html m29 1105 МБ / 5 проц., fp v604a_t2_anc.html m3 1584 МБ / 5 проц., fp v604a_t2_anc.html m7 1475 МБ / 5 проц., fp v604a_t2_anc.html m11 1281 МБ / 5 проц., fp v604a_t2_anc.html m13 1310 МБ / 5 проц., fp v604a_t2_anc.html m17 1168 МБ / 5 проц.
+mem: свободно 2818 / 15977 МБ; par ≤ 8; очередь 43; идёт 6: fp v602a_t3_mir.html m29 1147 МБ / 5 проц., fp v604a_t2_anc.html m3 1708 МБ / 5 проц., fp v604a_t2_anc.html m7 1669 МБ / 5 проц., fp v604a_t2_anc.html m11 1529 МБ / 5 проц., fp v604a_t2_anc.html m13 1551 МБ / 5 проц., fp v604a_t2_anc.html m17 1395 МБ / 5 проц.
+end fp v602a_t3_mir.html m29: код 0, 650 с, пик 1165 МБ, процессов до 5
+mem: свободно 3126 / 15977 МБ; par ≤ 8; очередь 43; идёт 5: fp v604a_t2_anc.html m3 1808 МБ / 5 проц., fp v604a_t2_anc.html m7 1783 МБ / 5 проц., fp v604a_t2_anc.html m11 1652 МБ / 5 проц., fp v604a_t2_anc.html m13 1702 МБ / 5 проц., fp v604a_t2_anc.html m17 1537 МБ / 5 проц.
+mem: свободно 2322 / 15977 МБ; par ≤ 8; очередь 43; идёт 5: fp v604a_t2_anc.html m3 1880 МБ / 5 проц., fp v604a_t2_anc.html m7 1949 МБ / 5 проц., fp v604a_t2_anc.html m11 1764 МБ / 5 проц., fp v604a_t2_anc.html m13 1879 МБ / 5 проц., fp v604a_t2_anc.html m17 1818 МБ / 5 проц.
+mem: свободно 2102 / 15977 МБ; par ≤ 8; очередь 43; идёт 5: fp v604a_t2_anc.html m3 1955 МБ / 5 проц., fp v604a_t2_anc.html m7 1874 МБ / 5 проц., fp v604a_t2_anc.html m11 1928 МБ / 5 проц., fp v604a_t2_anc.html m13 1889 МБ / 5 проц., fp v604a_t2_anc.html m17 1815 МБ / 5 проц.
+mem: свободно 2109 / 15977 МБ; par ≤ 8; очередь 43; идёт 5: fp v604a_t2_anc.html m3 2065 МБ / 5 проц., fp v604a_t2_anc.html m7 1963 МБ / 5 проц., fp v604a_t2_anc.html m11 1940 МБ / 5 проц., fp v604a_t2_anc.html m13 1956 МБ / 5 проц., fp v604a_t2_anc.html m17 1894 МБ / 5 проц.
+end fp v604a_t2_anc.html m11: код 0, 253 с, пик 2050 МБ, процессов до 5
+mem: свободно 3345 / 15977 МБ; par ≤ 8; очередь 43; идёт 4: fp v604a_t2_anc.html m3 2140 МБ / 5 проц., fp v604a_t2_anc.html m7 2078 МБ / 5 проц., fp v604a_t2_anc.html m13 1986 МБ / 5 проц., fp v604a_t2_anc.html m17 1946 МБ / 5 проц.
+mem: свободно 3164 / 15977 МБ; par ≤ 8; очередь 43; идёт 4: fp v604a_t2_anc.html m3 2162 МБ / 5 проц., fp v604a_t2_anc.html m7 1971 МБ / 5 проц., fp v604a_t2_anc.html m13 2150 МБ / 5 проц., fp v604a_t2_anc.html m17 2108 МБ / 5 проц.
+end fp v604a_t2_anc.html m17: код 0, 321 с, пик 2202 МБ, процессов до 5
+mem: свободно 4673 / 15977 МБ; par ≤ 8; очередь 43; идёт 3: fp v604a_t2_anc.html m3 2246 МБ / 5 проц., fp v604a_t2_anc.html m7 2164 МБ / 5 проц., fp v604a_t2_anc.html m13 2136 МБ / 5 проц.
+end fp v604a_t2_anc.html m3: код 0, 398 с, пик 2276 МБ, процессов до 5
+start fp v604a_t2_anc.html m19 (идёт 3, свободно 6584 МБ)
+start fp v604a_t2_anc.html m23 (идёт 4, свободно 6582 МБ)
+start fp v604a_t2_anc.html m29 (идёт 5, свободно 6579 МБ)
+start fp v604a_t2_mir.html m3 (идёт 6, свободно 6577 МБ)
+start fp v604a_t2_mir.html m7 (идёт 7, свободно 6572 МБ)
+start fp v604a_t2_mir.html m11 (идёт 8, свободно 6556 МБ)
+end fp v604a_t2_anc.html m7: код 0, 419 с, пик 2245 МБ, процессов до 5
+mem: свободно 4394 / 15977 МБ; par ≤ 8; очередь 37; идёт 7: fp v604a_t2_anc.html m13 2158 МБ / 5 проц., fp v604a_t2_anc.html m19 1009 МБ / 5 проц., fp v604a_t2_anc.html m23 1035 МБ / 5 проц., fp v604a_t2_anc.html m29 1021 МБ / 5 проц., fp v604a_t2_mir.html m3 935 МБ / 5 проц., fp v604a_t2_mir.html m7 951 МБ / 5 проц., fp v604a_t2_mir.html m11 946 МБ / 5 проц.
+mem: свободно 3453 / 15977 МБ; par ≤ 8; очередь 37; идёт 7: fp v604a_t2_anc.html m13 2264 МБ / 5 проц., fp v604a_t2_anc.html m19 1220 МБ / 5 проц., fp v604a_t2_anc.html m23 1303 МБ / 5 проц., fp v604a_t2_anc.html m29 1157 МБ / 5 проц., fp v604a_t2_mir.html m3 1002 МБ / 5 проц., fp v604a_t2_mir.html m7 1003 МБ / 5 проц., fp v604a_t2_mir.html m11 1035 МБ / 5 проц.
+end fp v604a_t2_anc.html m13: код 0, 396 с, пик 2325 МБ, процессов до 5
+mem: свободно 4814 / 15977 МБ; par ≤ 8; очередь 37; идёт 6: fp v604a_t2_anc.html m19 1422 МБ / 5 проц., fp v604a_t2_anc.html m23 1420 МБ / 5 проц., fp v604a_t2_anc.html m29 1349 МБ / 5 проц., fp v604a_t2_mir.html m3 1115 МБ / 5 проц., fp v604a_t2_mir.html m7 1087 МБ / 5 проц., fp v604a_t2_mir.html m11 1131 МБ / 5 проц.
+mem: свободно 4215 / 15977 МБ; par ≤ 8; очередь 37; идёт 6: fp v604a_t2_anc.html m19 1481 МБ / 5 проц., fp v604a_t2_anc.html m23 1630 МБ / 5 проц., fp v604a_t2_anc.html m29 1595 МБ / 5 проц., fp v604a_t2_mir.html m3 1161 МБ / 5 проц., fp v604a_t2_mir.html m7 1103 МБ / 5 проц., fp v604a_t2_mir.html m11 1156 МБ / 5 проц.
+mem: свободно 3868 / 15977 МБ; par ≤ 8; очередь 37; идёт 6: fp v604a_t2_anc.html m19 1608 МБ / 5 проц., fp v604a_t2_anc.html m23 1728 МБ / 5 проц., fp v604a_t2_anc.html m29 1666 МБ / 5 проц., fp v604a_t2_mir.html m3 1161 МБ / 5 проц., fp v604a_t2_mir.html m7 1161 МБ / 5 проц., fp v604a_t2_mir.html m11 1141 МБ / 5 проц.
+mem: свободно 3492 / 15977 МБ; par ≤ 8; очередь 37; идёт 6: fp v604a_t2_anc.html m19 1731 МБ / 5 проц., fp v604a_t2_anc.html m23 1855 МБ / 5 проц., fp v604a_t2_anc.html m29 1753 МБ / 5 проц., fp v604a_t2_mir.html m3 1156 МБ / 5 проц., fp v604a_t2_mir.html m7 1153 МБ / 5 проц., fp v604a_t2_mir.html m11 1154 МБ / 5 проц.
+mem: свободно 3183 / 15977 МБ; par ≤ 8; очередь 37; идёт 6: fp v604a_t2_anc.html m19 1849 МБ / 5 проц., fp v604a_t2_anc.html m23 1885 МБ / 5 проц., fp v604a_t2_anc.html m29 1864 МБ / 5 проц., fp v604a_t2_mir.html m3 1187 МБ / 5 проц., fp v604a_t2_mir.html m7 1161 МБ / 5 проц., fp v604a_t2_mir.html m11 1201 МБ / 5 проц.
+mem: свободно 2900 / 15977 МБ; par ≤ 8; очередь 37; идёт 6: fp v604a_t2_anc.html m19 1939 МБ / 5 проц., fp v604a_t2_anc.html m23 2024 МБ / 5 проц., fp v604a_t2_anc.html m29 1909 МБ / 5 проц., fp v604a_t2_mir.html m3 1194 МБ / 5 проц., fp v604a_t2_mir.html m7 1159 МБ / 5 проц., fp v604a_t2_mir.html m11 1199 МБ / 5 проц.
+end fp v604a_t2_anc.html m23: код 0, 273 с, пик 2081 МБ, процессов до 5
+mem: свободно 4472 / 15977 МБ; par ≤ 8; очередь 37; идёт 5: fp v604a_t2_anc.html m19 1948 МБ / 5 проц., fp v604a_t2_anc.html m29 1991 МБ / 5 проц., fp v604a_t2_mir.html m3 1189 МБ / 5 проц., fp v604a_t2_mir.html m7 1147 МБ / 5 проц., fp v604a_t2_mir.html m11 1210 МБ / 5 проц.
+mem: свободно 4129 / 15977 МБ; par ≤ 8; очередь 37; идёт 5: fp v604a_t2_anc.html m19 2048 МБ / 5 проц., fp v604a_t2_anc.html m29 2094 МБ / 5 проц., fp v604a_t2_mir.html m3 1168 МБ / 5 проц., fp v604a_t2_mir.html m7 1219 МБ / 5 проц., fp v604a_t2_mir.html m11 1181 МБ / 5 проц.
+mem: свободно 4015 / 15977 МБ; par ≤ 8; очередь 37; идёт 5: fp v604a_t2_anc.html m19 2063 МБ / 5 проц., fp v604a_t2_anc.html m29 2171 МБ / 5 проц., fp v604a_t2_mir.html m3 1227 МБ / 5 проц., fp v604a_t2_mir.html m7 1197 МБ / 5 проц., fp v604a_t2_mir.html m11 1200 МБ / 5 проц.
+mem: свободно 3992 / 15977 МБ; par ≤ 8; очередь 37; идёт 5: fp v604a_t2_anc.html m19 1862 МБ / 5 проц., fp v604a_t2_anc.html m29 2181 МБ / 5 проц., fp v604a_t2_mir.html m3 1215 МБ / 5 проц., fp v604a_t2_mir.html m7 1267 МБ / 5 проц., fp v604a_t2_mir.html m11 1243 МБ / 5 проц.
+end fp v604a_t2_anc.html m19: код 0, 371 с, пик 2121 МБ, процессов до 5
+start fp v604a_t2_mir.html m13 (идёт 5, свободно 5639 МБ)
+start fp v604a_t2_mir.html m17 (идёт 6, свободно 5638 МБ)
+start fp v604a_t2_mir.html m19 (идёт 7, свободно 5637 МБ)
+start fp v604a_t2_mir.html m23 (идёт 8, свободно 5634 МБ)
+mem: свободно 3220 / 15977 МБ; par ≤ 8; очередь 33; идёт 8: fp v604a_t2_anc.html m29 2296 МБ / 5 проц., fp v604a_t2_mir.html m3 1209 МБ / 5 проц., fp v604a_t2_mir.html m7 1243 МБ / 5 проц., fp v604a_t2_mir.html m11 1274 МБ / 5 проц., fp v604a_t2_mir.html m13 981 МБ / 5 проц., fp v604a_t2_mir.html m17 956 МБ / 5 проц., fp v604a_t2_mir.html m19 979 МБ / 5 проц., fp v604a_t2_mir.html m23 954 МБ / 5 проц.
+end fp v604a_t2_anc.html m29: код 0, 428 с, пик 2296 МБ, процессов до 5
+mem: свободно 4833 / 15977 МБ; par ≤ 8; очередь 33; идёт 7: fp v604a_t2_mir.html m3 1258 МБ / 5 проц., fp v604a_t2_mir.html m7 1243 МБ / 5 проц., fp v604a_t2_mir.html m11 1257 МБ / 5 проц., fp v604a_t2_mir.html m13 1009 МБ / 5 проц., fp v604a_t2_mir.html m17 1020 МБ / 5 проц., fp v604a_t2_mir.html m19 990 МБ / 5 проц., fp v604a_t2_mir.html m23 1006 МБ / 5 проц.
+end fp v604a_t2_mir.html m11: код 0, 449 с, пик 1287 МБ, процессов до 5
+start fp v604a_t2_mir.html m29 (идёт 7, свободно 5552 МБ)
+start fp v606a_t1b_anc.html m3 (идёт 8, свободно 5552 МБ)
+end fp v604a_t2_mir.html m3: код 0, 451 с, пик 1275 МБ, процессов до 5
+start fp v606a_t1b_anc.html m7 (идёт 8, свободно 5653 МБ)
+mem: свободно 4776 / 15977 МБ; par ≤ 8; очередь 30; идёт 8: fp v604a_t2_mir.html m7 1259 МБ / 5 проц., fp v604a_t2_mir.html m13 1067 МБ / 5 проц., fp v604a_t2_mir.html m17 1057 МБ / 5 проц., fp v604a_t2_mir.html m19 1071 МБ / 5 проц., fp v604a_t2_mir.html m23 1040 МБ / 5 проц., fp v604a_t2_mir.html m29 880 МБ / 5 проц., fp v606a_t1b_anc.html m3 952 МБ / 5 проц., fp v606a_t1b_anc.html m7 912 МБ / 5 проц.
+mem: свободно 3997 / 15977 МБ; par ≤ 8; очередь 30; идёт 8: fp v604a_t2_mir.html m7 1263 МБ / 5 проц., fp v604a_t2_mir.html m13 1145 МБ / 5 проц., fp v604a_t2_mir.html m17 1115 МБ / 5 проц., fp v604a_t2_mir.html m19 1109 МБ / 5 проц., fp v604a_t2_mir.html m23 1106 МБ / 5 проц., fp v604a_t2_mir.html m29 1021 МБ / 5 проц., fp v606a_t1b_anc.html m3 1170 МБ / 5 проц., fp v606a_t1b_anc.html m7 1136 МБ / 5 проц.
+end fp v604a_t2_mir.html m7: код 0, 498 с, пик 1293 МБ, процессов до 5
+mem: свободно 4656 / 15977 МБ; par ≤ 8; очередь 30; идёт 7: fp v604a_t2_mir.html m13 1126 МБ / 5 проц., fp v604a_t2_mir.html m17 1121 МБ / 5 проц., fp v604a_t2_mir.html m19 1100 МБ / 5 проц., fp v604a_t2_mir.html m23 1117 МБ / 5 проц., fp v604a_t2_mir.html m29 1078 МБ / 5 проц., fp v606a_t1b_anc.html m3 1238 МБ / 5 проц., fp v606a_t1b_anc.html m7 1252 МБ / 5 проц.
+mem: свободно 4105 / 15977 МБ; par ≤ 8; очередь 30; идёт 7: fp v604a_t2_mir.html m13 1143 МБ / 5 проц., fp v604a_t2_mir.html m17 1097 МБ / 5 проц., fp v604a_t2_mir.html m19 1194 МБ / 5 проц., fp v604a_t2_mir.html m23 1121 МБ / 5 проц., fp v604a_t2_mir.html m29 1127 МБ / 5 проц., fp v606a_t1b_anc.html m3 1457 МБ / 5 проц., fp v606a_t1b_anc.html m7 1468 МБ / 5 проц.
+mem: свободно 3624 / 15977 МБ; par ≤ 8; очередь 30; идёт 7: fp v604a_t2_mir.html m13 1204 МБ / 5 проц., fp v604a_t2_mir.html m17 1197 МБ / 5 проц., fp v604a_t2_mir.html m19 1169 МБ / 5 проц., fp v604a_t2_mir.html m23 1168 МБ / 5 проц., fp v604a_t2_mir.html m29 1172 МБ / 5 проц., fp v606a_t1b_anc.html m3 1610 МБ / 5 проц., fp v606a_t1b_anc.html m7 1513 МБ / 5 проц.
+mem: свободно 3362 / 15977 МБ; par ≤ 8; очередь 30; идёт 7: fp v604a_t2_mir.html m13 1190 МБ / 5 проц., fp v604a_t2_mir.html m17 1174 МБ / 5 проц., fp v604a_t2_mir.html m19 1199 МБ / 5 проц., fp v604a_t2_mir.html m23 1171 МБ / 5 проц., fp v604a_t2_mir.html m29 1172 МБ / 5 проц., fp v606a_t1b_anc.html m3 1714 МБ / 5 проц., fp v606a_t1b_anc.html m7 1626 МБ / 5 проц.
+mem: свободно 3272 / 15977 МБ; par ≤ 8; очередь 30; идёт 7: fp v604a_t2_mir.html m13 1220 МБ / 5 проц., fp v604a_t2_mir.html m17 1187 МБ / 5 проц., fp v604a_t2_mir.html m19 1204 МБ / 5 проц., fp v604a_t2_mir.html m23 1203 МБ / 5 проц., fp v604a_t2_mir.html m29 1180 МБ / 5 проц., fp v606a_t1b_anc.html m3 1794 МБ / 5 проц., fp v606a_t1b_anc.html m7 1810 МБ / 5 проц.
+mem: свободно 3008 / 15977 МБ; par ≤ 8; очередь 30; идёт 7: fp v604a_t2_mir.html m13 1236 МБ / 5 проц., fp v604a_t2_mir.html m17 1185 МБ / 5 проц., fp v604a_t2_mir.html m19 1178 МБ / 5 проц., fp v604a_t2_mir.html m23 1215 МБ / 5 проц., fp v604a_t2_mir.html m29 1174 МБ / 5 проц., fp v606a_t1b_anc.html m3 1911 МБ / 5 проц., fp v606a_t1b_anc.html m7 1921 МБ / 5 проц.
+mem: свободно 2939 / 15977 МБ; par ≤ 8; очередь 30; идёт 7: fp v604a_t2_mir.html m13 1212 МБ / 5 проц., fp v604a_t2_mir.html m17 1206 МБ / 5 проц., fp v604a_t2_mir.html m19 1176 МБ / 5 проц., fp v604a_t2_mir.html m23 1199 МБ / 5 проц., fp v604a_t2_mir.html m29 1217 МБ / 5 проц., fp v606a_t1b_anc.html m3 1992 МБ / 5 проц., fp v606a_t1b_anc.html m7 1908 МБ / 5 проц.
+mem: свободно 2752 / 15977 МБ; par ≤ 8; очередь 30; идёт 7: fp v604a_t2_mir.html m13 1219 МБ / 5 проц., fp v604a_t2_mir.html m17 1178 МБ / 5 проц., fp v604a_t2_mir.html m19 1193 МБ / 5 проц., fp v604a_t2_mir.html m23 1236 МБ / 5 проц., fp v604a_t2_mir.html m29 1232 МБ / 5 проц., fp v606a_t1b_anc.html m3 1980 МБ / 5 проц., fp v606a_t1b_anc.html m7 2031 МБ / 5 проц.
+mem: свободно 2442 / 15977 МБ; par ≤ 8; очередь 30; идёт 7: fp v604a_t2_mir.html m13 1198 МБ / 5 проц., fp v604a_t2_mir.html m17 1223 МБ / 5 проц., fp v604a_t2_mir.html m19 1205 МБ / 5 проц., fp v604a_t2_mir.html m23 1271 МБ / 5 проц., fp v604a_t2_mir.html m29 1269 МБ / 5 проц., fp v606a_t1b_anc.html m3 2167 МБ / 5 проц., fp v606a_t1b_anc.html m7 2055 МБ / 5 проц.
+end fp v604a_t2_mir.html m17: код 0, 407 с, пик 1233 МБ, процессов до 5
+end fp v604a_t2_mir.html m23: код 0, 422 с, пик 1289 МБ, процессов до 5
+mem: свободно 4173 / 15977 МБ; par ≤ 8; очередь 30; идёт 5: fp v604a_t2_mir.html m13 1277 МБ / 5 проц., fp v604a_t2_mir.html m19 1249 МБ / 5 проц., fp v604a_t2_mir.html m29 1246 МБ / 5 проц., fp v606a_t1b_anc.html m3 2161 МБ / 5 проц., fp v606a_t1b_anc.html m7 2121 МБ / 5 проц.
+end fp v604a_t2_mir.html m13: код 0, 439 с, пик 1277 МБ, процессов до 5
+mem: свободно 4864 / 15977 МБ; par ≤ 8; очередь 30; идёт 4: fp v604a_t2_mir.html m19 1249 МБ / 5 проц., fp v604a_t2_mir.html m29 1284 МБ / 5 проц., fp v606a_t1b_anc.html m3 2201 МБ / 5 проц., fp v606a_t1b_anc.html m7 2211 МБ / 5 проц.
+mem: свободно 5276 / 15977 МБ; par ≤ 8; очередь 30; идёт 4: fp v604a_t2_mir.html m19 1270 МБ / 5 проц., fp v604a_t2_mir.html m29 1215 МБ / 5 проц., fp v606a_t1b_anc.html m3 2225 МБ / 5 проц., fp v606a_t1b_anc.html m7 1790 МБ / 5 проц.
+end fp v606a_t1b_anc.html m3: код 0, 428 с, пик 2227 МБ, процессов до 5
+start fp v606a_t1b_anc.html m11 (идёт 4, свободно 6749 МБ)
+start fp v606a_t1b_anc.html m13 (идёт 5, свободно 6749 МБ)
+start fp v606a_t1b_anc.html m17 (идёт 6, свободно 6747 МБ)
+start fp v606a_t1b_anc.html m19 (идёт 7, свободно 6738 МБ)
+start fp v606a_t1b_anc.html m23 (идёт 8, свободно 6730 МБ)
+end fp v606a_t1b_anc.html m7: код 0, 428 с, пик 2221 МБ, процессов до 5
+start fp v606a_t1b_anc.html m29 (идёт 8, свободно 6467 МБ)
+end fp v604a_t2_mir.html m19: код 0, 514 с, пик 1270 МБ, процессов до 5
+start fp v606a_t1b_mir.html m3 (идёт 8, свободно 6194 МБ)
+mem: свободно 4749 / 15977 МБ; par ≤ 8; очередь 23; идёт 8: fp v604a_t2_mir.html m29 1255 МБ / 5 проц., fp v606a_t1b_anc.html m11 1041 МБ / 5 проц., fp v606a_t1b_anc.html m13 1039 МБ / 5 проц., fp v606a_t1b_anc.html m17 987 МБ / 5 проц., fp v606a_t1b_anc.html m19 1014 МБ / 5 проц., fp v606a_t1b_anc.html m23 1054 МБ / 5 проц., fp v606a_t1b_anc.html m29 1008 МБ / 5 проц., fp v606a_t1b_mir.html m3 926 МБ / 5 проц.
+mem: свободно 3579 / 15977 МБ; par ≤ 8; очередь 23; идёт 8: fp v604a_t2_mir.html m29 1253 МБ / 5 проц., fp v606a_t1b_anc.html m11 1283 МБ / 5 проц., fp v606a_t1b_anc.html m13 1227 МБ / 5 проц., fp v606a_t1b_anc.html m17 1157 МБ / 5 проц., fp v606a_t1b_anc.html m19 1220 МБ / 5 проц., fp v606a_t1b_anc.html m23 1242 МБ / 5 проц., fp v606a_t1b_anc.html m29 1164 МБ / 5 проц., fp v606a_t1b_mir.html m3 1042 МБ / 5 проц.
+mem: свободно 2426 / 15977 МБ; par ≤ 8; очередь 23; идёт 8: fp v604a_t2_mir.html m29 1293 МБ / 5 проц., fp v606a_t1b_anc.html m11 1480 МБ / 5 проц., fp v606a_t1b_anc.html m13 1463 МБ / 5 проц., fp v606a_t1b_anc.html m17 1315 МБ / 5 проц., fp v606a_t1b_anc.html m19 1454 МБ / 5 проц., fp v606a_t1b_anc.html m23 1465 МБ / 5 проц., fp v606a_t1b_anc.html m29 1309 МБ / 5 проц., fp v606a_t1b_mir.html m3 1120 МБ / 5 проц.
+mem: свободно 2927 / 15977 МБ; par ≤ 8; очередь 23; идёт 8: fp v604a_t2_mir.html m29 1262 МБ / 5 проц., fp v606a_t1b_anc.html m11 1606 МБ / 5 проц., fp v606a_t1b_anc.html m13 1656 МБ / 5 проц., fp v606a_t1b_anc.html m17 1439 МБ / 5 проц., fp v606a_t1b_anc.html m19 1435 МБ / 5 проц., fp v606a_t1b_anc.html m23 1530 МБ / 5 проц., fp v606a_t1b_anc.html m29 1456 МБ / 5 проц., fp v606a_t1b_mir.html m3 1129 МБ / 5 проц.
+mem: свободно 2292 / 15977 МБ; par ≤ 8; очередь 23; идёт 8: fp v604a_t2_mir.html m29 1280 МБ / 5 проц., fp v606a_t1b_anc.html m11 1700 МБ / 5 проц., fp v606a_t1b_anc.html m13 1698 МБ / 5 проц., fp v606a_t1b_anc.html m17 1522 МБ / 5 проц., fp v606a_t1b_anc.html m19 1601 МБ / 5 проц., fp v606a_t1b_anc.html m23 1615 МБ / 5 проц., fp v606a_t1b_anc.html m29 1548 МБ / 5 проц., fp v606a_t1b_mir.html m3 1173 МБ / 5 проц.
+end fp v604a_t2_mir.html m29: код 0, 591 с, пик 1308 МБ, процессов до 5
+mem: свободно 2377 / 15977 МБ; par ≤ 8; очередь 23; идёт 7: fp v606a_t1b_anc.html m11 1757 МБ / 5 проц., fp v606a_t1b_anc.html m13 1864 МБ / 5 проц., fp v606a_t1b_anc.html m17 1806 МБ / 5 проц., fp v606a_t1b_anc.html m19 1701 МБ / 5 проц., fp v606a_t1b_anc.html m23 1831 МБ / 5 проц., fp v606a_t1b_anc.html m29 1659 МБ / 5 проц., fp v606a_t1b_mir.html m3 985 МБ / 5 проц.
+mem: свободно 1583 / 15977 МБ; par ≤ 8; очередь 23; идёт 7: fp v606a_t1b_anc.html m11 1938 МБ / 5 проц., fp v606a_t1b_anc.html m13 1928 МБ / 5 проц., fp v606a_t1b_anc.html m17 1845 МБ / 5 проц., fp v606a_t1b_anc.html m19 1770 МБ / 5 проц., fp v606a_t1b_anc.html m23 1887 МБ / 5 проц., fp v606a_t1b_anc.html m29 1831 МБ / 5 проц., fp v606a_t1b_mir.html m3 1184 МБ / 5 проц.
+guard: мало памяти — параллельность 6
+end fp v606a_t1b_mir.html m3: код 1, 222 с, пик 1232 МБ, процессов до 5, СНЯТ: lowmem (свободно 1397 МБ)
+mem: свободно 1867 / 15977 МБ; par ≤ 6; очередь 23; идёт 6: fp v606a_t1b_anc.html m11 1971 МБ / 5 проц., fp v606a_t1b_anc.html m13 1993 МБ / 5 проц., fp v606a_t1b_anc.html m17 1929 МБ / 5 проц., fp v606a_t1b_anc.html m19 1853 МБ / 5 проц., fp v606a_t1b_anc.html m23 1931 МБ / 5 проц., fp v606a_t1b_anc.html m29 1871 МБ / 5 проц.
+mem: свободно 1516 / 15977 МБ; par ≤ 6; очередь 23; идёт 6: fp v606a_t1b_anc.html m11 2011 МБ / 5 проц., fp v606a_t1b_anc.html m13 2010 МБ / 5 проц., fp v606a_t1b_anc.html m17 1988 МБ / 5 проц., fp v606a_t1b_anc.html m19 1990 МБ / 5 проц., fp v606a_t1b_anc.html m23 2015 МБ / 5 проц., fp v606a_t1b_anc.html m29 1964 МБ / 5 проц.
+guard: мало памяти — параллельность 5
+end fp v606a_t1b_anc.html m29: код 1, 276 с, пик 1995 МБ, процессов до 5, СНЯТ: lowmem (свободно 1511 МБ)
+end fp v606a_t1b_anc.html m11: код 0, 281 с, пик 2040 МБ, процессов до 5
+end fp v606a_t1b_anc.html m23: код 0, 292 с, пик 2121 МБ, процессов до 5
+start fp v606a_t1b_mir.html m7 (идёт 4, свободно 5852 МБ)
+start fp v606a_t1b_mir.html m11 (идёт 5, свободно 5852 МБ)
+mem: свободно 4608 / 15977 МБ; par ≤ 5; очередь 21; идёт 5: fp v606a_t1b_anc.html m13 2102 МБ / 5 проц., fp v606a_t1b_anc.html m17 2082 МБ / 5 проц., fp v606a_t1b_anc.html m19 2031 МБ / 5 проц., fp v606a_t1b_mir.html m7 924 МБ / 5 проц., fp v606a_t1b_mir.html m11 939 МБ / 5 проц.
+mem: свободно 4236 / 15977 МБ; par ≤ 5; очередь 21; идёт 5: fp v606a_t1b_anc.html m13 2110 МБ / 5 проц., fp v606a_t1b_anc.html m17 2111 МБ / 5 проц., fp v606a_t1b_anc.html m19 2044 МБ / 5 проц., fp v606a_t1b_mir.html m7 1088 МБ / 5 проц., fp v606a_t1b_mir.html m11 1075 МБ / 5 проц.
+end fp v606a_t1b_anc.html m17: код 0, 353 с, пик 2155 МБ, процессов до 5
+start fp v606a_t1b_mir.html m13 (идёт 5, свободно 5668 МБ)
+mem: свободно 4902 / 15977 МБ; par ≤ 5; очередь 20; идёт 5: fp v606a_t1b_anc.html m13 2194 МБ / 5 проц., fp v606a_t1b_anc.html m19 2123 МБ / 5 проц., fp v606a_t1b_mir.html m7 1119 МБ / 5 проц., fp v606a_t1b_mir.html m11 1121 МБ / 5 проц., fp v606a_t1b_mir.html m13 1001 МБ / 5 проц.
+end fp v606a_t1b_anc.html m19: код 0, 387 с, пик 2206 МБ, процессов до 5
+start fp v606a_t1b_mir.html m17 (идёт 5, свободно 6370 МБ)
+mem: свободно 5713 / 15977 МБ; par ≤ 5; очередь 19; идёт 5: fp v606a_t1b_anc.html m13 2246 МБ / 5 проц., fp v606a_t1b_mir.html m7 1156 МБ / 5 проц., fp v606a_t1b_mir.html m11 1158 МБ / 5 проц., fp v606a_t1b_mir.html m13 1070 МБ / 5 проц., fp v606a_t1b_mir.html m17 927 МБ / 5 проц.
+end fp v606a_t1b_anc.html m13: код 0, 424 с, пик 2302 МБ, процессов до 5
+start fp v606a_t1b_mir.html m19 (идёт 5, свободно 7489 МБ)
+mem: свободно 6719 / 15977 МБ; par ≤ 5; очередь 18; идёт 5: fp v606a_t1b_mir.html m7 1195 МБ / 5 проц., fp v606a_t1b_mir.html m11 1167 МБ / 5 проц., fp v606a_t1b_mir.html m13 1113 МБ / 5 проц., fp v606a_t1b_mir.html m17 1179 МБ / 5 проц., fp v606a_t1b_mir.html m19 736 МБ / 5 проц.
+mem: свободно 6649 / 15977 МБ; par ≤ 5; очередь 18; идёт 5: fp v606a_t1b_mir.html m7 1198 МБ / 5 проц., fp v606a_t1b_mir.html m11 1248 МБ / 5 проц., fp v606a_t1b_mir.html m13 1174 МБ / 5 проц., fp v606a_t1b_mir.html m17 1140 МБ / 5 проц., fp v606a_t1b_mir.html m19 1051 МБ / 5 проц.
+mem: свободно 6426 / 15977 МБ; par ≤ 5; очередь 18; идёт 5: fp v606a_t1b_mir.html m7 1216 МБ / 5 проц., fp v606a_t1b_mir.html m11 1180 МБ / 5 проц., fp v606a_t1b_mir.html m13 1210 МБ / 5 проц., fp v606a_t1b_mir.html m17 1157 МБ / 5 проц., fp v606a_t1b_mir.html m19 1103 МБ / 5 проц.
+mem: свободно 6376 / 15977 МБ; par ≤ 5; очередь 18; идёт 5: fp v606a_t1b_mir.html m7 1190 МБ / 5 проц., fp v606a_t1b_mir.html m11 1226 МБ / 5 проц., fp v606a_t1b_mir.html m13 1239 МБ / 5 проц., fp v606a_t1b_mir.html m17 1190 МБ / 5 проц., fp v606a_t1b_mir.html m19 1174 МБ / 5 проц.
+mem: свободно 6155 / 15977 МБ; par ≤ 5; очередь 18; идёт 5: fp v606a_t1b_mir.html m7 1267 МБ / 5 проц., fp v606a_t1b_mir.html m11 1234 МБ / 5 проц., fp v606a_t1b_mir.html m13 1297 МБ / 5 проц., fp v606a_t1b_mir.html m17 1199 МБ / 5 проц., fp v606a_t1b_mir.html m19 1152 МБ / 5 проц.
+mem: свободно 6188 / 15977 МБ; par ≤ 5; очередь 18; идёт 5: fp v606a_t1b_mir.html m7 1247 МБ / 5 проц., fp v606a_t1b_mir.html m11 1250 МБ / 5 проц., fp v606a_t1b_mir.html m13 1219 МБ / 5 проц., fp v606a_t1b_mir.html m17 1214 МБ / 5 проц., fp v606a_t1b_mir.html m19 1207 МБ / 5 проц.
+mem: свободно 6175 / 15977 МБ; par ≤ 5; очередь 18; идёт 5: fp v606a_t1b_mir.html m7 1294 МБ / 5 проц., fp v606a_t1b_mir.html m11 1293 МБ / 5 проц., fp v606a_t1b_mir.html m13 1294 МБ / 5 проц., fp v606a_t1b_mir.html m17 1209 МБ / 5 проц., fp v606a_t1b_mir.html m19 1240 МБ / 5 проц.
+mem: свободно 5957 / 15977 МБ; par ≤ 5; очередь 18; идёт 5: fp v606a_t1b_mir.html m7 1251 МБ / 5 проц., fp v606a_t1b_mir.html m11 1313 МБ / 5 проц., fp v606a_t1b_mir.html m13 1302 МБ / 5 проц., fp v606a_t1b_mir.html m17 1235 МБ / 5 проц., fp v606a_t1b_mir.html m19 1226 МБ / 5 проц.
+mem: свободно 6046 / 15977 МБ; par ≤ 5; очередь 18; идёт 5: fp v606a_t1b_mir.html m7 1270 МБ / 5 проц., fp v606a_t1b_mir.html m11 1298 МБ / 5 проц., fp v606a_t1b_mir.html m13 1301 МБ / 5 проц., fp v606a_t1b_mir.html m17 1269 МБ / 5 проц., fp v606a_t1b_mir.html m19 1219 МБ / 5 проц.
+end fp v606a_t1b_mir.html m11: код 0, 402 с, пик 1313 МБ, процессов до 5
+start fp v606a_t1b_mir.html m23 (идёт 5, свободно 6923 МБ)
+end fp v606a_t1b_mir.html m13: код 0, 360 с, пик 1305 МБ, процессов до 5
+mem: свободно 7090 / 15977 МБ; par ≤ 5; очередь 17; идёт 4: fp v606a_t1b_mir.html m7 1294 МБ / 5 проц., fp v606a_t1b_mir.html m17 1264 МБ / 5 проц., fp v606a_t1b_mir.html m19 1306 МБ / 5 проц., fp v606a_t1b_mir.html m23 987 МБ / 5 проц.
+start fp v606a_t1b_mir.html m29 (идёт 5, свободно 7090 МБ)
+end fp v606a_t1b_mir.html m17: код 0, 343 с, пик 1287 МБ, процессов до 5
+start fp v607a_r32_anc.html m3 (идёт 5, свободно 7394 МБ)
+end fp v606a_t1b_mir.html m7: код 0, 447 с, пик 1298 МБ, процессов до 5
+start fp v607a_r32_anc.html m7 (идёт 5, свободно 7635 МБ)
+mem: свободно 7071 / 15977 МБ; par ≤ 5; очередь 14; идёт 5: fp v606a_t1b_mir.html m19 1287 МБ / 5 проц., fp v606a_t1b_mir.html m23 1056 МБ / 5 проц., fp v606a_t1b_mir.html m29 1050 МБ / 5 проц., fp v607a_r32_anc.html m3 967 МБ / 5 проц., fp v607a_r32_anc.html m7 787 МБ / 5 проц.
+mem: свободно 6436 / 15977 МБ; par ≤ 5; очередь 14; идёт 5: fp v606a_t1b_mir.html m19 1349 МБ / 5 проц., fp v606a_t1b_mir.html m23 1129 МБ / 5 проц., fp v606a_t1b_mir.html m29 1134 МБ / 5 проц., fp v607a_r32_anc.html m3 1174 МБ / 5 проц., fp v607a_r32_anc.html m7 1146 МБ / 5 проц.
+mem: свободно 5976 / 15977 МБ; par ≤ 5; очередь 14; идёт 5: fp v606a_t1b_mir.html m19 1298 МБ / 5 проц., fp v606a_t1b_mir.html m23 1168 МБ / 5 проц., fp v606a_t1b_mir.html m29 1181 МБ / 5 проц., fp v607a_r32_anc.html m3 1367 МБ / 5 проц., fp v607a_r32_anc.html m7 1300 МБ / 5 проц.
+mem: свободно 5655 / 15977 МБ; par ≤ 5; очередь 14; идёт 5: fp v606a_t1b_mir.html m19 1281 МБ / 5 проц., fp v606a_t1b_mir.html m23 1232 МБ / 5 проц., fp v606a_t1b_mir.html m29 1156 МБ / 5 проц., fp v607a_r32_anc.html m3 1548 МБ / 5 проц., fp v607a_r32_anc.html m7 1466 МБ / 5 проц.
+end fp v606a_t1b_mir.html m19: код 0, 436 с, пик 1349 МБ, процессов до 5
+start fp v607a_r32_anc.html m11 (идёт 5, свободно 6318 МБ)
+mem: свободно 5615 / 15977 МБ; par ≤ 5; очередь 13; идёт 5: fp v606a_t1b_mir.html m23 1220 МБ / 5 проц., fp v606a_t1b_mir.html m29 1237 МБ / 5 проц., fp v607a_r32_anc.html m3 1677 МБ / 5 проц., fp v607a_r32_anc.html m7 1631 МБ / 5 проц., fp v607a_r32_anc.html m11 945 МБ / 5 проц.
+mem: свободно 4904 / 15977 МБ; par ≤ 5; очередь 13; идёт 5: fp v606a_t1b_mir.html m23 1231 МБ / 5 проц., fp v606a_t1b_mir.html m29 1251 МБ / 5 проц., fp v607a_r32_anc.html m3 1822 МБ / 5 проц., fp v607a_r32_anc.html m7 1764 МБ / 5 проц., fp v607a_r32_anc.html m11 1285 МБ / 5 проц.
+mem: свободно 4501 / 15977 МБ; par ≤ 5; очередь 13; идёт 5: fp v606a_t1b_mir.html m23 1228 МБ / 5 проц., fp v606a_t1b_mir.html m29 1254 МБ / 5 проц., fp v607a_r32_anc.html m3 1948 МБ / 5 проц., fp v607a_r32_anc.html m7 1927 МБ / 5 проц., fp v607a_r32_anc.html m11 1521 МБ / 5 проц.
+mem: свободно 4103 / 15977 МБ; par ≤ 5; очередь 13; идёт 5: fp v606a_t1b_mir.html m23 1226 МБ / 5 проц., fp v606a_t1b_mir.html m29 1251 МБ / 5 проц., fp v607a_r32_anc.html m3 2062 МБ / 5 проц., fp v607a_r32_anc.html m7 1982 МБ / 5 проц., fp v607a_r32_anc.html m11 1642 МБ / 5 проц.
+mem: свободно 3868 / 15977 МБ; par ≤ 5; очередь 13; идёт 5: fp v606a_t1b_mir.html m23 1258 МБ / 5 проц., fp v606a_t1b_mir.html m29 1263 МБ / 5 проц., fp v607a_r32_anc.html m3 2101 МБ / 5 проц., fp v607a_r32_anc.html m7 2096 МБ / 5 проц., fp v607a_r32_anc.html m11 1823 МБ / 5 проц.
+mem: свободно 3659 / 15977 МБ; par ≤ 5; очередь 13; идёт 5: fp v606a_t1b_mir.html m23 1297 МБ / 5 проц., fp v606a_t1b_mir.html m29 1247 МБ / 5 проц., fp v607a_r32_anc.html m3 2127 МБ / 5 проц., fp v607a_r32_anc.html m7 2121 МБ / 5 проц., fp v607a_r32_anc.html m11 1880 МБ / 5 проц.
+end fp v606a_t1b_mir.html m23: код 0, 342 с, пик 1297 МБ, процессов до 5
+mem: свободно 4480 / 15977 МБ; par ≤ 5; очередь 13; идёт 4: fp v606a_t1b_mir.html m29 1285 МБ / 5 проц., fp v607a_r32_anc.html m3 2163 МБ / 5 проц., fp v607a_r32_anc.html m7 2200 МБ / 5 проц., fp v607a_r32_anc.html m11 1967 МБ / 5 проц.
+mem: свободно 4332 / 15977 МБ; par ≤ 5; очередь 13; идёт 4: fp v606a_t1b_mir.html m29 1287 МБ / 5 проц., fp v607a_r32_anc.html m3 2242 МБ / 5 проц., fp v607a_r32_anc.html m7 2194 МБ / 5 проц., fp v607a_r32_anc.html m11 2052 МБ / 5 проц.
+end fp v607a_r32_anc.html m11: код 0, 230 с, пик 2080 МБ, процессов до 5
+start fp v607a_r32_anc.html m13 (идёт 4, свободно 6160 МБ)
+start fp v607a_r32_anc.html m17 (идёт 5, свободно 6160 МБ)
+end fp v607a_r32_anc.html m3: код 0, 366 с, пик 2254 МБ, процессов до 5
+start fp v607a_r32_anc.html m19 (идёт 5, свободно 6873 МБ)
+end fp v607a_r32_anc.html m7: код 0, 367 с, пик 2242 МБ, процессов до 5
+start fp v607a_r32_anc.html m23 (идёт 5, свободно 7783 МБ)
+mem: свободно 6723 / 15977 МБ; par ≤ 5; очередь 9; идёт 5: fp v606a_t1b_mir.html m29 1300 МБ / 5 проц., fp v607a_r32_anc.html m13 1152 МБ / 5 проц., fp v607a_r32_anc.html m17 1150 МБ / 5 проц., fp v607a_r32_anc.html m19 1075 МБ / 5 проц., fp v607a_r32_anc.html m23 1033 МБ / 5 проц.
+mem: свободно 5890 / 15977 МБ; par ≤ 5; очередь 9; идёт 5: fp v606a_t1b_mir.html m29 1261 МБ / 5 проц., fp v607a_r32_anc.html m13 1416 МБ / 5 проц., fp v607a_r32_anc.html m17 1269 МБ / 5 проц., fp v607a_r32_anc.html m19 1315 МБ / 5 проц., fp v607a_r32_anc.html m23 1329 МБ / 5 проц.
+mem: свободно 5029 / 15977 МБ; par ≤ 5; очередь 9; идёт 5: fp v606a_t1b_mir.html m29 1357 МБ / 5 проц., fp v607a_r32_anc.html m13 1669 МБ / 5 проц., fp v607a_r32_anc.html m17 1458 МБ / 5 проц., fp v607a_r32_anc.html m19 1465 МБ / 5 проц., fp v607a_r32_anc.html m23 1469 МБ / 5 проц.
+end fp v606a_t1b_mir.html m29: код 0, 489 с, пик 1357 МБ, процессов до 5
+start fp v607a_r32_anc.html m29 (идёт 5, свободно 5690 МБ)
+mem: свободно 4845 / 15977 МБ; par ≤ 5; очередь 8; идёт 5: fp v607a_r32_anc.html m13 1784 МБ / 5 проц., fp v607a_r32_anc.html m17 1618 МБ / 5 проц., fp v607a_r32_anc.html m19 1613 МБ / 5 проц., fp v607a_r32_anc.html m23 1587 МБ / 5 проц., fp v607a_r32_anc.html m29 1001 МБ / 5 проц.
+mem: свободно 4053 / 15977 МБ; par ≤ 5; очередь 8; идёт 5: fp v607a_r32_anc.html m13 1865 МБ / 5 проц., fp v607a_r32_anc.html m17 1766 МБ / 5 проц., fp v607a_r32_anc.html m19 1757 МБ / 5 проц., fp v607a_r32_anc.html m23 1795 МБ / 5 проц., fp v607a_r32_anc.html m29 1205 МБ / 5 проц.
+mem: свободно 3630 / 15977 МБ; par ≤ 5; очередь 8; идёт 5: fp v607a_r32_anc.html m13 1955 МБ / 5 проц., fp v607a_r32_anc.html m17 1849 МБ / 5 проц., fp v607a_r32_anc.html m19 1796 МБ / 5 проц., fp v607a_r32_anc.html m23 1843 МБ / 5 проц., fp v607a_r32_anc.html m29 1383 МБ / 5 проц.
+mem: свободно 2890 / 15977 МБ; par ≤ 5; очередь 8; идёт 5: fp v607a_r32_anc.html m13 2059 МБ / 5 проц., fp v607a_r32_anc.html m17 1996 МБ / 5 проц., fp v607a_r32_anc.html m19 1926 МБ / 5 проц., fp v607a_r32_anc.html m23 1954 МБ / 5 проц., fp v607a_r32_anc.html m29 1611 МБ / 5 проц.
+mem: свободно 2446 / 15977 МБ; par ≤ 5; очередь 8; идёт 5: fp v607a_r32_anc.html m13 2130 МБ / 5 проц., fp v607a_r32_anc.html m17 2009 МБ / 5 проц., fp v607a_r32_anc.html m19 2013 МБ / 5 проц., fp v607a_r32_anc.html m23 2187 МБ / 5 проц., fp v607a_r32_anc.html m29 1672 МБ / 5 проц.
+end fp v607a_r32_anc.html m23: код 0, 242 с, пик 2200 МБ, процессов до 5
+mem: свободно 3966 / 15977 МБ; par ≤ 5; очередь 8; идёт 4: fp v607a_r32_anc.html m13 2128 МБ / 5 проц., fp v607a_r32_anc.html m17 2119 МБ / 5 проц., fp v607a_r32_anc.html m19 2064 МБ / 5 проц., fp v607a_r32_anc.html m29 1846 МБ / 5 проц.
+end fp v607a_r32_anc.html m17: код 0, 303 с, пик 2203 МБ, процессов до 5
+mem: свободно 5523 / 15977 МБ; par ≤ 5; очередь 8; идёт 3: fp v607a_r32_anc.html m13 2211 МБ / 5 проц., fp v607a_r32_anc.html m19 2179 МБ / 5 проц., fp v607a_r32_anc.html m29 1902 МБ / 5 проц.
+start fp v607a_r32_mir.html m3 (идёт 4, свободно 5523 МБ)
+start fp v607a_r32_mir.html m7 (идёт 5, свободно 5523 МБ)
+end fp v607a_r32_anc.html m19: код 0, 335 с, пик 2252 МБ, процессов до 5
+mem: свободно 5705 / 15977 МБ; par ≤ 5; очередь 6; идёт 4: fp v607a_r32_anc.html m13 2298 МБ / 5 проц., fp v607a_r32_anc.html m29 2006 МБ / 5 проц., fp v607a_r32_mir.html m3 1046 МБ / 5 проц., fp v607a_r32_mir.html m7 1067 МБ / 5 проц.
+start fp v607a_r32_mir.html m11 (идёт 5, свободно 5705 МБ)
+end fp v607a_r32_anc.html m13: код 0, 369 с, пик 2318 МБ, процессов до 5
+start fp v607a_r32_mir.html m13 (идёт 5, свободно 6693 МБ)
+mem: свободно 6249 / 15977 МБ; par ≤ 5; очередь 4; идёт 5: fp v607a_r32_anc.html m29 2113 МБ / 5 проц., fp v607a_r32_mir.html m3 1091 МБ / 5 проц., fp v607a_r32_mir.html m7 1128 МБ / 5 проц., fp v607a_r32_mir.html m11 1078 МБ / 5 проц., fp v607a_r32_mir.html m13 738 МБ / 5 проц.
+mem: свободно 5790 / 15977 МБ; par ≤ 5; очередь 4; идёт 5: fp v607a_r32_anc.html m29 2169 МБ / 5 проц., fp v607a_r32_mir.html m3 1153 МБ / 5 проц., fp v607a_r32_mir.html m7 1157 МБ / 5 проц., fp v607a_r32_mir.html m11 1082 МБ / 5 проц., fp v607a_r32_mir.html m13 1057 МБ / 5 проц.
+mem: свободно 5564 / 15977 МБ; par ≤ 5; очередь 4; идёт 5: fp v607a_r32_anc.html m29 2167 МБ / 5 проц., fp v607a_r32_mir.html m3 1160 МБ / 5 проц., fp v607a_r32_mir.html m7 1194 МБ / 5 проц., fp v607a_r32_mir.html m11 1183 МБ / 5 проц., fp v607a_r32_mir.html m13 1085 МБ / 5 проц.
+mem: свободно 5355 / 15977 МБ; par ≤ 5; очередь 4; идёт 5: fp v607a_r32_anc.html m29 2202 МБ / 5 проц., fp v607a_r32_mir.html m3 1234 МБ / 5 проц., fp v607a_r32_mir.html m7 1216 МБ / 5 проц., fp v607a_r32_mir.html m11 1156 МБ / 5 проц., fp v607a_r32_mir.html m13 1179 МБ / 5 проц.
+end fp v607a_r32_anc.html m29: код 0, 380 с, пик 2287 МБ, процессов до 5
+start fp v607a_r32_mir.html m17 (идёт 5, свободно 7208 МБ)
+mem: свободно 6570 / 15977 МБ; par ≤ 5; очередь 3; идёт 5: fp v607a_r32_mir.html m3 1226 МБ / 5 проц., fp v607a_r32_mir.html m7 1192 МБ / 5 проц., fp v607a_r32_mir.html m11 1238 МБ / 5 проц., fp v607a_r32_mir.html m13 1220 МБ / 5 проц., fp v607a_r32_mir.html m17 827 МБ / 5 проц.
+mem: свободно 6394 / 15977 МБ; par ≤ 5; очередь 3; идёт 5: fp v607a_r32_mir.html m3 1252 МБ / 5 проц., fp v607a_r32_mir.html m7 1197 МБ / 5 проц., fp v607a_r32_mir.html m11 1253 МБ / 5 проц., fp v607a_r32_mir.html m13 1229 МБ / 5 проц., fp v607a_r32_mir.html m17 1071 МБ / 5 проц.
+mem: свободно 6288 / 15977 МБ; par ≤ 5; очередь 3; идёт 5: fp v607a_r32_mir.html m3 1233 МБ / 5 проц., fp v607a_r32_mir.html m7 1239 МБ / 5 проц., fp v607a_r32_mir.html m11 1183 МБ / 5 проц., fp v607a_r32_mir.html m13 1234 МБ / 5 проц., fp v607a_r32_mir.html m17 1133 МБ / 5 проц.
+mem: свободно 6797 / 15977 МБ; par ≤ 5; очередь 3; идёт 5: fp v607a_r32_mir.html m3 1234 МБ / 5 проц., fp v607a_r32_mir.html m7 1229 МБ / 5 проц., fp v607a_r32_mir.html m11 1234 МБ / 5 проц., fp v607a_r32_mir.html m13 1251 МБ / 5 проц., fp v607a_r32_mir.html m17 1188 МБ / 5 проц.
+mem: свободно 6694 / 15977 МБ; par ≤ 5; очередь 3; идёт 5: fp v607a_r32_mir.html m3 1270 МБ / 5 проц., fp v607a_r32_mir.html m7 1270 МБ / 5 проц., fp v607a_r32_mir.html m11 1226 МБ / 5 проц., fp v607a_r32_mir.html m13 1285 МБ / 5 проц., fp v607a_r32_mir.html m17 1193 МБ / 5 проц.
+mem: свободно 6576 / 15977 МБ; par ≤ 5; очередь 3; идёт 5: fp v607a_r32_mir.html m3 1297 МБ / 5 проц., fp v607a_r32_mir.html m7 1292 МБ / 5 проц., fp v607a_r32_mir.html m11 1266 МБ / 5 проц., fp v607a_r32_mir.html m13 1299 МБ / 5 проц., fp v607a_r32_mir.html m17 1195 МБ / 5 проц.
+mem: свободно 6601 / 15977 МБ; par ≤ 5; очередь 3; идёт 5: fp v607a_r32_mir.html m3 1283 МБ / 5 проц., fp v607a_r32_mir.html m7 1244 МБ / 5 проц., fp v607a_r32_mir.html m11 1311 МБ / 5 проц., fp v607a_r32_mir.html m13 1290 МБ / 5 проц., fp v607a_r32_mir.html m17 1207 МБ / 5 проц.
+end fp v607a_r32_mir.html m3: код 0, 402 с, пик 1305 МБ, процессов до 5
+start fp v607a_r32_mir.html m19 (идёт 5, свободно 7410 МБ)
+mem: свободно 6811 / 15977 МБ; par ≤ 5; очередь 2; идёт 5: fp v607a_r32_mir.html m7 1276 МБ / 5 проц., fp v607a_r32_mir.html m11 1273 МБ / 5 проц., fp v607a_r32_mir.html m13 1315 МБ / 5 проц., fp v607a_r32_mir.html m17 1205 МБ / 5 проц., fp v607a_r32_mir.html m19 825 МБ / 5 проц.
+end fp v607a_r32_mir.html m13: код 0, 360 с, пик 1315 МБ, процессов до 5
+start fp v607a_r32_mir.html m23 (идёт 5, свободно 7525 МБ)
+end fp v607a_r32_mir.html m11: код 0, 400 с, пик 1311 МБ, процессов до 5
+start fp v607a_r32_mir.html m29 (идёт 5, свободно 7699 МБ)
+end fp v607a_r32_mir.html m7: код 0, 441 с, пик 1292 МБ, процессов до 5
+mem: свободно 7863 / 15977 МБ; par ≤ 5; очередь 0; идёт 4: fp v607a_r32_mir.html m17 1242 МБ / 5 проц., fp v607a_r32_mir.html m19 1052 МБ / 5 проц., fp v607a_r32_mir.html m23 1018 МБ / 5 проц., fp v607a_r32_mir.html m29 934 МБ / 5 проц.
+mem: свободно 7480 / 15977 МБ; par ≤ 5; очередь 0; идёт 4: fp v607a_r32_mir.html m17 1309 МБ / 5 проц., fp v607a_r32_mir.html m19 1104 МБ / 5 проц., fp v607a_r32_mir.html m23 1076 МБ / 5 проц., fp v607a_r32_mir.html m29 1056 МБ / 5 проц.
+mem: свободно 7380 / 15977 МБ; par ≤ 5; очередь 0; идёт 4: fp v607a_r32_mir.html m17 1261 МБ / 5 проц., fp v607a_r32_mir.html m19 1147 МБ / 5 проц., fp v607a_r32_mir.html m23 1155 МБ / 5 проц., fp v607a_r32_mir.html m29 1108 МБ / 5 проц.
+end fp v607a_r32_mir.html m17: код 0, 327 с, пик 1400 МБ, процессов до 5
+mem: свободно 8175 / 15977 МБ; par ≤ 5; очередь 0; идёт 3: fp v607a_r32_mir.html m19 1177 МБ / 5 проц., fp v607a_r32_mir.html m23 1185 МБ / 5 проц., fp v607a_r32_mir.html m29 1172 МБ / 5 проц.
+mem: свободно 8140 / 15977 МБ; par ≤ 5; очередь 0; идёт 3: fp v607a_r32_mir.html m19 1203 МБ / 5 проц., fp v607a_r32_mir.html m23 1154 МБ / 5 проц., fp v607a_r32_mir.html m29 1226 МБ / 5 проц.
+mem: свободно 8078 / 15977 МБ; par ≤ 5; очередь 0; идёт 3: fp v607a_r32_mir.html m19 1239 МБ / 5 проц., fp v607a_r32_mir.html m23 1193 МБ / 5 проц., fp v607a_r32_mir.html m29 1231 МБ / 5 проц.
+mem: свободно 7994 / 15977 МБ; par ≤ 5; очередь 0; идёт 3: fp v607a_r32_mir.html m19 1237 МБ / 5 проц., fp v607a_r32_mir.html m23 1248 МБ / 5 проц., fp v607a_r32_mir.html m29 1262 МБ / 5 проц.
+mem: свободно 8048 / 15977 МБ; par ≤ 5; очередь 0; идёт 3: fp v607a_r32_mir.html m19 1218 МБ / 5 проц., fp v607a_r32_mir.html m23 1245 МБ / 5 проц., fp v607a_r32_mir.html m29 1224 МБ / 5 проц.
+mem: свободно 7928 / 15977 МБ; par ≤ 5; очередь 0; идёт 3: fp v607a_r32_mir.html m19 1289 МБ / 5 проц., fp v607a_r32_mir.html m23 1263 МБ / 5 проц., fp v607a_r32_mir.html m29 1245 МБ / 5 проц.
+mem: свободно 7893 / 15977 МБ; par ≤ 5; очередь 0; идёт 3: fp v607a_r32_mir.html m19 1311 МБ / 5 проц., fp v607a_r32_mir.html m23 1294 МБ / 5 проц., fp v607a_r32_mir.html m29 1254 МБ / 5 проц.
+end fp v607a_r32_mir.html m23: код 0, 320 с, пик 1294 МБ, процессов до 5
+mem: свободно 8813 / 15977 МБ; par ≤ 5; очередь 0; идёт 2: fp v607a_r32_mir.html m19 1263 МБ / 5 проц., fp v607a_r32_mir.html m29 1292 МБ / 5 проц.
+mem: свободно 8495 / 15977 МБ; par ≤ 5; очередь 0; идёт 2: fp v607a_r32_mir.html m19 1305 МБ / 5 проц., fp v607a_r32_mir.html m29 1256 МБ / 5 проц.
+end fp v607a_r32_mir.html m19: код 0, 404 с, пик 1321 МБ, процессов до 5
+mem: свободно 9388 / 15977 МБ; par ≤ 5; очередь 0; идёт 1: fp v607a_r32_mir.html m29 1335 МБ / 5 проц.
+mem: свободно 9474 / 15977 МБ; par ≤ 5; очередь 0; идёт 1: fp v607a_r32_mir.html m29 1299 МБ / 5 проц.
+mem: свободно 9425 / 15977 МБ; par ≤ 5; очередь 0; идёт 1: fp v607a_r32_mir.html m29 1347 МБ / 5 проц.
+end fp v607a_r32_mir.html m29: код 0, 453 с, пик 1347 МБ, процессов до 5
+guard: переигровка снятых по памяти: 2 (по одному)
+start fp v606a_t1b_mir.html m3 (идёт 1, свободно 10500 МБ)
+mem: свободно 9713 / 15977 МБ; par ≤ 1; очередь 1; идёт 1: fp v606a_t1b_mir.html m3 880 МБ / 5 проц.
+mem: свободно 9656 / 15977 МБ; par ≤ 1; очередь 1; идёт 1: fp v606a_t1b_mir.html m3 974 МБ / 5 проц.
+mem: свободно 9605 / 15977 МБ; par ≤ 1; очередь 1; идёт 1: fp v606a_t1b_mir.html m3 1024 МБ / 5 проц.
+mem: свободно 9572 / 15977 МБ; par ≤ 1; очередь 1; идёт 1: fp v606a_t1b_mir.html m3 1059 МБ / 5 проц.
+mem: свободно 9546 / 15977 МБ; par ≤ 1; очередь 1; идёт 1: fp v606a_t1b_mir.html m3 1105 МБ / 5 проц.
+mem: свободно 9518 / 15977 МБ; par ≤ 1; очередь 1; идёт 1: fp v606a_t1b_mir.html m3 1121 МБ / 5 проц.
+mem: свободно 9497 / 15977 МБ; par ≤ 1; очередь 1; идёт 1: fp v606a_t1b_mir.html m3 1147 МБ / 5 проц.
+mem: свободно 9511 / 15977 МБ; par ≤ 1; очередь 1; идёт 1: fp v606a_t1b_mir.html m3 1131 МБ / 5 проц.
+mem: свободно 9497 / 15977 МБ; par ≤ 1; очередь 1; идёт 1: fp v606a_t1b_mir.html m3 1139 МБ / 5 проц.
+mem: свободно 9487 / 15977 МБ; par ≤ 1; очередь 1; идёт 1: fp v606a_t1b_mir.html m3 1164 МБ / 5 проц.
+mem: свободно 9483 / 15977 МБ; par ≤ 1; очередь 1; идёт 1: fp v606a_t1b_mir.html m3 1166 МБ / 5 проц.
+end fp v606a_t1b_mir.html m3: код 0, 349 с, пик 1166 МБ, процессов до 5
+start fp v606a_t1b_anc.html m29 (идёт 1, свободно 10524 МБ)
+mem: свободно 9710 / 15977 МБ; par ≤ 1; очередь 0; идёт 1: fp v606a_t1b_anc.html m29 919 МБ / 5 проц.
+mem: свободно 9514 / 15977 МБ; par ≤ 1; очередь 0; идёт 1: fp v606a_t1b_anc.html m29 1094 МБ / 5 проц.
+mem: свободно 9345 / 15977 МБ; par ≤ 1; очередь 0; идёт 1: fp v606a_t1b_anc.html m29 1257 МБ / 5 проц.
+mem: свободно 9172 / 15977 МБ; par ≤ 1; очередь 0; идёт 1: fp v606a_t1b_anc.html m29 1442 МБ / 5 проц.
+mem: свободно 9062 / 15977 МБ; par ≤ 1; очередь 0; идёт 1: fp v606a_t1b_anc.html m29 1556 МБ / 5 проц.
+mem: свободно 8882 / 15977 МБ; par ≤ 1; очередь 0; идёт 1: fp v606a_t1b_anc.html m29 1754 МБ / 5 проц.
+mem: свободно 8730 / 15977 МБ; par ≤ 1; очередь 0; идёт 1: fp v606a_t1b_anc.html m29 1891 МБ / 5 проц.
+mem: свободно 8637 / 15977 МБ; par ≤ 1; очередь 0; идёт 1: fp v606a_t1b_anc.html m29 1983 МБ / 5 проц.
+mem: свободно 8644 / 15977 МБ; par ≤ 1; очередь 0; идёт 1: fp v606a_t1b_anc.html m29 2049 МБ / 5 проц.
+mem: свободно 8836 / 15977 МБ; par ≤ 1; очередь 0; идёт 1: fp v606a_t1b_anc.html m29 1851 МБ / 5 проц.
+mem: свободно 8610 / 15977 МБ; par ≤ 1; очередь 0; идёт 1: fp v606a_t1b_anc.html m29 2094 МБ / 5 проц.
+end fp v606a_t1b_anc.html m29: код 0, 341 с, пик 2189 МБ, процессов до 5
+all done

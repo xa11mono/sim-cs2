@@ -1,0 +1,13 @@
+{
+ "par": 8,
+ "resume": true,
+ "fp": [
+  {"label": "v602a_t3_mir",  "ref": "e7e472ca3dea12676e82ffe00c27bab0982a2822", "map": "mirage"},
+  {"label": "v604a_t2_anc",  "ref": "6b10fcf8fc38cacd6c8262806bf22872baa0c4fe", "map": "ancient"},
+  {"label": "v604a_t2_mir",  "ref": "6b10fcf8fc38cacd6c8262806bf22872baa0c4fe", "map": "mirage"},
+  {"label": "v606a_t1b_anc", "ref": "c357ea1688130f088a0dc3a181fb4409deae4be0", "map": "ancient"},
+  {"label": "v606a_t1b_mir", "ref": "c357ea1688130f088a0dc3a181fb4409deae4be0", "map": "mirage"},
+  {"label": "v607a_r32_anc", "ref": "91dbf64a3c0aad7bc73a69fcff24fe31b8423482", "map": "ancient"},
+  {"label": "v607a_r32_mir", "ref": "91dbf64a3c0aad7bc73a69fcff24fe31b8423482", "map": "mirage"}
+ ]
+}
