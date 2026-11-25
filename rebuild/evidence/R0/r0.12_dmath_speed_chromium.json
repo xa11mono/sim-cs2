@@ -1,0 +1,55 @@
+{
+ "sin": {
+  "n": 50000,
+  "dmath_ns": 46,
+  "math_ns": 28
+ },
+ "cos": {
+  "n": 50000,
+  "dmath_ns": 30,
+  "math_ns": 30
+ },
+ "atan": {
+  "n": 11377,
+  "dmath_ns": 15.8,
+  "math_ns": 28.1
+ },
+ "atan2": {
+  "n": 50000,
+  "dmath_ns": 40.8,
+  "math_ns": 45.2
+ },
+ "acos": {
+  "n": 31,
+  "dmath_ns": 0,
+  "math_ns": 0
+ },
+ "exp": {
+  "n": 50000,
+  "dmath_ns": 32,
+  "math_ns": 21.2
+ },
+ "log": {
+  "n": 745,
+  "dmath_ns": 53.7,
+  "math_ns": 26.8
+ },
+ "pow": {
+  "n": 2083,
+  "dmath_ns": 153.6,
+  "math_ns": 28.8
+ },
+ "hypot": {
+  "n": 50000,
+  "dmath_ns": 55.2,
+  "math_ns": 22.8
+ },
+ "sqrt": {
+  "n": 50000,
+  "dmath_ns": 9.6,
+  "math_ns": 8.8
+ },
+ "_env": {
+  "chromium": "158.0.8127.36"
+ }
+}

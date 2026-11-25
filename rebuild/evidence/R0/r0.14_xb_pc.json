@@ -1,0 +1,474 @@
+{
+ "mir_chromium": {
+  "engine": "chromium",
+  "match": 3,
+  "ticks": 2000,
+  "errors": [],
+  "console": [],
+  "version": "153.0.8010.12",
+  "loadMs": 2468,
+  "hasEv": true,
+  "game": {
+   "tick": 2000,
+   "round": 1,
+   "hash": 1231931495
+  },
+  "gameMs": 3986,
+  "math": {
+   "sin": "e6e38f19",
+   "cos": "8e403a8d",
+   "tan": "8a38b291",
+   "atan2": "6d6d022a",
+   "exp": "d3fa1059",
+   "log": "7090192e",
+   "pow": "47b9134d",
+   "hypot": "5d4cac54",
+   "sqrt": "eb516bd4"
+  },
+  "wasm": {
+   "sync": true,
+   "libm": {
+    "sin": "e9524b73",
+    "cos": "2f534465",
+    "tan": "849cffad",
+    "atan2": "e7883000",
+    "exp": "b693f15c",
+    "log": "4ca11693",
+    "pow": "c87fd075",
+    "hypot": "d0b3582c",
+    "sqrt": "eb516bd4"
+   },
+   "workerBlob": {
+    "libm": {
+     "sin": "e9524b73",
+     "cos": "2f534465",
+     "tan": "849cffad",
+     "atan2": "e7883000",
+     "exp": "b693f15c",
+     "log": "4ca11693",
+     "pow": "c87fd075",
+     "hypot": "d0b3582c",
+     "sqrt": "eb516bd4"
+    }
+   },
+   "workerModule": {
+    "err": "ошибка Worker: "
+   },
+   "workerData": {
+    "libm": {
+     "sin": "e9524b73",
+     "cos": "2f534465",
+     "tan": "849cffad",
+     "atan2": "e7883000",
+     "exp": "b693f15c",
+     "log": "4ca11693",
+     "pow": "c87fd075",
+     "hypot": "d0b3582c",
+     "sqrt": "eb516bd4"
+    }
+   },
+   "sab": false,
+   "coi": false
+  }
+ },
+ "mir_firefox": {
+  "engine": "firefox",
+  "match": 3,
+  "ticks": 2000,
+  "errors": [],
+  "console": [],
+  "version": "155.0",
+  "loadMs": 2511,
+  "hasEv": true,
+  "game": {
+   "tick": 2000,
+   "round": 1,
+   "hash": 384049516
+  },
+  "gameMs": 5723,
+  "math": {
+   "sin": "149b0df8",
+   "cos": "b508cbae",
+   "tan": "7f5917b4",
+   "atan2": "e7883000",
+   "exp": "b693f15c",
+   "log": "bdb46959",
+   "pow": "5e838c47",
+   "hypot": "bbd3bda2",
+   "sqrt": "eb516bd4"
+  },
+  "wasm": {
+   "sync": true,
+   "libm": {
+    "sin": "e9524b73",
+    "cos": "2f534465",
+    "tan": "849cffad",
+    "atan2": "e7883000",
+    "exp": "b693f15c",
+    "log": "4ca11693",
+    "pow": "c87fd075",
+    "hypot": "d0b3582c",
+    "sqrt": "eb516bd4"
+   },
+   "workerBlob": {
+    "libm": {
+     "sin": "e9524b73",
+     "cos": "2f534465",
+     "tan": "849cffad",
+     "atan2": "e7883000",
+     "exp": "b693f15c",
+     "log": "4ca11693",
+     "pow": "c87fd075",
+     "hypot": "d0b3582c",
+     "sqrt": "eb516bd4"
+    }
+   },
+   "workerModule": {
+    "libm": {
+     "sin": "e9524b73",
+     "cos": "2f534465",
+     "tan": "849cffad",
+     "atan2": "e7883000",
+     "exp": "b693f15c",
+     "log": "4ca11693",
+     "pow": "c87fd075",
+     "hypot": "d0b3582c",
+     "sqrt": "eb516bd4"
+    }
+   },
+   "workerData": {
+    "libm": {
+     "sin": "e9524b73",
+     "cos": "2f534465",
+     "tan": "849cffad",
+     "atan2": "e7883000",
+     "exp": "b693f15c",
+     "log": "4ca11693",
+     "pow": "c87fd075",
+     "hypot": "d0b3582c",
+     "sqrt": "eb516bd4"
+    }
+   },
+   "sab": false,
+   "coi": false
+  }
+ },
+ "mir_webkit": {
+  "engine": "webkit",
+  "match": 3,
+  "ticks": 2000,
+  "errors": [],
+  "console": [],
+  "version": "26.6",
+  "loadMs": 2285,
+  "hasEv": true,
+  "game": {
+   "tick": 2000,
+   "round": 1,
+   "hash": 890062815
+  },
+  "gameMs": 4051,
+  "math": {
+   "sin": "149b0df8",
+   "cos": "b508cbae",
+   "tan": "7f5917b4",
+   "atan2": "e48929a9",
+   "exp": "2401f45e",
+   "log": "7090192e",
+   "pow": "5e838c47",
+   "hypot": "eb516bd4",
+   "sqrt": "eb516bd4"
+  },
+  "wasm": {
+   "sync": true,
+   "libm": {
+    "sin": "e9524b73",
+    "cos": "2f534465",
+    "tan": "849cffad",
+    "atan2": "e7883000",
+    "exp": "b693f15c",
+    "log": "4ca11693",
+    "pow": "c87fd075",
+    "hypot": "d0b3582c",
+    "sqrt": "eb516bd4"
+   },
+   "workerBlob": {
+    "libm": {
+     "sin": "e9524b73",
+     "cos": "2f534465",
+     "tan": "849cffad",
+     "atan2": "e7883000",
+     "exp": "b693f15c",
+     "log": "4ca11693",
+     "pow": "c87fd075",
+     "hypot": "d0b3582c",
+     "sqrt": "eb516bd4"
+    }
+   },
+   "workerModule": {
+    "libm": {
+     "sin": "e9524b73",
+     "cos": "2f534465",
+     "tan": "849cffad",
+     "atan2": "e7883000",
+     "exp": "b693f15c",
+     "log": "4ca11693",
+     "pow": "c87fd075",
+     "hypot": "d0b3582c",
+     "sqrt": "eb516bd4"
+    }
+   },
+   "workerData": {
+    "libm": {
+     "sin": "e9524b73",
+     "cos": "2f534465",
+     "tan": "849cffad",
+     "atan2": "e7883000",
+     "exp": "b693f15c",
+     "log": "4ca11693",
+     "pow": "c87fd075",
+     "hypot": "d0b3582c",
+     "sqrt": "eb516bd4"
+    }
+   },
+   "sab": false,
+   "coi": false
+  }
+ },
+ "anc_chromium": {
+  "engine": "chromium",
+  "match": 3,
+  "ticks": 2000,
+  "errors": [],
+  "console": [],
+  "version": "153.0.8010.12",
+  "loadMs": 2617,
+  "hasEv": true,
+  "game": {
+   "tick": 2000,
+   "round": 1,
+   "hash": 2311812284
+  },
+  "gameMs": 3043,
+  "math": {
+   "sin": "e6e38f19",
+   "cos": "8e403a8d",
+   "tan": "8a38b291",
+   "atan2": "6d6d022a",
+   "exp": "d3fa1059",
+   "log": "7090192e",
+   "pow": "47b9134d",
+   "hypot": "5d4cac54",
+   "sqrt": "eb516bd4"
+  },
+  "wasm": {
+   "sync": true,
+   "libm": {
+    "sin": "e9524b73",
+    "cos": "2f534465",
+    "tan": "849cffad",
+    "atan2": "e7883000",
+    "exp": "b693f15c",
+    "log": "4ca11693",
+    "pow": "c87fd075",
+    "hypot": "d0b3582c",
+    "sqrt": "eb516bd4"
+   },
+   "workerBlob": {
+    "libm": {
+     "sin": "e9524b73",
+     "cos": "2f534465",
+     "tan": "849cffad",
+     "atan2": "e7883000",
+     "exp": "b693f15c",
+     "log": "4ca11693",
+     "pow": "c87fd075",
+     "hypot": "d0b3582c",
+     "sqrt": "eb516bd4"
+    }
+   },
+   "workerModule": {
+    "err": "ошибка Worker: "
+   },
+   "workerData": {
+    "libm": {
+     "sin": "e9524b73",
+     "cos": "2f534465",
+     "tan": "849cffad",
+     "atan2": "e7883000",
+     "exp": "b693f15c",
+     "log": "4ca11693",
+     "pow": "c87fd075",
+     "hypot": "d0b3582c",
+     "sqrt": "eb516bd4"
+    }
+   },
+   "sab": false,
+   "coi": false
+  }
+ },
+ "anc_firefox": {
+  "engine": "firefox",
+  "match": 3,
+  "ticks": 2000,
+  "errors": [],
+  "console": [],
+  "version": "155.0",
+  "loadMs": 2787,
+  "hasEv": true,
+  "game": {
+   "tick": 2000,
+   "round": 1,
+   "hash": 2769687672
+  },
+  "gameMs": 4454,
+  "math": {
+   "sin": "149b0df8",
+   "cos": "b508cbae",
+   "tan": "7f5917b4",
+   "atan2": "e7883000",
+   "exp": "b693f15c",
+   "log": "bdb46959",
+   "pow": "5e838c47",
+   "hypot": "bbd3bda2",
+   "sqrt": "eb516bd4"
+  },
+  "wasm": {
+   "sync": true,
+   "libm": {
+    "sin": "e9524b73",
+    "cos": "2f534465",
+    "tan": "849cffad",
+    "atan2": "e7883000",
+    "exp": "b693f15c",
+    "log": "4ca11693",
+    "pow": "c87fd075",
+    "hypot": "d0b3582c",
+    "sqrt": "eb516bd4"
+   },
+   "workerBlob": {
+    "libm": {
+     "sin": "e9524b73",
+     "cos": "2f534465",
+     "tan": "849cffad",
+     "atan2": "e7883000",
+     "exp": "b693f15c",
+     "log": "4ca11693",
+     "pow": "c87fd075",
+     "hypot": "d0b3582c",
+     "sqrt": "eb516bd4"
+    }
+   },
+   "workerModule": {
+    "libm": {
+     "sin": "e9524b73",
+     "cos": "2f534465",
+     "tan": "849cffad",
+     "atan2": "e7883000",
+     "exp": "b693f15c",
+     "log": "4ca11693",
+     "pow": "c87fd075",
+     "hypot": "d0b3582c",
+     "sqrt": "eb516bd4"
+    }
+   },
+   "workerData": {
+    "libm": {
+     "sin": "e9524b73",
+     "cos": "2f534465",
+     "tan": "849cffad",
+     "atan2": "e7883000",
+     "exp": "b693f15c",
+     "log": "4ca11693",
+     "pow": "c87fd075",
+     "hypot": "d0b3582c",
+     "sqrt": "eb516bd4"
+    }
+   },
+   "sab": false,
+   "coi": false
+  }
+ },
+ "anc_webkit": {
+  "engine": "webkit",
+  "match": 3,
+  "ticks": 2000,
+  "errors": [],
+  "console": [],
+  "version": "26.6",
+  "loadMs": 2397,
+  "hasEv": true,
+  "game": {
+   "tick": 2000,
+   "round": 1,
+   "hash": 1604571462
+  },
+  "gameMs": 3123,
+  "math": {
+   "sin": "149b0df8",
+   "cos": "b508cbae",
+   "tan": "7f5917b4",
+   "atan2": "e48929a9",
+   "exp": "2401f45e",
+   "log": "7090192e",
+   "pow": "5e838c47",
+   "hypot": "eb516bd4",
+   "sqrt": "eb516bd4"
+  },
+  "wasm": {
+   "sync": true,
+   "libm": {
+    "sin": "e9524b73",
+    "cos": "2f534465",
+    "tan": "849cffad",
+    "atan2": "e7883000",
+    "exp": "b693f15c",
+    "log": "4ca11693",
+    "pow": "c87fd075",
+    "hypot": "d0b3582c",
+    "sqrt": "eb516bd4"
+   },
+   "workerBlob": {
+    "libm": {
+     "sin": "e9524b73",
+     "cos": "2f534465",
+     "tan": "849cffad",
+     "atan2": "e7883000",
+     "exp": "b693f15c",
+     "log": "4ca11693",
+     "pow": "c87fd075",
+     "hypot": "d0b3582c",
+     "sqrt": "eb516bd4"
+    }
+   },
+   "workerModule": {
+    "libm": {
+     "sin": "e9524b73",
+     "cos": "2f534465",
+     "tan": "849cffad",
+     "atan2": "e7883000",
+     "exp": "b693f15c",
+     "log": "4ca11693",
+     "pow": "c87fd075",
+     "hypot": "d0b3582c",
+     "sqrt": "eb516bd4"
+    }
+   },
+   "workerData": {
+    "libm": {
+     "sin": "e9524b73",
+     "cos": "2f534465",
+     "tan": "849cffad",
+     "atan2": "e7883000",
+     "exp": "b693f15c",
+     "log": "4ca11693",
+     "pow": "c87fd075",
+     "hypot": "d0b3582c",
+     "sqrt": "eb516bd4"
+    }
+   },
+   "sab": false,
+   "coi": false
+  }
+ }
+}

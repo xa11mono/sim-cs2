@@ -1,0 +1,274 @@
+{
+ "_about": "(Р0.8, 24.11) Реестр поведения: сцены и что с ними. Статусы: preserve — проходит, поведение сохранять; known — не проходит, недостаток известен и отложен до Р8 (rebuild/BEHAVIOR_BACKLOG.md); confirmed — находка этапов 1 / 2B подтверждена, сцена фиксирует нынешнее поведение; fixed — исправлено (после Р8); unexplored — результат сцены пока нельзя трактовать (причина в note). Проверка сцен — node tools/sim.js scen (отметки) и node src/q.js sim.html @tools/measure/audit/<файл>.js (сцены аудита). Сборка проверки — Ancient, код игры f0cab0b.",
+ "scenes": [
+  {
+   "id": "anchor_pick_stable",
+   "file": "tools/measure/audit/scenarios.js",
+   "ok": true,
+   "status": "preserve",
+   "ok_without_height": true
+  },
+  {
+   "id": "fov_second_enemy_behind",
+   "file": "tools/measure/audit/scenarios.js",
+   "ok": true,
+   "status": "preserve",
+   "ok_without_height": true
+  },
+  {
+   "id": "no_nade_on_teammate",
+   "file": "tools/measure/audit/scenarios.js",
+   "ok": false,
+   "status": "known",
+   "ok_without_height": false
+  },
+  {
+   "id": "reaction_first_contact",
+   "file": "tools/measure/audit/scenarios.js",
+   "ok": true,
+   "status": "preserve",
+   "ok_without_height": false,
+   "note": "до Р0.7 (боты без высоты z) — False; с высотой по навмешу — True"
+  },
+  {
+   "id": "save_over_lineup",
+   "file": "tools/measure/audit/scenarios.js",
+   "ok": false,
+   "status": "known",
+   "ok_without_height": false
+  },
+  {
+   "id": "site_switch_clears_old",
+   "file": "tools/measure/audit/scenarios.js",
+   "ok": true,
+   "status": "preserve",
+   "ok_without_height": true
+  },
+  {
+   "id": "team_lkp_without_voice",
+   "file": "tools/measure/audit/scenarios.js",
+   "ok": false,
+   "status": "unexplored",
+   "ok_without_height": false,
+   "note": "сцена устарела: обращается к удалённой переменной LKP (ReferenceError) — переписать под знание KNOW"
+  },
+  {
+   "id": "belief_heard_not_said",
+   "file": "tools/measure/audit/scenarios2.js",
+   "ok": true,
+   "status": "preserve",
+   "ok_without_height": true
+  },
+  {
+   "id": "belief_radar_seen",
+   "file": "tools/measure/audit/scenarios2.js",
+   "ok": true,
+   "status": "preserve",
+   "ok_without_height": false,
+   "note": "до Р0.7 (боты без высоты z) — False; с высотой по навмешу — True"
+  },
+  {
+   "id": "belief_said_in_voice",
+   "file": "tools/measure/audit/scenarios2.js",
+   "ok": false,
+   "status": "known",
+   "ok_without_height": false
+  },
+  {
+   "id": "belief_stale_decays",
+   "file": "tools/measure/audit/scenarios2.js",
+   "ok": true,
+   "status": "preserve",
+   "ok_without_height": true
+  },
+  {
+   "id": "flash_teammate_record",
+   "file": "tools/measure/audit/scenarios2.js",
+   "ok": true,
+   "status": "preserve",
+   "ok_without_height": true
+  },
+  {
+   "id": "known_target_reappears",
+   "file": "tools/measure/audit/scenarios2.js",
+   "ok": true,
+   "status": "preserve",
+   "ok_without_height": false,
+   "note": "до Р0.7 (боты без высоты z) — False; с высотой по навмешу — True"
+  },
+  {
+   "id": "second_target_unexpected",
+   "file": "tools/measure/audit/scenarios2.js",
+   "ok": true,
+   "status": "preserve",
+   "ok_without_height": false,
+   "note": "до Р0.7 (боты без высоты z) — False; с высотой по навмешу — True"
+  },
+  {
+   "id": "switch_no_old_staging",
+   "file": "tools/measure/audit/scenarios2.js",
+   "ok": true,
+   "status": "preserve",
+   "ok_without_height": true
+  },
+  {
+   "id": "target_lost_just_before",
+   "file": "tools/measure/audit/scenarios2.js",
+   "ok": true,
+   "status": "preserve",
+   "ok_without_height": false,
+   "note": "до Р0.7 (боты без высоты z) — False; с высотой по навмешу — True"
+  },
+  {
+   "id": "cornerlook_microshift",
+   "file": "tools/measure/audit/scenarios3.js",
+   "ok": false,
+   "status": "known",
+   "ok_without_height": false
+  },
+  {
+   "id": "flash_mate_behind_cover",
+   "file": "tools/measure/audit/scenarios3.js",
+   "ok": true,
+   "status": "preserve",
+   "ok_without_height": false,
+   "note": "до Р0.7 (боты без высоты z) — False; с высотой по навмешу — True"
+  },
+  {
+   "id": "flash_mate_heard_late",
+   "file": "tools/measure/audit/scenarios3.js",
+   "ok": false,
+   "status": "known",
+   "ok_without_height": false
+  },
+  {
+   "id": "flash_mate_unwarned",
+   "file": "tools/measure/audit/scenarios3.js",
+   "ok": true,
+   "status": "preserve",
+   "ok_without_height": false,
+   "note": "до Р0.7 (боты без высоты z) — False; с высотой по навмешу — True"
+  },
+  {
+   "id": "flash_mate_warned",
+   "file": "tools/measure/audit/scenarios3.js",
+   "ok": true,
+   "status": "preserve",
+   "ok_without_height": false,
+   "note": "до Р0.7 (боты без высоты z) — False; с высотой по навмешу — True"
+  },
+  {
+   "id": "molly_firecommit_rule",
+   "file": "tools/measure/audit/scenarios3.js",
+   "ok": false,
+   "status": "known",
+   "ok_without_height": false
+  },
+  {
+   "id": "molly_ignited_on_mate",
+   "file": "tools/measure/audit/scenarios3.js",
+   "ok": true,
+   "status": "preserve",
+   "ok_without_height": true
+  },
+  {
+   "id": "molly_path_through_own_fire",
+   "file": "tools/measure/audit/scenarios3.js",
+   "ok": false,
+   "status": "known",
+   "ok_without_height": false
+  },
+  {
+   "id": "switch_residual_classified",
+   "file": "tools/measure/audit/scenarios3.js",
+   "ok": false,
+   "status": "unexplored",
+   "ok_without_height": true,
+   "note": "сцена уровня матча (матчи 3 и 7 в той же странице после других сцен); результат зависит от предыдущих сцен — состояние протекает через freshMatch (класс У-2, шаг Т-2); до Т-2 не трактовать"
+  },
+  {
+   "id": "cornerlook_stale_point_at_feet",
+   "file": "tools/measure/audit/scenarios4.js",
+   "ok": true,
+   "status": "preserve",
+   "ok_without_height": true
+  },
+  {
+   "id": "memory_held_ages",
+   "file": "tools/measure/audit/scenarios4.js",
+   "ok": true,
+   "status": "preserve",
+   "ok_without_height": true
+  },
+  {
+   "id": "molly_mate_at_real_landing",
+   "file": "tools/measure/audit/scenarios4.js",
+   "ok": true,
+   "status": "preserve",
+   "ok_without_height": true
+  },
+  {
+   "id": "molly_thrower_not_at_feet",
+   "file": "tools/measure/audit/scenarios4.js",
+   "ok": false,
+   "status": "known",
+   "ok_without_height": false
+  },
+  {
+   "id": "switch_B_to_A",
+   "file": "tools/measure/audit/scenarios4.js",
+   "ok": false,
+   "status": "known",
+   "ok_without_height": false
+  },
+  {
+   "id": "switch_bomb_at_old_site",
+   "file": "tools/measure/audit/scenarios4.js",
+   "ok": true,
+   "status": "preserve",
+   "ok_without_height": true
+  },
+  {
+   "id": "carrier_not_alone_to_plant",
+   "file": "tools/measure/audit/scenarios5.js",
+   "ok": false,
+   "status": "known"
+  },
+  {
+   "id": "fill_reaches_spot",
+   "file": "tools/measure/audit/scenarios5.js",
+   "ok": false,
+   "status": "known"
+  },
+  {
+   "id": "probe_all_give_info",
+   "file": "tools/measure/audit/scenarios5.js",
+   "ok": true,
+   "status": "preserve"
+  },
+  {
+   "id": "probe_ct_main_episode",
+   "file": "tools/measure/audit/scenarios5.js",
+   "ok": false,
+   "status": "known"
+  },
+  {
+   "id": "smoke_hit_returns_fire",
+   "file": "tools/measure/audit/scenarios5.js",
+   "ok": true,
+   "status": "preserve"
+  },
+  {
+   "id": "mir_jump360",
+   "file": "rebuild/scenarios.json",
+   "status": "known",
+   "note": "отметка владельца 11.11 (CT0 крутится 360 в прыжке); tools/marks/scenarios.js — «нет» (24.11, Playwright 1.63): не исправлено"
+  },
+  {
+   "id": "mir_stuck_window",
+   "file": "rebuild/scenarios.json",
+   "status": "unexplored",
+   "note": "tools/marks/scenarios.js — ошибка выполнения сцены «Cannot read properties of undefined (reading 'CT1')» (24.11): SCN.p не создан — условие when / тик старта; разобрать сцену"
+  }
+ ]
+}

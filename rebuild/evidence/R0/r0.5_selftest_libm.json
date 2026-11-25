@@ -1,0 +1,63 @@
+{
+ "a": "/tmp/claude-0/-home-user-sim-cs2/83f1975d-d3f7-5e99-871b-83ba561ce111/scratchpad/sim_mirage_ev.html",
+ "b": "/tmp/claude-0/-home-user-sim-cs2/83f1975d-d3f7-5e99-871b-83ba561ce111/scratchpad/sim_mirage_ev.html",
+ "match": 3,
+ "every": 64,
+ "skipShowVars": 219,
+ "skipField": "^(_visFacing|_hitFx)$",
+ "found": true,
+ "tick": 962,
+ "vars": [
+  "bots"
+ ],
+ "fields": {
+  "bots": [
+   {
+    "path": "[2].heading",
+    "a": -0.8147894889927519,
+    "b": -0.814789488992752
+   },
+   {
+    "path": "[5].heading",
+    "a": -1.9193195057732544,
+    "b": -1.9193195057732546
+   },
+   {
+    "path": "[6].heading",
+    "a": -1.641844421854451,
+    "b": -1.6418444218544512
+   },
+   {
+    "path": "[9].heading",
+    "a": 1.7702260579643763,
+    "b": 1.7702260579643765
+   }
+  ]
+ },
+ "math": {
+  "calls": [
+   4388,
+   4388
+  ],
+  "first": {
+   "index": 3919,
+   "a": [
+    "atan2",
+    [
+     -84.0908609184014,
+     79.2875690989406
+    ],
+    -0.8147894889927519
+   ],
+   "b": [
+    "atan2",
+    [
+     -84.0908609184014,
+     79.2875690989406
+    ],
+    -0.814789488992752
+   ]
+  }
+ },
+ "seconds": 12
+}
