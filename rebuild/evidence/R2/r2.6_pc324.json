@@ -1,0 +1,209 @@
+{
+ "run": "https://github.com/xa11mono/sim-cs2/actions/runs/45611427970",
+ "branch": "measure/v599a-r2f",
+ "results": "pc-results/324",
+ "request": {
+  "par": 2,
+  "resume": true,
+  "guard": {
+   "match_timeout_min": 120
+  },
+  "fp": [
+   {
+    "label": "v599a_dm4_mir_ff",
+    "ref": "46c81eae881dae4890bc74fbabe9b49938560a4b",
+    "map": "mirage",
+    "engine": "firefox"
+   },
+   {
+    "label": "v599a_dm4_anc_ff",
+    "ref": "46c81eae881dae4890bc74fbabe9b49938560a4b",
+    "map": "ancient",
+    "engine": "firefox"
+   }
+  ]
+ },
+ "env": {
+  "node": "v24.21.0",
+  "v8": "13.6.233.17-node.53",
+  "os": "win32 10.0.19045",
+  "arch": "x64",
+  "playwright": "1.63.0",
+  "chromium": "153.0.8010.12"
+ },
+ "pc_memory": "всего 15 977 МБ, свободно на старте прогона 8 682 МБ (guard, run.log)",
+ "engine": "Firefox 155 (Playwright 1.63.0)",
+ "maps": {
+  "v599a_dm4_mir_ff": {
+   "m3": {
+    "hash": 4106069815,
+    "equal_cloud_chromium158": true,
+    "peak_mb_job": 2493,
+    "secs": 552.4,
+    "procs_max": 8,
+    "rc": 0,
+    "stopped": null,
+    "job_object": true
+   },
+   "m7": {
+    "hash": 1370457148,
+    "equal_cloud_chromium158": true,
+    "peak_mb_job": 2551,
+    "secs": 606.9,
+    "procs_max": 8,
+    "rc": 0,
+    "stopped": null,
+    "job_object": true
+   },
+   "m11": {
+    "hash": 1910219274,
+    "equal_cloud_chromium158": true,
+    "peak_mb_job": 2621,
+    "secs": 559.0,
+    "procs_max": 8,
+    "rc": 0,
+    "stopped": null,
+    "job_object": true
+   },
+   "m13": {
+    "hash": 97707557,
+    "equal_cloud_chromium158": true,
+    "peak_mb_job": 2413,
+    "secs": 492.0,
+    "procs_max": 8,
+    "rc": 0,
+    "stopped": null,
+    "job_object": true
+   },
+   "m17": {
+    "hash": 3103032371,
+    "equal_cloud_chromium158": true,
+    "peak_mb_job": 2467,
+    "secs": 459.3,
+    "procs_max": 8,
+    "rc": 0,
+    "stopped": null,
+    "job_object": true
+   },
+   "m19": {
+    "hash": 1466641057,
+    "equal_cloud_chromium158": true,
+    "peak_mb_job": 2545,
+    "secs": 596.4,
+    "procs_max": 8,
+    "rc": 0,
+    "stopped": null,
+    "job_object": true
+   },
+   "m23": {
+    "hash": 820641300,
+    "equal_cloud_chromium158": true,
+    "peak_mb_job": 2640,
+    "secs": 469.6,
+    "procs_max": 8,
+    "rc": 0,
+    "stopped": null,
+    "job_object": true
+   },
+   "m29": {
+    "hash": 3720724760,
+    "equal_cloud_chromium158": true,
+    "peak_mb_job": 2619,
+    "secs": 687.7,
+    "procs_max": 8,
+    "rc": 0,
+    "stopped": null,
+    "job_object": true
+   }
+  },
+  "v599a_dm4_anc_ff": {
+   "m3": {
+    "hash": 411469562,
+    "equal_cloud_chromium158": true,
+    "peak_mb_job": 3155,
+    "secs": 477.8,
+    "procs_max": 8,
+    "rc": 0,
+    "stopped": null,
+    "job_object": true
+   },
+   "m7": {
+    "hash": 1025371035,
+    "equal_cloud_chromium158": true,
+    "peak_mb_job": 3232,
+    "secs": 480.5,
+    "procs_max": 8,
+    "rc": 0,
+    "stopped": null,
+    "job_object": true
+   },
+   "m11": {
+    "hash": 934132218,
+    "equal_cloud_chromium158": true,
+    "peak_mb_job": 3227,
+    "secs": 297.0,
+    "procs_max": 8,
+    "rc": 0,
+    "stopped": null,
+    "job_object": true
+   },
+   "m13": {
+    "hash": 4026826252,
+    "equal_cloud_chromium158": true,
+    "peak_mb_job": 3458,
+    "secs": 484.9,
+    "procs_max": 8,
+    "rc": 0,
+    "stopped": null,
+    "job_object": true
+   },
+   "m17": {
+    "hash": 2111240709,
+    "equal_cloud_chromium158": true,
+    "peak_mb_job": 3305,
+    "secs": 390.8,
+    "procs_max": 8,
+    "rc": 0,
+    "stopped": null,
+    "job_object": true
+   },
+   "m19": {
+    "hash": 1664643189,
+    "equal_cloud_chromium158": true,
+    "peak_mb_job": 3296,
+    "secs": 445.2,
+    "procs_max": 8,
+    "rc": 0,
+    "stopped": null,
+    "job_object": true
+   },
+   "m23": {
+    "hash": 2806320362,
+    "equal_cloud_chromium158": true,
+    "peak_mb_job": 3164,
+    "secs": 315.9,
+    "procs_max": 8,
+    "rc": 0,
+    "stopped": null,
+    "job_object": true
+   },
+   "m29": {
+    "hash": 4072545020,
+    "equal_cloud_chromium158": true,
+    "peak_mb_job": 3563,
+    "secs": 502.7,
+    "procs_max": 8,
+    "rc": 0,
+    "stopped": null,
+    "job_object": true
+   }
+  }
+ },
+ "summary": {
+  "equal": "16 / 16 бит в бит с облаком Chromium 158 (матч целиком: раунды, убийства, броски, хэш позиций)",
+  "mirage_m11_m13": "м11 1910219274, м13 97707557 — = эталон (в 320: м11 пустой, м13 2099049842)",
+  "memory": "пик задания на матч Firefox: Mirage 2,4–2,6 ГБ, Ancient 3,2–3,6 ГБ; 8 процессов на матч; снятий, осиротевших процессов, ошибок — 0",
+  "par8_estimate": "8 одновременных Firefox: 20–29 ГБ при 16 ГБ памяти ПК (≈ 8,7 ГБ свободно) — нехватка памяти при par 8 неизбежна; в 320 восемь Firefox шли одновременно",
+  "cause_320": "не установлена. Нехватка памяти при par 8 — расчётом несомненна, но что именно она сделала с м11 (пустой отпечаток: браузер погиб — согласуется) и м13 (другая игра с тика 4311 — механизм неизвестен) — не доказано. Проверено и отвергнуто: тики страницы до замера и таймер таблицы «откуда простреливается» (321), ожидание загрузки 0 / 100 / 1200 мс в Chromium — м13 бит в бит (облако 25.11)"
+ }
+}
