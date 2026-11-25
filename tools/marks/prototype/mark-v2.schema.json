@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "sim-cs2 mark package manifest (R5 prototype)",
+  "type": "object",
+  "required": ["format", "version", "identity"],
+  "properties": {
+    "format": { "const": "sim-cs2/mark" },
+    "version": { "const": 2 },
+    "identity": { "$ref": "#/$defs/identity" },
+    "owner": { "type": ["object", "null"], "properties": {
+      "text": { "$ref": "#/$defs/optionalText" },
+      "expected": { "$ref": "#/$defs/optionalText" },
+      "item": { "anyOf": [{ "$ref": "#/$defs/optionalText" }, { "$ref": "#/$defs/uint" }] },
+      "bot": { "$ref": "#/$defs/optionalText" }
+    } },
+    "source": { "type": ["object", "null"], "properties": {
+      "kind": { "$ref": "#/$defs/optionalText" },
+      "label": { "$ref": "#/$defs/optionalText" },
+      "reference": { "$ref": "#/$defs/optionalText" },
+      "scenarioNote": { "$ref": "#/$defs/optionalText" },
+      "legacyRefs": { "type": ["object", "null"] },
+      "asset": { "$ref": "#/$defs/optionalAsset" }
+    } },
+    "environment": { "type": ["object", "null"], "properties": {
+      "ua": { "$ref": "#/$defs/optionalText" },
+      "brands": { "$ref": "#/$defs/optionalText" },
+      "platform": { "$ref": "#/$defs/optionalText" }
+    } },
+    "snapshots": { "type": ["object", "null"], "additionalProperties": false, "properties": {
+      "moment": { "$ref": "#/$defs/optionalSnapshot" },
+      "before": { "$ref": "#/$defs/optionalSnapshot" }
+    } },
+    "summary": { "type": ["object", "null"], "required": ["codec", "data"], "properties": {
+      "codec": { "$ref": "#/$defs/text" },
+      "data": { "type": "object" }
+    } },
+    "trace": { "type": ["object", "null"], "required": ["fromTick", "toTick", "asset"], "properties": {
+      "fromTick": { "$ref": "#/$defs/uint" },
+      "toTick": { "$ref": "#/$defs/uint" },
+      "asset": { "$ref": "#/$defs/asset" }
+    } },
+    "image": { "$ref": "#/$defs/optionalAsset" },
+    "diagnostics": { "anyOf": [{ "$ref": "#/$defs/diagnostics" }, { "type": "null" }] }
+  },
+  "$defs": {
+    "text": { "type": "string", "minLength": 1 },
+    "optionalText": { "anyOf": [{ "$ref": "#/$defs/text" }, { "type": "null" }] },
+    "uint": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+    "optionalUint": { "anyOf": [{ "$ref": "#/$defs/uint" }, { "type": "null" }] },
+    "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "optionalDigest": { "anyOf": [{ "$ref": "#/$defs/digest" }, { "type": "null" }] },
+    "identity": { "type": "object", "properties": {
+      "gameVersion": { "$ref": "#/$defs/optionalText" },
+      "buildHash": { "$ref": "#/$defs/optionalDigest" },
+      "legacySourceHash": { "type": ["string", "null"], "pattern": "^[a-f0-9]{16}$" },
+      "map": { "type": ["string", "null"], "pattern": "^[a-z0-9][a-z0-9_-]*$" },
+      "mapHash": { "$ref": "#/$defs/optionalDigest" },
+      "dmath": { "$ref": "#/$defs/optionalText" },
+      "seed": { "anyOf": [{ "type": "integer", "minimum": -9007199254740991, "maximum": 9007199254740991 }, { "$ref": "#/$defs/optionalText" }] },
+      "match": { "$ref": "#/$defs/optionalUint" },
+      "round": { "$ref": "#/$defs/optionalUint" },
+      "tick": { "$ref": "#/$defs/optionalUint" },
+      "tickHz": { "$ref": "#/$defs/optionalUint", "minimum": 1 },
+      "settingsHash": { "$ref": "#/$defs/optionalDigest" },
+      "memoryHash": { "$ref": "#/$defs/optionalDigest" },
+      "environmentId": { "$ref": "#/$defs/optionalText" }
+    } },
+    "asset": { "type": "object", "required": ["file", "codec", "version", "bytes", "sha256"], "properties": {
+      "file": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$" },
+      "codec": { "$ref": "#/$defs/text" },
+      "version": { "$ref": "#/$defs/uint", "minimum": 1 },
+      "bytes": { "$ref": "#/$defs/uint", "minimum": 1 },
+      "sha256": { "$ref": "#/$defs/digest" }
+    } },
+    "optionalAsset": { "anyOf": [{ "$ref": "#/$defs/asset" }, { "type": "null" }] },
+    "snapshot": { "$ref": "#/$defs/asset", "properties": {
+      "tick": { "$ref": "#/$defs/optionalUint" },
+      "registry": { "$ref": "#/$defs/optionalText" },
+      "identity": { "anyOf": [{ "$ref": "#/$defs/identity" }, { "type": "null" }] }
+    } },
+    "optionalSnapshot": { "anyOf": [{ "$ref": "#/$defs/snapshot" }, { "type": "null" }] },
+    "diagnostics": { "type": "object", "required": ["version", "session", "match", "metrics", "fromSeq", "toSeq", "segments"], "properties": {
+      "version": { "const": 1 },
+      "session": { "$ref": "#/$defs/text" },
+      "match": { "$ref": "#/$defs/uint" },
+      "fromSeq": { "$ref": "#/$defs/uint" },
+      "toSeq": { "$ref": "#/$defs/uint" },
+      "metrics": { "type": "object", "minProperties": 1, "additionalProperties": {
+        "type": "object", "required": ["revision", "unit"], "properties": {
+          "revision": { "$ref": "#/$defs/text" }, "unit": { "$ref": "#/$defs/text" }
+        }
+      } },
+      "segments": { "type": "array", "items": { "oneOf": [{ "$ref": "#/$defs/chunk" }, { "$ref": "#/$defs/gap" }] } },
+      "summary": { "type": ["object", "null"], "additionalProperties": {
+        "type": "object", "required": ["counted", "eligible", "excluded", "censored"],
+        "additionalProperties": { "$ref": "#/$defs/uint" }, "maxProperties": 4
+      } }
+    } },
+    "chunk": { "type": "object", "required": ["kind", "fromSeq", "toSeq", "round", "fromTick", "toTick", "asset"], "properties": {
+      "kind": { "const": "chunk" },
+      "fromSeq": { "$ref": "#/$defs/uint" },
+      "toSeq": { "$ref": "#/$defs/uint" },
+      "round": { "$ref": "#/$defs/uint" },
+      "fromTick": { "$ref": "#/$defs/uint" },
+      "toTick": { "$ref": "#/$defs/uint" },
+      "asset": { "$ref": "#/$defs/asset", "properties": { "codec": { "const": "jsonl+gzip" }, "version": { "const": 1 } } }
+    } },
+    "gap": { "type": "object", "required": ["kind", "fromSeq", "toSeq", "reason"], "properties": {
+      "kind": { "const": "gap" },
+      "fromSeq": { "$ref": "#/$defs/uint" },
+      "toSeq": { "$ref": "#/$defs/uint" },
+      "reason": { "$ref": "#/$defs/text" }
+    } }
+  }
+}
