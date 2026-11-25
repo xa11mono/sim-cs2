@@ -10,7 +10,10 @@ const SIM = path.resolve(process.argv[2]), M = +(A.match || 3), T = +(A.ticks ||
   await p.goto(require('url').pathToFileURL(SIM).href); await p.waitForTimeout(1200); await DVS.stopFrames(p);
   const r = await p.evaluate(([m, t]) => __ev(`(function(){ var R = {}, o = pickSpots;
     pickSpots = function(key, center, count, opt){
-      var st = String(new Error().stack || '').split('\\n')[2] || '', fn = (st.match(/at (?:\\S+\\.)?(\\w+)/) || [])[1] || '?';
+      var fr = String(new Error().stack || '').split('\\n').slice(2), fn = '?';
+      // первая именованная функция по стеку; анонимный обратный вызов — «аноним < имя» (+ строка вызова)
+      for(var i = 0; i < fr.length; i++){ var mm = fr[i].match(/at (?:\\S+\\.)?([A-Za-z_$][\\w$]*) \\(/);
+        if(mm){ fn = i ? 'аноним:' + ((fr[0].match(/:(\\d+):\\d+\\)?\\s*$/) || [])[1] || '?') + ' < ' + mm[1] : mm[1]; break; } }
       var k = fn + ' | ' + (opt && opt.team ? 'team ' + opt.team : 'SPOT_TEAM ' + SPOT_TEAM); R[k] = (R[k] || 0) + 1;
       return o.apply(this, arguments); };
     freshMatch(${m}); var M0 = matchNum; while(tick < ${t} && matchNum === M0) stepTick(); pickSpots = o; return JSON.stringify(R); })()`), [M, T]);
