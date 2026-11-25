@@ -160,6 +160,9 @@
   (срок держит хозяин: `taskKeep`, `moveWaitPop`, `knowAvoidPeek`, `tradeStart`…); **две функции с одним именем**; общая переменная, которую
   пишет чужой файл, без категории и хозяина (`rebuild/var_cats.json`) — лучше интерфейс у хозяина. Упала на проверке — исправлять код, а
   не списки и не проверку. Карты устройства (кто пишет поля, граф, реестр решений) — `rebuild/gen/` (генерирует `gen_maps.js`).
+- **Математика расчёта — только `DM.*` (Р2, 25.11):** `DM.sin / cos / atan / atan2 / acos / exp / log / pow / hypot / hypot3`
+  (`src/game/005_dmath.ts`) — одинаковые биты в любом браузере, ОС и в Rust. `Math.sin` и другие приближённые функции движка в коде
+  расчёта (до 550) — ошибка сборки (`gen_maps --check`); точные `Math.sqrt / abs / floor / round / min / max` — можно. Показ (550+) — `Math`.
 - **Путь, а не прямая (владелец 22.11).** «Успею», «ближе», «дошёл», «достижимо», время до точки, выбор исполнителя / укрытия / точки —
   по реальному пути (`nearP`, навмеш). Прямая — только для видимости, звука, радиуса взрыва, дальности оружия, геометрии кроссфайра.
   Не заменять все `Math.hypot` разом; множитель «прямая × 1.3» вместо пути — та же ошибка.
@@ -266,6 +269,7 @@
 | **кто кого видит** (одно место, 3D): `VIS_*`, `visLine`, `visParts`, `visFloorAt`, `visInvalidate`; через неё `hasLOS` и таблица «откуда простреливается» `computeZoneDanger` | `040_visibility`; `hasLOS` — `050_nav_rebuild_paths`; `computeZoneDanger` — `060_zone_danger_user_zones` |
 | навмеш и пути: `rebuildNav`, `zoneDijkstra`, `funnel`, `buildWaypointPath`; связи выше прыжка `navCutTall` / перепад `navEdgeDz` (v533); уровни/лестницы/подъёмы `navAtLevel`, `laddersBuild`, `ladderTick` (подъём через промежуточный ящик — `mid`, v533); **под / над этажом** `floorCover` / `floorViewTick` (v535); «на полу» — одно место `navOnFloor`; огонь `inFire`; **прыжки через щель** из демок `navGapsAdd` (`tools/map/gaps_bake.py`), цена перехода «время + шум по режиму» `navJumpCost` (v546) | `050_nav_rebuild_paths`; `370_fire_nav_levels_ladders` |
 | оружие, боты `makeTeam`, роумер | `070_weapons_bots_roam`; `updateRoamer` — `430_fov_roam` |
+| **общая математика** `DM` (Р2): libm + hypot по алгоритму V8, контракт JS; стоит до обёртки игры | `005_dmath.ts` |
 | переключатели и числа движка `BAL` | `080_bal` |
 | профили игроков, **команды** `LINEUP`, `SIDE_TEAM`, `seatPlayers` | `090_profiles_teams` |
 | сайты, точки планта, `pickSpots`; **«рядом» для решений — по пути** `nearP` (v532) | `100_sites_spots` |
