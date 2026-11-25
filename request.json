@@ -1,0 +1,26 @@
+{
+ "par": 8,
+ "resume": true,
+ "fp": [
+  {
+   "label": "v608a_r34_anc",
+   "ref": "826a9080789487386c3f0119ab7e6db7cf9d7f13",
+   "map": "ancient"
+  },
+  {
+   "label": "v608a_r34_mir",
+   "ref": "826a9080789487386c3f0119ab7e6db7cf9d7f13",
+   "map": "mirage"
+  },
+  {
+   "label": "v609a_r33_anc",
+   "ref": "f3d93bfe2ebd3896af9936b817dab48c2d819683",
+   "map": "ancient"
+  },
+  {
+   "label": "v609a_r33_mir",
+   "ref": "f3d93bfe2ebd3896af9936b817dab48c2d819683",
+   "map": "mirage"
+  }
+ ]
+}
