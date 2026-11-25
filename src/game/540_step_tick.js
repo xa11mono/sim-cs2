@@ -34,7 +34,7 @@ function moveSoundEmit(bot, soundRadius, kind, label){
     var jitterMag = 20 + dHear*0.12, jang = hashRand(seed) * Math.PI*2;
     var hpF = hearPos(listener, bot.x, bot.y, seed, occS);
     listener.heardSound = hearReal(listener, hpF ? {x:hpF.x, y:hpF.y, tick:tick, team:bot.team, src:bot.id, kind:kind, occl:occS}
-                              : {x:bot.x+Math.cos(jang)*jitterMag, y:bot.y+Math.sin(jang)*jitterMag, tick:tick, team:bot.team, src:bot.id, kind:"steps", occl:occS});
+                              : {x:bot.x+Math.cos(jang)*jitterMag, y:bot.y+DM.sin(jang)*jitterMag, tick:tick, team:bot.team, src:bot.id, kind:"steps", occl:occS});
     if(listener.heardSound && /^приземление/.test(label || "")) listener.heardSound.land = true;   // (v343) звук приземления — для ctLandPunish
     if(wasStale) logEvent(listener.id+" услышал "+label+" ("+bot.team+")"+(occS ? " за стеной" : ""));
   });
@@ -129,7 +129,7 @@ function pathTurnAhead(b, dist){   // насколько повернёт пут
   var x = b.baseX, y = b.baseY, a0 = null, a1 = null;
   for(var i = b.pathIdx; i < b.path.length; i++){ var w = b.path[i], d = DM.hypot(w[0]-x, w[1]-y); if(d < 1e-6) continue;
     var a = DM.atan2(w[1]-y, w[0]-x); if(a0 === null) a0 = a; a1 = a; if(d >= dist) break; dist -= d; x = w[0]; y = w[1]; }
-  return a0 === null ? 0 : DM.atan2(Math.sin(a1 - a0), Math.cos(a1 - a0))*180/Math.PI;   // со знаком
+  return a0 === null ? 0 : DM.atan2(DM.sin(a1 - a0), Math.cos(a1 - a0))*180/Math.PI;   // со знаком
 }
 // (v583a, Д3 / Д8, владелец 17.11: «бежит и смотрит то влево, то вправо», «когда цели нет — смотрит по ходу, а ход виляет») куда смотреть
 // «по ходу»: направление пути впереди, от проекции бота на текущий отрезок пути — у живого игрока мышь не связана с клавишами: качание A / D
@@ -244,7 +244,7 @@ function strafeKeysTick(b, dt){
   if(!ctx && b._fc) return;   // ход качания забрала перестрелка (fightStrafe обнуляет J.v, когда берёт)
   if(!ctx && (!b.alive || roundState !== "live" || b._climb || b.onLadder)){ J.v = 0; return; }
   if(ctx){   // ось — поперёк взгляда (стоя) / хода (идёт); после конца качания — та же ось, пока ход не погаснет
-    var a = b.facing !== undefined ? b.facing : 0; J.ux = -Math.sin(a); J.uy = Math.cos(a);
+    var a = b.facing !== undefined ? b.facing : 0; J.ux = -DM.sin(a); J.uy = Math.cos(a);
     if(tick >= J.until){
       if(J.key){ J.key = 0; J.until = tick + Math.max(1, Math.round(peekQ(KEYS_PRO[ctx].gap, keysRand(b, 1))*TICK_HZ)); }
       else { var s = keysRand(b, 3) < KEYS_PRO[ctx].same ? J.last : -J.last;
@@ -439,7 +439,7 @@ function stepTick(){
           var fx = dx/Math.max(dist, 0.01), fy = dy/Math.max(dist, 0.01);
           for(var fi = 0; fi < bots.length; fi++){ var fo = bots[fi]; if(fo === bot || !fo.alive || fo.team !== bot.team || !(fo.curSpeed > 40) || fo.heading === undefined) continue;
             var ox = fo.x-bot.x, oy = fo.y-bot.y, fwd = ox*fx + oy*fy, crs = ox*fy - oy*fx, lat = Math.abs(crs);
-            if(fwd > 0 && fwd < FOLLOW_GAP && lat < 40 && Math.cos(fo.heading)*fx + Math.sin(fo.heading)*fy > 0.5){ var kf = Math.max(0.25, (fwd - 20) / (FOLLOW_GAP - 20));
+            if(fwd > 0 && fwd < FOLLOW_GAP && lat < 40 && Math.cos(fo.heading)*fx + DM.sin(fo.heading)*fy > 0.5){ var kf = Math.max(0.25, (fwd - 20) / (FOLLOW_GAP - 20));
               if(kf < folK){ folK = kf; folSide = crs > 0 ? -1 : 1; } } }   // folSide — в сторону, противоположную своему
           if(folK < 1){
             var sdx = fx*0.8 + fy*folSide*0.6, sdy = fy*0.8 - fx*folSide*0.6, sqx = bot.baseX + sdx*30, sqy = bot.baseY + sdy*30;
@@ -483,7 +483,7 @@ function stepTick(){
           var daLeft = Math.abs(((desiredHeading - bot.heading + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
           if(daLeft > 0.5){ var cs = Math.max(0.3, 1 - (daLeft-0.5)/1.6); step *= cs; bot.curSpeed = Math.min(bot.curSpeed, Math.max(bot.curSpeed*0.9, runSpeed*cs)); }
           moveX = Math.cos(bot.heading) * step;
-          moveY = Math.sin(bot.heading) * step;
+          moveY = DM.sin(bot.heading) * step;
         }
         var nx = bot.baseX+moveX, ny = bot.baseY+moveY;
         var startX = bot.baseX, startY = bot.baseY;
@@ -531,7 +531,7 @@ function stepTick(){
             for(var pa=0; pa<probeAngles.length; pa++){
               var pang = bot.heading + probeAngles[pa]*Math.PI/180;
               var pstep = step*0.7; // shorter step while feeling around a corner — less likely to clip something else
-              var pnx = bot.baseX + Math.cos(pang)*pstep, pny = bot.baseY + Math.sin(pang)*pstep;
+              var pnx = bot.baseX + Math.cos(pang)*pstep, pny = bot.baseY + DM.sin(pang)*pstep;
               if(!stepBlocked(bot.baseX,bot.baseY,pnx,pny,bot)){
                 bot.baseX = pnx; bot.baseY = pny;
                 break;
@@ -668,7 +668,7 @@ function stepTick(){
       var cyc = (tick - bot.roamCheckStart) % 136, e3 = function(u){ u = Math.max(0, Math.min(1, u)); return u*u*(3-2*u); };
       var sgn = (Math.floor((tick - bot.roamCheckStart)/136) % 2) ? -1 : 1;
       ramp = sgn*12*(cyc < 22 ? e3(cyc/22) : cyc < 54 ? 1 : cyc < 76 ? 1-e3((cyc-54)/22) : 0);
-      offX = Math.cos(rla)*ramp; offY = Math.sin(rla)*ramp;
+      offX = Math.cos(rla)*ramp; offY = DM.sin(rla)*ramp;
       // (v503) смещение в стену — до стены (наибольшая доля без пересечения, 5 делений пополам), а не 0: обнуление при плавном росте
       // смещения давало скачок на 8–10 px дважды за выглядывание (сторож nav, прогон 153: Mirage, роумер CT у лайнапа prx88 —
       // 63 из 183 «переносов», (982, 1566) ↔ (976, 1560))

@@ -98,7 +98,7 @@ function visBuild(){
   function floorNear(pts){   // самый низкий пол вокруг укрытия
     var lo = Infinity;
     pts.forEach(function(p){ for(var a = 0; a < 8; a++){
-      var x = p.x + Math.cos(a*Math.PI/4)*14, y = p.y + Math.sin(a*Math.PI/4)*14;
+      var x = p.x + Math.cos(a*Math.PI/4)*14, y = p.y + DM.sin(a*Math.PI/4)*14;
       var k = Math.floor(y/C)*W + Math.floor(x/C); if(k >= 0 && k < N && floor[k] > -Infinity && floor[k] < lo) lo = floor[k]; } });
     return lo === Infinity ? 0 : lo;
   }

@@ -1,0 +1,98 @@
+{
+ "f": "sin",
+ "maps": {
+  "ancient": {
+   "shim": {
+    "same": true,
+    "checkedTo": 8000
+   },
+   "real": {
+    "diverges": true,
+    "tick": 1817,
+    "vars": [
+     "bots"
+    ],
+    "calls": [
+     15706,
+     15706
+    ],
+    "firstCall": {
+     "index": 15276,
+     "a": [
+      "sin",
+      [
+       -2.5302247594046063
+      ],
+      -0.5739881155523908
+     ],
+     "b": [
+      "sin",
+      [
+       -2.5302247594046063
+      ],
+      -0.5739881155523907,
+      "DM"
+     ]
+    },
+    "attribution": {
+     "sameFunction": true,
+     "isReplaced": true,
+     "sameArgs": true,
+     "ulps": 1,
+     "before": -0.5739881155523908,
+     "after": -0.5739881155523907,
+     "viaDM": true
+    }
+   }
+  },
+  "mirage": {
+   "shim": {
+    "same": true,
+    "checkedTo": 8000
+   },
+   "real": {
+    "diverges": true,
+    "tick": 2138,
+    "vars": [
+     "bots"
+    ],
+    "calls": [
+     44409,
+     44409
+    ],
+    "firstCall": {
+     "index": 41036,
+     "a": [
+      "sin",
+      [
+       -2.344036093314669
+      ],
+      -0.7156515902937697
+     ],
+     "b": [
+      "sin",
+      [
+       -2.344036093314669
+      ],
+      -0.7156515902937696,
+      "DM"
+     ]
+    },
+    "attribution": {
+     "sameFunction": true,
+     "isReplaced": true,
+     "sameArgs": true,
+     "ulps": 1,
+     "before": -0.7156515902937697,
+     "after": -0.7156515902937696,
+     "viaDM": true
+    }
+   }
+  }
+ },
+ "step": "Р2.3 шаг 3 — sin",
+ "engine": "chromium 158 (облако)",
+ "ticks": 8000,
+ "diff": " 24 files changed, 60 insertions(+), 60 deletions(-)",
+ "result": "Э3 (или Э1 в окне 8000 тиков, если шаг не расходится): подмена бит в бит; расхождение — только через заменённую функцию"
+}

@@ -252,9 +252,9 @@ function openToward(b, a, span){
   var best = null, bs = 0;
   for(var k = -6; k <= 6; k++){
     var aa = a + span*k/6, off = Math.abs(k)/6, dep = 0;
-    [400, 300, 200, 120].some(function(R){ if(hasLOS(b.x, b.y, b.x+Math.cos(aa)*R, b.y+Math.sin(aa)*R, b.z)){ dep = R; return true; } return false; });
+    [400, 300, 200, 120].some(function(R){ if(hasLOS(b.x, b.y, b.x+Math.cos(aa)*R, b.y+DM.sin(aa)*R, b.z)){ dep = R; return true; } return false; });
     var s = dep * (1 - 0.5*off);
-    if(dep >= 120 && s > bs){ bs = s; best = {x:b.x+Math.cos(aa)*dep, y:b.y+Math.sin(aa)*dep}; }
+    if(dep >= 120 && s > bs){ bs = s; best = {x:b.x+Math.cos(aa)*dep, y:b.y+DM.sin(aa)*dep}; }
   }
   return best;
 }

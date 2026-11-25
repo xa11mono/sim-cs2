@@ -54,7 +54,7 @@
     var pit = o.pitch; if (pit > 90) pit -= 360; else if (pit < -90) pit += 360;
     pit -= (90 - Math.abs(pit)) * P.PITCH_LIFT / 90;
     var cp = Math.cos(pit * D2R), yw = o.yaw * D2R;
-    var f = [cp * Math.cos(yw), cp * Math.sin(yw), -Math.sin(pit * D2R)];
+    var f = [cp * Math.cos(yw), cp * DM.sin(yw), -DM.sin(pit * D2R)];
     var eye = [o.pos[0], o.pos[1], o.pos[2] + (o.duck ? P.EYE_DUCK : P.EYE) + P.SRC_DZ * (s - 1)];
     var end = [eye[0] + f[0] * P.SRC_FWD, eye[1] + f[1] * P.SRC_FWD, eye[2] + f[2] * P.SRC_FWD];
     var h = trace ? trace(eye, end, P.R) : null, k = h ? P.SRC_FWD * h.f : P.SRC_FWD;

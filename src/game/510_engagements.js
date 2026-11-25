@@ -199,13 +199,13 @@ function escapeWallLine(bot){
   for(var rr=3; rr<=18; rr+=3){
     for(var a=0; a<16; a++){
       var ang = a*Math.PI/8;
-      var nx = bot.baseX + Math.cos(ang)*rr, ny = bot.baseY + Math.sin(ang)*rr;
+      var nx = bot.baseX + Math.cos(ang)*rr, ny = bot.baseY + DM.sin(ang)*rr;
       if(insideSolidWall(nx, ny)) continue;
       if(!navFloorNear(nx, ny, NAV_STEP_TOL) && navFloorNear(bot.baseX, bot.baseY, NAV_STEP_TOL)) continue;   // (v336) не с пола в ящик/щель
       if(inFire(nx, ny, bot.z) && !inFire(bot.baseX, bot.baseY, bot.z) && !fireCommit(bot)) continue;   // (этап 3, P1-4) не в огонь
       // из новой точки должно быть можно куда-то идти
       var free = 0;
-      for(var q=0;q<8;q++){ var qa=q*Math.PI/4; if(!crossesWall(nx,ny,nx+Math.cos(qa)*4,ny+Math.sin(qa)*4)) free++; }
+      for(var q=0;q<8;q++){ var qa=q*Math.PI/4; if(!crossesWall(nx,ny,nx+Math.cos(qa)*4,ny+DM.sin(qa)*4)) free++; }
       if(free >= 5){ bot.baseX = nx; bot.baseY = ny; bot.x = nx; bot.y = ny; movePath(bot, [], "fight"); bot.pathIdx = 0; return true; }
     }
   }

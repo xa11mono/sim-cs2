@@ -242,7 +242,7 @@ function ctSetupRole(b, role, ct){
   var CPk = early ? null : ctSpotPick(b, S, role), spotP = CPk ? [CPk.x, CPk.y] : P.spot, yawP = CPk ? CPk.yaw : P.lookYaw;
   if(spotP){
     var cS = {x: spotP[0], y: spotP[1]}, lkS = null;
-    if(yawP != null){ var RS = proLookRay(cS.x, cS.y, yawP, PRO_LOOK_R); lkS = {x: cS.x + Math.cos(yawP)*RS, y: cS.y + Math.sin(yawP)*RS}; }
+    if(yawP != null){ var RS = proLookRay(cS.x, cS.y, yawP, PRO_LOOK_R); lkS = {x: cS.x + Math.cos(yawP)*RS, y: cS.y + DM.sin(yawP)*RS}; }
     else lkS = (P.lookPt && {x: P.lookPt[0], y: P.lookPt[1]}) || ref;
     var spS = pickSpots("cts:"+S.id+":"+role+":spot", cS, 6, {rMax: CT_SPOT_R, minGap: 30, see: [lkS]});
     var freeS = spS.filter(function(q){ return hasLOS(q.x, q.y, lkS.x, lkS.y) && !spotTaken(b, q, "post") && crossOk(q); });

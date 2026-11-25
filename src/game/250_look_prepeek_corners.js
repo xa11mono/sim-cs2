@@ -241,7 +241,7 @@ function appearFromCalc(b, q){
   return null;
 }
 function flatWallAhead(b, a, R){
-  var dx = Math.cos(a), dy = Math.sin(a), best = null;
+  var dx = Math.cos(a), dy = DM.sin(a), best = null;
   for(var i=0;i<MANUAL_WALLS.length;i++){ var w = MANUAL_WALLS[i];
     if(Math.max(w[0],w[2]) < b.x-R || Math.min(w[0],w[2]) > b.x+R || Math.max(w[1],w[3]) < b.y-R || Math.min(w[1],w[3]) > b.y+R) continue;
     var sx = w[2]-w[0], sy = w[3]-w[1], den = dx*sy - dy*sx; if(Math.abs(den) < 1e-9) continue;
@@ -255,8 +255,8 @@ function openDirNear(b, a){
   if(b._odK === k) return b._odV;
   b._odK = k; b._odV = null;
   for(var st=1; st<=9; st++) for(var sg=-1; sg<=1; sg+=2){
-    var an = a + sg*st*0.1745, c = rayClipWalls(b.x, b.y, b.x+Math.cos(an)*160, b.y+Math.sin(an)*160);
-    if(DM.hypot(c.x-b.x, c.y-b.y) >= 140){ b._odV = {x:b.x+Math.cos(an)*220, y:b.y+Math.sin(an)*220}; return b._odV; }
+    var an = a + sg*st*0.1745, c = rayClipWalls(b.x, b.y, b.x+Math.cos(an)*160, b.y+DM.sin(an)*160);
+    if(DM.hypot(c.x-b.x, c.y-b.y) >= 140){ b._odV = {x:b.x+Math.cos(an)*220, y:b.y+DM.sin(an)*220}; return b._odV; }
   }
   return null;
 }
@@ -272,7 +272,7 @@ function cornerLook(b, p, from){
   // боя _fc) враг выйдет на ту же линию, через которую стреляли, а не из прохода по пути пешком: угол по пути дальше CORNER_FIGHT_OFF от
   // направления на врага — смотреть на врага (держать свою линию). Вне боя — как было (1,3 рад)
   if(DM.hypot(r.x-b.x, r.y-b.y) > 1 && _angOff(DM.atan2(r.y-b.y, r.x-b.x), aDir) > (b._fc ? CORNER_FIGHT_OFF : 1.3)){
-    var dl = Math.min(220, DM.hypot(p.x-b.x, p.y-b.y)); return {x: b.x + Math.cos(aDir)*dl, y: b.y + Math.sin(aDir)*dl}; }
+    var dl = Math.min(220, DM.hypot(p.x-b.x, p.y-b.y)); return {x: b.x + Math.cos(aDir)*dl, y: b.y + DM.sin(aDir)*dl}; }
   return r;
 }
 function cornerLook0(b, p, from){
@@ -321,12 +321,12 @@ function openLook(b, look){
   b._olK = k; b._olV = look;
   var a = DM.atan2(look.y-b.y, look.x-b.x), dl = DM.hypot(look.x-b.x, look.y-b.y);
   if(dl < 60) return look;
-  var free = function(an, r){ var c = rayClipWalls(b.x, b.y, b.x+Math.cos(an)*r, b.y+Math.sin(an)*r); return DM.hypot(c.x-b.x, c.y-b.y); };
+  var free = function(an, r){ var c = rayClipWalls(b.x, b.y, b.x+Math.cos(an)*r, b.y+DM.sin(an)*r); return DM.hypot(c.x-b.x, c.y-b.y); };
   if(free(a, 120) >= 45) return look;
   for(var st = 1; st <= 7; st++){
     for(var sg = -1; sg <= 1; sg += 2){
       var an = a + sg*st*0.1745;
-      if(free(an, 220) >= 110){ b._olV = {x:b.x+Math.cos(an)*200, y:b.y+Math.sin(an)*200}; return b._olV; }
+      if(free(an, 220) >= 110){ b._olV = {x:b.x+Math.cos(an)*200, y:b.y+DM.sin(an)*200}; return b._olV; }
     }
   }
   b._olV = null; return null;   // открытого направления рядом нет — не поворачиваемся в стену

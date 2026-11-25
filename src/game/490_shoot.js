@@ -269,7 +269,7 @@ function tryShoot(shooter, target, dist){ var _ev = simEvIn("tryShoot", argument
   var sp = sprayPat(w, burstIdx), cmp = Math.min(0.95, comp + 0.08);
   var gu1 = Math.max(1e-9, hashRand(seedS+21)), gu2 = hashRand(seedS+22), gr = Math.sqrt(-2*Math.log(gu1));
   var sgm = sigma * (BAL.hbK || 1);
-  var ex = gr*Math.cos(2*Math.PI*gu2)*sgm + sp.x*(1-cmp), ey = gr*Math.sin(2*Math.PI*gu2)*sgm + sp.y*(1-cmp);
+  var ex = gr*Math.cos(2*Math.PI*gu2)*sgm + sp.x*(1-cmp), ey = gr*DM.sin(2*Math.PI*gu2)*sgm + sp.y*(1-cmp);
   var ux = aimSide*VIS_SHOULDER + ex/u1, uy = aimY + ey/u1;   // (М149) поперёк — от видимого плеча
   var hDev = ex;   // (v289) настоящая ошибка вбок, рад — по ней летит трассер промаха
   if(DM.hypot(ux, uy-hH) < 5.5) hbZone = "head";
@@ -348,7 +348,7 @@ function tryShoot(shooter, target, dist){ var _ev = simEvIn("tryShoot", argument
     if(hDev !== undefined) dev = hDev;
     else { var sgn = hashRand(seedS+3) < 0.5 ? -1 : 1; dev = sgn * (bA*1.15 + Math.abs(hashRand(seedS+7)-0.5)*2*sigma); }
     var far = Math.min(w.range, DM.hypot(dx,dy)*1.6 + 60);
-    var ex = shooter.x + Math.cos(ang+dev)*far, ey = shooter.y + Math.sin(ang+dev)*far;
+    var ex = shooter.x + Math.cos(ang+dev)*far, ey = shooter.y + DM.sin(ang+dev)*far;
     var cl = bulletClip3(shooter, ex, ey, target, headOnly);   // (v583a, Д7) видна только голова — промах летит на уровне головы   // (v519) по 3D-геометрии (ящики), не только до стен редактора
     endX = cl.x; endY = cl.y;
     // (v263, Б1) промах летит дальше и попадает в того, кто на его пути, — в своего тоже (урон по своим — в applyDamage).
@@ -373,7 +373,7 @@ function tryShoot(shooter, target, dist){ var _ev = simEvIn("tryShoot", argument
       var jg = 15 + dG*0.06, ja = hashRand(tick*17 + o.id.charCodeAt(0)*7 + shooter.nextShotTick)*Math.PI*2;
       var hpS = hearPos(o, shooter.x, shooter.y, tick*17 + o.id.charCodeAt(0)*7 + (shooter.nextShotTick|0), hearR === GUN_HEAR_WALL);
       o.heardSound = hearReal(o, hpS ? {x:hpS.x, y:hpS.y, tick:tick, team:shooter.team, src:shooter.id, kind:"shots", occl:hearR === GUN_HEAR_WALL}
-                         : {x:shooter.x+Math.cos(ja)*jg, y:shooter.y+Math.sin(ja)*jg, tick:tick, team:shooter.team, src:shooter.id, kind:"shots"});
+                         : {x:shooter.x+Math.cos(ja)*jg, y:shooter.y+DM.sin(ja)*jg, tick:tick, team:shooter.team, src:shooter.id, kind:"shots"});
     }
   });
   if(tracers.length > 60) tracers.shift();

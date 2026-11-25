@@ -140,7 +140,7 @@ function ctBombPos(){
     if(seen){ bomb.ctSeen = tick; voiceLog("CT", "bombseen", "CT", "бомба "+calloutName(bomb.x, bomb.y).replace(/^на /, "")+"!"); }
   }
   if(bomb.ctSeen) return {x:bomb.x, y:bomb.y};
-  if(!bomb.ctNoise){ var a = hashRand(bomb.plantTick*7 + 3)*Math.PI*2, r = 60 + hashRand(bomb.plantTick*11 + 5)*80; bomb.ctNoise = {dx:Math.cos(a)*r, dy:Math.sin(a)*r}; }
+  if(!bomb.ctNoise){ var a = hashRand(bomb.plantTick*7 + 3)*Math.PI*2, r = 60 + hashRand(bomb.plantTick*11 + 5)*80; bomb.ctNoise = {dx:Math.cos(a)*r, dy:DM.sin(a)*r}; }
   var k = Math.max(0.15, bombTimeLeftTicks()/BOMB_TICKS);
   return walk({x: bomb.x + bomb.ctNoise.dx*k, y: bomb.y + bomb.ctNoise.dy*k});
 }

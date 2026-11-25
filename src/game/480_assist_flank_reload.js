@@ -83,7 +83,7 @@ function flankAssist(b){
 }
 var ASSIST_EDGE = {fwd: [30, 45, 60, 75, 90, 110, 130], side: [0, 40, -40, 80, -80]};   // (v570) проектные числа: шаг вперёд ≈ полкорпуса, в стороны ≈ «личное место»
 function assistEdgeSpot(b, E){
-  var a = DM.atan2(E.y-b.y, E.x-b.x), c = Math.cos(a), s = Math.sin(a), best = null;
+  var a = DM.atan2(E.y-b.y, E.x-b.x), c = Math.cos(a), s = DM.sin(a), best = null;
   ASSIST_EDGE.fwd.some(function(f){ return ASSIST_EDGE.side.some(function(l){
     var x = b.x + c*f - s*l, y = b.y + s*f + c*l;
     if(!navAt(x, y) || insideSolidWall(x, y) || segCrossesManualWalls(b.x, b.y, x, y)) return false;
@@ -166,7 +166,7 @@ function updateReload(b){
       var exE = exposedTo(b, 900, 4*TICK_HZ, true);
       if(exE.length && !coverForReload(b, exE) && !(b._rlCoverT && tick - b._rlCoverT < 3*TICK_HZ && b.post && b.post.tag === "repos:rlcover")){
         var ea = DM.atan2(exE[0].y-b.y, exE[0].x-b.x), sgn = hashRand(tick + b.id.charCodeAt(1)) < 0.5 ? 1 : -1;
-        var sq = walk({x: b.x + Math.cos(ea + sgn*Math.PI/2)*50, y: b.y + Math.sin(ea + sgn*Math.PI/2)*50});
+        var sq = walk({x: b.x + Math.cos(ea + sgn*Math.PI/2)*50, y: b.y + DM.sin(ea + sgn*Math.PI/2)*50});
         if(sq && !stepBlocked(b.x, b.y, sq.x, sq.y, b)){ taskKeep(b, 0, "assist"); setPost(b, sq, exE[0], true, "repos:rlcover"); if(b.post && b.post.tag === "repos:rlcover") taskKeep(b, tick + Math.round(w.reload*TICK_HZ), "assist"); }
       }
     }
@@ -185,7 +185,7 @@ function sprayPat(w, i){
   if(!w.recoil || i <= 0) return {x:0, y:0};
   var Y = w.recoil*0.62, X = w.recoil*0.2, d2r = Math.PI/180;
   var y = Y*(1 - Math.exp(-i/4.2));
-  var x = i < 7 ? 0.03*i : X*Math.sin((i-7)/2.6) * (w.key === "AK" ? 1.2 : 1);
+  var x = i < 7 ? 0.03*i : X*DM.sin((i-7)/2.6) * (w.key === "AK" ? 1.2 : 1);
   return {x:x*d2r, y:y*d2r};
 }
 // ======================= (К1 / К2, владелец 18.11) ЗАСАДА И ЗАХОД В СПИНУ — одно место =======================

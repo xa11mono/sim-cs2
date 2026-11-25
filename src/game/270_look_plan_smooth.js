@@ -4,7 +4,7 @@ function lookHeading(b){
   var h = b.heading; if(h === undefined) return h;
   var BLk = beliefLast[b.team] || {}, ekx = 0, eky = 0;
   for(var ek in BLk){ var lk = BLk[ek]; if(!lk || tick - lk.tick > BACK_KNOW*TICK_HZ) continue; var eo = teamBot(ek); if(!eo || !eo.alive || eo.team === b.team) continue;
-    if(DM.hypot(lk.x-b.x, lk.y-b.y) > BACK_R) continue; var ea = DM.atan2(lk.y-b.y, lk.x-b.x); ekx += Math.cos(ea); eky += Math.sin(ea); }
+    if(DM.hypot(lk.x-b.x, lk.y-b.y) > BACK_R) continue; var ea = DM.atan2(lk.y-b.y, lk.x-b.x); ekx += Math.cos(ea); eky += DM.sin(ea); }
   return (ekx || eky) && _angOff(DM.atan2(eky, ekx), h) > 2.0 ? DM.atan2(eky, ekx) : h;
 }
 var BACK_KNOW = 15, BACK_R = 900;   // проектные числа: с — враг, которого знает команда, ещё «тот, от кого отхожу»; ед. карты — и он рядом
@@ -532,7 +532,7 @@ function lookKnowPt(b, q, zb, mates, moving){
   var pt = srcVis ? {x: q.x, y: q.y} : (mvp || apf || cornerLook(b, q) || openToward(b, za, LOOK.sndOpen));
   // (v568, отметка владельца м3 р1 47 с, CT1: «смотрит вообще не туда, откуда стреляли») в перестрелке (_fc) враг выйдет на линию, через
   // которую стреляли, а не из прохода по пути пешком: точка по пути дальше CORNER_FIGHT_OFF от направления на него — смотреть по этой линии
-  if(b._fc && pt && pt !== mvp && !srcVis && _angOff(DM.atan2(pt.y-b.y, pt.x-b.x), za) > CORNER_FIGHT_OFF){ var dl0 = Math.min(220, d); pt = {x: b.x + Math.cos(za)*dl0, y: b.y + Math.sin(za)*dl0};
+  if(b._fc && pt && pt !== mvp && !srcVis && _angOff(DM.atan2(pt.y-b.y, pt.x-b.x), za) > CORNER_FIGHT_OFF){ var dl0 = Math.min(220, d); pt = {x: b.x + Math.cos(za)*dl0, y: b.y + DM.sin(za)*dl0};
     // (владелец 18.11: «всегда в сторону врага; стоит в упор к стенке — не в стенку, а чуть за край стенки, чтобы враг выходил под прицел»)
     if(lookWallClose(b, pt)){ var ce0 = cornerLook(b, q); if(ce0) pt = ce0; } }
   // (v281) видимой точки нет — место, где враг на своём пути зайдёт в мою зону
@@ -654,8 +654,8 @@ function jumpLook(b){
   // (v549, владелец 11.11: «прыгает и не поворачивает») углы — на карте, из демок (climbs_bake / gaps_bake): при отталкивании (yaw0), на
   // промежуточной стоянке (yawM), при приземлении (yaw1); между ними — плавно, кратчайшим поворотом. Было (v548): угол к направлению «низ → верх» —
   // у подъёма оно случайное (низ и верх почти друг над другом)
-  var R = Math.PI/180, lerp = function(a, c, q){ var d = DM.atan2(Math.sin(c - a), Math.cos(c - a)); return a + d*q; };   // (v560, В105) кратчайший поворот при любых углах: % в JS у отрицательных — отрицателен, был круг 360°
-  var cand = function(a){ return {lvl: LOOK_LEVEL.jump, kind: "jump", pt: {x: b.x + Math.cos(a)*200, y: b.y + Math.sin(a)*200}, sc: 1}; };
+  var R = Math.PI/180, lerp = function(a, c, q){ var d = DM.atan2(DM.sin(c - a), Math.cos(c - a)); return a + d*q; };   // (v560, В105) кратчайший поворот при любых углах: % в JS у отрицательных — отрицателен, был круг 360°
+  var cand = function(a){ return {lvl: LOOK_LEVEL.jump, kind: "jump", pt: {x: b.x + Math.cos(a)*200, y: b.y + DM.sin(a)*200}, sc: 1}; };
   var C = b._climb, Y = C && C.jump ? (C.G || C.Y) : null;
   // в полёте — от угла, с которым оттолкнулся сам бот (C.a0; отталкивается он не из той же точки, что про), к углу приземления про
   // (В147) угол на промежуточной стоянке (yawM) не используется: он снят одним кадром выгрузки 4 Гц в миг ухода с ящика — у 37 % подъёмов
@@ -686,7 +686,7 @@ function lookVisible(b, p){
 // (v583a, владелец 17.11: «взгляд в стену — только когда стоят к стенке впритык: это отворот от флешки») стена по направлению на точку ближе
 // LOOK_WALL_CLOSE px — угол про из демок остаётся как есть; дальше — смотреть, откуда выйдет враг (проектное число: 40 px ≈ 100 ед., шаг-полтора)
 var LOOK_WALL_CLOSE = 40;
-function lookWallClose(b, p){ var a = DM.atan2(p.y-b.y, p.x-b.x); return !hasLOS(b.x, b.y, b.x + Math.cos(a)*LOOK_WALL_CLOSE, b.y + Math.sin(a)*LOOK_WALL_CLOSE, b.z); }
+function lookWallClose(b, p){ var a = DM.atan2(p.y-b.y, p.x-b.x); return !hasLOS(b.x, b.y, b.x + Math.cos(a)*LOOK_WALL_CLOSE, b.y + DM.sin(a)*LOOK_WALL_CLOSE, b.z); }
 function lookFilter(b, look, LD){
   // (v583a, Д9) точка за стеной (стоя на посту, звук, направление про, зона плана) — не в стену, а туда, где враг из неё выйдет на мою линию
   // (первая видимая точка его пути ко мне — appearFrom; нет — ближайший видимый угол по пути). Враг на виду, прострел (spam), прыжок — как есть;
