@@ -1,0 +1,98 @@
+{
+ "a": "C:\\actions-runner\\_work\\sim-cs2\\sim-cs2\\tools\\measure\\runs\\_sims\\v599a_div_mir_crff.html",
+ "b": "C:\\actions-runner\\_work\\sim-cs2\\sim-cs2\\tools\\measure\\runs\\_sims\\v599a_div_mir_crff.html",
+ "engines": {
+  "a": "chromium 153.0.8010.12",
+  "b": "firefox 155.0"
+ },
+ "match": 3,
+ "every": 32,
+ "startA": "freshMatch(3);",
+ "startB": "freshMatch(3);",
+ "skipShowVars": 219,
+ "skipField": "^(_visFacing|_hitFx)$",
+ "found": true,
+ "tick": 1,
+ "vars": [
+  "bots",
+  "GEO",
+  "bomb",
+  "BUY_SHOW"
+ ],
+ "fields": {
+  "bots": [
+   {
+    "path": "[0].pfacing",
+    "a": -0.766371333548981,
+    "b": -0.7663713335489811
+   }
+  ],
+  "GEO": [
+   {
+    "path": ".A.ctEntry.x",
+    "a": 896.4795969940762,
+    "b": 896.4795969940764
+   },
+   {
+    "path": ".A.anchor.x",
+    "a": 1014.2025207749939,
+    "b": 1014.202520774994
+   },
+   {
+    "path": ".B.tEntry.x",
+    "a": 535.396393339003,
+    "b": 535.3963933390032
+   },
+   {
+    "path": ".B.tStage.x",
+    "a": 843.8890643817383,
+    "b": 843.8890643817386
+   },
+   {
+    "path": ".B.tStage.y",
+    "a": 411.64935251138263,
+    "b": 411.6493525113827
+   }
+  ],
+  "bomb": [],
+  "BUY_SHOW": []
+ },
+ "math": {
+  "calls": [
+   10,
+   10
+  ],
+  "first": {
+   "index": 0,
+   "a": [
+    "atan2",
+    [
+     -378.9000000000001,
+     393.6
+    ],
+    -0.766371333548981
+   ],
+   "b": [
+    "atan2",
+    [
+     -378.9000000000001,
+     393.6
+    ],
+    -0.7663713335489811
+   ]
+  }
+ },
+ "sort": {
+  "calls": [
+   0,
+   0
+  ],
+  "withNaN": [
+   0,
+   0
+  ],
+  "first": null,
+  "nanSorts": []
+ },
+ "seconds": 9
+}

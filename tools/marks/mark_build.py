@@ -1,7 +1,8 @@
 """(Р2.1, 25.11) Сборка, на которой записана отметка: старая отметка открывается своей сборкой (условие владельца к Р2 — «сохранить
 старую сборку и возможность воспроизводить старые отметки»).
 
-  python3 tools/marks/mark_build.py --src=<отпечаток> --map=<карта> [--out=файл] [--depth=400]
+  python3 tools/marks/mark_build.py --src=<отпечаток> --map=<карта> [--out=файл] [--depth=400] [--page] [--rebuild]
+     (--page — публикуемая страница из архива; --rebuild — не брать архив, собрать заново)
   python3 tools/marks/mark_build.py --commit=<коммит | метка, напр. pre-dmath> --map=<карта> [--out=файл]
   python3 tools/marks/mark_build.py --hash=<коммит>      — только отпечаток исходника игры этого коммита
 
@@ -75,11 +76,22 @@ def build(commit, mapname, out):
 
 
 if __name__ == '__main__':
-    A = dict(a[2:].split('=', 1) for a in sys.argv[1:] if a.startswith('--') and '=' in a)
-    if 'hash' in A: print(src_hash(git('rev-parse', A['hash']).strip())); sys.exit(0)
+    A = dict((a[2:].split('=', 1) + [''])[:2] for a in sys.argv[1:] if a.startswith('--'))
+    if 'hash' in A: print(src_hash(git('rev-parse', A['hash'] + '^{commit}').strip())); sys.exit(0)
     if not A.get('map') or not (A.get('src') or A.get('commit')): print(__doc__); sys.exit(2)
-    commit = git('rev-parse', A['commit']).strip() if A.get('commit') else find(A['src'], int(A.get('depth', 400)))
+    out = A.get('out')
+    # готовая сборка из архива (ветка origin/builds): тот же файл, что открывал владелец; --page — публикуемая страница, иначе sim.html
+    if A.get('src') and 'rebuild' not in A:
+        try:
+            ent = json.loads(git('show', 'origin/builds:index.json')).get(A['src'])
+            if ent:
+                name = ('%s-radar.html' if 'page' in A else 'sim_%s.html') % A['map']
+                data = git('show', 'origin/builds:%s/%s' % (ent['dir'], name), binary=True)
+                out = out or os.path.join(tempfile.gettempdir(), name.replace('.html', '_%s.html' % A['src']))
+                open(out, 'wb').write(data); print('архив: %s (коммит %s) → %s' % (ent['dir'], ent['commit'][:12], out)); sys.exit(0)
+        except RuntimeError: pass
+    commit = git('rev-parse', A['commit'] + '^{commit}').strip() if A.get('commit') else find(A['src'], int(A.get('depth', 400)))
     if not commit: print('коммит с отпечатком %s не найден (архив origin/builds и %s последних коммитов)' % (A['src'], A.get('depth', 400))); sys.exit(1)
-    out = A.get('out') or os.path.join(tempfile.gettempdir(), 'sim_%s_%s.html' % (A['map'], commit[:10]))
+    out = out or os.path.join(tempfile.gettempdir(), 'sim_%s_%s.html' % (A['map'], commit[:10]))
     build(commit, A['map'], out)
     print('коммит %s, отпечаток %s → %s' % (commit[:12], src_hash(commit), out))
