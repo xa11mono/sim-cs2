@@ -364,6 +364,11 @@ if (CHECK) {
   const un = Object.entries(SC).filter(([k, o]) => k[0] !== "_" && o.class === "не размечено").length;
   console.log("реестр состояния: строк " + want.size + ", не размечено " + un);
 }
+// ---- (Р3.2 знание; приёмка Р3 / Р8 №2) решения не читают истину врага: новое чтение (не в rebuild/truth_known.json) — ошибка сборки
+if (CHECK) {
+  const TR = require("./truth_reads.js").check(); TR.lines.forEach(l => (TR.bad ? console.error : console.log)(l));
+  if (TR.bad) { console.error("ОШИБКА: решение читает истину врага — брать из знания бота (KNOW / belief / _visible / heardSound); известное — rebuild/truth_known.json"); process.exit(1); }
+}
 // ---- проверка владения: запись поля из функции не из канала (owners.json → allow) — предупреждение, при enforce — ошибка
 if (CHECK) {
   let bad = 0, warn = [];
