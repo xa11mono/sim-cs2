@@ -1,0 +1,111 @@
+{
+ "f": "atan2",
+ "maps": {
+  "ancient": {
+   "shim": {
+    "same": true,
+    "checkedTo": 8000
+   },
+   "real": {
+    "diverges": true,
+    "tick": 1,
+    "vars": [
+     "bots"
+    ],
+    "calls": [
+     10,
+     10
+    ],
+    "firstCall": {
+     "index": 0,
+     "a": [
+      "atan2",
+      [
+       847.5,
+       -54.700000000000045
+      ],
+      1.6352496995633798
+     ],
+     "b": [
+      "atan2",
+      [
+       847.5,
+       -54.700000000000045
+      ],
+      1.63524969956338,
+      "DM"
+     ]
+    },
+    "attribution": {
+     "sameFunction": true,
+     "isReplaced": true,
+     "sameArgs": true,
+     "ulps": 1,
+     "before": 1.6352496995633798,
+     "after": 1.63524969956338,
+     "viaDM": true
+    }
+   }
+  },
+  "mirage": {
+   "shim": {
+    "same": true,
+    "checkedTo": 8000
+   },
+   "real": {
+    "diverges": true,
+    "tick": 962,
+    "vars": [
+     "bots"
+    ],
+    "calls": [
+     4388,
+     4388
+    ],
+    "firstCall": {
+     "index": 3919,
+     "a": [
+      "atan2",
+      [
+       -84.0908609184014,
+       79.2875690989406
+      ],
+      -0.8147894889927519
+     ],
+     "b": [
+      "atan2",
+      [
+       -84.0908609184014,
+       79.2875690989406
+      ],
+      -0.814789488992752,
+      "DM"
+     ]
+    },
+    "attribution": {
+     "sameFunction": true,
+     "isReplaced": true,
+     "sameArgs": true,
+     "ulps": 1,
+     "before": -0.8147894889927519,
+     "after": -0.814789488992752,
+     "viaDM": true
+    }
+   }
+  }
+ },
+ "step": "Р2.3 шаг 2 — atan2",
+ "commit": "a070fbc",
+ "calls": 108,
+ "ticks": 8000,
+ "engine": "chromium 158 (облако)",
+ "locator_text": {
+  "ancient": [
+   "ПЕРВОЕ РАСХОЖДЕНИЕ: тик 1 (матч 3); переменных: 1 — bots"
+  ],
+  "mirage": [
+   "ПЕРВОЕ РАСХОЖДЕНИЕ: тик 962 (матч 3); переменных: 1 — bots"
+  ]
+ },
+ "result": "Э3: подмена (DM.atan2 = Math.atan2, прежний подбор бросков) — бит в бит до 8000 на обеих картах; шаг — первый различный вызов atan2 с теми же аргументами, разница 1 ulp, через DM"
+}
