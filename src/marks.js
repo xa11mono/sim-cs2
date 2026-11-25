@@ -287,7 +287,7 @@ function mkState(){
         wallAhead: ray.wall ? Math.round(Math.hypot(ray.x-b.x, ray.y-b.y)) : null,
         lookReason: b.lookReason || "", why: whyText(b),
         sees: (b._visible || []).map(function(e){ return e.id; }), moving: b.curSpeed > 15*SPD_K,
-        log: (b._dlog || []).concat(b._dlog2 || []).sort(function(x, y){ return x[0] - y[0]; }).map(function(e){ return Math.round((e[0]-tick)/TICK_HZ*10)/10 + " с · " + e[1] + ": " + e[2]; }),   // (v384) журнал решений за 15 с; (15.11) + бой и ход
+        log: (typeof dlogOf === "function" ? dlogOf(b).concat(dlogOf(b, "_dlog2")) : (b._dlog || []).concat(b._dlog2 || [])).sort(function(x, y){ return x[0] - y[0]; }).map(function(e){ return Math.round((e[0]-tick)/TICK_HZ*10)/10 + " с · " + e[1] + ": " + e[2]; }),   // (v384) журнал решений за 15 с; (15.11) + бой и ход
         // (v385) вспомогательное по игроку: роль, задача места и её уровень, граната в задаче, гранаты, деньги, броня
         role: b.tRole || "", task: b.post ? String(b.post.tag) : "", taskLv: b._task ? b._task.lv : null,
         nadeTask: b.nadeTask ? b.nadeTask.type + " — " + (b.nadeTask.why || "") : "", nades: b.nades ? {smoke: b.nades.smoke, flash: b.nades.flash, he: b.nades.he, molly: b.nades.molly} : null,

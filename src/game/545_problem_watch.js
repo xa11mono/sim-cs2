@@ -59,7 +59,7 @@ function probTick(){
     // «отказ «set:roamer»: занят «contact:hold»») — своя задача PROB_BLOCK_SEC с подряд не пускается другой (журнал решений, 645), а бот
     // на месте (< PROB_STALL_MOVE·2 за это время): это тоже застревание, хотя бот «стоит по плану»
     s.lh = s.lh || []; s.lh.push([tick, b.baseX, b.baseY]); while(s.lh.length && tick - s.lh[0][0] > PROB_BLOCK_SEC*TICK_HZ) s.lh.shift();
-    var DL = b._dlog || [], ref = null, first = null, lastT = -1e9;
+    var DL = dlogOf(b), ref = null, first = null, lastT = -1e9;
     for(var di = DL.length - 1; di >= 0; di--){ var m = /^отказ «([^»]+)»: занят «([^»]+)»/.exec(DL[di][2]); if(DL[di][1] !== "место" || !m) continue;
       var rk = m[1].replace(/[:|].*$/, "") + "|" + m[2].replace(/[:|].*$/, "");
       if(!ref){ if(tick - DL[di][0] > 1.5*TICK_HZ) break; ref = rk; lastT = DL[di][0]; first = DL[di][0]; }

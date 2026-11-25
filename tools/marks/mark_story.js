@@ -94,8 +94,9 @@ const fs = require('fs'), path = require('path');
       else L.push("  Смен не было");
       // журнал решений (место, гранаты) — из игры
       // журнал: одинаковые подряд строки (отказ раз в секунду) — одной строкой «×N, с … по …»
-      if(me && b._dlog && b._dlog.length){ L.push("  Журнал решений (15 с):"); var g = [];
-        b._dlog.forEach(function(e){ var k = e[1] + ": " + e[2], q = g[g.length-1]; if(q && q.k === k){ q.n++; q.t1 = e[0]; } else g.push({k: k, n: 1, t0: e[0], t1: e[0]}); });
+      var DLg = typeof dlogOf === 'function' ? dlogOf(b) : (b._dlog || []);   // (Р3.3) след вне бота; старые сборки — b._dlog
+      if(me && DLg.length){ L.push("  Журнал решений (15 с):"); var g = [];
+        DLg.forEach(function(e){ var k = e[1] + ": " + e[2], q = g[g.length-1]; if(q && q.k === k){ q.n++; q.t1 = e[0]; } else g.push({k: k, n: 1, t0: e[0], t1: e[0]}); });
         g.forEach(function(q){ L.push("    " + sec(q.t0, T) + " с · " + q.k + (q.n > 1 ? "  (×" + q.n + ", до " + sec(q.t1, T) + " с)" : "")); }); }
       // момент
       var LD = b._ld || {}, P = b._ldPlan;

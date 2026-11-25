@@ -480,33 +480,6 @@
 "why": "поле-срок: номер тика (образцы: number:25741; number:32552; number:49746)",
 "cmp": "да"
 },
-"b:_dlLook": {
-"class": "показ",
-"owner": "",
-"life": "показ",
-"snap": "с bots",
-"src": "правило",
-"why": "пишут только файлы показа (645)",
-"cmp": "да"
-},
-"b:_dlMove": {
-"class": "показ",
-"owner": "",
-"life": "показ",
-"snap": "с bots",
-"src": "правило",
-"why": "пишут только файлы показа (645)",
-"cmp": "да"
-},
-"b:_dlog": {
-"class": "диагностика",
-"owner": "",
-"life": "журнал решений",
-"snap": "с bots",
-"src": "ручная",
-"why": "след решений бота (dlog, 645) — не читается решениями",
-"cmp": "да"
-},
 "b:_dmgBy": {
 "class": "раунд",
 "owner": "бой и восприятие (400, 450–510), сброс 530",
@@ -522,7 +495,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:215)",
+"why": "пишет resetRound (530_round_sides_match.js:217)",
 "cmp": "да"
 },
 "b:_duckT": {
@@ -941,7 +914,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:205)",
+"why": "пишет resetRound (530_round_sides_match.js:207)",
 "cmp": "да"
 },
 "b:_fireIn": {
@@ -1261,7 +1234,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:231)",
+"why": "пишет resetRound (530_round_sides_match.js:233)",
 "cmp": "да"
 },
 "b:_huntIdx": {
@@ -1270,7 +1243,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:231)",
+"why": "пишет resetRound (530_round_sides_match.js:233)",
 "cmp": "да"
 },
 "b:_huntStart": {
@@ -2338,7 +2311,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:216)",
+"why": "пишет resetRound (530_round_sides_match.js:218)",
 "cmp": "да"
 },
 "b:_prevOffY": {
@@ -2347,7 +2320,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:216)",
+"why": "пишет resetRound (530_round_sides_match.js:218)",
 "cmp": "да"
 },
 "b:_proM": {
@@ -2635,7 +2608,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:231)",
+"why": "пишет resetRound (530_round_sides_match.js:233)",
 "cmp": "да"
 },
 "b:_sawEnemy": {
@@ -2982,7 +2955,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:215)",
+"why": "пишет resetRound (530_round_sides_match.js:217)",
 "cmp": "да"
 },
 "b:_takeAt": {
@@ -3077,7 +3050,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:215)",
+"why": "пишет resetRound (530_round_sides_match.js:217)",
 "cmp": "да"
 },
 "b:_ts": {
@@ -3086,7 +3059,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:211)",
+"why": "пишет resetRound (530_round_sides_match.js:213)",
 "cmp": "да"
 },
 "b:_underV": {
@@ -3104,7 +3077,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:205)",
+"why": "пишет resetRound (530_round_sides_match.js:207)",
 "cmp": "да"
 },
 "b:_utilW": {
@@ -3311,7 +3284,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:215)",
+"why": "пишет resetRound (530_round_sides_match.js:217)",
 "cmp": "да"
 },
 "b:className": {
@@ -3329,7 +3302,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:211)",
+"why": "пишет resetRound (530_round_sides_match.js:213)",
 "cmp": "да"
 },
 "b:cool": {
@@ -3392,7 +3365,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:212)",
+"why": "пишет resetRound (530_round_sides_match.js:214)",
 "cmp": "да"
 },
 "b:defuseCooldownUntil": {
@@ -3545,7 +3518,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:212)",
+"why": "пишет resetRound (530_round_sides_match.js:214)",
 "cmp": "да"
 },
 "b:fresh": {
@@ -3608,7 +3581,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:213)",
+"why": "пишет resetRound (530_round_sides_match.js:215)",
 "cmp": "да"
 },
 "b:holding": {
@@ -3698,7 +3671,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:215)",
+"why": "пишет resetRound (530_round_sides_match.js:217)",
 "cmp": "да"
 },
 "b:lastStepTick": {
@@ -3707,7 +3680,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:214)",
+"why": "пишет resetRound (530_round_sides_match.js:216)",
 "cmp": "да"
 },
 "b:levelOk": {
@@ -3878,7 +3851,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:211)",
+"why": "пишет resetRound (530_round_sides_match.js:213)",
 "cmp": "да"
 },
 "b:plantUntil": {
@@ -4232,7 +4205,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:215)",
+"why": "пишет resetRound (530_round_sides_match.js:217)",
 "cmp": "да"
 },
 "b:t": {
@@ -5828,13 +5801,22 @@
 "why": "после объявления (110_post_routes.js:300) не пишется по имени и не меняется по содержимому; опыт: не меняется за матч (ancient м3 до тика 90000, mirage м3 до тика 90000)",
 "cmp": "да"
 },
+"g:DLOG": {
+"class": "диагностика",
+"owner": "",
+"life": "страница (окно DLOG_SEC)",
+"snap": "нет: след решений — вне состояния игры (Р3.3)",
+"src": "ручная",
+"why": "след решений ботов по номеру (645): место, гранаты, бой, взгляд, ход; читают наблюдение (545) и отметки; DLOG.on — выключатель",
+"cmp": "нет: след решений (диагностика)"
+},
 "g:DLOG_MAX": {
 "class": "неизменяемое",
 "owner": "",
 "life": "загрузка",
 "snap": "да",
 "src": "правило",
-"why": "после объявления (645_decision_log.js:5) не пишется по имени и не меняется по содержимому; опыт: не меняется за матч (ancient м3 до тика 90000, mirage м3 до тика 90000)",
+"why": "после объявления (645_decision_log.js:8) не пишется по имени и не меняется по содержимому; опыт: не меняется за матч (ancient м3 до тика 90000, mirage м3 до тика 90000)",
 "cmp": "нет: переменная файла показа (550+)"
 },
 "g:DLOG_SEC": {
@@ -5843,7 +5825,7 @@
 "life": "загрузка",
 "snap": "да",
 "src": "правило",
-"why": "после объявления (645_decision_log.js:5) не пишется по имени и не меняется по содержимому; опыт: не меняется за матч (ancient м3 до тика 90000, mirage м3 до тика 90000)",
+"why": "после объявления (645_decision_log.js:8) не пишется по имени и не меняется по содержимому; опыт: не меняется за матч (ancient м3 до тика 90000, mirage м3 до тика 90000)",
 "cmp": "нет: переменная файла показа (550+)"
 },
 "g:DM": {
