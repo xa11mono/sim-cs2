@@ -1,0 +1,228 @@
+{
+ "what": "Р3.1.2: полнота снимка отметки по значениям (tools/rebuild/snap_check.js), облако Chromium 158, сборка = контрольная точка Р2 (игра 46c81ea), матч 3",
+ "snap_new_page": [
+  {
+   "map": "mirage",
+   "at": 3000,
+   "ticks": 8000,
+   "same": true
+  },
+  {
+   "map": "ancient",
+   "at": 3000,
+   "ticks": 8000,
+   "same": true
+  },
+  {
+   "map": "mirage",
+   "at": 20000,
+   "ticks": 15000,
+   "same": false,
+   "first_diff": {
+    "tick": 21305,
+    "diff": [
+     "бот 6 x: 1736.5484087659631 → 1736.8449711691442",
+     "бот 6 y: 776.6489144124582 → 776.7842366094278",
+     "бот 6 взгляд: -10.237941606953088 → 2.9261176473687014",
+     "бот 9 x: 1782.0393315366607 → 1782.1780294832515",
+     "бот 9 y: 791.7541925398687 → 791.408624467219",
+     "бот 9 взгляд: 2.9899049148653063 → -0.11786751956798747"
+    ]
+   }
+  },
+  {
+   "map": "mirage",
+   "at": 45000,
+   "ticks": 15000,
+   "same": false,
+   "first_diff": {
+    "tick": 46926,
+    "diff": [
+     "бот 7 x: 1759.1994806814478 → 1758.354861498627",
+     "бот 7 y: 700.3130726778501 → 701.3757168246556",
+     "бот 7 взгляд: 4.750273070446198 → 2.894615637140437"
+    ]
+   }
+  },
+  {
+   "map": "ancient",
+   "at": 20000,
+   "ticks": 15000,
+   "same": false,
+   "first_diff": {
+    "tick": 23199,
+    "diff": [
+     "бот 2 x: 1464.1219075729734 → 1463.6474488034771",
+     "бот 2 y: 664.8366583367134 → 664.9675682721818",
+     "бот 2 взгляд: 1.0577930692865773 → 1.3609609637016502"
+    ]
+   }
+  },
+  {
+   "map": "ancient",
+   "at": 45000,
+   "ticks": 15000,
+   "same": false,
+   "first_diff": {
+    "tick": 53293,
+    "diff": [
+     "бот 5 x: 699.8137221584009 → 699.9383780131857",
+     "бот 5 y: 1291.339322515062 → 1291.3892356687634"
+    ]
+   }
+  }
+ ],
+ "snap_same_page_inplace": [
+  {
+   "map": "mirage",
+   "at": 45000,
+   "ticks": 6000,
+   "same": true
+  },
+  {
+   "map": "ancient",
+   "at": 20000,
+   "ticks": 6000,
+   "same": true
+  }
+ ],
+ "carry_one_by_one_mirage_45000": {
+  "zoneGraph": 46926,
+  "PATHQ,PATHQ_N": 46926,
+  "NAV_ZONE": 46926,
+  "BZ_WALK": 46926,
+  "NADE_LANE_IDX": 46926,
+  "KPC": 46926,
+  "note": "перенос любой одной переменной не убирает расхождение (первое отличие тот же тик 46926)"
+ },
+ "shared_refs_mirage_45000": {
+  "NAV_ID / CLIMB_BY_EDGE → NAVAREAS / LADDERS": "объекты исключённых корней",
+  "bots[i]._lkC[].pt → ZONE_SAMPLES": "",
+  "bots[i]._lkPt → ZONE_DANGER_LINE": "",
+  "NAV_GAPS ↔ ZDJ": "",
+  "ZONE_LAYER_BASELINE / ZONE_SHAPES_BAKED / pointsByName → MAP": ""
+ },
+ "diff_after_restore": {
+  "ancient_20000_new_page": [
+   "BZ_WALK",
+   "KPC",
+   "M3",
+   "MAP",
+   "NADE_LANE_IDX",
+   "NAV_ZONE",
+   "OBC",
+   "OBS",
+   "PATHQ",
+   "PATHQ_N",
+   "RP",
+   "ZDJ",
+   "accumulator",
+   "lastFrame",
+   "nowTs",
+   "soundPings",
+   "tracers",
+   "view",
+   "zoneGraph"
+  ],
+  "ancient_20000_same_page": [
+   "OBS",
+   "RP",
+   "accumulator",
+   "lastFrame",
+   "nowTs",
+   "soundPings",
+   "tracers",
+   "view"
+  ],
+  "mirage_45000_new_page": [
+   "BZ_WALK",
+   "KPC",
+   "M3",
+   "NADE_LANE_IDX",
+   "NAV_ZONE",
+   "OBC",
+   "OBS",
+   "PATHQ",
+   "PATHQ_N",
+   "RP",
+   "ZDJ",
+   "accumulator",
+   "lastFrame",
+   "nowTs",
+   "soundPings",
+   "tracers",
+   "view",
+   "zoneGraph"
+  ],
+  "mirage_45000_same_page": [
+   "OBS",
+   "RP",
+   "accumulator",
+   "lastFrame",
+   "nowTs",
+   "view"
+  ],
+  "note": "хэши всех 973 переменных и полей ботов сразу после восстановления; поля ботов — без отличий. Вне переменных: замыкания nadeAimCache, nadeGuessStore (C), свойство функции nadeGuess.rt — хэш их не видит"
+ },
+ "deep_diff_ancient_20000": {
+  "zoneGraph": "структура та же; ленивое кэш-поле _jcq у рёбер",
+  "MAP": "ленивые кэш-поля lineups.baked[*]._npz, pro.positions.points[*].zid",
+  "PATHQ_N": "3925 → 85 (момент общей очистки кэша путей)",
+  "BZ_WALK / NAV_ZONE / NADE_LANE_IDX": "не построены (null) — строятся при запросе",
+  "KPC": "кэш одного тика",
+  "M3": "распакованные буферы и счётчики-штампы (bStamp, nStamp…)"
+ },
+ "same_page_reset_one": {
+  "mirage_45000": {
+   "свежий nadeGuessStore": "расхождение тик 46926 (= новая страница)",
+   "свежий nadeAimCache": "совпало 6000",
+   "pathCacheReset()": "совпало 6000"
+  },
+  "ancient_20000": {
+   "свежий nadeGuessStore": "расхождение тик 23199 (= новая страница)"
+  }
+ },
+ "new_page_with_nadeGuessStore": {
+  "ancient_m3_70000": {
+   "same": true,
+   "compared": 10000
+  },
+  "ancient_m3_95000": {
+   "same": true,
+   "compared": 10000
+  },
+  "ancient_m7_30000": {
+   "same": true,
+   "compared": 10000
+  },
+  "ancient_m7_60000": {
+   "same": true,
+   "compared": 10000
+  },
+  "mirage_m3_70000": {
+   "same": true,
+   "compared": 10000
+  },
+  "mirage_m3_95000": {
+   "same": true,
+   "compared": 10000
+  },
+  "mirage_m7_30000": {
+   "same": true,
+   "compared": 10000
+  },
+  "mirage_m7_60000": {
+   "same": true,
+   "compared": 10000
+  },
+  "mirage_m3_45000": {
+   "same": true,
+   "compared": 15000
+  },
+  "ancient_m3_20000": {
+   "same": true,
+   "compared": 15000
+  }
+ },
+ "cause": "Причина неполного восстановления (подтверждена в обе стороны, 2 карты × 2 матча × 10 точек): память подсказок бросков nadeGuessStore (замыкание, 380:69) и цена подсказок nadeGuess.rt (свойство функции, 380:107) — вне снимка намеренно (v560 / v570, В86: для перемотки в той же странице, где подсказки «из будущего» уже есть; NADE_GUESS_PAID — в снимке). В новой странице подсказок нет → пересчёт → другой расход бюджета подборов тика (NADE_TICK) → бросок в другой тик → игра расходится. Остальные отличия — ленивые чистые кэши (строятся из тех же данных), кэши одного тика (ZDJ, KPC — у границы тика недействительны), счётчики-штампы; nadeAimCache — чистая мемоизация по точному ключу (счёт подборов — до кэша); PATHQ — ключ квантован (6 ед.), значение зависит от первого запросившего: в 12 опытах не проявилось, но это состояние, а не чистый кэш — в снимок в Т-1 для полноты; zoneGraph — структурно может меняться (navUnlinkBlocked + NAV_UNLINKED в снимке) — в опытах NAV_UNLINKED не менял граф (отличие только _jcq); при восстановлении граф нужно привести к NAV_UNLINKED — в Т-1."
+}

@@ -1,0 +1,8822 @@
+{
+ "sim": "mirage.html",
+ "match": 3,
+ "ticks": 90000,
+ "points": [
+  {
+   "name": "после freshMatch",
+   "tick": 0,
+   "round": 1,
+   "ms": 393
+  },
+  {
+   "name": "1 шаг",
+   "tick": 1,
+   "round": 1,
+   "ms": 305
+  },
+  {
+   "name": "раунд 2",
+   "tick": 5682,
+   "round": 2,
+   "ms": 443
+  },
+  {
+   "name": "раунд 3",
+   "tick": 10512,
+   "round": 3,
+   "ms": 475
+  },
+  {
+   "name": "раунд 14",
+   "tick": 80049,
+   "round": 14,
+   "ms": 545
+  },
+  {
+   "name": "конец",
+   "tick": 90000,
+   "round": 15,
+   "ms": 619
+  }
+ ],
+ "globals": {
+  "ACCEL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "AHEAD_GAP": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "AIM_A": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "AIM_AD": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "AIM_FIRE_CONE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "AIM_FLICK": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "AIM_HEAD_PISTOL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "AIM_LAG": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "AIM_TRACK_BAND": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "AIM_TRACK_MIN": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "AIM_TURN_RATE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "AMB_AWAY": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "AMB_HEAR": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "AMB_MIN": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "AMB_PASS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "AMB_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "AMB_SHOOT": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "APPEAR": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "APPEAR_N": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "ARMOR_BONUS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "ARMOR_PRICE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "ARMOR_REBUY": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "ASSIST_DMG": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "ASSIST_EDGE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "AWP_NOSCOPE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "BACK_KNOW": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "BACK_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "BAIT_MAX": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "BAL": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "BEEP_FINAL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "BEEP_NEXT": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "BELIEF_STEP": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "BLIND_FIRE_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "BLIND_SPREAD": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "BODY_HALF": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "BOMB_DMG": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "BOMB_HERE_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "BOMB_TICKS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "BOOST": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "BOT_INIT": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "BUILTIN_OFF": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "BUILTIN_OFF_BAKED": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "BUILTIN_OFF_KEY": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "string"
+  },
+  "BUY_GAIN": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "BUY_SHOW": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "BUY_SHOW_FIRST": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "BUY_SHOW_GAP": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "BZ": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "BZ_WALK": {
+   "changed": [
+    "раунд 2"
+   ],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "C4_FINAL_SEC": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "CALL_WEAK": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "CALL_WEAK_QUIET": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "CAUTION_TICKS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "CLEARZ": {
+   "changed": [
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "CLEAR_HEARD_SEC": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "CLIMB_AT": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "CLIMB_BY_EDGE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "CLIMB_DWELL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "CLIMB_FLOOR_TOL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "CLIMB_MAX_STEP": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "CLIMB_MID_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "CLIMB_TRUST_N": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "CLR_POS_SEC": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "CLR_REB_SEC": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "CONE_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "CONTACT_AGE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "CONTACT_GAP": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "CONTACT_HOLD": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "CONTACT_PUSH": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "CONTACT_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "CONTACT_SWING": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "CONT_REGROUP": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "CONT_SEC": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "CORNER_FIGHT_OFF": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "COVER": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "COVER_CANDS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "COV_AUTO": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "COV_C": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "COV_CAT": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "COV_CHEST": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "number"
+  },
+  "COV_HIGH": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "number"
+  },
+  "COV_ORDER": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "COV_OWN": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "COV_OWN_CODE": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "CROSS_BELIEF": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "CROSS_MAX": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "CROSS_NEAR": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "CS_ACCEL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "CS_FRIC": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "CS_STOP": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "CTSET_DBG": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "CT_PRO_ZONE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "CT_ROLE_PRI": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "CT_SETUPS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "CT_SHARE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "CT_SHARE_MIN": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "CT_SHIFT": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "CT_SIDE_THR": {
+   "changed": [
+    "раунд 2",
+    "раунд 14"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "CT_SITE_COVER": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "CT_SITE_D": {
+   "changed": [
+    "раунд 2"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "CT_SPAWN": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "CT_SPOTS_RES": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "CT_SPOT_GAP": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "CT_SPOT_PAIR0": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "CT_SPOT_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "CT_ZONE_RES": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "D3": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "D3_CUT": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "D3_CUTF": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "string"
+  },
+  "D3_ELFS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "string"
+  },
+  "D3_ELVS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "string"
+  },
+  "D3_FB": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "D3_FOV": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "D3_FP_AIM": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "D3_FP_HOLD": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "D3_FP_PEASE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "D3_FP_PRATE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "D3_FS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "string"
+  },
+  "D3_HIDE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "D3_KZ": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "D3_LFS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "string"
+  },
+  "D3_LOW": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "D3_LVS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "string"
+  },
+  "D3_NULLCTX": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "D3_NULLGRAD": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "D3_OVER_EVERY": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "D3_OVER_SEC": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "D3_SOFT": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "D3_SPAWN_SEC": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "D3_STYLES": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "D3_TR_HIT": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "D3_TR_SHOT": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "D3_VS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "string"
+  },
+  "D3_WFS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "string"
+  },
+  "D3_WVS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "string"
+  },
+  "DANGER_SAMPLES": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "DECISION_INTERVAL_TICKS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "DEFUSE_HEAR": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "DEFUSE_JUDGE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "DEFUSE_KEEP": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "DEFUSE_KIT_TICKS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "DEFUSE_NEAR": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "DEFUSE_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "DEFUSE_TICKS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "DEF_GROUP_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "DEF_STAGE_SEC": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "DELAY_GAP": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "DELAY_GROUP_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "DELAY_SAFE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "DEMOV": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "DETOUR_MAX": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "DLOG_MAX": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "DLOG_SEC": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "DM": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "DUCK_PRO": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "DUEL_LOSE_K": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "DV_PANEL_EL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "ECO_KNOW": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "ED_CACHE": {
+   "changed": [
+    "раунд 2"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "EG_BOMB_SITE_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "ENTRY_WAIT": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "ESC_MAX_SEC": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "EWL": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "EXEC_QUEUE_N": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "EXEC_QUEUE_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "EXEC_REACH": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "EXEC_WAIT_SEC": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "EXP_CACHE": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "EXU": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "EXU_FAST_MAX": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "EXU_LATE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "FALL_G": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "FATAL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "FB": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "FF_MUL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "FF_TK_CASH": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "FIGHT_COV": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "FIGHT_MATE_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "FIGHT_MOVE_NEAR": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "FIGHT_PUSH_LOSE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "FIGHT_PUSH_SLACK": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "FIGHT_STEP": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "FILL_FUNC_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "FILL_NEAR": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "FIRE_BODY": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "FIRE_DETOUR": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "FIRE_DZ": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "FIRE_GATHER_LEFT": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "FIRE_GONE_GAIN": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "FIRE_GONE_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "FIRE_HIT_MAX": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "FIRE_HIT_SEC": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "FIRE_K": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "FIRE_MARGIN": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "FLANK_CLAIM": {
+   "changed": [
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "FLASH_ASK_N": {
+   "changed": [
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "FLASH_ASK_PER_ROUND": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "FLASH_ASK_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "FLASH_ASK_WAIT": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "FLASH_EXIT_MAX": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "FLASH_POP_DZ": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "FLEE_DMG_STEP": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "FLEE_MOVE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "FLEE_SPARE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "FLEE_SPOT": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "FLOOR_HEAD": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "FOLLOW_GAP": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "FOOTSTEP_INTERVAL_RUN": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "FOOTSTEP_INTERVAL_WALK": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "FORCE_MIN": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "FORCE_SHARE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "FOV_DEG": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "FOV_NEAR": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "FRAME_CATCHUP_MS": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "number"
+  },
+  "FREEZE_FX": {
+   "changed": [
+    "раунд 3",
+    "раунд 14"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "FREEZE_HOLD": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "FREEZE_TURN": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "FREEZE_TURN_SPEED": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "GAP_AIR_MIN": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "GAP_NEAR": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "GAP_WALK_N": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "GEO": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "GOAL_NAME": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "GUN_HEAR_OPEN": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "GUN_HEAR_WALL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "HALF_ROUNDS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "HANDLE_TOL_PX": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "HAND_ERR_MAX": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "HAND_ERR_MAX_F": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "HAND_FIGHT": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "HAND_START": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "HEAD_HALF": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "HEIGHTS": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "HELMET_UPGRADE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "HE_ARMOR_K": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "HE_DODGE_FULL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "HE_DODGE_MIN": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "HGT_AUTO": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "HGT_C": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "HGT_LEDGE_TXT": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "HGT_NEAR": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "HGT_OWN": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "HGT_OWN_CODE": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "HGT_STOPS": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "HGT_TOP": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "HIT_TOL_PX": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "HL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "HL_KEY": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "string"
+  },
+  "HOLD": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "HOLD_CANDS": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "HUD_K": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "number"
+  },
+  "HUD_KF_SHOWN": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "HUD_REDUCED": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "boolean"
+  },
+  "HUD_SB_FRZ": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "HUD_TW": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "HUD_TW_ON": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "boolean"
+  },
+  "HUD_VOICE_SHOWN": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "HURT_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "HURT_REACT": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "HURT_SND_GAP": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "INFO_BEHIND": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "INFO_EVERY": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "INFO_GO": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "INFO_MAX": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "INFO_MIN_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "INFO_PAR": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "INFO_QUIET": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "INFO_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "INFO_START": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "INFO_W": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "INFO_WAIT": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "INTEL_KEEP": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "JUMP_APEX": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "JUMP_FACE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "JUMP_FACE_BACK": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "JUMP_FACE_WAIT": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "JUMP_HOLD_SEC": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "JUMP_NEAR_WAIT": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "JUMP_TURN_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "JUMP_UP": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "KEYS_DRIFT": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "KEYS_PRO": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "KF_DIRTY": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "boolean"
+  },
+  "KF_FADE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "KF_ICON": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "KF_IMG": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "KF_LIFE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "KF_MOD_T": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "KG": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "KILL_MOVE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "KILL_NEAR_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "KILL_SITE_ON": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "KILL_SITE_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "KILL_SITE_SHARE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "KNIFE_BACK": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "KNIFE_D": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "KNIFE_GAP": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "KNIFE_GO": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "KNIFE_P": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "KNIFE_REACH": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "KNIFE_STAB": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "KNOW": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "KNOWN_CLOSE_K": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "KNOWN_DETOUR": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "KNOWN_PATH_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "KNOWN_SEC": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "KNOWN_W": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "KNOW_AGE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "KNOW_CORPSE_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "KNOW_LOG": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "KNOW_NEAR_SLACK": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "KNOW_POSITIONS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "KNOW_SAY": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "KNOW_SPOTS": {
+   "changed": [
+    "раунд 2"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "KNOW_TRACE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "KPC": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "KWL_CELL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "KWL_TTL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "LADDERS": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "LADDER_FAR": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "LADDER_NEAR": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "LADDER_SEEK": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "LADDER_SPEED": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "LAND_DELAY": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "LAND_HOLD": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "LAND_PUNISH_FRESH": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "LAND_PUNISH_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "LAND_PUNISH_SEC": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "LAND_SOUND_DROP": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "LANE_W": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "LAST_CLEAR": {
+   "changed": [
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "LD_URG": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "LD_WHY": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "LINEUP": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "LINEUPS_BAKED": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "LINEUPS_KEY": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "string"
+  },
+  "LKP_PATH": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "LKP_PATH_TTL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "LOG_DIRTY": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "boolean"
+  },
+  "LOOK": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "LOOKDBG": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "LOOK_BEL_BOT": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "LOOK_FRESH": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "LOOK_LEVEL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "LOOK_PRO_YIELD": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "LOOK_REPLAN": {
+   "changed": [
+    "раунд 2",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "LOOK_SMOKE_K": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "LOOK_WALL_CLOSE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "LOSS_BONUS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "LOWHP_MATE_PATH": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "LOW_HP": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "LURK_CHECK": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "LURK_DEATH_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "LURK_JOIN_SEC": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "LURK_PLANS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "LURK_ROUND_P": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "LU_AIM": {
+   "changed": [
+    "раунд 2"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "LU_AT": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "LU_COL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "LU_DETOUR_K": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "LU_DETOUR_MIN": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "LU_NEAR": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "LU_REACH_MARGIN": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "LU_REACH_PAD": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "LU_TRIG": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "LU_TYPE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "M3": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "M3_SKIN": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "M3_SOLID": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "MANUAL_WALLS": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "MAP": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "MAP3D": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "MAPED": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "MATCH_WIN": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "MATE_AIM": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "MAX_MONEY": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "MED_B": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "MED_B_HINTS": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "MED_C": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "MED_C_HINTS": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "MED_H": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "MED_H_HINTS": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "MED_W": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "MED_W_HINTS": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "MEM_BOX": {
+   "changed": [
+    "раунд 14"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "MINI": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "MOLLY_SMOKE_TOUCH": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "MOVE": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "MOVE_FAR": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "MOVE_LOOK_AHEAD": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "MOVE_MIN": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "MOVE_SEEN": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NADE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "NADE_AIM_DZ": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "NADE_AIM_OK": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NADE_AIM_SCATTER": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "NADE_BUDGET_N": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NADE_DROP_ORDER": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "NADE_FAIL": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "NADE_FOE_P": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NADE_FOE_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NADE_GAP": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NADE_GUESS_PAID": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "NADE_GUESS_SLACK": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NADE_HEAR_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NADE_HIT_GAP": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NADE_ICON": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "NADE_ICON_FILL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "NADE_IMG": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "NADE_LANE_FROM": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NADE_LANE_IDX": {
+   "changed": [
+    "раунд 2"
+   ],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "NADE_LANE_TO": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NADE_LEVEL_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NADE_LEVEL_TOL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NADE_LOW_HP": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NADE_NO_FROM": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NADE_NO_TO": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NADE_PRECALC_I": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NADE_PRECALC_N": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NADE_RETRY_D": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NADE_ROBUST_Q": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NADE_ROOF_DZ": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NADE_SOLVE_MS": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "NADE_SPOT_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NADE_STILL_V": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NADE_THROW_RANGE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NADE_TICK": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "NADE_USE_GAP": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NADE_UTIL0": {
+   "changed": [
+    "раунд 2"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NADE_WISH": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "NADE_WISH_PRO": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "NADE_WORTH": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "NAVAREAS": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "NAVAREAS_RAW": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "NAVZ_FLOOR": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NAVZ_NEAR": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NAV_ANCHORS_KEY": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "string"
+  },
+  "NAV_BLOCKED": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "NAV_BOUNDARY_SEGS_RAW": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "NAV_BOUNDARY_VERTS_RAW": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "NAV_CLIMB_UP": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "NAV_DROP_COST": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NAV_DROP_MAX": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NAV_DROP_OUT": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NAV_DROP_STEP": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NAV_FLOOR_TOL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NAV_GAPS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "NAV_GAP_AT": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "NAV_GAP_TOL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NAV_GRID": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "NAV_GRID_C": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NAV_ID": {
+   "changed": [
+    "раунд 2"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "NAV_JUMP_COST": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NAV_JUMP_UP": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NAV_LAD": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "NAV_LINK_KNEE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NAV_LINK_MIN": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NAV_NEAR_DIRS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "NAV_OFF_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NAV_RIDGE_SIDE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NAV_RIDGE_W": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NAV_STEP_TOL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NAV_UNLINKED": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "NAV_VERTEX_PICK_TOL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NAV_ZONE": {
+   "changed": [
+    "раунд 2"
+   ],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "NEAR_P_SAME": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NICKS": {
+   "changed": [
+    "раунд 14"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "NOTICE_P": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "NOTICE_WIN": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "NP_LABEL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "NP_ORDER": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "OBC": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "OBS": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "OBS_BOUNDS": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "OBS_K": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "OBS_NEAR_CALM": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "OBS_OFF": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "OBS_PLAN_MIN": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "OBS_ST": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "OBS_TR": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "OBS_WIDE_MAX": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "OPP": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "OPP_KEY": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "string"
+  },
+  "OT_HALF": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "OT_MAX": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "OT_MONEY": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "OUTWARD_CACHE": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "OWN_LINE_GAP": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "OWN_LINE_RINGS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "PATHQ": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "PATHQ_N": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": false,
+   "absent": false,
+   "type": "number"
+  },
+  "PATHQ_Q": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "PATHQ_TTL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "PEEK_KIND": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "PEEK_PRO": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "PEEK_Q": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "PEEK_SHORT_DWELL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "PEEK_WIDE_EXTRA": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "PICK_ECO_K": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "PLANT_CELL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "PLANT_MED": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "PLANT_TICKS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "PLAYER_MEM": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "PLAYER_PHOTO": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "PL_ANIM_MS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "PL_GRID": {
+   "changed": [
+    "раунд 2",
+    "раунд 14"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "PL_ICON": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "PL_KILL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "string"
+  },
+  "PL_MONEY": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "function"
+  },
+  "PL_SEEN": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "PL_SIL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "string"
+  },
+  "PL_SKULL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "string"
+  },
+  "PM_GAIN": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "PM_MIN": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "PM_SITE_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "POINT_POOL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "POINT_POOL_ZONEMAP_LEN": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "PORTAL_MIN_OVERLAP": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "PORTAL_TOL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "PORTAL_W": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "POS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "POSCLR": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "POSPREF": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "POST_ARRIVE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "POST_DWELL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "POST_VIEW": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "POST_VIEW_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "POS_SIDE": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "PP": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "PPN": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "PP_CHK_DUR": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "PP_CHK_EVERY": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "PP_CHK_MIN": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "PP_CHK_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "PP_DUP": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "PP_ENTRY": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "PP_LATE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "PP_LOOK_D": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "PP_SHIFT": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "PP_SHIFT_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "PP_SIDE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "PP_SIDE_K": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "PP_ZONE_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "PREFIRE_RADIUS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "PRE_EXEC_WALK": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "PROB": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "PROB_BLOCK_SEC": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "PROB_SHOW_SEC": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "PROB_STALL_MOVE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "PROB_STALL_SEC": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "PROB_TUG_SEC": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "PROFILES": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "PROLE_LABEL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "PROLE_NADES": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "PRO_COVER": {
+   "changed": [
+    "раунд 2"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "PRO_GROUPS": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "PRO_LINEUPS": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "PRO_LINEUPS_RAW": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "PRO_LOOK": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "PRO_LOOK_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "PRO_PISTOL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "PRO_PRIOR": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "PRO_PROLE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "PRO_ROLE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "PRO_SPOTS": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "PR_FIX": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "PSN": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "PSN_TAGS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "PX_UNITS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "RC_HALF": {
+   "changed": [
+    "раунд 14"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "string"
+  },
+  "REACH": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "REACH_E": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "REACH_SRC": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "REAR_EVERY": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "REAR_MATE_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "REAR_WHY": {
+   "changed": [
+    "раунд 2"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "string"
+  },
+  "REBAL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "RETAKE_STOP": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "RETAKE_V": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "RL_PATH_FREE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "RL_PEEK_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "RL_THREAT_W": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "RMEM": {
+   "changed": [
+    "раунд 2",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "RND_PART": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "ROAM_CHECK_TICKS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "ROAM_QUIET_RADIUS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "ROAM_READY": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "boolean"
+  },
+  "ROAM_RECHECK_TICKS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "ROAM_ROUTES": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "ROLE_LABEL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "ROLE_SHORT": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "ROUND_RESTART_DELAY_SEC": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "ROUND_TIME_SEC": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "ROUND_TYPE_LABEL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "ROUTE_ENEMY_SIDE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "ROUTE_PORTAL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "ROUTE_SIDE_LINE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "RP": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "RP_BF": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "RP_EL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "RP_K": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "RP_LANG": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "RP_MODES": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "RP_NB": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "RP_RU": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "RP_SAY": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "RP_SNAPS": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "RT_GAP": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "RT_WAIT": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "RUN_COS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "RUN_JUMP": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "RUN_MARGIN": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "RUN_NEAR": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "RUN_OWN_A": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "RUN_PAST": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "RUN_SEC": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "RUN_STRAIGHT": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "RUN_V": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "SANDBOX": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "SAVE_PATH_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "SAVE_TOPN": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "SB_PANEL_EL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "SEAT_FIXED": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "SEAT_KEEP": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "SELF": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "SELL_SEC": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "SERIES": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "SETUP_REG": {
+   "changed": [
+    "раунд 2"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "SHIFT_TO": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "SHOW_Q": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "SHOW_Q_MAX": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "SIDE_TEAM": {
+   "changed": [
+    "раунд 14"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "SITES": {
+   "changed": [
+    "раунд 2",
+    "раунд 14"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "SITE_AWAY": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "SITE_SEEN_SEC": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "SL": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "SLW_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "SL_MORE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "SL_THREAT": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "SMK": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "SMK_ENTRY_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "SMOKE_GROW": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "SMOKE_HOLE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "SND": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "SND_CAP": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "SND_DATA": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "SND_GUN": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "SND_MAX": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "number"
+  },
+  "SND_R": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "SOLO_LU_PATH": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "SOLO_SHARE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "SOUND_CAUTION_TICKS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "SOUND_RADIUS_RUN": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "SOUND_RADIUS_WALK": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "SPAWN_EARLY_WIN": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "SPD_K": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "SPEED": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "SPN": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "SPOT_PERSONAL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "SPOT_TEAM": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "SPRAY_PATTERN": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "SPRAY_RESET_TICKS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "SPREAD_DIRS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "SPREAD_RINGS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "STACK_K": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "START_MONEY": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "STATE_LABEL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "STEP_BODY_Z": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "STEP_UP_Z": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "STRAFE_PRO": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "STRAFE_PRO_T": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "TACT_DBG": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "TAC_TEMPO": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "TAC_TEMPO_NAME": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "TAKE_ADV": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "TAKE_REACH": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "TAKE_STEP": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "TAP_P1": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "TAP_P23": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "TAP_PAUSE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "TAP_SPRAY": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "TASK_LEVEL": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "TASK_PROP": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "TASK_ROUTE_CANCEL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "TASK_STALE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "TASK_STUCK_SEC": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "TDEATHS": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "TD_BUY": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "TD_STYLE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "TEAM": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "TEAMDBG": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "TEAMK": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "TEAM_LOG": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "TEAM_LOGO": {
+   "changed": [
+    "раунд 14"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "TEAM_NAME": {
+   "changed": [
+    "раунд 14"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "TEAM_PRIO": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "TEAM_ROLES": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "TICK_HZ": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "TICK_MS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "TOUT": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "TO_DEATHS": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "TO_FORCE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "boolean"
+  },
+  "TO_LAST": {
+   "changed": [
+    "раунд 14"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "TO_NOW": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "TO_PLAN_ROUNDS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "TO_SEC": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "TRACER_STYLE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "TRADE_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "TS": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "TSAVE_K": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "TS_K": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "TS_LAYS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "TS_LINE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "TS_SAY": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "TS_SEQ": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "T_SAVE_PRO": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "T_SPAWN": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "T_SPAWN_FIX_RAW": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "T_TACTICS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "USER_LINEUPS": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "USER_ZONES": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "USER_ZONES_KEY": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "string"
+  },
+  "UTIL_AT_ENTRY": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "UTIL_MIN_LEFT": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "UTIL_WAIT": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "UTIL_WAIT_RUSH": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "VIS": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "VIS_BODY": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "VIS_CEIL_H": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "number"
+  },
+  "VIS_CELL": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "number"
+  },
+  "VIS_DANGER_TIMER": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "VIS_EYE": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "VIS_FLOOR_EPS": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "number"
+  },
+  "VIS_GEN": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "number"
+  },
+  "VIS_HEAD": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "VIS_SHOULDER": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "number"
+  },
+  "VIS_SLAB": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "number"
+  },
+  "VIS_STACK": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "number"
+  },
+  "VOICE_DIRTY": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "boolean"
+  },
+  "VOICE_KEYS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "VOICE_KEY_KIND": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "VOICE_KIND": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "VOICE_KIND_T": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "VT": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "VT_PICK_R": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "WALK_SPEED_FRAC": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "WALLBANG": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "WALLS_SIG": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "string"
+  },
+  "WALL_POLYS": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "WALL_POLYS_CODE": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "WALL_SOLID_POLYS": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "WARM": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "WATER_Z": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "WB_AUTO": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "WB_C": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "WB_MAT": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "WB_OWN": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "WB_OWN_CODE": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "WB_RULES": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "WEAPONS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "WHY_LOOK": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "WHY_POST": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "WIN_REWARD": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "WPM": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "WPN_KILL_CLASS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "WPN_KILL_M": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "WSK_EL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "WSPEED": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "ZDJ": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "ZIDX": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "ZIDX_C": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "ZI_DB": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "ZI_DE": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "ZI_LB": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "ZI_LE": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "ZI_ORD": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "ZONEMAP": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "ZONEMAP_RAW": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "ZONES_GEN": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "string"
+  },
+  "ZONE_CENTROIDS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "ZONE_DANGER": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "ZONE_DANGER_LINE": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "ZONE_DANGER_W": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "ZONE_DEFAULT_LABEL": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "ZONE_KIND_COLORS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "ZONE_KIND_LABELS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "ZONE_LAYER_BASELINE": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "ZONE_LAYER_KEY": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "string"
+  },
+  "ZONE_NAMES": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "ZONE_NAMES_BAKED": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "ZONE_NAMES_KEY": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "string"
+  },
+  "ZONE_SAMPLES": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "ZONE_SHAPES": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "ZONE_SHAPES_BAKED": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "ZONE_SHAPES_KEY": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "string"
+  },
+  "ZONE_SYNONYMS": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "_ED": {
+   "changed": [
+    "раунд 2"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "_POSL": {
+   "changed": [
+    "раунд 2"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "_WB": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "_WBn": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "number"
+  },
+  "_rtw": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "_zbnCache": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "_zoneSide": {
+   "changed": [
+    "раунд 2"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "accumulator": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "number"
+  },
+  "aggrObs": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "alignPanel": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "awpSmokeCd": {
+   "changed": [
+    "раунд 14"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "bannerTimer": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "belief": {
+   "changed": [
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "beliefLast": {
+   "changed": [
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "beliefSeen": {
+   "changed": [
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "bomb": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "bots": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "btnNavReset": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "btnNavWarpClear": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "btnNavWarpUndo": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "btnZoneDelete": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "btnZoneFinish": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "camDragOrig": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "camDragStart": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "camDragging": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "boolean"
+  },
+  "cardTimer": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "chkAlign": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "chkCover": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "chkHeights": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "chkLineups": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "chkLookDbg": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "chkNavWarp": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "chkTeamDbg": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "chkVis": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "chkWallbang": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "chkZoneAlign": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "chkZoneEdit": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "chkZoneVertexEdit": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "clutchInfo": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "clutchShown": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "comboCd": {
+   "changed": [
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "covTip": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "ctHabit": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "ctRead": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "ctSetupHist": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "ctSetupMem": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "ctx": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "cv": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "econClosed": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "boolean"
+  },
+  "events": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "fires": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "frameWrapR": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "groundItems": {
+   "changed": [
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "groundWeapons": {
+   "changed": [
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "hgtTip": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "hoverZoneId": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "img": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "imgFailed": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "boolean"
+  },
+  "imgReady": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "boolean"
+  },
+  "inNavDx": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "inNavDy": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "inNavScale": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "inZlDx": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "inZlDy": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "inZlScale": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "killfeed": {
+   "changed": [
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "lastFrame": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "number"
+  },
+  "lastTacticId": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "string"
+  },
+  "lineupPanel": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "lookDbgEl": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "luBuiltinOpen": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "boolean"
+  },
+  "luDrag": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "luHover": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "luPending": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "luSel": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "matchNum": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "nadeAimCache": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "function"
+  },
+  "nadeFlags": {
+   "changed": [
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "nadeFx": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "nadeGuessStore": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "function"
+  },
+  "nadeLandHistory": {
+   "changed": [
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "nadeReactCd": {
+   "changed": [
+    "раунд 3",
+    "раунд 14"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "nadesInAir": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "navAnchors": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "navAutoLinks": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "navBlockedCount": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "number"
+  },
+  "navCutPortals": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "number"
+  },
+  "navDragOrig": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "navDragStart": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "navDragging": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "boolean"
+  },
+  "navDropLinks": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "navNarrowPortals": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "number"
+  },
+  "navRebuildTimer": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "navTallCut": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "navTallDone": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "boolean"
+  },
+  "navTransform": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "navWarp": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "navWarpCountEl": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "navWarpHint": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "navWarpPanel": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "navWarpPending": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "nowTs": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "number"
+  },
+  "paused": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "boolean"
+  },
+  "plSelected": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "pointsByName": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "portalCount": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "portalMissing": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "roundEndTime": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "roundHist": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "roundNum": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "roundStartTick": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "roundStartTime": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "roundState": {
+   "changed": [
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "string"
+  },
+  "score": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "selectedZoneId": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "showCalls": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "showDanger": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "showLos": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "showNavmesh": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "showPoints": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "showPortals": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "showSound": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "showTracers": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "showWalls": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "showWhy": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "showZones": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "simTime": {
+   "changed": [
+    "1 шаг",
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "siteHeat": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "siteHeatPending": {
+   "changed": [
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "smokes": {
+   "changed": [
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "soundPings": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "spotCache": {
+   "changed": [
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "tSiteHist": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "tacHist": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "tacMem": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "teamDbgEl": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "teamEco": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "teamIntel": {
+   "changed": [
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "teamKnow": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "teamTac": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "tick": {
+   "changed": [
+    "1 шаг",
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "tracers": {
+   "changed": [
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "userZonesSaveTimer": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "view": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "voiceLines": {
+   "changed": [
+    "конец"
+   ],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "wallSegs": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "wbTip": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "wrap": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "zlDragOrig": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "zlDragStart": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "zlDragging": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "boolean"
+  },
+  "zoneAlignPanel": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "zoneDrawCur": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "zoneDrawPts": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "zoneDrawing": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "boolean"
+  },
+  "zoneEditCountEl": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "zoneEditHint": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "zoneEditPanel": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "zoneGraph": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "zoneKindSelect": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "zoneLayer": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "zoneLayerRebuildTimer": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "zoneMoveOrig": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "zoneMoveStart": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "zoneMoving": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "boolean"
+  },
+  "zoneNameInput": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "zoneNameInput2": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "zoneNamePanel": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "zoneNameSel": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "zoneScaleBaseDist": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "zoneScaleCenter": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  },
+  "zoneScaling": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "boolean"
+  },
+  "zoneVertexDragging": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "boolean"
+  },
+  "zoneVertexIdx": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "zonesById": {
+   "changed": [],
+   "snap": false,
+   "absent": false,
+   "type": "object"
+  },
+  "zsDrag": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "number"
+  },
+  "zsRebuildTimer": {
+   "changed": [],
+   "snap": true,
+   "absent": false,
+   "type": "object"
+  }
+ },
+ "bot": {
+  "_2nd": {
+   "changed": [
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_actS": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_adSpot": {
+   "changed": [
+    "раунд 3",
+    "раунд 14"
+   ]
+  },
+  "_aft": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_aftSaid": {
+   "changed": [
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_aimFix": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_aimTrk": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_amb": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14"
+   ]
+  },
+  "_ammoFor": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "_apBest": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_apId": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_apT": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_apfC": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_apfP": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_area": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_assistNext": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_assistVoice": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_avoidPeekAt": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_avoidPeekUntil": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_belOwn": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "конец"
+   ]
+  },
+  "_blind": {
+   "changed": []
+  },
+  "_blindBy": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "_boost": {
+   "changed": []
+  },
+  "_boostTry": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_bought": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_burning": {
+   "changed": [
+    "раунд 2"
+   ]
+  },
+  "_chk": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_chkNext": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_climb": {
+   "changed": []
+  },
+  "_clr": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_clutch": {
+   "changed": [
+    "раунд 14"
+   ]
+  },
+  "_contact": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_contactT": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_cornerPK": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_cornerPt": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_covLog": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_covShot": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_covT": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_defuseCont": {
+   "changed": [
+    "раунд 14"
+   ]
+  },
+  "_defuseHeard": {
+   "changed": []
+  },
+  "_delayT": {
+   "changed": [
+    "раунд 14"
+   ]
+  },
+  "_detour": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_djErr": {
+   "changed": [
+    "раунд 3",
+    "раунд 14"
+   ]
+  },
+  "_djT": {
+   "changed": [
+    "раунд 3",
+    "раунд 14"
+   ]
+  },
+  "_dlLook": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_dlMove": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_dlog": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_dlog2": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_dmgBy": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "_drawUntil": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "_duckT": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_dumpCd": {
+   "changed": [
+    "раунд 3",
+    "раунд 14"
+   ]
+  },
+  "_dwOnT": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_dwTick": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_dwVal": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_dwWhy": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14"
+   ]
+  },
+  "_early": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_egC": {
+   "changed": [
+    "раунд 2",
+    "раунд 14"
+   ]
+  },
+  "_egEnd": {
+   "changed": [
+    "раунд 2",
+    "раунд 14"
+   ]
+  },
+  "_egF": {
+   "changed": [
+    "раунд 14"
+   ]
+  },
+  "_egL": {
+   "changed": [
+    "раунд 14"
+   ]
+  },
+  "_entryWait": {
+   "changed": [
+    "раунд 2",
+    "раунд 14"
+   ]
+  },
+  "_esT": {
+   "changed": [
+    "раунд 2",
+    "раунд 14"
+   ]
+  },
+  "_exposedUntil": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_faceWhy": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "_fall": {
+   "changed": []
+  },
+  "_fbRound": {
+   "changed": [
+    "раунд 2",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_fc": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "_fcCv": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "_fcD": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_fcFlank": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_fcP": {
+   "changed": [
+    "раунд 14"
+   ]
+  },
+  "_fcS": {
+   "changed": [
+    "раунд 2",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_fcSnap": {
+   "changed": [
+    "раунд 2",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_fcV": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_fcWhy": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_fcWhyT": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_ffFrac": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_fillLock": {
+   "changed": []
+  },
+  "_finId": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_finNext": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_fire": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_fireAcc": {
+   "changed": []
+  },
+  "_fireExit": {
+   "changed": []
+  },
+  "_fireExitFire": {
+   "changed": []
+  },
+  "_fireIn": {
+   "changed": []
+  },
+  "_fireRp": {
+   "changed": [
+    "раунд 14"
+   ]
+  },
+  "_fireWaitT": {
+   "changed": [
+    "раунд 14"
+   ]
+  },
+  "_flankE": {
+   "changed": [
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_flankT": {
+   "changed": [
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_flee": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_fleeLog": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_fleePt": {
+   "changed": [
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_flx": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_fly": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_fpT": {
+   "changed": [
+    "раунд 14"
+   ]
+  },
+  "_fpV": {
+   "changed": [
+    "раунд 14"
+   ]
+  },
+  "_fsFail": {
+   "changed": [
+    "раунд 14"
+   ]
+  },
+  "_fullKit": {
+   "changed": [
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_fz": {
+   "changed": [
+    "1 шаг",
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_gl": {
+   "changed": [
+    "раунд 2"
+   ]
+  },
+  "_glNext": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_hTask": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_hand": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_heDodgeLog": {
+   "changed": [
+    "раунд 3",
+    "раунд 14"
+   ]
+  },
+  "_headLvl": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14"
+   ]
+  },
+  "_heardReload": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_heat": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_heldAim": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_hes": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_hitFx": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_hitIn": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_hitOut": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_hold": {
+   "changed": []
+  },
+  "_holdLog": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_holdWhy": {
+   "changed": [
+    "раунд 14"
+   ]
+  },
+  "_hot": {
+   "changed": [
+    "раунд 2",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_hs": {
+   "changed": [
+    "раунд 2",
+    "раунд 14"
+   ]
+  },
+  "_huntArrive": {
+   "changed": []
+  },
+  "_huntIdx": {
+   "changed": []
+  },
+  "_huntStart": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_hurtDone": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_hurtFrom": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_hurtSndT": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_hurtSrc": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_hurtT": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_idleT": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_intelPre": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_jc": {
+   "changed": []
+  },
+  "_jfw": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14"
+   ]
+  },
+  "_jnw": {
+   "changed": [
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_jump": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "_jumpPrep": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_keepWhy": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_keys": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_killHow": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_killHowT": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_killer": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_knDef": {
+   "changed": [
+    "раунд 14"
+   ]
+  },
+  "_knU": {
+   "changed": [
+    "раунд 2",
+    "конец"
+   ]
+  },
+  "_knife": {
+   "changed": []
+  },
+  "_kwl": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_land": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_landAt": {
+   "changed": [
+    "раунд 2",
+    "раунд 3"
+   ]
+  },
+  "_lastNade": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_lastSawT": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_lkAltPt": {
+   "changed": [
+    "раунд 2"
+   ]
+  },
+  "_lkC": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "_lkPick": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_lkPt": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "_lkTop": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "_lkW": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_lkZ": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "_lookLvl": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_lowHpNext": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_lp": {
+   "changed": [
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_lpDone": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_lurkArr": {
+   "changed": []
+  },
+  "_lurkGo": {
+   "changed": [
+    "раунд 2",
+    "раунд 14"
+   ]
+  },
+  "_lurkIdx": {
+   "changed": []
+  },
+  "_lurkPh": {
+   "changed": []
+  },
+  "_lurkPlan": {
+   "changed": [
+    "раунд 2",
+    "раунд 14"
+   ]
+  },
+  "_lurkSolo": {
+   "changed": [
+    "раунд 14"
+   ]
+  },
+  "_lvc": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_mateReT": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_midCover": {
+   "changed": [
+    "раунд 2"
+   ]
+  },
+  "_mistakes": {
+   "changed": [
+    "раунд 2",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_moV": {
+   "changed": [
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_moveWhy": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "_mwV": {
+   "changed": [
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_nadeCd": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "_nadeNo": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "_nadeT": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "_nadeUseT": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_nadeWhy": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14"
+   ]
+  },
+  "_nearBombT": {
+   "changed": [
+    "раунд 3",
+    "раунд 14"
+   ]
+  },
+  "_nearestEnemyBot": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_nearestEnemyDist": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_netStuck": {
+   "changed": [
+    "раунд 2",
+    "конец"
+   ]
+  },
+  "_noStopLog": {
+   "changed": [
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_noisyT": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_notice": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_np": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_nplan": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_nv": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_nvP": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_odK": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_odV": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_odl": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_offNav": {
+   "changed": [
+    "раунд 2"
+   ]
+  },
+  "_olK": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_olV": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_onPistol": {
+   "changed": []
+  },
+  "_overV": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "_passTried": {
+   "changed": [
+    "раунд 14"
+   ]
+  },
+  "_pdT": {
+   "changed": [
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_peekLag": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_pickGo": {
+   "changed": [
+    "раунд 2"
+   ]
+  },
+  "_pickIgnore": {
+   "changed": [
+    "раунд 3",
+    "раунд 14"
+   ]
+  },
+  "_pickSave": {
+   "changed": [
+    "раунд 14"
+   ]
+  },
+  "_pickSeen": {
+   "changed": [
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_pickSince": {
+   "changed": [
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_pickT": {
+   "changed": [
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_pie": {
+   "changed": [
+    "раунд 2"
+   ]
+  },
+  "_place": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_posMem": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_posT": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_postSets": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_ppAlt": {
+   "changed": [
+    "раунд 14"
+   ]
+  },
+  "_ppChk": {
+   "changed": [
+    "раунд 2",
+    "раунд 14"
+   ]
+  },
+  "_ppDone": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_ppFlashR": {
+   "changed": [
+    "раунд 14"
+   ]
+  },
+  "_ppMate": {
+   "changed": [
+    "раунд 14"
+   ]
+  },
+  "_ppPro": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_ppTN": {
+   "changed": [
+    "раунд 14"
+   ]
+  },
+  "_ppV": {
+   "changed": [
+    "раунд 14"
+   ]
+  },
+  "_ppWaitUntil": {
+   "changed": [
+    "раунд 14"
+   ]
+  },
+  "_preAim": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_prevOffX": {
+   "changed": []
+  },
+  "_prevOffY": {
+   "changed": []
+  },
+  "_proM": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_proRole": {
+   "changed": [
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_probe": {
+   "changed": [
+    "раунд 2",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_probeLock": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_progBest": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_progIdx": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_progPath": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_progTick": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_psK": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_psM": {
+   "changed": [
+    "раунд 2"
+   ]
+  },
+  "_psR": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_psV": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_reactMul": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_rearNext": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_rebal": {
+   "changed": [
+    "раунд 14"
+   ]
+  },
+  "_reloading": {
+   "changed": []
+  },
+  "_reposUntil": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_retreatNade": {
+   "changed": [
+    "раунд 3",
+    "раунд 14"
+   ]
+  },
+  "_rlCoverT": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_rlPeekDone": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_rlVoice": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_roamSoundHandled": {
+   "changed": []
+  },
+  "_roamSoundLockUntil": {
+   "changed": []
+  },
+  "_rotMidLog": {
+   "changed": [
+    "раунд 2"
+   ]
+  },
+  "_route": {
+   "changed": []
+  },
+  "_routeDone": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_rtChk": {
+   "changed": [
+    "раунд 2",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_runWhy": {
+   "changed": [
+    "раунд 2",
+    "конец"
+   ]
+  },
+  "_safeRotK": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_saveSpot": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "_sawEnemy": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_seatRole": {
+   "changed": [
+    "раунд 14"
+   ]
+  },
+  "_seatSide": {
+   "changed": [
+    "раунд 14"
+   ]
+  },
+  "_secAmmo": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "_seenAt": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_selfDone": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_selfFlashCd": {
+   "changed": [
+    "раунд 2",
+    "раунд 14"
+   ]
+  },
+  "_shift": {
+   "changed": [
+    "раунд 2",
+    "раунд 14"
+   ]
+  },
+  "_shotAtBy": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_shotAtT": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_shoulderShot": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_sl": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_slAtPrev": {
+   "changed": [
+    "раунд 2",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_slw": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_smkParts": {
+   "changed": [
+    "раунд 14"
+   ]
+  },
+  "_smokeLog": {
+   "changed": [
+    "раунд 14"
+   ]
+  },
+  "_smokeShot": {
+   "changed": [
+    "раунд 3",
+    "раунд 14"
+   ]
+  },
+  "_smokeWait": {
+   "changed": [
+    "раунд 14"
+   ]
+  },
+  "_spam": {
+   "changed": [
+    "раунд 2"
+   ]
+  },
+  "_spamDone": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_stageInfo": {
+   "changed": [
+    "раунд 2",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_stanceWhy": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "_stateWhy": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_stateWhyT": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_stepDist": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_stepP": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_stopPlantLog": {
+   "changed": [
+    "раунд 14"
+   ]
+  },
+  "_stopPlantUntil": {
+   "changed": [
+    "раунд 3",
+    "раунд 14"
+   ]
+  },
+  "_stopWhy": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_stuckResets": {
+   "changed": [
+    "раунд 2"
+   ]
+  },
+  "_swSaid": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_tagUntil": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "_takeAt": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_tap": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_task": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "_tcV": {
+   "changed": [
+    "раунд 14"
+   ]
+  },
+  "_tgt": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_thrownT": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_tnMiss": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_tradeLock": {
+   "changed": []
+  },
+  "_tradeUntil": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_trail": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "_ts": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "_underV": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "_unstickT": {
+   "changed": []
+  },
+  "_utilW": {
+   "changed": [
+    "раунд 2"
+   ]
+  },
+  "_utilWDone": {
+   "changed": [
+    "раунд 3",
+    "раунд 14"
+   ]
+  },
+  "_visLag": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_visible": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_waitPopKey": {
+   "changed": [
+    "раунд 2",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_waitPopUntil": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "_walkWhy": {
+   "changed": [
+    "раунд 2",
+    "конец"
+   ]
+  },
+  "_zoomTick": {
+   "changed": [
+    "раунд 14"
+   ]
+  },
+  "alive": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "ammo": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "armor": {
+   "changed": [
+    "раунд 2",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "armorHp": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "assists": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "atPost": {
+   "changed": []
+  },
+  "baseX": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "baseY": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "blindUntil": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "burstCount": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "contactStreak": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "crouching": {
+   "changed": []
+  },
+  "curSpeed": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "deaths": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "decisionTick": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "defuseCooldownUntil": {
+   "changed": [
+    "раунд 14"
+   ]
+  },
+  "defuseUntil": {
+   "changed": [
+    "раунд 14"
+   ]
+  },
+  "defusing": {
+   "changed": []
+  },
+  "ears": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14"
+   ]
+  },
+  "facing": {
+   "changed": [
+    "1 шаг",
+    "раунд 2",
+    "конец"
+   ]
+  },
+  "fakeHoldUntil": {
+   "changed": []
+  },
+  "fakeUntil": {
+   "changed": []
+  },
+  "forcedRetreat": {
+   "changed": []
+  },
+  "heading": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "heardSound": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "helmet": {
+   "changed": [
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "holdSinceTick": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "holding": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "hp": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "id": {
+   "changed": []
+  },
+  "kills": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "kit": {
+   "changed": []
+  },
+  "know": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "lastIntel": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "lastShotTick": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "lastStepTick": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "lookReason": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "lookTarget": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "money": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "nadeQueue": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "nadeTask": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "nades": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "nextShotTick": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "onStairs": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "path": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "pathIdx": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "pfacing": {
+   "changed": [
+    "1 шаг",
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "pickTick": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "plantUntil": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "planting": {
+   "changed": []
+  },
+  "post": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "primary": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "prof": {
+   "changed": [
+    "раунд 14"
+   ]
+  },
+  "px": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "py": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "reactionTicks": {
+   "changed": [
+    "раунд 14"
+   ]
+  },
+  "reloadUntil": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "retakeRole": {
+   "changed": []
+  },
+  "roamCheckStart": {
+   "changed": []
+  },
+  "roamCheckUntil": {
+   "changed": []
+  },
+  "roamChecking": {
+   "changed": []
+  },
+  "roamIdx": {
+   "changed": []
+  },
+  "roamLookPt": {
+   "changed": []
+  },
+  "roamPrevPt": {
+   "changed": []
+  },
+  "roamTarget": {
+   "changed": []
+  },
+  "role": {
+   "changed": []
+  },
+  "roundDmg": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "roundKills": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "secondary": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14"
+   ]
+  },
+  "skill": {
+   "changed": [
+    "раунд 14"
+   ]
+  },
+  "spawnOx": {
+   "changed": []
+  },
+  "spawnOy": {
+   "changed": []
+  },
+  "spawnPt": {
+   "changed": []
+  },
+  "state": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "stateSince": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "stuckTicks": {
+   "changed": []
+  },
+  "tRole": {
+   "changed": [
+    "раунд 14"
+   ]
+  },
+  "team": {
+   "changed": []
+  },
+  "throwUntil": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "voice": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "walking": {
+   "changed": [
+    "конец"
+   ]
+  },
+  "weapon": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "x": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "y": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  },
+  "z": {
+   "changed": [
+    "раунд 2",
+    "раунд 3",
+    "раунд 14",
+    "конец"
+   ]
+  }
+ },
+ "changed_not_in_snapshot": [
+  "BZ_WALK",
+  "KPC",
+  "M3",
+  "NADE_LANE_IDX",
+  "NAV_ZONE",
+  "PATHQ",
+  "PATHQ_N",
+  "ZDJ",
+  "zoneGraph"
+ ]
+}

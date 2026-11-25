@@ -50,15 +50,15 @@
 ## `post`
 
 - **хозяин** `setPostDo · 110` — 1 (стр. 462)
-- **хозяин** `clearPostDo · 110` — 1 (стр. 509)
-- **хозяин** `placeResetPost · 110` — 1 (стр. 518)
+- **хозяин** `clearPostDo · 110` — 1 (стр. 512)
+- **хозяин** `placeResetPost · 110` — 1 (стр. 521)
 
 ## `_task`
 
 - **хозяин** `routeTick · 110` — 1 (стр. 66)
 - **хозяин** `setPostDo · 110` — 1 (стр. 417)
-- **хозяин** `clearPostDo · 110` — 1 (стр. 509)
-- **хозяин** `placeResetTask · 110` — 1 (стр. 519)
+- **хозяин** `clearPostDo · 110` — 1 (стр. 512)
+- **хозяин** `placeResetTask · 110` — 1 (стр. 522)
 
 ## `_reposUntil`
 
@@ -90,14 +90,14 @@
 - **хозяин** `fightStateDo · 500` — 1 (стр. 4)
 - **хозяин** `fightReset · 500` — 1 (стр. 13)
 
-не бот (то же имя у другого объекта — в проверку владения не идёт): `dropBomb · 120` (96 bomb), `bombTick · 120` (228 bomb; 269 bomb; 286 bomb), `exuThrown · 366` (70 it), `exuLanded · 366` (82 it), `exuFail · 366` (86 it), `exuReassign · 366` (137 it), `exuTick · 366` (149 it; 151 it; 155 it), `bombPassTick · 460` (86 bomb), `checkRoundEnd · 530` (125 bomb), `mapEdQueueSave · 570` (66 S; 67 S), `mapEdSaveNow · 570` (74 S; 81 S; 82 S), `dvTick · 678` (46 bomb; 47 bomb)
+не бот (то же имя у другого объекта — в проверку владения не идёт): `dropBomb · 120` (96 bomb), `bombTick · 120` (228 bomb; 269 bomb; 286 bomb), `exuThrown · 366` (70 it), `exuLanded · 366` (82 it), `exuFail · 366` (86 it), `exuReassign · 366` (137 it), `exuTick · 366` (149 it; 151 it; 155 it), `bombPassTick · 460` (86 bomb), `checkRoundEnd · 530` (134 bomb), `mapEdQueueSave · 570` (66 S; 67 S), `mapEdSaveNow · 570` (74 S; 81 S; 82 S), `dvTick · 678` (46 bomb; 47 bomb)
 
 ## `nadeTask`
 
-- **хозяин** `updateNadeTask1 · 380` — 14 (стр. 554, 561, 565, 566, 567, 571, 574, 599, …)
-- **хозяин** `runupTick · 380` — 4 (стр. 519, 534, 546, 548)
+- **хозяин** `updateNadeTask1 · 380` — 14 (стр. 558, 565, 569, 570, 571, 575, 578, 603, …)
+- **хозяин** `runupTick · 380` — 4 (стр. 523, 538, 550, 552)
 - **хозяин** `exuReassign · 366` — 3 (стр. 128, 131, 132)
-- **хозяин** `nadeQueueNext · 380` — 2 (стр. 437, 439)
+- **хозяин** `nadeQueueNext · 380` — 2 (стр. 441, 443)
 - **хозяин** `lineupTick · 390` — 2 (стр. 202, 264)
 - **хозяин** `(верх файла) · 360` — 1 (стр. 37)
 - **хозяин** `nadeAskFlash · 365` — 1 (стр. 235)
@@ -116,7 +116,7 @@
 
 ## `crouching`
 
-- **хозяин** `placeStance · 110` — 1 (стр. 517)
+- **хозяин** `placeStance · 110` — 1 (стр. 520)
 
 ## `path`
 

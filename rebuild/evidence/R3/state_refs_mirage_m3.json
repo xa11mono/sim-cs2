@@ -1,0 +1,154 @@
+{
+ "sim": "mirage.html",
+ "match": 3,
+ "at": [
+  3000,
+  20000,
+  45000,
+  70000
+ ],
+ "skip_roots": [
+  "ZDJ",
+  "KPC",
+  "PATHQ"
+ ],
+ "holders": {
+  "g:ZONE_LAYER_BASELINE": {
+   "MAP": 4
+  },
+  "g:ZONE_SHAPES_BAKED": {
+   "MAP": 4
+  },
+  "g:NAV_GAPS": {
+   "zoneGraph": 64
+  },
+  "g:NAV_GAP_AT": {
+   "zoneGraph": 64
+  },
+  "g:WPM": {
+   "zoneGraph": 4
+  },
+  "g:pointsByName": {
+   "MAP": 16
+  },
+  "g:CT_SPAWN": {
+   "MAP": 4
+  },
+  "g:T_SPAWN_FIX_RAW": {
+   "MAP": 4
+  },
+  "g:POINT_POOL": {
+   "MAP": 12
+  },
+  "b:spawnPt": {
+   "MAP": 20
+  },
+  "b:_fc": {
+   "MAP": 5,
+   "ZONE_DANGER_LINE": 10,
+   "ZONE_SAMPLES": 5
+  },
+  "b:_lkPt": {
+   "ZONE_SAMPLES": 5,
+   "ZONE_DANGER_LINE": 10
+  },
+  "b:_lkC": {
+   "ZONE_SAMPLES": 11,
+   "ZONE_DANGER_LINE": 14
+  },
+  "b:_olV": {
+   "ZONE_SAMPLES": 3,
+   "ZONE_DANGER_LINE": 4
+  },
+  "b:_cornerPt": {
+   "ZONE_SAMPLES": 3,
+   "ZONE_DANGER_LINE": 4
+  },
+  "b:_odl": {
+   "ZONE_SAMPLES": 7,
+   "ZONE_DANGER_LINE": 4
+  },
+  "g:T_TACTICS": {
+   "MAP": 4
+  },
+  "g:teamTac": {
+   "MAP": 8
+  },
+  "g:POS": {
+   "MAP": 4
+  },
+  "g:CT_SETUPS": {
+   "MAP": 4
+  },
+  "g:CT_SHARE": {
+   "MAP": 4
+  },
+  "g:PR_FIX": {
+   "MAP": 4
+  },
+  "g:LURK_PLANS": {
+   "MAP": 4
+  },
+  "g:SHIFT_TO": {
+   "MAP": 4
+  },
+  "g:KNOW_POSITIONS": {
+   "MAP": 4
+  },
+  "g:PL_GRID": {
+   "MAP": 12645
+  },
+  "g:POSPREF": {
+   "MAP": 1923
+  },
+  "g:PRO_ROLE": {
+   "MAP": 4
+  },
+  "g:PRO_LINEUPS": {
+   "MAP": 1680
+  },
+  "g:ZONE_NAMES_BAKED": {
+   "MAP": 4
+  },
+  "g:ZONE_SYNONYMS": {
+   "MAP": 4
+  },
+  "g:ZIDX": {
+   "MAP": 284
+  },
+  "g:NAV_ID": {
+   "NAVAREAS": 10180
+  },
+  "g:CLIMB_BY_EDGE": {
+   "LADDERS": 244
+  },
+  "g:CLIMB_AT": {
+   "LADDERS": 136
+  },
+  "g:LU_AIM": {
+   "MAP": 692
+  },
+  "g:LINEUPS_BAKED": {
+   "MAP": 4
+  },
+  "g:BUILTIN_OFF_BAKED": {
+   "MAP": 4
+  },
+  "b:_lkPick": {
+   "ZONE_DANGER_LINE": 2
+  },
+  "b:_tgt": {
+   "MAP": 7,
+   "ZONE_SAMPLES": 11,
+   "ZONE_DANGER_LINE": 17
+  },
+  "g:HOLD_CANDS": {
+   "MAP": 181
+  },
+  "b:_fireRp": {
+   "ZONE_DANGER_LINE": 11,
+   "MAP": 2,
+   "ZONE_SAMPLES": 9
+  }
+ }
+}

@@ -1,0 +1,28 @@
+{
+ "sim": "mirage.html",
+ "match": 3,
+ "points": {
+  "20000": {
+   "added": {
+    "zoneGraph ._jcf": 753,
+    "zoneGraph ._jcq": 6296
+   },
+   "changed": {}
+  },
+  "45000": {
+   "added": {
+    "zoneGraph ._jcf": 959,
+    "zoneGraph ._jcq": 6485
+   },
+   "changed": {}
+  },
+  "70000": {
+   "added": {
+    "zoneGraph ._jcq": 6581,
+    "zoneGraph ._jcf": 1030,
+    "zoneGraph ._dz": 1
+   },
+   "changed": {}
+  }
+ }
+}

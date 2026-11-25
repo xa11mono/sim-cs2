@@ -1,0 +1,84 @@
+{
+ "what": "Целевые инварианты технических ремонтов на итоговой сборке v606a (облако Chromium 158); полные отпечатки — отдельно (Э1)",
+ "Т-1 / Т-1б (I-23)": {
+  "значения 8 точек": {
+   "ancient_m3_70000": true,
+   "ancient_m3_95000": true,
+   "ancient_m7_30000": true,
+   "ancient_m7_60000": true,
+   "mirage_m3_70000": true,
+   "mirage_m3_95000": true,
+   "mirage_m7_30000": true,
+   "mirage_m7_60000": true
+  },
+  "полное состояние с тождеством": "0 расхождений, обе карты, снимки 3000 / 20 000 / 45 000 (evidence/R3/t1_t1b_i23.json)"
+ },
+ "Т-2 (I-22)": {
+  "inv --special (переход после 3000 тиков, штатный)": {
+   "ancient": {
+    "match": 4,
+    "ticksCompared": 2000,
+    "firstDiffTickAfterStart": -1,
+    "same": true
+   },
+   "mirage": {
+    "match": 4,
+    "ticksCompared": 2000,
+    "firstDiffTickAfterStart": -1,
+    "same": true
+   }
+  },
+  "i22_check после конца матча (Ancient м11→12)": {
+   "sim": "ancient.html",
+   "match_a": 11,
+   "match_next": 12,
+   "ticks_match_a": 96820,
+   "tick_at_transition": 0,
+   "opp_in": "пусто",
+   "start_diff_globals": [
+    "BUY_SHOW",
+    "BZ_WALK",
+    "KPC",
+    "M3",
+    "NADE_LANE_IDX",
+    "NADE_PRECALC_I",
+    "NAV_ZONE",
+    "OBS",
+    "PATHQ",
+    "PL_SEEN",
+    "RP",
+    "SERIES",
+    "SHOW_Q",
+    "WSK_EL",
+    "ZDJ",
+    "accumulator",
+    "lastFrame",
+    "nowTs",
+    "view"
+   ],
+   "start_diff_bot_fields": [],
+   "start_diff_ext": null,
+   "same": true,
+   "compared": 8000,
+   "first_diff_tick": null
+  }
+ },
+ "Т-3 / Т-4 (граф)": {
+  "ancient": {
+   "edges": 5956,
+   "I-15 freshMatch = загрузка": true,
+   "I-24/I-32 rebuildNav+navCutTall = загрузка": true,
+   "I-29 applyWalls (стены сборки, без базы владельца) = загрузка": true
+  },
+  "mirage": {
+   "edges": 7862,
+   "I-15 freshMatch = загрузка": true,
+   "I-24/I-32 rebuildNav+navCutTall = загрузка": true,
+   "I-29 applyWalls (стены сборки, без базы владельца) = загрузка": true
+  }
+ },
+ "I-23 инструментом проекта": {
+  "ancient": "расхождения нет до тика 5048 (матч 3, проверка каждые 64 тиков)",
+  "mirage": "расхождения нет до тика 5048 (матч 3, проверка каждые 64 тиков)"
+ }
+}

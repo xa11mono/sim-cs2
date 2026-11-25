@@ -5,7 +5,7 @@
 
 - `simTimeSet` (530)
     - `resetRound` (530) — если simTime - roundEndTime >= ROUND_RESTART_DELAY_SEC
-    - `newMatch` (530) — если simTime - roundEndTime >= 7
+    - `matchBegin` (530) — если simTime - roundEndTime >= 7
   - `freezeLookTick` (275) — если roundState === "freeze"
   - `nadePrecalcTick` (380) — если roundState === "freeze"
     - `roundSetState` (530) — если simTime >= roundStartTime
@@ -71,15 +71,15 @@
           - `buildWaypointPath` (050) — если TRl.length >= 8 && tick - (bot._unstickT//-1e9) > 2*TICK_HZ && tick - 
           - `botLane` (050) — если TRl.length >= 8 && tick - (bot._unstickT//-1e9) > 2*TICK_HZ && tick - 
           - `crossesWall` (060) — если TRl.length >= 8 && tick - (bot._unstickT//-1e9) > 2*TICK_HZ && tick - 
-            - `navAt` (020) — если p0 && p0[2] != null && p0[2] <= bot.z + 18 && Math.hypot(p0[0]-bot.bas
-            - `logEvent` (435) — если p0 && p0[2] != null && p0[2] <= bot.z + 18 && Math.hypot(p0[0]-bot.bas
+            - `navAt` (020) — если p0 && p0[2] != null && p0[2] <= bot.z + 18 && DM.hypot(p0[0]-bot.baseX
+            - `logEvent` (435) — если p0 && p0[2] != null && p0[2] <= bot.z + 18 && DM.hypot(p0[0]-bot.baseX
         - `navOnFloor` (370) — иначе (fireWait)
             - `navSnap` (540) — если ++bot._offNav > 32
               - `navUnlinkBlocked` (370) — если tick - bot._progTick > 96
     - `crossesWall` (060) — если bot.roamChecking && bot.state === "patrol" && bot.roamLookPt
         - `crossesWall` (060) — цикл
     - `crossesWall` (060) — если offX === 0 && offY === 0 && (bot._prevOffX // bot._prevOffY) && bot._s
-      - `crossesWall` (060) — если offX === 0 && offY === 0 && Math.hypot(bot._prevOffX // 0, bot._prevOf
+      - `crossesWall` (060) — если offX === 0 && offY === 0 && DM.hypot(bot._prevOffX // 0, bot._prevOffY
   - `strafeKeysTick` (540) — в обходе (forEach и т.п.)
     - `navFollowFloor` (370) — если !bot._climb
 - `resolveEngagements` (510)
