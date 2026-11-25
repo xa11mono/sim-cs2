@@ -107,8 +107,9 @@ def main():
     # (Р3.1.3) политика снимка — колонка snap: «да» / «нет: причина» (глобальные), «с bots» (поля бота). Хранится в реестре и при
     # пересчёте не теряется; новой строке — по нынешнему поведению сборки (state.json snap), при его отсутствии — «да» (как раньше)
     for key, o in out.items():
+        o['cmp'] = old.get(key, {}).get('cmp') or 'да'   # (Р3.1.5) сравнивать ли в локаторе — хранится в реестре, при пересчёте не теряется
         prev = old.get(key, {}).get('snap', '')
-        if prev in ('да', 'с bots') or prev.startswith('нет'): o['snap'] = prev; continue
+        if prev.startswith('да') or prev == 'с bots' or prev.startswith('нет'): o['snap'] = prev; continue
         if key[0] == 'b': o['snap'] = 'с bots'; continue
         m = ST['globals'][key[2:]].get('snap')
         o['snap'] = 'да' if m is True or m is None else 'нет: ' + str(m)

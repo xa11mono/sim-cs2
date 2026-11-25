@@ -350,7 +350,8 @@ if (CHECK) {
   for (const k of want) if (!SC[k]) E.push("нет строки " + k + " — новая переменная / поле бота: python3 tools/rebuild/state_classes.py, затем разметка");
   for (const [k, o] of Object.entries(SC)) { if (k[0] === "_") continue;
     if (!want.has(k) || o.gone) E.push("строка " + k + " — такого имени в коде больше нет: убрать из реестра (state_classes.py)");
-    else if (!CL.has(o.class)) E.push("строка " + k + ": класс «" + o.class + "» не из списка _classes"); }
+    else if (!CL.has(o.class)) E.push("строка " + k + ": класс «" + o.class + "» не из списка _classes");
+    else if (!o.snap || !o.cmp) E.push("строка " + k + ": нет политики снимка (snap) или сравнения (cmp) — реестр пересчитан не тем скриптом?"); }
   if (E.length) { E.slice(0, 30).forEach(e => console.error("ОШИБКА реестра состояния: " + e)); if (E.length > 30) console.error("… и ещё " + (E.length - 30)); process.exit(1); }
   const un = Object.entries(SC).filter(([k, o]) => k[0] !== "_" && o.class === "не размечено").length;
   console.log("реестр состояния: строк " + want.size + ", не размечено " + un);
