@@ -23,7 +23,7 @@ function shotSpread(sh, v){ var w = sh.weapon, f = Math.min(1, v / (SPEED*weapon
   return (w.stand*(sh.crouching ? 0.75 : 1) + w.move*(rk + 0.08*f)) / 1000; }
 // (Б4) до какой скорости гасить, чтобы выстрел был «стоит того» (то же правило FIRE_K, что в tryShoot, без отдачи), px/с
 function fireVAcc(sh, tg, dist){
-  var bA = Math.atan(BODY_HALF/Math.max(8, dist)), a = aimSigma(sh, tg, dist), vmax = SPEED*weaponSpeedMul(sh);
+  var bA = DM.atan(BODY_HALF/Math.max(8, dist)), a = aimSigma(sh, tg, dist), vmax = SPEED*weaponSpeedMul(sh);
   var pB = function(v){ var s2 = DM.pow(shotSpread(sh, v), 2) + a*a; return 1 - DM.exp(-(bA*bA)/(2*s2)); };
   var p0 = pB(0);
   for(var k = 20; k > 0; k--){ var v = vmax*k/20; if(pB(v) >= FIRE_K*p0) return v; }
@@ -39,7 +39,7 @@ function awpNoscope(sh, tg, dist){
   // (v526, владелец 10.11: «в упор некоторые успевают и в прицеле»; «если есть время прицелиться — в прицел») кто стоял и уже целился в это
   // место (держал угол), тот уже в прицеле — без прицела стреляет только застигнутый: на ходу / развернулся на врага
   if(sh._heldAim) return false;
-  var bA = Math.atan(BODY_HALF/Math.max(8, dist)), a = aimSigma(sh, tg, dist), w0 = shotSpread(sh, 0), ns = DM.hypot(w0, AWP_NOSCOPE/1000);
+  var bA = DM.atan(BODY_HALF/Math.max(8, dist)), a = aimSigma(sh, tg, dist), w0 = shotSpread(sh, 0), ns = DM.hypot(w0, AWP_NOSCOPE/1000);
   var pB = function(sp){ return 1 - DM.exp(-(bA*bA)/(2*(sp*sp + a*a))); };
   return pB(ns) >= FIRE_K * pB(w0);
 }
@@ -155,7 +155,7 @@ function tryShoot(shooter, target, dist){ var _ev = simEvIn("tryShoot", argument
   updateReload(shooter);
   if(shooter._reloading || shooter.ammo <= 0) return simEvOut(_ev);
   // угловые размеры цели (px радара ≈ 2.5 юнита CS2): тело ~32u шириной, голова ~11u
-  var hA = Math.atan(HEAD_HALF/Math.max(8,dist)), bA = Math.atan(BODY_HALF/Math.max(8,dist));
+  var hA = DM.atan(HEAD_HALF/Math.max(8,dist)), bA = DM.atan(BODY_HALF/Math.max(8,dist));
   // стреляет только туда, куда смотрит: прицел должен быть почти на цели —
   // вблизи цель большая, можно стрелять сразу; вдали надо довести прицел
   var aimD = 0;
@@ -263,7 +263,7 @@ function tryShoot(shooter, target, dist){ var _ev = simEvIn("tryShoot", argument
   // паттерн отдачи (вверх, потом влево-вправо), который бот гасит по навыку.
   // Куда попала — голова/грудь/живот/ноги — по реальной высоте модели,
   // а не "случайная зона": спрей в грудь уходит в голову, в голову — выше неё
-  var u1 = Math.atan(1/PX_UNITS/Math.max(8, dist));           // рад на 1 юнит на этой дистанции
+  var u1 = DM.atan(1/PX_UNITS/Math.max(8, dist));           // рад на 1 юнит на этой дистанции
   var kC = target.crouching ? 0.75 : 1, hH = 64*kC;            // центр головы
   var aimY = aimHead ? hH : 46*kC;
   var sp = sprayPat(w, burstIdx), cmp = Math.min(0.95, comp + 0.08);
