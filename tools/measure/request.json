@@ -1,3 +1,62 @@
-{"par": 8, "jobs": [
-  {"label": "b2_mir_a5", "ref": "d71ba75743497183374dc3762db1de5484583fbc", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29]}
-]}
+{
+ "par": 8,
+ "resume": true,
+ "fp": [
+  {
+   "label": "v614a_ff_mir",
+   "ref": "de11db7df165357feda6fdaa4d035008f75203fa",
+   "map": "mirage",
+   "engine": "firefox",
+   "matches": [
+    13
+   ]
+  },
+  {
+   "label": "v614a_ff_anc",
+   "ref": "de11db7df165357feda6fdaa4d035008f75203fa",
+   "map": "ancient",
+   "engine": "firefox",
+   "matches": [
+    3
+   ]
+  },
+  {
+   "label": "v614a_wk_mir",
+   "ref": "de11db7df165357feda6fdaa4d035008f75203fa",
+   "map": "mirage",
+   "engine": "webkit",
+   "matches": [
+    13
+   ]
+  },
+  {
+   "label": "v614a_wk_anc",
+   "ref": "de11db7df165357feda6fdaa4d035008f75203fa",
+   "map": "ancient",
+   "engine": "webkit",
+   "matches": [
+    3
+   ]
+  },
+  {
+   "label": "v612a_boot_anc",
+   "ref": "616f11ea649fe286e21f112c68911236467e109c",
+   "map": "ancient"
+  },
+  {
+   "label": "v612a_boot_mir",
+   "ref": "616f11ea649fe286e21f112c68911236467e109c",
+   "map": "mirage"
+  },
+  {
+   "label": "v614a_g2_anc",
+   "ref": "de11db7df165357feda6fdaa4d035008f75203fa",
+   "map": "ancient"
+  },
+  {
+   "label": "v614a_g2_mir",
+   "ref": "de11db7df165357feda6fdaa4d035008f75203fa",
+   "map": "mirage"
+  }
+ ]
+}
