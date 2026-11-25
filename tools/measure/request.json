@@ -1,3 +1,9 @@
-{"par": 8, "jobs": [
-  {"label": "b2_mir_a5", "ref": "d71ba75743497183374dc3762db1de5484583fbc", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29]}
-]}
+{
+ "par": 2,
+ "resume": true,
+ "guard": {"match_timeout_min": 120},
+ "fp": [
+  {"label": "v599a_dm4_mir_ff", "ref": "46c81eae881dae4890bc74fbabe9b49938560a4b", "map": "mirage", "engine": "firefox"},
+  {"label": "v599a_dm4_anc_ff", "ref": "46c81eae881dae4890bc74fbabe9b49938560a4b", "map": "ancient", "engine": "firefox"}
+ ]
+}
