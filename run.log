@@ -1,0 +1,15 @@
+playwright 1.63.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\v599a_rust3\env.json
+rustup_wasm: код 0
+cargo_version: код 0
+rustc_version: код 0
+build_dmath_ref: код 0
+dmath_check: код 0
+build_wasm: код 0
+build_native: код 0
+native_dump: код 0
+native_vs_wasm: код 0
+napi_tree: код 0
+build_napi: код 0
+napi_bench: код 0
+all done

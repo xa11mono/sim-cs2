@@ -1,0 +1,41 @@
+код 0
+nap v0.1.0 (C:\actions-runner\_work\sim-cs2\sim-cs2\docs\reports\audit_2026-11-24\stage4\bench\nap)
+├── napi v2.16.17
+│   ├── bitflags v2.13.2
+│   ├── ctor v0.2.9 (proc-macro)
+│   │   ├── quote v1.0.47
+│   │   │   └── proc-macro2 v1.0.107
+│   │   │       └── unicode-ident v1.0.27
+│   │   └── syn v2.0.119
+│   │       ├── proc-macro2 v1.0.107 (*)
+│   │       ├── quote v1.0.47 (*)
+│   │       └── unicode-ident v1.0.27
+│   ├── napi-sys v2.4.0
+│   │   └── libloading v0.8.8
+│   │       └── windows-targets v0.53.5
+│   │           └── windows_x86_64_gnu v0.53.1
+│   └── once_cell v1.21.4
+└── napi-derive v2.16.13 (proc-macro)
+    ├── cfg-if v1.0.5
+    ├── convert_case v0.6.0
+    │   └── unicode-segmentation v1.13.3
+    ├── napi-derive-backend v1.0.75
+    │   ├── convert_case v0.6.0 (*)
+    │   ├── once_cell v1.21.4
+    │   ├── proc-macro2 v1.0.107 (*)
+    │   ├── quote v1.0.47 (*)
+    │   ├── regex v1.13.2
+    │   │   ├── aho-corasick v1.1.5
+    │   │   │   └── memchr v2.8.3
+    │   │   ├── memchr v2.8.3
+    │   │   ├── regex-automata v0.4.19
+    │   │   │   ├── aho-corasick v1.1.5 (*)
+    │   │   │   ├── memchr v2.8.3
+    │   │   │   └── regex-syntax v0.8.12
+    │   │   └── regex-syntax v0.8.12
+    │   ├── semver v1.0.28
+    │   └── syn v2.0.119 (*)
+    ├── proc-macro2 v1.0.107 (*)
+    ├── quote v1.0.47 (*)
+    └── syn v2.0.119 (*)
+

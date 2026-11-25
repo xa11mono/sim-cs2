@@ -1,0 +1,11 @@
+код 0
+js vs native_std           sin:6716 cos:6790 tan:7940 atan2:35578 exp:19429 log:2222 pow:135 hypot:74893 sqrt:0
+js vs native_libm          sin:1831 cos:1893 tan:0 atan2:0 exp:0 log:212 pow:19631 hypot:72958 sqrt:0
+js vs wasm_std             sin:1831 cos:1893 tan:0 atan2:0 exp:0 log:212 pow:19631 hypot:69227 sqrt:0
+js vs wasm_libm            sin:1831 cos:1893 tan:0 atan2:0 exp:0 log:212 pow:19631 hypot:72958 sqrt:0
+native_std vs native_libm  sin:6223 cos:6273 tan:7940 atan2:35578 exp:19429 log:2240 pow:19536 hypot:19988 sqrt:0
+native_libm vs wasm_libm   sin:0 cos:0 tan:0 atan2:0 exp:0 log:0 pow:0 hypot:0 sqrt:0
+native_std vs wasm_std     sin:6223 cos:6273 tan:7940 atan2:35578 exp:19429 log:2240 pow:19536 hypot:33391 sqrt:0
+wasm_std vs wasm_libm      sin:0 cos:0 tan:0 atan2:0 exp:0 log:0 pow:0 hypot:27935 sqrt:0
+overhead node {"calls":10000000,"wasm_ns_per_call":2.51,"js_ns_per_call":0.4}
+
