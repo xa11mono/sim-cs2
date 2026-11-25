@@ -1,0 +1,8 @@
+код 0
+
+    Updating crates.io index
+ Downloading crates ...
+  Downloaded libm v0.2.16
+   Compiling libm v0.2.16
+   Compiling dmath_ref v0.1.0 (C:\actions-runner\_work\sim-cs2\sim-cs2\tools\dmath\ref)
+    Finished `release` profile [optimized] target(s) in 3.93s

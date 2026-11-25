@@ -1,0 +1,27 @@
+код 0
+I-01: 0
+I-02: 78 | первый: {"tick":960,"round":1,"bot":"CT0","data":{"post":null,"state":"patrol"}}
+I-03: 219 | первый: {"tick":1878,"round":1,"bot":"T0","data":{"walking":false,"why":"видел врага рядом"}}
+I-04: 0
+I-05: 212 | первый: {"tick":14222,"round":3,"bot":"T2","data":{"post":"lineup"}}
+I-06: 0
+I-07: 0 | наибольшее по ключу: [["anchor",2304],["lineup",1155],["stageA",978],["stageB",876]]
+I-08: 367 | первый: {"tick":1199,"round":1,"bot":"CT2","data":{"x":1037,"y":461,"z":67.8}}
+I-09: 0
+I-10: 0
+I-11: 1 | первый: {"tick":13607,"round":3,"bot":"T2","data":{"from":[691,1283],"z":[-19.7,4.5],"why":"не долетит: стена / потолок"}}
+I-12: 0
+I-13: 41 | первый: {"tick":961,"round":1,"bot":null,"data":{"ms":182,"nadeTasks":0}}
+I-14: 0 | наибольшее по ключу: [["x",40],["y",40],["z",40],["baseX",40]]
+I-16: 297 | первый: {"tick":1811,"round":1,"bot":"CT3","data":{"field":"heardSound","src":"T3","kind":"steps","enemy":"T3"}}
+I-17: 0 | наибольшее по ключу: [["repos",639],["contact",379],["tradeR",223],["plantspot",205]]
+I-18: 0 | наибольшее по ключу: [["holding",7870]]
+I-19: 0 | наибольшее по ключу: [["fetch",89]]
+I-20: 2 | первый: {"tick":3761,"round":1,"bot":"CT1","data":{"t0":3537}}
+I-21: 47058 | первый: {"tick":960,"round":1,"bot":"CT0","data":{"facing":3.9155159705945835}}
+I-25: 114 | первый: {"tick":2072,"round":1,"bot":"T0","data":{"seen":"CT3","kind":"steps"}}
+I-26: 0 | наибольшее по ключу: [["html",2304],["ctSetupRole",2303],["runupTick",1155],["updateNadeTask1",726]]
+I-27: 0 | наибольшее по ключу: [["html",28165],["namedSpot",23570],["groupPost",12717],["ctSetupRole",8405]]
+I-28: 0
+I-31: 125 | первый: {"tick":2208,"round":1,"bot":"T2","data":{"want":"contact:swing","holds":"repos:killmove","lv":9,"by":"contactTick"}}
+

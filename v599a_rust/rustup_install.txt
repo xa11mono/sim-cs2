@@ -1,0 +1,17 @@
+код 0
+
+  stable-x86_64-pc-windows-gnu installed - rustc 1.100.0 (0ef1bc386 2026-11-09)
+
+
+Rust is installed now. Great!
+
+To get started you need Cargo's bin directory (C:\Windows\system32\config
+\systemprofile\.simcs2_rust\cargo\bin) in your PATH
+environment variable. This has not been done automatically.
+
+info: profile set to minimal
+info: setting default host tuple to x86_64-pc-windows-gnu
+info: syncing channel updates for stable-x86_64-pc-windows-gnu
+info: latest update on 2026-11-12 for version 1.100.0 (0ef1bc386 2026-11-09)
+info: downloading 4 components
+info: default toolchain set to stable-x86_64-pc-windows-gnu

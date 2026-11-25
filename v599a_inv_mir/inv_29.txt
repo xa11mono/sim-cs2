@@ -1,0 +1,27 @@
+код 0
+I-01: 0
+I-02: 71 | первый: {"tick":960,"round":1,"bot":"CT0","data":{"post":null,"state":"patrol"}}
+I-03: 448 | первый: {"tick":1480,"round":1,"bot":"T0","data":{"walking":false,"why":"видел врага рядом"}}
+I-04: 0
+I-05: 845 | первый: {"tick":8179,"round":2,"bot":"T1","data":{"post":"repos:flank"}}
+I-06: 0
+I-07: 0 | наибольшее по ключу: [["anchor",2686],["siteholdA",927],["default",861],["route",845]]
+I-08: 1209 | первый: {"tick":994,"round":1,"bot":"T0","data":{"x":1731,"y":788,"z":-161.95314406380177}}
+I-09: 1 | первый: {"tick":1907,"round":1,"bot":"T0","data":{"text":"перенос на 30 px"}}
+I-10: 0
+I-11: 44 | первый: {"tick":11635,"round":3,"bot":"CT1","data":{"from":[1226,1511],"z":[-169.74685246100285,-166.67989121160605],"why":"не долетит: стена / потолок"}}
+I-12: 41 | первый: {"tick":18295,"round":4,"bot":"CT4","data":{"n":4,"why":"пауза: подбор броска — в следующем тике"}}
+I-13: 40 | первый: {"tick":961,"round":1,"bot":null,"data":{"ms":151,"nadeTasks":0}}
+I-14: 0 | наибольшее по ключу: [["x",40],["y",40],["z",40],["baseX",40]]
+I-16: 319 | первый: {"tick":1509,"round":1,"bot":"T0","data":{"field":"heardSound","src":"CT2","kind":"steps","enemy":"CT2"}}
+I-17: 0 | наибольшее по ключу: [["repos",639],["contact",359],["tradeR",223],["plantspot",205]]
+I-18: 0 | наибольшее по ключу: [["holding",7321]]
+I-19: 0 | наибольшее по ключу: [["fetch",121]]
+I-20: 3 | первый: {"tick":12399,"round":3,"bot":"T1","data":{"t0":12175}}
+I-21: 44744 | первый: {"tick":960,"round":1,"bot":"CT3","data":{"facing":-3.230845097358286}}
+I-25: 131 | первый: {"tick":1949,"round":1,"bot":"T0","data":{"seen":"CT1","kind":"steps"}}
+I-26: 0 | наибольшее по ключу: [["html",2686],["ctSetupRole",2685],["updateNadeTask1",640],["tBrain",592]]
+I-27: 0 | наибольшее по ключу: [["ctSetupRole",35699],["groupPost",19648],["html",18846],["namedSpot",16492]]
+I-28: 0
+I-31: 131 | первый: {"tick":2069,"round":1,"bot":"T4","data":{"want":"lineup","holds":"smokeWait","lv":4,"by":"updateNadeTask1"}}
+

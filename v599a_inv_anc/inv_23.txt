@@ -1,0 +1,27 @@
+код 0
+I-01: 0
+I-02: 452 | первый: {"tick":960,"round":1,"bot":"CT0","data":{"post":null,"state":"patrol"}}
+I-03: 67 | первый: {"tick":2904,"round":1,"bot":"CT4","data":{"walking":false,"why":"видел врага рядом"}}
+I-04: 0
+I-05: 65 | первый: {"tick":14794,"round":3,"bot":"T1","data":{"post":"contact:swing"}}
+I-06: 0
+I-07: 0 | наибольшее по ключу: [["flank",1550],["anchor",1406],["endhunt",1367],["lineup",769]]
+I-08: 104 | первый: {"tick":1686,"round":1,"bot":"T1","data":{"x":1603,"y":1258,"z":11}}
+I-09: 0
+I-10: 0
+I-11: 0
+I-12: 306 | первый: {"tick":14108,"round":3,"bot":"T4","data":{"n":4,"why":"пауза: подбор броска — в следующем тике"}}
+I-13: 34 | первый: {"tick":961,"round":1,"bot":null,"data":{"ms":177,"nadeTasks":0}}
+I-14: 0 | наибольшее по ключу: [["x",40],["y",40],["z",40],["baseX",40]]
+I-16: 380 | первый: {"tick":1697,"round":1,"bot":"T1","data":{"field":"heardSound","src":"CT2","kind":"nade","enemy":"CT2"}}
+I-17: 0 | наибольшее по ключу: [["retake",640],["defuse",640],["contact",423],["repos",270]]
+I-18: 0 | наибольшее по ключу: [["holding",12358]]
+I-19: 0
+I-20: 5 | первый: {"tick":2582,"round":1,"bot":"CT4","data":{"t0":2358}}
+I-21: 52545 | первый: {"tick":960,"round":1,"bot":"CT0","data":{"facing":3.9178236037873972}}
+I-25: 89 | первый: {"tick":2102,"round":1,"bot":"CT4","data":{"seen":"T0","kind":"steps"}}
+I-26: 0 | наибольшее по ключу: [["flankPost",1550],["html",1406],["ctSetupRole",1405],["updateNadeTask1",769]]
+I-27: 0 | наибольшее по ключу: [["html",23799],["namedSpot",17691],["ctSetupRole",14297],["groupPost",9549]]
+I-28: 0
+I-31: 36 | первый: {"tick":2448,"round":1,"bot":"T1","data":{"want":"tradeR","holds":"contact:hold","lv":9,"by":"html"}}
+

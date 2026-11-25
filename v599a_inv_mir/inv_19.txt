@@ -1,0 +1,27 @@
+код 0
+I-01: 0
+I-02: 849 | первый: {"tick":960,"round":1,"bot":"CT0","data":{"post":null,"state":"patrol"}}
+I-03: 226 | первый: {"tick":2310,"round":1,"bot":"T1","data":{"walking":false,"why":"видел врага рядом"}}
+I-04: 0
+I-05: 689 | первый: {"tick":2577,"round":1,"bot":"T2","data":{"post":"repos:fallback"}}
+I-06: 0
+I-07: 0 | наибольшее по ключу: [["anchor",1754],["lineup",1281],["stageA",984],["set",939]]
+I-08: 536 | первый: {"tick":1408,"round":1,"bot":"CT0","data":{"x":905,"y":1230,"z":-164}}
+I-09: 2 | первый: {"tick":15159,"round":3,"bot":"T1","data":{"text":"перенос на 16 px"}}
+I-10: 0
+I-11: 32 | первый: {"tick":9297,"round":2,"bot":"CT1","data":{"from":[818,868],"z":[-167.7705776946793,-168.0088837718367],"why":"пауза: подбор броска — в следующем тике"}}
+I-12: 28 | первый: {"tick":9299,"round":2,"bot":"CT1","data":{"n":4,"why":"пауза: подбор броска — в следующем тике"}}
+I-13: 42 | первый: {"tick":961,"round":1,"bot":null,"data":{"ms":176,"nadeTasks":0}}
+I-14: 0 | наибольшее по ключу: [["x",40],["y",40],["z",40],["baseX",40]]
+I-16: 397 | первый: {"tick":1746,"round":1,"bot":"CT3","data":{"field":"heardSound","src":"T4","kind":"steps","enemy":"T4"}}
+I-17: 0 | наибольшее по ключу: [["contact",938],["defuse",640],["repos",639],["stageB",289]]
+I-18: 0 | наибольшее по ключу: [["holding",7956]]
+I-19: 0
+I-20: 6 | первый: {"tick":2007,"round":1,"bot":"T1","data":{"t0":1783}}
+I-21: 54056 | первый: {"tick":960,"round":1,"bot":"CT3","data":{"facing":-3.2887832158137287}}
+I-25: 153 | первый: {"tick":1553,"round":1,"bot":"T0","data":{"seen":"CT4","kind":"steps"}}
+I-26: 0 | наибольшее по ключу: [["html",1754],["ctSetupRole",1753],["runupTick",1281],["updateNadeTask1",639]]
+I-27: 0 | наибольшее по ключу: [["ctSetupRole",39644],["html",17919],["namedSpot",14808],["groupPost",14044]]
+I-28: 0
+I-31: 103 | первый: {"tick":5710,"round":1,"bot":"T3","data":{"want":"tradeR","holds":"contact:hold","lv":9,"by":"html"}}
+

@@ -1,0 +1,27 @@
+код 0
+I-01: 0
+I-02: 83 | первый: {"tick":960,"round":1,"bot":"CT0","data":{"post":null,"state":"patrol"}}
+I-03: 132 | первый: {"tick":5884,"round":2,"bot":"CT4","data":{"walking":false,"why":"видел врага рядом"}}
+I-04: 0
+I-05: 254 | первый: {"tick":2015,"round":1,"bot":"T0","data":{"post":"contact:swing"}}
+I-06: 0
+I-07: 0 | наибольшее по ключу: [["anchor",1674],["default",1534],["lurkBack",1419],["route",1194]]
+I-08: 62 | первый: {"tick":1088,"round":1,"bot":"CT0","data":{"x":915,"y":296,"z":28.3}}
+I-09: 0
+I-10: 0
+I-11: 0
+I-12: 0
+I-13: 36 | первый: {"tick":961,"round":1,"bot":null,"data":{"ms":172,"nadeTasks":0}}
+I-14: 0 | наибольшее по ключу: [["x",40],["y",40],["z",40],["baseX",40]]
+I-16: 335 | первый: {"tick":1546,"round":1,"bot":"T2","data":{"field":"heardSound","src":"CT1","kind":"nade","enemy":"CT1"}}
+I-17: 0 | наибольшее по ключу: [["contact",746],["repos",639],["tradeR",223],["plantspot",205]]
+I-18: 0 | наибольшее по ключу: [["holding",11199]]
+I-19: 0
+I-20: 1 | первый: {"tick":16575,"round":3,"bot":"T0","data":{"t0":16351}}
+I-21: 37010 | первый: {"tick":960,"round":1,"bot":"CT0","data":{"facing":3.870570490126033}}
+I-25: 89 | первый: {"tick":1552,"round":1,"bot":"T4","data":{"seen":"CT3","kind":"steps"}}
+I-26: 0 | наибольшее по ключу: [["html",1674],["ctSetupRole",1673],["lurkerBrain",1419],["updateNadeTask1",1092]]
+I-27: 0 | наибольшее по ключу: [["groupPost",28757],["ctSetupRole",27062],["html",21631],["namedSpot",18805]]
+I-28: 0
+I-31: 179 | первый: {"tick":5503,"round":2,"bot":"T4","data":{"want":"lurkStageB","holds":"lurk0","lv":1,"by":"lurkerBrain"}}
+

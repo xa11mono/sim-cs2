@@ -1,0 +1,27 @@
+код 0
+I-01: 0
+I-02: 11 | первый: {"tick":960,"round":1,"bot":"CT0","data":{"post":null,"state":"patrol"}}
+I-03: 283 | первый: {"tick":3070,"round":1,"bot":"T2","data":{"walking":false,"why":"видел врага рядом"}}
+I-04: 0
+I-05: 264 | первый: {"tick":2336,"round":1,"bot":"T1","data":{"post":"contact:swing"}}
+I-06: 0
+I-07: 0 | наибольшее по ключу: [["lurkBack",1730],["anchor",1458],["lineup",933],["default",874]]
+I-08: 134 | первый: {"tick":1676,"round":1,"bot":"T3","data":{"x":1603,"y":1260,"z":11}}
+I-09: 1 | первый: {"tick":18704,"round":4,"bot":"CT4","data":{"text":"перенос на 10 px"}}
+I-10: 0
+I-11: 0
+I-12: 9 | первый: {"tick":18607,"round":4,"bot":"CT3","data":{"n":4,"why":"пауза между гранатами"}}
+I-13: 61 | первый: {"tick":961,"round":1,"bot":null,"data":{"ms":236,"nadeTasks":0}}
+I-14: 0 | наибольшее по ключу: [["x",40],["y",40],["z",40],["baseX",40]]
+I-16: 151 | первый: {"tick":1560,"round":1,"bot":"T2","data":{"field":"heardSound","src":"CT1","kind":"steps","enemy":"CT1"}}
+I-17: 0 | наибольшее по ключу: [["defuse",640],["contact",528],["repos",383],["tradeR",223]]
+I-18: 0 | наибольшее по ключу: [["holding",10989]]
+I-19: 0
+I-20: 5 | первый: {"tick":3861,"round":1,"bot":"T2","data":{"t0":3637}}
+I-21: 43055 | первый: {"tick":960,"round":1,"bot":"CT0","data":{"facing":3.870570490126033}}
+I-25: 128 | первый: {"tick":2445,"round":1,"bot":"CT2","data":{"seen":"T1","kind":"steps"}}
+I-26: 0 | наибольшее по ключу: [["lurkerBrain",1730],["html",1458],["runupTick",933],["updateNadeTask1",769]]
+I-27: 0 | наибольшее по ключу: [["html",23993],["namedSpot",21970],["groupPost",18213],["ctSetupRole",17095]]
+I-28: 0
+I-31: 465 | первый: {"tick":2421,"round":1,"bot":"CT2","data":{"want":"tradeR","holds":"contact:swing","lv":9,"by":"html"}}
+

@@ -1,0 +1,27 @@
+код 0
+I-01: 0
+I-02: 40 | первый: {"tick":960,"round":1,"bot":"CT0","data":{"post":null,"state":"patrol"}}
+I-03: 442 | первый: {"tick":1546,"round":1,"bot":"CT2","data":{"walking":false,"why":"опасное место"}}
+I-04: 0
+I-05: 0
+I-06: 0
+I-07: 0 | наибольшее по ключу: [["anchor",904],["rushFollow",865],["mid",766],["lineup",640]]
+I-08: 592 | первый: {"tick":1444,"round":1,"bot":"CT0","data":{"x":810,"y":990,"z":-164}}
+I-09: 12 | первый: {"tick":1424,"round":1,"bot":"T4","data":{"text":"перенос на 19 px"}}
+I-10: 0
+I-11: 3 | первый: {"tick":5688,"round":2,"bot":"CT0","data":{"from":[1227,1472],"z":[-164.09583904246557,-164.6372149178918],"why":"не долетит: стена / потолок"}}
+I-12: 1 | первый: {"tick":11870,"round":3,"bot":"T2","data":{"n":4,"why":"пауза: подбор броска — в следующем тике"}}
+I-13: 42 | первый: {"tick":961,"round":1,"bot":null,"data":{"ms":162,"nadeTasks":0}}
+I-14: 0 | наибольшее по ключу: [["x",40],["y",40],["z",40],["baseX",40]]
+I-16: 351 | первый: {"tick":1609,"round":1,"bot":"CT2","data":{"field":"lastIntel","enemy":"T0"}}
+I-17: 0 | наибольшее по ключу: [["repos",639],["contact",486],["tradeR",215],["plantspot",205]]
+I-18: 0 | наибольшее по ключу: [["holding",7051]]
+I-19: 0 | наибольшее по ключу: [["fetch",18]]
+I-20: 4 | первый: {"tick":2083,"round":1,"bot":"CT0","data":{"t0":1859}}
+I-21: 42203 | первый: {"tick":960,"round":1,"bot":"CT3","data":{"facing":-3.16189853820798}}
+I-25: 76 | первый: {"tick":1493,"round":1,"bot":"CT1","data":{"seen":"T1","kind":"steps"}}
+I-26: 0 | наибольшее по ключу: [["html",904],["ctSetupRole",903],["updateNadeTask1",640],["lurkerBrain",621]]
+I-27: 0 | наибольшее по ключу: [["ctSetupRole",27756],["namedSpot",11053],["groupPost",10264],["html",10043]]
+I-28: 0
+I-31: 319 | первый: {"tick":1501,"round":1,"bot":"CT2","data":{"want":"backstab","holds":"contact:swing","lv":9,"by":"ambushTick"}}
+

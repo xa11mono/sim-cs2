@@ -1,0 +1,27 @@
+код 0
+I-01: 0
+I-02: 13 | первый: {"tick":960,"round":1,"bot":"CT0","data":{"post":null,"state":"patrol"}}
+I-03: 49 | первый: {"tick":8304,"round":2,"bot":"T2","data":{"walking":false,"why":"слышал врага рядом"}}
+I-04: 0
+I-05: 53 | первый: {"tick":2943,"round":1,"bot":"T0","data":{"post":"contact:hold"}}
+I-06: 0
+I-07: 0 | наибольшее по ключу: [["anchor",1385],["lineup",769],["stageA",573],["rotate",470]]
+I-08: 64 | первый: {"tick":2267,"round":1,"bot":"CT0","data":{"x":599,"y":644,"z":77}}
+I-09: 1 | первый: {"tick":16804,"round":3,"bot":"CT1","data":{"text":"перенос на 35 px"}}
+I-10: 0
+I-11: 0
+I-12: 0
+I-13: 36 | первый: {"tick":961,"round":1,"bot":null,"data":{"ms":227,"nadeTasks":0}}
+I-14: 0 | наибольшее по ключу: [["x",40],["y",40],["z",40],["baseX",40]]
+I-16: 250 | первый: {"tick":1657,"round":1,"bot":"CT0","data":{"field":"heardSound","src":"T4","kind":"steps","enemy":"T4"}}
+I-17: 0 | наибольшее по ключу: [["defuse",697],["contact",458],["repos",275],["stageA",238]]
+I-18: 0 | наибольшее по ключу: [["holding",7024]]
+I-19: 0
+I-20: 3 | первый: {"tick":16262,"round":3,"bot":"CT4","data":{"t0":16038}}
+I-21: 45618 | первый: {"tick":960,"round":1,"bot":"CT0","data":{"facing":3.9605050722101804}}
+I-25: 88 | первый: {"tick":2641,"round":1,"bot":"CT2","data":{"seen":"T2","kind":"steps"}}
+I-26: 0 | наибольшее по ключу: [["html",1385],["updateNadeTask1",769],["runupTick",714],["retakeClear",183]]
+I-27: 0 | наибольшее по ключу: [["html",36277],["namedSpot",27951],["groupPost",19160],["ctSetupRole",4375]]
+I-28: 0
+I-31: 201 | первый: {"tick":2495,"round":1,"bot":"CT2","data":{"want":"backstab","holds":"ambush","lv":9,"by":"ambushTick"}}
+

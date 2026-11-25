@@ -1,0 +1,48 @@
+код 101
+
+    Updating crates.io index
+     Locking 23 packages to highest compatible versions
+      Adding napi v2.16.17 (available: v3.16.3)
+      Adding napi-derive v2.16.13 (available: v3.7.2)
+ Downloading crates ...
+  Downloaded aho-corasick v1.1.5
+  Downloaded bitflags v2.13.2
+  Downloaded libloading v0.8.9
+  Downloaded cfg-if v1.0.5
+  Downloaded napi-build v2.7.0
+  Downloaded napi-sys v2.4.0
+  Downloaded quote v1.0.47
+  Downloaded unicode-ident v1.0.27
+  Downloaded convert_case v0.6.0
+  Downloaded regex-syntax v0.8.12
+  Downloaded napi v2.16.17
+  Downloaded once_cell v1.21.4
+  Downloaded unicode-segmentation v1.13.3
+  Downloaded memchr v2.8.3
+  Downloaded proc-macro2 v1.0.107
+  Downloaded regex-automata v0.4.19
+  Downloaded napi-derive v2.16.13
+  Downloaded semver v1.0.28
+  Downloaded syn v2.0.119
+  Downloaded napi-derive-backend v1.0.75
+  Downloaded ctor v0.2.9
+  Downloaded windows-link v0.2.1
+  Downloaded regex v1.13.2
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling memchr v2.8.3
+   Compiling regex-syntax v0.8.12
+   Compiling windows-link v0.2.1
+   Compiling unicode-segmentation v1.13.3
+   Compiling once_cell v1.21.4
+   Compiling napi-build v2.7.0
+   Compiling semver v1.0.28
+   Compiling bitflags v2.13.2
+   Compiling cfg-if v1.0.5
+   Compiling libloading v0.8.9
+   Compiling napi-sys v2.4.0
+error: error calling dlltool 'dlltool.exe': program not found
+
+error: could not compile `libloading` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
