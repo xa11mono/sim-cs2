@@ -382,12 +382,12 @@ function setPostDo(b, pt, look, hold, tag, spreadIdx){
     else if(lv === 1 && R.idx < R.pts.length){
       R.want = [pt, look, hold, tag, spreadIdx];
       var cp = R.pts[R.idx], nx = R.pts[R.idx+1] || pt;
-      return setPost(b, cp, nx, true, "route:"+R.names[Math.min(R.idx, R.names.length-1)]);
+      return {ok: setPost(b, cp, nx, true, "route:"+R.names[Math.min(R.idx, R.names.length-1)]), why: "маршрут раша: пост — точка маршрута", lv: lv};
     }
   }
-  if(lv === 1 && !/^after:/.test(String(tag))){ var AF = afterTaskPick(b, pt); if(AF) return setPost(b, AF.pt, AF.look, true, "after:hold"); }
+  if(lv === 1 && !/^after:/.test(String(tag))){ var AF = afterTaskPick(b, pt); if(AF) return {ok: setPost(b, AF.pt, AF.look, true, "after:hold"), why: "после задачи: держать место", lv: lv}; }
   if(!taskCanSet(b, tag)){ var dk = taskDetourKind(b, tag);   // (v547) задача фазы — не отказ, а отклонение, если она терпит это время
-    if(!dk || !pt || !detourOk(b, dk, pathLenTo(b, pt.x, pt.y)/SPEED)) return false;
+    if(!dk || !pt || !detourOk(b, dk, pathLenTo(b, pt.x, pt.y)/SPEED)) return {ok: false, why: dk ? "отклонение не успевает" : "занято задачей уровня не ниже", lv: lv};
     detourStart(b, dk, tag, DETOUR_MAX[dk]); }
   var tagB = taskTagB(tag);
   var psn = (hold && pt) ? proSnap(b, pt, look, tag) : null;
@@ -420,7 +420,7 @@ function setPostDo(b, pt, look, hold, tag, spreadIdx){
   // (v570) та же точка — пост держится, но если после сдвига туда же встал свой (его пост поставлен позже — сдвиг считался без него), один
   // из двоих (у кого id больше) считает место заново: было — двое CT на охоте в одной точке (1026, 1493) до конца раунда
   var ownL = hold && taskProp(String(tag), "ownLine") && !exact;
-  if(b.post && b.post.id === id && !(ownL && bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o.id < b.id && o.post && DM.hypot(o.post.x-b.post.x, o.post.y-b.post.y) < SPOT_PERSONAL; }))){ b.post.look = look || null; return true; }
+  if(b.post && b.post.id === id && !(ownL && bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o.id < b.id && o.post && DM.hypot(o.post.x-b.post.x, o.post.y-b.post.y) < SPOT_PERSONAL; }))){ b.post.look = look || null; return {ok: true, why: "тот же пост: новый взгляд", lv: lv}; }
   var x = pt.x, y = pt.y;
   // (v370, владелец: «не стоят в толпе») точка, где уже стоит / куда идёт свой (≤ SPOT_PERSONAL), — встаём рядом поперёк взгляда,
   // а не в него. Одно место для всех постов (было: раздвиг на 22 ед. только по spreadIdx). Точные места (бомба, лайнап, подбор) — как есть
@@ -457,13 +457,13 @@ function setPostDo(b, pt, look, hold, tag, spreadIdx){
       x = nx; y = ny; return true; }); });
   }
   // (v570) пересчёт того же поста (свой встал рядом) дал то же место — пост и путь не трогаем (иначе путь сбрасывался бы каждый тик)
-  if(b.post && b.post.id === id && DM.hypot(b.post.x-x, b.post.y-y) < 2){ b.post.look = look || null; return true; }
+  if(b.post && b.post.id === id && DM.hypot(b.post.x-x, b.post.y-y) < 2){ b.post.look = look || null; return {ok: true, why: "тот же пост: новый взгляд", lv: lv}; }
   (b._postSets || (b._postSets = [])).push(tick); if(b._postSets.length > 12) b._postSets.shift();   // (v570) диагностика для 545 (игра не читает)
   b.post = {id:id, x:x, y:y, z:(pt.z != null ? pt.z : navOnlyZ(x, y)), look:look||null, hold:hold, tag:tag, src:{x:pt0.x, y:pt0.y}};   // (v546) z — высота точки, если задана, или пол точки, если он там один (ящик); иначе null
   if(psn) b.post.pro = psn.sp;
   b.atPost = false;
   if(b.state === "patrol"){ movePath(b, [], "post"); b.pathIdx = 0; }
-  return true;
+  return {ok: true, why: "поставлен", lv: lv};
 }
 // (17.11, перестройка — модули) запись в журнал решений (645) — здесь, у хозяина (было: 645 подменял функцию обёрткой)
 // (владелец 18.11 м1 р2: «опять не дошёл до пробы»; «чинить механику целиком») срок задачи «дойти и сделать» — одно место: от расчётного прихода
@@ -482,13 +482,16 @@ function taskDeadline(b, pt, holdSec, walking){
   var v = SPEED*(walking ? WALK_SPEED_FRAC : 1)*(typeof weaponSpeedMul === "function" ? weaponSpeedMul(b) : 1);
   return tick + Math.ceil((pathLenTo(b, pt.x, pt.y)/Math.max(1, v) + holdSec)*TICK_HZ);
 }
-function setPost(b, pt, look, hold, tag){ var _ev = simEvIn("setPost", arguments);
-  var was = b && b.post ? b.post.tag : null, r = setPostDo.apply(this, arguments);
-  if(!b) return simEvOut(_ev, r);
+// (Р3.2, канал «место», шаг 1) хозяин места отвечает результатом: {ok, why — почему так (отказ арбитра, маршрут, тот же пост, поставлен),
+// lv — уровень задачи}; setPost — прежний ответ да / нет для всех старых вызовов (переходник до конца этапа); события setPost — как были
+function setPost(b, pt, look, hold, tag){ return setPostR.apply(this, arguments).ok; }
+function setPostR(b, pt, look, hold, tag){ var _ev = simEvIn("setPost", arguments);
+  var was = b && b.post ? b.post.tag : null, R = b ? setPostDo.apply(this, arguments) : {ok: setPostDo.apply(this, arguments), why: "нет бота"}, r = R.ok;
+  if(!b){ simEvOut(_ev, r); return R; }
   var cur = b._task ? " (уровень " + b._task.lv + ")" : "";
   if(r && tag !== was) dlog(b, "место", "задача «" + tag + "»" + cur + (was ? " вместо «" + was + "»" : "") + " — " + calloutName(pt.x, pt.y));
   else if(!r) dlog(b, "место", "отказ «" + tag + "»: занят «" + (b._task ? b._task.tag : (b.post && b.post.tag)) + "»" + cur);
-  return simEvOut(_ev, r);
+  simEvOut(_ev, r); return R;
 }
 // (5) после временной задачи (ответ владельца 04.11, `docs/tasks/OWNER_ANSWERS_2026-11-04.md`): не «вернуться на пост», а оценить. Ушёл
 // по бою (контакт, перестановка в бою — уровни 9 и 6), задача кончилась, роль зовёт на пост: если враг, известный команде (за SITE_SEEN_SEC),
