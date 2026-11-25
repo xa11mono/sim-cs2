@@ -9,7 +9,9 @@ const sim = args.find(x => !x.startsWith('--'));
 if (!sim) { console.error('node tools/measure/inv_run.js sim.html [--match=3] [--ticks=20000] [--special|--neutral] [--out=…]'); process.exit(2); }
 const MATCH = +opt('match', 3), TICKS = +opt('ticks', 20000), CHUNK = 500;
 const INVJS = fs.readFileSync(path.join(__dirname, 'invariants.js'), 'utf8');
-async function page(browser) { const p = await browser.newPage(); await p.route(/^https?:/, r => r.abort()); await p.goto(url.pathToFileURL(path.resolve(sim)).href); await p.waitForTimeout(1200); return p; }
+// (Т-2, 25.11) кадр страницы остановлен, как в q.js / diverge.js (Р2.6): иначе между вызовами он по часам страницы пишет в объекты игры
+// (Р2-2) — I-22 расходился на 961-м шаге из-за разного реального времени двух страниц, а не из-за игры (локатор с остановленным кадром — 0)
+async function page(browser) { const p = await browser.newPage(); await p.route(/^https?:/, r => r.abort()); await p.goto(url.pathToFileURL(path.resolve(sim)).href); await p.waitForTimeout(1200); await require('./dv_state.js').stopFrames(p); return p; }
 const ev = (p, code) => p.evaluate(c => __ev(c), code);
 // хэш позиций как в fingerprint.js (x, y, взгляд, HP, жив) — для проверки нейтральности
 const HASH = `window.HH = {h: 2166136261 >>> 0, F: new Float64Array(1)}; HH.U = new Uint32Array(HH.F.buffer);
@@ -50,7 +52,9 @@ function diverge(extra) {
     const played = +opt('played', 3000);
     // I-22 по определению — отпечаток (позиции, взгляд, HP по тикам), а не полное состояние: номер тика и часы матча newMatch не обнуляет
     { const [a, b] = await Promise.all([page(browser), page(browser)]);
-      const n = await ev(a, HASH + `\nfreshMatch(${MATCH}); for(var i = 0; i < ${played}; i++) stepTick(); newMatch(); matchNum`);
+      // (Т-2, 25.11) переход к следующему матчу — штатный (540: matchBegin, без паузы страницы, память OPP / SERIES — как есть); в сборках
+      // до Т-2 штатный переход — newMatch
+      const n = await ev(a, HASH + `\nfreshMatch(${MATCH}); for(var i = 0; i < ${played}; i++) stepTick(); if(typeof matchBegin === 'function') matchBegin(matchNum + 1, true, false); else newMatch(); matchNum`);
       await ev(b, HASH + `\nfreshMatch(${n}); 1`);
       const seq = p2 => ev(p2, `var S = []; for(var i = 0; i < 2000; i++){ stepTick(); HH.h = 2166136261 >>> 0; HH.tick(); S.push(HH.h); } JSON.stringify(S)`).then(JSON.parse);
       const [sa, sb] = await Promise.all([seq(a), seq(b)]), k = sa.findIndex((h, i) => h !== sb[i]);
