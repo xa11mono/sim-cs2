@@ -79,7 +79,9 @@ var D3_WFS = "#version 300 es\nprecision highp float; in vec3 vW; in float vK; u
   // их сторона наружу в данных не задана, отсечение изнанки выбрасывало бока ящиков и стены; изнанку отсекаем только у выпуклых блоков
   " float kk = vK, soup = 0.0; if(kk > 2.5){ soup = 1.0; kk -= 3.0; } if(uA < 1.0 && kk < 1.5 && soup < 0.5 && !gl_FrontFacing) discard;\n" +
   " vec3 n = normalize(cross(dFdx(vW), dFdy(vW))); if(dot(n, uEye - vW) < 0.0) n = -n; vec3 c;\n" +
-  " if(kk > 1.5){ float t = clamp((vW.y - uZr.x)/max(1.0, uZr.y - uZr.x), 0.0, 1.0); c = uGround*(0.86 + 0.32*t)*(0.95 + 0.07*max(dot(n, uL), 0.0)); }\n" +
+  // (v597, владелец 25.11: «что не так отображается») плоское вверх у пола (до 24 ед. — 9,6 px сцены), не попавшее в пол при сборке (песок и земля улиц, пандусы,
+  // бордюры, куски улицы: этаж блока ниже), красилось как предмет у земли — затемнение 0,55 давало тёмные полосы по улице; теперь — цвет пола
+  " if(kk > 1.5 || (n.y > 0.7 && h < 9.6)){ float t = clamp((vW.y - uZr.x)/max(1.0, uZr.y - uZr.x), 0.0, 1.0); c = uGround*(0.86 + 0.32*t)*(0.95 + 0.07*max(dot(n, uL), 0.0)); }\n" +
   " else if(!gl_FrontFacing && uA >= 1.0 && soup < 0.5) c = uCap; else { vec3 base = mix(uProp, uRock, kk); float d = max(dot(n, uL), 0.0), hm = 0.5 + 0.5*n.y;\n" +
   "  c = base*(0.30 + 0.36*hm + 0.50*d); c *= mix(0.55, 1.0, smoothstep(0.0, 26.0, h)); }\n" +
   " if(kk < 1.5) c = mix(c, uCap*1.06, smoothstep(cu - 1.4, cu, h)*0.85);\n" +
@@ -88,11 +90,11 @@ var D3_WFS = "#version 300 es\nprecision highp float; in vec3 vW; in float vK; u
 // (v593, владелец 24.11: «в общем виде сверху края карты, где нет объектов, — стилизовать, чтобы не выглядело тупо») подложка: одна плоскость под
 // картой, сетка и затухание за границей карты — в шейдере (один треугольник-пара на кадр)
 var D3_GVS = "#version 300 es\nin vec2 aP; uniform mat4 uVP; uniform float uY; out vec2 vW; void main(){ vW = aP; gl_Position = uVP*vec4(aP.x, uY, aP.y, 1.0); }";
-var D3_GFS = "#version 300 es\nprecision highp float; in vec2 vW; uniform vec3 uBg, uC; uniform vec4 uB; uniform vec2 uFog; uniform vec3 uEye; uniform float uY; out vec4 o;\n" +
+var D3_GFS = "#version 300 es\nprecision highp float; in vec2 vW; uniform vec3 uBg, uC; uniform vec4 uB; uniform vec2 uFog; uniform vec3 uEye; uniform float uY, uGr; out vec4 o;\n" +
   "void main(){ vec2 q = vW/64.0, g = abs(fract(q - 0.5) - 0.5)/max(fwidth(q), vec2(1e-4)); float ln = 1.0 - min(min(g.x, g.y), 1.0);\n" +
   " vec2 dd = max(max(uB.xy - vW, vW - uB.zw), vec2(0.0)); float a = exp(-length(dd)/260.0);\n" +
   " float f = smoothstep(uFog.x, uFog.y*1.4, distance(vec3(vW.x, uY, vW.y), uEye));\n" +
-  " vec3 c = mix(uBg, uC, a*(1.0 - f)); c = mix(c, mix(uBg, uC*1.9, 0.4), ln*0.6*a*(1.0 - f)); o = vec4(c, 1.0); }";
+  " vec3 c = mix(uBg, uC, a*(1.0 - f)); c = mix(c, mix(uBg, uC*1.9, 0.4), ln*0.6*uGr*a*(1.0 - f)); o = vec4(c, 1.0); }";
 var D3_ELVS = "#version 300 es\nin vec3 aP; uniform mat4 uVP; out vec3 vW; void main(){ vW = aP; gl_Position = uVP*vec4(aP,1.0); gl_Position.z -= 0.0006*gl_Position.w; }";
 var D3_ELFS = "#version 300 es\nprecision highp float; in vec3 vW; uniform vec3 uEye; uniform vec4 uC; uniform vec2 uFog; out vec4 o;\n" + D3_CUTF +
   "void main(){ float r = refY(vW); if(r < -1e8){ if(uCut < 1e4) discard; r = vW.y; } if(vW.y - r > cutAt(vW, uEye) + 0.2) discard; o = vec4(uC.rgb, uC.a*(1.0 - smoothstep(uFog.x, uFog.y, distance(vW, uEye)))); }";
@@ -225,19 +227,28 @@ function d3Corpse(b, draw, col, sz){
     ang += (d3R(tick*0.37 + b.x) - 0.5)*0.8;
     var h = 27*1.15, zg = b.z != null ? b.z : d3FloorNear(b.x, b.y, null), fl0 = d3FloorBelow(b.x, b.y, zg + 2);   // размер тела — как у фигуры вблизи (не по удалению камеры)
     // свободно ли тело в сторону a: луч от пояса и от груди на длину тела, пол у головы — не выше пола тела (не ложится на ящик)
-    var clear = function(a){ if(!M) return true; var L = h*0.95, tx = b.x + Math.cos(a)*L, ty = b.y + Math.sin(a)*L, g0 = m3Game(M, b.x, b.y), g1 = m3Game(M, tx, ty);
-      if(!m3Line(M, g0[0], g0[1], fl0 + 16, g1[0], g1[1], fl0 + 16, "sight") || !m3Line(M, g0[0], g0[1], fl0 + 40, g1[0], g1[1], fl0 + 24, "sight")) return false;
+    // (v597, владелец 25.11: «тела падали нормально, а не улетали») луч m3Line — в px радара (как visLine, 040); здесь передавались координаты
+    // игры (m3Game) — луч уходил за карту, «стены нет» всегда: тело падало в стену и ящик, скользило сквозь стену
+    // k — доля длины тела (свободно ли место до этой точки); + 3 px — тело при падении проскальзывает вперёд (12 px/с, затухание 0,93 за тик ≈ 2,7 px);
+    // нижний луч — 12 ед. (бордюр)
+    var clear = function(a, k){ if(!M) return true; var L = (h*0.95 + 3)*(k || 1), tx = b.x + Math.cos(a)*L, ty = b.y + Math.sin(a)*L;
+      if(!m3Line(M, b.x, b.y, fl0 + 12, tx, ty, fl0 + 12, "sight") || !m3Line(M, b.x, b.y, fl0 + 40, tx, ty, fl0 + 24, "sight")) return false;
       return Math.abs(d3FloorBelow(tx, ty, fl0 + 30) - fl0) <= D3_HEAD_DROP; };
-    var OFF = [0, 0.5, -0.5, 1, -1, 1.6, -1.6, 2.3, -2.3, Math.PI], best = ang;
+    var OFF = [0, 0.5, -0.5, 1, -1, 1.6, -1.6, 2.3, -2.3, Math.PI], best = null, thEnd = Math.PI/2;
     for(var oi = 0; oi < OFF.length; oi++) if(clear(ang + OFF[oi])){ best = ang + OFF[oi]; break; }
+    // (v597) лечь некуда (угол, стена с ящиком; замер м3, м7, м11, м13: 3 тела из 54 — в стене или головой на ящике): в сторону, где больше всего
+    // места, и не плашмя — оседает, привалившись к стене (наклон — до упора головы)
+    if(best === null){ var room = 0; best = ang;
+      for(oi = 0; oi < OFF.length; oi++){ var kk = 0; for(var kq = 0.2; kq <= 0.81; kq += 0.2) if(clear(ang + OFF[oi], kq)) kk = kq; else break; if(kk > room){ room = kk; best = ang + OFF[oi]; } }
+      thEnd = Math.asin(Math.max(0.35, room)); }
     ang = best;
-    C = D3.corpse[b.id] = {t: tick, dx: Math.cos(ang), dz: Math.sin(ang), th: 0.05, w: 0, x: b.x, y: zg*D3_KZ, vy: 0, zz: b.y, h: h, landed: false,
+    C = D3.corpse[b.id] = {t: tick, dx: Math.cos(ang), dz: Math.sin(ang), th: 0.05, thEnd: thEnd, w: 0, x: b.x, y: zg*D3_KZ, vy: 0, zz: b.y, h: h, landed: false,
       head: null, v: [Math.cos(ang)*12, 0, Math.sin(ang)*12]};
     if(D3.hist[b.id]) D3.hist[b.id].length = 0;
   }
   var steps = Math.min(16, Math.max(0, tick - (C.tk || C.t))); C.tk = tick;
   var DT = 1/TICK_HZ, G = 320;   // сила тяжести, px сцены/с² (800 ед/с²)
-  var wallOk = function(x0, z0, x1, z1, y){ if(!M) return true; var a = m3Game(M, x0, z0), c = m3Game(M, x1, z1); return m3Line(M, a[0], a[1], y/D3_KZ + 8, c[0], c[1], y/D3_KZ + 8, "sight"); };
+  var wallOk = function(x0, z0, x1, z1, y){ if(!M) return true; return m3Line(M, x0, z0, y/D3_KZ + 8, x1, z1, y/D3_KZ + 8, "sight"); };
   for(var i = 0; i < steps; i++){
     // тело оседает на пол под ступнями (убит в прыжке, на краю уступа)
     var flB = d3FloorBelow(C.x, C.zz, C.y/D3_KZ + 2)*D3_KZ;
@@ -246,10 +257,10 @@ function d3Corpse(b, draw, col, sz){
       var nx = C.x + C.v[0]*DT, nz = C.zz + C.v[2]*DT;
       if(wallOk(C.x, C.zz, nx, nz, C.y) && d3FloorBelow(nx, nz, C.y/D3_KZ + 2)*D3_KZ >= C.y - 8){ C.x = nx; C.zz = nz; } else { C.v[0] = 0; C.v[2] = 0; }   // не сползает со ступени
       C.v[0] *= 0.93; C.v[2] *= 0.93;
-      if(C.th >= Math.PI/2){ C.th = Math.PI/2; C.landed = true;   // удар об пол — голова отскакивает от конца тела и катится недалеко
+      if(C.th >= C.thEnd){ C.th = C.thEnd; C.landed = true; if(C.thEnd >= 1.5){   // привалился к стене (thEnd < 1,5) — голова не отскакивает; удар об пол — голова отскакивает от конца тела и катится недалеко
         var sp = Math.min(C.w*C.h*0.5, 40), hr0 = C.h*0.13;
         C.head = {p: [C.x + C.dx*C.h*0.9, C.y + hr0, C.zz + C.dz*C.h*0.9], o: null, v: [C.dx*sp*0.25 + (d3R(C.t)-0.5)*6, sp*0.06, C.dz*sp*0.25 + (d3R(C.t+1)-0.5)*6], r: hr0, rot: 0};
-        C.head.o = C.head.p.slice(); } }
+        C.head.o = C.head.p.slice(); } } }
     var hd = C.head; if(hd && (Math.abs(hd.v[0]) + Math.abs(hd.v[1]) + Math.abs(hd.v[2]) > 0.5)){
       hd.v[1] -= G*DT; var hx = hd.p[0] + hd.v[0]*DT, hz = hd.p[2] + hd.v[2]*DT, hy0 = hd.p[1] - hd.r;
       var flN = d3FloorBelow(hx, hz, hy0/D3_KZ + D3_HEAD_STEP)*D3_KZ;   // пол там, куда катится: выше уступа — стена
@@ -379,7 +390,7 @@ function d3Build(){
   D3.cRock = d3Hex(d3Tok("--v3-rock", "#aeb3a6")); D3.cCap = d3Hex(d3Tok("--v3-cap", "#c9cec0"));
   D3.cT = d3Hex(d3Tok("--t", "#d9a24a")); D3.cCT = d3Hex(d3Tok("--ct", "#5a9bd9"));
   // пол — навмеш
-  var F = d3Acc(), zLo = Infinity, zHi = -Infinity;
+  var F = d3Acc(), FS = d3Acc(), zLo = Infinity, zHi = -Infinity;   // FS — бортики (v597: отдельно — у камер на уровне глаз не рисуются)
   NAVAREAS.forEach(function(a){ a.points.forEach(function(p){ var z = p.z != null ? p.z : a.z; if(z < zLo) zLo = z; if(z > zHi) zHi = z; }); });
   var SK = 14;   // бортик, px сцены (35 ед.)
   // (владелец 13.11, Ancient: «много треугольников, стыков») тон — плавно по высоте вершины (не участком), бортик — только по краю
@@ -397,9 +408,9 @@ function d3Build(){
     for(i = 0; i < pts.length; i++){ var j = (i+1) % pts.length, L = EZ[ekey(a.points[i], a.points[j])] || [], me = zs[i] + zs[j];
       if(L.filter(function(v){ return Math.abs(v - me) < 16; }).length > 1) continue;   // сосед той же высоты — шва нет
       var p = pts[i], q = pts[j], p2 = [p[0], p[1]-SK, p[2]], q2 = [q[0], q[1]-SK, q[2]];
-      F.tri(p, q, q2, [cSide, cSide, cSide]); F.tri(p, q2, p2, [cSide, cSide, cSide]); }
+      FS.tri(p, q, q2, [cSide, cSide, cSide]); FS.tri(p, q2, p2, [cSide, cSide, cSide]); }
   });
-  D3.floor = d3Mesh(gl, F.P, F.N, F.C); D3.cFloor = cFloor; D3.zr = [zLo*D3_KZ, zHi*D3_KZ];
+  D3.floor = d3Mesh(gl, F.P, F.N, F.C); D3.floorSk = d3Mesh(gl, FS.P, FS.N, FS.C); D3.cFloor = cFloor; D3.zr = [zLo*D3_KZ, zHi*D3_KZ];
   var bx0 = Infinity, by0 = Infinity, bx1 = -Infinity, by1 = -Infinity;
   NAVAREAS.forEach(function(a){ a.points.forEach(function(p){ if(p.x < bx0) bx0 = p.x; if(p.x > bx1) bx1 = p.x; if(p.y < by0) by0 = p.y; if(p.y > by1) by1 = p.y; }); });
   var E0 = 5000, gq = new Float32Array([bx0-E0, by0-E0, bx1+E0, by0-E0, bx1+E0, by1+E0, bx0-E0, by0-E0, bx1+E0, by1+E0, bx0-E0, by1+E0]), gb = gl.createBuffer();
@@ -437,7 +448,7 @@ function d3World(gl){
   var M = m3(); if(!M) return {cnt: 0, ecnt: 0, cntAll: 0, ecntAll: 0};
   var F = d3FloorBlocks(M), X0 = M.X0, Y0 = M.Y0, mats = M.mats || [], cutU = D3_CUT;
   var ST = (window.__d3stat = {droppedNav: 0, droppedCut: 0, hiddenMat: 0, tri: 0, hull: 0, hullSkip: 0, floor: 0, area1: 0, area2: 0, area8: 0, areaBig: 0});
-  var P = [], K = [], E = [], G = [], GK = [], P2 = [], K2 = [];   // P2 — выше среза и дальше от проходимой части: только от первого лица (v590)
+  var P = [], K = [], E = [], G = [], P2 = [], K2 = [], G2 = [];   // G2 — пол внутри возвышения: только у камер на уровне глаз (v597)   // P2 — выше среза и дальше от проходимой части: только от первого лица (v590)
   var blk = function(x, y){ var i = Math.floor(x / M.cell / F.BS), j = Math.floor(y / M.cell / F.BS); return (i < 0 || j < 0 || i >= F.BN || j >= F.BN) ? null : F.L[j*F.BN + i]; };
   var nearW = function(x, y){ var i = Math.floor(x / M.cell / F.BS), j = Math.floor(y / M.cell / F.BS); return (i < 0 || j < 0 || i >= F.BN || j >= F.BN) ? 0 : F.N[j*F.BN + i]; };
   var blkNear = function(x, y){ for(var d = 3; d <= 6; d++) for(var k = 0; k < 8; k++){ var a = k/8*Math.PI*2; if(blk(x + Math.cos(a)*d*M.cell*F.BS, y + Math.sin(a)*d*M.cell*F.BS)) return true; } return false; };
@@ -450,7 +461,9 @@ function d3World(gl){
     // (v590) дальше маски v589 (2 блока): фасады, крыши и навесы до 6 блоков (48 px; центр большого треугольника — над улицей) — во второй
     // набор, их видно от первого лица; ещё дальше — не рисуется (было: выбрасывалось — дыры в стенах от первого лица)
     var out = !Aa && !Ab && !Ac && !nearW(ra[0], ra[1]) && !nearW(rb[0], rb[1]) && !nearW(rc[0], rc[1]);
-    if(out && !blk(mid[0], mid[1]) && !blkNear(ra[0], ra[1]) && !blkNear(rb[0], rb[1]) && !blkNear(rc[0], rc[1]) && !blkNear(mid[0], mid[1])){ ST.droppedNav++; return; }
+    // (v597, владелец 25.11: «найти все дырки в стенках, детали зданий сохранялись») ещё дальше от проходимой части (фасады и крыши у края карты,
+    // ≈ 11 тыс. треугольников Mirage) — тоже во второй набор: от первого лица в проёмах на край карты был пустой фон
+    var far = out && !blk(mid[0], mid[1]) && !blkNear(ra[0], ra[1]) && !blkNear(rb[0], rb[1]) && !blkNear(rc[0], rc[1]) && !blkNear(mid[0], mid[1]); if(far) ST.droppedNav++;
     var zmin = Math.min(a[2], b[2], c[2]), zmax = Math.max(a[2], b[2], c[2]);
     var ux = b[0]-a[0], uy = b[1]-a[1], uz = b[2]-a[2], vx = c[0]-a[0], vy = c[1]-a[1], vz = c[2]-a[2];
     var nx = uy*vz - uz*vy, ny = uz*vx - ux*vz, nz = ux*vy - uy*vx, l = Math.hypot(nx, ny, nz); if(l < 1e-6) return;
@@ -461,8 +474,12 @@ function d3World(gl){
     if(nz/l > 0.7 && (near(Aa || Ab || Ac, zmax, 10) || (rf !== null && zmax - rf < 24))){   // пол и ступени — отдельно, непрозрачно, цвета пола (навмеш — под ним, где геометрии нет)
       // пол внутри возвышения (над ним в той же клетке пол — пешком, прыжком, подсадкой — ниже роста, 8–110 ед.) — не рисуем: сквозь стекло стенки его видно (владелец)
       var cc = m3Cell(M, (ra[0] + rb[0] + rc[0])/3, (ra[1] + rb[1] + rc[1])/3);
-      if(cc >= 0){ for(var fq = M.floors.st[cc]; fq < M.floors.st[cc+1]; fq++){ var dz = M.floors.z[fq] - zmax; if(dz > 8 && dz < 110) return; } }
-      G.push(ra[0], a[2]*D3_KZ, ra[1], rb[0], b[2]*D3_KZ, rb[1], rc[0], c[2]*D3_KZ, rc[1]); GK.push(2, 2, 2); return; }
+      // (v597, владелец 25.11: «найти все дырки») у камер на уровне глаз стены сплошные — такой пол нужен: большой треугольник земли, у которого над
+      // центром ящик, выбрасывался целиком — чёрные дыры в полу у ящиков и памятников (поиск дыр, Mirage: 300 точек от первого лица); он — во второй
+      // набор пола (G2, после G), сверху не рисуется
+      if(cc >= 0){ for(var fq = M.floors.st[cc]; fq < M.floors.st[cc+1]; fq++){ var dz = M.floors.z[fq] - zmax; if(dz > 8 && dz < 110){ ST.floorIn = (ST.floorIn || 0) + 1;
+        G2.push(ra[0], a[2]*D3_KZ, ra[1], rb[0], b[2]*D3_KZ, rb[1], rc[0], c[2]*D3_KZ, rc[1]); return; } } }
+      G.push(ra[0], a[2]*D3_KZ, ra[1], rb[0], b[2]*D3_KZ, rb[1], rc[0], c[2]*D3_KZ, rc[1]); return; }
     var r0 = under(Aa || Ab || Ac, zmin); if(r0 !== null && zmin - r0 > cutU + 8){ ST.droppedCut++; P2.push(ra[0], a[2]*D3_KZ, ra[1], rb[0], b[2]*D3_KZ, rb[1], rc[0], c[2]*D3_KZ, rc[1]); K2.push(kind, kind, kind); return; }   // целиком выше среза — только от первого лица (v590; было: выброшено — дыры в верхе стен и потолках)
     var e1x = rb[0]-ra[0], e1y = rb[1]-ra[1], e2x = rc[0]-ra[0], e2y = rc[1]-ra[1], ar2 = Math.abs(e1x*e2y - e1y*e2x);
     if(ar2 < 0.5) ST.area1++; else if(ar2 < 2) ST.area2++; else if(ar2 < 8) ST.area8++; else ST.areaBig++;
@@ -478,10 +495,17 @@ function d3World(gl){
       if(hl/2 > D3_HIDE_AREA || (hcz > 0.12 && hcz < 0.97)){ ST.hiddenMat++; continue; } }
     push([T[o], T[o+1], T[o+2]], [T[o+3], T[o+4], T[o+5]], [T[o+6], T[o+7], T[o+8]], (D3_SOFT[mats[tm[k]]] ? 1 : 0) + 3); }   // + 3 — «суп», двусторонний (v591)
   // выпуклые блоки: вершины — пересечения троек плоскостей внутри блока, грань — вершины на её плоскости по кругу (наружу)
-  var hn = M.hullN, hp = M.hullP, ho = M.hullOff, hfl = M.hullFlag, hm = M.hullMat;
-  for(var h = 0; h < hn.length; h++){
-    if(!(hfl[h] & 1) || hn[h] > 26){ ST.hullSkip++; continue; } ST.hull++;
-    var pl = [], n = hn[h]; for(var q = 0; q < n; q++){ var b4 = (ho[h] + q)*4; pl.push([hp[b4], hp[b4+1], hp[b4+2], hp[b4+3]]); }
+  var hn = M.hullN, hp = M.hullP, ho = M.hullOff, hfl = M.hullFlag, hm = M.hullMat, FLL = M.fill || [];
+  // (v597, владелец 25.11: «детали у зданий сохранялись», 13.11: «от ящиков остались доски») сплошные укрытия игры (m3SolidFill, v469: Triple Box
+  // и др. — в игре ящик сплошной, видимость ботов идёт по нему) — тоже блоки: были видны только доски с щелями, сквозь щели — то, чего бот не видит
+  for(var h = 0; h < hn.length + FLL.length; h++){
+    var isF = h >= hn.length, pl = [], n, hMat;
+    if(!isF){
+      // (v597) блоки больше 26 граней (бочки, трубы, вазы, машина, вентиляция — 24 на Mirage, до 61 грани) пропускались целиком — «летающие» доски
+      // без опор и пустые места; перебор троек плоскостей — один раз при сборке сцены
+      if(!(hfl[h] & 1)){ ST.hullSkip++; continue; } ST.hull++;
+      n = hn[h]; hMat = mats[hm[h]]; for(var q = 0; q < n; q++){ var b4 = (ho[h] + q)*4; pl.push([hp[b4], hp[b4+1], hp[b4+2], hp[b4+3]]); }
+    } else { pl = FLL[h - hn.length].p; n = pl.length; hMat = "wood"; ST.fill = (ST.fill || 0) + 1; }
     var V = [];
     for(var i1 = 0; i1 < n; i1++) for(var i2 = i1+1; i2 < n; i2++) for(var i3 = i2+1; i3 < n; i3++){
       var A1 = pl[i1], A2 = pl[i2], A3 = pl[i3];
@@ -496,8 +520,8 @@ function d3World(gl){
       if(ok) V.push([px, py, pz]);
     }
     if(V.length < 4) continue;
-    if(D3_HIDE[mats[hm[h]]]) continue;
-    var kind = D3_SOFT[mats[hm[h]]] ? 1 : 0;
+    if(D3_HIDE[hMat]) continue;
+    var kind = D3_SOFT[hMat] ? 1 : 0;
     for(q = 0; q < n; q++){
       var P0 = pl[q], on = V.filter(function(v){ return Math.abs(P0[0]*v[0] + P0[1]*v[1] + P0[2]*v[2] - P0[3]) < 0.05; });
       if(on.length < 3) continue;
@@ -535,7 +559,7 @@ function d3World(gl){
   var buf = function(a){ var b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, a, gl.STATIC_DRAW); return b; };
   // cnt / ecnt — со срезом (обзор), cntAll / ecntAll — всё (от первого лица)
   return {p: buf(new Float32Array(P)), k: buf(new Float32Array(K)), cnt: nLow*3, cntAll: P.length/3, e: buf(new Float32Array(E)), ecnt: eLow, ecntAll: E.length/3, ftex: d3FloorTex(gl, M),
-          g: buf(new Float32Array(G)), gk: buf(new Float32Array(GK)), gcnt: G.length/3};
+          g: buf(new Float32Array(G.concat(G2))), gk: buf(new Float32Array(G.concat(G2).length/3).fill(2)), gcnt: G.length/3, gcntAll: (G.length + G2.length)/3};
 }
 function d3Shape(gl, kind){
   var A = d3Acc(), wh = [1, 1, 1, 1], S = 18, i, j;
@@ -704,18 +728,25 @@ function d3Frame(opt){
   var I = d3Model(0, 0, 0, 1, 1, 1);
   var draw = function(m, M4, tint, lit, soft){ gl.uniform1f(pM.u.uSoft, soft || 0); if(pM.u.uHn) gl.uniform1i(pM.u.uHn, 0); gl.uniformMatrix4fv(pM.u.uM, false, M4 || I); gl.uniform4fv(pM.u.uTint, tint || [1, 1, 1, 1]); gl.uniform1f(pM.u.uLit, lit == null ? 1 : lit);
     d3Attr(gl, pM.aP, m.p, 3); d3Attr(gl, pM.aN, m.n, 3); d3Attr(gl, pM.aC, m.c, 4); gl.drawArrays(gl.TRIANGLES, 0, m.cnt); };
-  if(D3.plate && !D3_EYE_CAMS[D3.mode]){   // (v593) подложка-«стол» под картой — только у камер сверху
-    var pG = D3.pG, PL = D3.plate; gl.useProgram(pG.p); gl.depthMask(false);
-    gl.uniformMatrix4fv(pG.u.uVP, false, VP); gl.uniform1f(pG.u.uY, PL.y); gl.uniform3fv(pG.u.uBg, D3.cBg.slice(0, 3)); gl.uniform3fv(pG.u.uC, PL.c.slice(0, 3));
+  // (v593) подложка-«стол» под картой — у камер сверху, с сеткой. (v597, владелец 25.11: «найти все дырки, ничего не должно просвечивать»)
+  // у камер на уровне глаз — пол без сетки на высоте пола под камерой: виден только там, где ничего не нарисовано (рисуется первым, глубину не
+  // пишет) — проёмы на край карты (за ними в геометрии карты пусто) и щели пола ниже горизонта были чёрным фоном (поиск дыр, Mirage т. 1429,1633)
+  if(D3.plate){
+    var pG = D3.pG, PL = D3.plate, eyeC = !!D3_EYE_CAMS[D3.mode], plY = eyeC ? d3FloorBelow(eye[0], eye[2], eye[1]/D3_KZ)*D3_KZ - 1.6 : PL.y; gl.useProgram(pG.p); gl.depthMask(false);
+    gl.uniformMatrix4fv(pG.u.uVP, false, VP); gl.uniform1f(pG.u.uY, plY); gl.uniform1f(pG.u.uGr, eyeC ? 0 : 1); gl.uniform3fv(pG.u.uBg, D3.cBg.slice(0, 3)); gl.uniform3fv(pG.u.uC, (eyeC ? D3.cFloor : PL.c).slice(0, 3));
     gl.uniform4fv(pG.u.uB, PL.bounds); gl.uniform2fv(pG.u.uFog, fog); gl.uniform3fv(pG.u.uEye, eye);
     d3Attr(gl, pG.aP, PL.b, 2); gl.drawArrays(gl.TRIANGLES, 0, 6); gl.depthMask(true); gl.useProgram(pM.p); }
   draw(D3.floor, I, null, 0.12);
+  // (v597, владелец 25.11: «найти все дырки, ничего не должно просвечивать») бортик навмеша (тёмная полоса 35 ед. вниз по краю участка) — для
+  // камер сверху (ступени и этажи); на уровне глаз пол навмеша на 4 ед. ниже пола геометрии, и бортик между ними торчал тёмными «трещинами»
+  // по всей улице (снимки м3 т. 1500 / 3000) — не рисуется
+  if(!D3_EYE_CAMS[D3.mode]) draw(D3.floorSk, I, null, 0.12);
   if(D3.world && D3.world.gcnt){   // пол и ступени из геометрии — непрозрачно, со срезом, поверх навмеша
     var pW0 = D3.pW, W0 = D3.world; gl.useProgram(pW0.p); gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, W0.ftex.tex);
     gl.uniformMatrix4fv(pW0.u.uVP, false, VP); gl.uniform3fv(pW0.u.uEye, eye); gl.uniform3fv(pW0.u.uL, L); gl.uniform3fv(pW0.u.uBg, D3.cBg.slice(0, 3));
     gl.uniform2fv(pW0.u.uFog, fog); gl.uniform1i(pW0.u.uF, 0); gl.uniform1f(pW0.u.uCut, 1e4); gl.uniform1f(pW0.u.uSims, 0); gl.uniform1f(pW0.u.uFb, 0); gl.uniform1f(pW0.u.uA, 1);
     gl.uniform3fv(pW0.u.uGround, D3.cFloor.slice(0, 3)); gl.uniform2fv(pW0.u.uZr, D3.zr);
-    d3Attr(gl, pW0.aP, W0.g, 3); d3Attr(gl, pW0.aK, W0.gk, 1); gl.drawArrays(gl.TRIANGLES, 0, W0.gcnt); if(pW0.aK >= 0) gl.disableVertexAttribArray(pW0.aK);
+    d3Attr(gl, pW0.aP, W0.g, 3); d3Attr(gl, pW0.aK, W0.gk, 1); gl.drawArrays(gl.TRIANGLES, 0, D3_EYE_CAMS[D3.mode] ? W0.gcntAll : W0.gcnt); if(pW0.aK >= 0) gl.disableVertexAttribArray(pW0.aK);
     gl.useProgram(pM.p);
   }
   // мир со срезом и его рёбра — вид по D3_STYLES (кнопка в колонке): непрозрачный — сразу, прозрачный — последним (видно игроков за стенами)
