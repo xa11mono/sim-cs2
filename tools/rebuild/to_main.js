@@ -10,7 +10,7 @@ const argv = process.argv.slice(2), PUSH = argv.includes("--push"), mi = argv.in
 const MSG = mi >= 0 ? argv[mi + 1] : "Перестройка: документы из " + git(["branch", "--show-current"]).trim() + " — без кода игры";
 const paths = argv.filter((a, i) => !a.startsWith("--") && a !== "-m" && argv[i - 1] !== "-m");
 const PATHS = paths.length ? paths : ["rebuild", "AGENTS.md", "CLAUDE.md", "00_PLAN.md", "CHANGELOG.md"];
-const BUILD_LISTS = ["rebuild/modules.json", "rebuild/files.json", "rebuild/owners.json", "rebuild/var_cats.json"];
+const BUILD_LISTS = ["rebuild/modules.json", "rebuild/files.json", "rebuild/owners.json", "rebuild/var_cats.json", "rebuild/state_classes.json"];   // (Р3.1) реестр состояния читают marks_build и gen_maps --check
 
 function git(a, cwd) { const r = cp.spawnSync("git", a, { cwd: cwd || ROOT, encoding: "utf8" }); if (r.status) throw new Error("git " + a.join(" ") + ": " + r.stderr); return r.stdout; }
 function run(cmd, a, cwd) { const r = cp.spawnSync(cmd, a, { cwd, encoding: "utf8" }); return { code: r.status, out: (r.stdout || "") + (r.stderr || "") }; }
