@@ -17,7 +17,7 @@
 | `_tradeLock` | 1 | 1 | `tradeEnd · 190` |
 | `state` | 2 | 2 | `fightStateDo · 500`, `fightReset · 500` |
 | `nadeTask` | 30 | 10 | `(верх файла) · 360`, `nadeAskFlash · 365`, `exuReassign · 366`, `assignNadeDo · 380`, `nadeQueueNext · 380`, `runupTick · 380`, `updateNadeTask1 · 380`, `lineupTick · 390`, `nadeCancel · 420`, `resetNades · 420` |
-| `holding` | 5 | 4 | `fightReset · 500`, `fightHoldOff · 500`, `leaveHold · 500`, `resolveEngagements · 510` |
+| `holding` | 5 | 4 | `fightReset · 500`, `fightHoldOff · 500`, `leaveHold · 500`, `engDecide · 510` |
 | `crouching` | 1 | 1 | `placeStance · 110` |
 | `path` | 13 | 7 | `fireRepath · 370`, `ladderTick · 370`, `navFollowFloor · 370`, `movePath · 535`, `moveSpeedTick · 535`, `navSnap · 540`, `stepTick · 540` |
 | `phase` | 14 | 2 | — |
@@ -50,15 +50,15 @@
 ## `post`
 
 - **хозяин** `setPostDo · 110` — 1 (стр. 462)
-- **хозяин** `clearPostDo · 110` — 1 (стр. 512)
-- **хозяин** `placeResetPost · 110` — 1 (стр. 521)
+- **хозяин** `clearPostDo · 110` — 1 (стр. 514)
+- **хозяин** `placeResetPost · 110` — 1 (стр. 523)
 
 ## `_task`
 
 - **хозяин** `routeTick · 110` — 1 (стр. 66)
 - **хозяин** `setPostDo · 110` — 1 (стр. 417)
-- **хозяин** `clearPostDo · 110` — 1 (стр. 512)
-- **хозяин** `placeResetTask · 110` — 1 (стр. 522)
+- **хозяин** `clearPostDo · 110` — 1 (стр. 514)
+- **хозяин** `placeResetTask · 110` — 1 (стр. 524)
 
 ## `_reposUntil`
 
@@ -107,7 +107,7 @@
 
 ## `holding`
 
-- **хозяин** `resolveEngagements · 510` — 2 (стр. 114, 133)
+- **хозяин** `engDecide · 510` — 2 (стр. 133, 152)
 - **хозяин** `fightReset · 500` — 1 (стр. 13)
 - **хозяин** `fightHoldOff · 500` — 1 (стр. 14)
 - **хозяин** `leaveHold · 500` — 1 (стр. 185)
@@ -116,7 +116,7 @@
 
 ## `crouching`
 
-- **хозяин** `placeStance · 110` — 1 (стр. 520)
+- **хозяин** `placeStance · 110` — 1 (стр. 522)
 
 ## `path`
 

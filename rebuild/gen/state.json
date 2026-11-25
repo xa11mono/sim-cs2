@@ -1155,7 +1155,7 @@
    "snap": true
   },
   "CT_SPAWN": {
-   "decl": "060_zone_danger_user_zones.js:122",
+   "decl": "060_zone_danger_user_zones.js:131",
    "init": "MemberExpression",
    "w": {},
    "m": {
@@ -1731,7 +1731,7 @@
    "r": {
     "645": 4
    },
-   "snap": true
+   "snap": "нет: след решений — вне состояния игры (Р3.3)"
   },
   "DLOG_MAX": {
    "decl": "645_decision_log.js:8",
@@ -3188,7 +3188,7 @@
    "snap": true
   },
   "JUMP_TURN_R": {
-   "decl": "270_look_plan_smooth.js:650",
+   "decl": "270_look_plan_smooth.js:657",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -3701,7 +3701,7 @@
    "snap": true
   },
   "LAND_HOLD": {
-   "decl": "270_look_plan_smooth.js:651",
+   "decl": "270_look_plan_smooth.js:658",
    "init": "ArrayExpression",
    "w": {},
    "m": {},
@@ -3884,7 +3884,7 @@
    },
    "r": {
     "270": 4,
-    "275": 2,
+    "275": 1,
     "610": 4
    },
    "snap": true
@@ -3957,7 +3957,7 @@
    "snap": true
   },
   "LOOK_WALL_CLOSE": {
-   "decl": "270_look_plan_smooth.js:688",
+   "decl": "270_look_plan_smooth.js:695",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -5999,7 +5999,7 @@
    "snap": true
   },
   "POINT_POOL": {
-   "decl": "060_zone_danger_user_zones.js:137",
+   "decl": "060_zone_danger_user_zones.js:146",
    "init": "CallExpression",
    "w": {},
    "m": {
@@ -6011,7 +6011,7 @@
    "snap": true
   },
   "POINT_POOL_ZONEMAP_LEN": {
-   "decl": "060_zone_danger_user_zones.js:221",
+   "decl": "060_zone_danger_user_zones.js:230",
    "init": "MemberExpression",
    "w": {},
    "m": {},
@@ -6811,7 +6811,7 @@
    "snap": true
   },
   "ROAM_READY": {
-   "decl": "060_zone_danger_user_zones.js:239",
+   "decl": "060_zone_danger_user_zones.js:248",
    "init": "Literal",
    "w": {
     "(верх файла) · 070": 1
@@ -7726,18 +7726,6 @@
    },
    "snap": true
   },
-  "SPOT_TEAM": {
-   "decl": "100_sites_spots.js:181",
-   "init": "Literal",
-   "w": {
-    "teamBrains · 350": 3
-   },
-   "m": {},
-   "r": {
-    "100": 2
-   },
-   "snap": true
-  },
   "SPRAY_PATTERN": {
    "decl": "480_assist_flank_reload.js:179",
    "init": "ArrayExpression",
@@ -8347,7 +8335,7 @@
    "init": "ObjectExpression",
    "w": {},
    "m": {
-    "resolveEngagements · 510": 2,
+    "engDecide · 510": 2,
     "rpJump · 675": 1,
     "tsEls · 676": 1,
     "tsEnd · 676": 1,
@@ -8439,7 +8427,7 @@
    "snap": true
   },
   "T_SPAWN": {
-   "decl": "060_zone_danger_user_zones.js:123",
+   "decl": "060_zone_danger_user_zones.js:132",
    "init": "MemberExpression",
    "w": {
     "(верх файла) · 060": 1
@@ -8469,7 +8457,7 @@
    "snap": true
   },
   "T_SPAWN_FIX_RAW": {
-   "decl": "060_zone_danger_user_zones.js:133",
+   "decl": "060_zone_danger_user_zones.js:142",
    "init": "MemberExpression",
    "w": {},
    "m": {},
@@ -8509,7 +8497,7 @@
    "snap": "нет: SETTINGS"
   },
   "USER_ZONES": {
-   "decl": "060_zone_danger_user_zones.js:150",
+   "decl": "060_zone_danger_user_zones.js:159",
    "init": "ArrayExpression",
    "w": {
     "loadUserZones · 060": 1
@@ -8531,7 +8519,7 @@
    "snap": "нет: SETTINGS"
   },
   "USER_ZONES_KEY": {
-   "decl": "060_zone_danger_user_zones.js:151",
+   "decl": "060_zone_danger_user_zones.js:160",
    "init": "BinaryExpression",
    "w": {},
    "m": {},
@@ -9324,7 +9312,7 @@
    "snap": true
   },
   "ZONE_KIND_COLORS": {
-   "decl": "060_zone_danger_user_zones.js:213",
+   "decl": "060_zone_danger_user_zones.js:222",
    "init": "ObjectExpression",
    "w": {},
    "m": {},
@@ -9334,7 +9322,7 @@
    "snap": true
   },
   "ZONE_KIND_LABELS": {
-   "decl": "060_zone_danger_user_zones.js:212",
+   "decl": "060_zone_danger_user_zones.js:221",
    "init": "ObjectExpression",
    "w": {},
    "m": {},
@@ -11158,7 +11146,7 @@
    "snap": true
   },
   "pointsByName": {
-   "decl": "060_zone_danger_user_zones.js:120",
+   "decl": "060_zone_danger_user_zones.js:129",
    "init": "ObjectExpression",
    "w": {},
    "m": {
@@ -11993,7 +11981,7 @@
    "snap": true
   },
   "userZonesSaveTimer": {
-   "decl": "060_zone_danger_user_zones.js:152",
+   "decl": "060_zone_danger_user_zones.js:161",
    "init": "Literal",
    "w": {
     "saveUserZonesDebounced · 060": 1
@@ -12270,7 +12258,7 @@
    "snap": "нет: SETTINGS"
   },
   "zoneLayerRebuildTimer": {
-   "decl": "060_zone_danger_user_zones.js:81",
+   "decl": "060_zone_danger_user_zones.js:90",
    "init": "Literal",
    "w": {
     "applyZoneLayer · 060": 2
@@ -12512,15 +12500,15 @@
   },
   "_aft": {
    "w": [
-    "110_post_routes.js:502 afterTaskPick",
-    "110_post_routes.js:507 afterTaskPick"
+    "110_post_routes.js:504 afterTaskPick",
+    "110_post_routes.js:509 afterTaskPick"
    ],
    "lit": [],
    "r": 3
   },
   "_aftSaid": {
    "w": [
-    "110_post_routes.js:508 afterTaskPick"
+    "110_post_routes.js:510 afterTaskPick"
    ],
    "lit": [],
    "r": 2
@@ -12559,7 +12547,7 @@
    "w": [
     "480_assist_flank_reload.js:238 ambEnd",
     "480_assist_flank_reload.js:245 ambushStartBack",
-    "480_assist_flank_reload.js:267 ambushTick"
+    "480_assist_flank_reload.js:268 ambushTick"
    ],
    "lit": [],
    "r": 11
@@ -12580,23 +12568,23 @@
   },
   "_apBest": {
    "w": [
-    "110_post_routes.js:543 updatePost",
-    "110_post_routes.js:544 updatePost"
+    "110_post_routes.js:545 updatePost",
+    "110_post_routes.js:546 updatePost"
    ],
    "lit": [],
    "r": 3
   },
   "_apId": {
    "w": [
-    "110_post_routes.js:543 updatePost"
+    "110_post_routes.js:545 updatePost"
    ],
    "lit": [],
    "r": 2
   },
   "_apT": {
    "w": [
-    "110_post_routes.js:543 updatePost",
-    "110_post_routes.js:544 updatePost"
+    "110_post_routes.js:545 updatePost",
+    "110_post_routes.js:546 updatePost"
    ],
    "lit": [],
    "r": 3
@@ -12866,7 +12854,7 @@
    "w": [
     "110_post_routes.js:284 taskCanSet",
     "110_post_routes.js:339 detourStart",
-    "110_post_routes.js:512 clearPostDo",
+    "110_post_routes.js:514 clearPostDo",
     "350_contact_reaction.js:376 hurtReactTick"
    ],
    "lit": [],
@@ -13616,7 +13604,7 @@
   },
   "_intelPre": {
    "w": [
-    "510_engagements.js:77 resolveEngagements"
+    "510_engagements.js:96 engDecide"
    ],
    "lit": [],
    "r": 2
@@ -13725,7 +13713,7 @@
     "450_combat_items_knife.js:161 knifeDefuseTick",
     "450_combat_items_knife.js:182 knifeTick",
     "450_combat_items_knife.js:183 knifeTick",
-    "480_assist_flank_reload.js:335 ambushTick",
+    "480_assist_flank_reload.js:336 ambushTick",
     "490_shoot.js:73 tryShoot",
     "530_round_sides_match.js:217 resetRound"
    ],
@@ -13743,7 +13731,7 @@
   },
   "_land": {
    "w": [
-    "270_look_plan_smooth.js:652 landLook"
+    "270_look_plan_smooth.js:659 landLook"
    ],
    "lit": [],
    "r": 2
@@ -13765,8 +13753,8 @@
   },
   "_lastSawT": {
    "w": [
-    "510_engagements.js:41 resolveEngagements",
-    "510_engagements.js:42 resolveEngagements"
+    "510_engagements.js:54 engSee",
+    "510_engagements.js:55 engSee"
    ],
    "lit": [],
    "r": 7
@@ -13780,11 +13768,10 @@
   },
   "_ldArb": {
    "w": [
-    "270_look_plan_smooth.js:643 lookArbiter",
-    "275_look_turn.ts:32 lookTick"
+    "270_look_plan_smooth.js:636 lookApply"
    ],
    "lit": [],
-   "r": 2
+   "r": 1
   },
   "_ldPlan": {
    "w": [
@@ -13858,11 +13845,10 @@
   },
   "_lookLvl": {
    "w": [
-    "270_look_plan_smooth.js:642 lookArbiter",
-    "275_look_turn.ts:32 lookTick"
+    "270_look_plan_smooth.js:635 lookApply"
    ],
    "lit": [],
-   "r": 7
+   "r": 6
   },
   "_lowHpNext": {
    "w": [
@@ -13942,7 +13928,7 @@
   },
   "_lvc": {
    "w": [
-    "270_look_plan_smooth.js:684 lookVisible"
+    "270_look_plan_smooth.js:691 lookVisible"
    ],
    "lit": [],
    "r": 2
@@ -14065,10 +14051,10 @@
   },
   "_nearestEnemyBot": {
    "w": [
-    "510_engagements.js:13 resolveEngagements",
-    "510_engagements.js:41 resolveEngagements",
-    "510_engagements.js:42 resolveEngagements",
-    "510_engagements.js:56 resolveEngagements",
+    "510_engagements.js:26 engSee",
+    "510_engagements.js:54 engSee",
+    "510_engagements.js:55 engSee",
+    "510_engagements.js:72 engTarget",
     "660_warmup.js:54 warmTick"
    ],
    "lit": [],
@@ -14076,10 +14062,10 @@
   },
   "_nearestEnemyDist": {
    "w": [
-    "510_engagements.js:13 resolveEngagements",
-    "510_engagements.js:41 resolveEngagements",
-    "510_engagements.js:42 resolveEngagements",
-    "510_engagements.js:56 resolveEngagements"
+    "510_engagements.js:26 engSee",
+    "510_engagements.js:54 engSee",
+    "510_engagements.js:55 engSee",
+    "510_engagements.js:72 engTarget"
    ],
    "lit": [],
    "r": 6
@@ -14719,9 +14705,9 @@
   },
   "_rtChk": {
    "w": [
-    "510_engagements.js:175 resolveEngagements",
-    "510_engagements.js:179 resolveEngagements",
-    "510_engagements.js:185 resolveEngagements"
+    "510_engagements.js:195 engRetreatCheck",
+    "510_engagements.js:199 engRetreatCheck",
+    "510_engagements.js:205 engRetreatCheck"
    ],
    "lit": [],
    "r": 6
@@ -14759,9 +14745,9 @@
   },
   "_sawEnemy": {
    "w": [
-    "510_engagements.js:13 resolveEngagements",
-    "510_engagements.js:41 resolveEngagements",
-    "510_engagements.js:42 resolveEngagements",
+    "510_engagements.js:26 engSee",
+    "510_engagements.js:54 engSee",
+    "510_engagements.js:55 engSee",
     "660_warmup.js:12 warmSpawn",
     "660_warmup.js:57 warmTick",
     "660_warmup.js:63 warmTick"
@@ -14818,8 +14804,8 @@
   },
   "_seenAt": {
    "w": [
-    "510_engagements.js:39 resolveEngagements",
-    "510_engagements.js:40 resolveEngagements"
+    "510_engagements.js:52 engSee",
+    "510_engagements.js:53 engSee"
    ],
    "lit": [],
    "r": 2
@@ -14905,8 +14891,8 @@
   },
   "_smkParts": {
    "w": [
-    "510_engagements.js:31 resolveEngagements",
-    "510_engagements.js:32 resolveEngagements"
+    "510_engagements.js:44 engSee",
+    "510_engagements.js:45 engSee"
    ],
    "lit": [],
    "r": 1
@@ -14970,7 +14956,7 @@
   "_stabT": {
    "w": [
     "450_combat_items_knife.js:164 knifeDefuseTick",
-    "480_assist_flank_reload.js:337 ambushTick"
+    "480_assist_flank_reload.js:338 ambushTick"
    ],
    "lit": [],
    "r": 4
@@ -14990,7 +14976,7 @@
   },
   "_stanceWhy": {
    "w": [
-    "110_post_routes.js:520 placeStance"
+    "110_post_routes.js:522 placeStance"
    ],
    "lit": [],
    "r": 1
@@ -15092,8 +15078,8 @@
   "_task": {
    "w": [
     "110_post_routes.js:417 setPostDo",
-    "110_post_routes.js:512 clearPostDo",
-    "110_post_routes.js:522 placeResetTask",
+    "110_post_routes.js:514 clearPostDo",
+    "110_post_routes.js:524 placeResetTask",
     "110_post_routes.js:66 routeTick"
    ],
    "lit": [],
@@ -15108,7 +15094,7 @@
   },
   "_tgt": {
    "w": [
-    "510_engagements.js:64 resolveEngagements"
+    "510_engagements.js:80 engTarget"
    ],
    "lit": [],
    "r": 2
@@ -15158,7 +15144,7 @@
   "_ts": {
    "w": [
     "400_nades_physics_damage.js:81 detonate",
-    "510_engagements.js:71 resolveEngagements",
+    "510_engagements.js:90 engDecide",
     "530_round_sides_match.js:213 resetRound",
     "660_warmup.js:14 warmSpawn",
     "660_warmup.js:59 warmTick",
@@ -15221,7 +15207,7 @@
   },
   "_visible": {
    "w": [
-    "510_engagements.js:13 resolveEngagements"
+    "510_engagements.js:26 engSee"
    ],
    "lit": [],
    "r": 37
@@ -15282,7 +15268,7 @@
   },
   "_zoomTick": {
    "w": [
-    "110_post_routes.js:553 updatePost"
+    "110_post_routes.js:555 updatePost"
    ],
    "lit": [],
    "r": 2
@@ -15354,12 +15340,12 @@
   "atPost": {
    "w": [
     "110_post_routes.js:464 setPostDo",
-    "110_post_routes.js:512 clearPostDo",
-    "110_post_routes.js:524 updatePost",
+    "110_post_routes.js:514 clearPostDo",
     "110_post_routes.js:526 updatePost",
-    "110_post_routes.js:550 updatePost",
-    "110_post_routes.js:559 updatePost",
-    "110_post_routes.js:560 updatePost",
+    "110_post_routes.js:528 updatePost",
+    "110_post_routes.js:552 updatePost",
+    "110_post_routes.js:561 updatePost",
+    "110_post_routes.js:562 updatePost",
     "530_round_sides_match.js:233 resetRound",
     "535_move_mode.js:142 moveSpeedTick"
    ],
@@ -15373,7 +15359,7 @@
     "370_fire_nav_levels_ladders.js:215 ladderTick",
     "470_fight_cycle.js:157 fightStrafe",
     "470_fight_cycle.js:381 fightCycleTick",
-    "510_engagements.js:209 escapeWallLine",
+    "510_engagements.js:228 escapeWallLine",
     "530_round_sides_match.js:210 resetRound",
     "540_step_tick.js:157 jumpCheckTick",
     "540_step_tick.js:176 jumpCheckTick",
@@ -15404,7 +15390,7 @@
     "370_fire_nav_levels_ladders.js:215 ladderTick",
     "470_fight_cycle.js:157 fightStrafe",
     "470_fight_cycle.js:381 fightCycleTick",
-    "510_engagements.js:209 escapeWallLine",
+    "510_engagements.js:228 escapeWallLine",
     "530_round_sides_match.js:210 resetRound",
     "540_step_tick.js:157 jumpCheckTick",
     "540_step_tick.js:176 jumpCheckTick",
@@ -15443,7 +15429,7 @@
    "w": [
     "460_sound_situations.js:211 pistolSwap",
     "490_shoot.js:230 tryShoot",
-    "510_engagements.js:62 resolveEngagements",
+    "510_engagements.js:78 engTarget",
     "530_round_sides_match.js:217 resetRound"
    ],
    "lit": [
@@ -15471,8 +15457,8 @@
   "contactStreak": {
    "w": [
     "400_nades_physics_damage.js:81 detonate",
-    "510_engagements.js:69 resolveEngagements",
-    "510_engagements.js:87 resolveEngagements",
+    "510_engagements.js:106 engDecide",
+    "510_engagements.js:88 engDecide",
     "530_round_sides_match.js:213 resetRound",
     "660_warmup.js:14 warmSpawn",
     "660_warmup.js:57 warmTick",
@@ -15493,7 +15479,7 @@
   },
   "crouching": {
    "w": [
-    "110_post_routes.js:520 placeStance"
+    "110_post_routes.js:522 placeStance"
    ],
    "lit": [
     "070_weapons_bots_roam.js:82"
@@ -15544,7 +15530,7 @@
   "decisionTick": {
    "w": [
     "500_decide_afterkill_cover.js:185 leaveHold",
-    "510_engagements.js:119 resolveEngagements",
+    "510_engagements.js:138 engDecide",
     "530_round_sides_match.js:214 resetRound"
    ],
    "lit": [
@@ -15691,9 +15677,9 @@
   },
   "forcedRetreat": {
    "w": [
-    "510_engagements.js:114 resolveEngagements",
-    "510_engagements.js:166 resolveEngagements",
-    "510_engagements.js:168 resolveEngagements",
+    "510_engagements.js:133 engDecide",
+    "510_engagements.js:185 engDecide",
+    "510_engagements.js:187 engDecide",
     "530_round_sides_match.js:214 resetRound",
     "540_step_tick.js:406 stepTick"
    ],
@@ -15739,7 +15725,7 @@
     "460_sound_situations.js:138 smokeFadeTick",
     "460_sound_situations.js:28 emitSound",
     "480_assist_flank_reload.js:120 assistPeek",
-    "480_assist_flank_reload.js:339 ambushTick",
+    "480_assist_flank_reload.js:340 ambushTick",
     "490_shoot.js:368 tryShoot",
     "490_shoot.js:375 tryShoot",
     "530_round_sides_match.js:216 resetRound",
@@ -15776,7 +15762,7 @@
   },
   "holdSinceTick": {
    "w": [
-    "510_engagements.js:134 resolveEngagements",
+    "510_engagements.js:153 engDecide",
     "530_round_sides_match.js:215 resetRound"
    ],
    "lit": [
@@ -15789,8 +15775,8 @@
     "500_decide_afterkill_cover.js:13 fightReset",
     "500_decide_afterkill_cover.js:14 fightHoldOff",
     "500_decide_afterkill_cover.js:185 leaveHold",
-    "510_engagements.js:114 resolveEngagements",
-    "510_engagements.js:133 resolveEngagements"
+    "510_engagements.js:133 engDecide",
+    "510_engagements.js:152 engDecide"
    ],
    "lit": [
     "070_weapons_bots_roam.js:82"
@@ -15874,7 +15860,7 @@
     "480_assist_flank_reload.js:120 assistPeek",
     "480_assist_flank_reload.js:134 assistPeek",
     "480_assist_flank_reload.js:79 flankAssist",
-    "510_engagements.js:80 resolveEngagements",
+    "510_engagements.js:99 engDecide",
     "530_round_sides_match.js:216 resetRound"
    ],
    "lit": [
@@ -15937,15 +15923,14 @@
     "270_look_plan_smooth.js:375 smoothLookFilter",
     "270_look_plan_smooth.js:383 smoothLookFilter",
     "270_look_plan_smooth.js:399 smoothLookFilter",
-    "270_look_plan_smooth.js:642 lookArbiter",
-    "270_look_plan_smooth.js:703 lookFilter",
-    "270_look_plan_smooth.js:705 lookFilter",
+    "270_look_plan_smooth.js:635 lookApply",
+    "270_look_plan_smooth.js:710 lookFilter",
     "270_look_plan_smooth.js:712 lookFilter",
-    "275_look_turn.ts:32 lookTick",
+    "270_look_plan_smooth.js:719 lookFilter",
     "530_round_sides_match.js:218 resetRound"
    ],
    "lit": [],
-   "r": 25
+   "r": 24
   },
   "lookTarget": {
    "w": [
@@ -16064,7 +16049,7 @@
     "290_smoke_react.js:76 blindBullet",
     "460_sound_situations.js:210 pistolSwap",
     "490_shoot.js:233 tryShoot",
-    "510_engagements.js:62 resolveEngagements",
+    "510_engagements.js:78 engTarget",
     "530_round_sides_match.js:213 resetRound",
     "660_warmup.js:14 warmSpawn",
     "677_sandbox.js:43 sbRevive"
@@ -16116,10 +16101,10 @@
     "050_nav_rebuild_paths.js:251 rebuildNav",
     "070_weapons_bots_roam.js:160 buildRoamRoutes",
     "110_post_routes.js:465 setPostDo",
-    "110_post_routes.js:512 clearPostDo",
-    "110_post_routes.js:526 updatePost",
-    "110_post_routes.js:550 updatePost",
-    "110_post_routes.js:559 updatePost",
+    "110_post_routes.js:514 clearPostDo",
+    "110_post_routes.js:528 updatePost",
+    "110_post_routes.js:552 updatePost",
+    "110_post_routes.js:561 updatePost",
     "120_bomb.js:240 bombTick",
     "120_bomb.js:321 bombTick",
     "120_bomb.js:326 bombTick",
@@ -16135,13 +16120,13 @@
     "430_fov_roam.js:59 updateRoamer",
     "430_fov_roam.js:68 updateRoamer",
     "460_sound_situations.js:180 onBlind",
-    "510_engagements.js:165 resolveEngagements",
-    "510_engagements.js:183 resolveEngagements",
-    "510_engagements.js:209 escapeWallLine",
-    "510_engagements.js:222 assignNewDestination",
-    "510_engagements.js:229 assignNewDestination",
-    "510_engagements.js:238 assignNewDestination",
-    "510_engagements.js:246 assignNewDestination",
+    "510_engagements.js:184 engDecide",
+    "510_engagements.js:203 engRetreatCheck",
+    "510_engagements.js:228 escapeWallLine",
+    "510_engagements.js:241 assignNewDestination",
+    "510_engagements.js:248 assignNewDestination",
+    "510_engagements.js:257 assignNewDestination",
+    "510_engagements.js:265 assignNewDestination",
     "530_round_sides_match.js:212 resetRound",
     "535_move_mode.js:156 moveSpeedTick",
     "535_move_mode.js:163 moveSpeedTick",
@@ -16180,9 +16165,9 @@
   },
   "pickTick": {
    "w": [
-    "510_engagements.js:222 assignNewDestination",
-    "510_engagements.js:229 assignNewDestination",
-    "510_engagements.js:238 assignNewDestination",
+    "510_engagements.js:241 assignNewDestination",
+    "510_engagements.js:248 assignNewDestination",
+    "510_engagements.js:257 assignNewDestination",
     "530_round_sides_match.js:213 resetRound"
    ],
    "lit": [
@@ -16215,8 +16200,8 @@
   "post": {
    "w": [
     "110_post_routes.js:462 setPostDo",
-    "110_post_routes.js:512 clearPostDo",
-    "110_post_routes.js:521 placeResetPost"
+    "110_post_routes.js:514 clearPostDo",
+    "110_post_routes.js:523 placeResetPost"
    ],
    "lit": [],
    "r": 514
@@ -16369,7 +16354,7 @@
     "070_weapons_bots_roam.js:163 initRoam",
     "430_fov_roam.js:28 updateRoamer",
     "430_fov_roam.js:66 updateRoamer",
-    "510_engagements.js:132 resolveEngagements",
+    "510_engagements.js:151 engDecide",
     "540_step_tick.js:341 stepTick"
    ],
    "lit": [],
@@ -16405,7 +16390,7 @@
    "w": [
     "070_weapons_bots_roam.js:160 buildRoamRoutes",
     "070_weapons_bots_roam.js:164 initRoam",
-    "510_engagements.js:238 assignNewDestination"
+    "510_engagements.js:257 assignNewDestination"
    ],
    "lit": [],
    "r": 7
@@ -16523,7 +16508,7 @@
   "stateSince": {
    "w": [
     "450_combat_items_knife.js:288 weaponPickupTick",
-    "510_engagements.js:126 resolveEngagements"
+    "510_engagements.js:145 engDecide"
    ],
    "lit": [],
    "r": 3
@@ -16691,7 +16676,7 @@
     "370_fire_nav_levels_ladders.js:207 ladderTick",
     "370_fire_nav_levels_ladders.js:211 ladderTick",
     "370_fire_nav_levels_ladders.js:215 ladderTick",
-    "510_engagements.js:209 escapeWallLine",
+    "510_engagements.js:228 escapeWallLine",
     "530_round_sides_match.js:193 resetRound",
     "530_round_sides_match.js:201 resetRound",
     "540_step_tick.js:571 stepTick",
@@ -16714,7 +16699,7 @@
     "370_fire_nav_levels_ladders.js:207 ladderTick",
     "370_fire_nav_levels_ladders.js:211 ladderTick",
     "370_fire_nav_levels_ladders.js:215 ladderTick",
-    "510_engagements.js:209 escapeWallLine",
+    "510_engagements.js:228 escapeWallLine",
     "530_round_sides_match.js:193 resetRound",
     "530_round_sides_match.js:201 resetRound",
     "540_step_tick.js:571 stepTick",
