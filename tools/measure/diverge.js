@@ -20,8 +20,7 @@ function showVars() {
   let acorn; try { acorn = require('acorn'); } catch (e) { try { acorn = require(path.join(__dirname, '..', 'rebuild', 'node_modules', 'acorn')); }   // пакеты сборки (src/build.py ставит их сам)
     catch (e2) { console.error('нет acorn: npm i --prefix tools/rebuild или NODE_PATH'); process.exit(2); } }
   // как tools/rebuild/gen_maps.js: склейка src/game (html + js), основной <script>, тело общей обёртки, дом переменной — файл объявления
-  const dir = path.join(__dirname, '..', '..', 'src', 'game'); let all = '', spans = [];
-  for (const f of fs.readdirSync(dir).filter(f => /\.(html|js)$/.test(f)).sort()) { const t = fs.readFileSync(path.join(dir, f), 'utf8'); spans.push([all.length, all.length + t.length, f]); all += t; }
+  const { all, spans } = require(path.join(__dirname, '..', 'rebuild', 'game_src.js')).concat();   // (Р1.1) .ts — без типов, позиции те же
   const fileAt = pos => (spans.find(sp => pos >= sp[0] && pos < sp[1]) || spans[spans.length - 1])[2];
   let main = null;
   for (const m of all.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)) { const off = m.index + m[0].indexOf('>') + 1; if (!main || m[1].length > main.src.length) main = { off, src: m[1] }; }

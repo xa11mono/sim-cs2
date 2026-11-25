@@ -21,7 +21,7 @@ for (const st of balAst.body) if (st.type === "VariableDeclaration" && st.declar
 const BALV = {};
 for (const p of balObj.properties) if (p.value.type === "Literal") BALV[p.key.name] = p.value.value;
 
-const files = fs.readdirSync(GAME).filter(f => f.endsWith(".js")).map(f => path.join(GAME, f)).concat([path.join(ROOT, "src", "marks.js")]);
+const files = fs.readdirSync(GAME).filter(f => /\.(js|ts)$/.test(f)).map(f => path.join(GAME, f))   // (Р1.1) .ts — правится как текст.concat([path.join(ROOT, "src", "marks.js")]);
 function jsUnder(d) { let r = []; for (const f of fs.readdirSync(d, { withFileTypes: true })) { const q = path.join(d, f.name);
   if (f.isDirectory()) { if (f.name !== "node_modules" && f.name !== "runs" && f.name !== "results") r = r.concat(jsUnder(q)); } else if (/\.js$/.test(f.name)) r.push(q); } return r; }
 // писатели ищутся и в инструментах: ключ, который выключают тесты / замеры (BAL.execErr = false), — не вечный

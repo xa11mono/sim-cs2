@@ -22,9 +22,26 @@ def module_files():
         return []
 
 
+SRC_EXT = ('.html', '.js', '.ts')
+
+
+def read_game_file(f):
+    """(Р1.1) Текст файла игры, как его видит браузер: .ts — без типов (tools/rebuild/game_src.js: типы заменены пробелами, строки и
+    позиции те же); остальное — как есть. Байты — для склейки (game_source), как раньше."""
+    p = f if os.path.isabs(f) else os.path.join(GAME_DIR, f)
+    if not p.endswith('.ts'):
+        return open(p, 'rb').read()
+    import subprocess
+    r = subprocess.run(['node', os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'tools', 'rebuild', 'game_src.js'), 'strip', p],
+                       capture_output=True)
+    if r.returncode:
+        sys.exit('чтение %s без типов не удалось: %s' % (p, r.stderr.decode('utf-8', 'replace')))
+    return r.stdout
+
+
 def module_source():
     """Текст каналов-модулей (по порядку номеров) — для тех, кто ищет переменные игры по исходнику (снимок отметки)."""
-    return ''.join(open(os.path.join(GAME_DIR, f), encoding='utf-8').read() for f in sorted(module_files()))
+    return ''.join(read_game_file(f).decode('utf-8') for f in sorted(module_files()))
 
 
 def bundle_modules(page, compact=False):
@@ -46,17 +63,17 @@ def bundle_modules(page, compact=False):
 
 def game_files():
     skip = set(module_files())
-    return [os.path.join(GAME_DIR, f) for f in sorted(os.listdir(GAME_DIR)) if f.endswith(('.html', '.js')) and f not in skip]
+    return [os.path.join(GAME_DIR, f) for f in sorted(os.listdir(GAME_DIR)) if f.endswith(SRC_EXT) and f not in skip]
 
 
 def _all_files():
-    return [f for f in sorted(os.listdir(GAME_DIR)) if f.endswith(('.html', '.js'))]
+    return [f for f in sorted(os.listdir(GAME_DIR)) if f.endswith(SRC_EXT)]
 
 
 def game_source():
     # файл-модуль — метка на своём месте склейки: там ядро вызывает «запуск» модуля (то, что он делает при загрузке), порядок — как в склейке
     mods = set(module_files())
-    return b''.join(('/*@@MODINIT %s@@*/\n' % f).encode('utf-8') if f in mods else open(os.path.join(GAME_DIR, f), 'rb').read()
+    return b''.join(('/*@@MODINIT %s@@*/\n' % f).encode('utf-8') if f in mods else read_game_file(f)
                     for f in _all_files()).decode('utf-8')
 
 

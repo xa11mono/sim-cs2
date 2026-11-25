@@ -15,9 +15,9 @@ if (!CHECK) fs.mkdirSync(OUT, { recursive: true });
 const save = (f, s) => { if (!CHECK) fs.writeFileSync(f, s); };
 
 // ---- склейка как src/gamesrc.py, с границами файлов
-const files = fs.readdirSync(GAME).filter(f => /\.(html|js)$/.test(f)).sort();
-let all = "", spans = [];
-for (const f of files) { const s = fs.readFileSync(path.join(GAME, f), "utf8"); spans.push([all.length, all.length + s.length, f]); all += s; }
+// (Р1.1) .ts — без типов, позиции те же (tools/rebuild/game_src.js — одно место чтения исходника)
+const GS = require("./game_src.js"), files = GS.gameFiles(GAME);
+let { all, spans } = GS.concat(GAME);
 const fileAt = pos => { for (const sp of spans) if (pos >= sp[0] && pos < sp[1]) return sp; return spans[spans.length - 1]; };
 const lineAt = pos => { const sp = fileAt(pos); return all.slice(sp[0], pos).split("\n").length; };
 const where = pos => fileAt(pos)[2] + ":" + lineAt(pos);

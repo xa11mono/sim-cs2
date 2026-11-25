@@ -1,0 +1,9 @@
+{"step": "Р1.1 TypeScript в сборке", "date": "2026-11-25", "node": "v22.23.5", "tsc": "6.0.2", "esbuild": "0.24.0",
+ "norm": "sha256_norm — с заменой имени временной папки esbuild (/tmp/modb_XXXXXX/ в комментариях-путях модулей) на modb_X: это имя случайное в каждой сборке и до Р1 (находка Р1-2)",
+ "builds": {"base_ancient": {"sha256": "bb257bce3495721e0ec297a0eb815967408428dde9c5dd97e4541da098deae6f", "sha256_norm": "b34c8392775e21c70c395fbbffa05eea0c76b30b815532d6ba01a794a7c6b40c"},"r11_ancient": {"sha256": "c158f8a3d150bc270ba189b2c84db861006555e8e0b61bdcf840713ceb7e6a25", "sha256_norm": "b34c8392775e21c70c395fbbffa05eea0c76b30b815532d6ba01a794a7c6b40c"},"base_mirage": {"sha256": "1881c231211e9ecf10eebdb77fc6d4ff8b8efc7fe36440ddabfc2d0ca7e80c54", "sha256_norm": "814e1f22586fcfccbbcefc5d8c1dfeed0d441e2714942aff1c1829890fc75530"},"r11_mirage": {"sha256": "c728bb4cf40a0305324742fe13764b8d438231a06fa1fd36c6cf960687dff799", "sha256_norm": "814e1f22586fcfccbbcefc5d8c1dfeed0d441e2714942aff1c1829890fc75530"}},
+ "result": "base = после правки инструментов (обе карты) по sha256_norm; отличие сырых sha256 — только имя временной папки в комментариях-путях модулей",
+ "trial_ts": {"what": "275_look_turn.js → .ts (временно) с аннотацией типов у lookTurnBy; сборка Ancient и публикуемая страница", "sim_html_sha256_norm": "= base_ancient", "ancient_radar_norm_js": "6bbbf1a4c4f999f4", "ancient_radar_norm_ts": "6bbbf1a4c4f999f4", "gen_maps_check": "ok", "reverted": true},
+ "gen_maps_check": "ok (пометок 1734, функций 1289 — как до правки)",
+ "diverge": "base_mirage vs r11_mirage: расхождения нет до тика 640",
+ "typecheck_ts": "файлов 0, ошибок 0 (файлов .ts пока нет)",
+ "typecheck_js": "740 предупреждений (только отчёт): TS2339 626, TS18047 53, TS2304 17, … — r1.1_checkjs.txt"}

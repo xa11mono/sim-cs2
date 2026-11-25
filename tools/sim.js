@@ -122,7 +122,7 @@ const CMDS = {
   build: a => run(PY, [path.join(ROOT, 'src', 'build.py'), '--map', opt(a, 'map', 'ancient')].concat(pos(a))),
   pub: a => run(PY, [path.join(ROOT, 'src', 'mkpub.py'), '--map', opt(a, 'map', 'ancient')]),
   fp, fpdiff,
-  check: a => run('node', [path.join(ROOT, 'tools', 'rebuild', 'gen_maps.js'), '--check']) || run(PY, [path.join(ROOT, 'tools', 'map', 'map_check.py')].concat(pos(a))),
+  check: a => run('node', [path.join(ROOT, 'tools', 'rebuild', 'gen_maps.js'), '--check']) || run('node', [path.join(ROOT, 'tools', 'rebuild', 'typecheck.js')]) || run(PY, [path.join(ROOT, 'tools', 'map', 'map_check.py')].concat(pos(a))),
   scen: a => run('node', [path.join(ROOT, 'tools', 'marks', 'scenarios.js')].concat(a)),
   marks: a => MARKS[a[0]] ? run('node', [path.join(ROOT, 'tools', 'marks', MARKS[a[0]] + '.js')].concat(a.slice(1))) : (console.error('marks: ' + Object.keys(MARKS).join(' | ')), 2),
   measure: a => a[0] === 'check' ? measureCheck(a.slice(1)) : (console.error('measure check [request.json] — проверить задание; запуск — пуш ветки measure/<имя> (CLAUDE.md §8)'), 2),
@@ -130,13 +130,14 @@ const CMDS = {
   inv: a => run('node', [path.join(ROOT, 'tools', 'measure', 'inv_run.js')].concat(a)),
   diverge: a => run('node', [path.join(ROOT, 'tools', 'measure', 'diverge.js')].concat(a)),
   health: a => run(PY, [path.join(ROOT, 'tools', 'health.py')].concat(pos(a).length ? pos(a) : ['sim.html'])),
+  typecheck: a => run('node', [path.join(ROOT, 'tools', 'rebuild', 'typecheck.js')].concat(a)),
 };
 const HELP = `node tools/sim.js <команда> — единая точка входа (Р0.3)
   build [--map=ancient|mirage] [куда]     сборка тестовой страницы (src/build.py) → sim.html
   pub --map=<карта>                       публикуемая страница (src/mkpub.py) → <карта>-radar.html
   fp <sim.html> <папка> [--matches=…]     отпечаток матчей (как tools/measure/fingerprint.sh) + env.json
   fpdiff <папка1> <папка2>                 сравнить отпечатки: бит в бит или первый различный раунд
-  check [карта…]                          проверка устройства (gen_maps --check) и данных карт (map_check.py)
+  check [карта…]                          проверка устройства (gen_maps --check), типов .ts (typecheck) и данных карт (map_check.py)
   scen [--map=…] [--only=…]               проверки по отметкам (tools/marks/scenarios.js)
   marks <open|story|frames|video|scenarios|replay> …   инструменты отметок (tools/marks/*)
   measure check [request.json]            проверить задание прогона на ПК
@@ -145,7 +146,8 @@ const HELP = `node tools/sim.js <команда> — единая точка в�
   inv <sim.html> [--special|--neutral] [--ticks=…]   инварианты I-01…I-32 (Р0.6)
   context [тема] [--out=файл]             текстовый пакет правил и состояния для агентов без репозитория (Р0.9)
   graph                                   граф кода Graphify, только локально (graphify-out/, не в git) (Р0.9)
-  health [sim.html]                       «здоровье» кода (tools/health.py)`;
+  health [sim.html]                       «здоровье» кода (tools/health.py)
+  typecheck [--js [--list]]               типы: .ts — strict, ошибка = код 1; --js — .js игры, только предупреждения (Р1)`;
 
 (async () => {
   const [cmd, ...rest] = process.argv.slice(2);

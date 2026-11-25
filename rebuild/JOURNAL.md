@@ -47,6 +47,14 @@
 | Р0.13 Rust на ПК | **сделано**: нативно, WASM и N-API (прогон 318: вызов 24,5 нс) | v599a | `r0.13_rust_windows.json`, `r0.13_napi_pc.json` |
 | Р0.14 кросс-браузерность | **сделано** (состояние зафиксировано) | v599a f42b0c3 | Chromium / Firefox / WebKit работают, матчи между движками разные; `r0.14_xb_pc.json` |
 
+### Шаги Р1
+
+| шаг | статус | версия / коммит | примечание |
+|---|---|---|---|
+| Р1.1 TypeScript в сборке | **сделано** | v599a | `.ts` читается без типов одним местом `tools/rebuild/game_src.js` (mod_build, gen_maps, gamesrc, diverge, bal_fold); `tsconfig.json`; `sim.js typecheck`; typescript 6.0.2 закреплён; сборка = база (обе карты, `r1.1_build.json`); пробный `.ts` — та же страница |
+| Р1.2 `types.ts` | — | | |
+| Р1.3 модуль 275 на TS | — | | |
+
 ## 3. Справка (чтобы не исследовать заново)
 
 | что | где / как |
@@ -128,3 +136,9 @@
 - 25.11.2026 — Р0.13 закрыт: прогон 318 — N-API собран (`cargo build --release` код 0) и вызван из Node 24.21.0: вызов 24,5 нс (WASM 5,6, JS
   3,2); `libloading` 0.8.8 + `build.rs` без `napi_build::setup()` на windows-gnu. MinGW binutils (`dlltool.exe`) не ставились — после
   закрепления `libloading` не нужны. Команды и версии — `rebuild/evidence/R0/r0.13_napi_pc.json`, `ENVIRONMENT.md` §5.
+- 25.11.2026 — Р1.1: `.ts` в сборке без изменения игры. Чтение исходника — одно место `tools/rebuild/game_src.js` (`stripTypeScriptTypes`,
+  режим strip: типы → пробелы); его берут `mod_build.js`, `gen_maps.js`, `gamesrc.py` (`read_game_file`), `diverge.js`, `bal_fold.js`.
+  `tsconfig.json` (strict, `erasableSyntaxOnly`), `tools/rebuild/typecheck.js` (`sim.js typecheck`, входит в `sim.js check`), typescript 6.0.2
+  в `tools/rebuild/package.json`. Проверки: сборка обеих карт = база (с поправкой на случайное имя временной папки esbuild — находка Р1-2);
+  пробный перевод 275 в `.ts` с аннотацией — `sim.html` и публикуемая страница те же, `gen_maps --check` чисто (откатен); локатор — 0 до
+  тика 640; `.js` — 740 предупреждений (база, Р1-3); найдено Р1-1 (`VERTEX_TOL_PX` не объявлена, редактор зон). `rebuild/evidence/R1/`.

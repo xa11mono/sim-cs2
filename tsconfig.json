@@ -1,0 +1,15 @@
+// Р1 (rebuild/MASTER_PLAN.md): TypeScript strict для файлов .ts игры.
+// Только стираемый синтаксис (erasableSyntaxOnly): сборка читает .ts без типов (tools/rebuild/game_src.js, node:module stripTypeScriptTypes), вычисления — те же байты, что в .js.
+// Проверка — node tools/sim.js typecheck (tsc из tools/rebuild, версия закреплена в package.json); .js — только предупреждения: typecheck --js.
+{
+  "compilerOptions": {
+    "strict": true,
+    "noEmit": true,
+    "erasableSyntaxOnly": true,
+    "target": "es2022",
+    "lib": ["es2023", "dom"],
+    "types": [],
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*.ts"]
+}

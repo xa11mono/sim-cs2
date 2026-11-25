@@ -8,6 +8,7 @@
 const fs = require("fs"), path = require("path"), os = require("os");
 const NM = process.env.MOD_NODE_MODULES || path.join(__dirname, "node_modules");
 const acorn = require(path.join(NM, "acorn")), walk = require(path.join(NM, "acorn-walk")), esbuild = require(path.join(NM, "esbuild"));
+const { readGame } = require("./game_src.js");   // (Р1.1) модуль .ts — текст без типов (позиции те же)
 const argv = process.argv.slice(2), COMPACT = argv.includes("--compact");   // --compact — без лишних пробелов (публикуемая страница, mkpub.py)
 const [page, srcDir, ...mods] = argv.filter(a => a !== "--compact");
 let html = fs.readFileSync(page, "utf8");
@@ -38,7 +39,7 @@ function usedNames(a) {   // идентификаторы-ссылки (не к�
 // «запуск» модуля: всё, что модуль делает при загрузке (присваивания переменных, вызовы), — в функцию __mi_<файл>, которую ядро
 // вызывает на месте метки /*@@MODINIT <файл>@@*/ (gamesrc.py) — порядок выполнения при загрузке тот же, что в склейке. Наверху модуля —
 // только объявления функций и переменных (без значений)
-const initName = f => "__mi_" + f.replace(/\.js$/, "").replace(/[^\w]/g, "_");
+const initName = f => "__mi_" + f.replace(/\.(js|ts)$/, "").replace(/[^\w]/g, "_");
 function splitInit(src, f) {
   const a = acorn.parse(src, { ecmaVersion: "latest", sourceType: "module", allowReturnOutsideFunction: true });
   const top = [], vars = [], init = [];
@@ -53,7 +54,7 @@ function splitInit(src, f) {
 }
 const C = topNames(core, false), CU = usedNames(C.a);
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "modb_")), coreExp = new Set(), coreImp = {};
-const M = mods.map(f => { const src = fs.readFileSync(path.join(srcDir, f), "utf8"), t = topNames(src, true), U = usedNames(t.a);
+const M = mods.map(f => { const src = readGame(path.join(srcDir, f)), t = topNames(src, true), U = usedNames(t.a);
   const imp = [...U].filter(n => C.N.has(n) && !t.N.has(n)); imp.forEach(n => coreExp.add(n));
   const exp = [...t.N].filter(n => CU.has(n)); coreImp[f] = exp;
   return { f, src, imp, exp, N: t.N }; });
@@ -72,11 +73,11 @@ if (SNAP) {
     m.src += "\n" + L.map(n => "function __set_" + n + "(v){ " + n + " = v; }").join("\n");
     m.exp = m.exp.concat(L.map(n => "__set_" + n)); coreImp[f] = (coreImp[f] || []).concat(L.map(n => "__set_" + n)); });
 }
-const js = f => "./" + f;
+const jsName = f => f.replace(/\.ts$/, ".js"), js = f => "./" + jsName(f);   // во временной папке модуль .ts — уже без типов, имя .js
 M.forEach(m => {
   let head = (m.imp.length ? "import { " + m.imp.join(", ") + " } from \"./__core.js\";\n" : "");
   Object.entries(m.fromMods || {}).forEach(([f, L]) => { head += "import { " + L.join(", ") + " } from \"" + js(f) + "\";\n"; });
-  fs.writeFileSync(path.join(tmp, m.f), head + splitInit(m.src, m.f) + "\nexport { " + m.exp.concat([initName(m.f)]).join(", ") + " };\n");
+  fs.writeFileSync(path.join(tmp, jsName(m.f)), head + splitInit(m.src, m.f) + "\nexport { " + m.exp.concat([initName(m.f)]).join(", ") + " };\n");
 });
 M.forEach(m => { const mk = "/*@@MODINIT " + m.f + "@@*/"; if (core.indexOf(mk) < 0) throw new Error("нет метки модуля " + m.f);
   core = core.replace(mk, initName(m.f) + "();"); coreImp[m.f] = (coreImp[m.f] || []).concat([initName(m.f)]); });
