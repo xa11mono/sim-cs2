@@ -3,7 +3,7 @@
 // Состояние — переменные снимка отметки (mkSnapList, src/marks.js) без кэшей и показа. Два прохода: грубый (каждые --every тиков),
 // затем с начала (матч повторяем) по тику внутри найденного окна.
 //   node tools/measure/diverge.js A.html B.html [--match=3] [--ticks=20000] [--every=64] [--inject-a=f.js] [--inject-b=f.js]
-//        [--skip=регулярка] [--skip-field=регулярка] [--math] [--out=отчёт.json] [--start-a=код|@файл] [--start-b=код|@файл] [--snap-at=T]
+//        [--skip=регулярка] [--skip-add=регулярка] [--skip-field=регулярка] [--math] [--out=отчёт.json] [--start-a=код|@файл] [--start-b=код|@файл] [--snap-at=T]
 // --start-*: код старта вместо freshMatch(--match) (инвариант I-22 — newMatch после матча; I-30 — перестановка ботов);
 // --snap-at=T: страница B не играет сама, а открывает снимок отметки страницы A на тике T (инвариант I-23: снимок = игра).
 // --inject-*: код выполняется в странице до freshMatch (самопроверка — tools/measure/selftest/math_libm.js). Нужен acorn (NODE_PATH).
@@ -22,7 +22,8 @@ const DVS = require('./dv_state.js');
 // NADE_SOLVE_MS — время подборов броска по часам (380, «только для проверки»); tracers, soundPings, killfeed, nowTs — показ с часами страницы
 // (born / t: nowTs), расчёт только обрезает длину и чистит (490:379, 540:393, 530:88, 435:96) — проверено grep 24.11
 // (Р3.1.5) список по умолчанию — колонка cmp реестра состояния (dv_state.skipDefault), причины — там же
-const SKIP = opt('skip', DVS.skipDefault());
+// --skip — заменить список по умолчанию; --skip-add=регулярка — добавить к нему (напр. удалённая переменная: --skip-add=^SPOT_TEAM$)
+const SKIP = opt('skip', DVS.skipDefault()) + (opt('skip-add', '') ? '|' + opt('skip-add', '') : '');
 // поля показа внутри объектов игры: _visFacing пишет только рисование (620, 625, 660, 675); _hitFx = {t: nowTs} — вспышка попадания (450:52,
 // 490:306); код расчёта 000–545 их не читает (grep 24.11)
 const SKIPF = opt('skip-field', DVS.SKIPF_DEFAULT);
