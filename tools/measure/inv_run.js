@@ -23,7 +23,7 @@ async function play(p, withInv) {
 }
 function diverge(extra) {
   const r = cp.spawnSync('node', [path.join(__dirname, 'diverge.js'), sim, sim, '--match=' + MATCH].concat(extra), { encoding: 'utf8', env: process.env });
-  return { exit: r.status, out: (r.stdout || '').trim().split('\n').slice(0, 6).join(' | ') };
+  return { exit: r.status, out: (r.stdout || '').trim().split('\n').slice(0, 6).join(' | '), err: (r.stderr || '').trim().slice(-300) };
 }
 (async () => {
   const browser = await chromium.launch(), rep = { sim, match: MATCH, ticks: TICKS };

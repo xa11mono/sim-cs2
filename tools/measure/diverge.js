@@ -17,7 +17,8 @@ const MATCH = +opt('match', 3), TICKS = +opt('ticks', 20000), EVERY = Math.max(1
 // уровня из файлов показа и инструментов (src/game/550… и выше: рисование, HUD, редакторы, обсервер, повтор, песочница, звук, кадр) —
 // их обновляет кадр страницы по её часам; находятся разбором исходника, а не списком руками.
 function showVars() {
-  let acorn; try { acorn = require('acorn'); } catch (e) { console.error('нет acorn: NODE_PATH=tools/rebuild/node_modules'); process.exit(2); }
+  let acorn; try { acorn = require('acorn'); } catch (e) { try { acorn = require(path.join(__dirname, '..', 'rebuild', 'node_modules', 'acorn')); }   // пакеты сборки (src/build.py ставит их сам)
+    catch (e2) { console.error('нет acorn: npm i --prefix tools/rebuild или NODE_PATH'); process.exit(2); } }
   // как tools/rebuild/gen_maps.js: склейка src/game (html + js), основной <script>, тело общей обёртки, дом переменной — файл объявления
   const dir = path.join(__dirname, '..', '..', 'src', 'game'); let all = '', spans = [];
   for (const f of fs.readdirSync(dir).filter(f => /\.(html|js)$/.test(f)).sort()) { const t = fs.readFileSync(path.join(dir, f), 'utf8'); spans.push([all.length, all.length + t.length, f]); all += t; }

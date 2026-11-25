@@ -1,0 +1,643 @@
+{
+ "env": {
+  "node": "v24.21.0",
+  "v8": "13.6.233.17-node.53",
+  "os": "win32 10.0.19045",
+  "arch": "x64",
+  "playwright": "1.63.0",
+  "chromium": "153.0.8010.12"
+ },
+ "steps": {
+  "rustup_install": {
+   "code": "код 0",
+   "tail": "go\\bin) in your PATH\nenvironment variable. This has not been done automatically.\n\ninfo: profile set to minimal\ninfo: setting default host tuple to x86_64-pc-windows-gnu\ninfo: syncing channel updates for stable-x86_64-pc-windows-gnu\ninfo: latest update on 2026-11-12 for version 1.100.0 (0ef1bc386 2026-11-09)\ninfo: downloading 4 components\ninfo: default toolchain set to stable-x86_64-pc-windows-gnu\n"
+  },
+  "rustup_wasm": {
+   "code": "код 0",
+   "tail": "код 0\n\ninfo: downloading component rust-std\n"
+  },
+  "cargo_version": {
+   "code": "код 0",
+   "tail": "код 0\ncargo 1.100.0 (3acc79c0c 2026-11-05)\n\n"
+  },
+  "build_dmath_ref": {
+   "code": "код 0",
+   "tail": "код 0\n\n    Updating crates.io index\n Downloading crates ...\n  Downloaded libm v0.2.16\n   Compiling libm v0.2.16\n   Compiling dmath_ref v0.1.0 (C:\\actions-runner\\_work\\sim-cs2\\sim-cs2\\tools\\dmath\\ref)\n    Finished `release` profile [optimized] target(s) in 3.93s\n"
+  },
+  "dmath_check": {
+   "code": "код 0",
+   "tail": "th 32, Math 13.3\nsqrt   случайные: 0/50000  граничные: 0/45  | Math≠libm: 0 / 0  | нс: dmath 7.3, Math 7.4\natan2  случайные: 0/50000  граничные: 0/2025  | Math≠libm: 15 / 3  | нс: dmath 28.9, Math 21.6\npow    случайные: 0/50000  граничные: 0/2025  | Math≠libm: 3100 / 64  | нс: dmath 77.1, Math 21.8\nhypot  случайные: 0/50000  граничные: 0/2025  | Math≠libm: 9399 / 319  | нс: dmath 33.2, Math 20.3\n\n"
+  },
+  "build_wasm": {
+   "code": "код 0",
+   "tail": "код 0\n\n   Compiling libm v0.2.16\n   Compiling prec v0.1.0 (C:\\actions-runner\\_work\\sim-cs2\\sim-cs2\\docs\\reports\\audit_2026-11-24\\stage4\\bench\\prec)\n    Finished `release` profile [optimized] target(s) in 1.87s\n"
+  },
+  "build_native": {
+   "code": "код 0",
+   "tail": "код 0\n\n   Compiling libm v0.2.16\n   Compiling prec v0.1.0 (C:\\actions-runner\\_work\\sim-cs2\\sim-cs2\\docs\\reports\\audit_2026-11-24\\stage4\\bench\\prec)\n    Finished `release` profile [optimized] target(s) in 1.30s\n"
+  },
+  "native_dump": {
+   "code": "код 0",
+   "tail": "код 0\n\n"
+  },
+  "native_vs_wasm": {
+   "code": "код 0",
+   "tail": "0 pow:19536 hypot:19988 sqrt:0\nnative_libm vs wasm_libm   sin:0 cos:0 tan:0 atan2:0 exp:0 log:0 pow:0 hypot:0 sqrt:0\nnative_std vs wasm_std     sin:6223 cos:6273 tan:7940 atan2:35578 exp:19429 log:2240 pow:19536 hypot:33391 sqrt:0\nwasm_std vs wasm_libm      sin:0 cos:0 tan:0 atan2:0 exp:0 log:0 pow:0 hypot:27935 sqrt:0\noverhead node {\"calls\":10000000,\"wasm_ns_per_call\":2.45,\"js_ns_per_call\":0.4}\n\n"
+  },
+  "build_napi": {
+   "code": "код 101",
+   "tail": ".3\n   Compiling once_cell v1.21.4\n   Compiling napi-build v2.7.0\n   Compiling semver v1.0.28\n   Compiling bitflags v2.13.2\n   Compiling cfg-if v1.0.5\n   Compiling libloading v0.8.9\n   Compiling napi-sys v2.4.0\nerror: error calling dlltool 'dlltool.exe': program not found\n\nerror: could not compile `libloading` (lib) due to 1 previous error\nwarning: build failed, waiting for other jobs to finish...\n"
+  }
+ },
+ "dmath_check": {
+  "env": {
+   "node": "v24.21.0",
+   "v8": "13.6.233.17-node.53",
+   "os": "win32"
+  },
+  "libm": "0.2.16",
+  "n": 50000,
+  "functions": {
+   "sin": {
+    "random": {
+     "n": 50000,
+     "mismatch": 0,
+     "examples": [],
+     "jsMathDiffersFromLibm": 417,
+     "jsExamples": [
+      {
+       "args": [
+        5.474195044276497
+       ],
+       "math": -0.7235905931120901,
+       "libm": -0.72359059311209
+      },
+      {
+       "args": [
+        -1115776.6496762633
+       ],
+       "math": -0.7324752115766722,
+       "libm": -0.7324752115766721
+      },
+      {
+       "args": [
+        -14.7952945753932
+       ],
+       "math": -0.7911388250690297,
+       "libm": -0.7911388250690298
+      }
+     ]
+    },
+    "edge": {
+     "n": 45,
+     "mismatch": 0,
+     "examples": [],
+     "jsMathDiffersFromLibm": 0,
+     "jsExamples": []
+    },
+    "speed": {
+     "dmath_ns": 110.1,
+     "math_ns": 33.1
+    }
+   },
+   "cos": {
+    "random": {
+     "n": 50000,
+     "mismatch": 0,
+     "examples": [],
+     "jsMathDiffersFromLibm": 428,
+     "jsExamples": [
+      {
+       "args": [
+        -1375060.049816966
+       ],
+       "math": -0.7940799323567744,
+       "libm": -0.7940799323567743
+      },
+      {
+       "args": [
+        15836.087055504322
+       ],
+       "math": -0.776621572864775,
+       "libm": -0.7766215728647748
+      },
+      {
+       "args": [
+        -11.822148762643337
+       ],
+       "math": 0.7356152423758446,
+       "libm": 0.7356152423758447
+      }
+     ]
+    },
+    "edge": {
+     "n": 45,
+     "mismatch": 0,
+     "examples": [],
+     "jsMathDiffersFromLibm": 0,
+     "jsExamples": []
+    },
+    "speed": {
+     "dmath_ns": 111.1,
+     "math_ns": 33
+    }
+   },
+   "atan": {
+    "random": {
+     "n": 50000,
+     "mismatch": 0,
+     "examples": [],
+     "jsMathDiffersFromLibm": 0,
+     "jsExamples": []
+    },
+    "edge": {
+     "n": 45,
+     "mismatch": 0,
+     "examples": [],
+     "jsMathDiffersFromLibm": 0,
+     "jsExamples": []
+    },
+    "speed": {
+     "dmath_ns": 15.5,
+     "math_ns": 13.6
+    }
+   },
+   "acos": {
+    "random": {
+     "n": 50000,
+     "mismatch": 0,
+     "examples": [],
+     "jsMathDiffersFromLibm": 0,
+     "jsExamples": []
+    },
+    "edge": {
+     "n": 45,
+     "mismatch": 0,
+     "examples": [],
+     "jsMathDiffersFromLibm": 0,
+     "jsExamples": []
+    },
+    "speed": {
+     "dmath_ns": 17.5,
+     "math_ns": 14.3
+    }
+   },
+   "exp": {
+    "random": {
+     "n": 50000,
+     "mismatch": 0,
+     "examples": [],
+     "jsMathDiffersFromLibm": 0,
+     "jsExamples": []
+    },
+    "edge": {
+     "n": 45,
+     "mismatch": 0,
+     "examples": [],
+     "jsMathDiffersFromLibm": 1,
+     "jsExamples": [
+      {
+       "args": [
+        1
+       ],
+       "math": 2.718281828459045,
+       "libm": 2.7182818284590455
+      }
+     ]
+    },
+    "speed": {
+     "dmath_ns": 32.3,
+     "math_ns": 14.6
+    }
+   },
+   "log": {
+    "random": {
+     "n": 50000,
+     "mismatch": 0,
+     "examples": [],
+     "jsMathDiffersFromLibm": 39,
+     "jsExamples": [
+      {
+       "args": [
+        2727.332271170871
+       ],
+       "math": 7.911079220370244,
+       "libm": 7.911079220370243
+      },
+      {
+       "args": [
+        5023.880102672683
+       ],
+       "math": 8.521957842949385,
+       "libm": 8.521957842949387
+      },
+      {
+       "args": [
+        5393.090450671571
+       ],
+       "math": 8.592873867062254,
+       "libm": 8.592873867062252
+      }
+     ]
+    },
+    "edge": {
+     "n": 45,
+     "mismatch": 0,
+     "examples": [],
+     "jsMathDiffersFromLibm": 0,
+     "jsExamples": []
+    },
+    "speed": {
+     "dmath_ns": 32,
+     "math_ns": 13.3
+    }
+   },
+   "sqrt": {
+    "random": {
+     "n": 50000,
+     "mismatch": 0,
+     "examples": [],
+     "jsMathDiffersFromLibm": 0,
+     "jsExamples": []
+    },
+    "edge": {
+     "n": 45,
+     "mismatch": 0,
+     "examples": [],
+     "jsMathDiffersFromLibm": 0,
+     "jsExamples": []
+    },
+    "speed": {
+     "dmath_ns": 7.3,
+     "math_ns": 7.4
+    }
+   },
+   "atan2": {
+    "random": {
+     "n": 50000,
+     "mismatch": 0,
+     "examples": [],
+     "jsMathDiffersFromLibm": 15,
+     "jsExamples": [
+      {
+       "args": [
+        2.632535620874208e+141,
+        -2.432897375742432e+122
+       ],
+       "math": 1.5707963267948966,
+       "libm": 1.5707963267948968
+      },
+      {
+       "args": [
+        1.5501541924276044e+207,
+        -1.761565267360116e+188
+       ],
+       "math": 1.5707963267948966,
+       "libm": 1.5707963267948968
+      },
+      {
+       "args": [
+        2.1471820350710446e-38,
+        -3.2256815012897546e-57
+       ],
+       "math": 1.5707963267948966,
+       "libm": 1.5707963267948968
+      }
+     ]
+    },
+    "edge": {
+     "n": 2025,
+     "mismatch": 0,
+     "examples": [],
+     "jsMathDiffersFromLibm": 3,
+     "jsExamples": [
+      {
+       "args": [
+        1e+22,
+        -745.1332191019411
+       ],
+       "math": 1.5707963267948966,
+       "libm": 1.5707963267948968
+      },
+      {
+       "args": [
+        1e+22,
+        -745.14
+       ],
+       "math": 1.5707963267948966,
+       "libm": 1.5707963267948968
+      },
+      {
+       "args": [
+        1e+22,
+        -708.4
+       ],
+       "math": 1.5707963267948966,
+       "libm": 1.5707963267948968
+      }
+     ]
+    },
+    "speed": {
+     "dmath_ns": 28.9,
+     "math_ns": 21.6
+    }
+   },
+   "pow": {
+    "random": {
+     "n": 50000,
+     "mismatch": 0,
+     "examples": [],
+     "jsMathDiffersFromLibm": 3100,
+     "jsExamples": [
+      {
+       "args": [
+        1.157728872330619,
+        -2.393861203920096
+       ],
+       "math": 0.7042615780323745,
+       "libm": 0.7042615780323747
+      },
+      {
+       "args": [
+        0.37567458215518096,
+        -1.7442737664096057
+       ],
+       "math": 5.516258403365122,
+       "libm": 5.516258403365121
+      },
+      {
+       "args": [
+        9.080124302835895,
+        0.7585158725269139
+       ],
+       "math": 5.330007657643608,
+       "libm": 5.330007657643607
+      }
+     ]
+    },
+    "edge": {
+     "n": 2025,
+     "mismatch": 0,
+     "examples": [],
+     "jsMathDiffersFromLibm": 64,
+     "jsExamples": [
+      {
+       "args": [
+        5e-324,
+        0.25
+       ],
+       "math": 1.4908919308538355e-81,
+       "libm": 1.4908919308538353e-81
+      },
+      {
+       "args": [
+        2.2250738585072014e-308,
+        0.7853981633974483
+       ],
+       "math": 2.3451431199294664e-242,
+       "libm": 2.345143119929466e-242
+      },
+      {
+       "args": [
+        2.2250738585072014e-308,
+        0.25
+       ],
+       "math": 1.221338669755462e-77,
+       "libm": 1.2213386697554618e-77
+      }
+     ]
+    },
+    "speed": {
+     "dmath_ns": 77.1,
+     "math_ns": 21.8
+    }
+   },
+   "hypot": {
+    "random": {
+     "n": 50000,
+     "mismatch": 0,
+     "examples": [],
+     "jsMathDiffersFromLibm": 9399,
+     "jsExamples": [
+      {
+       "args": [
+        1211.6485638543963,
+        -1257.8424238599837
+       ],
+       "math": 1746.4993001866278,
+       "libm": 1746.4993001866276
+      },
+      {
+       "args": [
+        1751.520898193121,
+        -2260.527258273214
+       ],
+       "math": 2859.686860864919,
+       "libm": 2859.6868608649183
+      },
+      {
+       "args": [
+        2388.5138081386685,
+        -1637.1001456864178
+       ],
+       "math": 2895.7028678156144,
+       "libm": 2895.702867815615
+      }
+     ]
+    },
+    "edge": {
+     "n": 2025,
+     "mismatch": 0,
+     "examples": [],
+     "jsMathDiffersFromLibm": 319,
+     "jsExamples": [
+      {
+       "args": [
+        1,
+        2.356194490192345
+       ],
+       "math": 2.559619595879975,
+       "libm": 2.5596195958799743
+      },
+      {
+       "args": [
+        1,
+        1600000
+       ],
+       "math": 1600000.0000003122,
+       "libm": 1600000.0000003125
+      },
+      {
+       "args": [
+        1,
+        -745.14
+       ],
+       "math": 745.1406710145408,
+       "libm": 745.1406710145407
+      }
+     ]
+    },
+    "speed": {
+     "dmath_ns": 33.2,
+     "math_ns": 20.3
+    }
+   }
+  }
+ },
+ "math_native_wasm": {
+  "n": 200000,
+  "diff": {
+   "js vs native_std": {
+    "sin": 6716,
+    "cos": 6790,
+    "tan": 7940,
+    "atan2": 35578,
+    "exp": 19429,
+    "log": 2222,
+    "pow": 135,
+    "hypot": 74893,
+    "sqrt": 0
+   },
+   "js vs native_libm": {
+    "sin": 1831,
+    "cos": 1893,
+    "tan": 0,
+    "atan2": 0,
+    "exp": 0,
+    "log": 212,
+    "pow": 19631,
+    "hypot": 72958,
+    "sqrt": 0
+   },
+   "js vs wasm_std": {
+    "sin": 1831,
+    "cos": 1893,
+    "tan": 0,
+    "atan2": 0,
+    "exp": 0,
+    "log": 212,
+    "pow": 19631,
+    "hypot": 69227,
+    "sqrt": 0
+   },
+   "js vs wasm_libm": {
+    "sin": 1831,
+    "cos": 1893,
+    "tan": 0,
+    "atan2": 0,
+    "exp": 0,
+    "log": 212,
+    "pow": 19631,
+    "hypot": 72958,
+    "sqrt": 0
+   },
+   "native_std vs native_libm": {
+    "sin": 6223,
+    "cos": 6273,
+    "tan": 7940,
+    "atan2": 35578,
+    "exp": 19429,
+    "log": 2240,
+    "pow": 19536,
+    "hypot": 19988,
+    "sqrt": 0
+   },
+   "native_libm vs wasm_libm": {
+    "sin": 0,
+    "cos": 0,
+    "tan": 0,
+    "atan2": 0,
+    "exp": 0,
+    "log": 0,
+    "pow": 0,
+    "hypot": 0,
+    "sqrt": 0
+   },
+   "native_std vs wasm_std": {
+    "sin": 6223,
+    "cos": 6273,
+    "tan": 7940,
+    "atan2": 35578,
+    "exp": 19429,
+    "log": 2240,
+    "pow": 19536,
+    "hypot": 33391,
+    "sqrt": 0
+   },
+   "wasm_std vs wasm_libm": {
+    "sin": 0,
+    "cos": 0,
+    "tan": 0,
+    "atan2": 0,
+    "exp": 0,
+    "log": 0,
+    "pow": 0,
+    "hypot": 27935,
+    "sqrt": 0
+   }
+  },
+  "hash": {
+   "js": {
+    "sin": "553a9172",
+    "cos": "513afd5e",
+    "tan": "2c3cfc5c",
+    "atan2": "aba782ba",
+    "exp": "6af67175",
+    "log": "1b7dbd19",
+    "pow": "c2e6c13f",
+    "hypot": "d36d24b5",
+    "sqrt": "9d2ca4a3"
+   },
+   "wasm_std": {
+    "sin": "6714cee3",
+    "cos": "138bca5f",
+    "tan": "2c3cfc5c",
+    "atan2": "aba782ba",
+    "exp": "6af67175",
+    "log": "f46ec5df",
+    "pow": "86a0ea56",
+    "hypot": "8b8650b2",
+    "sqrt": "9d2ca4a3"
+   },
+   "wasm_libm": {
+    "sin": "6714cee3",
+    "cos": "138bca5f",
+    "tan": "2c3cfc5c",
+    "atan2": "aba782ba",
+    "exp": "6af67175",
+    "log": "f46ec5df",
+    "pow": "86a0ea56",
+    "hypot": "7347637b",
+    "sqrt": "9d2ca4a3"
+   },
+   "native_std": {
+    "sin": "fb28fb23",
+    "cos": "8458897a",
+    "tan": "f2731fe",
+    "atan2": "704c2ec0",
+    "exp": "6191255e",
+    "log": "882ecb61",
+    "pow": "9c7ba5ca",
+    "hypot": "9d2ca4a3",
+    "sqrt": "9d2ca4a3"
+   },
+   "native_libm": {
+    "sin": "6714cee3",
+    "cos": "138bca5f",
+    "tan": "2c3cfc5c",
+    "atan2": "aba782ba",
+    "exp": "6af67175",
+    "log": "f46ec5df",
+    "pow": "86a0ea56",
+    "hypot": "7347637b",
+    "sqrt": "9d2ca4a3"
+   }
+  },
+  "overhead_node": {
+   "calls": 10000000,
+   "wasm_ns_per_call": 2.45,
+   "js_ns_per_call": 0.4
+  },
+  "node": "v24.21.0"
+ }
+}
