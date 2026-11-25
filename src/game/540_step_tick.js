@@ -286,7 +286,7 @@ function stepTick(){
     postRun = true;
   }
   if(roundState === "matchover"){
-    if(simTime - roundEndTime >= 7) newMatch();
+    if(simTime - roundEndTime >= 7) matchBegin(matchNum + 1, true, false);   // (Т-2) следующий матч — как в новой странице, с памятью OPP / SERIES (530)
     return;
   }
   if(roundState === "freeze"){

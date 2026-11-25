@@ -21,7 +21,7 @@ CODEX = {'временное состояние раунда': 'раунд', 'в
          'диагностическое состояние': 'диагностика', 'неизменяемые входы': 'вход', 'неизменяемые данные': 'неизменяемое',
          'генераторы случайных чисел': 'случайность'}
 ROUND_RESET = {'resetRound'}
-MATCH_RESET = {'newMatch', 'freshMatch', 'resetMatchMemory', 'startHalf', 'memStart', 'memRestore'}
+MATCH_RESET = {'newMatch', 'freshMatch', 'matchBegin', 'resetMatchMemory', 'startHalf', 'memStart', 'memRestore'}
 MODES = ('660', '675', '677', '678')   # разминка, повтор, песочница, демо
 # опыт: что меняется за матч (tools/rebuild/state_runtime.js → rebuild/evidence/R3/state_runtime_*.json); «неизменяемое» по правилу —
 # только если не меняется ни в одном опыте (статический разбор не видит записей через другие имена: 25.11 опроверг 5 переменных)

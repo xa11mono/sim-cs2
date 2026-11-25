@@ -30,6 +30,15 @@ function mkSnapList(){
 // загрузки минус NAV_UNLINKED — приводится к снимку по списку (mkGraphTo). Формат 1 (старые отметки): __ext нет — память подсказок и кэш
 // путей остаются страничными (как до Т-1), граф — по NAV_UNLINKED, если в нём есть рёбра
 var MK_SNAP_FMT = 2, MK_SNAP_UP = {};
+// (Т-2) снимок состояния после загрузки (680, до разминки) и чистый старт матча в странице, где матч уже был: всё — как после загрузки,
+// кроме памяти между матчами — MK_KEEP (из реестра состояния: классы «постоянная память», «серия»; вставляет src/marks_build.py)
+var MK_LOAD = null;
+function mkMatchClean(){
+  if(!MK_LOAD) return;
+  var keep = {}; MK_KEEP.forEach(function(n){ keep[n] = eval(n); });
+  mkRestore(MK_LOAD);
+  MK_KEEP.forEach(function(n){ eval(n + " = keep[n]"); });
+}
 function mkSnapExt(){
   var G = nadeGuessStore.all(), base = (MAP.nadeguess && MAP.nadeguess.g) || {}, own = {}, k, live = {};
   for(k in G) if(!(k in base) || base[k] !== G[k]) own[k] = G[k];

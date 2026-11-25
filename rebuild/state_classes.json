@@ -518,7 +518,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:206)",
+"why": "пишет resetRound (530_round_sides_match.js:215)",
 "cmp": "да"
 },
 "b:_duckT": {
@@ -932,7 +932,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:196)",
+"why": "пишет resetRound (530_round_sides_match.js:205)",
 "cmp": "да"
 },
 "b:_fireIn": {
@@ -1247,7 +1247,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:222)",
+"why": "пишет resetRound (530_round_sides_match.js:231)",
 "cmp": "да"
 },
 "b:_huntIdx": {
@@ -1256,7 +1256,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:222)",
+"why": "пишет resetRound (530_round_sides_match.js:231)",
 "cmp": "да"
 },
 "b:_huntStart": {
@@ -2300,7 +2300,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:207)",
+"why": "пишет resetRound (530_round_sides_match.js:216)",
 "cmp": "да"
 },
 "b:_prevOffY": {
@@ -2309,7 +2309,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:207)",
+"why": "пишет resetRound (530_round_sides_match.js:216)",
 "cmp": "да"
 },
 "b:_proM": {
@@ -2597,7 +2597,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:222)",
+"why": "пишет resetRound (530_round_sides_match.js:231)",
 "cmp": "да"
 },
 "b:_sawEnemy": {
@@ -2939,7 +2939,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:206)",
+"why": "пишет resetRound (530_round_sides_match.js:215)",
 "cmp": "да"
 },
 "b:_takeAt": {
@@ -3029,7 +3029,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:206)",
+"why": "пишет resetRound (530_round_sides_match.js:215)",
 "cmp": "да"
 },
 "b:_ts": {
@@ -3038,7 +3038,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:202)",
+"why": "пишет resetRound (530_round_sides_match.js:211)",
 "cmp": "да"
 },
 "b:_underV": {
@@ -3056,7 +3056,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:196)",
+"why": "пишет resetRound (530_round_sides_match.js:205)",
 "cmp": "да"
 },
 "b:_utilW": {
@@ -3263,7 +3263,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:206)",
+"why": "пишет resetRound (530_round_sides_match.js:215)",
 "cmp": "да"
 },
 "b:className": {
@@ -3281,7 +3281,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:202)",
+"why": "пишет resetRound (530_round_sides_match.js:211)",
 "cmp": "да"
 },
 "b:cool": {
@@ -3344,7 +3344,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:203)",
+"why": "пишет resetRound (530_round_sides_match.js:212)",
 "cmp": "да"
 },
 "b:defuseCooldownUntil": {
@@ -3497,7 +3497,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:203)",
+"why": "пишет resetRound (530_round_sides_match.js:212)",
 "cmp": "да"
 },
 "b:fresh": {
@@ -3560,7 +3560,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:204)",
+"why": "пишет resetRound (530_round_sides_match.js:213)",
 "cmp": "да"
 },
 "b:holding": {
@@ -3650,7 +3650,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:206)",
+"why": "пишет resetRound (530_round_sides_match.js:215)",
 "cmp": "да"
 },
 "b:lastStepTick": {
@@ -3659,7 +3659,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:205)",
+"why": "пишет resetRound (530_round_sides_match.js:214)",
 "cmp": "да"
 },
 "b:levelOk": {
@@ -3830,7 +3830,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:202)",
+"why": "пишет resetRound (530_round_sides_match.js:211)",
 "cmp": "да"
 },
 "b:plantUntil": {
@@ -4181,7 +4181,7 @@
 "life": "раунд (resetRound)",
 "snap": "с bots",
 "src": "правило",
-"why": "пишет resetRound (530_round_sides_match.js:206)",
+"why": "пишет resetRound (530_round_sides_match.js:215)",
 "cmp": "да"
 },
 "b:t": {
@@ -7711,6 +7711,15 @@
 "src": "правило",
 "why": "пишут только файлы показа (570), симуляция (до 550) не читает",
 "cmp": "нет: переменная файла показа (550+)"
+},
+"g:MATCH_DIRTY": {
+"class": "режим",
+"owner": "",
+"life": "страница",
+"snap": "да",
+"src": "ручная",
+"why": "«в странице уже был матч» (530 matchBegin, Т-2): следующий старт матча сначала восстанавливает состояние загрузки (mkMatchClean)",
+"cmp": "да"
 },
 "g:MATCH_WIN": {
 "class": "неизменяемое",
@@ -11972,10 +11981,10 @@
 "g:events": {
 "class": "матч",
 "owner": "",
-"life": "матч (freshMatch)",
+"life": "матч (matchBegin)",
 "snap": "да",
 "src": "правило",
-"why": "пишет freshMatch, не resetRound",
+"why": "пишет matchBegin, не resetRound",
 "cmp": "да"
 },
 "g:fires": {

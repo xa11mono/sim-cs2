@@ -3754,7 +3754,7 @@
    "init": "ObjectExpression",
    "w": {
     "beliefReset · 200": 1,
-    "freshMatch · 530": 1
+    "matchBegin · 530": 1
    },
    "m": {
     "beliefTick · 240": 1
@@ -4290,6 +4290,18 @@
     "590": 3
    },
    "snap": "нет: UI"
+  },
+  "MATCH_DIRTY": {
+   "decl": "530_round_sides_match.js:85",
+   "init": "Literal",
+   "w": {
+    "matchBegin · 530": 1
+   },
+   "m": {},
+   "r": {
+    "530": 1
+   },
+   "snap": true
   },
   "MATCH_WIN": {
    "decl": "520_economy.js:9",
@@ -5590,7 +5602,7 @@
    "init": "Literal",
    "w": {
     "(верх файла) · 130": 1,
-    "freshMatch · 530": 1,
+    "matchBegin · 530": 1,
     "oppNorm · 130": 1,
     "saveOppProfile · 130": 1
    },
@@ -6060,7 +6072,7 @@
    "decl": "150_lurker_probes_clear.js:292",
    "init": "ObjectExpression",
    "w": {
-    "freshMatch · 530": 1
+    "matchBegin · 530": 1
    },
    "m": {
     "posClearTick · 150": 1
@@ -8872,7 +8884,7 @@
    "init": "ObjectExpression",
    "w": {
     "dvStart · 678": 1,
-    "freshMatch · 530": 1,
+    "matchBegin · 530": 1,
     "rpJump · 675": 1,
     "warmEnd · 660": 1,
     "warmStart · 660": 1
@@ -9578,7 +9590,7 @@
    "decl": "460_sound_situations.js:144",
    "init": "ObjectExpression",
    "w": {
-    "freshMatch · 530": 1
+    "matchBegin · 530": 1
    },
    "m": {
     "awpSmokeTick · 460": 1
@@ -10076,7 +10088,7 @@
    "init": "Literal",
    "w": {
     "checkClutch · 435": 1,
-    "freshMatch · 530": 1,
+    "matchBegin · 530": 1,
     "resetRound · 530": 1
    },
    "m": {
@@ -10291,8 +10303,8 @@
    "init": "ArrayExpression",
    "w": {},
    "m": {
-    "freshMatch · 530": 1,
-    "logEvent · 435": 2
+    "logEvent · 435": 2,
+    "matchBegin · 530": 1
    },
    "r": {
     "435": 3,
@@ -10309,7 +10321,7 @@
    },
    "m": {
     "detonate · 400": 1,
-    "freshMatch · 530": 1,
+    "matchBegin · 530": 1,
     "nadesTick · 400": 2,
     "resetNades · 420": 1
    },
@@ -10354,8 +10366,8 @@
    },
    "m": {
     "dropWeaponOnDeath · 450": 3,
-    "freshMatch · 530": 1,
     "itemPickupTick · 450": 2,
+    "matchBegin · 530": 1,
     "resetNades · 420": 1
    },
    "r": {
@@ -10377,7 +10389,7 @@
    "m": {
     "buyItem · 520": 1,
     "dropWeaponOnDeath · 450": 1,
-    "freshMatch · 530": 1,
+    "matchBegin · 530": 1,
     "resetNades · 420": 1,
     "weaponPickupTick · 450": 2
    },
@@ -10546,7 +10558,7 @@
     "feedBombKill · 435": 2,
     "feedEvent · 435": 2,
     "feedKill · 435": 2,
-    "freshMatch · 530": 1,
+    "matchBegin · 530": 1,
     "resetRound · 530": 1
    },
    "r": {
@@ -10680,7 +10692,7 @@
    "decl": "520_economy.js:17",
    "init": "Literal",
    "w": {
-    "freshMatch · 530": 1,
+    "matchBegin · 530": 1,
     "newMatch · 530": 1
    },
    "m": {},
@@ -10709,7 +10721,7 @@
     "495": 1,
     "520": 7,
     "530": 4,
-    "540": 3,
+    "540": 4,
     "545": 2,
     "640": 2,
     "670": 6,
@@ -10771,7 +10783,7 @@
    },
    "m": {
     "detonate · 400": 1,
-    "freshMatch · 530": 1,
+    "matchBegin · 530": 1,
     "nadesTick · 400": 2,
     "resetNades · 420": 1
    },
@@ -10831,7 +10843,7 @@
     "nadeWorldSet · 360": 1
    },
    "m": {
-    "freshMatch · 530": 1,
+    "matchBegin · 530": 1,
     "nadesTick · 400": 2,
     "resetNades · 420": 1,
     "throwNadeTry · 380": 1
@@ -11262,7 +11274,7 @@
    "decl": "140_named_spots_ct_setup.js:454",
    "init": "Literal",
    "w": {
-    "freshMatch · 530": 1,
+    "matchBegin · 530": 1,
     "resetRound · 530": 1,
     "roundSetStart · 530": 1,
     "sbToggle · 677": 1
@@ -11531,7 +11543,7 @@
    "decl": "140_named_spots_ct_setup.js:410",
    "init": "Literal",
    "w": {
-    "freshMatch · 530": 1,
+    "matchBegin · 530": 1,
     "rpWorldDraw · 675": 2,
     "simTimeSet · 530": 1
    },
@@ -11605,7 +11617,7 @@
    "m": {
     "detonate · 400": 1,
     "dvTick · 678": 1,
-    "freshMatch · 530": 1,
+    "matchBegin · 530": 1,
     "nadesTick · 400": 1,
     "resetNades · 420": 1
    },
@@ -11641,8 +11653,8 @@
    },
    "m": {
     "draw · 620": 1,
-    "freshMatch · 530": 1,
     "landSound · 540": 1,
+    "matchBegin · 530": 1,
     "stepTick · 540": 2
    },
    "r": {
@@ -11737,7 +11749,7 @@
    "decl": "520_economy.js:33",
    "init": "ObjectExpression",
    "w": {
-    "freshMatch · 530": 1
+    "matchBegin · 530": 1
    },
    "m": {
     "buyPhase · 530": 2,
@@ -11951,7 +11963,7 @@
    "m": {
     "blindBullet · 290": 2,
     "draw · 620": 1,
-    "freshMatch · 530": 1,
+    "matchBegin · 530": 1,
     "resetRound · 530": 1,
     "tryShoot · 490": 2
    },
@@ -12544,7 +12556,7 @@
     "460_sound_situations.js:209 pistolSwap",
     "460_sound_situations.js:220 pistolBack",
     "480_assist_flank_reload.js:142 updateReload",
-    "530_round_sides_match.js:206 resetRound",
+    "530_round_sides_match.js:215 resetRound",
     "660_warmup.js:13 warmSpawn",
     "678_demo_view.js:31 dvStart"
    ],
@@ -12594,7 +12606,7 @@
     "370_fire_nav_levels_ladders.js:382 navFollowFloor",
     "370_fire_nav_levels_ladders.js:414 navFollowFloor",
     "370_fire_nav_levels_ladders.js:426 navFollowFloor",
-    "530_round_sides_match.js:192 resetRound",
+    "530_round_sides_match.js:201 resetRound",
     "540_step_tick.js:633 stepTick",
     "540_step_tick.js:66 navSnap",
     "677_sandbox.js:37 sbPlace"
@@ -12648,7 +12660,7 @@
   "_blind": {
    "w": [
     "460_sound_situations.js:179 onBlind",
-    "530_round_sides_match.js:206 resetRound",
+    "530_round_sides_match.js:215 resetRound",
     "535_move_mode.js:183 moveSpeedTick",
     "677_sandbox.js:43 sbRevive"
    ],
@@ -12658,7 +12670,7 @@
   "_blindBy": {
    "w": [
     "400_nades_physics_damage.js:80 detonate",
-    "530_round_sides_match.js:222 resetRound"
+    "530_round_sides_match.js:231 resetRound"
    ],
    "lit": [],
    "r": 5
@@ -12672,7 +12684,7 @@
   },
   "_boost": {
    "w": [
-    "530_round_sides_match.js:193 resetRound",
+    "530_round_sides_match.js:202 resetRound",
     "540_step_tick.js:175 jumpCheckTick",
     "540_step_tick.js:175 jumpCheckTick",
     "540_step_tick.js:98 boostEnd"
@@ -12724,7 +12736,7 @@
     "370_fire_nav_levels_ladders.js:231 ladderTick",
     "370_fire_nav_levels_ladders.js:239 ladderTick",
     "370_fire_nav_levels_ladders.js:274 ladderTick",
-    "530_round_sides_match.js:196 resetRound",
+    "530_round_sides_match.js:205 resetRound",
     "677_sandbox.js:38 sbPlace"
    ],
    "lit": [],
@@ -12888,7 +12900,7 @@
   "_dmgBy": {
    "w": [
     "400_nades_physics_damage.js:143 applyDamage",
-    "530_round_sides_match.js:222 resetRound"
+    "530_round_sides_match.js:231 resetRound"
    ],
    "lit": [],
    "r": 4
@@ -12897,7 +12909,7 @@
    "w": [
     "450_combat_items_knife.js:183 knifeTick",
     "490_shoot.js:73 tryShoot",
-    "530_round_sides_match.js:206 resetRound"
+    "530_round_sides_match.js:215 resetRound"
    ],
    "lit": [],
    "r": 5
@@ -13106,7 +13118,7 @@
    "w": [
     "370_fire_nav_levels_ladders.js:382 navFollowFloor",
     "370_fire_nav_levels_ladders.js:414 navFollowFloor",
-    "530_round_sides_match.js:198 resetRound",
+    "530_round_sides_match.js:207 resetRound",
     "677_sandbox.js:39 sbPlace"
    ],
    "lit": [],
@@ -13130,7 +13142,7 @@
     "470_fight_cycle.js:278 fightCycleTick",
     "470_fight_cycle.js:342 fightCycleTick",
     "470_fight_cycle.js:380 fightCycleTick",
-    "530_round_sides_match.js:206 resetRound",
+    "530_round_sides_match.js:215 resetRound",
     "677_sandbox.js:38 sbPlace",
     "677_sandbox.js:47 sbRemove"
    ],
@@ -13249,7 +13261,7 @@
   },
   "_fireExit": {
    "w": [
-    "530_round_sides_match.js:196 resetRound",
+    "530_round_sides_match.js:205 resetRound",
     "535_move_mode.js:155 moveSpeedTick",
     "535_move_mode.js:168 moveSpeedTick"
    ],
@@ -13258,7 +13270,7 @@
   },
   "_fireExitFire": {
    "w": [
-    "530_round_sides_match.js:196 resetRound",
+    "530_round_sides_match.js:205 resetRound",
     "535_move_mode.js:155 moveSpeedTick",
     "535_move_mode.js:168 moveSpeedTick"
    ],
@@ -13484,7 +13496,7 @@
   },
   "_hold": {
    "w": [
-    "530_round_sides_match.js:196 resetRound",
+    "530_round_sides_match.js:205 resetRound",
     "540_step_tick.js:367 stepTick",
     "677_sandbox.js:38 sbPlace"
    ],
@@ -13525,7 +13537,7 @@
    "w": [
     "170_tbrain.js:1000 tBrain",
     "170_tbrain.js:999 tBrain",
-    "530_round_sides_match.js:222 resetRound"
+    "530_round_sides_match.js:231 resetRound"
    ],
    "lit": [],
    "r": 5
@@ -13535,7 +13547,7 @@
     "170_tbrain.js:1000 tBrain",
     "170_tbrain.js:995 tBrain",
     "170_tbrain.js:997 tBrain",
-    "530_round_sides_match.js:222 resetRound"
+    "530_round_sides_match.js:231 resetRound"
    ],
    "lit": [],
    "r": 7
@@ -13615,7 +13627,7 @@
   },
   "_jc": {
    "w": [
-    "530_round_sides_match.js:193 resetRound",
+    "530_round_sides_match.js:202 resetRound",
     "540_step_tick.js:194 jumpCheckTick",
     "540_step_tick.js:197 jumpCheckTick",
     "540_step_tick.js:209 jumpCheckTick",
@@ -13645,7 +13657,7 @@
     "370_fire_nav_levels_ladders.js:383 navFollowFloor",
     "370_fire_nav_levels_ladders.js:415 navFollowFloor",
     "370_fire_nav_levels_ladders.js:415 navFollowFloor",
-    "530_round_sides_match.js:193 resetRound",
+    "530_round_sides_match.js:202 resetRound",
     "540_step_tick.js:100 boostEnd",
     "540_step_tick.js:176 jumpCheckTick",
     "540_step_tick.js:209 jumpCheckTick",
@@ -13719,7 +13731,7 @@
     "450_combat_items_knife.js:183 knifeTick",
     "480_assist_flank_reload.js:335 ambushTick",
     "490_shoot.js:73 tryShoot",
-    "530_round_sides_match.js:206 resetRound"
+    "530_round_sides_match.js:215 resetRound"
    ],
    "lit": [
     "530_round_sides_match.js:2"
@@ -13888,7 +13900,7 @@
     "150_lurker_probes_clear.js:65 lurkerBrain",
     "150_lurker_probes_clear.js:69 lurkerBrain",
     "150_lurker_probes_clear.js:70 lurkerBrain",
-    "530_round_sides_match.js:222 resetRound"
+    "530_round_sides_match.js:231 resetRound"
    ],
    "lit": [],
    "r": 6
@@ -13903,7 +13915,7 @@
   "_lurkIdx": {
    "w": [
     "150_lurker_probes_clear.js:72 lurkerBrain",
-    "530_round_sides_match.js:222 resetRound"
+    "530_round_sides_match.js:231 resetRound"
    ],
    "lit": [],
    "r": 2
@@ -13912,7 +13924,7 @@
    "w": [
     "150_lurker_probes_clear.js:65 lurkerBrain",
     "150_lurker_probes_clear.js:70 lurkerBrain",
-    "530_round_sides_match.js:222 resetRound"
+    "530_round_sides_match.js:231 resetRound"
    ],
    "lit": [],
    "r": 6
@@ -14019,7 +14031,7 @@
   "_nadeNo": {
    "w": [
     "380_nades_throw.js:353 nadeNoteFail",
-    "530_round_sides_match.js:193 resetRound"
+    "530_round_sides_match.js:202 resetRound"
    ],
    "lit": [],
    "r": 6
@@ -14027,7 +14039,7 @@
   "_nadeT": {
    "w": [
     "380_nades_throw.js:295 throwNadeTry",
-    "530_round_sides_match.js:193 resetRound"
+    "530_round_sides_match.js:202 resetRound"
    ],
    "lit": [],
    "r": 4
@@ -14209,7 +14221,7 @@
     "460_sound_situations.js:208 pistolSwap",
     "460_sound_situations.js:217 pistolBack",
     "460_sound_situations.js:221 pistolBack",
-    "530_round_sides_match.js:206 resetRound"
+    "530_round_sides_match.js:215 resetRound"
    ],
    "lit": [],
    "r": 9
@@ -14217,7 +14229,7 @@
   "_overV": {
    "w": [
     "370_fire_nav_levels_ladders.js:509 floorViewTick",
-    "530_round_sides_match.js:198 resetRound",
+    "530_round_sides_match.js:207 resetRound",
     "677_sandbox.js:39 sbPlace"
    ],
    "lit": [],
@@ -14453,7 +14465,7 @@
   },
   "_prevOffX": {
    "w": [
-    "530_round_sides_match.js:207 resetRound",
+    "530_round_sides_match.js:216 resetRound",
     "540_step_tick.js:692 stepTick"
    ],
    "lit": [],
@@ -14461,7 +14473,7 @@
   },
   "_prevOffY": {
    "w": [
-    "530_round_sides_match.js:207 resetRound",
+    "530_round_sides_match.js:216 resetRound",
     "540_step_tick.js:692 stepTick"
    ],
    "lit": [],
@@ -14608,7 +14620,7 @@
     "480_assist_flank_reload.js:142 updateReload",
     "480_assist_flank_reload.js:144 updateReload",
     "480_assist_flank_reload.js:173 updateReload",
-    "530_round_sides_match.js:206 resetRound",
+    "530_round_sides_match.js:215 resetRound",
     "660_warmup.js:13 warmSpawn",
     "677_sandbox.js:43 sbRevive"
    ],
@@ -14744,7 +14756,7 @@
     "340_ctbrain.js:426 ctBrain",
     "340_ctbrain.js:437 ctBrain",
     "500_decide_afterkill_cover.js:260 afterKillReact",
-    "530_round_sides_match.js:222 resetRound"
+    "530_round_sides_match.js:231 resetRound"
    ],
    "lit": [],
    "r": 29
@@ -14803,7 +14815,7 @@
    "w": [
     "450_combat_items_knife.js:119 itemPickupTick",
     "460_sound_situations.js:218 pistolBack",
-    "530_round_sides_match.js:206 resetRound"
+    "530_round_sides_match.js:215 resetRound"
    ],
    "lit": [],
    "r": 5
@@ -15061,7 +15073,7 @@
   "_tagUntil": {
    "w": [
     "490_shoot.js:305 tryShoot",
-    "530_round_sides_match.js:206 resetRound"
+    "530_round_sides_match.js:215 resetRound"
    ],
    "lit": [],
    "r": 3
@@ -15136,7 +15148,7 @@
   },
   "_trail": {
    "w": [
-    "530_round_sides_match.js:206 resetRound",
+    "530_round_sides_match.js:215 resetRound",
     "540_step_tick.js:358 stepTick",
     "540_step_tick.js:550 stepTick",
     "540_step_tick.js:634 stepTick",
@@ -15151,7 +15163,7 @@
    "w": [
     "400_nades_physics_damage.js:81 detonate",
     "510_engagements.js:71 resolveEngagements",
-    "530_round_sides_match.js:202 resetRound",
+    "530_round_sides_match.js:211 resetRound",
     "660_warmup.js:14 warmSpawn",
     "660_warmup.js:59 warmTick",
     "677_sandbox.js:43 sbRevive"
@@ -15162,7 +15174,7 @@
   "_underV": {
    "w": [
     "370_fire_nav_levels_ladders.js:508 floorViewTick",
-    "530_round_sides_match.js:198 resetRound",
+    "530_round_sides_match.js:207 resetRound",
     "677_sandbox.js:39 sbPlace"
    ],
    "lit": [],
@@ -15170,7 +15182,7 @@
   },
   "_unstickT": {
    "w": [
-    "530_round_sides_match.js:196 resetRound",
+    "530_round_sides_match.js:205 resetRound",
     "540_step_tick.js:630 stepTick"
    ],
    "lit": [],
@@ -15284,7 +15296,7 @@
     "210_know_hyp.js:274 knowRoundStart",
     "220_know_events_tick.js:249 knowKill",
     "400_nades_physics_damage.js:157 applyDamage",
-    "530_round_sides_match.js:201 resetRound",
+    "530_round_sides_match.js:210 resetRound",
     "640_scoreboard_players.js:212 plCardUpdate",
     "660_warmup.js:12 warmSpawn",
     "677_sandbox.js:42 sbRevive",
@@ -15338,7 +15350,7 @@
   },
   "assists": {
    "w": [
-    "530_round_sides_match.js:111 newMatch"
+    "530_round_sides_match.js:120 newMatch"
    ],
    "lit": [],
    "r": 1
@@ -15352,7 +15364,7 @@
     "110_post_routes.js:547 updatePost",
     "110_post_routes.js:556 updatePost",
     "110_post_routes.js:557 updatePost",
-    "530_round_sides_match.js:222 resetRound",
+    "530_round_sides_match.js:231 resetRound",
     "535_move_mode.js:142 moveSpeedTick"
    ],
    "lit": [],
@@ -15366,7 +15378,7 @@
     "470_fight_cycle.js:157 fightStrafe",
     "470_fight_cycle.js:381 fightCycleTick",
     "510_engagements.js:209 escapeWallLine",
-    "530_round_sides_match.js:199 resetRound",
+    "530_round_sides_match.js:208 resetRound",
     "540_step_tick.js:157 jumpCheckTick",
     "540_step_tick.js:176 jumpCheckTick",
     "540_step_tick.js:269 strafeKeysTick",
@@ -15397,7 +15409,7 @@
     "470_fight_cycle.js:157 fightStrafe",
     "470_fight_cycle.js:381 fightCycleTick",
     "510_engagements.js:209 escapeWallLine",
-    "530_round_sides_match.js:199 resetRound",
+    "530_round_sides_match.js:208 resetRound",
     "540_step_tick.js:157 jumpCheckTick",
     "540_step_tick.js:176 jumpCheckTick",
     "540_step_tick.js:269 strafeKeysTick",
@@ -15436,7 +15448,7 @@
     "460_sound_situations.js:211 pistolSwap",
     "490_shoot.js:230 tryShoot",
     "510_engagements.js:62 resolveEngagements",
-    "530_round_sides_match.js:206 resetRound"
+    "530_round_sides_match.js:215 resetRound"
    ],
    "lit": [
     "070_weapons_bots_roam.js:82"
@@ -15465,7 +15477,7 @@
     "400_nades_physics_damage.js:81 detonate",
     "510_engagements.js:69 resolveEngagements",
     "510_engagements.js:87 resolveEngagements",
-    "530_round_sides_match.js:202 resetRound",
+    "530_round_sides_match.js:211 resetRound",
     "660_warmup.js:14 warmSpawn",
     "660_warmup.js:57 warmTick",
     "660_warmup.js:58 warmTick",
@@ -15526,7 +15538,7 @@
   "deaths": {
    "w": [
     "400_nades_physics_damage.js:157 applyDamage",
-    "530_round_sides_match.js:111 newMatch"
+    "530_round_sides_match.js:120 newMatch"
    ],
    "lit": [
     "070_weapons_bots_roam.js:82"
@@ -15537,7 +15549,7 @@
    "w": [
     "500_decide_afterkill_cover.js:185 leaveHold",
     "510_engagements.js:119 resolveEngagements",
-    "530_round_sides_match.js:203 resetRound"
+    "530_round_sides_match.js:212 resetRound"
    ],
    "lit": [
     "070_weapons_bots_roam.js:82"
@@ -15566,7 +15578,7 @@
     "120_bomb.js:325 bombTick",
     "120_bomb.js:84 resetBomb",
     "400_nades_physics_damage.js:160 applyDamage",
-    "530_round_sides_match.js:222 resetRound",
+    "530_round_sides_match.js:231 resetRound",
     "535_move_mode.js:142 moveSpeedTick",
     "660_warmup.js:14 warmSpawn"
    ],
@@ -15686,7 +15698,7 @@
     "510_engagements.js:114 resolveEngagements",
     "510_engagements.js:166 resolveEngagements",
     "510_engagements.js:168 resolveEngagements",
-    "530_round_sides_match.js:203 resetRound",
+    "530_round_sides_match.js:212 resetRound",
     "540_step_tick.js:405 stepTick"
    ],
    "lit": [],
@@ -15708,7 +15720,7 @@
   },
   "heading": {
    "w": [
-    "530_round_sides_match.js:204 resetRound",
+    "530_round_sides_match.js:213 resetRound",
     "540_step_tick.js:465 stepTick",
     "540_step_tick.js:471 stepTick",
     "660_warmup.js:73 warmTick",
@@ -15734,7 +15746,7 @@
     "480_assist_flank_reload.js:339 ambushTick",
     "490_shoot.js:368 tryShoot",
     "490_shoot.js:375 tryShoot",
-    "530_round_sides_match.js:205 resetRound",
+    "530_round_sides_match.js:214 resetRound",
     "540_step_tick.js:36 moveSoundEmit",
     "678_demo_view.js:58 dvHearShot"
    ],
@@ -15769,7 +15781,7 @@
   "holdSinceTick": {
    "w": [
     "510_engagements.js:134 resolveEngagements",
-    "530_round_sides_match.js:204 resetRound"
+    "530_round_sides_match.js:213 resetRound"
    ],
    "lit": [
     "070_weapons_bots_roam.js:82"
@@ -15792,7 +15804,7 @@
   "hp": {
    "w": [
     "400_nades_physics_damage.js:150 applyDamage",
-    "530_round_sides_match.js:201 resetRound",
+    "530_round_sides_match.js:210 resetRound",
     "660_warmup.js:12 warmSpawn",
     "677_sandbox.js:42 sbRevive",
     "677_sandbox.js:47 sbRemove",
@@ -15814,7 +15826,7 @@
   "kills": {
    "w": [
     "400_nades_physics_damage.js:165 applyDamage",
-    "530_round_sides_match.js:111 newMatch"
+    "530_round_sides_match.js:120 newMatch"
    ],
    "lit": [
     "070_weapons_bots_roam.js:82"
@@ -15867,7 +15879,7 @@
     "480_assist_flank_reload.js:134 assistPeek",
     "480_assist_flank_reload.js:79 flankAssist",
     "510_engagements.js:80 resolveEngagements",
-    "530_round_sides_match.js:205 resetRound"
+    "530_round_sides_match.js:214 resetRound"
    ],
    "lit": [
     "070_weapons_bots_roam.js:82"
@@ -15878,7 +15890,7 @@
    "w": [
     "290_smoke_react.js:76 blindBullet",
     "490_shoot.js:231 tryShoot",
-    "530_round_sides_match.js:206 resetRound",
+    "530_round_sides_match.js:215 resetRound",
     "678_demo_view.js:42 dvTick"
    ],
    "lit": [
@@ -15888,7 +15900,7 @@
   },
   "lastStepTick": {
    "w": [
-    "530_round_sides_match.js:205 resetRound",
+    "530_round_sides_match.js:214 resetRound",
     "540_step_tick.js:387 stepTick"
    ],
    "lit": [
@@ -15934,7 +15946,7 @@
     "270_look_plan_smooth.js:705 lookFilter",
     "270_look_plan_smooth.js:712 lookFilter",
     "275_look_turn.ts:32 lookTick",
-    "530_round_sides_match.js:207 resetRound"
+    "530_round_sides_match.js:216 resetRound"
    ],
    "lit": [],
    "r": 25
@@ -15942,7 +15954,7 @@
   "lookTarget": {
    "w": [
     "275_look_turn.ts:37 lookTick",
-    "530_round_sides_match.js:207 resetRound"
+    "530_round_sides_match.js:216 resetRound"
    ],
    "lit": [],
    "r": 4
@@ -15969,7 +15981,7 @@
     "520_economy.js:434 teamAwp",
     "520_economy.js:437 teamAwp",
     "520_economy.js:50 payRoundEconomy",
-    "530_round_sides_match.js:177 resetRound",
+    "530_round_sides_match.js:186 resetRound",
     "530_round_sides_match.js:27 startHalf"
    ],
    "lit": [
@@ -16057,7 +16069,7 @@
     "460_sound_situations.js:210 pistolSwap",
     "490_shoot.js:233 tryShoot",
     "510_engagements.js:62 resolveEngagements",
-    "530_round_sides_match.js:202 resetRound",
+    "530_round_sides_match.js:211 resetRound",
     "660_warmup.js:14 warmSpawn",
     "677_sandbox.js:43 sbRevive"
    ],
@@ -16073,7 +16085,7 @@
   },
   "onStairs": {
    "w": [
-    "530_round_sides_match.js:204 resetRound",
+    "530_round_sides_match.js:213 resetRound",
     "540_step_tick.js:348 stepTick",
     "540_step_tick.js:459 stepTick"
    ],
@@ -16134,7 +16146,7 @@
     "510_engagements.js:229 assignNewDestination",
     "510_engagements.js:238 assignNewDestination",
     "510_engagements.js:246 assignNewDestination",
-    "530_round_sides_match.js:201 resetRound",
+    "530_round_sides_match.js:210 resetRound",
     "535_move_mode.js:156 moveSpeedTick",
     "535_move_mode.js:163 moveSpeedTick",
     "540_step_tick.js:424 stepTick",
@@ -16175,7 +16187,7 @@
     "510_engagements.js:222 assignNewDestination",
     "510_engagements.js:229 assignNewDestination",
     "510_engagements.js:238 assignNewDestination",
-    "530_round_sides_match.js:202 resetRound"
+    "530_round_sides_match.js:211 resetRound"
    ],
    "lit": [
     "070_weapons_bots_roam.js:82"
@@ -16197,7 +16209,7 @@
     "120_bomb.js:240 bombTick",
     "120_bomb.js:84 resetBomb",
     "400_nades_physics_damage.js:160 applyDamage",
-    "530_round_sides_match.js:222 resetRound",
+    "530_round_sides_match.js:231 resetRound",
     "535_move_mode.js:142 moveSpeedTick",
     "660_warmup.js:14 warmSpawn"
    ],
@@ -16276,7 +16288,7 @@
   },
   "px": {
    "w": [
-    "530_round_sides_match.js:200 resetRound",
+    "530_round_sides_match.js:209 resetRound",
     "540_step_tick.js:333 stepTick",
     "660_warmup.js:12 warmSpawn",
     "660_warmup.js:47 warmTick",
@@ -16292,7 +16304,7 @@
   },
   "py": {
    "w": [
-    "530_round_sides_match.js:200 resetRound",
+    "530_round_sides_match.js:209 resetRound",
     "540_step_tick.js:333 stepTick",
     "660_warmup.js:12 warmSpawn",
     "660_warmup.js:47 warmTick",
@@ -16412,7 +16424,7 @@
   "roundDmg": {
    "w": [
     "400_nades_physics_damage.js:143 applyDamage",
-    "530_round_sides_match.js:222 resetRound"
+    "530_round_sides_match.js:231 resetRound"
    ],
    "lit": [],
    "r": 1
@@ -16420,7 +16432,7 @@
   "roundKills": {
    "w": [
     "400_nades_physics_damage.js:165 applyDamage",
-    "530_round_sides_match.js:222 resetRound"
+    "530_round_sides_match.js:231 resetRound"
    ],
    "lit": [
     "070_weapons_bots_roam.js:82"
@@ -16522,7 +16534,7 @@
   },
   "stuckTicks": {
    "w": [
-    "530_round_sides_match.js:206 resetRound",
+    "530_round_sides_match.js:215 resetRound",
     "540_step_tick.js:550 stepTick",
     "540_step_tick.js:595 stepTick",
     "540_step_tick.js:598 stepTick",
@@ -16684,8 +16696,8 @@
     "370_fire_nav_levels_ladders.js:211 ladderTick",
     "370_fire_nav_levels_ladders.js:215 ladderTick",
     "510_engagements.js:209 escapeWallLine",
-    "530_round_sides_match.js:182 resetRound",
-    "530_round_sides_match.js:190 resetRound",
+    "530_round_sides_match.js:191 resetRound",
+    "530_round_sides_match.js:199 resetRound",
     "540_step_tick.js:570 stepTick",
     "540_step_tick.js:633 stepTick",
     "540_step_tick.js:66 navSnap",
@@ -16707,8 +16719,8 @@
     "370_fire_nav_levels_ladders.js:211 ladderTick",
     "370_fire_nav_levels_ladders.js:215 ladderTick",
     "510_engagements.js:209 escapeWallLine",
-    "530_round_sides_match.js:182 resetRound",
-    "530_round_sides_match.js:190 resetRound",
+    "530_round_sides_match.js:191 resetRound",
+    "530_round_sides_match.js:199 resetRound",
     "540_step_tick.js:570 stepTick",
     "540_step_tick.js:633 stepTick",
     "540_step_tick.js:66 navSnap",
@@ -16732,8 +16744,8 @@
     "370_fire_nav_levels_ladders.js:381 navFollowFloor",
     "370_fire_nav_levels_ladders.js:382 navFollowFloor",
     "370_fire_nav_levels_ladders.js:426 navFollowFloor",
-    "530_round_sides_match.js:182 resetRound",
-    "530_round_sides_match.js:192 resetRound",
+    "530_round_sides_match.js:191 resetRound",
+    "530_round_sides_match.js:201 resetRound",
     "540_step_tick.js:633 stepTick",
     "540_step_tick.js:66 navSnap",
     "677_sandbox.js:37 sbPlace"

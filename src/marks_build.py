@@ -71,4 +71,6 @@ def inject(s):
     # tools/marks/mark_build.js по нему находит коммит и собирает ту самую сборку: старая отметка открывается своей сборкой
     import hashlib
     build = hashlib.sha256((s + module_source()).encode('utf-8')).hexdigest()[:16]
-    return s.replace(MARK, snap + 'var MK_BUILD = "%s";\n' % build + mod)
+    # (Т-2) память между матчами — по классам реестра состояния (одно место): чистый старт матча (marks.js mkMatchClean) её не трогает
+    keep = sorted(k[2:] for k, o in json.load(open(REGISTRY, encoding='utf-8')).items() if k.startswith('g:') and o.get('class') in ('постоянная память', 'серия'))
+    return s.replace(MARK, snap + 'var MK_BUILD = "%s";\nvar MK_KEEP = %s;\n' % (build, json.dumps(keep)) + mod)

@@ -5,7 +5,7 @@
 
 - `simTimeSet` (530)
     - `resetRound` (530) — если simTime - roundEndTime >= ROUND_RESTART_DELAY_SEC
-    - `newMatch` (530) — если simTime - roundEndTime >= 7
+    - `matchBegin` (530) — если simTime - roundEndTime >= 7
   - `freezeLookTick` (275) — если roundState === "freeze"
   - `nadePrecalcTick` (380) — если roundState === "freeze"
     - `roundSetState` (530) — если simTime >= roundStartTime

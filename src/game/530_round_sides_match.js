@@ -77,9 +77,18 @@ function swapSides(){
 // (v152) воспроизводимый старт: всё, что влияет на решения ботов, — с нуля.
 // Кэши чистим целиком: часть ключей содержит tick, и после сброса tick старые
 // записи прошлого матча подставлялись бы в новый.
-function freshMatch(n, keepProfile){
+// (Т-2, 25.11, владелец: изоляция матчей не уничтожает накопленный опыт) новый матч = матч в новой странице с той же долгосрочной
+// памятью (I-22). Страница, где матч уже был: сначала всё состояние — как после загрузки (снимок загрузки MK_LOAD, src/marks.js
+// mkMatchClean), кроме памяти между матчами (реестр: классы «постоянная память» — OPP, «серия» — SERIES); дальше — как в новой странице.
+// Новая страница (первый матч) — без восстановления: путь freshMatch тот же, что до Т-2. pause — пауза страницы (кнопка, инструменты);
+// штатный переход к следующему матчу (540) — без паузы
+var MATCH_DIRTY = false;
+function freshMatch(n, keepProfile){ matchBegin(n, keepProfile, true); }
+function matchBegin(n, keepProfile, pause){
+  if(MATCH_DIRTY && typeof mkMatchClean === "function") mkMatchClean();
+  MATCH_DIRTY = true;
   if(typeof WARM !== "undefined" && WARM.on){ WARM = {on:false}; }   // кнопку «пропустить разминку» прячет кадр (680, warmSkipSync)   // (v306) новый матч / перемотка — разминка кончилась
-  clockPause(true);
+  if(pause) clockPause(true);
   clockSet(0); simTime = 0; roundStartTick = 0;
   if(!keepProfile) OPP = null;
   var clr = function(o){ for(var k in o) delete o[k]; };
