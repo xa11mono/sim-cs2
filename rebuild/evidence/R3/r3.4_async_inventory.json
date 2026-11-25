@@ -1,0 +1,13 @@
+{
+ "what": "Р3.4 — опись зависимостей симуляции (src/game до 550 и .ts) от часов страницы и асинхронности; grep 25.11 на v604a; дополнение к BEHAVIOR_BACKLOG Р2-3",
+ "timers": {
+  "040_visibility.js:45": "VIS_DANGER_TIMER: setTimeout 300 мс → computeZoneDanger + HOLD_CANDS = {} — таблица «откуда простреливается» готова по часам страницы (Р2-3); при загрузке и после visInvalidate",
+  "060_zone_danger_user_zones.js:91": "zoneLayerRebuildTimer: setTimeout 300 мс → applyZoneLayer(true) — после правки слоя зон (редактор)",
+  "060_zone_danger_user_zones.js:155": "userZonesSaveTimer: setTimeout → localStorage (только запись, игру не меняет)"
+ },
+ "clock_reads": {"380_nades_throw.js:31,45": "performance.now — только NADE_SOLVE_MS (время подбора для проверки; решения не читают; в локаторе исключено)"},
+ "external_inputs_localStorage": ["010:21 слой зон", "010:29 формы зон", "010:130 якоря навмеша", "060:161 зоны владельца", "130:41 OPP (память соперника)", "190:138 имена зон", "390:5 лайнапы владельца", "390:9 отключённые встроенные лайнапы", "495:11 HL (хайлайты)"],
+ "none": ["setInterval", "Date", "Promise / async / await", "requestAnimationFrame", "Math.random"],
+ "page_frame_before_match": "680 frame (вне кода расчёта) по часам страницы делает шаги игры от загрузки до остановки кадра; за ≈1,2 с (инструменты ждут перед stopFrames) предрасчёт подсказок броска проходит NADE_PRECALC_I 0 → 223 (опыт 25.11, Ancient). freshMatch этого не сбрасывает; ход матча от этого не зависит по устройству (В86) — опыт «ожидание 0 / 100 / 1200 мс» бит в бит (R2). Т-2: чистый старт матча в уже игравшей странице восстанавливает состояние «время 0» (MK_LOAD, снят до кадров)",
+ "next": "Р3.4: boot(map) — явный порядок applyWalls → rebuildNav → computeZoneDanger без таймера (таблица готова до первого шага), состояние перед первым матчем — не от часов страницы"
+}
