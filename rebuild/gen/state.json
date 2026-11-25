@@ -5687,7 +5687,7 @@
    "r": {
     "100": 2
    },
-   "snap": "нет: STATIC"
+   "snap": "нет: живые записи (не старше PATHQ_TTL) — __ext снимка (Т-1, marks.js mkSnapExt)"
   },
   "PATHQ_N": {
    "decl": "100_sites_spots.js:6",
@@ -5700,7 +5700,7 @@
    "r": {
     "100": 1
    },
-   "snap": "нет: STATIC"
+   "snap": "нет: — __ext снимка (Т-1, marks.js mkSnapExt)"
   },
   "PATHQ_Q": {
    "decl": "100_sites_spots.js:6",
@@ -12200,7 +12200,7 @@
     "020": 1,
     "050": 26
    },
-   "snap": "нет: STATIC"
+   "snap": "нет: граф загрузки минус NAV_UNLINKED — приводится к снимку при открытии (Т-1, marks.js mkGraphTo)"
   },
   "zoneKindSelect": {
    "decl": "550_render_nav_zone_tools.js:203",

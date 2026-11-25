@@ -23,11 +23,43 @@ function mkSnapList(){
 // (Р3.1.4, 25.11) формат содержимого снимка: номер пишется в снимок (__fmt), при открытии старые форматы поднимаются переходниками
 // MK_SNAP_UP[n] (n → n+1) по порядку. Снимок без номера — формат 1 (всё до Р3.1.4). Новый формат — когда снимок начинает хранить то,
 // чего раньше не было (ремонт Т-1), со своим переходником для старых отметок
-var MK_SNAP_FMT = 1, MK_SNAP_UP = {};
+// (Т-1, 25.11) формат 2: снимок полон для игры (I-23 — снимок в НОВОЙ странице идёт бит в бит с игрой; разбор — rebuild/evidence/R3/
+// r3.1.2_snap_values.json). Сверх переменных (__SNAP) — __ext (mkSnapExt): подсказки броска, посчитанные в игре, и их цена (nadeGuessStore,
+// nadeGuess.rt — вне переменных: замыкание и свойство функции; от них зависит расход бюджета подборов тика), живые записи кэша путей
+// (PATHQ: старше PATHQ_TTL игра не читает) и счётчик его очистки PATHQ_N. Граф связей zoneGraph не копируется (1–1,5 МБ): он = граф
+// загрузки минус NAV_UNLINKED — приводится к снимку по списку (mkGraphTo). Формат 1 (старые отметки): __ext нет — память подсказок и кэш
+// путей остаются страничными (как до Т-1), граф — по NAV_UNLINKED, если в нём есть рёбра
+var MK_SNAP_FMT = 2, MK_SNAP_UP = {};
+function mkSnapExt(){
+  var G = nadeGuessStore.all(), base = (MAP.nadeguess && MAP.nadeguess.g) || {}, own = {}, k, live = {};
+  for(k in G) if(!(k in base) || base[k] !== G[k]) own[k] = G[k];
+  for(k in PATHQ){ var q = PATHQ[k]; if(q && tick - q.t <= PATHQ_TTL && q.t <= tick) live[k] = q; }
+  return {guess: own, rt: nadeGuess.rt, pathq: live, pathqN: PATHQ_N};
+}
+function mkExtRestore(x){
+  if(!x) return;
+  var G = nadeGuessStore.all(), base = (MAP.nadeguess && MAP.nadeguess.g) || {}, k;
+  for(k in G) delete G[k]; for(k in base) G[k] = base[k]; for(k in x.guess) G[k] = x.guess[k];
+  var R = nadeGuess.rt; for(k in R) delete R[k]; for(k in x.rt) R[k] = x.rt[k];
+  PATHQ = x.pathq; PATHQ_N = x.pathqN;
+}
+// граф связей → состояние снимка: Lp — вырезанные связи страницы до восстановления, NAV_UNLINKED — уже из снимка. Общая история —
+// одинаковое начало списков; вырезанное страницей позже — вернуть (ребро и место хранит запись, 370 navUnlinkBlocked), вырезанное в снимке
+// и не вырезанное страницей — вырезать так же, как navUnlinkBlocked (первое ребро с тем же «куда»)
+function mkGraphTo(Lp){
+  var Ls = NAV_UNLINKED, n = 0, i, ch = false;
+  while(n < Lp.length && n < Ls.length && Lp[n][0] === Ls[n][0] && Lp[n][1] === Ls[n][1]) n++;
+  for(i = Lp.length - 1; i >= n; i--){ var u = Lp[i], E = zoneGraph[u[0]]; if(!E || !u[3]) continue; E.splice(Math.min(u[2], E.length), 0, u[3]); ch = true; }
+  for(i = n; i < Ls.length; i++){ var w = Ls[i], F = zoneGraph[w[0]] || []; for(var j = 0; j < F.length; j++) if(F[j].to === w[1]){ w[2] = j; w[3] = F[j]; F.splice(j, 1); ch = true; break; } }
+  // кэш путей без команды (WPM, в снимке) в игре держит ссылку на сам граф (WPM.graph === zoneGraph; вырезание связи её не меняет);
+  // в снимке она — копия графа: привязать к графу страницы, иначе кэш сбросится и пути пересчитаются не так, как в игре
+  if(typeof WPM !== "undefined" && WPM.graph) WPM.graph = zoneGraph;
+  return ch;
+}
 function mkSnapshot(){
   var list = mkSnapList();
   for(;;){
-    var o = {__fmt: MK_SNAP_FMT}; list.forEach(function(e){ o[e[0]] = e[1](); });
+    var o = {__fmt: MK_SNAP_FMT, __ext: mkSnapExt()}; list.forEach(function(e){ o[e[0]] = e[1](); });
     try{ return structuredClone(o); }catch(err){
       var bad = list.filter(function(e){ try{ structuredClone(o[e[0]]); return false; }catch(x){ return true; } });
       if(!bad.length) throw err;
@@ -37,7 +69,10 @@ function mkSnapshot(){
   }
 }
 function mkRestore(data){ var c = structuredClone(data); for(var f = c.__fmt || 1; f < MK_SNAP_FMT; f++) if(MK_SNAP_UP[f]) MK_SNAP_UP[f](c);
-  mkSnapList().forEach(function(e){ if(e[0] in c) e[2](c[e[0]]); }); mkRebaseShow(); }
+  var Lp = NAV_UNLINKED.slice();
+  mkSnapList().forEach(function(e){ if(e[0] in c) e[2](c[e[0]]); });
+  if("NAV_UNLINKED" in c) mkGraphTo(Lp);
+  mkExtRestore(c.__ext); mkRebaseShow(); }
 // (18.11) показ (трассеры, круги звука) помнит время рождения по часам страницы (nowTs), а часы в снимок не входят: после открытия снимка
 // «возраст» выходил отрицательным — вспышка выстрела на весь экран (оранжевый кадр), круг звука с отрицательным радиусом ронял кадр.
 // Сдвиг: самое свежее из снимка — «сейчас» по часам этой страницы, остальные — на тот же сдвиг

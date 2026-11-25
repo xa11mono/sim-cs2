@@ -522,7 +522,7 @@ function navUnlinkBlocked(bot, pw){
   var E = zoneGraph[a1.id] || [], best = -1, bd = Infinity;
   E.forEach(function(e, i){ var to = navArea(e.to); if(!to) return; var dd = pointInPoly(px, py, to.points) ? 0 : DM.hypot(e.mid.x-px, e.mid.y-py); if(dd < bd){ bd = dd; best = i; } });
   if(best < 0 || bd > 40) return;
-  var e = E[best]; E.splice(best, 1); NAV_UNLINKED.push([a1.id, e.to]);
+  var e = E[best]; E.splice(best, 1); NAV_UNLINKED.push([a1.id, e.to, best, e]);   // (Т-1) место и ребро — чтобы снимок мог вернуть связь при перемотке (src/marks.js mkGraphTo); игра их не читает
   pathCacheReset();
   logEvent("навмеш: связь "+a1.id+" → "+e.to+" непроходима (уступ) — убрана, путь заново (самоисправление)");
 }

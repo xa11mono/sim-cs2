@@ -8760,7 +8760,7 @@
 "class": "кэш",
 "owner": "навигация (050, 100) и гранаты (380)",
 "life": "тик / последовательность предрасчёта",
-"snap": "нет: STATIC",
+"snap": "нет: живые записи (не старше PATHQ_TTL) — __ext снимка (Т-1, marks.js mkSnapExt)",
 "src": "codex",
 "why": "смысловая оценка Codex (state_registry.csv)",
 "cmp": "да"
@@ -8769,7 +8769,7 @@
 "class": "кэш",
 "owner": "навигация (050, 100) и гранаты (380)",
 "life": "тик / последовательность предрасчёта",
-"snap": "нет: STATIC",
+"snap": "нет: — __ext снимка (Т-1, marks.js mkSnapExt)",
 "src": "codex",
 "why": "смысловая оценка Codex (state_registry.csv)",
 "cmp": "да"
@@ -12945,7 +12945,7 @@
 "class": "кэш",
 "owner": "навигация (050, 370)",
 "life": "загрузка карты + изменения во время матча",
-"snap": "нет: STATIC",
+"snap": "нет: граф загрузки минус NAV_UNLINKED — приводится к снимку при открытии (Т-1, marks.js mkGraphTo)",
 "src": "codex",
 "why": "смысловая оценка Codex (state_registry.csv)",
 "cmp": "да"
