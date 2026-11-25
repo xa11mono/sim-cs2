@@ -29,7 +29,7 @@ for d in os.listdir(TMPROOT):
 tmp = tempfile.mkdtemp(prefix='pcres_')
 try:
     n = 0
-    for j in req.get('jobs', []) + req.get('shots', []) + req.get('fp', []) + req.get('cov', []):
+    for j in req.get('jobs', []) + req.get('shots', []) + req.get('fp', []) + req.get('cov', []) + req.get('prof', []) + req.get('xb', []) + req.get('inv', []) + req.get('rust', []):
         src = os.path.join(HERE, 'runs', j['label'])
         if not os.path.isdir(src): continue
         os.makedirs(os.path.join(tmp, j['label']))

@@ -120,6 +120,65 @@ def main():
         try: d = json.load(open(out, encoding='utf-8'))
         except Exception: continue
         if 'fields' in d: json.dump(d.pop('fields'), open(os.path.join(os.path.dirname(out), 'fw_%d.json' % m), 'w', encoding='utf-8')); json.dump(d, open(out, 'w', encoding='utf-8'), separators=(',', ':'))
+    # ---- (Р0.6, Р0.11, Р0.13, Р0.14, 24.11) задания перестройки: каждое пишет в runs/<label>/; ошибка задания не валит остальные ----
+    R0 = os.path.join(ROOT, 'tools', 'measure')
+    def r0out(j): d = os.path.join(R0, 'runs', j['label']); os.makedirs(d, exist_ok=True); return d
+    def r0sh(args, out, name, **kw):   # шаг с записью кода выхода и хвоста вывода в <name>.txt (публикуется)
+        p = subprocess.run(args, cwd=kw.get('cwd', ROOT), capture_output=True, text=True, env=kw.get('env'))
+        open(os.path.join(out, name + '.txt'), 'w', encoding='utf-8').write('код %s\n%s\n%s' % (p.returncode, p.stdout[-6000:], p.stderr[-6000:]))
+        log('%s: код %s' % (name, p.returncode)); return p.returncode
+    # Р0.13 Rust нативно и WASM на этой машине: {"rust": [{"label"}]} — набор Rust ставится в свою папку ~/.simcs2_rust (как Playwright —
+    # в ~/.simcs2_node), PATH системы не трогается; хост x86_64-pc-windows-gnu — свой компоновщик, без Visual Studio
+    for j in req.get('rust', []):
+        out = r0out(j); home = os.path.join(os.path.expanduser('~'), '.simcs2_rust'); env = dict(os.environ)
+        env['RUSTUP_HOME'] = os.path.join(home, 'rustup'); env['CARGO_HOME'] = os.path.join(home, 'cargo')
+        bindir = os.path.join(env['CARGO_HOME'], 'bin'); env['PATH'] = bindir + os.pathsep + env.get('PATH', '')
+        cargo = os.path.join(bindir, 'cargo.exe' if os.name == 'nt' else 'cargo')
+        if not os.path.exists(cargo):
+            if os.name == 'nt':
+                init = os.path.join(home, 'rustup-init.exe'); os.makedirs(home, exist_ok=True)
+                import urllib.request; urllib.request.urlretrieve('https://win.rustup.rs/x86_64', init)
+                r0sh([init, '-y', '--no-modify-path', '--profile', 'minimal', '--default-host', 'x86_64-pc-windows-gnu', '--default-toolchain', 'stable'], out, 'rustup_install', env=env)
+            else: cargo = shutil.which('cargo') or cargo
+        r0sh([os.path.join(bindir, 'rustup.exe' if os.name == 'nt' else 'rustup'), 'target', 'add', 'wasm32-unknown-unknown'], out, 'rustup_wasm', env=env)
+        r0sh([cargo, '--version'], out, 'cargo_version', env=env)
+        ref = os.path.join(ROOT, 'tools', 'dmath', 'ref')
+        if r0sh([cargo, 'build', '--release', '--manifest-path', os.path.join(ref, 'Cargo.toml')], out, 'build_dmath_ref', env=env) == 0:
+            exe = os.path.join(ref, 'target', 'release', 'dmath_ref.exe' if os.name == 'nt' else 'dmath_ref')
+            r0sh(['node', os.path.join(ROOT, 'tools', 'dmath', 'check.js'), '--ref=' + exe, '--n=50000', '--out=' + os.path.join(out, 'dmath_check.json')], out, 'dmath_check', env=env)
+        bench = os.path.join(ROOT, 'docs', 'reports', 'audit_2026-11-24', 'stage4', 'bench'); prec = os.path.join(bench, 'prec')
+        ok_w = r0sh([cargo, 'build', '--release', '--manifest-path', os.path.join(prec, 'Cargo.toml'), '--target', 'wasm32-unknown-unknown', '--lib'], out, 'build_wasm', env=env) == 0
+        ok_n = r0sh([cargo, 'build', '--release', '--manifest-path', os.path.join(prec, 'Cargo.toml')], out, 'build_native', env=env) == 0
+        if ok_w and ok_n:
+            r0sh([os.path.join(prec, 'target', 'release', 'dump.exe' if os.name == 'nt' else 'dump'), '200000'], out, 'native_dump', cwd=prec, env=env)
+            r0sh(['node', os.path.join(bench, 'node_cmp.js')], out, 'native_vs_wasm', cwd=bench, env=env)
+            if os.path.exists(os.path.join(bench, 'node_result.json')): shutil.copy(os.path.join(bench, 'node_result.json'), os.path.join(out, 'math_native_wasm.json'))
+        nap = os.path.join(bench, 'nap')
+        if r0sh([cargo, 'build', '--release', '--manifest-path', os.path.join(nap, 'Cargo.toml')], out, 'build_napi', env=env) == 0:
+            lib = os.path.join(nap, 'target', 'release', 'nap.dll' if os.name == 'nt' else 'libnap.so')
+            if os.path.exists(lib): shutil.copy(lib, os.path.join(nap, 'nap.node')); r0sh(['node', os.path.join(bench, 'napi_bench.js')], out, 'napi_bench', cwd=bench, env=env)
+            if os.path.exists(os.path.join(bench, 'napi_result.json')): shutil.copy(os.path.join(bench, 'napi_result.json'), os.path.join(out, 'call_cost.json'))
+    # Р0.11 база скорости: {"prof": [{"label","ref","map","match"?,"ticks"?,"repeat"?,"frame_sec"?}]} — по одному, без других нагрузок
+    for j in req.get('prof', []):
+        out = r0out(j); sim = os.path.join(sims, j['label'] + '.html'); build(j['ref'], j.get('map', 'ancient'), sim)
+        for r in range(int(j.get('repeat', 3))):
+            r0sh(['node', os.path.join(R0, 'tick_prof.js'), sim, str(j.get('match', 3)), str(j.get('ticks', 20000)), os.path.join(out, 'tick_%d.json' % r)], out, 'tick_%d' % r)
+            r0sh(['node', os.path.join(R0, 'frame_prof.js'), sim, str(j.get('frame_sec', 20)), os.path.join(out, 'frame_%d.json' % r), str(j.get('match', 3))], out, 'frame_%d' % r)
+        mem = os.path.join(ROOT, 'docs', 'reports', 'audit_2026-11-24', 'stage3', 'bench', 'mem.js')
+        if os.path.exists(mem): r0sh(['node', mem, sim], out, 'memory')
+    # Р0.14 браузеры: {"xb": [{"label","ref","map","match"?,"ticks"?,"engines"?}]} — Playwright ставит Firefox и WebKit в ту же папку браузеров
+    for j in req.get('xb', []):
+        out = r0out(j); sim = os.path.join(sims, j['label'] + '.html'); build(j['ref'], j.get('map', 'ancient'), sim)
+        home = os.path.join(os.path.expanduser('~'), '.simcs2_node'); npx = os.path.join(home, 'node_modules', '.bin', 'playwright.cmd' if os.name == 'nt' else 'playwright')
+        engines = j.get('engines', ['chromium', 'firefox', 'webkit'])
+        r0sh([npx, 'install'] + [e for e in engines if e != 'chromium'], out, 'install', cwd=home)
+        for e in engines: r0sh(['node', os.path.join(R0, 'xb_smoke.js'), sim, e, os.path.join(out, 'xb_%s.json' % e), str(j.get('match', 3)), str(j.get('ticks', 2000))], out, 'xb_' + e)
+    # Р0.6 инварианты: {"inv": [{"label","ref","map","matches"?,"ticks"?,"special"?}]}
+    for j in req.get('inv', []):
+        out = r0out(j); sim = os.path.join(sims, j['label'] + '.html'); build(j['ref'], j.get('map', 'ancient'), sim)
+        for m in j.get('matches', [3, 7, 11, 13, 17, 19, 23, 29]):
+            r0sh(['node', os.path.join(R0, 'inv_run.js'), sim, '--match=%d' % m, '--ticks=%d' % j.get('ticks', 20000), '--out=' + os.path.join(out, 'inv_%d.json' % m)], out, 'inv_%d' % m)
+        if j.get('special'): r0sh(['node', os.path.join(R0, 'inv_run.js'), sim, '--special', '--out=' + os.path.join(out, 'inv_special.json')], out, 'inv_special')
     for j in req.get('jobs', []):
         sim = os.path.join(sims, j['label'] + '.html')
         build(j['ref'], j.get('map', 'ancient'), sim); jobargs.append('--job=%s,%s' % (j['label'], sim))
