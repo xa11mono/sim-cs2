@@ -1,0 +1,39 @@
+{
+ "sim": "C:\\actions-runner\\_work\\sim-cs2\\sim-cs2\\tools\\measure\\runs\\_sims\\v599a_inv3_mir.html",
+ "match": 3,
+ "ticks": 20000,
+ "graph": {
+  "edges": 7862,
+  "I-15 freshMatch = загрузка": {
+   "onlyFirst": 0,
+   "onlySecond": 0,
+   "same": true
+  },
+  "I-24/I-32 rebuildNav+navCutTall = загрузка": {
+   "onlyFirst": 13,
+   "onlySecond": 0,
+   "same": false
+  },
+  "I-29 applyWalls (стены сборки, без базы владельца) = загрузка": {
+   "onlyFirst": 13,
+   "onlySecond": 0,
+   "same": false
+  }
+ },
+ "I-22": {
+  "match": 4,
+  "ticksCompared": 2000,
+  "firstDiffTickAfterStart": 0,
+  "same": false
+ },
+ "I-23": {
+  "exit": 1,
+  "out": "ПЕРВОЕ РАСХОЖДЕНИЕ: тик 3008 (матч 3); переменных: 1 — bots |   bots[1]._lkC[5].pt.#: 35 → undefined |   bots[1]._lkC[5].pt.x: undefined → 1309.3510299228187 |   bots[1]._lkC[5].pt.y: undefined → 1513.7551496140936 |   bots[3]._lkC[0].pt.#: 1663 → 1664 |   bots[3]._progPath.#: 1623 → 1624",
+  "err": ""
+ },
+ "I-30": {
+  "exit": 1,
+  "out": "ПЕРВОЕ РАСХОЖДЕНИЕ: тик 1 (матч 3); переменных: 2 — bots, BUY_SHOW |   bots[5].id: \"T0\" → \"T1\" |   bots[5].x: 1778.3 → 1746.7 |   bots[5].y: 690.5 → 748 |   bots[5].z: -162 → -162.5 |   bots[5].baseX: 1778.3 → 1746.7",
+  "err": ""
+ }
+}
