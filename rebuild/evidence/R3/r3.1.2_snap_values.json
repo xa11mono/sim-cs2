@@ -102,5 +102,127 @@
   "NAV_GAPS ↔ ZDJ": "",
   "ZONE_LAYER_BASELINE / ZONE_SHAPES_BAKED / pointsByName → MAP": ""
  },
- "conclusion": "Снимок неполон для игры (Т-1 подтверждён по значениям): с поздних точек (20 000, 45 000) новая страница расходится с игрой через 1 900–8 300 тиков на обеих картах. Восстановление того же снимка в той же странице расхождения не даёт (6000 тиков) — значит причина не в разрыве ссылок на исключённые объекты, а в состоянии вне снимка, которое в новой странице другое (кэши / накопители, не одна переменная из списка «меняется, но не в снимке»). Следующий шаг локализации — перенос групп переменных половинным делением; исправление — ремонт Т-1 (отдельная версия, после подтверждения владельца)."
+ "diff_after_restore": {
+  "ancient_20000_new_page": [
+   "BZ_WALK",
+   "KPC",
+   "M3",
+   "MAP",
+   "NADE_LANE_IDX",
+   "NAV_ZONE",
+   "OBC",
+   "OBS",
+   "PATHQ",
+   "PATHQ_N",
+   "RP",
+   "ZDJ",
+   "accumulator",
+   "lastFrame",
+   "nowTs",
+   "soundPings",
+   "tracers",
+   "view",
+   "zoneGraph"
+  ],
+  "ancient_20000_same_page": [
+   "OBS",
+   "RP",
+   "accumulator",
+   "lastFrame",
+   "nowTs",
+   "soundPings",
+   "tracers",
+   "view"
+  ],
+  "mirage_45000_new_page": [
+   "BZ_WALK",
+   "KPC",
+   "M3",
+   "NADE_LANE_IDX",
+   "NAV_ZONE",
+   "OBC",
+   "OBS",
+   "PATHQ",
+   "PATHQ_N",
+   "RP",
+   "ZDJ",
+   "accumulator",
+   "lastFrame",
+   "nowTs",
+   "soundPings",
+   "tracers",
+   "view",
+   "zoneGraph"
+  ],
+  "mirage_45000_same_page": [
+   "OBS",
+   "RP",
+   "accumulator",
+   "lastFrame",
+   "nowTs",
+   "view"
+  ],
+  "note": "хэши всех 973 переменных и полей ботов сразу после восстановления; поля ботов — без отличий. Вне переменных: замыкания nadeAimCache, nadeGuessStore (C), свойство функции nadeGuess.rt — хэш их не видит"
+ },
+ "deep_diff_ancient_20000": {
+  "zoneGraph": "структура та же; ленивое кэш-поле _jcq у рёбер",
+  "MAP": "ленивые кэш-поля lineups.baked[*]._npz, pro.positions.points[*].zid",
+  "PATHQ_N": "3925 → 85 (момент общей очистки кэша путей)",
+  "BZ_WALK / NAV_ZONE / NADE_LANE_IDX": "не построены (null) — строятся при запросе",
+  "KPC": "кэш одного тика",
+  "M3": "распакованные буферы и счётчики-штампы (bStamp, nStamp…)"
+ },
+ "same_page_reset_one": {
+  "mirage_45000": {
+   "свежий nadeGuessStore": "расхождение тик 46926 (= новая страница)",
+   "свежий nadeAimCache": "совпало 6000",
+   "pathCacheReset()": "совпало 6000"
+  },
+  "ancient_20000": {
+   "свежий nadeGuessStore": "расхождение тик 23199 (= новая страница)"
+  }
+ },
+ "new_page_with_nadeGuessStore": {
+  "ancient_m3_70000": {
+   "same": true,
+   "compared": 10000
+  },
+  "ancient_m3_95000": {
+   "same": true,
+   "compared": 10000
+  },
+  "ancient_m7_30000": {
+   "same": true,
+   "compared": 10000
+  },
+  "ancient_m7_60000": {
+   "same": true,
+   "compared": 10000
+  },
+  "mirage_m3_70000": {
+   "same": true,
+   "compared": 10000
+  },
+  "mirage_m3_95000": {
+   "same": true,
+   "compared": 10000
+  },
+  "mirage_m7_30000": {
+   "same": true,
+   "compared": 10000
+  },
+  "mirage_m7_60000": {
+   "same": true,
+   "compared": 10000
+  },
+  "mirage_m3_45000": {
+   "same": true,
+   "compared": 15000
+  },
+  "ancient_m3_20000": {
+   "same": true,
+   "compared": 15000
+  }
+ },
+ "cause": "Причина неполного восстановления (подтверждена в обе стороны, 2 карты × 2 матча × 10 точек): память подсказок бросков nadeGuessStore (замыкание, 380:69) и цена подсказок nadeGuess.rt (свойство функции, 380:107) — вне снимка намеренно (v560 / v570, В86: для перемотки в той же странице, где подсказки «из будущего» уже есть; NADE_GUESS_PAID — в снимке). В новой странице подсказок нет → пересчёт → другой расход бюджета подборов тика (NADE_TICK) → бросок в другой тик → игра расходится. Остальные отличия — ленивые чистые кэши (строятся из тех же данных), кэши одного тика (ZDJ, KPC — у границы тика недействительны), счётчики-штампы; nadeAimCache — чистая мемоизация по точному ключу (счёт подборов — до кэша); PATHQ — ключ квантован (6 ед.), значение зависит от первого запросившего: в 12 опытах не проявилось, но это состояние, а не чистый кэш — в снимок в Т-1 для полноты; zoneGraph — структурно может меняться (navUnlinkBlocked + NAV_UNLINKED в снимке) — в опытах NAV_UNLINKED не менял граф (отличие только _jcq); при восстановлении граф нужно привести к NAV_UNLINKED — в Т-1."
 }

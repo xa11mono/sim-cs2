@@ -17,14 +17,15 @@ if (files.length < 2) { console.error('node tools/measure/diverge.js A.html B.ht
 const MATCH = +opt('match', 3), TICKS = +opt('ticks', 20000), EVERY = Math.max(1, +opt('every', 64)), MATH = args.includes('--math'), SORT = args.includes('--sort');
 const ENG = { a: opt('browser-a', 'chromium'), b: opt('browser-b', 'chromium') };
 
-const DVS = require('./dv_state.js'), SHOWV = DVS.showVars();
+const DVS = require('./dv_state.js');
 
 // NADE_SOLVE_MS — время подборов броска по часам (380, «только для проверки»); tracers, soundPings, killfeed, nowTs — показ с часами страницы
 // (born / t: nowTs), расчёт только обрезает длину и чистит (490:379, 540:393, 530:88, 435:96) — проверено grep 24.11
-const SKIP = opt('skip', '^(WPM|ZDJ|KPC|MK.*|SHOW_Q|VOICE_DIRTY|LOG_DIRTY|KF_DIRTY|NADE_SOLVE_MS|tracers|soundPings|killfeed|nowTs|' + SHOWV.join('|') + ')$');
+// (Р3.1.5) список по умолчанию — колонка cmp реестра состояния (dv_state.skipDefault), причины — там же
+const SKIP = opt('skip', DVS.skipDefault());
 // поля показа внутри объектов игры: _visFacing пишет только рисование (620, 625, 660, 675); _hitFx = {t: nowTs} — вспышка попадания (450:52,
 // 490:306); код расчёта 000–545 их не читает (grep 24.11)
-const SKIPF = opt('skip-field', '^(_visFacing|_hitFx)$');
+const SKIPF = opt('skip-field', DVS.SKIPF_DEFAULT);
 const inj = k => { const f = opt('inject-' + k, ''); return f ? fs.readFileSync(f, 'utf8') : ''; };
 const startCode = k => { const v = opt('start-' + k, ''); return !v ? `freshMatch(${MATCH});` : v[0] === '@' ? fs.readFileSync(v.slice(1), 'utf8') : v; };
 const SNAP_AT = +opt('snap-at', 0);
@@ -68,7 +69,7 @@ function deepDiff(sa, sb, limit) {
     return [A, B];
   }
   let [A, B] = await openPair();
-  const rep = { a: files[0], b: files[1], engines: { a: ENG.a + ' ' + brA.version(), b: ENG.b + ' ' + brB.version() }, match: MATCH, every: EVERY, startA: startCode('a'), startB: SNAP_AT ? 'снимок A на тике ' + SNAP_AT : startCode('b'), skipShowVars: SHOWV.length, skipField: SKIPF, found: false };
+  const rep = { a: files[0], b: files[1], engines: { a: ENG.a + ' ' + brA.version(), b: ENG.b + ' ' + brB.version() }, match: MATCH, every: EVERY, startA: startCode('a'), startB: SNAP_AT ? 'снимок A на тике ' + SNAP_AT : startCode('b'), skip: SKIP, skipField: SKIPF, found: false };
   let ok = (await step(A, 0, false)).tick, bad = -1;
   const start = ok;
   for (let t = 0; t < TICKS; t += EVERY) {

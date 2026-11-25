@@ -2,26 +2,16 @@
 // какие переменные хэшируются (снимок отметки без кэшей и показа), код DV в странице, остановка кадра страницы.
 'use strict';
 const path = require('path');
-// Не хэшируются: (1) кэши, чьё содержимое не меняет результат (как SNAP_SKIP в rec2.js); (2) очереди показа; (3) все переменные верхнего
-// уровня из файлов показа и инструментов (src/game/550… и выше: рисование, HUD, редакторы, обсервер, повтор, песочница, звук, кадр) —
-// их обновляет кадр страницы по её часам; находятся разбором исходника, а не списком руками.
-function showVars() {
-  let acorn; try { acorn = require('acorn'); } catch (e) { try { acorn = require(path.join(__dirname, '..', 'rebuild', 'node_modules', 'acorn')); }   // пакеты сборки (src/build.py ставит их сам)
-    catch (e2) { console.error('нет acorn: npm i --prefix tools/rebuild или NODE_PATH'); process.exit(2); } }
-  // как tools/rebuild/gen_maps.js: склейка src/game (html + js), основной <script>, тело общей обёртки, дом переменной — файл объявления
-  const { all, spans } = require(path.join(__dirname, '..', 'rebuild', 'game_src.js')).concat();   // (Р1.1) .ts — без типов, позиции те же
-  const fileAt = pos => (spans.find(sp => pos >= sp[0] && pos < sp[1]) || spans[spans.length - 1])[2];
-  let main = null;
-  for (const m of all.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)) { const off = m.index + m[0].indexOf('>') + 1; if (!main || m[1].length > main.src.length) main = { off, src: m[1] }; }
-  const ast = acorn.parse(main.src.replace(/@@[A-Z_]+@@/g, m => '0'.padEnd(m.length, ' ')), { ecmaVersion: 'latest', allowReturnOutsideFunction: true });
-  let body = ast.body; const iife = body.find(st => st.type === 'ExpressionStatement' && st.expression.type === 'CallExpression' && /Function/.test(st.expression.callee.type));
-  if (iife) body = body.concat(iife.expression.callee.body.body);
-  const out = [];
-  body.forEach(st => { if (st.type === 'VariableDeclaration' && +fileAt(st.start + main.off).slice(0, 3) >= 550) st.declarations.forEach(d => d.id.type === 'Identifier' && out.push(d.id.name)); });
-  return out;
+// (Р3.1.5, 25.11) что не сравнивать — колонка cmp реестра состояния (rebuild/state_classes.json: «да» / «нет: причина»), одно место
+// для локатора, проверки отметок и снимка; было — свой список здесь (кэши, очереди показа) + разбор файлов показа (550+, showVars).
+// MK* — переменные инструмента отметок (не игра), их в реестре нет.
+function registryCmp() {
+  const C = JSON.parse(require('fs').readFileSync(path.join(__dirname, '..', '..', 'rebuild', 'state_classes.json'), 'utf8'));
+  const g = [], b = [];
+  for (const [k, o] of Object.entries(C)) if (k[0] !== '_' && String(o.cmp || 'да').startsWith('нет')) (k.startsWith('g:') ? g : b).push(k.slice(2));
+  return { g: g.sort(), b: b.sort() };
 }
-const SKIP_BASE = '^(WPM|ZDJ|KPC|MK.*|SHOW_Q|VOICE_DIRTY|LOG_DIRTY|KF_DIRTY|NADE_SOLVE_MS|tracers|soundPings|killfeed|nowTs|';
-const skipDefault = () => SKIP_BASE + showVars().join('|') + ')$', SKIPF_DEFAULT = '^(_visFacing|_hitFx)$';
+const skipDefault = () => '^(MK.*|' + registryCmp().g.join('|') + ')$', SKIPF_DEFAULT = '^(' + registryCmp().b.join('|') + ')$';
 function setupCode(SKIP, SKIPF) {
   return `window.DV = {
   skip: new RegExp(${JSON.stringify(SKIP)}), skipf: new RegExp(${JSON.stringify(SKIPF)}),
@@ -66,4 +56,4 @@ function setupCode(SKIP, SKIPF) {
 // кадр страницы (680 frame) между шагами идёт по часам страницы: тики при снятой паузе, рисование и показ пишут поля в объекты игры.
 // Остановить: игру ведут только шаги инструмента (прогон 319: WebKit «расходился сам с собой» на тике 1)
 async function stopFrames(p) { await p.evaluate(() => __ev('window.requestAnimationFrame = function(){ return 0; }; clockPause(true); 1')); await p.waitForTimeout(150); }
-module.exports = { showVars, skipDefault, SKIPF_DEFAULT, setupCode, stopFrames };
+module.exports = { skipDefault, SKIPF_DEFAULT, setupCode, stopFrames };
