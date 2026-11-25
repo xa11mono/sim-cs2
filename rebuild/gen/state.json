@@ -1,5 +1,5 @@
 {
- "_": "реестр состояния, машинная часть (tools/rebuild/gen_maps.js); снимок сейчас: true — в __SNAP; строка — почему нет (marks_build.py); поля бота — в снимке вместе с bots; рантайм-фильтры mkSnapList / mkSnapshot — tools/rebuild/state_snap.js",
+ "_": "реестр состояния, машинная часть (tools/rebuild/gen_maps.js); снимок сейчас: true — в __SNAP; строка — почему нет (колонка snap rebuild/state_classes.json через marks_build.snap_vars); поля бота — в снимке вместе с bots; рантайм-фильтры mkSnapList / mkSnapshot — tools/rebuild/state_snap.js",
  "globals": {
   "ACCEL": {
    "decl": "070_weapons_bots_roam.js:57",
@@ -323,7 +323,7 @@
     "675": 1,
     "080": 1
    },
-   "snap": "SETTINGS"
+   "snap": "нет: SETTINGS"
   },
   "BEEP_FINAL": {
    "decl": "435_match_events.js:148",
@@ -448,7 +448,7 @@
    "r": {
     "530": 1
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "BUILTIN_OFF": {
    "decl": "390_nades_lineups.js:8",
@@ -583,7 +583,7 @@
    "r": {
     "260": 3
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "C4_FINAL_SEC": {
    "decl": "435_match_events.js:148",
@@ -873,7 +873,7 @@
     "030": 3,
     "035": 3
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "COVER_CANDS": {
    "decl": "470_fight_cycle.js:465",
@@ -898,7 +898,7 @@
    "r": {
     "030": 1
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "COV_C": {
    "decl": "030_map_walls_heights_cover_wallbang.js:119",
@@ -911,7 +911,7 @@
     "590": 2,
     "030": 5
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "COV_CAT": {
    "decl": "030_map_walls_heights_cover_wallbang.js:76",
@@ -922,7 +922,7 @@
     "580": 5,
     "590": 3
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "COV_CHEST": {
    "decl": "030_map_walls_heights_cover_wallbang.js:75",
@@ -932,7 +932,7 @@
    "r": {
     "030": 1
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "COV_HIGH": {
    "decl": "030_map_walls_heights_cover_wallbang.js:75",
@@ -942,7 +942,7 @@
    "r": {
     "030": 1
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "COV_ORDER": {
    "decl": "030_map_walls_heights_cover_wallbang.js:81",
@@ -950,7 +950,7 @@
    "w": {},
    "m": {},
    "r": {},
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "COV_OWN": {
    "decl": "030_map_walls_heights_cover_wallbang.js:106",
@@ -968,7 +968,7 @@
     "590": 8,
     "030": 3
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "COV_OWN_CODE": {
    "decl": "030_map_walls_heights_cover_wallbang.js:105",
@@ -979,7 +979,7 @@
     "590": 1,
     "030": 1
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "CROSS_BELIEF": {
    "decl": "390_nades_lineups.js:47",
@@ -1802,7 +1802,7 @@
     "050": 24,
     "070": 4
    },
-   "snap": "EXTRA_STATIC"
+   "snap": "нет: EXTRA_STATIC"
   },
   "DUCK_PRO": {
    "decl": "510_engagements.js:4",
@@ -2435,7 +2435,7 @@
    "r": {
     "680": 1
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "FREEZE_FX": {
    "decl": "520_economy.js:199",
@@ -2675,7 +2675,7 @@
     "030": 2,
     "040": 2
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "HELMET_UPGRADE": {
    "decl": "520_economy.js:32",
@@ -2729,7 +2729,7 @@
     "580": 4,
     "030": 2
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "HGT_C": {
    "decl": "580_maped_heights.js:13",
@@ -2742,7 +2742,7 @@
    "r": {
     "580": 19
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "HGT_LEDGE_TXT": {
    "decl": "580_maped_heights.js:52",
@@ -2752,7 +2752,7 @@
    "r": {
     "580": 1
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "HGT_NEAR": {
    "decl": "370_fire_nav_levels_ladders.js:486",
@@ -2777,7 +2777,7 @@
     "030": 2,
     "040": 2
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "HGT_OWN_CODE": {
    "decl": "030_map_walls_heights_cover_wallbang.js:52",
@@ -2788,7 +2788,7 @@
     "580": 1,
     "030": 1
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "HGT_STOPS": {
    "decl": "580_maped_heights.js:2",
@@ -2798,7 +2798,7 @@
    "r": {
     "580": 1
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "HGT_TOP": {
    "decl": "370_fire_nav_levels_ladders.js:481",
@@ -2885,7 +2885,7 @@
    "r": {
     "635": 1
    },
-   "snap": true
+   "snap": "нет: показ (звук / HUD — фильтр mkSnapList)"
   },
   "HUD_KF_SHOWN": {
    "decl": "630_killfeed_banners_econ.js:40",
@@ -2897,7 +2897,7 @@
    "r": {
     "630": 3
    },
-   "snap": true
+   "snap": "нет: показ (звук / HUD — фильтр mkSnapList)"
   },
   "HUD_REDUCED": {
    "decl": "635_hud_fx.js:4",
@@ -2911,7 +2911,7 @@
     "675": 2,
     "676": 2
    },
-   "snap": true
+   "snap": "нет: показ (звук / HUD — фильтр mkSnapList)"
   },
   "HUD_SB_FRZ": {
    "decl": "640_scoreboard_players.js:21",
@@ -2923,7 +2923,7 @@
    "r": {
     "640": 4
    },
-   "snap": true
+   "snap": "нет: показ (звук / HUD — фильтр mkSnapList)"
   },
   "HUD_TW": {
    "decl": "635_hud_fx.js:23",
@@ -2936,7 +2936,7 @@
    "r": {
     "635": 6
    },
-   "snap": true
+   "snap": "нет: показ (звук / HUD — фильтр mkSnapList)"
   },
   "HUD_TW_ON": {
    "decl": "635_hud_fx.js:23",
@@ -2949,7 +2949,7 @@
    "r": {
     "635": 1
    },
-   "snap": true
+   "snap": "нет: показ (звук / HUD — фильтр mkSnapList)"
   },
   "HUD_VOICE_SHOWN": {
    "decl": "440_voicepanel_console.js:5",
@@ -2961,7 +2961,7 @@
    "r": {
     "440": 3
    },
-   "snap": true
+   "snap": "нет: показ (звук / HUD — фильтр mkSnapList)"
   },
   "HURT_R": {
    "decl": "350_contact_reaction.js:342",
@@ -3267,7 +3267,7 @@
     "635": 3,
     "640": 5
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "KF_IMG": {
    "decl": "630_killfeed_banners_econ.js:17",
@@ -3279,7 +3279,7 @@
    "r": {
     "630": 3
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "KF_LIFE": {
    "decl": "630_killfeed_banners_econ.js:44",
@@ -3598,7 +3598,7 @@
    "r": {
     "050": 2
    },
-   "snap": "EXTRA_STATIC"
+   "snap": "нет: EXTRA_STATIC"
   },
   "KWL_CELL": {
    "decl": "270_look_plan_smooth.js:201",
@@ -3634,7 +3634,7 @@
     "370": 5,
     "050": 2
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "LADDER_FAR": {
    "decl": "370_fire_nav_levels_ladders.js:120",
@@ -3861,7 +3861,7 @@
     "270": 114,
     "470": 1
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "LOOKDBG": {
    "decl": "270_look_plan_smooth.js:460",
@@ -4160,7 +4160,7 @@
     "370": 7,
     "035": 4
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "M3_SKIN": {
    "decl": "035_map3d.js:338",
@@ -4183,7 +4183,7 @@
    "r": {
     "035": 2
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "MANUAL_WALLS": {
    "decl": "030_map_walls_heights_cover_wallbang.js:8",
@@ -4200,7 +4200,7 @@
     "030": 3,
     "050": 3
    },
-   "snap": "SETTINGS"
+   "snap": "нет: SETTINGS"
   },
   "MAP": {
    "decl": "010_map_zones_warp.js:5",
@@ -4251,7 +4251,7 @@
     "060": 8,
     "090": 3
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "MAP3D": {
    "decl": "035_map3d.js:14",
@@ -4264,7 +4264,7 @@
     "050": 7,
     "060": 1
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "MAPED": {
    "decl": "570_maped_core_walls.js:9",
@@ -4289,7 +4289,7 @@
     "580": 2,
     "590": 3
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "MATCH_WIN": {
    "decl": "520_economy.js:9",
@@ -4338,7 +4338,7 @@
    "r": {
     "600": 39
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "MED_B_HINTS": {
    "decl": "600_maped_wallbang.js:43",
@@ -4348,7 +4348,7 @@
    "r": {
     "600": 1
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "MED_C": {
    "decl": "590_maped_cover.js:2",
@@ -4363,7 +4363,7 @@
    "r": {
     "590": 24
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "MED_C_HINTS": {
    "decl": "590_maped_cover.js:29",
@@ -4373,7 +4373,7 @@
    "r": {
     "590": 1
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "MED_H": {
    "decl": "580_maped_heights.js:166",
@@ -4385,7 +4385,7 @@
    "r": {
     "580": 25
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "MED_H_HINTS": {
    "decl": "580_maped_heights.js:185",
@@ -4395,7 +4395,7 @@
    "r": {
     "580": 1
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "MED_W": {
    "decl": "570_maped_core_walls.js:163",
@@ -4410,7 +4410,7 @@
    "r": {
     "570": 62
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "MED_W_HINTS": {
    "decl": "570_maped_core_walls.js:210",
@@ -4420,7 +4420,7 @@
    "r": {
     "570": 1
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "MEM_BOX": {
    "decl": "130_tactics_match_adapt.js:24",
@@ -4447,7 +4447,7 @@
    "r": {
     "670": 4
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "MOLLY_SMOKE_TOUCH": {
    "decl": "360_nades_buy_smoke_vision.js:153",
@@ -4605,7 +4605,7 @@
     "366": 2,
     "380": 16
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "NADE_FOE_P": {
    "decl": "380_nades_throw.js:364",
@@ -4709,7 +4709,7 @@
    "r": {
     "630": 4
    },
-   "snap": true
+   "snap": "нет: кэш картинок (показ)"
   },
   "NADE_LANE_FROM": {
    "decl": "380_nades_throw.js:163",
@@ -4732,7 +4732,7 @@
    "r": {
     "380": 2
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "NADE_LANE_TO": {
    "decl": "380_nades_throw.js:163",
@@ -4992,7 +4992,7 @@
     "040": 5,
     "050": 13
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "NAVAREAS_RAW": {
    "decl": "010_map_zones_warp.js:70",
@@ -5002,7 +5002,7 @@
    "r": {
     "010": 2
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "NAVZ_FLOOR": {
    "decl": "210_know_hyp.js:110",
@@ -5059,7 +5059,7 @@
     "020": 3,
     "050": 14
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "NAV_BOUNDARY_SEGS_RAW": {
    "decl": "010_map_zones_warp.js:98",
@@ -5070,7 +5070,7 @@
     "550": 1,
     "620": 1
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "NAV_BOUNDARY_VERTS_RAW": {
    "decl": "550_render_nav_zone_tools.js:157",
@@ -5080,7 +5080,7 @@
    "r": {
     "550": 1
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "NAV_CLIMB_UP": {
    "decl": "010_map_zones_warp.js:60",
@@ -5380,7 +5380,7 @@
    "r": {
     "210": 7
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "NEAR_P_SAME": {
    "decl": "100_sites_spots.js:24",
@@ -5458,7 +5458,7 @@
    "r": {
     "670": 5
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "OBS": {
    "decl": "670_observer.js:8",
@@ -5482,7 +5482,7 @@
     "675": 6,
     "676": 4
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "OBS_BOUNDS": {
    "decl": "670_observer.js:145",
@@ -5495,7 +5495,7 @@
     "670": 2,
     "676": 3
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "OBS_K": {
    "decl": "670_observer.js:10",
@@ -5506,7 +5506,7 @@
     "625": 2,
     "670": 34
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "OBS_NEAR_CALM": {
    "decl": "670_observer.js:145",
@@ -5687,7 +5687,7 @@
    "r": {
     "100": 2
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "PATHQ_N": {
    "decl": "100_sites_spots.js:6",
@@ -5700,7 +5700,7 @@
    "r": {
     "100": 1
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "PATHQ_Q": {
    "decl": "100_sites_spots.js:6",
@@ -6453,7 +6453,7 @@
    "r": {
     "320": 3
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "PRO_LOOK": {
    "decl": "300_roles_fallback_rebalance.js:184",
@@ -6463,7 +6463,7 @@
    "r": {
     "260": 4
    },
-   "snap": "EXTRA_STATIC"
+   "snap": "нет: EXTRA_STATIC"
   },
   "PRO_LOOK_R": {
    "decl": "110_post_routes.js:123",
@@ -6494,7 +6494,7 @@
    "r": {
     "310": 8
    },
-   "snap": "EXTRA_STATIC"
+   "snap": "нет: EXTRA_STATIC"
   },
   "PRO_PROLE": {
    "decl": "300_roles_fallback_rebalance.js:11",
@@ -6525,7 +6525,7 @@
     "110": 1,
     "300": 1
    },
-   "snap": "EXTRA_STATIC"
+   "snap": "нет: EXTRA_STATIC"
   },
   "PR_FIX": {
    "decl": "140_named_spots_ct_setup.js:152",
@@ -6937,7 +6937,7 @@
     "676": 2,
     "680": 3
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "RP_BF": {
    "decl": "675_replay.js:82",
@@ -6947,7 +6947,7 @@
    "r": {
     "675": 4
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "RP_EL": {
    "decl": "675_replay.js:225",
@@ -6971,7 +6971,7 @@
    "r": {
     "675": 32
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "RP_LANG": {
    "decl": "675_replay.js:480",
@@ -7033,7 +7033,7 @@
    "r": {
     "675": 1
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "RT_GAP": {
    "decl": "180_save_retake.js:204",
@@ -7402,7 +7402,7 @@
    "r": {
     "270": 15
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "SLW_R": {
    "decl": "366_exec_sync.js:191",
@@ -7492,7 +7492,7 @@
     "675": 6,
     "680": 107
    },
-   "snap": true
+   "snap": "нет: показ (звук / HUD — фильтр mkSnapList)"
   },
   "SND_CAP": {
    "decl": "680_sound_frame_buttons.js:52",
@@ -7504,7 +7504,7 @@
    "r": {
     "680": 3
    },
-   "snap": true
+   "snap": "нет: показ (звук / HUD — фильтр mkSnapList)"
   },
   "SND_DATA": {
    "decl": "680_sound_frame_buttons.js:8",
@@ -7514,7 +7514,7 @@
    "r": {
     "680": 3
    },
-   "snap": true
+   "snap": "нет: показ (звук / HUD — фильтр mkSnapList)"
   },
   "SND_GUN": {
    "decl": "680_sound_frame_buttons.js:135",
@@ -7524,7 +7524,7 @@
    "r": {
     "680": 7
    },
-   "snap": true
+   "snap": "нет: показ (звук / HUD — фильтр mkSnapList)"
   },
   "SND_MAX": {
    "decl": "680_sound_frame_buttons.js:6",
@@ -7532,7 +7532,7 @@
    "w": {},
    "m": {},
    "r": {},
-   "snap": true
+   "snap": "нет: показ (звук / HUD — фильтр mkSnapList)"
   },
   "SND_R": {
    "decl": "680_sound_frame_buttons.js:33",
@@ -7542,7 +7542,7 @@
    "r": {
     "680": 9
    },
-   "snap": true
+   "snap": "нет: показ (звук / HUD — фильтр mkSnapList)"
   },
   "SOLO_LU_PATH": {
    "decl": "390_nades_lineups.js:92",
@@ -7925,7 +7925,7 @@
    "r": {
     "110": 3
    },
-   "snap": true
+   "snap": "нет: таблица кода (TASK_PROP / TASK_LEVEL — снимок старой версии не подменяет)"
   },
   "TASK_PROP": {
    "decl": "110_post_routes.js:174",
@@ -7935,7 +7935,7 @@
    "r": {
     "110": 1
    },
-   "snap": true
+   "snap": "нет: таблица кода (TASK_PROP / TASK_LEVEL — снимок старой версии не подменяет)"
   },
   "TASK_ROUTE_CANCEL": {
    "decl": "110_post_routes.js:257",
@@ -8330,7 +8330,7 @@
     "675": 3,
     "676": 21
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "TSAVE_K": {
    "decl": "180_save_retake.js:45",
@@ -8352,7 +8352,7 @@
    "r": {
     "676": 7
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "TS_LAYS": {
    "decl": "676_timeout_show.js:21",
@@ -8472,7 +8472,7 @@
     "560": 19,
     "680": 1
    },
-   "snap": "SETTINGS"
+   "snap": "нет: SETTINGS"
   },
   "USER_ZONES": {
    "decl": "060_zone_danger_user_zones.js:150",
@@ -8494,7 +8494,7 @@
     "060": 5,
     "070": 1
    },
-   "snap": "SETTINGS"
+   "snap": "нет: SETTINGS"
   },
   "USER_ZONES_KEY": {
    "decl": "060_zone_danger_user_zones.js:151",
@@ -8559,7 +8559,7 @@
     "610": 3,
     "040": 34
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "VIS_BODY": {
    "decl": "040_visibility.js:27",
@@ -8573,7 +8573,7 @@
     "470": 2,
     "040": 2
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "VIS_CEIL_H": {
    "decl": "040_visibility.js:28",
@@ -8583,7 +8583,7 @@
    "r": {
     "040": 2
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "VIS_CELL": {
    "decl": "040_visibility.js:30",
@@ -8595,7 +8595,7 @@
     "610": 2,
     "040": 5
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "VIS_DANGER_TIMER": {
    "decl": "040_visibility.js:39",
@@ -8627,7 +8627,7 @@
     "050": 2,
     "060": 2
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "VIS_FLOOR_EPS": {
    "decl": "040_visibility.js:31",
@@ -8638,7 +8638,7 @@
     "610": 1,
     "040": 5
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "VIS_GEN": {
    "decl": "040_visibility.js:38",
@@ -8651,7 +8651,7 @@
     "610": 1,
     "040": 2
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "VIS_HEAD": {
    "decl": "040_visibility.js:26",
@@ -8663,7 +8663,7 @@
     "470": 2,
     "040": 2
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "VIS_SHOULDER": {
    "decl": "040_visibility.js:259",
@@ -8674,7 +8674,7 @@
     "490": 1,
     "040": 1
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "VIS_SLAB": {
    "decl": "040_visibility.js:35",
@@ -8684,7 +8684,7 @@
    "r": {
     "040": 1
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "VIS_STACK": {
    "decl": "040_visibility.js:34",
@@ -8694,7 +8694,7 @@
    "r": {
     "040": 1
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "VOICE_DIRTY": {
    "decl": "435_match_events.js:12",
@@ -8763,7 +8763,7 @@
    "r": {
     "610": 38
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "VT_PICK_R": {
    "decl": "610_vistool_lookdebug.js:10",
@@ -8799,7 +8799,7 @@
    "r": {
     "030": 6
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "WALLS_SIG": {
    "decl": "030_map_walls_heights_cover_wallbang.js:10",
@@ -8813,7 +8813,7 @@
     "030": 2,
     "040": 2
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "WALL_POLYS": {
    "decl": "030_map_walls_heights_cover_wallbang.js:7",
@@ -8831,7 +8831,7 @@
     "030": 3,
     "040": 4
    },
-   "snap": "SETTINGS"
+   "snap": "нет: SETTINGS"
   },
   "WALL_POLYS_CODE": {
    "decl": "030_map_walls_heights_cover_wallbang.js:6",
@@ -8842,7 +8842,7 @@
     "570": 1,
     "030": 1
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "WALL_SOLID_POLYS": {
    "decl": "030_map_walls_heights_cover_wallbang.js:9",
@@ -8855,7 +8855,7 @@
     "040": 2,
     "050": 2
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "WARM": {
    "decl": "660_warmup.js:6",
@@ -8880,7 +8880,7 @@
     "678": 1,
     "680": 2
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "WATER_Z": {
    "decl": "460_sound_situations.js:14",
@@ -8904,7 +8904,7 @@
    "r": {
     "030": 2
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "WB_C": {
    "decl": "030_map_walls_heights_cover_wallbang.js:219",
@@ -8917,7 +8917,7 @@
     "600": 2,
     "030": 5
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "WB_MAT": {
    "decl": "030_map_walls_heights_cover_wallbang.js:174",
@@ -8929,7 +8929,7 @@
     "600": 5,
     "030": 2
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "WB_OWN": {
    "decl": "030_map_walls_heights_cover_wallbang.js:197",
@@ -8947,7 +8947,7 @@
     "600": 10,
     "030": 3
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "WB_OWN_CODE": {
    "decl": "030_map_walls_heights_cover_wallbang.js:196",
@@ -8958,7 +8958,7 @@
     "600": 1,
     "030": 1
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "WB_RULES": {
    "decl": "030_map_walls_heights_cover_wallbang.js:174",
@@ -8968,7 +8968,7 @@
    "r": {
     "030": 1
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "WEAPONS": {
    "decl": "070_weapons_bots_roam.js:12",
@@ -9093,7 +9093,7 @@
    "r": {
     "050": 8
    },
-   "snap": "EXTRA_STATIC"
+   "snap": "нет: EXTRA_STATIC"
   },
   "ZIDX": {
    "decl": "190_team_intel_lkp_calls.js:169",
@@ -9126,7 +9126,7 @@
    "r": {
     "035": 1
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "ZI_DE": {
    "decl": "035_map3d.js:59",
@@ -9136,7 +9136,7 @@
    "r": {
     "035": 1
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "ZI_LB": {
    "decl": "035_map3d.js:56",
@@ -9146,7 +9146,7 @@
    "r": {
     "035": 1
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "ZI_LE": {
    "decl": "035_map3d.js:57",
@@ -9156,7 +9156,7 @@
    "r": {
     "035": 1
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "ZI_ORD": {
    "decl": "035_map3d.js:60",
@@ -9166,7 +9166,7 @@
    "r": {
     "035": 1
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "ZONEMAP": {
    "decl": "010_map_zones_warp.js:10",
@@ -9192,7 +9192,7 @@
     "060": 5,
     "070": 1
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "ZONEMAP_RAW": {
    "decl": "010_map_zones_warp.js:17",
@@ -9202,7 +9202,7 @@
    "r": {
     "010": 2
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "ZONES_GEN": {
    "decl": "010_map_zones_warp.js:26",
@@ -9213,7 +9213,7 @@
     "190": 1,
     "010": 1
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "ZONE_CENTROIDS": {
    "decl": "060_zone_danger_user_zones.js:22",
@@ -9247,7 +9247,7 @@
     "060": 3,
     "070": 1
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "ZONE_DANGER_LINE": {
    "decl": "060_zone_danger_user_zones.js:35",
@@ -9260,7 +9260,7 @@
     "620": 1,
     "060": 3
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "ZONE_DANGER_W": {
    "decl": "060_zone_danger_user_zones.js:35",
@@ -9276,7 +9276,7 @@
     "620": 1,
     "060": 3
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "ZONE_DEFAULT_LABEL": {
    "decl": "190_team_intel_lkp_calls.js:141",
@@ -9348,7 +9348,7 @@
     "676": 1,
     "680": 1
    },
-   "snap": "SETTINGS"
+   "snap": "нет: SETTINGS"
   },
   "ZONE_NAMES_BAKED": {
    "decl": "190_team_intel_lkp_calls.js:134",
@@ -9385,7 +9385,7 @@
     "620": 1,
     "060": 3
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "ZONE_SHAPES": {
    "decl": "010_map_zones_warp.js:27",
@@ -9401,7 +9401,7 @@
     "680": 1,
     "010": 3
    },
-   "snap": "SETTINGS"
+   "snap": "нет: SETTINGS"
   },
   "ZONE_SHAPES_BAKED": {
    "decl": "010_map_zones_warp.js:27",
@@ -9471,7 +9471,7 @@
    "r": {
     "110": 4
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "_WBn": {
    "decl": "110_post_routes.js:134",
@@ -9483,7 +9483,7 @@
    "r": {
     "110": 1
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "_rtw": {
    "decl": "180_save_retake.js:205",
@@ -9532,7 +9532,7 @@
     "675": 1,
     "680": 3
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "aggrObs": {
    "decl": "140_named_spots_ct_setup.js:438",
@@ -9943,7 +9943,7 @@
    "r": {
     "580": 2
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "chkHeights": {
    "decl": "580_maped_heights.js:51",
@@ -9953,7 +9953,7 @@
    "r": {
     "580": 2
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "chkLineups": {
    "decl": "560_lineup_zone_editor.js:2",
@@ -10010,7 +10010,7 @@
    "r": {
     "610": 4
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "chkWallbang": {
    "decl": "590_maped_cover.js:119",
@@ -10020,7 +10020,7 @@
    "r": {
     "590": 2
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "chkZoneAlign": {
    "decl": "550_render_nav_zone_tools.js:263",
@@ -10119,7 +10119,7 @@
     "580": 12,
     "590": 1
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "ctHabit": {
    "decl": "130_tactics_match_adapt.js:23",
@@ -10334,7 +10334,7 @@
    "r": {
     "680": 1
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "groundItems": {
    "decl": "450_combat_items_knife.js:88",
@@ -10394,7 +10394,7 @@
     "580": 13,
     "590": 1
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "hoverZoneId": {
    "decl": "550_render_nav_zone_tools.js:72",
@@ -10422,7 +10422,7 @@
     "670": 1,
     "676": 1
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "imgFailed": {
    "decl": "550_render_nav_zone_tools.js:4",
@@ -10434,7 +10434,7 @@
    "r": {
     "620": 1
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "imgReady": {
    "decl": "550_render_nav_zone_tools.js:4",
@@ -10448,7 +10448,7 @@
     "670": 1,
     "676": 1
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "inNavDx": {
    "decl": "550_render_nav_zone_tools.js:96",
@@ -10557,7 +10557,7 @@
    "r": {
     "540": 2
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "lastTacticId": {
    "decl": "130_tactics_match_adapt.js:11",
@@ -10858,7 +10858,7 @@
     "680": 1,
     "010": 5
    },
-   "snap": "SETTINGS"
+   "snap": "нет: SETTINGS"
   },
   "navAutoLinks": {
    "decl": "050_nav_rebuild_paths.js:8",
@@ -10878,7 +10878,7 @@
    },
    "m": {},
    "r": {},
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "navCutPortals": {
    "decl": "050_nav_rebuild_paths.js:9",
@@ -10888,7 +10888,7 @@
    },
    "m": {},
    "r": {},
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "navDragOrig": {
    "decl": "550_render_nav_zone_tools.js:124",
@@ -10944,7 +10944,7 @@
    },
    "m": {},
    "r": {},
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "navRebuildTimer": {
    "decl": "550_render_nav_zone_tools.js:108",
@@ -10997,7 +10997,7 @@
     "010": 1,
     "050": 2
    },
-   "snap": "SETTINGS"
+   "snap": "нет: SETTINGS"
   },
   "navWarp": {
    "decl": "010_map_zones_warp.js:161",
@@ -11082,7 +11082,7 @@
     "675": 2,
     "678": 2
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "paused": {
    "decl": "540_step_tick.js:6",
@@ -11097,7 +11097,7 @@
     "675": 1,
     "680": 7
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "plSelected": {
    "decl": "640_scoreboard_players.js:83",
@@ -11997,7 +11997,7 @@
     "677": 1,
     "678": 1
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "voiceLines": {
    "decl": "435_match_events.js:14",
@@ -12026,7 +12026,7 @@
    "r": {
     "060": 2
    },
-   "snap": "SETTINGS"
+   "snap": "нет: SETTINGS"
   },
   "wbTip": {
    "decl": "590_maped_cover.js:170",
@@ -12038,7 +12038,7 @@
    "r": {
     "590": 12
    },
-   "snap": "UI"
+   "snap": "нет: UI"
   },
   "wrap": {
    "decl": "550_render_nav_zone_tools.js:3",
@@ -12200,7 +12200,7 @@
     "020": 1,
     "050": 26
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "zoneKindSelect": {
    "decl": "550_render_nav_zone_tools.js:203",
@@ -12230,7 +12230,7 @@
     "010": 8,
     "060": 1
    },
-   "snap": "SETTINGS"
+   "snap": "нет: SETTINGS"
   },
   "zoneLayerRebuildTimer": {
    "decl": "060_zone_danger_user_zones.js:81",
@@ -12409,7 +12409,7 @@
     "040": 2,
     "050": 16
    },
-   "snap": "STATIC"
+   "snap": "нет: STATIC"
   },
   "zsDrag": {
    "decl": "560_lineup_zone_editor.js:140",

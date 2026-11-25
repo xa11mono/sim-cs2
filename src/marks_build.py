@@ -3,7 +3,7 @@
     настроек и интерфейса) — новые переменные игры попадают в снимок сами;
   - сам модуль src/marks.js.
 Вызывают src/build.py (sim.html) и src/mkpub.py (публикуемая страница) — обе страницы одинаковые."""
-import os, re
+import json, os, re
 HERE = os.path.dirname(os.path.abspath(__file__))
 MARK = "/*@@BUILD: здесь build.py вставляет __SNAP и marks.js@@*/\n"
 
@@ -39,24 +39,22 @@ def top_vars(src):
         if x not in out: out.append(x)
     return out
 
-# не в снимок: неизменные данные карты/про (большие), настройки владельца, интерфейс
-STATIC = set("""MAP NADE_LANE_IDX ZONEMAP ZONEMAP_RAW NAVAREAS NAVAREAS_RAW NAV_BOUNDARY_SEGS_RAW NAV_BOUNDARY_VERTS_RAW zonesById zoneGraph ZONE_SAMPLES
-ZONE_DANGER_LINE PRO_LINEUPS_RAW BOT_INIT WALL_POLYS_CODE WALL_SOLID_POLYS WALLS_SIG NAV_BLOCKED navBlockedCount navCutPortals
-navNarrowPortals ZONE_DANGER ZONE_DANGER_W ZONE_DANGER_DIRTY _WB _WBn VIS VIS_GEN VIS_EYE VIS_HEAD VIS_BODY VIS_CEIL_H VIS_CELL
-VIS_FLOOR_EPS ZONES_GEN VIS_SHOULDER VIS_STACK VIS_SLAB MAP3D M3 M3_SOLID ZI_LB ZI_LE ZI_DB ZI_DE ZI_ORD NADE_ARC_SEG CROUCH_SPEED_FRAC KF_ICON LOOK SL BZ_WALK PATHQ PATHQ_N NAV_ZONE LADDERS OBS_BOUNDS NADE_FAIL""".split())   # (А5) MAP3D/M3/M3_SOLID — геометрия карты и её сетки (десятки МБ); v260: LOOK/SL — таблицы чисел, BZ_WALK — кэш
-SETTINGS = set("""BAL MANUAL_WALLS WALL_POLYS wallSegs USER_ZONES USER_LINEUPS ZONE_NAMES ZONE_SHAPES navAnchors navTransform zoneLayer""".split())
-UI = set("""view paused lastFrame accumulator nowTs MAPED MED_W MED_W_HINTS HEIGHTS HGT_AUTO HGT_OWN_CODE HGT_OWN HGT_STOPS HGT_C
-HGT_LEDGE_TXT chkHeights hgtTip MED_H MED_H_HINTS chkVis VT WALLBANG WB_MAT WB_RULES WB_AUTO WB_OWN_CODE WB_OWN WB_C chkWallbang
-wbTip MED_B MED_B_HINTS COVER COV_HIGH COV_CHEST COV_CAT COV_ORDER COV_AUTO COV_OWN_CODE COV_OWN COV_C chkCover covTip MED_C
-MED_C_HINTS KF_IMG OBS OBS_K OBC RP RP_K RP_SNAPS RP_BF TS TS_K MINI WARM img imgReady imgFailed FRAME_CATCHUP_MS frameWrapR""".split())   # v344: img/imgReady/imgFailed — картинка радара (в снимке с v343 флаг «не загружен» гасил карту)   # v295: KF_IMG — картинки иконок радара (Image не клонируется — снимок падал, игра вставала)
-EXTRA_STATIC = set("PRO_PRIOR PRO_LOOK PRO_SPOTS ZDJ KPC DM".split())   # (Р2.2) DM — общая математика 005_dmath.ts: функции, не состояние. (v458) ZDJ / KPC — кэши поиска пути одного тика (в ZDJ — куча с функциями: снимок падал «could not be cloned», разминка не стартовала)   # v255: по замеру — за 2 матча не меняются, ~400 КБ снимка
+# (Р3.1.3, 25.11) что идёт в снимок — колонка snap реестра состояния (rebuild/state_classes.json: «да» / «нет: причина»), а не списки
+# исключений здесь (были STATIC / SETTINGS / UI / EXTRA_STATIC — перенесены в реестр с причиной; история причин — git этого файла).
+# Переменной без строки в реестре — «да» (как раньше: всё, что не исключено); сборку без строки останавливает gen_maps --check.
+REGISTRY = os.path.join(HERE, '..', 'rebuild', 'state_classes.json')
+def snap_policy():
+    try: C = json.load(open(REGISTRY, encoding='utf-8'))
+    except (OSError, ValueError): return {}
+    return {k[2:]: o.get('snap', 'да') for k, o in C.items() if k.startswith('g:')}
 
 
 def snap_vars(s):
     """Переменные, которые сборка кладёт в снимок отметки (__SNAP), по порядку. (Р3.1, 25.11) одно место: им пользуются сборка и реестр
     состояния (tools/rebuild/state_gen.js — графа «в снимке сейчас»). Склейка s + каналы-модули (rebuild/modules.json)."""
     from gamesrc import module_source
-    return [v for v in top_vars(s) + [x for x in top_vars(module_source()) if x not in top_vars(s)] if v not in STATIC | SETTINGS | UI | EXTRA_STATIC and not v.startswith('__') and not v.startswith('MK') and not v.startswith('mk')]
+    P = snap_policy()
+    return [v for v in top_vars(s) + [x for x in top_vars(module_source()) if x not in top_vars(s)] if not P.get(v, 'да').startswith('нет') and not v.startswith('__') and not v.startswith('MK') and not v.startswith('mk')]
 
 
 def inject(s):

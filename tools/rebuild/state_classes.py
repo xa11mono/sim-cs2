@@ -103,6 +103,14 @@ def main():
             if key[0] == 'g' and not (v['w'] or v['m']) and ch: note += '; по имени не пишется — меняется через другое имя'
             if key[0] == 'b': note = (note + '; ' if note else '') + (('образцы: ' + '; '.join(BV[key[2:]][:3])) if BV.get(key[2:]) else 'у ботов в опыте (2 карты, тики 3000…70000) не появлялось — возможно, поле другого объекта с тем же именем')
             out[key] = {'class': 'не размечено', 'owner': '', 'life': '', 'snap': '', 'src': 'нет', 'why': note}
+    # (Р3.1.3) политика снимка — колонка snap: «да» / «нет: причина» (глобальные), «с bots» (поля бота). Хранится в реестре и при
+    # пересчёте не теряется; новой строке — по нынешнему поведению сборки (state.json snap), при его отсутствии — «да» (как раньше)
+    for key, o in out.items():
+        prev = old.get(key, {}).get('snap', '')
+        if prev in ('да', 'с bots') or prev.startswith('нет'): o['snap'] = prev; continue
+        if key[0] == 'b': o['snap'] = 'с bots'; continue
+        m = ST['globals'][key[2:]].get('snap')
+        o['snap'] = 'да' if m is True or m is None else 'нет: ' + str(m)
     for k, o in old.items():
         if k not in out: out[k] = dict(o, gone=True)
     out = dict(sorted(out.items())); out = dict({'_classes': CLASSES, '_': 'смысловая разметка реестра состояния (tools/rebuild/state_classes.py); машинная часть — rebuild/gen/state.json'}, **out)

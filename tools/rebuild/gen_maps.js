@@ -299,8 +299,8 @@ if (!CHECK) {
   try {
     const py = process.env.SIM_PY || (process.platform === "win32" ? "python" : "python3");
     const out = require("child_process").execFileSync(py, ["-c", "import sys, json; sys.path.insert(0, " + JSON.stringify(path.join(ROOT, "src")) + "); import marks_build as M; from gamesrc import game_source; " +
-      "s = game_source(); print(json.dumps({'snap': M.snap_vars(s), 'sets': {k: sorted(getattr(M, k)) for k in ('STATIC', 'SETTINGS', 'UI', 'EXTRA_STATIC')}}))"], { cwd: ROOT, maxBuffer: 1 << 26 }).toString();
-    const J = JSON.parse(out); snap = new Set(J.snap); for (const [k, L] of Object.entries(J.sets)) L.forEach(v => { why[v] = k; });
+      "s = game_source(); print(json.dumps({'snap': M.snap_vars(s), 'why': M.snap_policy()}))"], { cwd: ROOT, maxBuffer: 1 << 26 }).toString();
+    const J = JSON.parse(out); snap = new Set(J.snap); for (const [k, w] of Object.entries(J.why)) if (String(w).startsWith("нет")) why[k] = w;
   } catch (e) { console.error("реестр состояния: список снимка не получен (" + String(e.message).slice(0, 120) + ")"); }
   const srt = o => Object.fromEntries(Object.entries(o).sort());
   const G = {}; for (const [k, d] of Object.entries(STATE_G.DECL).sort((a, b) => a[0] < b[0] ? -1 : 1)) {
@@ -309,7 +309,7 @@ if (!CHECK) {
       snap: !snap ? null : snap.has(k) ? true : (why[k] || (/^(__|MK|mk)/.test(k) ? "служебное снимка" : "?")) };
   }
   const B = {}; for (const k of stateNames().b.sort()) B[k] = { w: (BOTW[k] || []).slice().sort(), lit: (BOTL[k] || []).slice().sort(), r: BOTR[k] || 0 };
-  save(path.join(OUT, "state.json"), JSON.stringify({ _: "реестр состояния, машинная часть (tools/rebuild/gen_maps.js); снимок сейчас: true — в __SNAP; строка — почему нет (marks_build.py); поля бота — в снимке вместе с bots; рантайм-фильтры mkSnapList / mkSnapshot — tools/rebuild/state_snap.js", globals: G, bot: B }, null, 1));
+  save(path.join(OUT, "state.json"), JSON.stringify({ _: "реестр состояния, машинная часть (tools/rebuild/gen_maps.js); снимок сейчас: true — в __SNAP; строка — почему нет (колонка snap rebuild/state_classes.json через marks_build.snap_vars); поля бота — в снимке вместе с bots; рантайм-фильтры mkSnapList / mkSnapshot — tools/rebuild/state_snap.js", globals: G, bot: B }, null, 1));
   console.log("реестр состояния: переменных " + Object.keys(G).length + ", полей бота " + Object.keys(B).length);
 }
 
