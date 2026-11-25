@@ -1,0 +1,139 @@
+{
+  "base": "32fb35ea852b028667fd14f656da786a7ebf3f8f",
+  "type": "VM fixtures calling unchanged detectors",
+  "cases": [
+    {
+      "id": "P01_wall_block",
+      "observed": 1,
+      "detail": "blocked step and repeated positive curSpeed"
+    },
+    {
+      "id": "P02_loop_same_endpoint",
+      "observed": 1,
+      "detail": "moved on a route, then returned within endpoint radius; open step passes"
+    },
+    {
+      "id": "P03_wall_zero_speed",
+      "observed": 0,
+      "detail": "unreached active post and blocked physical step, but zero stored speed"
+    },
+    {
+      "id": "P04_intentional_hold",
+      "observed": 0
+    },
+    {
+      "id": "P05_refusal_overlaps_stall",
+      "observed": 2,
+      "detail": "one continuous stationary actor produced two stall events on distinct branches"
+    },
+    {
+      "id": "P06_valid_refusal_still_counted",
+      "observed": 1,
+      "detail": "active hold and refusals counted even with hold deliberately marked as valid in fixture"
+    },
+    {
+      "id": "P07_nav_and_vertical",
+      "observed": 1,
+      "detail": "horizontal delta counted, vertical-only and ladder horizontal delta ignored"
+    },
+    {
+      "id": "P08_tug_cause_missing",
+      "observed": 1,
+      "detail": "legal temporary contact then return also matches A-B-A"
+    },
+    {
+      "id": "P09_tug_suffix_and_between_samples",
+      "observed": 0,
+      "detail": "one-tick reassignment and a same-prefix change are invisible"
+    },
+    {
+      "id": "W01_wait_tag_drift",
+      "observed": 1,
+      "detail": "two valid waits concatenate; own bot makes near>=enemy"
+    },
+    {
+      "id": "W02_bomb_exit_in_time",
+      "observed": 2,
+      "detail": "both exit fatal region before detonation; one warning per actor"
+    },
+    {
+      "id": "W03_flash_covered_or_no_flash_effect",
+      "observed": 1,
+      "detail": "2D LOS stub true, no engine flash effect, no turning to unknown origin"
+    },
+    {
+      "id": "W04_fire_running_out",
+      "observed": 1,
+      "detail": "moves at every sample; higher-floor actor is excluded"
+    },
+    {
+      "id": "W05_smoke_teammate_and_2D",
+      "observed": 1,
+      "detail": "team kill with four-argument smoke test"
+    },
+    {
+      "id": "W06_nade_attribution_wrong_type",
+      "observed": 1,
+      "detail": "a flash throw is credited to a disappearing smoke task"
+    },
+    {
+      "id": "W07_nade_round_reset",
+      "observed": 0,
+      "detail": "unclosed task disappears when state changes"
+    },
+    {
+      "id": "W08_flip_valid_repeat",
+      "observed": 1,
+      "detail": "three identical messages flag, fourth within window does not"
+    },
+    {
+      "id": "O01_watch_mutates_bot_shape",
+      "observed": 1,
+      "detail": "own field + accessor; after clone hook is skipped because marker survives"
+    },
+    {
+      "id": "I01_bad_index_tally",
+      "observed": 3,
+      "detail": "three offending ticks for one persistent bad index"
+    },
+    {
+      "id": "I04_orphan_from_start",
+      "observed": [
+        0,
+        1
+      ],
+      "detail": "orphan counted only when a valid lineup-task pair was observed first"
+    },
+    {
+      "id": "I09_buffer_saturation",
+      "observed": [
+        405,
+        400
+      ],
+      "detail": "PROB cumulative counter grows, reader cursor sticks at capped array length"
+    },
+    {
+      "id": "I16_legitimate_sound",
+      "observed": 1,
+      "detail": "same-tick legitimate source flagged if no ally sees enemy"
+    },
+    {
+      "id": "I25_two_reasons_one_write",
+      "observed": 2,
+      "detail": "same write triggers both call-overwrite and seen+sound"
+    },
+    {
+      "id": "I07_requests_not_ticks",
+      "observed": {
+        "consecutive": 5,
+        "ticks": 1,
+        "n": 0
+      }
+    },
+    {
+      "id": "F01_attempt_logged_as_throw",
+      "observed": 1,
+      "detail": "failed throwNade still appears in FP.nades"
+    }
+  ]
+}

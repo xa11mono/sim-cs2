@@ -1,0 +1,509 @@
+source,family,has_signal_or_formula_candidate,extracted_rows
+.github/workflows/demos.yml,workflow,1,0
+.github/workflows/measure.yml,workflow,1,0
+data/demos/endgame.py,demo query,1,2
+data/demos/retake.py,demo query,1,1
+docs/audit/architecture/instruments/engine_dupe.js,archived investigation,1,0
+docs/audit/architecture/instruments/html_inventory.js,archived investigation,1,0
+docs/audit/architecture/instruments/load_probe.py,archived investigation,1,6
+docs/audit/architecture/instruments/map_keys.js,archived investigation,1,1
+docs/audit/architecture/instruments/map_usage.js,archived investigation,1,0
+docs/audit/architecture/instruments/mem_probe.py,archived investigation,1,1
+docs/audit/architecture/instruments/nav_timing.py,archived investigation,1,1
+docs/audit/architecture/instruments/summarize.py,archived investigation,1,2
+docs/reports/audit_2026-11-24/stage2b/tools_audit/contA.js,archived investigation,1,0
+docs/reports/audit_2026-11-24/stage2b/tools_audit/contA2.js,archived investigation,1,0
+docs/reports/audit_2026-11-24/stage2b/tools_audit/contB.js,archived investigation,1,0
+docs/reports/audit_2026-11-24/stage2b/tools_audit/cov.py,archived investigation,1,2
+docs/reports/audit_2026-11-24/stage2b/tools_audit/facing.js,archived investigation,1,0
+docs/reports/audit_2026-11-24/stage2b/tools_audit/ladders.js,archived investigation,1,0
+docs/reports/audit_2026-11-24/stage2b/tools_audit/loadorder.js,archived investigation,1,0
+docs/reports/audit_2026-11-24/stage2b/tools_audit/loadrecalc.js,archived investigation,1,0
+docs/reports/audit_2026-11-24/stage2b/tools_audit/navbisect.js,archived investigation,1,0
+docs/reports/audit_2026-11-24/stage2b/tools_audit/navdiff.js,archived investigation,1,0
+docs/reports/audit_2026-11-24/stage2b/tools_audit/navdrop.js,archived investigation,1,0
+docs/reports/audit_2026-11-24/stage2b/tools_audit/nnt.js,archived investigation,1,0
+docs/reports/audit_2026-11-24/stage2b/tools_audit/plen.js,archived investigation,1,0
+docs/reports/audit_2026-11-24/stage2b/tools_audit/react_probe.js,archived investigation,1,0
+docs/reports/audit_2026-11-24/stage2b/tools_audit/snapA.js,archived investigation,1,0
+docs/reports/audit_2026-11-24/stage2b/tools_audit/snapA2.js,archived investigation,1,0
+docs/reports/audit_2026-11-24/stage2b/tools_audit/snapA3.js,archived investigation,1,0
+docs/reports/audit_2026-11-24/stage3/bench/bench.js,archived investigation,1,0
+docs/reports/audit_2026-11-24/stage3/bench/cnt.js,archived investigation,1,0
+docs/reports/audit_2026-11-24/stage3/bench/exact.js,archived investigation,1,0
+docs/reports/audit_2026-11-24/stage3/bench/exact2.js,archived investigation,1,0
+docs/reports/audit_2026-11-24/stage3/bench/export.js,archived investigation,1,0
+docs/reports/audit_2026-11-24/stage3/bench/mem.js,archived investigation,1,0
+docs/reports/audit_2026-11-24/stage3/bench/rdj/src/bin_tri.rs,archived investigation,0,0
+docs/reports/audit_2026-11-24/stage3/bench/rdj/src/lib.rs,archived investigation,1,0
+docs/reports/audit_2026-11-24/stage3/bench/rdj/src/main.rs,archived investigation,0,0
+docs/reports/audit_2026-11-24/stage3/bench/tri.js,archived investigation,1,0
+docs/reports/audit_2026-11-24/stage3/bench/tri_wasm.js,archived investigation,1,0
+docs/reports/audit_2026-11-24/stage3/bench/wasm_runner.js,archived investigation,1,0
+docs/reports/audit_2026-11-24/stage4/bench/br.js,archived investigation,1,0
+docs/reports/audit_2026-11-24/stage4/bench/br2.js,archived investigation,1,0
+docs/reports/audit_2026-11-24/stage4/bench/core.js,archived investigation,0,0
+docs/reports/audit_2026-11-24/stage4/bench/cr_check.py,archived investigation,0,0
+docs/reports/audit_2026-11-24/stage4/bench/game_sens.js,archived investigation,1,0
+docs/reports/audit_2026-11-24/stage4/bench/make_probe.js,archived investigation,1,0
+docs/reports/audit_2026-11-24/stage4/bench/make_standalone.js,archived investigation,1,0
+docs/reports/audit_2026-11-24/stage4/bench/nap/build.rs,archived investigation,0,0
+docs/reports/audit_2026-11-24/stage4/bench/nap/src/lib.rs,archived investigation,1,0
+docs/reports/audit_2026-11-24/stage4/bench/napi_bench.js,archived investigation,1,0
+docs/reports/audit_2026-11-24/stage4/bench/node_cmp.js,archived investigation,1,0
+docs/reports/audit_2026-11-24/stage4/bench/prec/src/bin/dump.rs,archived investigation,0,0
+docs/reports/audit_2026-11-24/stage4/bench/prec/src/lib.rs,archived investigation,0,0
+docs/reports/audit_2026-11-24/tools_audit/an.js,archived investigation,1,0
+docs/reports/audit_2026-11-24/tools_audit/fetch.js,archived investigation,1,0
+docs/reports/audit_2026-11-24/tools_audit/fetch2.js,archived investigation,1,0
+docs/reports/audit_2026-11-24/tools_audit/focus.js,archived investigation,1,0
+docs/reports/audit_2026-11-24/tools_audit/gen.py,archived investigation,1,0
+docs/reports/audit_2026-11-24/tools_audit/gen_mech.py,archived investigation,1,0
+docs/reports/audit_2026-11-24/tools_audit/gen_tests.py,archived investigation,0,0
+docs/reports/audit_2026-11-24/tools_audit/matrix.py,archived investigation,0,0
+docs/reports/audit_2026-11-24/tools_audit/mech_spec.py,archived investigation,1,0
+docs/reports/audit_2026-11-24/tools_audit/orphan.js,archived investigation,1,0
+docs/reports/audit_2026-11-24/tools_audit/prof.js,archived investigation,1,1
+docs/reports/audit_2026-11-24/tools_audit/q.py,archived investigation,1,1
+docs/reports/audit_2026-11-24/tools_audit/stage.py,archived investigation,1,0
+docs/reports/audit_2026-11-24/tools_audit/tnt.js,archived investigation,1,0
+rebuild/evidence/R1/275_look_turn.orig.js,archived investigation,1,0
+src/build.py,engine / graphical / preparation source,0,0
+src/game/005_dmath.ts,engine / graphical / preparation source,1,0
+src/game/010_map_zones_warp.js,engine / graphical / preparation source,1,0
+src/game/020_map_navmesh_autowalls.js,engine / graphical / preparation source,1,0
+src/game/030_map_walls_heights_cover_wallbang.js,engine / graphical / preparation source,1,0
+src/game/035_map3d.js,engine / graphical / preparation source,1,0
+src/game/040_visibility.js,engine / graphical / preparation source,1,0
+src/game/050_nav_rebuild_paths.js,engine / graphical / preparation source,1,0
+src/game/060_zone_danger_user_zones.js,engine / graphical / preparation source,1,0
+src/game/070_weapons_bots_roam.js,engine / graphical / preparation source,1,0
+src/game/080_bal.js,engine / graphical / preparation source,0,0
+src/game/090_profiles_teams.js,engine / graphical / preparation source,1,0
+src/game/100_sites_spots.js,engine / graphical / preparation source,1,0
+src/game/110_post_routes.js,engine / graphical / preparation source,1,0
+src/game/120_bomb.js,engine / graphical / preparation source,1,0
+src/game/130_tactics_match_adapt.js,engine / graphical / preparation source,1,0
+src/game/140_named_spots_ct_setup.js,engine / graphical / preparation source,1,0
+src/game/150_lurker_probes_clear.js,engine / graphical / preparation source,1,0
+src/game/160_igl_replan.js,engine / graphical / preparation source,1,0
+src/game/170_tbrain.js,engine / graphical / preparation source,1,0
+src/game/180_save_retake.js,engine / graphical / preparation source,1,0
+src/game/190_team_intel_lkp_calls.js,engine / graphical / preparation source,1,0
+src/game/200_belief_reach.js,engine / graphical / preparation source,1,0
+src/game/210_know_hyp.js,engine / graphical / preparation source,1,0
+src/game/220_know_events_tick.js,engine / graphical / preparation source,1,0
+src/game/230_team_voice.js,engine / graphical / preparation source,1,0
+src/game/240_belief_tick.js,engine / graphical / preparation source,1,0
+src/game/250_look_prepeek_corners.js,engine / graphical / preparation source,1,0
+src/game/260_look_threat.js,engine / graphical / preparation source,0,0
+src/game/270_look_plan_smooth.js,engine / graphical / preparation source,1,0
+src/game/275_look_turn.ts,engine / graphical / preparation source,1,0
+src/game/280_pos_pref_hold.js,engine / graphical / preparation source,1,0
+src/game/290_smoke_react.js,engine / graphical / preparation source,1,0
+src/game/300_roles_fallback_rebalance.js,engine / graphical / preparation source,1,0
+src/game/310_pro_positions.js,engine / graphical / preparation source,1,0
+src/game/320_pro_lineups_ct_early.js,engine / graphical / preparation source,1,0
+src/game/330_endgame_smoke_push.js,engine / graphical / preparation source,1,0
+src/game/340_ctbrain.js,engine / graphical / preparation source,1,0
+src/game/350_contact_reaction.js,engine / graphical / preparation source,1,0
+src/game/360_nades_buy_smoke_vision.js,engine / graphical / preparation source,1,0
+src/game/365_nade_plan.js,engine / graphical / preparation source,1,0
+src/game/366_exec_sync.js,engine / graphical / preparation source,1,0
+src/game/370_fire_nav_levels_ladders.js,engine / graphical / preparation source,1,0
+src/game/380_nades_throw.js,engine / graphical / preparation source,1,0
+src/game/385_nades_flight.js,engine / graphical / preparation source,1,0
+src/game/390_nades_lineups.js,engine / graphical / preparation source,1,0
+src/game/400_nades_physics_damage.js,engine / graphical / preparation source,1,0
+src/game/410_nades_tactical_self.js,engine / graphical / preparation source,1,0
+src/game/420_nades_brains.js,engine / graphical / preparation source,1,0
+src/game/430_fov_roam.js,engine / graphical / preparation source,1,0
+src/game/435_match_events.js,engine / graphical / preparation source,1,0
+src/game/440_voicepanel_console.js,engine / graphical / preparation source,1,0
+src/game/450_combat_items_knife.js,engine / graphical / preparation source,1,0
+src/game/460_sound_situations.js,engine / graphical / preparation source,1,0
+src/game/470_fight_cycle.js,engine / graphical / preparation source,1,0
+src/game/480_assist_flank_reload.js,engine / graphical / preparation source,1,0
+src/game/490_shoot.js,engine / graphical / preparation source,1,0
+src/game/495_highlights.js,engine / graphical / preparation source,0,0
+src/game/500_decide_afterkill_cover.js,engine / graphical / preparation source,1,0
+src/game/510_engagements.js,engine / graphical / preparation source,1,0
+src/game/520_economy.js,engine / graphical / preparation source,1,0
+src/game/530_round_sides_match.js,engine / graphical / preparation source,1,0
+src/game/535_move_mode.js,engine / graphical / preparation source,1,0
+src/game/540_step_tick.js,engine / graphical / preparation source,1,0
+src/game/545_problem_watch.js,engine / graphical / preparation source,1,0
+src/game/550_render_nav_zone_tools.js,engine / graphical / preparation source,1,0
+src/game/560_lineup_zone_editor.js,engine / graphical / preparation source,1,0
+src/game/570_maped_core_walls.js,engine / graphical / preparation source,1,0
+src/game/580_maped_heights.js,engine / graphical / preparation source,1,0
+src/game/590_maped_cover.js,engine / graphical / preparation source,1,0
+src/game/600_maped_wallbang.js,engine / graphical / preparation source,0,0
+src/game/610_vistool_lookdebug.js,engine / graphical / preparation source,1,0
+src/game/612_team_debug.js,engine / graphical / preparation source,1,0
+src/game/620_draw.js,engine / graphical / preparation source,1,0
+src/game/625_view3d.js,engine / graphical / preparation source,1,0
+src/game/630_killfeed_banners_econ.js,engine / graphical / preparation source,1,0
+src/game/635_hud_fx.js,engine / graphical / preparation source,1,0
+src/game/640_scoreboard_players.js,engine / graphical / preparation source,1,0
+src/game/645_decision_log.js,engine / graphical / preparation source,1,0
+src/game/650_marks_hook.js,engine / graphical / preparation source,0,0
+src/game/660_warmup.js,engine / graphical / preparation source,0,0
+src/game/670_observer.js,engine / graphical / preparation source,1,0
+src/game/675_replay.js,engine / graphical / preparation source,1,0
+src/game/676_timeout_show.js,engine / graphical / preparation source,1,0
+src/game/677_sandbox.js,engine / graphical / preparation source,1,0
+src/game/678_demo_view.js,engine / graphical / preparation source,1,0
+src/game/680_sound_frame_buttons.js,engine / graphical / preparation source,1,0
+src/gamesrc.py,engine / graphical / preparation source,1,0
+src/mapset.py,engine / graphical / preparation source,1,0
+src/marks.js,engine / graphical / preparation source,1,0
+src/marks_build.py,engine / graphical / preparation source,1,0
+src/mkpub.py,engine / graphical / preparation source,1,0
+src/q.js,engine / graphical / preparation source,0,0
+src/syntaxcheck.py,engine / graphical / preparation source,1,0
+src/types/core.d.ts,engine / graphical / preparation source,1,0
+src/types/types.ts,engine / graphical / preparation source,0,0
+src/types/types_test.ts,engine / graphical / preparation source,1,0
+tools/ct/ct_cmp.py,CT traits from demos,1,7
+tools/ct/ct_cover.js,CT traits from demos,1,1
+tools/ct/ct_cover_pro.py,CT traits from demos,1,1
+tools/ct/ct_look_bake.py,CT traits from demos,1,0
+tools/ct/ct_look_check.js,CT traits from demos,1,0
+tools/ct/ct_lookpt_add.py,CT traits from demos,0,0
+tools/ct/ct_setup_bake.py,CT traits from demos,1,0
+tools/ct/ct_setup_pos_bake.py,CT traits from demos,1,0
+tools/ct/ct_setup_shot.py,CT traits from demos,1,0
+tools/ct/ct_setup_spots_bake.py,CT traits from demos,1,0
+tools/ct/ct_tpath_add.py,CT traits from demos,1,0
+tools/ct/defA_pro.py,CT traits from demos,1,2
+tools/demos.py,support/tool,0,0
+tools/diag/audit.js,diagnostics,1,0
+tools/diag/eh.js,diagnostics,1,0
+tools/diag/eh2.js,diagnostics,1,0
+tools/diag/layout.js,diagnostics,1,0
+tools/diag/mf.js,diagnostics,1,3
+tools/diag/pp.js,diagnostics,1,4
+tools/diag/shot.js,diagnostics,1,1
+tools/dmath/check.js,numerical checks,1,2
+tools/dmath/corpus.js,numerical checks,1,0
+tools/dmath/dmath.js,numerical checks,1,0
+tools/dmath/dmath_proto_r012.js,numerical checks,1,1
+tools/dmath/global.js,numerical checks,0,0
+tools/dmath/page_check.js,numerical checks,1,0
+tools/dmath/ref/src/main.rs,numerical checks,0,0
+tools/dmath/replace.js,numerical checks,1,0
+tools/dmath/shim_page.js,numerical checks,1,0
+tools/dmath/speed_page.js,numerical checks,1,0
+tools/dmath/step.sh,numerical checks,0,0
+tools/dmath/step_report.js,numerical checks,1,0
+tools/dmath/steps_chain.sh,numerical checks,1,0
+tools/dmath/tables.js,numerical checks,0,0
+tools/health.py,support/tool,1,3
+tools/logs/know_log.js,decision logs,1,0
+tools/logs/know_log.py,decision logs,0,0
+tools/logs/retake_log.js,decision logs,1,0
+tools/logs/retake_log.py,decision logs,0,0
+tools/logs/script_log.js,decision logs,1,0
+tools/logs/script_log.py,decision logs,0,0
+tools/logs/team_log.js,decision logs,1,0
+tools/logs/team_log.py,decision logs,1,0
+tools/map/alone_bake.py,pack rules/coverage,0,0
+tools/map/awp_bake.py,pack rules/coverage,0,0
+tools/map/boosts_bake.py,pack rules/coverage,1,3
+tools/map/climbs_bake.py,pack rules/coverage,1,1
+tools/map/contact_bake.py,pack rules/coverage,1,0
+tools/map/corners_shot.js,pack rules/coverage,1,0
+tools/map/cover_bake.py,pack rules/coverage,1,1
+tools/map/cover_shot.js,pack rules/coverage,1,0
+tools/map/ct_spots_bake.py,pack rules/coverage,1,0
+tools/map/defpos_bake.py,pack rules/coverage,1,0
+tools/map/demos_bake.py,pack rules/coverage,1,2
+tools/map/duel_bake.py,pack rules/coverage,1,0
+tools/map/gaps_bake.py,pack rules/coverage,1,0
+tools/map/heights_bake.py,pack rules/coverage,1,3
+tools/map/heights_shot.js,pack rules/coverage,1,0
+tools/map/jumps_bake.py,pack rules/coverage,1,1
+tools/map/lane_look_bake.py,pack rules/coverage,1,0
+tools/map/los_eval.js,pack rules/coverage,0,0
+tools/map/map_build.py,pack rules/coverage,1,0
+tools/map/map_check.py,pack rules/coverage,0,0
+tools/map/map_pull.py,pack rules/coverage,1,21
+tools/map/map_shot.js,pack rules/coverage,1,0
+tools/map/nade_lanes_bake.py,pack rules/coverage,0,0
+tools/map/nadeplan_bake.py,pack rules/coverage,1,0
+tools/map/nav36.py,pack rules/coverage,1,0
+tools/map/peek_bake.py,pack rules/coverage,1,0
+tools/map/plants_bake.py,pack rules/coverage,1,2
+tools/map/player_positions_bake.py,pack rules/coverage,1,0
+tools/map/positions_bake.py,pack rules/coverage,1,4
+tools/map/positions_shot.py,pack rules/coverage,1,0
+tools/map/postplant_bake.py,pack rules/coverage,1,2
+tools/map/postplant_pairs_bake.py,pack rules/coverage,1,1
+tools/map/progrid_bake.py,pack rules/coverage,1,1
+tools/map/roles_bake.py,pack rules/coverage,1,0
+tools/map/sounds_bake.py,pack rules/coverage,1,0
+tools/map/spawn_early_bake.py,pack rules/coverage,1,0
+tools/map/spawns_bake.py,pack rules/coverage,1,0
+tools/map/tactics_bake.py,pack rules/coverage,1,2
+tools/map/trade_bake.py,pack rules/coverage,1,0
+tools/map/tzone_bake.py,pack rules/coverage,1,1
+tools/map/vis_bake.py,pack rules/coverage,1,2
+tools/map/vis_shot.js,pack rules/coverage,1,0
+tools/map/wallbang_bake.py,pack rules/coverage,1,0
+tools/map/wallbang_shot.js,pack rules/coverage,1,0
+tools/map/zone_props_bake.py,pack rules/coverage,1,2
+tools/map/zones_bake.py,pack rules/coverage,1,0
+tools/map3d/columns.py,geometry probes,1,1
+tools/map3d/kv3.py,geometry probes,1,5
+tools/map3d/layer_pics.py,geometry probes,1,0
+tools/map3d/layers.py,geometry probes,1,7
+tools/map3d/los_check.py,geometry probes,1,3
+tools/map3d/los_columns.py,geometry probes,1,0
+tools/map3d/los_pics.py,geometry probes,1,0
+tools/map3d/map3d.js,geometry probes,0,0
+tools/map3d/map3d_check.js,geometry probes,1,0
+tools/map3d/raycast.py,geometry probes,1,0
+tools/map3d/route.py,geometry probes,1,0
+tools/map3d/vpk.py,geometry probes,1,1
+tools/map3d/vpk_entities.py,geometry probes,1,2
+tools/map3d/vpk_physics.py,geometry probes,1,1
+tools/map3d/wallbang_demo.py,geometry probes,1,0
+tools/map3d/zones_game.py,geometry probes,1,0
+tools/map3d/zones_owner.py,geometry probes,1,0
+tools/mapdir.py,support/tool,0,0
+tools/marks/clutch_replay_shot.js,replay/snapshots,1,0
+tools/marks/mark_build.py,replay/snapshots,1,0
+tools/marks/mark_frames.js,replay/snapshots,1,0
+tools/marks/mark_open.js,replay/snapshots,1,0
+tools/marks/mark_replay.js,replay/snapshots,1,0
+tools/marks/mark_story.js,replay/snapshots,1,0
+tools/marks/mark_video.js,replay/snapshots,1,0
+tools/marks/replay_owner.js,replay/snapshots,1,0
+tools/marks/scenarios.js,replay/snapshots,1,3
+tools/marks/snap_round.js,replay/snapshots,1,0
+tools/marks/timeout_shot.js,replay/snapshots,1,0
+tools/measure/alone.py,match observation/comparison,0,0
+tools/measure/anomaly.py,match observation/comparison,1,2
+tools/measure/audit/analyze.py,match observation/comparison,1,70
+tools/measure/audit/audit_rec.js,match observation/comparison,1,32
+tools/measure/audit/belief_iso.py,match observation/comparison,1,7
+tools/measure/audit/belief_rec.js,match observation/comparison,1,2
+tools/measure/audit/carrier_plant.py,match observation/comparison,1,2
+tools/measure/audit/combo_rec.js,match observation/comparison,1,5
+tools/measure/audit/ct_early.py,match observation/comparison,1,0
+tools/measure/audit/fight_bake.py,match observation/comparison,1,1
+tools/measure/audit/fight_rec.js,match observation/comparison,1,10
+tools/measure/audit/fight_tick_rec.js,match observation/comparison,1,5
+tools/measure/audit/fire_flash.py,match observation/comparison,1,1
+tools/measure/audit/hit_bake.py,match observation/comparison,1,0
+tools/measure/audit/hit_react16.py,match observation/comparison,1,0
+tools/measure/audit/hit_rec.js,match observation/comparison,1,4
+tools/measure/audit/iso_rec.js,match observation/comparison,1,2
+tools/measure/audit/look_bake.py,match observation/comparison,1,3
+tools/measure/audit/look_rec.js,match observation/comparison,1,1
+tools/measure/audit/memory_bake.py,match observation/comparison,1,0
+tools/measure/audit/refill.py,match observation/comparison,0,0
+tools/measure/audit/run_audit.py,match observation/comparison,1,0
+tools/measure/audit/scenarios.js,match observation/comparison,1,1
+tools/measure/audit/scenarios2.js,match observation/comparison,1,4
+tools/measure/audit/scenarios3.js,match observation/comparison,1,2
+tools/measure/audit/scenarios4.js,match observation/comparison,1,2
+tools/measure/audit/scenarios5.js,match observation/comparison,1,1
+tools/measure/audit/smoke_rec.js,match observation/comparison,1,4
+tools/measure/audit/voice_flash.py,match observation/comparison,1,4
+tools/measure/audit/watch.js,match observation/comparison,1,13
+tools/measure/audit/watch_snaps.py,match observation/comparison,1,0
+tools/measure/bg.sh,match observation/comparison,0,0
+tools/measure/buy_cmp.py,match observation/comparison,1,1
+tools/measure/check.py,match observation/comparison,1,14
+tools/measure/code_cov.js,match observation/comparison,1,0
+tools/measure/combine.py,match observation/comparison,1,7
+tools/measure/compare_runs.py,match observation/comparison,1,5
+tools/measure/contact.py,match observation/comparison,1,1
+tools/measure/counters.py,match observation/comparison,1,2
+tools/measure/crowd.py,match observation/comparison,1,0
+tools/measure/ct_react.js,match observation/comparison,1,6
+tools/measure/death_company.py,match observation/comparison,1,0
+tools/measure/diverge.js,match observation/comparison,1,0
+tools/measure/duel.py,match observation/comparison,1,0
+tools/measure/duels.py,match observation/comparison,1,0
+tools/measure/dv_state.js,match observation/comparison,1,0
+tools/measure/engine/b2_know.py,match observation/comparison,1,2
+tools/measure/engine/b2_shoot.py,match observation/comparison,1,16
+tools/measure/engine/b4_shots.py,match observation/comparison,1,24
+tools/measure/engine/b4_strafe.py,match observation/comparison,1,2
+tools/measure/engine/cases.py,match observation/comparison,0,0
+tools/measure/engine/demo_prep.py,match observation/comparison,0,0
+tools/measure/engine/engine_audit.py,match observation/comparison,1,25
+tools/measure/engine/field_watch.js,match observation/comparison,1,0
+tools/measure/engine/g_watch.js,match observation/comparison,1,0
+tools/measure/engine/grid_dump.js,match observation/comparison,1,0
+tools/measure/engine/know_watch.js,match observation/comparison,1,8
+tools/measure/engine/march.py,match observation/comparison,1,0
+tools/measure/engine/qfile.js,match observation/comparison,0,0
+tools/measure/engine/slope.py,match observation/comparison,1,0
+tools/measure/engine/vis_check.js,match observation/comparison,1,0
+tools/measure/engine/walk_run.py,match observation/comparison,1,1
+tools/measure/engine/walk_watch.js,match observation/comparison,1,0
+tools/measure/engine/zoom.py,match observation/comparison,0,0
+tools/measure/env.js,match observation/comparison,1,0
+tools/measure/exec_sync.js,match observation/comparison,1,0
+tools/measure/exec_sync_report.py,match observation/comparison,1,4
+tools/measure/extra.py,match observation/comparison,1,12
+tools/measure/fingerprint.js,match observation/comparison,1,0
+tools/measure/fingerprint.sh,match observation/comparison,0,0
+tools/measure/fire.js,match observation/comparison,1,0
+tools/measure/fp_cmp.py,match observation/comparison,0,0
+tools/measure/frame_prof.js,match observation/comparison,1,0
+tools/measure/frame_rep.py,match observation/comparison,1,2
+tools/measure/front_bake.py,match observation/comparison,1,0
+tools/measure/inv_run.js,match observation/comparison,1,0
+tools/measure/invariants.js,match observation/comparison,1,0
+tools/measure/look.py,match observation/comparison,1,2
+tools/measure/lookdet.py,match observation/comparison,1,1
+tools/measure/measure.py,match observation/comparison,1,12
+tools/measure/mech.py,match observation/comparison,1,25
+tools/measure/metrics.py,match observation/comparison,1,35
+tools/measure/motion/boost.js.txt,match observation/comparison,1,0
+tools/measure/motion/boost.sh,match observation/comparison,1,0
+tools/measure/motion/boost_calib.py,match observation/comparison,1,1
+tools/measure/motion/bot_air.js.txt,match observation/comparison,1,0
+tools/measure/motion/bot_motion.js.txt,match observation/comparison,1,6
+tools/measure/motion/bot_motion_sum.py,match observation/comparison,1,6
+tools/measure/motion/bot_runjump.js.txt,match observation/comparison,1,0
+tools/measure/motion/bot_runjump_sum.py,match observation/comparison,1,4
+tools/measure/motion/bot_shape.js.txt,match observation/comparison,1,10
+tools/measure/motion/ev.js,match observation/comparison,1,1
+tools/measure/motion/pro_acc.py,match observation/comparison,1,2
+tools/measure/motion/pro_aimctx.py,match observation/comparison,1,1
+tools/measure/motion/pro_air.py,match observation/comparison,1,0
+tools/measure/motion/pro_boost.py,match observation/comparison,1,1
+tools/measure/motion/pro_drift.py,match observation/comparison,1,1
+tools/measure/motion/pro_duck.py,match observation/comparison,1,2
+tools/measure/motion/pro_dwell.py,match observation/comparison,1,0
+tools/measure/motion/pro_gaps.py,match observation/comparison,1,1
+tools/measure/motion/pro_jumpspots.py,match observation/comparison,1,1
+tools/measure/motion/pro_runjump_stats.py,match observation/comparison,1,1
+tools/measure/motion/pro_runjump_turn.py,match observation/comparison,1,1
+tools/measure/motion/pro_turn_model.py,match observation/comparison,1,1
+tools/measure/motion/pro_turn_sub.py,match observation/comparison,1,1
+tools/measure/motion/run.sh,match observation/comparison,0,0
+tools/measure/motion/runjump.sh,match observation/comparison,0,0
+tools/measure/motion/shape.sh,match observation/comparison,0,0
+tools/measure/motion/turn_rate.py,match observation/comparison,1,0
+tools/measure/movement.py,match observation/comparison,1,1
+tools/measure/nades.py,match observation/comparison,1,5
+tools/measure/noise.py,match observation/comparison,1,6
+tools/measure/owner_pack.py,match observation/comparison,1,14
+tools/measure/pc_fetch.sh,match observation/comparison,0,0
+tools/measure/peek.py,match observation/comparison,0,0
+tools/measure/plan_bake.py,match observation/comparison,1,9
+tools/measure/plant_outcomes.py,match observation/comparison,1,1
+tools/measure/pos.py,match observation/comparison,1,3
+tools/measure/pos_repeat.py,match observation/comparison,1,0
+tools/measure/pro_checks.py,match observation/comparison,1,14
+tools/measure/publish_results.py,match observation/comparison,1,0
+tools/measure/rec2.js,match observation/comparison,1,42
+tools/measure/recalc.sh,match observation/comparison,0,0
+tools/measure/remote_run.py,match observation/comparison,1,1
+tools/measure/replay_cmp.py,match observation/comparison,1,10
+tools/measure/retake_cmp.py,match observation/comparison,1,1
+tools/measure/scenes/scenes_page.js,match observation/comparison,1,0
+tools/measure/scenes/scenes_run.js,match observation/comparison,1,0
+tools/measure/selfnades.py,match observation/comparison,1,0
+tools/measure/selftest/math_libm.js,match observation/comparison,1,0
+tools/measure/shots.py,match observation/comparison,1,0
+tools/measure/situations.py,match observation/comparison,1,18
+tools/measure/smooth.py,match observation/comparison,1,11
+tools/measure/stack.py,match observation/comparison,1,1
+tools/measure/tac_report.py,match observation/comparison,1,1
+tools/measure/tick_prof.js,match observation/comparison,1,0
+tools/measure/v5_eye.py,match observation/comparison,1,0
+tools/measure/voice.py,match observation/comparison,0,0
+tools/measure/xb_smoke.js,match observation/comparison,1,3
+tools/motion/jig_pro.py,movement calibration,1,0
+tools/motion/jumps_pro.py,movement calibration,1,0
+tools/motion/motion_bots_cloud.js.txt,movement calibration,1,1
+tools/motion/motion_compare_page.py,movement calibration,1,0
+tools/motion/motion_ctx.py,movement calibration,1,4
+tools/motion/motion_pro.py,movement calibration,1,3
+tools/motion/motion_shape.py,movement calibration,1,3
+tools/motion/movement_cmp.py,movement calibration,1,4
+tools/motion/nade_react_pro.py,movement calibration,1,1
+tools/motion/peek_nade_pro.py,movement calibration,1,1
+tools/motion/peek_types_pro.py,movement calibration,1,0
+tools/nades/aim_scatter_pro.py,grenade instrumentation,1,1
+tools/nades/check.js,grenade instrumentation,1,0
+tools/nades/draw_time_pro.py,grenade instrumentation,1,1
+tools/nades/flight_shot.js,grenade instrumentation,1,0
+tools/nades/guess_bake.py,grenade instrumentation,1,0
+tools/nades/lineup_flights.js,grenade instrumentation,1,0
+tools/nades/lineup_levels_pro.py,grenade instrumentation,1,0
+tools/nades/lineups_fit.js,grenade instrumentation,1,6
+tools/nades/lineups_rec.py,grenade instrumentation,1,4
+tools/nades/luaim_bake.js,grenade instrumentation,1,0
+tools/nades/match_nade_acc.py,grenade instrumentation,1,1
+tools/nades/pos_scatter_pro.py,grenade instrumentation,1,1
+tools/nades/report.py,grenade instrumentation,1,4
+tools/nades/runup_bake.js,grenade instrumentation,1,1
+tools/nades/smoke_long.js,grenade instrumentation,1,0
+tools/nades/smoke_on_fire_pro.py,grenade instrumentation,1,0
+tools/nades/smoke_time.js,grenade instrumentation,1,0
+tools/nades/throws.py,grenade instrumentation,1,0
+tools/nades/world.js,grenade instrumentation,0,0
+tools/page/broadcast_shot.js,support/tool,1,0
+tools/page/embed_fonts.py,support/tool,0,0
+tools/page/split_game.py,support/tool,1,7
+tools/pro/analyze.py,professional corpus/calibration,1,9
+tools/pro/bomb_dmg.py,professional corpus/calibration,1,1
+tools/pro/buy_pro.py,professional corpus/calibration,1,0
+tools/pro/check_demo_events.py,professional corpus/calibration,1,7
+tools/pro/cluster.py,professional corpus/calibration,1,0
+tools/pro/demo_events_pc.py,professional corpus/calibration,1,0
+tools/pro/eco_est.py,professional corpus/calibration,1,1
+tools/pro/eco_play.py,professional corpus/calibration,1,0
+tools/pro/kill_site_pro.py,professional corpus/calibration,1,1
+tools/pro/lineups.py,professional corpus/calibration,1,0
+tools/pro/nade_walls_pro.py,professional corpus/calibration,1,1
+tools/pro/nades_pro.py,professional corpus/calibration,1,0
+tools/pro/onset.py,professional corpus/calibration,1,1
+tools/pro/parse_demos.py,professional corpus/calibration,1,0
+tools/pro/pro.py,professional corpus/calibration,1,1
+tools/pro/pro_tactics.py,professional corpus/calibration,1,0
+tools/pro/regions.py,professional corpus/calibration,0,0
+tools/pro/roles.py,professional corpus/calibration,1,2
+tools/pro/route_nades.py,professional corpus/calibration,1,2
+tools/pro/timeout_demos.py,professional corpus/calibration,1,0
+tools/pro/tvd.py,professional corpus/calibration,1,3
+tools/rebuild/bal_fold.js,static gates,1,1
+tools/rebuild/fw_map.js,static gates,1,0
+tools/rebuild/game_src.js,static gates,1,1
+tools/rebuild/gen_maps.js,static gates,1,0
+tools/rebuild/mod_build.js,static gates,1,1
+tools/rebuild/to_main.js,static gates,1,3
+tools/rebuild/typecheck.js,static gates,1,1
+tools/shadow/bake_demorounds.py,matched demo shadow,0,0
+tools/shadow/compare.py,matched demo shadow,1,0
+tools/shadow/export_round.py,matched demo shadow,0,0
+tools/shadow/find_rounds.py,matched demo shadow,1,0
+tools/shadow/know_cmp.py,matched demo shadow,1,3
+tools/shadow/lurk_cmp.py,matched demo shadow,1,0
+tools/shadow/roles_cmp.py,matched demo shadow,1,7
+tools/shadow/round_plan.py,matched demo shadow,1,8
+tools/shadow/see_pro.js,matched demo shadow,1,0
+tools/shadow/shadow.js,matched demo shadow,1,1
+tools/sim.js,support/tool,1,0
+tools/tests/exu_reassign_test.js,scenario tests,1,0
+tools/tests/face_shooter_mark.js,scenario tests,1,0
+tools/tests/look_reasons_mark.js,scenario tests,1,0
+tools/tests/nade_launch_state_test.js,scenario tests,1,6
+tools/tests/nade_physics_test.js,scenario tests,1,3
+tools/tests/nade_solve_perf.js,scenario tests,1,0
+tools/tests/nade_task_mark.js,scenario tests,1,0
+tools/tests/post_timeline_mark.js,scenario tests,1,0
+tools/tests/recall_posts_mark.js,scenario tests,1,0
+tools/tests/replay_mark.js,scenario tests,1,0
+tools/tests/replay_rewind.js,scenario tests,1,0
+tools/tests/runup_test.js,scenario tests,1,0
+tools/tests/smoke_spam_mark.js,scenario tests,1,0
