@@ -29,7 +29,7 @@ function lookTick(): void{
     if(!b.alive) return;
     // (v381, М126 шаг 4) куда смотреть — одно место: арбитр взгляда (270_look_plan_smooth.js, LOOK_LEVEL); враг виден — верхний уровень
     var look: P2 | null;
-    if(b._sawEnemy && b._nearestEnemyBot){ look = b._nearestEnemyBot; b.lookReason = "enemy"; b._lookLvl = LOOK_LEVEL.enemy; if(LOOKDBG.on) b._ldArb = null; }
+    if(b._sawEnemy && b._nearestEnemyBot) look = lookApply(b, {pt: b._nearestEnemyBot, lvl: LOOK_LEVEL.enemy, kind: "enemy", C: null});   // враг виден — верхний уровень, запись — у исполнения арбитра (270)
     else look = lookArbiter(b);
     var LD: LookDebug | null = LOOKDBG.on ? {tick: tick, reason: b.lookReason || null, raw: look ? {x: look.x, y: look.y} : null, steps: []} : null;
     var LF = lookFilter(b, look, LD), slUrg = LF.urgent; look = LF.look;

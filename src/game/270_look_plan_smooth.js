@@ -627,7 +627,16 @@ function lookAngleCand(b, moving){
      _angOff(DM.atan2(b._lkPt.y-b.y, b._lkPt.x-b.x), lookHeading(b)) > 1.9) return null;
   return {lvl: LOOK_LEVEL.angle, kind: "look", pt: (b._lkPt.vis ? b._lkPt : cornerLook(b, b._lkPt)) || b._lkPt, sc: 1};
 }
-function lookArbiter(b){
+// (Р3.2, канал «взгляд», шаг 1) заявки и ответ арбитра — отдельно от исполнения: lookArbiterR собирает заявки (кандидаты с уровнем
+// LOOK_LEVEL) и отвечает {pt, lvl, kind, C} — ничего не пишет в бота; запись причины и уровня — lookApply (одно место, и для «враг виден», 275);
+// lookArbiter — прежний ответ «точка» для старого вызова. Порядок заявок и выбор — дословно как было (Э1)
+function lookArbiter(b){ return lookApply(b, lookArbiterR(b)); }
+function lookApply(b, R){
+  b._lookLvl = R.lvl; b.lookReason = R.kind;
+  if(LOOKDBG.on) b._ldArb = R.C ? R.C.map(function(c){ return {lvl: c.lvl, kind: c.kind, sc: c.sc, pt: c.pt}; }) : null;
+  return R.pt;
+}
+function lookArbiterR(b){
   var moving = b.curSpeed > 60*SPD_K && b.heading !== undefined;
   var C = lookKnowCands(b), ang = lookAngleCand(b, moving);
   if(ang) C.push(ang);
@@ -639,9 +648,7 @@ function lookArbiter(b){
   var jl = jumpLook(b); if(jl) C.push(jl);
   var best = null;
   C.forEach(function(c){ if(c.pt && (!best || c.lvl > best.lvl || c.lvl === best.lvl && c.sc > best.sc)) best = c; });
-  b._lookLvl = best ? best.lvl : 0; b.lookReason = best ? best.kind : null;
-  if(LOOKDBG.on) b._ldArb = C.map(function(c){ return {lvl: c.lvl, kind: c.kind, sc: c.sc, pt: c.pt}; });
-  return best ? best.pt : null;
+  return {pt: best ? best.pt : null, lvl: best ? best.lvl : 0, kind: best ? best.kind : null, C: C};
 }
 // (v548, владелец 10.11, скрины прыжка с фургона на B Apps: «разбег — смотрит на машину; запрыгивает — по дуге поворачивает к приземлению»)
 // взгляд у прыжка через щель (NAV_GAPS, 050) — как у про (gaps_bake: yaw0 — при отталкивании, yaw1 — при приземлении, к направлению прыжка):

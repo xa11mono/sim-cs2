@@ -57,7 +57,10 @@ declare var LOOK_LEVEL: { [level: string]: number };    // 270:468
 declare var LOOKDBG: { on: boolean };              // 270:460
 declare var AIM_LAG: number;                       // 490:12 — с
 declare function lookPlan(team: string): void;                                     // 270:252
-declare function lookArbiter(b: Bot): P2 | null;                                   // 270:630
+declare function lookArbiter(b: Bot): P2 | null;                                   // 270 — прежний ответ «точка»
+/** ответ арбитра взгляда (270, Р3.2 взгляд ш.1): точка, уровень LOOK_LEVEL, причина, заявки (null — заявок не было: «враг виден») */
+interface LookAnswer { pt: P2 | null; lvl: number; kind: string | null; C: unknown[] | null }
+declare function lookApply(b: Bot, R: LookAnswer): P2 | null;                       // 270 — запись причины и уровня (одно место)
 declare function lookFilter(b: Bot, look: P2 | null, LD: LookDebug | null): { look: P2 | null; urgent: number };   // 270:690; urgent — lookUrgent (270:316): 0 / 1 / 2
 declare function _angOff(a: number, ref: number): number;                          // 260:187 — |разность углов|, приведённая
 declare function hashRand(seed: number): number;                                   // 060:112 — [0, 1)
