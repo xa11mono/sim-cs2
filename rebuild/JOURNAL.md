@@ -151,3 +151,7 @@
   `modules.json`, `files.json`, ссылки в `owners.json`, `DEVICE.md`, `ARCHITECTURE.md`, комментарии 510 / 540 — на `.ts`; прежний `.js` —
   `rebuild/evidence/R1/275_look_turn.orig.js`. `sim.html` Ancient и Mirage, публикуемая страница = база байт в байт; `rebuild/gen/`
   пересобран (Р1-4). Итог этапа — `rebuild/R1_REPORT.md`; Р2 не начат.
+- 25.11.2026 — перенос в `main` (d0fb254): `rebuild/`, `AGENTS.md`, `CHANGELOG.md`. Ошибка переноса: вместе с документами ушли списки сборки
+  `rebuild/modules.json` / `files.json` с `275_look_turn.ts`, а код `main` — с `.js`; сборка `main` упала бы. Исправлено сразу (26197b0:
+  списки — как в коде `main`; проверено: `gen_maps --check` и `build.py` на `main` — код 0). Правило — `AGENTS.md` §4: списки сборки в
+  `main` следуют коду `main`.
