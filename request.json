@@ -1,0 +1,7 @@
+{"par": 4,
+ "div": [
+  {"label": "v599a_div_mir_ffwk", "ref": "740ab5de7a7333558d7e631413fd23ec122bbdd9", "map": "mirage", "match": 3, "ticks": 8000, "every": 32, "a": "firefox", "b": "webkit", "math": true, "sort": true},
+  {"label": "v599a_div_anc_ffwk", "ref": "740ab5de7a7333558d7e631413fd23ec122bbdd9", "map": "ancient", "match": 3, "ticks": 8000, "every": 32, "a": "firefox", "b": "webkit", "math": true, "sort": true},
+  {"label": "v599a_div_mir_crff", "ref": "740ab5de7a7333558d7e631413fd23ec122bbdd9", "map": "mirage", "match": 3, "ticks": 8000, "every": 32, "a": "chromium", "b": "firefox", "math": true, "sort": true},
+  {"label": "v599a_div_mir_wkwk", "ref": "740ab5de7a7333558d7e631413fd23ec122bbdd9", "map": "mirage", "match": 3, "ticks": 2000, "every": 64, "a": "webkit", "b": "webkit", "math": true, "sort": true}
+ ]}
