@@ -13,12 +13,13 @@ function evOn(name, fn){ if(typeof simEvOn === 'function') return simEvOn(name, 
 evOn('feedKill', function(ph, A){ if(ph === 'in') FP.kills.push([tick, A[0] ? A[0].id : null, A[1].id, String(A[2]), A[3] ? 1 : 0]); });
 evOn('throwNade', function(ph, A){ if(ph === 'in') FP.nades.push([tick, A[0].id, A[1]]); });
 evOn('endRound', function(ph, A){ if(ph === 'in') FP.rounds.push([roundNum, tick, A[0], A[1], bomb && bomb.state, h]); });
+var T1 = tick;   // (Т-2, 25.11) последний тик матча: штатный переход к следующему матчу теперь обнуляет часы — длина матча = T1 + 1
 for(var t = 0; t < 400000; t++){
   stepTick();
   if(matchNum !== M0) break;
-  mix(tick); mixS(roundState);
+  T1 = tick; mix(tick); mixS(roundState);
   bots.forEach(function(b){ mix(b.x); mix(b.y); mix(b.facing); mix(b.hp); mix(b.alive ? 1 : 0); mixS(b.weapon && b.weapon.key); mix(b.money); });
 }
-FP.ticks = tick; FP.hash = h;
+FP.ticks = matchNum !== M0 ? T1 + 1 : tick; FP.hash = h;   // старые сборки (без обнуления) — то же число
 if(typeof FW_OUT === "function") FP.fields = FW_OUT();   // (15.11) ловец писателей полей (engine/field_watch.js), если подключён — remote_run вынесет в fw_<m>.json
 JSON.stringify(FP)
