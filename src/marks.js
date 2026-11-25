@@ -29,7 +29,7 @@ function mkSnapList(){
 // (PATHQ: старше PATHQ_TTL игра не читает) и счётчик его очистки PATHQ_N. Граф связей zoneGraph не копируется (1–1,5 МБ): он = граф
 // загрузки минус NAV_UNLINKED — приводится к снимку по списку (mkGraphTo). Формат 1 (старые отметки): __ext нет — память подсказок и кэш
 // путей остаются страничными (как до Т-1), граф — по NAV_UNLINKED, если в нём есть рёбра
-var MK_SNAP_FMT = 2, MK_SNAP_UP = {};
+var MK_SNAP_FMT = 3, MK_SNAP_UP = {};   // 3 (Т-1б) — __refs: ссылки на объекты неизменяемых данных путём; формат 2 и ниже — без них (копии, как было)
 // (Т-2) снимок состояния после загрузки (680, до разминки) и чистый старт матча в странице, где матч уже был: всё — как после загрузки,
 // кроме памяти между матчами — MK_KEEP (из реестра состояния: классы «постоянная память», «серия»; вставляет src/marks_build.py)
 var MK_LOAD = null;
@@ -38,6 +38,52 @@ function mkMatchClean(){
   var keep = {}; MK_KEEP.forEach(function(n){ keep[n] = eval(n); });
   mkRestore(MK_LOAD);
   MK_KEEP.forEach(function(n){ eval(n + " = keep[n]"); });
+}
+// (Т-1б, 25.11, владелец: «восстанавливать не только значения, но и структуру ссылок») состояние ссылается на объекты неизменяемых данных
+// и графа вне снимка (корни — реестр состояния, колонка refs; опись rebuild/evidence/R3/state_refs_*.json): в игре
+// это сами объекты таблиц, копия снимка — другие объекты (I-23 Mirage: тождество bots[i]._lkC[].pt). Снимок пишет такие ссылки путём
+// (__refs: место в состоянии → путь в корне), открытие ставит на место объект страницы. Индекс корней — один на страницу, пересобирается,
+// если корень заменён или граф менялся (NAV_UNLINKED, срез высоких связей)
+var MK_REFIX = null;   // MK_REF_ROOTS — список корней из реестра (вставляет src/marks_build.py)
+function mkRefIndex(){
+  var roots = MK_REF_ROOTS.map(function(n){ try{ return eval(n); }catch(e){ return null; } });
+  var key = (typeof NAV_UNLINKED !== "undefined" ? NAV_UNLINKED.length : 0) + "|" + (typeof navTallDone !== "undefined" ? navTallDone : "");
+  if(MK_REFIX && MK_REFIX.key === key && MK_REFIX.ids.every(function(r, i){ return r === roots[i]; })) return MK_REFIX;
+  var m = new Map();
+  roots.forEach(function(r, ri){ if(!r || typeof r !== "object" || m.has(r)) return; m.set(r, [ri, null, null]); var st = [r];
+    while(st.length){ var x = st.pop(); if(ArrayBuffer.isView(x) || x instanceof Map || x instanceof Set) continue;
+      for(var k in x){ var y; try{ y = x[k]; }catch(e){ continue; }
+        if(y && typeof y === "object" && !m.has(y) && !(typeof Node !== "undefined" && y instanceof Node)){ m.set(y, [ri, x, k]); st.push(y); } } } });
+  return MK_REFIX = {ids: roots, key: key, m: m};
+}
+function mkRefPath(I, e){ var p = []; while(e[1] !== null){ p.unshift(e[2]); e = I.m.get(e[1]); } return [MK_REF_ROOTS[e[0]]].concat(p); }   // корень — по имени: порядок списка в другой сборке может отличаться
+// ссылки на объекты корней из значений vals (имя → значение): [место — [имя, ключ…] (ключ Map — {m: ключ}), путь — [имя корня, ключ…]]
+function mkSnapRefs(vals){
+  var I = mkRefIndex(), out = [], seen = new Set();
+  function walk(v, at){
+    if(v === null || typeof v !== "object") return;
+    if(I.m.has(v)){ out.push([at.slice(), mkRefPath(I, I.m.get(v))]); return; }
+    if(seen.has(v) || ArrayBuffer.isView(v) || (typeof Node !== "undefined" && v instanceof Node)) return; seen.add(v);
+    if(v instanceof Set) return;
+    if(v instanceof Map){ v.forEach(function(x, k){ if(k === null || typeof k !== "object"){ at.push({m: k}); walk(x, at); at.pop(); } }); return; }
+    for(var k in v){ var x; try{ x = v[k]; }catch(e){ continue; } at.push(k); walk(x, at); at.pop(); }
+  }
+  for(var n in vals) if(n.slice(0, 2) !== "__" && MK_REF_ROOTS.indexOf(n) < 0) walk(vals[n], [n]);
+  return out;
+}
+// поставить на места ссылок объекты страницы (после восстановления переменных); путь не находится — копия остаётся (счёт в MK.refMiss)
+function mkRefsApply(refs, set){
+  var miss = 0;
+  (refs || []).forEach(function(r){
+    var to = r[1], obj; try{ obj = eval(to[0]); for(var i = 1; i < to.length && obj != null; i++) obj = obj[to[i]]; }catch(e){ obj = undefined; }
+    if(obj == null || typeof obj !== "object"){ miss++; return; }
+    var at = r[0]; if(at.length === 1){ set(at[0], obj); return; }
+    var c; try{ c = eval(at[0]); }catch(e){ miss++; return; }
+    for(var j = 1; j < at.length - 1 && c != null; j++){ var k = at[j]; c = (k && typeof k === "object") ? c.get(k.m) : c[k]; }
+    if(c == null){ miss++; return; } var last = at[at.length - 1];
+    if(last && typeof last === "object") c.set(last.m, obj); else c[last] = obj;
+  });
+  if(typeof MK !== "undefined") MK.refMiss = miss;
 }
 function mkSnapExt(){
   var G = nadeGuessStore.all(), base = (MAP.nadeguess && MAP.nadeguess.g) || {}, own = {}, k, live = {};
@@ -69,6 +115,7 @@ function mkSnapshot(){
   var list = mkSnapList();
   for(;;){
     var o = {__fmt: MK_SNAP_FMT, __ext: mkSnapExt()}; list.forEach(function(e){ o[e[0]] = e[1](); });
+    o.__refs = mkSnapRefs(o);
     try{ return structuredClone(o); }catch(err){
       var bad = list.filter(function(e){ try{ structuredClone(o[e[0]]); return false; }catch(x){ return true; } });
       if(!bad.length) throw err;
@@ -79,8 +126,9 @@ function mkSnapshot(){
 }
 function mkRestore(data){ var c = structuredClone(data); for(var f = c.__fmt || 1; f < MK_SNAP_FMT; f++) if(MK_SNAP_UP[f]) MK_SNAP_UP[f](c);
   var Lp = NAV_UNLINKED.slice();
-  mkSnapList().forEach(function(e){ if(e[0] in c) e[2](c[e[0]]); });
+  var L = mkSnapList(); L.forEach(function(e){ if(e[0] in c) e[2](c[e[0]]); });
   if("NAV_UNLINKED" in c) mkGraphTo(Lp);
+  if(c.__refs) mkRefsApply(c.__refs, function(n, v){ L.forEach(function(e){ if(e[0] === n) e[2](v); }); });
   mkExtRestore(c.__ext); mkRebaseShow(); }
 // (18.11) показ (трассеры, круги звука) помнит время рождения по часам страницы (nowTs), а часы в снимок не входят: после открытия снимка
 // «возраст» выходил отрицательным — вспышка выстрела на весь экран (оранжевый кадр), круг звука с отрицательным радиусом ронял кадр.

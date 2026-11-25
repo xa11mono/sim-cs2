@@ -1,0 +1,149 @@
+{
+ "sim": "ancient.html",
+ "match": 3,
+ "at": [
+  3000,
+  20000,
+  45000,
+  70000
+ ],
+ "skip_roots": [
+  "ZDJ",
+  "KPC",
+  "PATHQ"
+ ],
+ "holders": {
+  "g:ZONE_LAYER_BASELINE": {
+   "MAP": 4
+  },
+  "g:ZONE_SHAPES_BAKED": {
+   "MAP": 4
+  },
+  "g:WPM": {
+   "zoneGraph": 4
+  },
+  "g:pointsByName": {
+   "MAP": 36
+  },
+  "g:CT_SPAWN": {
+   "MAP": 4
+  },
+  "g:T_SPAWN_FIX_RAW": {
+   "MAP": 4
+  },
+  "g:POINT_POOL": {
+   "MAP": 32
+  },
+  "b:spawnPt": {
+   "MAP": 20
+  },
+  "b:_fc": {
+   "ZONE_DANGER_LINE": 1,
+   "MAP": 1
+  },
+  "b:_olV": {
+   "ZONE_DANGER_LINE": 4,
+   "ZONE_SAMPLES": 3
+  },
+  "b:_odl": {
+   "ZONE_SAMPLES": 7,
+   "ZONE_DANGER_LINE": 3
+  },
+  "b:_cornerPt": {
+   "ZONE_SAMPLES": 4,
+   "ZONE_DANGER_LINE": 3
+  },
+  "b:_tgt": {
+   "ZONE_SAMPLES": 20,
+   "MAP": 9,
+   "ZONE_DANGER_LINE": 16
+  },
+  "b:_lkC": {
+   "ZONE_DANGER_LINE": 5,
+   "ZONE_SAMPLES": 2
+  },
+  "b:_lkPt": {
+   "ZONE_DANGER_LINE": 2,
+   "ZONE_SAMPLES": 3
+  },
+  "g:SITES": {
+   "MAP": 6
+  },
+  "g:T_TACTICS": {
+   "MAP": 4
+  },
+  "g:teamTac": {
+   "MAP": 8
+  },
+  "g:POS": {
+   "MAP": 4
+  },
+  "g:CT_SETUPS": {
+   "MAP": 4
+  },
+  "g:CT_SHARE": {
+   "MAP": 4
+  },
+  "g:LURK_PLANS": {
+   "MAP": 4
+  },
+  "g:SHIFT_TO": {
+   "MAP": 4
+  },
+  "g:KNOW_POSITIONS": {
+   "MAP": 4
+  },
+  "g:PL_GRID": {
+   "MAP": 10070
+  },
+  "g:POSPREF": {
+   "MAP": 2197
+  },
+  "g:PRO_ROLE": {
+   "MAP": 4
+  },
+  "g:PRO_LINEUPS": {
+   "MAP": 883
+  },
+  "g:ZONE_NAMES_BAKED": {
+   "MAP": 4
+  },
+  "g:ZONE_SYNONYMS": {
+   "MAP": 4
+  },
+  "g:ZIDX": {
+   "MAP": 236
+  },
+  "g:NAV_ID": {
+   "NAVAREAS": 7884
+  },
+  "g:CLIMB_BY_EDGE": {
+   "LADDERS": 16
+  },
+  "g:CLIMB_AT": {
+   "LADDERS": 11
+  },
+  "g:LINEUPS_BAKED": {
+   "MAP": 4
+  },
+  "g:BUILTIN_OFF_BAKED": {
+   "MAP": 4
+  },
+  "g:HOLD_CANDS": {
+   "MAP": 312
+  },
+  "g:LU_AIM": {
+   "MAP": 339
+  },
+  "b:_nearestEnemyBot": {
+   "ZONE_DANGER_LINE": 8,
+   "MAP": 4,
+   "ZONE_SAMPLES": 3
+  },
+  "b:_shoulderShot": {
+   "ZONE_DANGER_LINE": 3,
+   "ZONE_SAMPLES": 1,
+   "MAP": 1
+  }
+ }
+}

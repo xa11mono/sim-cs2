@@ -31,6 +31,9 @@ RUN_NAMES = ', '.join('%s м%d до тика %d' % (r['sim'].split('.')[0], r['m
 BV = {}   # образцы значений полей ботов (tools/rebuild/state_bot_values.js → rebuild/evidence/R3/state_bot_values_*.json)
 for f in sorted(glob.glob(os.path.join(ROOT, 'rebuild', 'evidence', 'R3', 'state_bot_values_*.json'))):
     for k, L in json.load(open(f, encoding='utf-8')).items(): BV.setdefault(k, []).extend(x for x in L if x not in BV.get(k, []))
+REFS = {}   # общие ссылки на неизменяемые данные (tools/rebuild/state_refs.js → rebuild/evidence/R3/state_refs_*.json): держатель → корни
+for f in sorted(glob.glob(os.path.join(ROOT, 'rebuild', 'evidence', 'R3', 'state_refs_*.json'))):
+    for who, R in json.load(open(f, encoding='utf-8'))['holders'].items(): REFS.setdefault(who, set()).update(R)
 STAMP = re.compile(r'(T|T0|Next|Until|At|Cd|Tick|Since)$')
 def changed(kind, n):
     return [p for r in RUN for p in (r[kind].get(n) or {}).get('changed', [])]
@@ -122,6 +125,10 @@ def main():
         if key[0] == 'h': o['snap'] = 'нет: свойство функции — вне переменных снимка'; continue
         m = ST['globals'][key[2:]].get('snap')
         o['snap'] = 'да' if m is True or m is None else 'нет: ' + str(m)
+    # (Т-1б) refs — на какие корни вне снимка ссылается значение (опыт); снимок пишет такие ссылки путём (marks.js mkSnapRefs)
+    for key, o in out.items():
+        if key in REFS: o['refs'] = sorted(REFS[key])
+        elif 'refs' in o: del o['refs']
     for k, o in old.items():
         if k not in out: out[k] = dict(o, gone=True)
     out = dict(sorted(out.items())); out = dict({'_classes': CLASSES, '_': 'смысловая разметка реестра состояния (tools/rebuild/state_classes.py); машинная часть — rebuild/gen/state.json'}, **out)

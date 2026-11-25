@@ -13,6 +13,7 @@ if(SNAP_ON) mkSnapList().forEach(function(e){ if(SNAP_SKIP.test(e[0])) return; t
 var SNAP_EXT0 = (SNAP_ON && typeof mkSnapExt === 'function') ? mkPack(mkSnapExt()) : null;
 function snapTake(){ var o = {}; mkSnapList().forEach(function(e){ if(SNAP_SKIP.test(e[0])) return; var v = e[1](), s; try{ s = mkPack(v); }catch(x){ return; } if(s !== SNAP_S0[e[0]]) o[e[0]] = v; });
   if(SNAP_EXT0 !== null){ var X = mkSnapExt(); if(mkPack(X) !== SNAP_EXT0){ o.__ext = X; o.__fmt = MK_SNAP_FMT; } }
+  if(typeof mkSnapRefs === 'function'){ o.__refs = mkSnapRefs(o); o.__fmt = MK_SNAP_FMT; }   // (Т-1б) ссылки на неизменяемые данные — путём
   return mkPack(o); }
 var R_END = 0;
 freshMatch(__M__);
