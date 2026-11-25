@@ -1,0 +1,46 @@
+{
+ "a": "C:\\actions-runner\\_work\\sim-cs2\\sim-cs2\\tools\\measure\\runs\\_sims\\v599a_div_mir_wkwk.html",
+ "b": "C:\\actions-runner\\_work\\sim-cs2\\sim-cs2\\tools\\measure\\runs\\_sims\\v599a_div_mir_wkwk.html",
+ "engines": {
+  "a": "webkit 26.6",
+  "b": "webkit 26.6"
+ },
+ "match": 3,
+ "every": 64,
+ "startA": "freshMatch(3);",
+ "startB": "freshMatch(3);",
+ "skipShowVars": 219,
+ "skipField": "^(_visFacing|_hitFx)$",
+ "found": true,
+ "tick": 1,
+ "vars": [
+  "bots",
+  "bomb",
+  "BUY_SHOW"
+ ],
+ "fields": {
+  "bots": [],
+  "bomb": [],
+  "BUY_SHOW": []
+ },
+ "math": {
+  "calls": [
+   10,
+   10
+  ],
+  "first": null
+ },
+ "sort": {
+  "calls": [
+   0,
+   0
+  ],
+  "withNaN": [
+   0,
+   0
+  ],
+  "first": null,
+  "nanSorts": []
+ },
+ "seconds": 8
+}

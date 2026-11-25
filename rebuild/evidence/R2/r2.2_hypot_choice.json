@@ -1,0 +1,6 @@
+{"step": "Р2.2 выбор реализации hypot", "date": "2026-11-25",
+ "v8_algorithm_equals_math_hypot": {"node_22_23": "0 расхождений из 2 501 885 (случайные 2 и 3 аргумента, особые значения, 0 / 1 аргумент, приведение типов)",
+   "chromium_158_linux": "0 из 1 499 832 (корпус игры 199 832 + 1 000 000 пар + 300 000 троек)"},
+ "accuracy_vs_exact_mpmath_120bit": {"sample": "каждый 10-й вызов корпуса игры, 19 984", "v8": {"max_ulp": 1.845, "correctly_rounded": 0.6575}, "libm": {"max_ulp": 0.964, "correctly_rounded": 0.8696}},
+ "decision": "hypot = алгоритм V8: в Chromium / Brave / Node биты прежние (965 вызовов расчёта не меняются), Firefox и WebKit получают те же; только точные операции IEEE — в Rust повторяется бит в бит (tools/dmath/ref: hypot_v8, hypot3_v8). Точность ниже libm на доли ulp — для игры несущественно (координаты в px радара). Остальные функции — libm 0.2.16 (как в плане Р2)",
+ "speed_chromium158_game_corpus_ns": {"dmath": 24.0, "math": 20.8}}

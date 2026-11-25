@@ -1,0 +1,104 @@
+{
+ "f": "log",
+ "maps": {
+  "ancient": {
+   "shim": {
+    "same": true,
+    "checkedTo": 8000
+   },
+   "real": {
+    "diverges": true,
+    "tick": 1440,
+    "vars": [
+     "bots",
+     "bomb",
+     "TEAMK",
+     "nadesInAir"
+    ],
+    "calls": [
+     30474,
+     30474
+    ],
+    "firstCall": {
+     "index": 25582,
+     "a": [
+      "log",
+      [
+       0.425
+      ],
+      -0.8556661100577202
+     ],
+     "b": [
+      "log",
+      [
+       0.425
+      ],
+      -0.8556661100577203,
+      "DM"
+     ]
+    },
+    "attribution": {
+     "sameFunction": true,
+     "isReplaced": true,
+     "sameArgs": true,
+     "ulps": 1,
+     "before": -0.8556661100577202,
+     "after": -0.8556661100577203,
+     "viaDM": true
+    }
+   }
+  },
+  "mirage": {
+   "shim": {
+    "same": true,
+    "checkedTo": 8000
+   },
+   "real": {
+    "diverges": true,
+    "tick": 1360,
+    "vars": [
+     "bots",
+     "bomb",
+     "TEAMK",
+     "nadesInAir"
+    ],
+    "calls": [
+     17994,
+     17994
+    ],
+    "firstCall": {
+     "index": 12482,
+     "a": [
+      "log",
+      [
+       0.425
+      ],
+      -0.8556661100577202
+     ],
+     "b": [
+      "log",
+      [
+       0.425
+      ],
+      -0.8556661100577203,
+      "DM"
+     ]
+    },
+    "attribution": {
+     "sameFunction": true,
+     "isReplaced": true,
+     "sameArgs": true,
+     "ulps": 1,
+     "before": -0.8556661100577202,
+     "after": -0.8556661100577203,
+     "viaDM": true
+    }
+   }
+  }
+ },
+ "step": "Р2.3 шаг 6 — log",
+ "engine": "chromium 158 (облако)",
+ "ticks": 8000,
+ "diff": " 6 files changed, 7 insertions(+), 7 deletions(-)",
+ "result": "Э3 (или Э1 в окне 8000 тиков, если шаг не расходится): подмена бит в бит; расхождение — только через заменённую функцию"
+}

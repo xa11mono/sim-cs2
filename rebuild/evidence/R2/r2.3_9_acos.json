@@ -1,0 +1,30 @@
+{
+ "f": "acos",
+ "maps": {
+  "ancient": {
+   "shim": {
+    "same": true,
+    "checkedTo": 8000
+   },
+   "real": {
+    "diverges": false,
+    "checkedTo": 8000
+   }
+  },
+  "mirage": {
+   "shim": {
+    "same": true,
+    "checkedTo": 8000
+   },
+   "real": {
+    "diverges": false,
+    "checkedTo": 8000
+   }
+  }
+ },
+ "step": "Р2.3 шаг 9 — acos",
+ "engine": "chromium 158 (облако)",
+ "ticks": 8000,
+ "diff": " 1 file changed, 1 insertion(+), 1 deletion(-)",
+ "result": "Э3 (или Э1 в окне 8000 тиков, если шаг не расходится): подмена бит в бит; расхождение — только через заменённую функцию"
+}

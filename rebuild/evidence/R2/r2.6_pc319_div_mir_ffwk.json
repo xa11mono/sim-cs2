@@ -1,0 +1,70 @@
+{
+ "a": "C:\\actions-runner\\_work\\sim-cs2\\sim-cs2\\tools\\measure\\runs\\_sims\\v599a_div_mir_ffwk.html",
+ "b": "C:\\actions-runner\\_work\\sim-cs2\\sim-cs2\\tools\\measure\\runs\\_sims\\v599a_div_mir_ffwk.html",
+ "engines": {
+  "a": "firefox 155.0",
+  "b": "webkit 26.6"
+ },
+ "match": 3,
+ "every": 32,
+ "startA": "freshMatch(3);",
+ "startB": "freshMatch(3);",
+ "skipShowVars": 219,
+ "skipField": "^(_visFacing|_hitFx)$",
+ "found": true,
+ "tick": 1,
+ "vars": [
+  "bots",
+  "bomb",
+  "BUY_SHOW"
+ ],
+ "fields": {
+  "bots": [
+   {
+    "path": "[0].pfacing",
+    "a": -0.7663713335489811,
+    "b": -0.766371333548981
+   }
+  ],
+  "bomb": [],
+  "BUY_SHOW": []
+ },
+ "math": {
+  "calls": [
+   10,
+   10
+  ],
+  "first": {
+   "index": 0,
+   "a": [
+    "atan2",
+    [
+     -378.9000000000001,
+     393.6
+    ],
+    -0.7663713335489811
+   ],
+   "b": [
+    "atan2",
+    [
+     -378.9000000000001,
+     393.6
+    ],
+    -0.766371333548981
+   ]
+  }
+ },
+ "sort": {
+  "calls": [
+   0,
+   0
+  ],
+  "withNaN": [
+   0,
+   0
+  ],
+  "first": null,
+  "nanSorts": []
+ },
+ "seconds": 9
+}
