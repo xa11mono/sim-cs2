@@ -1,0 +1,95 @@
+{
+ "sim": "mirage.html",
+ "match": 3,
+ "ticks": 60000,
+ "by_caller": {
+  "lurkerBrain": {
+   "SPOT_TEAM T": 7949
+  },
+  "groupPost": {
+   "SPOT_TEAM T": 64567,
+   "SPOT_TEAM CT": 909
+  },
+  "ctSetupRole": {
+   "SPOT_TEAM CT": 133035
+  },
+  "html": {
+   "SPOT_TEAM CT": 63605,
+   "SPOT_TEAM null": 94,
+   "SPOT_TEAM T": 174
+  },
+  "namedSpot": {
+   "SPOT_TEAM CT": 25517,
+   "SPOT_TEAM T": 15452
+  },
+  "contactSpots": {
+   "SPOT_TEAM null": 14047
+  },
+  "flankSpot": {
+   "SPOT_TEAM null": 88
+  },
+  "postKillDecide": {
+   "SPOT_TEAM null": 4
+  },
+  "finishPush": {
+   "SPOT_TEAM null": 19
+  },
+  "lowHpBack": {
+   "SPOT_TEAM null": 66
+  },
+  "intelDeath": {
+   "SPOT_TEAM null": 4
+  },
+  "assistPeek": {
+   "SPOT_TEAM null": 139
+  },
+  "killMoveCover": {
+   "SPOT_TEAM null": 29
+  },
+  "midCoverPost": {
+   "SPOT_TEAM CT": 1
+  },
+  "hurtReactTick": {
+   "SPOT_TEAM null": 39
+  },
+  "nadeThrowSpot": {
+   "SPOT_TEAM null": 90
+  },
+  "coverForReload": {
+   "SPOT_TEAM null": 10
+  },
+  "shiftHold": {
+   "SPOT_TEAM null": 4
+  },
+  "retakeClear": {
+   "SPOT_TEAM CT": 10560
+  },
+  "utilWait0": {
+   "SPOT_TEAM T": 7
+  },
+  "retakePost": {
+   "SPOT_TEAM CT": 263
+  },
+  "reloadPeek": {
+   "SPOT_TEAM null": 10
+  },
+  "tBrain": {
+   "SPOT_TEAM T": 56
+  },
+  "ambushTick": {
+   "SPOT_TEAM null": 10
+  },
+  "ctEarlyPeek": {
+   "SPOT_TEAM CT": 1
+  },
+  "afterKillReact": {
+   "SPOT_TEAM null": 1
+  },
+  "ctBrain": {
+   "SPOT_TEAM CT": 4
+  },
+  "ctInfoCheck": {
+   "SPOT_TEAM CT": 1
+  }
+ }
+}
