@@ -5,5 +5,5 @@
 | Задача | Статус | Результат |
 |---|---|---|
 | A. Документация | Готово | [Реорганизация](DOCUMENTATION.md), [проект AGENTS](AGENTS.draft.md), [реестр](documentation_inventory.csv), [ссылки](documentation_references.csv) |
-| B. Подготовка Р3 | В очереди | Реестр состояния, Т-2 и семь каналов |
+| B. Подготовка Р3 | Готово | [Состояние](STATE_REGISTRY.md), [Т-2](MATCH_ISOLATION.md), [порядок каналов](R3_PREPARATION.md) |
 | C. Подготовка Р4 | В очереди | Карта переименований и передача |
