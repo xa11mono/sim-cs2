@@ -441,7 +441,7 @@
    "snap": true
   },
   "BOT_INIT": {
-   "decl": "680_sound_frame_buttons.js:284",
+   "decl": "680_sound_frame_buttons.js:285",
    "init": "CallExpression",
    "w": {},
    "m": {},
@@ -2862,7 +2862,7 @@
    "init": "ObjectExpression",
    "w": {
     "applyWalls · 030": 1,
-    "visInvalidate · 040": 1
+    "zoneDangerSync · 040": 1
    },
    "m": {
     "holdCands · 280": 1
@@ -8619,15 +8619,16 @@
    },
    "snap": "нет: STATIC"
   },
-  "VIS_DANGER_TIMER": {
+  "VIS_DANGER_DIRTY": {
    "decl": "040_visibility.js:39",
    "init": "Literal",
    "w": {
-    "visInvalidate · 040": 2
+    "visInvalidate · 040": 1,
+    "zoneDangerSync · 040": 1
    },
    "m": {},
    "r": {
-    "040": 2
+    "040": 1
    },
    "snap": true
   },
@@ -8688,7 +8689,7 @@
    "snap": "нет: STATIC"
   },
   "VIS_SHOULDER": {
-   "decl": "040_visibility.js:259",
+   "decl": "040_visibility.js:265",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -12526,8 +12527,8 @@
     "275_look_turn.ts:87 lookTick",
     "275_look_turn.ts:87 lookTick",
     "275_look_turn.ts:99 lookTrack",
-    "540_step_tick.js:589 stepTick",
-    "540_step_tick.js:589 stepTick"
+    "540_step_tick.js:590 stepTick",
+    "540_step_tick.js:590 stepTick"
    ],
    "lit": [],
    "r": 9
@@ -12609,7 +12610,7 @@
     "370_fire_nav_levels_ladders.js:414 navFollowFloor",
     "370_fire_nav_levels_ladders.js:426 navFollowFloor",
     "530_round_sides_match.js:201 resetRound",
-    "540_step_tick.js:633 stepTick",
+    "540_step_tick.js:634 stepTick",
     "540_step_tick.js:66 navSnap",
     "677_sandbox.js:37 sbPlace"
    ],
@@ -13290,14 +13291,14 @@
   },
   "_fireRp": {
    "w": [
-    "540_step_tick.js:499 stepTick"
+    "540_step_tick.js:500 stepTick"
    ],
    "lit": [],
    "r": 2
   },
   "_fireWaitT": {
    "w": [
-    "540_step_tick.js:501 stepTick"
+    "540_step_tick.js:502 stepTick"
    ],
    "lit": [],
    "r": 3
@@ -13499,7 +13500,7 @@
   "_hold": {
    "w": [
     "530_round_sides_match.js:205 resetRound",
-    "540_step_tick.js:367 stepTick",
+    "540_step_tick.js:368 stepTick",
     "677_sandbox.js:38 sbPlace"
    ],
    "lit": [],
@@ -13614,8 +13615,8 @@
   },
   "_idleT": {
    "w": [
-    "540_step_tick.js:550 stepTick",
-    "540_step_tick.js:659 stepTick"
+    "540_step_tick.js:551 stepTick",
+    "540_step_tick.js:660 stepTick"
    ],
    "lit": [],
    "r": 3
@@ -14092,10 +14093,10 @@
   },
   "_netStuck": {
    "w": [
-    "540_step_tick.js:550 stepTick",
-    "540_step_tick.js:557 stepTick",
-    "540_step_tick.js:572 stepTick",
-    "540_step_tick.js:659 stepTick"
+    "540_step_tick.js:551 stepTick",
+    "540_step_tick.js:558 stepTick",
+    "540_step_tick.js:573 stepTick",
+    "540_step_tick.js:660 stepTick"
    ],
    "lit": [],
    "r": 6
@@ -14119,7 +14120,7 @@
   },
   "_noisyT": {
    "w": [
-    "540_step_tick.js:392 stepTick"
+    "540_step_tick.js:393 stepTick"
    ],
    "lit": [],
    "r": 3
@@ -14133,10 +14134,10 @@
   },
   "_np": {
    "w": [
-    "540_step_tick.js:550 stepTick",
-    "540_step_tick.js:555 stepTick",
-    "540_step_tick.js:574 stepTick",
-    "540_step_tick.js:659 stepTick"
+    "540_step_tick.js:551 stepTick",
+    "540_step_tick.js:556 stepTick",
+    "540_step_tick.js:575 stepTick",
+    "540_step_tick.js:660 stepTick"
    ],
    "lit": [],
    "r": 8
@@ -14195,8 +14196,8 @@
   },
   "_offNav": {
    "w": [
-    "540_step_tick.js:642 stepTick",
-    "540_step_tick.js:642 stepTick",
+    "540_step_tick.js:643 stepTick",
+    "540_step_tick.js:643 stepTick",
     "540_step_tick.js:66 navSnap"
    ],
    "lit": [],
@@ -14468,7 +14469,7 @@
   "_prevOffX": {
    "w": [
     "530_round_sides_match.js:216 resetRound",
-    "540_step_tick.js:692 stepTick"
+    "540_step_tick.js:693 stepTick"
    ],
    "lit": [],
    "r": 6
@@ -14476,7 +14477,7 @@
   "_prevOffY": {
    "w": [
     "530_round_sides_match.js:216 resetRound",
-    "540_step_tick.js:692 stepTick"
+    "540_step_tick.js:693 stepTick"
    ],
    "lit": [],
    "r": 6
@@ -14527,34 +14528,34 @@
   },
   "_progBest": {
    "w": [
-    "540_step_tick.js:550 stepTick",
-    "540_step_tick.js:622 stepTick",
-    "540_step_tick.js:646 stepTick",
-    "540_step_tick.js:659 stepTick"
+    "540_step_tick.js:551 stepTick",
+    "540_step_tick.js:623 stepTick",
+    "540_step_tick.js:647 stepTick",
+    "540_step_tick.js:660 stepTick"
    ],
    "lit": [],
    "r": 5
   },
   "_progIdx": {
    "w": [
-    "540_step_tick.js:621 stepTick"
+    "540_step_tick.js:622 stepTick"
    ],
    "lit": [],
    "r": 2
   },
   "_progPath": {
    "w": [
-    "540_step_tick.js:621 stepTick"
+    "540_step_tick.js:622 stepTick"
    ],
    "lit": [],
    "r": 2
   },
   "_progTick": {
    "w": [
-    "540_step_tick.js:550 stepTick",
-    "540_step_tick.js:622 stepTick",
-    "540_step_tick.js:646 stepTick",
-    "540_step_tick.js:659 stepTick"
+    "540_step_tick.js:551 stepTick",
+    "540_step_tick.js:623 stepTick",
+    "540_step_tick.js:647 stepTick",
+    "540_step_tick.js:660 stepTick"
    ],
    "lit": [],
    "r": 5
@@ -15017,16 +15018,16 @@
   },
   "_stepDist": {
    "w": [
-    "540_step_tick.js:384 stepTick",
-    "540_step_tick.js:386 stepTick",
-    "540_step_tick.js:386 stepTick"
+    "540_step_tick.js:385 stepTick",
+    "540_step_tick.js:387 stepTick",
+    "540_step_tick.js:387 stepTick"
    ],
    "lit": [],
    "r": 6
   },
   "_stepP": {
    "w": [
-    "540_step_tick.js:384 stepTick"
+    "540_step_tick.js:385 stepTick"
    ],
    "lit": [],
    "r": 7
@@ -15051,16 +15052,16 @@
   "_stopWhy": {
    "w": [
     "535_move_mode.js:190 moveSpeedTick",
-    "540_step_tick.js:361 stepTick"
+    "540_step_tick.js:362 stepTick"
    ],
    "lit": [],
    "r": 3
   },
   "_stuckResets": {
    "w": [
-    "540_step_tick.js:596 stepTick",
-    "540_step_tick.js:604 stepTick",
-    "540_step_tick.js:606 stepTick"
+    "540_step_tick.js:597 stepTick",
+    "540_step_tick.js:605 stepTick",
+    "540_step_tick.js:607 stepTick"
    ],
    "lit": [],
    "r": 6
@@ -15151,9 +15152,9 @@
   "_trail": {
    "w": [
     "530_round_sides_match.js:215 resetRound",
-    "540_step_tick.js:358 stepTick",
-    "540_step_tick.js:550 stepTick",
-    "540_step_tick.js:634 stepTick",
+    "540_step_tick.js:359 stepTick",
+    "540_step_tick.js:551 stepTick",
+    "540_step_tick.js:635 stepTick",
     "675_replay.js:434 rpWorldDraw",
     "675_replay.js:442 rpWorldDraw",
     "677_sandbox.js:38 sbPlace"
@@ -15185,7 +15186,7 @@
   "_unstickT": {
    "w": [
     "530_round_sides_match.js:205 resetRound",
-    "540_step_tick.js:630 stepTick"
+    "540_step_tick.js:631 stepTick"
    ],
    "lit": [],
    "r": 3
@@ -15384,14 +15385,14 @@
     "540_step_tick.js:157 jumpCheckTick",
     "540_step_tick.js:176 jumpCheckTick",
     "540_step_tick.js:269 strafeKeysTick",
-    "540_step_tick.js:503 stepTick",
     "540_step_tick.js:504 stepTick",
-    "540_step_tick.js:522 stepTick",
-    "540_step_tick.js:536 stepTick",
-    "540_step_tick.js:570 stepTick",
-    "540_step_tick.js:633 stepTick",
+    "540_step_tick.js:505 stepTick",
+    "540_step_tick.js:523 stepTick",
+    "540_step_tick.js:537 stepTick",
+    "540_step_tick.js:571 stepTick",
+    "540_step_tick.js:634 stepTick",
     "540_step_tick.js:66 navSnap",
-    "540_step_tick.js:686 stepTick",
+    "540_step_tick.js:687 stepTick",
     "660_warmup.js:12 warmSpawn",
     "660_warmup.js:79 warmTick",
     "660_warmup.js:82 warmTick",
@@ -15415,14 +15416,14 @@
     "540_step_tick.js:157 jumpCheckTick",
     "540_step_tick.js:176 jumpCheckTick",
     "540_step_tick.js:269 strafeKeysTick",
-    "540_step_tick.js:503 stepTick",
     "540_step_tick.js:504 stepTick",
-    "540_step_tick.js:526 stepTick",
-    "540_step_tick.js:536 stepTick",
-    "540_step_tick.js:570 stepTick",
-    "540_step_tick.js:633 stepTick",
+    "540_step_tick.js:505 stepTick",
+    "540_step_tick.js:527 stepTick",
+    "540_step_tick.js:537 stepTick",
+    "540_step_tick.js:571 stepTick",
+    "540_step_tick.js:634 stepTick",
     "540_step_tick.js:66 navSnap",
-    "540_step_tick.js:686 stepTick",
+    "540_step_tick.js:687 stepTick",
     "660_warmup.js:12 warmSpawn",
     "660_warmup.js:79 warmTick",
     "660_warmup.js:82 warmTick",
@@ -15516,11 +15517,11 @@
     "535_move_mode.js:188 moveSpeedTick",
     "535_move_mode.js:189 moveSpeedTick",
     "535_move_mode.js:23 moveSpeed",
-    "540_step_tick.js:334 stepTick",
-    "540_step_tick.js:361 stepTick",
-    "540_step_tick.js:484 stepTick",
-    "540_step_tick.js:499 stepTick",
-    "540_step_tick.js:501 stepTick"
+    "540_step_tick.js:335 stepTick",
+    "540_step_tick.js:362 stepTick",
+    "540_step_tick.js:485 stepTick",
+    "540_step_tick.js:500 stepTick",
+    "540_step_tick.js:502 stepTick"
    ],
    "lit": [
     "070_weapons_bots_roam.js:82"
@@ -15701,7 +15702,7 @@
     "510_engagements.js:166 resolveEngagements",
     "510_engagements.js:168 resolveEngagements",
     "530_round_sides_match.js:212 resetRound",
-    "540_step_tick.js:405 stepTick"
+    "540_step_tick.js:406 stepTick"
    ],
    "lit": [],
    "r": 7
@@ -15723,8 +15724,8 @@
   "heading": {
    "w": [
     "530_round_sides_match.js:213 resetRound",
-    "540_step_tick.js:465 stepTick",
-    "540_step_tick.js:471 stepTick",
+    "540_step_tick.js:466 stepTick",
+    "540_step_tick.js:472 stepTick",
     "660_warmup.js:73 warmTick",
     "660_warmup.js:75 warmTick",
     "660_warmup.js:81 warmTick"
@@ -15903,7 +15904,7 @@
   "lastStepTick": {
    "w": [
     "530_round_sides_match.js:214 resetRound",
-    "540_step_tick.js:387 stepTick"
+    "540_step_tick.js:388 stepTick"
    ],
    "lit": [
     "070_weapons_bots_roam.js:82"
@@ -16088,8 +16089,8 @@
   "onStairs": {
    "w": [
     "530_round_sides_match.js:213 resetRound",
-    "540_step_tick.js:348 stepTick",
-    "540_step_tick.js:459 stepTick"
+    "540_step_tick.js:349 stepTick",
+    "540_step_tick.js:460 stepTick"
    ],
    "lit": [
     "070_weapons_bots_roam.js:82"
@@ -16105,11 +16106,11 @@
     "535_move_mode.js:156 moveSpeedTick",
     "535_move_mode.js:163 moveSpeedTick",
     "535_move_mode.js:22 movePath",
-    "540_step_tick.js:499 stepTick",
-    "540_step_tick.js:573 stepTick",
-    "540_step_tick.js:612 stepTick",
-    "540_step_tick.js:634 stepTick",
-    "540_step_tick.js:649 stepTick",
+    "540_step_tick.js:500 stepTick",
+    "540_step_tick.js:574 stepTick",
+    "540_step_tick.js:613 stepTick",
+    "540_step_tick.js:635 stepTick",
+    "540_step_tick.js:650 stepTick",
     "540_step_tick.js:66 navSnap"
    ],
    "lit": [
@@ -16151,14 +16152,14 @@
     "530_round_sides_match.js:210 resetRound",
     "535_move_mode.js:156 moveSpeedTick",
     "535_move_mode.js:163 moveSpeedTick",
-    "540_step_tick.js:424 stepTick",
-    "540_step_tick.js:499 stepTick",
-    "540_step_tick.js:504 stepTick",
-    "540_step_tick.js:571 stepTick",
-    "540_step_tick.js:573 stepTick",
-    "540_step_tick.js:612 stepTick",
-    "540_step_tick.js:634 stepTick",
-    "540_step_tick.js:649 stepTick",
+    "540_step_tick.js:425 stepTick",
+    "540_step_tick.js:500 stepTick",
+    "540_step_tick.js:505 stepTick",
+    "540_step_tick.js:572 stepTick",
+    "540_step_tick.js:574 stepTick",
+    "540_step_tick.js:613 stepTick",
+    "540_step_tick.js:635 stepTick",
+    "540_step_tick.js:650 stepTick",
     "540_step_tick.js:66 navSnap",
     "677_sandbox.js:38 sbPlace"
    ],
@@ -16177,7 +16178,7 @@
   "pfacing": {
    "w": [
     "275_look_turn.ts:164 freezeLookTick",
-    "540_step_tick.js:333 stepTick",
+    "540_step_tick.js:334 stepTick",
     "675_replay.js:434 rpWorldDraw",
     "675_replay.js:442 rpWorldDraw"
    ],
@@ -16291,7 +16292,7 @@
   "px": {
    "w": [
     "530_round_sides_match.js:209 resetRound",
-    "540_step_tick.js:333 stepTick",
+    "540_step_tick.js:334 stepTick",
     "660_warmup.js:12 warmSpawn",
     "660_warmup.js:47 warmTick",
     "675_replay.js:434 rpWorldDraw",
@@ -16307,7 +16308,7 @@
   "py": {
    "w": [
     "530_round_sides_match.js:209 resetRound",
-    "540_step_tick.js:333 stepTick",
+    "540_step_tick.js:334 stepTick",
     "660_warmup.js:12 warmSpawn",
     "660_warmup.js:47 warmTick",
     "675_replay.js:434 rpWorldDraw",
@@ -16376,7 +16377,7 @@
     "430_fov_roam.js:28 updateRoamer",
     "430_fov_roam.js:66 updateRoamer",
     "510_engagements.js:132 resolveEngagements",
-    "540_step_tick.js:340 stepTick"
+    "540_step_tick.js:341 stepTick"
    ],
    "lit": [],
    "r": 13
@@ -16537,12 +16538,12 @@
   "stuckTicks": {
    "w": [
     "530_round_sides_match.js:215 resetRound",
-    "540_step_tick.js:550 stepTick",
-    "540_step_tick.js:595 stepTick",
-    "540_step_tick.js:598 stepTick",
-    "540_step_tick.js:612 stepTick",
-    "540_step_tick.js:649 stepTick",
-    "540_step_tick.js:659 stepTick"
+    "540_step_tick.js:551 stepTick",
+    "540_step_tick.js:596 stepTick",
+    "540_step_tick.js:599 stepTick",
+    "540_step_tick.js:613 stepTick",
+    "540_step_tick.js:650 stepTick",
+    "540_step_tick.js:660 stepTick"
    ],
    "lit": [],
    "r": 9
@@ -16651,7 +16652,7 @@
     "535_move_mode.js:109 moveWalkTick",
     "535_move_mode.js:164 moveSpeedTick",
     "535_move_mode.js:24 moveWalk",
-    "540_step_tick.js:501 stepTick"
+    "540_step_tick.js:502 stepTick"
    ],
    "lit": [
     "070_weapons_bots_roam.js:82"
@@ -16700,10 +16701,10 @@
     "510_engagements.js:209 escapeWallLine",
     "530_round_sides_match.js:191 resetRound",
     "530_round_sides_match.js:199 resetRound",
-    "540_step_tick.js:570 stepTick",
-    "540_step_tick.js:633 stepTick",
+    "540_step_tick.js:571 stepTick",
+    "540_step_tick.js:634 stepTick",
     "540_step_tick.js:66 navSnap",
-    "540_step_tick.js:697 stepTick",
+    "540_step_tick.js:698 stepTick",
     "660_warmup.js:12 warmSpawn",
     "660_warmup.js:79 warmTick",
     "660_warmup.js:82 warmTick",
@@ -16723,10 +16724,10 @@
     "510_engagements.js:209 escapeWallLine",
     "530_round_sides_match.js:191 resetRound",
     "530_round_sides_match.js:199 resetRound",
-    "540_step_tick.js:570 stepTick",
-    "540_step_tick.js:633 stepTick",
+    "540_step_tick.js:571 stepTick",
+    "540_step_tick.js:634 stepTick",
     "540_step_tick.js:66 navSnap",
-    "540_step_tick.js:698 stepTick",
+    "540_step_tick.js:699 stepTick",
     "660_warmup.js:12 warmSpawn",
     "660_warmup.js:79 warmTick",
     "660_warmup.js:82 warmTick",
@@ -16748,7 +16749,7 @@
     "370_fire_nav_levels_ladders.js:426 navFollowFloor",
     "530_round_sides_match.js:191 resetRound",
     "530_round_sides_match.js:201 resetRound",
-    "540_step_tick.js:633 stepTick",
+    "540_step_tick.js:634 stepTick",
     "540_step_tick.js:66 navSnap",
     "677_sandbox.js:37 sbPlace"
    ],

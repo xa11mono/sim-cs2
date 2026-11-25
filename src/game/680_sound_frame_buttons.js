@@ -248,6 +248,7 @@ function frame(ts){
 }
 function frameBody(ts){
   nowTs = ts; frameWrapR = null; wrapRect();
+  if(typeof zoneDangerSync === "function") zoneDangerSync();   // (Р3.4) правка карты при остановленной игре — таблица для рисования
   if(SND && SND.ctx) sndFireTick();   // (v333) треск огня — и останавливается, когда огонь погас / раунд кончился / звук выключен
   var dt = clockFrameDt(ts);
   if(!paused && WARM.on){ var wdt = Math.min(0.1, dt/1000); warmTick(wdt); clockAcc(0); }

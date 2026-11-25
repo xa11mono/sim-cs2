@@ -36,13 +36,19 @@ var VIS_SLAB = 12;     // проектное число: толщина пере
 var VIS = {walls: null, nav: null, gen: -1, W: 0, floor: null, solid: null, ceil: null, lo: null,
            segs: [], grid: null, G: 64, GN: 0, stamp: null, sn: 0};
 var VIS_GEN = 0;
-var VIS_DANGER_TIMER = null;
-// карта поменялась (стены, высоты, укрытия): сетка видимости — заново, таблица «откуда простреливается» — следом
+var VIS_DANGER_DIRTY = false;
+// карта поменялась (стены, высоты, укрытия): сетка видимости — заново, таблица «откуда простреливается» — следом.
+// (Р3.4, 25.11) было: пересчёт по таймеру страницы через 300 мс — таблица менялась в случайный тик игры, по часам страницы и нагрузке
+// браузера (Р2-3, опись evidence/R3/r3.4_async_inventory.json). Теперь — отметка «устарела» и пересчёт на ближайшей границе: в начале
+// шага игры (540 stepTick) или в кадре страницы, если игра стоит (680, рисование в редакторе) — zoneDangerSync
 function visInvalidate(){
   VIS_GEN++;
   if(typeof zonesById === "undefined" || !zonesById) return;
-  if(VIS_DANGER_TIMER) clearTimeout(VIS_DANGER_TIMER);
-  VIS_DANGER_TIMER = setTimeout(function(){ VIS_DANGER_TIMER = null; computeZoneDanger(); if(typeof HOLD_CANDS !== "undefined") HOLD_CANDS = {}; }, 300);
+  VIS_DANGER_DIRTY = true;
+}
+function zoneDangerSync(){
+  if(!VIS_DANGER_DIRTY) return;
+  VIS_DANGER_DIRTY = false; computeZoneDanger(); if(typeof HOLD_CANDS !== "undefined") HOLD_CANDS = {};
 }
 
 // ---------- верх укрытия (абсолютная z) ----------
