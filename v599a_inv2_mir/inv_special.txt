@@ -1,0 +1,41 @@
+код 0
+{
+ "sim": "C:\\actions-runner\\_work\\sim-cs2\\sim-cs2\\tools\\measure\\runs\\_sims\\v599a_inv2_mir.html",
+ "match": 3,
+ "ticks": 20000,
+ "graph": {
+  "edges": 7862,
+  "I-15 freshMatch = загрузка": {
+   "onlyFirst": 0,
+   "onlySecond": 0,
+   "same": true
+  },
+  "I-24/I-32 rebuildNav+navCutTall = загрузка": {
+   "onlyFirst": 13,
+   "onlySecond": 0,
+   "same": false
+  },
+  "I-29 applyWalls (стены сборки, без базы владельца) = загрузка": {
+   "onlyFirst": 13,
+   "onlySecond": 0,
+   "same": false
+  }
+ },
+ "I-22": {
+  "match": 4,
+  "ticksCompared": 2000,
+  "firstDiffTickAfterStart": 0,
+  "same": false
+ },
+ "I-23": {
+  "exit": 2,
+  "out": "",
+  "err": "нет acorn: npm i --prefix tools/rebuild или NODE_PATH"
+ },
+ "I-30": {
+  "exit": 2,
+  "out": "",
+  "err": "нет acorn: npm i --prefix tools/rebuild или NODE_PATH"
+ }
+}
+
