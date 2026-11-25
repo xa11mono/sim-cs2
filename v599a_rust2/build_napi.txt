@@ -1,0 +1,40 @@
+код 101
+
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling windows_x86_64_gnu v0.53.1
+   Compiling memchr v2.8.3
+   Compiling regex-syntax v0.8.12
+   Compiling unicode-segmentation v1.13.3
+   Compiling semver v1.0.28
+   Compiling napi-build v2.7.0
+   Compiling once_cell v1.21.4
+   Compiling bitflags v2.13.2
+   Compiling cfg-if v1.0.5
+   Compiling nap v0.1.0 (C:\actions-runner\_work\sim-cs2\sim-cs2\docs\reports\audit_2026-11-24\stage4\bench\nap)
+   Compiling convert_case v0.6.0
+   Compiling windows-targets v0.53.5
+   Compiling libloading v0.8.8
+   Compiling aho-corasick v1.1.5
+   Compiling napi-sys v2.4.0
+error: failed to run custom build command for `nap v0.1.0 (C:\actions-runner\_work\sim-cs2\sim-cs2\docs\reports\audit_2026-11-24\stage4\bench\nap)`
+
+Caused by:
+  process didn't exit successfully: `C:\actions-runner\_work\sim-cs2\sim-cs2\docs\reports\audit_2026-11-24\stage4\bench\nap\target\release\build\nap/26d0e89e7a88613f\out\build_script_build` (exit code: 101)
+  --- stdout
+  cargo::rustc-check-cfg=cfg(napi_wasi_threads)
+  cargo::rustc-check-cfg=cfg(napi_wasi_no_heap_sync)
+  cargo:rerun-if-env-changed=DEBUG_GENERATED_CODE
+  cargo:rerun-if-env-changed=TYPE_DEF_TMP_PATH
+  cargo:rerun-if-env-changed=CARGO_CFG_NAPI_RS_CLI_VERSION
+  cargo::rerun-if-env-changed=NAPI_DEBUG_GENERATED_CODE
+  cargo::rerun-if-env-changed=NAPI_TYPE_DEF_TMP_FOLDER
+  cargo::rerun-if-env-changed=NAPI_FORCE_BUILD_NAP
+
+  --- stderr
+
+  thread 'main' (18376) panicked at C:\Windows\system32\config\systemprofile\.simcs2_rust\cargo\registry\src\index.crates.io-1949cf8c6b5b557f\napi-build-2.7.0\src\windows.rs:15:5:
+  libnode.dll not found in any search path
+  note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+warning: build failed, waiting for other jobs to finish...

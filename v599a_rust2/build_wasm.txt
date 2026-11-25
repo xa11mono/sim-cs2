@@ -1,0 +1,5 @@
+код 0
+
+   Compiling libm v0.2.16
+   Compiling prec v0.1.0 (C:\actions-runner\_work\sim-cs2\sim-cs2\docs\reports\audit_2026-11-24\stage4\bench\prec)
+    Finished `release` profile [optimized] target(s) in 1.19s
