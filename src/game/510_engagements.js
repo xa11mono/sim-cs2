@@ -8,7 +8,20 @@ function duckDecide(b, p, salt){   // присед на ближайшее ре�
   placeStance(b, duck && (!cvp || !!(cvp.head || cvp.body || cvp.side)), "duck"); b._duckT = tick;
 }
 var FIGHT_MOVE_NEAR = 10;
+// (Р3.2, канал «бой», шаг 1) перестрелки — этапами в прежнем порядке (I-30: порядок обхода ботов не менять): кто кого видит (engSee,
+// пары CT × T) → цель (engTarget) → контакт и решение режима боя (engDecide) → отход не на врага (engRetreatCheck) → взгляд (275) →
+// выстрелы по парам (engShoot). Код этапов перенесён дословно; общее между этапами — только список пар видимости
 function resolveEngagements(){
+  var pairs = engSee();
+  engTarget();
+  engDecide();
+  engRetreatCheck();
+  // ---------- куда смотрит бот ---------- — канал взгляда (275_look_turn.ts, lookTick)
+  lookTick();
+  engShoot(pairs);
+}
+// кто кого видит: пары CT × T (видимость 3D, дым, ван-вей, конус взгляда, ослепление); ближайший видимый враг у каждого
+function engSee(){
   var pairs = [];
   bots.forEach(function(b){ b._sawEnemy = false; b._nearestEnemyDist = Infinity; b._nearestEnemyBot = null; b._visible = []; });
   bots.forEach(function(ct){
@@ -43,6 +56,9 @@ function resolveEngagements(){
       pairs.push({ct:ct, t:t, dist:dist, ctSees:ctSees, tSees:tSees});
     });
   });
+  return pairs;
+}
+function engTarget(){
 
   // цель держится, пока видна (раньше каждый тик бралась ближайшая: при двух
   // врагах на похожей дистанции прицел метался между ними и выстрелы срывались).
@@ -63,6 +79,9 @@ function resolveEngagements(){
     }
     b._tgt = NT;
   });
+}
+// контакт (реакция, память «видел тут», присед очереди) и решение режима боя (decideAction → fightState), отход
+function engDecide(){
   bots.forEach(function(b){
     if(!b.alive) return;
     if(b._sawEnemy){
@@ -168,7 +187,8 @@ function resolveEngagements(){
       b.forcedRetreat = false;
     }
   });
-
+}
+function engRetreatCheck(){
   // отступающий, который всё равно сближается с врагом (путь позже повернул
   // к нему) — каждые 16 тиков проверяем и, если так, перестраиваем путь в укрытие
   bots.forEach(function(b){
@@ -185,10 +205,9 @@ function resolveEngagements(){
       b._rtChk = {t:tick, d:dF};
     }
   });
-
-  // ---------- куда смотрит бот ---------- — канал взгляда (275_look_turn.ts, lookTick)
-  lookTick();
-
+}
+// выстрелы по парам видимости — в порядке пар (CT × T), каждый стреляет в свою текущую цель
+function engShoot(pairs){
   pairs.forEach(function(p){
     if(p.ctSees && p.ct._nearestEnemyBot === p.t) tryShoot(p.ct, p.t, p.dist);
     if(p.tSees && p.t._nearestEnemyBot === p.ct) tryShoot(p.t, p.ct, p.dist);
