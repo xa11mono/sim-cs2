@@ -4,7 +4,7 @@
 // per-point transform (applyNavTransform) runs on every drag/wheel tick for
 // live visual feedback; this heavier rebuild (graph + both wall sets) is
 // debounced to run only after the user stops adjusting. ----------
-var NAV_DROP_MAX = 200, NAV_DROP_OUT = 6, NAV_DROP_STEP = 8, navDropLinks = 0;   // (18.11) спрыгнуть с края: ед. игры / ед. карты / шаг проверки края — проектные числа
+var NAV_DROP_MAX = 200, NAV_DROP_OUT = 6, NAV_DROP_EDGE_STEP = 8, navDropLinks = 0;   // (18.11) спрыгнуть с края: ед. игры / ед. карты / шаг проверки края — проектные числа. (Т-3, 25.11) шаг края — своё имя: было NAV_DROP_STEP, как и порог обрыва (576, = 24) — одна переменная с двумя смыслами; при загрузке граф строился с 8, перестройка из редактора — с 24
 var NAV_FLOOR_TOL = 24, NAV_RIDGE_W = 6, NAV_RIDGE_SIDE = 4, NAV_LINK_MIN = 6, NAV_LINK_KNEE = 16, navAutoLinks = 0;   // ед. игры / ед. карты — проектные числа (v405)
 var NAV_BLOCKED = {}, navBlockedCount = 0, navCutPortals = 0, navNarrowPortals = 0;
 // WALL_SOLID_POLYS — см. applyWalls выше
@@ -218,7 +218,7 @@ function rebuildNav(){
         var ux = (q.x-p.x)/L, uy = (q.y-p.y)/L, nx = uy, ny = -ux; if((c0.x-p.x)*nx + (c0.y-p.y)*ny > 0){ nx = -nx; ny = -ny; }   // наружу
         var run = null, flush = function(){ if(run && run.n >= 2){ var k = za.id + ">" + run.b.id, len = DM.hypot(run.q.x-run.p.x, run.q.y-run.p.y);
             if(!dropBest[k] || dropBest[k].len < len) dropBest[k] = {a: za, b: run.b, p: run.p, q: run.q, len: len}; } run = null; };
-        for(var t = 2; t <= L - 2; t += NAV_DROP_STEP){ var ex = p.x + ux*t, ey = p.y + uy*t, ox = ex + nx*NAV_DROP_OUT, oy = ey + ny*NAV_DROP_OUT, ix = ex - nx*3, iy = ey - ny*3;
+        for(var t = 2; t <= L - 2; t += NAV_DROP_EDGE_STEP){ var ex = p.x + ux*t, ey = p.y + uy*t, ox = ex + nx*NAV_DROP_OUT, oy = ey + ny*NAV_DROP_OUT, ix = ex - nx*3, iy = ey - ny*3;
           var zA = navFloorZ(za, ex, ey), own = navAt(ox, oy, zA), zb = navAt(ox, oy, zA - NAV_DROP_MAX), ok = false;
           if(!(own && Math.abs(own.z - zA) <= 18) && zb && zb !== za && !NAV_BLOCKED[zb.id]){ var dz = zA - navFloorZ(zb, ox, oy);
             if(dz > 18 && dz <= NAV_DROP_MAX && visLine(ix, iy, zA + NAV_LINK_KNEE, ox, oy, zA + NAV_LINK_KNEE) && visLine(ix, iy, zA + 40, ox, oy, zA + 40)) ok = true; }

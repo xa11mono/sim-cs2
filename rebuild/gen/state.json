@@ -5106,6 +5106,16 @@
    },
    "snap": true
   },
+  "NAV_DROP_EDGE_STEP": {
+   "decl": "050_nav_rebuild_paths.js:7",
+   "init": "Literal",
+   "w": {},
+   "m": {},
+   "r": {
+    "050": 1
+   },
+   "snap": true
+  },
   "NAV_DROP_MAX": {
    "decl": "050_nav_rebuild_paths.js:7",
    "init": "Literal",
@@ -5132,7 +5142,7 @@
    "w": {},
    "m": {},
    "r": {
-    "050": 2
+    "050": 1
    },
    "snap": true
   },

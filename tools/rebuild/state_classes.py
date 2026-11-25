@@ -42,7 +42,7 @@ def rule_global(n, g):
     W = fns(g['w']) + fns(g['m']); wf = {f for _, f in W}; wn = {fn for fn, _ in W}
     rsim = [f for f in g['r'] if f < '550']
     if not W:
-        if not RUN: return None
+        if not RUN or any(n not in r['globals'] for r in RUN): return None   # нет в опыте (новая переменная) — опыт её не видел
         ch = changed('globals', n)
         if ch: return None   # меняется через другое имя — разметка вручную
         if any((r['globals'].get(n) or {}).get('type') == 'function' for r in RUN): return None   # замыкание: содержимое опыт не видит
@@ -59,7 +59,7 @@ def rule_global(n, g):
 
 def rule_bot(n, b):
     wn = {w.split(' ', 1)[1] if ' ' in w else '' for w in b['w']}
-    if not b['w'] and b['lit'] and RUN and not changed('bot', n):
+    if not b['w'] and b['lit'] and RUN and all(n in r['bot'] for r in RUN) and not changed('bot', n):
         return 'неизменяемое', 'задаётся при создании бота (%s), дальше по имени не пишется' % b['lit'][0], 'игрок'
     if wn & ROUND_RESET:
         return 'раунд', 'пишет resetRound (%s)' % ', '.join(sorted(w.split(' ')[0] for w in b['w'] if w.endswith(' resetRound'))[:3]), 'раунд (resetRound)'
