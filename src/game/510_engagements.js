@@ -186,7 +186,7 @@ function resolveEngagements(){
     }
   });
 
-  // ---------- куда смотрит бот ---------- — канал взгляда (275_look_turn.js, lookTick)
+  // ---------- куда смотрит бот ---------- — канал взгляда (275_look_turn.ts, lookTick)
   lookTick();
 
   pairs.forEach(function(p){

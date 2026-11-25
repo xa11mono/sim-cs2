@@ -33,12 +33,14 @@
   - `weaponSpeedMul` (450) — в обходе (forEach и т.п.)
   - `moveSpeedTick` (535) — в обходе (forEach и т.п.)
   - `fightCycleTick` (470) — в обходе (forEach и т.п.)
+  - `ambushHoldFire` (480) — в обходе (forEach и т.п.)
+  - `fcSwingGo` (470) — в обходе (forEach и т.п.)
   - `inWater` (460) — в обходе (forEach и т.п.)
         - `soundEv` (435) — если CL
         - `soundEv` (435) — иначе (CL)
         - `bzOf` (200) — если roundState === "live"
             - `reachPossible` (200) — в обходе (forEach и т.п.)
-            - `beliefZoneKnown` (260) — в обходе (forEach и т.п.)
+            - `beliefZoneKnownB` (260) — в обходе (forEach и т.п.)
       - `moveSoundEmit` (540) — если bot._stepDist >= stride
   - `ladderTick` (370) — в обходе (forEach и т.п.)
       - `assignNewDestination` (510) — если bot.path.length === 0 // bot.pathIdx >= bot.path.length
@@ -61,6 +63,7 @@
               - `fireCommit` (370) — если bot._netStuck >= 3 && wpN
               - `navFloorNear` (370) — если bot._netStuck >= 3 && wpN
               - `escapeWallLine` (510) — иначе (bot._netStuck >= 3 && wpN)
+          - `pathAheadDir` (540) — если actuallyMoved > 0.15 && !bot.lookTarget && !(bot._jc && bot._jc.run)
             - `lookTurnBy` (275) — если bot._aimFix
               - `escapeWallLine` (510) — если bot._stuckResets >= 2
             - `navOnFloor` (370) — если bot.stuckTicks > 40
@@ -76,6 +79,7 @@
     - `crossesWall` (060) — если bot.roamChecking && bot.state === "patrol" && bot.roamLookPt
         - `crossesWall` (060) — цикл
     - `crossesWall` (060) — если offX === 0 && offY === 0 && (bot._prevOffX // bot._prevOffY) && bot._s
+      - `crossesWall` (060) — если offX === 0 && offY === 0 && Math.hypot(bot._prevOffX // 0, bot._prevOf
   - `strafeKeysTick` (540) — в обходе (forEach и т.п.)
     - `navFollowFloor` (370) — если !bot._climb
 - `resolveEngagements` (510)

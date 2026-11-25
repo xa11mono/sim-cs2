@@ -16,53 +16,53 @@
 | `_tradeUntil` | 2 | 2 | `tradeAlertSet · 190`, `tradeEnd · 190` |
 | `_tradeLock` | 1 | 1 | `tradeEnd · 190` |
 | `state` | 2 | 2 | `fightStateDo · 500`, `fightReset · 500` |
-| `nadeTask` | 27 | 10 | `(верх файла) · 360`, `nadeAskFlash · 365`, `exuReassign · 366`, `assignNadeDo · 380`, `nadeQueueNext · 380`, `runupTick · 380`, `updateNadeTask1 · 380`, `lineupTick · 390`, `nadeCancel · 420`, `resetNades · 420` |
+| `nadeTask` | 30 | 10 | `(верх файла) · 360`, `nadeAskFlash · 365`, `exuReassign · 366`, `assignNadeDo · 380`, `nadeQueueNext · 380`, `runupTick · 380`, `updateNadeTask1 · 380`, `lineupTick · 390`, `nadeCancel · 420`, `resetNades · 420` |
 | `holding` | 5 | 4 | `fightReset · 500`, `fightHoldOff · 500`, `leaveHold · 500`, `resolveEngagements · 510` |
 | `crouching` | 1 | 1 | `placeStance · 110` |
-| `path` | 13 | 8 | `fireGoneRepath · 370`, `fireRepath · 370`, `ladderTick · 370`, `navFollowFloor · 370`, `movePath · 535`, `moveSpeedTick · 535`, `navSnap · 540`, `stepTick · 540` |
+| `path` | 13 | 7 | `fireRepath · 370`, `ladderTick · 370`, `navFollowFloor · 370`, `movePath · 535`, `moveSpeedTick · 535`, `navSnap · 540`, `stepTick · 540` |
 | `phase` | 14 | 2 | — |
 
 ## `facing`
 
-- **хозяин** `handTurn · 275` — 3 (стр. 113, 120, 123)
+- **хозяин** `handTurn · 275` — 3 (стр. 118, 125, 128)
 - **хозяин** `lookTick · 275` — 2 (стр. 43, 54)
-- **хозяин** `freezeLookTick · 275` — 2 (стр. 155, 169)
+- **хозяин** `freezeLookTick · 275` — 2 (стр. 160, 174)
 - **хозяин** `lookFace · 275` — 1 (стр. 9)
 - **хозяин** `lookTurnBy · 275` — 1 (стр. 10)
 - **хозяин** `lookReset · 275` — 1 (стр. 11)
-- **хозяин** `lookTrack · 275` — 1 (стр. 93)
+- **хозяин** `lookTrack · 275` — 1 (стр. 98)
 
 ## `walking`
 
 - **хозяин** `moveWalk · 535` — 1 (стр. 24)
-- **хозяин** `moveWalkTick · 535` — 1 (стр. 95)
-- **хозяин** `moveSpeedTick · 535` — 1 (стр. 148)
-- **хозяин** `stepTick · 540` — 1 (стр. 484)
+- **хозяин** `moveWalkTick · 535` — 1 (стр. 109)
+- **хозяин** `moveSpeedTick · 535` — 1 (стр. 164)
+- **хозяин** `stepTick · 540` — 1 (стр. 501)
 
 ## `curSpeed`
 
-- **хозяин** `moveSpeedTick · 535` — 5 (стр. 168, 170, 171, 172, 173)
-- **хозяин** `stepTick · 540` — 5 (стр. 319, 346, 467, 482, 484)
-- **хозяин** `jumpFaceWait · 370` — 1 (стр. 97)
-- **хозяин** `ladderTick · 370` — 1 (стр. 198)
+- **хозяин** `moveSpeedTick · 535` — 5 (стр. 184, 186, 187, 188, 189)
+- **хозяин** `stepTick · 540` — 5 (стр. 334, 361, 484, 499, 501)
+- **хозяин** `jumpFaceWait · 370` — 1 (стр. 110)
+- **хозяин** `ladderTick · 370` — 1 (стр. 216)
 - **хозяин** `moveSpeed · 535` — 1 (стр. 23)
 
 ## `post`
 
-- **хозяин** `setPostDo · 110` — 1 (стр. 451)
-- **хозяин** `clearPostDo · 110` — 1 (стр. 482)
-- **хозяин** `placeResetPost · 110` — 1 (стр. 491)
+- **хозяин** `setPostDo · 110` — 1 (стр. 462)
+- **хозяин** `clearPostDo · 110` — 1 (стр. 509)
+- **хозяин** `placeResetPost · 110` — 1 (стр. 518)
 
 ## `_task`
 
 - **хозяин** `routeTick · 110` — 1 (стр. 66)
-- **хозяин** `setPostDo · 110` — 1 (стр. 406)
-- **хозяин** `clearPostDo · 110` — 1 (стр. 482)
-- **хозяин** `placeResetTask · 110` — 1 (стр. 492)
+- **хозяин** `setPostDo · 110` — 1 (стр. 417)
+- **хозяин** `clearPostDo · 110` — 1 (стр. 509)
+- **хозяин** `placeResetTask · 110` — 1 (стр. 519)
 
 ## `_reposUntil`
 
-- **хозяин** `taskKeep · 110` — 1 (стр. 274)
+- **хозяин** `taskKeep · 110` — 1 (стр. 277)
 
 ## `_waitPopUntil`
 
@@ -70,7 +70,7 @@
 
 ## `_avoidPeekUntil`
 
-- **хозяин** `knowAvoidPeek · 220` — 1 (стр. 367)
+- **хозяин** `knowAvoidPeek · 220` — 1 (стр. 475)
 
 ## `_tradeUntil`
 
@@ -94,38 +94,37 @@
 
 ## `nadeTask`
 
-- **хозяин** `updateNadeTask1 · 380` — 11 (стр. 531, 536, 540, 543, 567, 585, 595, 600, …)
-- **хозяин** `runupTick · 380` — 4 (стр. 496, 511, 523, 525)
+- **хозяин** `updateNadeTask1 · 380` — 14 (стр. 554, 561, 565, 566, 567, 571, 574, 599, …)
+- **хозяин** `runupTick · 380` — 4 (стр. 519, 534, 546, 548)
 - **хозяин** `exuReassign · 366` — 3 (стр. 128, 131, 132)
-- **хозяин** `nadeQueueNext · 380` — 2 (стр. 414, 416)
-- **хозяин** `lineupTick · 390` — 2 (стр. 188, 248)
+- **хозяин** `nadeQueueNext · 380` — 2 (стр. 437, 439)
+- **хозяин** `lineupTick · 390` — 2 (стр. 202, 264)
 - **хозяин** `(верх файла) · 360` — 1 (стр. 37)
 - **хозяин** `nadeAskFlash · 365` — 1 (стр. 235)
-- **хозяин** `assignNadeDo · 380` — 1 (стр. 397)
-- **хозяин** `nadeCancel · 420` — 1 (стр. 249)
-- **хозяин** `resetNades · 420` — 1 (стр. 253)
+- **хозяин** `assignNadeDo · 380` — 1 (стр. 399)
+- **хозяин** `nadeCancel · 420` — 1 (стр. 250)
+- **хозяин** `resetNades · 420` — 1 (стр. 254)
 
 ## `holding`
 
-- **хозяин** `resolveEngagements · 510` — 2 (стр. 109, 128)
+- **хозяин** `resolveEngagements · 510` — 2 (стр. 114, 133)
 - **хозяин** `fightReset · 500` — 1 (стр. 13)
 - **хозяин** `fightHoldOff · 500` — 1 (стр. 14)
 - **хозяин** `leaveHold · 500` — 1 (стр. 185)
 
-не бот (то же имя у другого объекта — в проверку владения не идёт): `rpEnd · 675` (262 RP), `rpHold · 675` (269 RP)
+не бот (то же имя у другого объекта — в проверку владения не идёт): `rpEnd · 675` (266 RP), `rpHold · 675` (273 RP)
 
 ## `crouching`
 
-- **хозяин** `placeStance · 110` — 1 (стр. 490)
+- **хозяин** `placeStance · 110` — 1 (стр. 517)
 
 ## `path`
 
-- **хозяин** `stepTick · 540` — 5 (стр. 482, 556, 595, 617, 632)
-- **хозяин** `moveSpeedTick · 535` — 2 (стр. 140, 147)
-- **хозяин** `fireGoneRepath · 370` — 1 (стр. 11)
-- **хозяин** `fireRepath · 370` — 1 (стр. 22)
-- **хозяин** `ladderTick · 370` — 1 (стр. 199)
-- **хозяин** `navFollowFloor · 370` — 1 (стр. 387)
+- **хозяин** `stepTick · 540` — 5 (стр. 499, 573, 612, 634, 649)
+- **хозяин** `navFollowFloor · 370` — 2 (стр. 384, 423)
+- **хозяин** `moveSpeedTick · 535` — 2 (стр. 156, 163)
+- **хозяин** `fireRepath · 370` — 1 (стр. 29)
+- **хозяин** `ladderTick · 370` — 1 (стр. 217)
 - **хозяин** `movePath · 535` — 1 (стр. 22)
 - **хозяин** `navSnap · 540` — 1 (стр. 66)
 
@@ -133,5 +132,5 @@
 
 ## `phase`
 
-- `tBrain · 170` — 11 (стр. 64, 81, 86, 145, 160, 204, 205, 239, …)
+- `tBrain · 170` — 11 (стр. 64, 81, 86, 145, 160, 204, 205, 240, …)
 - `tIglReplan · 160` — 3 (стр. 105, 128, 132)

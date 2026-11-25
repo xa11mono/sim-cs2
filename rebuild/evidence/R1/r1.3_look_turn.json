@@ -1,0 +1,13 @@
+{"step": "Р1.3 модуль-образец на TypeScript: 275_look_turn.js → 275_look_turn.ts", "date": "2026-11-25", "tsc": "6.0.2", "node": "v22.23.5",
+ "change": "только аннотации типов (параметры, возврат, 4 локальные переменные, 10 пометок non-null «!», 2 «as»); вычисления не менялись",
+ "tokens": {"js": 2617, "ts_without_types": 2617, "first_diff": -1, "comments_equal": true, "lines": [178, 178]},
+ "non_null": {"count": 10, "lines": [10, 54, 98, 118, 125, 128, 166, 170, 173, 174], "check": "каждая снята по очереди → tsc TS18048 / TS2322: все 10 нужны", "why": "facing: number | undefined (lookReset пишет undefined); повороты — после первой записи взгляда, как в .js"},
+ "as": ["isFinite(b.facing as number) — isFinite(undefined) = false, это и проверяется (275:160)", "{} as NonNullable<TurnModel[\"sub\"]> — пустая таблица подкорзин, если в наборе карты нет sub (275:127)"],
+ "declarations": "src/types/core.d.ts: тип Bot (20 полей, которые трогает 275), Hand, LookDebug, TurnModel, MapPack; 10 переменных и 5 функций ядра — у каждой файл:строка объявления",
+ "core_names_check": "typecheck.js: имя из declare обязано быть объявлено в игре; проверено подменой AIM_LAG → AIM_LAGX: 2 ошибки (TS2552 в 275 и «нет в игре»), код 1",
+ "typecheck": "файлов 4 (275_look_turn.ts, core.d.ts, types.ts, types_test.ts), ошибок 0; --js: 740 (как до перевода)",
+ "builds": {"ancient": {"sha256": "f6009c9a9fc8a6a0be45abaf6687af27a56dd00ccee6d8b596f99dfe416a15b5", "sha256_norm": "b34c8392775e21c70c395fbbffa05eea0c76b30b815532d6ba01a794a7c6b40c"},"mirage": {"sha256": "8e7f5aa47886f85b3f18196dbbc4577d55f4e149ea8ab43aba9d4268b14f28d6", "sha256_norm": "814e1f22586fcfccbbcefc5d8c1dfeed0d441e2714942aff1c1829890fc75530"}},
+ "base_norm": {"ancient": "b34c8392775e21c7…", "mirage": "814e1f22586fcfcc…"},
+ "result": "sim.html обеих карт = база Р1.1 (sha256_norm) — Э1 байт в байт, поэтому отпечаток на ПК не нужен: те же байты страницы — тот же матч",
+ "pub": "ancient-radar.html sha256_norm 6bbbf1a4c4f999f4 = до перевода",
+ "gen_maps": "--check чисто; rebuild/gen пересобран: от Р1.3 — только имя файла в registry.json; остальное отличие — устаревшие карты прошлых версий (Р1-4)"}

@@ -23,15 +23,44 @@ function checkTs() {
       console.log(path.relative(ROOT, d.file.fileName) + ":" + (line + 1) + ":" + (character + 1) + " TS" + d.code + " " + msg(d)); }
     else console.log("TS" + d.code + " " + msg(d));
   }
+  // имена, которые .d.ts обещают от игры (declare var / function), обязаны быть объявлены в игре на верхнем уровне: описание не расходится с кодом
+  const game = gameTopNames(), miss = [];
+  for (const f of cfg.fileNames.filter(f => /\.d\.ts$/.test(f))) {
+    const sf = prog.getSourceFile(f);
+    sf.statements.forEach(st => {
+      const dec = st.modifiers && st.modifiers.some(m => m.kind === ts.SyntaxKind.DeclareKeyword); if (!dec) return;
+      const names = ts.isVariableStatement(st) ? st.declarationList.declarations.map(d => d.name.getText(sf)) : ts.isFunctionDeclaration(st) && st.name ? [st.name.text] : [];
+      names.filter(n => !game.has(n)).forEach(n => { const { line } = sf.getLineAndCharacterOfPosition(st.getStart(sf));
+        miss.push(path.relative(ROOT, f) + ":" + (line + 1) + " «" + n + "» — нет в игре (src/game, верхний уровень)"); });
+    });
+  }
+  miss.forEach(m => console.log(m)); diags.push(...miss);
   console.log("typecheck .ts: tsc " + ts.version + ", файлов " + cfg.fileNames.length + " (" + cfg.fileNames.map(f => path.relative(ROOT, f)).join(", ") + "), ошибок " + diags.length);
   return diags.length ? 1 : 0;
 }
 
-function checkJs() {
+// основной <script> склейки (.ts — без типов), метки сборки (@@MAP@@ …) заменены числом той же длины — как в tools/measure/diverge.js
+function mainScript() {
   const { all, spans } = GS.concat();
   let main = null;
   for (const m of all.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)) { const off = m.index + m[0].indexOf(">") + 1; if (!main || m[1].length > main.src.length) main = { off, src: m[1] }; }
-  const src = main.src.replace(/@@[A-Z_]+@@/g, m => "0".padEnd(m.length, " "));   // метки сборки (@@MAP@@ …) — как в tools/measure/diverge.js
+  return { all, spans, main, src: main.src.replace(/@@[A-Z_]+@@/g, m => "0".padEnd(m.length, " ")) };
+}
+// имена верхнего уровня игры: функции и переменные тела главной функции страницы (ядро и модули — одно пространство имён)
+function gameTopNames() {
+  const sf = ts.createSourceFile("game.js", mainScript().src, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS), N = new Set();
+  const visitBody = stmts => stmts.forEach(st => {
+    if (ts.isFunctionDeclaration(st) && st.name) N.add(st.name.text);
+    if (ts.isVariableStatement(st)) st.declarationList.declarations.forEach(d => { if (ts.isIdentifier(d.name)) N.add(d.name.text); });
+  });
+  sf.statements.forEach(st => { if (!ts.isExpressionStatement(st)) return; let e = st.expression; if (!ts.isCallExpression(e)) return;
+    let f = e.expression; while (ts.isParenthesizedExpression(f)) f = f.expression;
+    if ((ts.isFunctionExpression(f) || ts.isArrowFunction(f)) && f.body && ts.isBlock(f.body) && f.body.statements.length > N.size) { N.clear(); visitBody(f.body.statements); } });
+  return N;
+}
+
+function checkJs() {
+  const { all, spans, main, src } = mainScript();
   const F = path.join(ROOT, ".tmp", "typecheck_game.js"), opts = { allowJs: true, checkJs: true, noEmit: true, strict: false, target: ts.ScriptTarget.ES2022,
     lib: ["lib.es2023.d.ts", "lib.dom.d.ts"], types: [], skipLibCheck: true };
   const host = ts.createCompilerHost(opts), getSF = host.getSourceFile.bind(host);
