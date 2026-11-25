@@ -48,7 +48,7 @@ function bulletLineHit(sh, ex, ey, skip, seed, note){
   var sv = bulletVictim(sh, ex, ey, skip); if(!sv) return null;
   var w = sh.weapon, sd = DM.hypot(sv.x-sh.x, sv.y-sh.y), sz = hashRand(seed);
   var sm = sz < 0.22 ? 0.75 : (sz < 0.42 ? 1.25 : 1.0), sArm = sz >= 0.22 && sv.armor;
-  var sdmg = w.dmg * Math.pow(w.rm, sd*PX_UNITS/500) * sm;
+  var sdmg = w.dmg * DM.pow(w.rm, sd*PX_UNITS/500) * sm;
   sv._hitFx = {t:nowTs, head:false}; sv._tagUntil = tick + 16;
   applyDamage(sh, sv, sdmg, "bullet", {armorRatio: sArm ? w.armorPen : null, wkey:w.key, reward:w.killReward||300, note:" ("+note+", дист. "+Math.round(sd)+")", mods:{blind: tick < (sh.blindUntil||0), smoke: !!smokeBlocks(sh.x, sh.y, sv.x, sv.y)}});   // (v554) значки киллфида
   return sv;

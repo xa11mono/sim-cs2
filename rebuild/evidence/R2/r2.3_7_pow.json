@@ -1,0 +1,68 @@
+{
+ "f": "pow",
+ "maps": {
+  "ancient": {
+   "shim": {
+    "same": true,
+    "checkedTo": 8000
+   },
+   "real": {
+    "diverges": false,
+    "checkedTo": 8000
+   }
+  },
+  "mirage": {
+   "shim": {
+    "same": true,
+    "checkedTo": 8000
+   },
+   "real": {
+    "diverges": true,
+    "tick": 1878,
+    "vars": [
+     "bots",
+     "bomb",
+     "TEAMK"
+    ],
+    "calls": [
+     20599,
+     20599
+    ],
+    "firstCall": {
+     "index": 19552,
+     "a": [
+      "pow",
+      [
+       3,
+       0.8738481730050468
+      ],
+      2.6117495992479927
+     ],
+     "b": [
+      "pow",
+      [
+       3,
+       0.8738481730050468
+      ],
+      2.611749599247993,
+      "DM"
+     ]
+    },
+    "attribution": {
+     "sameFunction": true,
+     "isReplaced": true,
+     "sameArgs": true,
+     "ulps": 1,
+     "before": 2.6117495992479927,
+     "after": 2.611749599247993,
+     "viaDM": true
+    }
+   }
+  }
+ },
+ "step": "Р2.3 шаг 7 — pow",
+ "engine": "chromium 158 (облако)",
+ "ticks": 8000,
+ "diff": " 5 files changed, 8 insertions(+), 8 deletions(-)",
+ "result": "Э3 (или Э1 в окне 8000 тиков, если шаг не расходится): подмена бит в бит; расхождение — только через заменённую функцию"
+}

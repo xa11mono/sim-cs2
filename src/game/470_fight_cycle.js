@@ -183,10 +183,10 @@ function fightPush(b){
 // складывается, их прицел — как мой: чужого умения игрок не знает), сколько мне идти до укрытия, хватит ли патронов
 function duelTTK(sh, tg, d, hp, armored, skill){
   var w = sh.weapon; if(!w || !w.dmg || !w.rpm) return {t: Infinity, shots: 0};
-  var dmg = w.dmg * Math.pow(w.rm || 1, d*PX_UNITS/500) * (armored ? (w.armorPen || 1) : 1);
+  var dmg = w.dmg * DM.pow(w.rm || 1, d*PX_UNITS/500) * (armored ? (w.armorPen || 1) : 1);
   var S = {x: sh.x, y: sh.y, px: sh.px, py: sh.py, skill: skill, weapon: w, crouching: sh.crouching};
   // попадание и в голову — та же модель, что у выстрела (tryShoot: тело BODY_HALF, голова HEAD_HALF; в голову — урон ×4, как в CS2)
-  var dd = Math.max(8, d), a = aimSigma(S, tg, d), s2 = Math.pow(shotSpread(S, 0), 2) + a*a, pIn = function(h){ var A = Math.atan(h/dd); return 1 - DM.exp(-(A*A)/(2*s2)); };
+  var dd = Math.max(8, d), a = aimSigma(S, tg, d), s2 = DM.pow(shotSpread(S, 0), 2) + a*a, pIn = function(h){ var A = Math.atan(h/dd); return 1 - DM.exp(-(A*A)/(2*s2)); };
   var pAny = Math.max(0.02, pIn(BODY_HALF)), pHead = Math.min(pAny, pIn(HEAD_HALF)), perShot = (pAny - pHead)*dmg + pHead*dmg*4;
   var shots = Math.ceil(Math.max(1, hp)/Math.max(0.5, perShot));
   return {t: shots*60/w.rpm, shots: shots};
@@ -347,7 +347,7 @@ function fightCycleTick(b, dtSec, busy){
     // второй, можно вообще не пикать — нет конкретного правила») противник видел меня в этой точке и ждёт там же: чем больше раз видел (F.samePk),
     // тем вероятнее выход с другого места (не ближе медианы сдвига про к прошлому) — доля 1 − 0,5^раз (проектное число); выходить ли вообще — оценка
     // размена выше (duelOdds)
-    else if(F.nPeek >= 1 && F.e && fightRand(b, 11) >= Math.pow(0.5, F.samePk || 1)){ var nb = fightBetterAway(b, F.e, F.cx, F.cy, D.shift[4], F.ax, F.ay, D.shift[2]); if(nb){ F.ax = nb.x; F.ay = nb.y; F.samePk = 0; } }
+    else if(F.nPeek >= 1 && F.e && fightRand(b, 11) >= DM.pow(0.5, F.samePk || 1)){ var nb = fightBetterAway(b, F.e, F.cx, F.cy, D.shift[4], F.ax, F.ay, D.shift[2]); if(nb){ F.ax = nb.x; F.ay = nb.y; F.samePk = 0; } }
     F.samePk = (F.samePk || 0) + 1;
     // (v583a, Д30, владелец 18.11: «в перестрелке — разные пики, не один вид под одну ситуацию») вид выхода — жребий с весами про: каким пиком
     // начиналась перестрелка (12 демок Mirage с каждым тиком, tools/motion/peek_types_pro.py; ≈ 93 дуэли — доли примерные): CT короткий 44 % /

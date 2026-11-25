@@ -24,7 +24,7 @@ function shotSpread(sh, v){ var w = sh.weapon, f = Math.min(1, v / (SPEED*weapon
 // (Б4) до какой скорости гасить, чтобы выстрел был «стоит того» (то же правило FIRE_K, что в tryShoot, без отдачи), px/с
 function fireVAcc(sh, tg, dist){
   var bA = Math.atan(BODY_HALF/Math.max(8, dist)), a = aimSigma(sh, tg, dist), vmax = SPEED*weaponSpeedMul(sh);
-  var pB = function(v){ var s2 = Math.pow(shotSpread(sh, v), 2) + a*a; return 1 - DM.exp(-(bA*bA)/(2*s2)); };
+  var pB = function(v){ var s2 = DM.pow(shotSpread(sh, v), 2) + a*a; return 1 - DM.exp(-(bA*bA)/(2*s2)); };
   var p0 = pB(0);
   for(var k = 20; k > 0; k--){ var v = vmax*k/20; if(pB(v) >= FIRE_K*p0) return v; }
   return 0;
@@ -292,7 +292,7 @@ function tryShoot(shooter, target, dist){ var _ev = simEvIn("tryShoot", argument
   headshot = hbZone === "head"; hit = !!hbZone;
   var endX = target.x, endY = target.y, hitZone = null;
   if(hit){
-    var base = w.dmg * Math.pow(w.rm, dist*PX_UNITS/500);
+    var base = w.dmg * DM.pow(w.rm, dist*PX_UNITS/500);
     var zr = hashRand(seedS+11), mult, armored;
     if(headshot){ mult = 4; armored = target.helmet; hitZone = "head"; }
     else if(hbZone === "legs"){ mult = 0.75; armored = false; hitZone = "legs"; }

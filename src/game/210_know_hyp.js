@@ -191,7 +191,7 @@ function knowBuild(K, side, last){
       if(moving && !last.nodir){
         var c = g.c[route[0]], dx = c.x-last.x, dy = c.y-last.y, L = DM.hypot(dx, dy)*DM.hypot(last.vx, last.vy);
         var cos = L ? (dx*last.vx + dy*last.vy)/L : 0;
-        prior *= Math.pow(KNOW.dirBoost, cos);
+        prior *= DM.pow(KNOW.dirBoost, cos);
       }
       branches.push({type: "moved", zone: D, route: route, prior: prior, score: prior - 0.1*depth[D]});
     });

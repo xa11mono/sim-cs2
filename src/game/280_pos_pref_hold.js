@@ -353,7 +353,7 @@ function ppProGroup(members, bp, site, tag){
     var bb = null, bi = -1, bs = -1;
     free.forEach(function(b){ Z.spots.forEach(function(s, i){
       var sc = s.share*DM.exp(-Math.max(0, T[b.id][i] - (s.tArr || 0))/PP_LATE);
-      if(taken[i]) sc *= Math.pow(s.two || 0, taken[i]);
+      if(taken[i]) sc *= DM.pow(s.two || 0, taken[i]);
       var a0 = s.look && s.look[0] ? s.look[0][0] : null;
       if(a0 !== null && chosen.some(function(c){ return c !== s && DM.hypot(c.x-s.x, c.y-s.y) < 120 && c.look && c.look[0] && _angOff(c.look[0][0], a0) < 0.52; })) sc *= PP_DUP;
       // (отметка владельца 18.11, м5 р1: «все пошли в рампу — одной гранатой закроешь; лучше распределять, как на B — каждый своё») кто с кем
