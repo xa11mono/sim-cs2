@@ -1,5 +1,5 @@
 {
- "_": "реестр состояния, машинная часть (tools/rebuild/gen_maps.js); снимок сейчас: true — в __SNAP; строка — почему нет (колонка snap rebuild/state_classes.json через marks_build.snap_vars); поля бота — в снимке вместе с bots; рантайм-фильтры mkSnapList / mkSnapshot — tools/rebuild/state_snap.js",
+ "_": "реестр состояния, машинная часть (tools/rebuild/gen_maps.js); снимок сейчас: true — в __SNAP; строка — почему нет (колонка snap rebuild/state_classes.json через marks_build.snap_vars); поля бота — в снимке вместе с bots; hidden — состояние на свойствах функций (вне переменных)",
  "globals": {
   "ACCEL": {
    "decl": "070_weapons_bots_roam.js:57",
@@ -12497,15 +12497,15 @@
   },
   "_aft": {
    "w": [
-    "110_post_routes.js:499 afterTaskPick",
-    "110_post_routes.js:504 afterTaskPick"
+    "110_post_routes.js:502 afterTaskPick",
+    "110_post_routes.js:507 afterTaskPick"
    ],
    "lit": [],
    "r": 3
   },
   "_aftSaid": {
    "w": [
-    "110_post_routes.js:505 afterTaskPick"
+    "110_post_routes.js:508 afterTaskPick"
    ],
    "lit": [],
    "r": 2
@@ -12565,23 +12565,23 @@
   },
   "_apBest": {
    "w": [
-    "110_post_routes.js:540 updatePost",
-    "110_post_routes.js:541 updatePost"
+    "110_post_routes.js:543 updatePost",
+    "110_post_routes.js:544 updatePost"
    ],
    "lit": [],
    "r": 3
   },
   "_apId": {
    "w": [
-    "110_post_routes.js:540 updatePost"
+    "110_post_routes.js:543 updatePost"
    ],
    "lit": [],
    "r": 2
   },
   "_apT": {
    "w": [
-    "110_post_routes.js:540 updatePost",
-    "110_post_routes.js:541 updatePost"
+    "110_post_routes.js:543 updatePost",
+    "110_post_routes.js:544 updatePost"
    ],
    "lit": [],
    "r": 3
@@ -12851,7 +12851,7 @@
    "w": [
     "110_post_routes.js:284 taskCanSet",
     "110_post_routes.js:339 detourStart",
-    "110_post_routes.js:509 clearPostDo",
+    "110_post_routes.js:512 clearPostDo",
     "350_contact_reaction.js:376 hurtReactTick"
    ],
    "lit": [],
@@ -14994,7 +14994,7 @@
   },
   "_stanceWhy": {
    "w": [
-    "110_post_routes.js:517 placeStance"
+    "110_post_routes.js:520 placeStance"
    ],
    "lit": [],
    "r": 1
@@ -15096,8 +15096,8 @@
   "_task": {
    "w": [
     "110_post_routes.js:417 setPostDo",
-    "110_post_routes.js:509 clearPostDo",
-    "110_post_routes.js:519 placeResetTask",
+    "110_post_routes.js:512 clearPostDo",
+    "110_post_routes.js:522 placeResetTask",
     "110_post_routes.js:66 routeTick"
    ],
    "lit": [],
@@ -15286,7 +15286,7 @@
   },
   "_zoomTick": {
    "w": [
-    "110_post_routes.js:550 updatePost"
+    "110_post_routes.js:553 updatePost"
    ],
    "lit": [],
    "r": 2
@@ -15358,12 +15358,12 @@
   "atPost": {
    "w": [
     "110_post_routes.js:464 setPostDo",
-    "110_post_routes.js:509 clearPostDo",
-    "110_post_routes.js:521 updatePost",
-    "110_post_routes.js:523 updatePost",
-    "110_post_routes.js:547 updatePost",
-    "110_post_routes.js:556 updatePost",
-    "110_post_routes.js:557 updatePost",
+    "110_post_routes.js:512 clearPostDo",
+    "110_post_routes.js:524 updatePost",
+    "110_post_routes.js:526 updatePost",
+    "110_post_routes.js:550 updatePost",
+    "110_post_routes.js:559 updatePost",
+    "110_post_routes.js:560 updatePost",
     "530_round_sides_match.js:231 resetRound",
     "535_move_mode.js:142 moveSpeedTick"
    ],
@@ -15497,7 +15497,7 @@
   },
   "crouching": {
    "w": [
-    "110_post_routes.js:517 placeStance"
+    "110_post_routes.js:520 placeStance"
    ],
    "lit": [
     "070_weapons_bots_roam.js:82"
@@ -16120,10 +16120,10 @@
     "050_nav_rebuild_paths.js:251 rebuildNav",
     "070_weapons_bots_roam.js:160 buildRoamRoutes",
     "110_post_routes.js:465 setPostDo",
-    "110_post_routes.js:509 clearPostDo",
-    "110_post_routes.js:523 updatePost",
-    "110_post_routes.js:547 updatePost",
-    "110_post_routes.js:556 updatePost",
+    "110_post_routes.js:512 clearPostDo",
+    "110_post_routes.js:526 updatePost",
+    "110_post_routes.js:550 updatePost",
+    "110_post_routes.js:559 updatePost",
     "120_bomb.js:240 bombTick",
     "120_bomb.js:321 bombTick",
     "120_bomb.js:326 bombTick",
@@ -16219,8 +16219,8 @@
   "post": {
    "w": [
     "110_post_routes.js:462 setPostDo",
-    "110_post_routes.js:509 clearPostDo",
-    "110_post_routes.js:518 placeResetPost"
+    "110_post_routes.js:512 clearPostDo",
+    "110_post_routes.js:521 placeResetPost"
    ],
    "lit": [],
    "r": 514
@@ -16754,6 +16754,108 @@
     "070_weapons_bots_roam.js:82"
    ],
    "r": 289
+  }
+ },
+ "hidden": {
+  "draw._econN": {
+   "w": [
+    "620_draw.js:866 draw"
+   ]
+  },
+  "draw._plN": {
+   "w": [
+    "620_draw.js:865 draw"
+   ]
+  },
+  "draw.noHud": {
+   "w": [
+    "675_replay.js:436 rpWorldDraw",
+    "675_replay.js:441 rpWorldDraw"
+   ]
+  },
+  "dvRender._t": {
+   "w": [
+    "678_demo_view.js:92 dvRender"
+   ]
+  },
+  "esc._probeLock": {
+   "w": [
+    "170_tbrain.js:713 tBrain"
+   ]
+  },
+  "hudScale._set": {
+   "w": [
+    "635_hud_fx.js:14 hudScale"
+   ]
+  },
+  "kfExpireTick._s": {
+   "w": [
+    "630_killfeed_banners_econ.js:49 kfExpireTick"
+   ]
+  },
+  "lookDbgDraw._pat": {
+   "w": [
+    "610_vistool_lookdebug.js:180 lookDbgDraw"
+   ]
+  },
+  "lookDbgPanel._t": {
+   "w": [
+    "610_vistool_lookdebug.js:123 lookDbgPanel"
+   ]
+  },
+  "nadeGuess.rt": {
+   "w": [
+    "380_nades_throw.js:101 nadeGuess",
+    "380_nades_throw.js:106 (верх файла)"
+   ]
+  },
+  "simEvIn.errs": {
+   "w": [
+    "435_match_events.js:82 simEvIn",
+    "435_match_events.js:86 simEvOut"
+   ]
+  },
+  "simEvIn.h": {
+   "w": [
+    "435_match_events.js:78 simEvOn"
+   ]
+  },
+  "teamDbgPanel._t": {
+   "w": [
+    "612_team_debug.js:71 teamDbgPanel"
+   ]
+  },
+  "zoneDijkstra.fire": {
+   "w": [
+    "050_nav_rebuild_paths.js:644 buildWaypointPath0",
+    "050_nav_rebuild_paths.js:649 buildWaypointPath0",
+    "050_nav_rebuild_paths.js:649 buildWaypointPath0",
+    "050_nav_rebuild_paths.js:661 buildWaypointPath0"
+   ]
+  },
+  "zoneDijkstra.from": {
+   "w": [
+    "050_nav_rebuild_paths.js:644 buildWaypointPath0",
+    "050_nav_rebuild_paths.js:661 buildWaypointPath0"
+   ]
+  },
+  "zoneDijkstra.nearest": {
+   "w": [
+    "050_nav_rebuild_paths.js:659 buildWaypointPath0",
+    "050_nav_rebuild_paths.js:659 buildWaypointPath0"
+   ]
+  },
+  "zoneDijkstra.quiet": {
+   "w": [
+    "050_nav_rebuild_paths.js:612 buildWaypointPath",
+    "050_nav_rebuild_paths.js:612 buildWaypointPath"
+   ]
+  },
+  "zoneDijkstra.toPt": {
+   "w": [
+    "050_nav_rebuild_paths.js:644 buildWaypointPath0",
+    "050_nav_rebuild_paths.js:661 buildWaypointPath0"
+   ]
   }
  }
 }

@@ -275,7 +275,14 @@ console.log("пометок", R.length, "| полей", FIELDS.map(f => f + ":" 
     const r = memRoot(tgt); if (!r || !DECL[r]) return;
     const pos = n.start + main.off, k = fnAt(pos) + " · " + fileAt(pos)[2].slice(0, 3); DECL[r].mf[k] = (DECL[r].mf[k] || 0) + 1;
   });
-  STATE_G = { V, DECL };
+  // (Р3.1, 25.11) скрытое состояние на функциях: «функция.свойство = …» / «функция.свойство[…] = …» — у функции верхнего уровня
+  // (nadeGuess.rt, simEvIn.h, zoneDijkstra.quiet…): снимок переменных его не видит; в реестр — строкой «h:функция.свойство»
+  const FNP = {}, TOPF = new Set(tops.map(t => t.name));
+  walk.simple(main.ast, { AssignmentExpression(n) { let t = n.left; if (t.type !== "MemberExpression") return;
+    while (t.object && t.object.type === "MemberExpression") t = t.object;
+    if (t.object && t.object.type === "Identifier" && TOPF.has(t.object.name) && !t.computed && t.property.type === "Identifier") {
+      const k = t.object.name + "." + t.property.name, pos = n.start + main.off; (FNP[k] = FNP[k] || []).push(where(pos) + " " + fnAt(pos)); } } });
+  STATE_G = { V, DECL, FNP };
   let cats = {}; try { cats = JSON.parse(fs.readFileSync(path.join(ROOT, "rebuild", "var_cats.json"), "utf8")); } catch (e) {}
   VARS_CATS = cats;
   const cross = VARS_CROSS = Object.entries(V).filter(([k, v]) => Object.keys(v.w).some(f => f !== v.home)).sort((a, b) => Object.keys(b[1].w).length - Object.keys(a[1].w).length);
@@ -293,7 +300,7 @@ console.log("пометок", R.length, "| полей", FIELDS.map(f => f + ":" 
 // читает, в снимке ли сейчас и почему нет) и каждое поле бота (кто пишет, где задаётся при создании). Смысловая разметка (класс, хозяин,
 // срок жизни, политика снимка) — отдельно, rebuild/state_classes.json; неизвестное там «не размечено», а не догадка (владелец 25.11).
 // Снимок «сейчас» — src/marks_build.py snap_vars (одно место); на --check не считается (только проверка полноты).
-const stateNames = () => ({ g: Object.keys(STATE_G.DECL), b: [...new Set(Object.keys(BOTW).concat(Object.keys(BOTL), Object.keys(BOTR)))] });
+const stateNames = () => ({ g: Object.keys(STATE_G.DECL), b: [...new Set(Object.keys(BOTW).concat(Object.keys(BOTL), Object.keys(BOTR)))], h: Object.keys(STATE_G.FNP) });
 if (!CHECK) {
   let snap = null, why = {};
   try {
@@ -309,8 +316,9 @@ if (!CHECK) {
       snap: !snap ? null : snap.has(k) ? true : (why[k] || (/^(__|MK|mk)/.test(k) ? "служебное снимка" : "?")) };
   }
   const B = {}; for (const k of stateNames().b.sort()) B[k] = { w: (BOTW[k] || []).slice().sort(), lit: (BOTL[k] || []).slice().sort(), r: BOTR[k] || 0 };
-  save(path.join(OUT, "state.json"), JSON.stringify({ _: "реестр состояния, машинная часть (tools/rebuild/gen_maps.js); снимок сейчас: true — в __SNAP; строка — почему нет (колонка snap rebuild/state_classes.json через marks_build.snap_vars); поля бота — в снимке вместе с bots; рантайм-фильтры mkSnapList / mkSnapshot — tools/rebuild/state_snap.js", globals: G, bot: B }, null, 1));
-  console.log("реестр состояния: переменных " + Object.keys(G).length + ", полей бота " + Object.keys(B).length);
+  const H = {}; for (const k of Object.keys(STATE_G.FNP).sort()) H[k] = { w: STATE_G.FNP[k].slice().sort() };
+  save(path.join(OUT, "state.json"), JSON.stringify({ _: "реестр состояния, машинная часть (tools/rebuild/gen_maps.js); снимок сейчас: true — в __SNAP; строка — почему нет (колонка snap rebuild/state_classes.json через marks_build.snap_vars); поля бота — в снимке вместе с bots; hidden — состояние на свойствах функций (вне переменных)", globals: G, bot: B, hidden: H }, null, 1));
+  console.log("реестр состояния: переменных " + Object.keys(G).length + ", полей бота " + Object.keys(B).length + ", свойств функций " + Object.keys(H).length);
 }
 
 // ---- (17.11, владелец: «чтобы нейронка не создавала новые файлы и дубли») защита устройства — ошибка сборки:
@@ -346,7 +354,7 @@ if (CHECK) {
 // класс по правилу с доказательством); класс — из списка файла; строки исчезнувших имён убираются
 if (CHECK) {
   let SC = null; try { SC = JSON.parse(fs.readFileSync(path.join(ROOT, "rebuild", "state_classes.json"), "utf8")); } catch (e) { console.error("ОШИБКА реестра состояния: нет rebuild/state_classes.json"); process.exit(1); }
-  const N = stateNames(), want = new Set(N.g.map(n => "g:" + n).concat(N.b.map(n => "b:" + n))), CL = new Set(SC._classes || []), E = [];
+  const N = stateNames(), want = new Set(N.g.map(n => "g:" + n).concat(N.b.map(n => "b:" + n), N.h.map(n => "h:" + n))), CL = new Set(SC._classes || []), E = [];
   for (const k of want) if (!SC[k]) E.push("нет строки " + k + " — новая переменная / поле бота: python3 tools/rebuild/state_classes.py, затем разметка");
   for (const [k, o] of Object.entries(SC)) { if (k[0] === "_") continue;
     if (!want.has(k) || o.gone) E.push("строка " + k + " — такого имени в коде больше нет: убрать из реестра (state_classes.py)");

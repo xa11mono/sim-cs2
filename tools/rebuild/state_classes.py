@@ -57,6 +57,13 @@ def rule_global(n, g):
         return 'режим', 'пишут только режимы (%s), симуляция не читает' % ', '.join(sorted(wf)), 'режим'
     return None
 
+def rule_hidden(n, h):
+    """Свойство функции (состояние вне переменных): пишут только файлы показа — показ; остальное — вручную."""
+    wf = {w.split(':')[0][:3] for w in h['w']}
+    if wf and all(f >= '550' and not f.startswith(MODES) for f in wf):
+        return 'показ', 'свойство функции; пишут только файлы показа (%s)' % ', '.join(sorted(wf)), 'показ'
+    return None
+
 def rule_bot(n, b):
     wn = {w.split(' ', 1)[1] if ' ' in w else '' for w in b['w']}
     if not b['w'] and b['lit'] and RUN and all(n in r['bot'] for r in RUN) and not changed('bot', n):
@@ -88,7 +95,8 @@ def main():
         c = CODEX.get(r['category'])
         if c: cx[('g:' if r['scope'] == 'global' else 'b:') + r['field']] = (c, r['owner'], r['lifetime'], r['snapshot_proposal'])
     out = {}
-    names = [('g:' + k, v, rule_global) for k, v in ST['globals'].items()] + [('b:' + k, v, rule_bot) for k, v in ST['bot'].items()]
+    names = [('g:' + k, v, rule_global) for k, v in ST['globals'].items()] + [('b:' + k, v, rule_bot) for k, v in ST['bot'].items()] + \
+            [('h:' + k, v, rule_hidden) for k, v in ST.get('hidden', {}).items()]
     for key, v, rule in names:
         o = old.get(key)
         if o and o.get('src') == 'ручная': out[key] = o; continue
@@ -99,7 +107,7 @@ def main():
         r = rule(key[2:], v)
         if r: out[key] = {'class': r[0], 'owner': '', 'life': r[2], 'snap': '', 'src': 'правило', 'why': r[1]}
         else:
-            ch = changed('globals' if key[0] == 'g' else 'bot', key[2:])
+            ch = changed('globals' if key[0] == 'g' else 'bot', key[2:]) if key[0] != 'h' else []
             note = ('опыт: меняется (' + ', '.join(sorted(set(ch))) + ')') if ch else ''
             if key[0] == 'g' and not (v['w'] or v['m']) and ch: note += '; по имени не пишется — меняется через другое имя'
             if key[0] == 'b': note = (note + '; ' if note else '') + (('образцы: ' + '; '.join(BV[key[2:]][:3])) if BV.get(key[2:]) else 'у ботов в опыте (2 карты, тики 3000…70000) не появлялось — возможно, поле другого объекта с тем же именем')
@@ -111,6 +119,7 @@ def main():
         prev = old.get(key, {}).get('snap', '')
         if prev.startswith('да') or prev == 'с bots' or prev.startswith('нет'): o['snap'] = prev; continue
         if key[0] == 'b': o['snap'] = 'с bots'; continue
+        if key[0] == 'h': o['snap'] = 'нет: свойство функции — вне переменных снимка'; continue
         m = ST['globals'][key[2:]].get('snap')
         o['snap'] = 'да' if m is True or m is None else 'нет: ' + str(m)
     for k, o in old.items():
