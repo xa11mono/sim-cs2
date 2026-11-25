@@ -1,0 +1,3 @@
+код 0
+chromium 153.0.8010.12: dmath страницы = dmath Node бит в бит (NaN — любой) (sin 149651 =, cos 149688 =, atan 102878 =, acos 100041 =, exp 129181 =, log 100220 =, atan2 151086 =, pow 101610 =, hypot 151047 =, hypot3 101089 =)
+
