@@ -1,0 +1,99 @@
+{
+ "f": "cos",
+ "maps": {
+  "ancient": {
+   "shim": {
+    "same": true,
+    "checkedTo": 8000
+   },
+   "real": {
+    "diverges": true,
+    "tick": 996,
+    "vars": [
+     "bots",
+     "PROB"
+    ],
+    "calls": [
+     9864,
+     9864
+    ],
+    "firstCall": {
+     "index": 8380,
+     "a": [
+      "cos",
+      [
+       2.369560748278227
+      ],
+      -0.7164947076987666
+     ],
+     "b": [
+      "cos",
+      [
+       2.369560748278227
+      ],
+      -0.7164947076987664,
+      "DM"
+     ]
+    },
+    "attribution": {
+     "sameFunction": true,
+     "isReplaced": true,
+     "sameArgs": true,
+     "ulps": 1,
+     "before": -0.7164947076987666,
+     "after": -0.7164947076987664,
+     "viaDM": true
+    }
+   }
+  },
+  "mirage": {
+   "shim": {
+    "same": true,
+    "checkedTo": 8000
+   },
+   "real": {
+    "diverges": true,
+    "tick": 1745,
+    "vars": [
+     "bots"
+    ],
+    "calls": [
+     2137,
+     2137
+    ],
+    "firstCall": {
+     "index": 1273,
+     "a": [
+      "cos",
+      [
+       -0.9115503077963273
+      ],
+      0.6125210386214633
+     ],
+     "b": [
+      "cos",
+      [
+       -0.9115503077963273
+      ],
+      0.6125210386214635,
+      "DM"
+     ]
+    },
+    "attribution": {
+     "sameFunction": true,
+     "isReplaced": true,
+     "sameArgs": true,
+     "ulps": 1,
+     "before": 0.6125210386214633,
+     "after": 0.6125210386214635,
+     "viaDM": true
+    }
+   }
+  }
+ },
+ "step": "Р2.3 шаг 4 — cos",
+ "engine": "chromium 158 (облако)",
+ "ticks": 8000,
+ "diff": " 24 files changed, 64 insertions(+), 64 deletions(-)",
+ "result": "Э3 (или Э1 в окне 8000 тиков, если шаг не расходится): подмена бит в бит; расхождение — только через заменённую функцию"
+}

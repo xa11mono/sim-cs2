@@ -51,7 +51,7 @@ function lookTick(): void{
       var W0 = b._lkW, same = !b._sawEnemy && W0 && W0.t === tick - 1 && _angOff(want, DM.atan2(W0.y - b.y, W0.x - b.x)) < AIM_TRACK_BAND;
       b._lkW = {x: look.x, y: look.y, w: want, t: tick};
       var hBusy = b._hand && tick < b._hand.t0 + b._hand.T + b._hand.gap;
-      if(same && !hBusy){ var dr = want - W0!.w; dr = DM.atan2(DM.sin(dr), Math.cos(dr)); b.facing += dr; dd -= dr; }   // мышь едет вместе со сдвигом (тип: same истинно только при W0 (условие строкой выше))
+      if(same && !hBusy){ var dr = want - W0!.w; dr = DM.atan2(DM.sin(dr), DM.cos(dr)); b.facing += dr; dd -= dr; }   // мышь едет вместе со сдвигом (тип: same истинно только при W0 (условие строкой выше))
       if(slUrg){
         // (В147) поворот к врагу — рукой (handTurn, модель «перестрелка» из демок): рывок с колоколом скорости, промах, пауза, доводка.
         // Прицел, ушедший меньше AIM_TRACK_BAND, стоит (в бою прицел про неподвижен ~50 % времени). Было: рывок FLICK (> 45°, проектные

@@ -87,7 +87,7 @@ function proSnap(b, pt, look, tag){
   for(var pass = 0; pass < 2 && !best; pass++)
   for(var i=0;i<L.length;i++){
     var s = L[i], d = DM.hypot(s[0]-pt.x, s[1]-pt.y); if(d > PSN.R) continue;
-    if(pass === 0 && look && !hasLOS(s[0], s[1], look.x, look.y)){ var la = DM.atan2(look.y-s[1], look.x-s[0]), rc = rayClipWalls(s[0], s[1], s[0]+Math.cos(la)*PSN.open, s[1]+DM.sin(la)*PSN.open); if(rc.wall) continue; }
+    if(pass === 0 && look && !hasLOS(s[0], s[1], look.x, look.y)){ var la = DM.atan2(look.y-s[1], look.x-s[0]), rc = rayClipWalls(s[0], s[1], s[0]+DM.cos(la)*PSN.open, s[1]+DM.sin(la)*PSN.open); if(rc.wall) continue; }
     if(!hasLOS(s[0], s[1], pt.x, pt.y) || insideSolidWall(s[0], s[1])) continue;
     if(bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o.post && DM.hypot(o.post.x-s[0], o.post.y-s[1]) < PSN.occ; })) continue;
     var modes = [[s[3], s[4]]]; if(s.length > 5) modes.push([s[5], s[6]]);
@@ -117,12 +117,12 @@ function proSpotLook(b){
   // (В147) точка — от места поста, там, где луч упирается в стену (не дальше PRO_LOOK_R): прицел держится на углу, и при выглядывании
   // взгляд доворачивается к нему, как у про (мерка формы peek_yaw). Было: точка в 300 px от текущего места бота — ехала вместе с ним,
   // поворот за выглядывание 0° (73 из 280 выглядываний ботов, облако 14.11)
-  if(!S.pt){ var a = M[S.i][0], ox = b.post.x, oy = b.post.y, R = proLookRay(ox, oy, a, PRO_LOOK_R); S.pt = {x: ox + Math.cos(a)*R, y: oy + DM.sin(a)*R}; }
+  if(!S.pt){ var a = M[S.i][0], ox = b.post.x, oy = b.post.y, R = proLookRay(ox, oy, a, PRO_LOOK_R); S.pt = {x: ox + DM.cos(a)*R, y: oy + DM.sin(a)*R}; }
   return S.pt;
 }
 var PRO_LOOK_R = 300;   // px — дальше прицел не ставится (как было)
 function proLookRay(x, y, a, R){   // расстояние до первой стены по лучу (стены радара MANUAL_WALLS; как конус обзора, 620)
-  var dx = Math.cos(a), dy = DM.sin(a), tMin = R;
+  var dx = DM.cos(a), dy = DM.sin(a), tMin = R;
   for(var k = 0; k < MANUAL_WALLS.length; k++){ var w = MANUAL_WALLS[k];
     if(Math.max(w[0], w[2]) < x - R || Math.min(w[0], w[2]) > x + R || Math.max(w[1], w[3]) < y - R || Math.min(w[1], w[3]) > y + R) continue;
     var sx = w[2]-w[0], sy = w[3]-w[1], den = dx*sy - dy*sx; if(Math.abs(den) < 1e-9) continue;
@@ -434,7 +434,7 @@ function setPostDo(b, pt, look, hold, tag, spreadIdx){
     // дальше первого кольца — только в той же зоне карты (место из демок про — зона), а не через полкарты
     var zA = zoneIdAt(xa, ya);
     OWN_LINE_RINGS.some(function(r){ return SPREAD_DIRS.some(function(da){
-      var nx = xa + Math.cos(la1+da)*r, ny = ya + DM.sin(la1+da)*r;
+      var nx = xa + DM.cos(la1+da)*r, ny = ya + DM.sin(la1+da)*r;
       if(insideSolidWall(nx, ny) || segCrossesManualWalls(xa, ya, nx, ny) || !navAt(nx, ny) || spotTaken(b, {x:nx, y:ny}, "line") || spotTaken(b, {x:nx, y:ny}, "post")) return false;
       if(r > OWN_LINE_RINGS[0] && zA != null && zoneIdAt(nx, ny) !== zA) return false;
       if(spreadBlast(xa, ya, nx, ny)) return false;
@@ -450,7 +450,7 @@ function setPostDo(b, pt, look, hold, tag, spreadIdx){
     // дальше (до SPREAD_MAX), сначала поперёк взгляда; та же проверка: пол, без стены, не занято, виден прежний пост, обзор не отнимается
     var la = look ? DM.atan2(look.y-y, look.x-x) : 0, x0 = x, y0 = y, losPost = look && hasLOS(x0, y0, look.x, look.y);
     SPREAD_RINGS.some(function(r){ return SPREAD_DIRS.some(function(da){
-      var nx = x0 + Math.cos(la+da)*r, ny = y0 + DM.sin(la+da)*r;
+      var nx = x0 + DM.cos(la+da)*r, ny = y0 + DM.sin(la+da)*r;
       if(insideSolidWall(nx, ny) || segCrossesManualWalls(x0, y0, nx, ny) || !navAt(nx, ny) || spotTaken(b, {x:nx, y:ny}) || spreadBlast(x0, y0, nx, ny)) return false;
       if(r > SPOT_PERSONAL+10 && !hasLOS(x0, y0, nx, ny)) return false;   // дальше одного шага — та же комната, а не за углом
       if(losPost && !hasLOS(nx, ny, look.x, look.y)) return false;   // (v520) раздвигание не отнимает обзор поста

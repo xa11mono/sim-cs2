@@ -27,7 +27,7 @@ function nadeOrigin(n){
   var saw = bots.filter(function(o){ return o.team === foe && o.alive && tick >= (o.blindUntil||0) &&
     pts.some(function(p){ return DM.hypot(p[0]-o.x, p[1]-o.y) < 1100 && hasVision(o.x, o.y, p[0], p[1]); }); })[0];
   if(!saw) return;
-  var j = hashRand(tick*31 + n.ox*7), ja = hashRand(tick*17 + n.oy*3)*Math.PI*2, ex = n.ox + Math.cos(ja)*120*j, ey = n.oy + DM.sin(ja)*120*j;
+  var j = hashRand(tick*31 + n.ox*7), ja = hashRand(tick*17 + n.oy*3)*Math.PI*2, ex = n.ox + DM.cos(ja)*120*j, ey = n.oy + DM.sin(ja)*120*j;
   if(insideSolidWall(ex, ey)){ ex = n.ox; ey = n.oy; }
   // (00_PLAN, аудит 2.2, 05.11) видевший бросок говорит в войс (230: «слышу» — с задержкой фразы), а не мгновенно в память команды
   var zN = knowZoneAt(ex, ey); if(zN && saw.voice) teamPropose(saw, {kind: "hear", zone: zN, sound: "nade", count: 1});
@@ -186,7 +186,7 @@ function flashDirK(b, n){
   // (v554, владелец 11.11: «что там с углом обзора») угол — в 3D: разрыв высоко над головой / под ногами — не «прямо в лицо», хотя по радару
   // направление то же (взгляд — по горизонтали, глаза на высоте роста)
   if(n.z != null){ var K = MAP.pxUnits || 2.5, hd = DM.hypot(n.x-b.x, n.y-b.y)*K, vd = n.z - (visFloorAt(b.x, b.y, b.z) + VIS_EYE.stand);
-    off = Math.acos(Math.max(-1, Math.min(1, Math.cos(off)*hd/Math.max(1e-6, DM.hypot(hd, vd))))); }
+    off = Math.acos(Math.max(-1, Math.min(1, DM.cos(off)*hd/Math.max(1e-6, DM.hypot(hd, vd))))); }
   return off < 0.55 ? 1 : (off < 1.6 ? 0.5 : 0.12);  // смотрел прямо / краем глаза / спиной
 }
 function flashSeen(b, n){
@@ -197,7 +197,7 @@ function flashSeen(b, n){
     return !smokeBlocks(b.x, b.y, n.x, n.y) && (visMarch(b.x, b.y, ez, n.x, n.y, n.z) || visMarch(b.x, b.y, ez, n.x, n.y, n.z + 16)); }
   if(!insideSolidWall(n.x, n.y) && hasVision(b.x, b.y, n.x, n.y)) return true;
   for(var r = 30; r <= 60; r += 30) for(var k = 0; k < 8; k++){
-    var a = k*Math.PI/4, x = n.x + Math.cos(a)*r, y = n.y + DM.sin(a)*r;
+    var a = k*Math.PI/4, x = n.x + DM.cos(a)*r, y = n.y + DM.sin(a)*r;
     if(!insideSolidWall(x, y) && hasVision(b.x, b.y, x, y)) return true;
   }
   return false;

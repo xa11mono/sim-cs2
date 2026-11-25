@@ -485,7 +485,7 @@ function nadeRunPlan(b, t){
       lim = nadeAimLimit(t.type, false), a0 = DM.atan2(-(t.y - b.baseY), t.x - b.baseX);   // y игры вверх, y радара вниз
   for(var i = t.runOwnI || 0; i < RUN_OWN_A.length; i++){
     if(!nadeBudgetLeft()){ t.runOwnI = i; return true; }   // (Д3) подбор этого тика исчерпан — следующий угол в следующем тике, задание ждёт
-    var a = a0 + RUN_OWN_A[i]*Math.PI/180, dir = [Math.cos(a), DM.sin(a)], V = [Math.round(dir[0]*sp), Math.round(dir[1]*sp), 0];
+    var a = a0 + RUN_OWN_A[i]*Math.PI/180, dir = [DM.cos(a), DM.sin(a)], V = [Math.round(dir[0]*sp), Math.round(dir[1]*sp), 0];
     var S = nadeSolve(t.type, b.baseX, b.baseY, bz, t.x, t.y, false, false, null, V);
     if(!S || S.levelOk === false || S.e3 > lim) continue;
     t.from = {x: b.baseX, y: b.baseY}; t.gen = true; t.runOwn = true; t.runPh = null; t.runEnd = null; t.runFail = false;
@@ -506,7 +506,7 @@ function runupStart(t, R){
   var a0 = DM.atan2(-R.dir[1], R.dir[0]);   // y игры вверх, y радара вниз
   var Ds = [2, 3, 4, 1], As = [0, 10, -10, 20, -20];
   for(var i = 0; i < Ds.length; i++) for(var j = 0; j < As.length; j++){
-    var a = a0 + As[j]*Math.PI/180, d = d0*Ds[i], p = {x: t.from.x - Math.cos(a)*d, y: t.from.y - DM.sin(a)*d};
+    var a = a0 + As[j]*Math.PI/180, d = d0*Ds[i], p = {x: t.from.x - DM.cos(a)*d, y: t.from.y - DM.sin(a)*d};
     if(!navAt(p.x, p.y)) continue;
     var P = buildWaypointPath(p.x, p.y, 0, t.from.x, t.from.y, 0), L = 0, px = p.x, py = p.y;
     P.forEach(function(q){ L += DM.hypot(q[0]-px, q[1]-py); px = q[0]; py = q[1]; });

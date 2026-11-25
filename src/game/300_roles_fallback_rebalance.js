@@ -60,7 +60,7 @@ function tFallbackTick(){
 // тиммейт — второй берёт угол, который про с этого сайта держат, а сейчас не
 // держит никто; не нашёл — встаёт глубже, под размен вышедшего вперёд.
 var REBAL = {every:48, minHold:5, R:560, same:190, fwdR:230, freeR:260};
-function rebalTarget(px, py, a){ var c = rayClipWalls(px, py, px + Math.cos(a)*500, py + DM.sin(a)*500); return {x:c.x, y:c.y}; }
+function rebalTarget(px, py, a){ var c = rayClipWalls(px, py, px + DM.cos(a)*500, py + DM.sin(a)*500); return {x:c.x, y:c.y}; }
 function rebalLookOf(o){
   var px = o.post.x, py = o.post.y, a;
   if(o.post.pro && o._proM && o._proM.k === o.post.pro.k && o.post.pro.m[o._proM.i]) a = o.post.pro.m[o._proM.i][0];
@@ -86,7 +86,7 @@ function rebalSpot(b, k, taken, avoidPts, opt){
       // угол в сторону своего спавна/тыла — не угол
       if(DM.hypot(t.x-CT_SPAWN.x, t.y-CT_SPAWN.y) < DM.hypot(s[0]-CT_SPAWN.x, s[1]-CT_SPAWN.y) - 120) return;
       var sc = Math.log(1 + s[2]) + 1.2*m[1] - DM.hypot(s[0]-b.x, s[1]-b.y)/400;
-      if(sc > bs){ bs = sc; best = {pt:{x:s[0], y:s[1]}, look:{x:s[0] + Math.cos(m[0])*300, y:s[1] + DM.sin(m[0])*300}, t:t}; }
+      if(sc > bs){ bs = sc; best = {pt:{x:s[0], y:s[1]}, look:{x:s[0] + DM.cos(m[0])*300, y:s[1] + DM.sin(m[0])*300}, t:t}; }
     });
   }
   return best;

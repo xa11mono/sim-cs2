@@ -145,7 +145,7 @@ function moveSpeedTick(bot, runSpeed, BRAKE_RADIUS, maxDelta){
       var best = null, bd = Infinity;
       for(var ai=0; ai<12; ai++){
         var aa = ai*Math.PI/6, rr = NADE.molly.radius + 28;
-        var qx = burn.x + Math.cos(aa)*rr, qy = burn.y + DM.sin(aa)*rr;
+        var qx = burn.x + DM.cos(aa)*rr, qy = burn.y + DM.sin(aa)*rr;
         if(insideSolidWall(qx, qy) || crossesWall(bot.baseX, bot.baseY, qx, qy)) continue;
         var dq = DM.hypot(qx-bot.baseX, qy-bot.baseY);
         // ближе всего — и лучше в сторону, куда бот и так шёл

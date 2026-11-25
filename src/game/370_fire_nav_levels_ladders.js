@@ -212,7 +212,7 @@ function ladderTick(bot){
     // (v548, владелец 10.11: «в воздухе он должен по дуге поворачивать к приземлению; стрейф в воздухе — от клавиши и от того, куда смотришь»)
     // прыжок через щель — дугой с прогибом из демок (G.bow — доля длины, + — влево): квадратичная кривая, середина отходит на bow·L
     if(C.G && C.G.bow){ var Lc = DM.hypot(B.x - A.x, B.y - A.y), th = DM.atan2(B.y - A.y, B.x - A.x), k = 4*C.G.bow*Lc*e*(1 - e);
-      bot.baseX = bot.x = bot.x - DM.sin(th)*k; bot.baseY = bot.y = bot.y + Math.cos(th)*k; }
+      bot.baseX = bot.x = bot.x - DM.sin(th)*k; bot.baseY = bot.y = bot.y + DM.cos(th)*k; }
     bot.curSpeed = LADDER_SPEED/2.5;
     if(p >= 1){ bot.z = C.to.z; bot._area = C.to.area; bot._climb = null; bot.path = []; bot.pathIdx = 0; if(C.jump) landLook(bot); if(C.jump) landSound(bot, false, C.gap && !(C.G && C.G.walkOk) ? "gap" : "up"); }   // (v549) щель, где про прыгают и с шага, — на шифте тихо
     return true;
@@ -494,7 +494,7 @@ var FLOOR_HEAD = 72;   // ед. игры — рост стоя (CS2)
 function floorCover(x, y, z){
   var M = typeof m3 === "function" ? m3() : null; if(!M || z == null) return {under: 0, over: 0};
   var R = BODY_HALF, nu = 0, no = 0;
-  for(var i = 0; i < 9; i++){ var a = i*Math.PI/4, px = i ? x + Math.cos(a)*R : x, py = i ? y + DM.sin(a)*R : y, F = m3Floors(M, px, py), u = 0, o = 0;
+  for(var i = 0; i < 9; i++){ var a = i*Math.PI/4, px = i ? x + DM.cos(a)*R : x, py = i ? y + DM.sin(a)*R : y, F = m3Floors(M, px, py), u = 0, o = 0;
     for(var q = 0; q < F.length; q++){ if(F[q] > z + FLOOR_HEAD) u = 1; else if(F[q] < z - FLOOR_HEAD) o = 1; }
     nu += u; no += o; }
   return {under: nu/9, over: no/9};
@@ -553,8 +553,8 @@ function fireSafe(p, b){
   var f = inFire(p.x, p.y, p.z); if(!f) return p;
   var a = DM.atan2(p.y-f.y, p.x-f.x); if(!isFinite(a)) a = 0;
   var r = NADE.molly.radius + 26;
-  var q = {x:f.x + Math.cos(a)*r, y:f.y + DM.sin(a)*r};
-  if(insideSolidWall(q.x, q.y) || segCrossesManualWalls(f.x, f.y, q.x, q.y)){ q = {x:f.x - Math.cos(a)*r, y:f.y - DM.sin(a)*r}; }
+  var q = {x:f.x + DM.cos(a)*r, y:f.y + DM.sin(a)*r};
+  if(insideSolidWall(q.x, q.y) || segCrossesManualWalls(f.x, f.y, q.x, q.y)){ q = {x:f.x - DM.cos(a)*r, y:f.y - DM.sin(a)*r}; }
   return q;
 }
 // (v323, М36) где жжёт — ровно нарисованный огонь: разгорается за 14 тиков от 0,35 радиуса, не проходит сквозь стены; игрок

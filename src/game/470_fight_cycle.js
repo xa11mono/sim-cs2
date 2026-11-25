@@ -40,7 +40,7 @@ function fightCover(b, e, R, toward){
     for(var k=1;k<=3;k++){
       var r = R*k/3, Ck = [];
       for(var i=0;i<16;i++){
-        var a = i*Math.PI/8, x = b.baseX + Math.cos(a)*r, y = b.baseY + DM.sin(a)*r;
+        var a = i*Math.PI/8, x = b.baseX + DM.cos(a)*r, y = b.baseY + DM.sin(a)*r;
         if(insideSolidWall(x, y) || !fightPathFree(b, b.baseX, b.baseY, x, y) || fightSeen(e, x, y, b.z) || fightMateAt(b, x, y)) continue;
         Ck.push({x:x, y:y, z:b.z, de: toward ? -DM.hypot(x-toward.x, y-toward.y) : DM.hypot(x-e.x, y-e.y)});
       }
@@ -56,7 +56,7 @@ function fightSeen(e, x, y, z){ var p = visParts(e.x, e.y, e.crouching, x, y, fa
 function fightBetter(b, e, cx, cy, R){
   var best = null, bd = Infinity;
   for(var k=1;k<=3;k++) for(var i=0;i<16;i++){
-    var a = i*Math.PI/8, r = R*k/3, x = cx + Math.cos(a)*r, y = cy + DM.sin(a)*r;
+    var a = i*Math.PI/8, r = R*k/3, x = cx + DM.cos(a)*r, y = cy + DM.sin(a)*r;
     if(insideSolidWall(x, y) || !fightPathFree(b, cx, cy, x, y) || !hasLOS(x, y, e.x, e.y, b.z, e.z)) continue;
     var d = DM.hypot(x-cx, y-cy); if(d < bd){ bd = d; best = {x:x, y:y}; }
   }
@@ -67,7 +67,7 @@ function fightBetter(b, e, cx, cy, R){
 function fightBetterAway(b, e, cx, cy, R, px, py, minD){
   var best = null, bd = Infinity;
   for(var k=1;k<=3;k++) for(var i=0;i<16;i++){
-    var a = i*Math.PI/8, r = R*k/3, x = cx + Math.cos(a)*r, y = cy + DM.sin(a)*r;
+    var a = i*Math.PI/8, r = R*k/3, x = cx + DM.cos(a)*r, y = cy + DM.sin(a)*r;
     if(DM.hypot(x-px, y-py) < minD || insideSolidWall(x, y) || !fightPathFree(b, cx, cy, x, y) || !hasLOS(x, y, e.x, e.y, b.z, e.z)) continue;
     var d = DM.hypot(x-cx, y-cy); if(d < bd){ bd = d; best = {x:x, y:y}; }
   }
@@ -79,7 +79,7 @@ function fightClearSpot(b, e, R){
   var best = null, bd = Infinity, Bd = VIS_BODY.stand[0], tf = visFloorAt(e.x, e.y, e.z), Hd = e.crouching ? VIS_HEAD.crouch : VIS_HEAD.stand;
   var ux = -(e.y - b.y), uy = e.x - b.x, uL = DM.hypot(ux, uy) || 1; ux /= uL; uy /= uL;
   for(var k=1;k<=4;k++) for(var i=0;i<16;i++){
-    var a = i*Math.PI/8, r = R*k/4, x = b.baseX + Math.cos(a)*r, y = b.baseY + DM.sin(a)*r;
+    var a = i*Math.PI/8, r = R*k/4, x = b.baseX + DM.cos(a)*r, y = b.baseY + DM.sin(a)*r;
     if(insideSolidWall(x, y) || !navAt(x, y) || fightMateAt(b, x, y) || !fightPathFree(b, b.baseX, b.baseY, x, y)) continue;
     var fz = visFloorAt(x, y, b.z); if(b.z != null && Math.abs(fz - b.z) > JUMP_UP) continue;
     var ez = fz + VIS_EYE.stand, ok = true;
@@ -441,7 +441,7 @@ var RL_PEEK_R = 80, RL_PATH_FREE = 30;   // проектные числа: ед.
 // Было: в каждом месте своя — плоская линия (hasLOS без высоты), только от одного врага, без шага; укрытие оказывалось на виду
 function spotSeen(q, qz, f, peek){
   var P = [{x:f.x, y:f.y}];
-  if(peek) for(var k = 0; k < 8; k++){ var a = k*Math.PI/4, p = {x:f.x + Math.cos(a)*RL_PEEK_R, y:f.y + DM.sin(a)*RL_PEEK_R}; if(navAt(p.x, p.y) && !crossesWall(f.x, f.y, p.x, p.y)) P.push(p); }
+  if(peek) for(var k = 0; k < 8; k++){ var a = k*Math.PI/4, p = {x:f.x + DM.cos(a)*RL_PEEK_R, y:f.y + DM.sin(a)*RL_PEEK_R}; if(navAt(p.x, p.y) && !crossesWall(f.x, f.y, p.x, p.y)) P.push(p); }
   return P.some(function(p, i){
     var A = []; if(i === 0 && f.z != null) A = [{z: f.z}];
     else { var a0 = navAt(p.x, p.y), lo = navAt(p.x, p.y, -9999), hi = navAt(p.x, p.y, 9999); [a0, lo, hi].forEach(function(x){ if(x && A.indexOf(x) < 0) A.push(x); }); }

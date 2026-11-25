@@ -127,7 +127,7 @@ function selfExitFlash(b){
   var cone = SELF.cone*Math.PI/180, cands = [];
   b._selfDone = (b._selfDone && b._selfDone.r === roundNum) ? b._selfDone : {r: roundNum};
   function ahead(x, y){ var d = DM.hypot(x-b.x, y-b.y); if(d > SELF.far || d < 60) return false;
-    var a = DM.atan2(y-b.y, x-b.x) - b.heading; return Math.abs(DM.atan2(DM.sin(a), Math.cos(a))) <= cone; }
+    var a = DM.atan2(y-b.y, x-b.x) - b.heading; return Math.abs(DM.atan2(DM.sin(a), DM.cos(a))) <= cone; }
   selfHyps(b, function(h, id){ if(ahead(h.x, h.y)) cands.push({x:h.x, y:h.y, w:h.weight, key:id+":"+h.zone, info:true}); });
   if(!cands.length && b.know && b.know.alive) (b.know.spots || []).forEach(function(p){
     if(p.open && knowSpotReach(p) && ahead(p.x, p.y)) cands.push({x:p.x, y:p.y, w:0, key:"spot:"+p.id, info:false}); });
