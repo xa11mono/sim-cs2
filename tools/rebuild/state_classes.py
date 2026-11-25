@@ -14,7 +14,7 @@ import json, csv, os, re, sys
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
 ST = json.load(open(os.path.join(ROOT, 'rebuild', 'gen', 'state.json'), encoding='utf-8'))
 OUT = os.path.join(ROOT, 'rebuild', 'state_classes.json')
-CLASSES = ['раунд', 'матч', 'серия', 'постоянная память', 'неизменяемое', 'вход', 'кэш', 'показ', 'режим', 'диагностика', 'случайность', 'не размечено']
+CLASSES = ['раунд', 'матч', 'серия', 'постоянная память', 'неизменяемое', 'вход', 'кэш', 'показ', 'режим', 'диагностика', 'случайность', 'асинхронное', 'внутри вызова', 'не поле бота', 'не размечено']
 CODEX = {'временное состояние раунда': 'раунд', 'временное состояние матча': 'матч', 'временное состояние серии': 'серия',
          'постоянная память': 'постоянная память', 'вычислительные кэши': 'кэш', 'вычислительный кэш с изменяемым состоянием': 'кэш',
          'вычислительные бюджеты / курсор': 'кэш', 'состояние отображения': 'показ', 'состояние отображения/режимы': 'показ',
@@ -28,6 +28,10 @@ MODES = ('660', '675', '677', '678')   # разминка, повтор, пес�
 import glob
 RUN = [json.load(open(f, encoding='utf-8')) for f in sorted(glob.glob(os.path.join(ROOT, 'rebuild', 'evidence', 'R3', 'state_runtime_*.json')))]
 RUN_NAMES = ', '.join('%s м%d до тика %d' % (r['sim'].split('.')[0], r['match'], r['points'][-1]['tick']) for r in RUN)
+BV = {}   # образцы значений полей ботов (tools/rebuild/state_bot_values.js → rebuild/evidence/R3/state_bot_values_*.json)
+for f in sorted(glob.glob(os.path.join(ROOT, 'rebuild', 'evidence', 'R3', 'state_bot_values_*.json'))):
+    for k, L in json.load(open(f, encoding='utf-8')).items(): BV.setdefault(k, []).extend(x for x in L if x not in BV.get(k, []))
+STAMP = re.compile(r'(T|T0|Next|Until|At|Cd|Tick|Since)$')
 def changed(kind, n):
     return [p for r in RUN for p in (r[kind].get(n) or {}).get('changed', [])]
 
@@ -63,6 +67,17 @@ def rule_bot(n, b):
     wf = {w.split(':')[0][:3] for w in b['w']}
     if wf and all(f >= '550' and not f.startswith(MODES) for f in wf):
         return 'показ', 'пишут только файлы показа (%s)' % ', '.join(sorted(wf)), 'показ'
+    if wf and all(f.startswith(MODES) for f in wf):
+        return 'режим', 'пишут только режимы (%s)' % ', '.join(sorted(wf)), 'режим'
+    V = BV.get(n) or []
+    if V and all(re.match(r'obj\{.*\b(round|r)\b', x) for x in V):
+        return 'раунд', 'значение несёт метку раунда (образцы: %s)' % '; '.join(V[:2]), 'по метке раунда в значении'
+    if V and STAMP.search(n) and all(x.startswith('number:') for x in V):
+        return 'раунд', 'поле-срок: номер тика (образцы: %s)' % '; '.join(V[:3]), 'по сроку (тик в значении)'
+    # пишет симуляция, раундом не сбрасывается, метки нет: живёт до перезаписи; freshMatch удаляет поля, которых не было при загрузке
+    # (530:97–100, BOT_INIT), newMatch — нет (вопрос Т-2). Поле без «_» и без образцов — скорее поле другого объекта: не размечается
+    if wf and all(f < '550' for f in wf) and (n.startswith('_') or V):
+        return 'матч', 'пишет симуляция (%s), resetRound не сбрасывает, метки раунда / срока нет%s' % (', '.join(sorted(wf)), '' if V else '; в опыте у ботов не появлялось'), 'до перезаписи; freshMatch удаляет (BOT_INIT), newMatch — нет (Т-2)'
     return None
 
 def main():
@@ -86,6 +101,7 @@ def main():
             ch = changed('globals' if key[0] == 'g' else 'bot', key[2:])
             note = ('опыт: меняется (' + ', '.join(sorted(set(ch))) + ')') if ch else ''
             if key[0] == 'g' and not (v['w'] or v['m']) and ch: note += '; по имени не пишется — меняется через другое имя'
+            if key[0] == 'b': note = (note + '; ' if note else '') + (('образцы: ' + '; '.join(BV[key[2:]][:3])) if BV.get(key[2:]) else 'у ботов в опыте (2 карты, тики 3000…70000) не появлялось — возможно, поле другого объекта с тем же именем')
             out[key] = {'class': 'не размечено', 'owner': '', 'life': '', 'snap': '', 'src': 'нет', 'why': note}
     for k, o in old.items():
         if k not in out: out[k] = dict(o, gone=True)
