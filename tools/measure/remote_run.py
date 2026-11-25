@@ -106,7 +106,8 @@ def main():
             if len(run) >= par: __import__('time').sleep(2)
         f = open(out, 'w', encoding='utf-8'); log('fp %s m%d' % (os.path.basename(sim), m))
         code = (fwjs + '\n' if fw else '') + fpjs.replace('__M__', str(m)); cf = out[:-5] + '.code.js'; open(cf, 'w', encoding='utf-8').write(code)
-        run.append((subprocess.Popen(['node', os.path.join(ROOT, 'src', 'q.js'), sim, '@' + cf], cwd=ROOT, stdout=f, env=dict(os.environ, SIM_BROWSER=eng)), f))
+        fe = open(out[:-5] + '.err', 'w', encoding='utf-8')   # (Р2.6) ошибки движка / страницы — рядом с отпечатком (прогон 320: пустой fp_11 Firefox без причины)
+        run.append((subprocess.Popen(['node', os.path.join(ROOT, 'src', 'q.js'), sim, '@' + cf], cwd=ROOT, stdout=f, stderr=fe, env=dict(os.environ, SIM_BROWSER=eng)), f))
     for c in covs:
         while len(run) >= par:
             for p, f in run:

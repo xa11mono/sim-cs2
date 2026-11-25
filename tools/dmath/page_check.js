@@ -16,13 +16,16 @@ const RUN = function (D, corpus, N) {
   const out = {};
   const fns = { sin: 1, cos: 1, atan: 1, acos: 1, exp: 1, log: 1, atan2: 2, pow: 2, hypot: 2, hypot3: 3 };
   for (const f of Object.keys(fns)) {
-    const k = fns[f]; let h = 2166136261 >>> 0, n = 0;
-    const mix = v => { F[0] = v; h = Math.imul(h ^ U[0], 16777619) >>> 0; h = Math.imul(h ^ U[1], 16777619) >>> 0; n++; };
+    // два хэша: по сырым битам и с NaN, приведённым к одному виду — биты NaN (полезная нагрузка) движки хранят по-разному, а игре они
+    // не видны (NaN — это NaN; в снимке и JSON — null); различие только в сыром хэше = различие только в битах NaN
+    const k = fns[f]; let h = 2166136261 >>> 0, hc = 2166136261 >>> 0, n = 0, nan = 0;
+    const mix = v => { F[0] = v; h = Math.imul(h ^ U[0], 16777619) >>> 0; h = Math.imul(h ^ U[1], 16777619) >>> 0; n++;
+      if (v !== v) { nan++; F[0] = NaN; U[0] = 0; U[1] = 0x7ff80000; } hc = Math.imul(hc ^ U[0], 16777619) >>> 0; hc = Math.imul(hc ^ U[1], 16777619) >>> 0; };
     const call = a => mix(k === 1 ? D[f](a[0]) : k === 2 ? D[f](a[0], a[1]) : D[f](a[0], a[1], a[2]));
     if (k === 1) EDGE.forEach(a => call([a])); else if (k === 2) EDGE.forEach(a => EDGE.forEach(b => call([a, b]))); else EDGE.forEach(a => EDGE.forEach(b => call([a, b, 1.5])));
     for (let i = 0; i < N; i++) { const r = () => (i % 2 ? (u() - 0.5) * 6000 : any()); call([r(), r(), r()]); }
     const c = corpus && corpus[f === 'hypot3' ? 'none' : f]; if (c) c.forEach(a => call(Array.isArray(a) ? a : [a]));
-    out[f] = { n, hash: h.toString(16) };
+    out[f] = { n, nan, hash: h.toString(16), hashNaNcanon: hc.toString(16) };
   }
   return out;
 };
@@ -32,9 +35,11 @@ const RUN = function (D, corpus, N) {
   const b = await pw[ENGINE].launch(), p = await b.newPage();
   await p.addScriptTag({ content: SRC + '\nwindow.D = DM;' });
   const page = await p.evaluate(([code, corpus, N]) => (0, eval)('(' + code + ')')(window.D, corpus, N), [RUN.toString(), corpus, N]);
-  const bad = Object.keys(node).filter(f => node[f].hash !== page[f].hash || node[f].n !== page[f].n);
-  const rep = { engine: ENGINE + ' ' + b.version(), node: process.version, n: N, corpus: !!corpus, functions: Object.keys(node).map(f => f + ' ' + node[f].n + (bad.includes(f) ? ' РАЗНЫЕ' : ' =')).join(', '), mismatch: bad, nodeHashes: node, pageHashes: page };
-  console.log(rep.engine + ': ' + (bad.length ? 'РАСХОДИТСЯ — ' + bad.join(', ') : 'dmath страницы = dmath Node бит в бит') + ' (' + rep.functions + ')');
+  const bad = Object.keys(node).filter(f => node[f].hashNaNcanon !== page[f].hashNaNcanon || node[f].n !== page[f].n);   // значения (NaN — любой)
+  const nanBits = Object.keys(node).filter(f => !bad.includes(f) && node[f].hash !== page[f].hash);                       // только биты NaN
+  const rep = { engine: ENGINE + ' ' + b.version(), node: process.version, n: N, corpus: !!corpus, functions: Object.keys(node).map(f => f + ' ' + node[f].n + (bad.includes(f) ? ' РАЗНЫЕ' : ' =')).join(', '), mismatch: bad, nanBitsOnly: nanBits, nodeHashes: node, pageHashes: page };
+  console.log(rep.engine + ': ' + (bad.length ? 'РАСХОДИТСЯ — ' + bad.join(', ') : 'dmath страницы = dmath Node бит в бит (NaN — любой)') +
+    (nanBits.length ? '; различаются только биты NaN: ' + nanBits.join(', ') : '') + ' (' + rep.functions + ')');
   if (opt('out', '')) fs.writeFileSync(opt('out', ''), JSON.stringify(rep, null, 1));
   await b.close(); process.exit(bad.length ? 1 : 0);
 })();
