@@ -21,7 +21,7 @@ const res = JSON.parse(EV(`(function(){
     if(tick % every === 0 && roundState === "live") bots.forEach(function(b){ if(!b.alive) return;
       var want = !!(b.post && !b.atPost && b.state === "patrol" && !b.holding && DM.hypot(b.post.x-b.baseX, b.post.y-b.baseY) > 40);
       var busy = !!(b.planting || b.defusing || b._climb || b._sawEnemy || b._fc || tick < (b.blindUntil||0) || tick < (b.throwUntil||0));
-      (H[b.id] = H[b.id] || []).push([tick, b.baseX, b.baseY, want && !busy ? 1 : 0, (!b.post || b.atPost || b.holding) && !want ? 1 : 0, roundNum, b.curSpeed > 0.5 ? 1 : 0]); }); }
+      (H[b.id] = H[b.id] || []).push([tick, b.baseX, b.baseY, want && !busy ? 1 : 0, (!b.post || b.atPost || b.holding) && !want ? 1 : 0, roundNum, b.curSpeed > 0.5 ? 1 : 0, b.post ? String(b.post.tag).replace(/[:|].*$/, "") : "-"]); }); }
   if(matchNum === M0) P0 = {all: PROB.all, n: PROB.n, sub: PROB.sub, ep: PROB.ep};
   return JSON.stringify({H: H, ev: P0.all || [], sec: PROB_STALL_SEC, mv: PROB_STALL_MOVE, bsec: PROB_BLOCK_SEC, hz: TICK_HZ, ep: P0.ep, n: P0.n, sub: P0.sub,
     dl: RF});
@@ -37,7 +37,6 @@ for (const e of res.ev.filter(e => e.kind === 'stall')) {
   // подтверждено: за окно нет продвижения (смещение конец − начало < PROB_STALL_MOVE — определение детектора), хотел и пытался идти
   if (h.length >= W / 16 - 1 && net < res.mv * 1.01 && want >= 0.8 && tries >= 0.8) { out.A.ok++; if (span >= res.mv * 2) out.A.osc = (out.A.osc || 0) + 1; }
   else out.A.bad.push({ e: [e.tick, e.id, e.text], net: Math.round(net), span: Math.round(span), want: +want.toFixed(2), tries: +tries.toFixed(2), samples: h.length });
-  if (h.length >= W / 16 - 1 && moved < res.mv * 1.01 && want >= 0.8) out.A.ok++; else out.A.bad.push({ e: [e.tick, e.id, e.text], moved: Math.round(moved), want: +want.toFixed(2), samples: h.length });
 }
 // B: окна законного стояния (подряд «стоит законно» ≥ W тиков, без смены раунда) — событий geom / free / path внутри нет
 const geo = res.ev.filter(e => e.kind === 'stall' && e.sub !== 'stall.block');
@@ -49,13 +48,23 @@ for (const [id, H] of Object.entries(res.H)) { let s = null;
 out.miss = { windows: 0, bad: [] };
 const allSt = res.ev.filter(e => e.kind === 'stall');
 for (const [id, H] of Object.entries(res.H)) { let s = 0;
-  for (let i = 0; i < H.length; i++) { if (!H[i][3] || (i > s && H[i][5] !== H[s][5])) { s = i + (H[i][3] ? 0 : 1); continue; }
+  for (let i = 0; i < H.length; i++) { if (!H[i][3] || (i > s && (H[i][5] !== H[s][5] || H[i][7] !== H[s][7]))) { s = i + (H[i][3] ? 0 : 1); continue; }   // окно — одна задача, один раунд (как у детектора)
     if (H[i][0] - H[s][0] >= W) { const win = H.slice(s, i + 1), mv = Math.hypot(win[win.length - 1][1] - win[0][1], win[win.length - 1][2] - win[0][2]),
         tr = win.filter(q => q[6]).length / win.length;
       if (mv < res.mv && tr >= 0.8) { out.miss.windows++; const ok = allSt.some(e => e.id === id && e.round === H[s][5] && e.tick <= H[i][0] + res.hz && (e.tick >= H[s][0] || Math.hypot(e.x - H[s][1], e.y - H[s][2]) < res.mv * 2));   // детектор не повторяет событие, пока бот не отошёл
         if (!ok) out.miss.bad.push({ id, from: H[s][0], to: H[i][0], moved: Math.round(mv) }); s = i + 1; }
       else s++; } } }
+// слепое пятно (для отчёта, не ошибка детектора по его определению): хотел идти и стоял ≥ окна, но задача менялась — ни stall, ни tug рядом
+out.blind = { windows: 0, ex: [] };
+const allTug = res.ev.filter(e => e.kind === 'tug' || e.kind === 'stall');
+for (const [id, H] of Object.entries(res.H)) { let s = 0;
+  for (let i = 0; i < H.length; i++) { if (!H[i][3] || (i > s && H[i][5] !== H[s][5])) { s = i + (H[i][3] ? 0 : 1); continue; }
+    if (H[i][0] - H[s][0] >= W) { const win = H.slice(s, i + 1), mv = Math.hypot(win[win.length - 1][1] - win[0][1], win[win.length - 1][2] - win[0][2]), tr = win.filter(q => q[6]).length / win.length;
+      const tags = [...new Set(win.map(q => q[7]))];
+      if (mv < res.mv && tr >= 0.8 && tags.length > 1 && !allTug.some(e => e.id === id && e.tick >= H[s][0] - res.hz && e.tick <= H[i][0] + res.hz)) { out.blind.windows++; if (out.blind.ex.length < 5) out.blind.ex.push({ id, from: H[s][0], to: H[i][0], tags }); }
+      s = i + 1; } } }
 out.verdict = { A: out.A.bad.length ? 'ложные события: ' + out.A.bad.length : 'все ' + out.A.ok + ' событий подтверждены историей', B: out.B.bad.length ? 'срабатывания на законном стоянии: ' + out.B.bad.length : 'на ' + out.B.windows + ' окнах законного стояния — 0 событий',
+  слепое_пятно: out.blind.windows + ' окон «стоял ≥ 5 с при смене задачи» без stall / tug',
   пропуски: out.miss.bad.length ? 'стоял ≥ 5 с, хотел идти, события нет: ' + out.miss.bad.length + ' из ' + out.miss.windows : 'окон «хотел идти и стоял» ' + out.miss.windows + ', все с событием' };
 if (A.out) fs.writeFileSync(A.out, JSON.stringify(out, null, 1));
-console.log(JSON.stringify({ n: out.n, sub: out.sub, ep: out.ep, verdict: out.verdict, Abad: out.A.bad.slice(0, 5), Bbad: out.B.bad.slice(0, 3), miss: out.miss.bad.slice(0, 5) }, null, 1));
+console.log(JSON.stringify({ n: out.n, sub: out.sub, ep: out.ep, verdict: out.verdict, Abad: out.A.bad.slice(0, 5), Bbad: out.B.bad.slice(0, 3), miss: out.miss.bad.slice(0, 5), blind: out.blind.ex }, null, 1));
