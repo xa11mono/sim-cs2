@@ -249,5 +249,23 @@
     ],
     "enforce": true,
     "since": "дубль 8, 17.11: тревога после смерти своего — 190 (tradeAlert)"
+  },
+  "lookReason": {
+    "channel": "взгляд",
+    "allow": [
+      "lookApply",
+      "lookReasonSet"
+    ],
+    "enforce": true,
+    "since": "Р3.2 взгляд ш.2, 26.11: причина и уровень взгляда — только ответ арбитра (lookApply) и интерфейс lookReasonSet (фильтры, сброс раунда)"
+  },
+  "_lookLvl": {
+    "channel": "взгляд",
+    "allow": [
+      "lookApply",
+      "lookReasonSet"
+    ],
+    "enforce": true,
+    "since": "Р3.2 взгляд ш.2, 26.11: причина и уровень взгляда — только ответ арбитра (lookApply) и интерфейс lookReasonSet (фильтры, сброс раунда)"
   }
 }

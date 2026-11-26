@@ -80,7 +80,7 @@ save(path.join(OUT, "registry.json"), JSON.stringify(R, null, 0));
 }
 
 // ---- 2) кто пишет поля бота
-const FIELDS = ["facing", "walking", "curSpeed", "post", "_task", "_reposUntil", "_waitPopUntil", "_avoidPeekUntil", "_tradeUntil", "_tradeLock", "state", "nadeTask", "holding", "crouching", "path", "phase"];
+const FIELDS = ["facing", "walking", "curSpeed", "post", "_task", "_reposUntil", "_waitPopUntil", "_avoidPeekUntil", "_tradeUntil", "_tradeLock", "state", "nadeTask", "holding", "crouching", "path", "phase", "lookReason", "_lookLvl"];   // (Р3.2 взгляд ш.2) + причина и уровень взгляда
 // хозяева — rebuild/owners.json (одно место; его же читает проверка сборки); поля без хозяина — пусто
 const OWN = JSON.parse(fs.readFileSync(path.join(ROOT, "rebuild", "owners.json"), "utf8"));
 const OWNER = {}; FIELDS.forEach(f => { OWNER[f] = OWN[f] ? new RegExp("^(" + OWN[f].allow.join("|") + ")$") : /^$/; });

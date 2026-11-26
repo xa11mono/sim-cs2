@@ -175,6 +175,9 @@ function lookAngleCand(b, moving){
 // LOOK_LEVEL) и отвечает {pt, lvl, kind, C} — ничего не пишет в бота; запись причины и уровня — lookApply (одно место, и для «враг виден», 275);
 // lookArbiter — прежний ответ «точка» для старого вызова. Порядок заявок и выбор — дословно как было (Э1)
 function lookArbiter(b){ return lookApply(b, lookArbiterR(b)); }
+// (Р3.2, канал «взгляд», шаг 2) исполнение взгляда: причину пишут только lookApply (ответ арбитра) и lookReasonSet (фильтры 270 / этот файл
+// меняют выбранный взгляд — glance / open / null — через интерфейс арбитра, а не записью поля); сброс раунда — lookReasonSet(b, null)
+function lookReasonSet(b, kind){ b.lookReason = kind; }
 function lookApply(b, R){
   b._lookLvl = R.lvl; b.lookReason = R.kind;
   if(LOOKDBG.on) b._ldArb = R.C ? R.C.map(function(c){ return {lvl: c.lvl, kind: c.kind, sc: c.sc, pt: c.pt}; }) : null;
@@ -251,16 +254,16 @@ function lookFilter(b, look, LD){
     var apL = appearFrom(b, look) || cornerLook(b, look);
     if(apL && apL !== look && lookVisible(b, apL)){ look = apL; if(LD) LD.steps.push("точка за стеной — смотрю, откуда выйдет"); } }
   if(look && b._lookLvl <= LOOK_LEVEL.angle && lookOnMate(b, look)){ var alt = openDirLook(b);
-    if(alt){ look = alt; b.lookReason = "open"; if(LD) LD.steps.push("на линии свой — взял другое открытое направление"); }
+    if(alt){ look = alt; lookReasonSet(b, "open"); if(LD) LD.steps.push("на линии свой — взял другое открытое направление"); }
     // (v413, Б5д-3) на бегу открытого направления впереди нет — по ходу движения, а не в спину своему
-    else if(b.curSpeed > 60*SPD_K){ look = null; b.lookReason = null; if(LD) LD.steps.push("на линии свой, впереди открытого нет — по ходу движения"); } }
+    else if(b.curSpeed > 60*SPD_K){ look = null; lookReasonSet(b, null); if(LD) LD.steps.push("на линии свой, впереди открытого нет — по ходу движения"); } }
   // (п.5 владельца 29.10, м1 р2 т12072: по zont1x стреляли из B Short, арбитр выбрал «на звук», а этот фильтр повернул его на «открытое
   // рядом» — Stove, стрелок в 45–79° от взгляда) на звук / свой контакт — угол, из-за которого враг (cornerLook), даже если стена близко
   // (v551) взгляд на прыжок («jump») — в препятствие, на которое прыгает (фургон, ящик): «стена по взгляду» его не подменяет открытым направлением
   if(look && !/^(enemy|pro|sound|contact|jump)$/.test(b.lookReason || "")){ var lw0 = look; look = openLook(b, look); if(LD && look !== lw0) LD.steps.push("стена по взгляду — взял открытое направление рядом"); }
   if(!b._sawEnemy && !/^(enemy|spam|cover|contact|sound|jump)$/.test(b.lookReason || "")){   // (п.5) и на звук — угол врага, не «открытое»
     var wla = look ? DM.atan2(look.y-b.y, look.x-b.x) : (!(b.curSpeed > 15*SPD_K) && b.facing !== undefined ? b.facing : null);
-    if(wla !== null && flatWallAhead(b, wla, 80)){ var wal = openDirNear(b, wla); look = wal || null; if(wal) b.lookReason = (b.lookReason||"") + "+open"; if(LD) LD.steps.push(wal ? "стена в 80 px — повернул на открытое" : "стена в 80 px — открытого нет"); }
+    if(wla !== null && flatWallAhead(b, wla, 80)){ var wal = openDirNear(b, wla); look = wal || null; if(wal) lookReasonSet(b, (b.lookReason||"") + "+open"); if(LD) LD.steps.push(wal ? "стена в 80 px — повернул на открытое" : "стена в 80 px — открытого нет"); }
   }
   var urg = lookUrgent(b), lk0 = look;
   look = smoothLookFilter(b, look, urg);

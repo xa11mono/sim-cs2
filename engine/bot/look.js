@@ -370,9 +370,9 @@ function smoothLookFilter(b, look, urgent){
   var moving = b.curSpeed > 60*SPD_K && b.heading !== undefined;
   // (18.11, владелец: «чередовать») стоя с поручённым углом — мельком на второй угол (lookAssigned) по тем же часам, что на ходу
   if(!urgent && !moving && b._lkAltPt && look){
-    if(b._gl && tick < b._gl.until){ look = b._gl.pt; b.lookReason = "glance"; }
+    if(b._gl && tick < b._gl.until){ look = b._gl.pt; lookReasonSet(b, "glance"); }
     else if(tick >= (b._glNext||0)){
-      if(b._glNext) { b._gl = {pt:{x:b._lkAltPt.x, y:b._lkAltPt.y}, until: tick + SL.glDur}; look = b._gl.pt; b.lookReason = "glance"; }
+      if(b._glNext) { b._gl = {pt:{x:b._lkAltPt.x, y:b._lkAltPt.y}, until: tick + SL.glDur}; look = b._gl.pt; lookReasonSet(b, "glance"); }
       b._glNext = tick + SL.glEvery[0] + Math.floor(hashRand(tick*13 + b.id.charCodeAt(b.id.length-1)*7)*(SL.glEvery[1]-SL.glEvery[0]));
     }
   }
@@ -380,7 +380,7 @@ function smoothLookFilter(b, look, urgent){
   else if(!look && !urgent && moving){
     // (19.11, видео пробы CT0: «что за точки взгляда» — взгляд назад на Balcony держался секундами) мельком — весь срок с пометкой «glance»: без неё со
     // второго тика удержание принимало точку за угол плана и держало после конца взгляда
-    if(b._gl && tick < b._gl.until && (tick & 3 || lookVisible(b, b._gl.pt))){ look = b._gl.pt; b.lookReason = "glance"; }   // скрылась за стеной — мельком кончился
+    if(b._gl && tick < b._gl.until && (tick & 3 || lookVisible(b, b._gl.pt))){ look = b._gl.pt; lookReasonSet(b, "glance"); }   // скрылась за стеной — мельком кончился
     else if(tick >= (b._glNext||0)){
       b._glNext = tick + SL.glEvery[0] + Math.floor(hashRand(tick*13 + b.id.charCodeAt(b.id.length-1)*7)*(SL.glEvery[1]-SL.glEvery[0]));
       var best = null, bs = SL.glSc;
@@ -396,7 +396,7 @@ function smoothLookFilter(b, look, urgent){
       // (19.11, владелец, фото 3: «почему взгляд через стенки») точка «мельком» — середина зоны за стеной: как у любого взгляда (lookFilter) — туда, откуда
       // враг выйдет на мою линию (appearFrom / cornerLook); видимой нет — мельком не смотрит
       if(best && !lookVisible(b, best)){ var bv = appearFrom(b, best) || cornerLook(b, best); best = bv && lookVisible(b, bv) ? bv : null; }
-      if(best){ b._gl = {pt:{x:best.x, y:best.y}, until: tick + SL.glDur}; look = b._gl.pt; b.lookReason = "glance"; }
+      if(best){ b._gl = {pt:{x:best.x, y:best.y}, until: tick + SL.glDur}; look = b._gl.pt; lookReasonSet(b, "glance"); }
     }
   } else if(!moving && !b._lkAltPt) b._gl = null;
   // (v259, В1) «нет цели — смотрю по ходу» — такое же направление, как любое: держится не меньше holdMove и к

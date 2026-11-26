@@ -215,7 +215,7 @@ function resetRound(){
     lookReset(b); b.heading = undefined; moveSpeed(b, 0, "reset"); placeStance(b, false, "reset"); b.holdSinceTick = -999; b.onStairs = false;
     b.lastIntel = null; moveWalk(b, false, "reset"); b.lastStepTick = -999; b.heardSound = null;
     b.burstCount = 0; b.lastShotTick = -999; b._ammoFor = null; b._reloading = false; b._onPistol = null; b._secAmmo = null; b._blind = null; b._fc = null; b._trail = []; b._tagUntil = 0; b._knife = false; b._drawUntil = 0; b.stuckTicks = 0;
-    b._prevOffX = 0; b._prevOffY = 0; b.lookTarget = null; b.lookReason = null;
+    b._prevOffX = 0; b._prevOffY = 0; b.lookTarget = null; lookReasonSet(b, null);
     initRoam(b);
   });
   tracers.length = 0;

@@ -21,6 +21,8 @@
 | `crouching` | 1 | 1 | `placeStance · task` |
 | `path` | 13 | 7 | `fireRepath · levels`, `ladderTick · levels`, `navFollowFloor · levels`, `movePath · move`, `moveSpeedTick · move`, `navSnap · tick`, `stepBot · tick` |
 | `phase` | 14 | 6 | — |
+| `lookReason` | 2 | 2 | `lookReasonSet · look-arbiter`, `lookApply · look-arbiter` |
+| `_lookLvl` | 1 | 1 | `lookApply · look-arbiter` |
 
 ## `facing`
 
@@ -107,10 +109,10 @@
 
 ## `holding`
 
-- **хозяин** `engDecide · engagements` — 2 (стр. 133, 152)
+- **хозяин** `engDecide · engagements` — 2 (стр. 133, 153)
 - **хозяин** `fightReset · fight-state` — 1 (стр. 13)
 - **хозяин** `fightHoldOff · fight-state` — 1 (стр. 14)
-- **хозяин** `leaveHold · fight-state` — 1 (стр. 185)
+- **хозяин** `leaveHold · fight-state` — 1 (стр. 188)
 
 не бот (то же имя у другого объекта — в проверку владения не идёт): `rpEnd · replay` (266 RP), `rpHold · replay` (273 RP)
 
@@ -138,3 +140,12 @@
 - `tBrainMidTake · brain-t` — 2 (стр. 314, 333)
 - `tBrain · brain-t` — 1 (стр. 78)
 - `tBrainSetup · brain-t-phases` — 1 (стр. 179)
+
+## `lookReason`
+
+- **хозяин** `lookReasonSet · look-arbiter` — 1 (стр. 180)
+- **хозяин** `lookApply · look-arbiter` — 1 (стр. 182)
+
+## `_lookLvl`
+
+- **хозяин** `lookApply · look-arbiter` — 1 (стр. 182)
