@@ -3,6 +3,7 @@
 //       < PROB_STALL_MOVE), хотел идти (пост есть, не на посту, режим patrol, пост дальше 40 px) — иначе событие ложное;
 //       stall.block: в следе есть отказы места за PROB_BLOCK_SEC и бот стоял (< PROB_STALL_MOVE·2);
 //   B — окна ≥ PROB_STALL_SEC, где бот законно стоит (на посту / держит угол / нет поста) — событий stall.geom / free / path там нет;
+//   пропуски — окна «хотел идти и стоял ≥ PROB_STALL_SEC» без события;
 //   эпизоды stall.ep: событий в эпизоде ≥ 1, эпизодов ≤ событий (двойной счёт виден как разница).
 // Ядро без показа (dist/core-<карта>.js) в Node. Запуск: node tools/measure/audit/prob_ab.js <core.js> [--match=3] [--ticks=20000] [--out=…]
 'use strict';
@@ -35,6 +36,17 @@ const geo = res.ev.filter(e => e.kind === 'stall' && e.sub !== 'stall.block');
 for (const [id, H] of Object.entries(res.H)) { let s = null;
   for (let i = 0; i <= H.length; i++) { const q = H[i], ok = q && q[4] && (!s || q[5] === s[5]);
     if (ok && !s) s = q; if (!ok && s) { const end = H[i - 1][0]; if (end - s[0] >= W) { out.B.windows++; const bad = geo.filter(e => e.id === id && e.tick > s[0] + W && e.tick <= end); if (bad.length) out.B.bad.push({ id, from: s[0], to: end, ev: bad.map(e => [e.tick, e.text]) }); } s = q && q[4] ? q : null; } } }
-out.verdict = { A: out.A.bad.length ? 'ложные события: ' + out.A.bad.length : 'все ' + out.A.ok + ' событий подтверждены историей', B: out.B.bad.length ? 'срабатывания на законном стоянии: ' + out.B.bad.length : 'на ' + out.B.windows + ' окнах законного стояния — 0 событий' };
+// пропуски: окна, где бот подряд ≥ PROB_STALL_SEC «хочет идти» (тот же признак, что у детектора: пост, не на посту, patrol, не занят) и
+// сместился < PROB_STALL_MOVE, — в конце окна (± 1 с) должно быть событие stall (любой вид) этого бота; нет — пропуск детектора
+out.miss = { windows: 0, bad: [] };
+const allSt = res.ev.filter(e => e.kind === 'stall');
+for (const [id, H] of Object.entries(res.H)) { let s = 0;
+  for (let i = 0; i < H.length; i++) { if (!H[i][3] || (i > s && H[i][5] !== H[s][5])) { s = i + (H[i][3] ? 0 : 1); continue; }
+    if (H[i][0] - H[s][0] >= W) { const win = H.slice(s, i + 1), mv = Math.max(...win.map(q => Math.hypot(q[1] - win[0][1], q[2] - win[0][2])));
+      if (mv < res.mv) { out.miss.windows++; const ok = allSt.some(e => e.id === id && e.tick >= H[s][0] && e.tick <= H[i][0] + res.hz);
+        if (!ok) out.miss.bad.push({ id, from: H[s][0], to: H[i][0], moved: Math.round(mv) }); s = i + 1; }
+      else s++; } } }
+out.verdict = { A: out.A.bad.length ? 'ложные события: ' + out.A.bad.length : 'все ' + out.A.ok + ' событий подтверждены историей', B: out.B.bad.length ? 'срабатывания на законном стоянии: ' + out.B.bad.length : 'на ' + out.B.windows + ' окнах законного стояния — 0 событий',
+  пропуски: out.miss.bad.length ? 'стоял ≥ 5 с, хотел идти, события нет: ' + out.miss.bad.length + ' из ' + out.miss.windows : 'окон «хотел идти и стоял» ' + out.miss.windows + ', все с событием' };
 if (A.out) fs.writeFileSync(A.out, JSON.stringify(out, null, 1));
-console.log(JSON.stringify({ n: out.n, sub: out.sub, ep: out.ep, verdict: out.verdict, Abad: out.A.bad.slice(0, 5), Bbad: out.B.bad.slice(0, 3) }, null, 1));
+console.log(JSON.stringify({ n: out.n, sub: out.sub, ep: out.ep, verdict: out.verdict, Abad: out.A.bad.slice(0, 5), Bbad: out.B.bad.slice(0, 3), miss: out.miss.bad.slice(0, 5) }, null, 1));
