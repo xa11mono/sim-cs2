@@ -1,4 +1,4 @@
-// [хозяева: —] ======================= (v306) РАЗМИНКА перед матчем — только показ, на матч не влияет =======================
+// [хозяева: warmSpawn, warmTick] ======================= (v306) РАЗМИНКА перед матчем — только показ, на матч не влияет =======================
 // Как в CS2: сервер запущен заранее, матч — по расписанию (например, 11:30, сервер с 11:25 → 5 мин разминки игрового времени;
 // сколько — случайно, 3–8 мин, по номеру матча). Все бегают по карте между позициями про (KNOW_POSITIONS), стреляются, убитый
 // возрождается через 2 с на своей половине; бомбы, раундов, экономики и войса нет. Конец (или «Начать матч») — freshMatch(n):
@@ -11,7 +11,7 @@ function warmSpawn(b){
   var q = walk({x: sp.x + Math.cos(a0)*r0, y: sp.y + Math.sin(a0)*r0}) || sp;
   b.baseX = b.x = b.px = q.x; b.baseY = b.y = b.py = q.y; b.alive = true; b.hp = 100; b._wPath = null; b._sawEnemy = false; b._wRespawn = 0;
   b.primary = b.team === "T" ? "AK" : "M4"; b.weapon = WEAPONS[b.primary] || b.weapon; b.ammo = b.weapon.mag; b._reloading = false; b._ammoFor = b.weapon.key;
-  b.armor = true; b.helmet = true; b.armorHp = 100; b._ts = {}; b.contactStreak = 0; b.blindUntil = 0; b.nextShotTick = 0; b.planting = b.defusing = false;
+  b.armor = true; b.helmet = true; b.armorHp = 100; b._ts = {}; b.contactStreak = 0; b.blindUntil = 0; b.nextShotTick = 0; bombActReset(b);
 }
 function warmTurn(b, a, maxA){
   if(b.facing === undefined){ b._visFacing = a; lookFace(b, a, "warm"); return; }

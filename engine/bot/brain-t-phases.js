@@ -102,7 +102,7 @@ function tBrainSetup(K){
             voiceLog("T", "splitdec"+gi+roundNum, mem[0].id, GN.dec[gi] === "merge" ? "своего сняли — сплит отменяем, иду к основной" : "своего сняли — держу здесь, отвлекаю ротацию");
             logEvent("T: сплит — в группе «"+(G.stage || "?")+"» погиб свой — "+(GN.dec[gi] === "merge" ? "к основной группе" : "держат позицию")); }
           if(GN.dec[gi] === "merge"){ var GM = K.tac.groups[gMain], spM = GM.stage ? (zonePoint(GM.stage, K.g.tStage) || K.g.tStage) : K.g.tStage, lkM = GM.look ? (zonePoint(GM.look, spM) || K.g.tEntry) : K.g.tEntry;
-            mem.forEach(function(b){ b._route = null; b._stageInfo = {from:spM, to:lkM, look: GM.look ? SITES[K.tt.site] : K.g.anchor, round:roundNum}; });
+            mem.forEach(function(b){ routeDrop(b); b._stageInfo = {from:spM, to:lkM, look: GM.look ? SITES[K.tt.site] : K.g.anchor, round:roundNum}; });
             groupPost(mem, spM, lkM, "stage"+K.tt.site+(GM.stage ? ":"+GM.stage : ""), {team: "T", rMax:200, minGap:50, hideFrom:[SITES[K.tt.site], lkM], see:[lkM]});
             return; }
         }

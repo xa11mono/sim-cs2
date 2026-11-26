@@ -293,7 +293,7 @@ function tBrainMidTake(K){
       var mp = zonePoint(MT.mid) || GEO.ctMid;
       tsM.sort(function(a, b2){ return DM.hypot(a.x-mp.x, a.y-mp.y) - DM.hypot(b2.x-mp.x, b2.y-mp.y); });
       var fl2 = tsM.slice(0, 2);
-      fl2.forEach(function(b){ b._midFlank = {round:roundNum, site:K.tt.site}; b._route = null; b._routeDone = null;
+      fl2.forEach(function(b){ b._midFlank = {round:roundNum, site:K.tt.site}; routeDrop(b, true);
         startRoute(b, MT.route, "midct"+roundNum); });
       K.tt.execTick = Math.max(tick + 18*TICK_HZ, Math.min(K.tt.execTick, tick + 30*TICK_HZ));
       voiceLog("T", "midtake", midKill.by, "мид наш! "+fl2.map(function(b){ return b.id; }).join(" и ")+" — через "+MT.via+", "+K.tt.site+" с двух сторон");

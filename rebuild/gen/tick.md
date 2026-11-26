@@ -4,6 +4,7 @@
 Это порядок вызовов в коде, а не замер: что срабатывает в тике — по условиям. Слои фазы 2 (знания → намерения → согласование → исполнители → физика) — в «Устройстве».
 
 - `zoneDangerSync` (vision)
+- `clockTick` (tick)
 - `simTimeSet` (round)
     - `resetRound` (round) — если simTime - roundEndTime >= ROUND_RESTART_DELAY_SEC
     - `matchBegin` (round) — если simTime - roundEndTime >= 7

@@ -231,7 +231,7 @@ function resetRound(){
   resetTeamIntel();
   beliefReset();
   clutchShown = null; clutchInfo = null;
-  bots.forEach(function(b){ b.roundKills = 0; b.roundDmg = 0; b._dmgBy = null; b._blindBy = null; placeResetPost(b); b.atPost = false; b.planting = false; b.defusing = false; b._saveSpot = null; b._huntIdx = undefined; b._huntArrive = 0; b._lurkIdx = 0; b._lurkArr = 0; b._lurkPh = undefined; });
+  bots.forEach(function(b){ b.roundKills = 0; b.roundDmg = 0; b._dmgBy = null; b._blindBy = null; placeResetPost(b); b.atPost = false; bombActReset(b); b._saveSpot = null; b._huntIdx = undefined; b._huntArrive = 0; b._lurkIdx = 0; b._lurkArr = 0; b._lurkPh = undefined; });
   spotCache = {};
   resetNades();
   buyPhase();   // (v428) выбор тактики — внутри, до закупа

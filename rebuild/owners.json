@@ -139,6 +139,9 @@
     "files": [
       "move",
       "tick",
+      "tick-step",
+      "tick-jump",
+      "tick-keys",
       "levels"
     ],
     "allow": [
@@ -152,6 +155,9 @@
     "files": [
       "move",
       "tick",
+      "tick-step",
+      "tick-jump",
+      "tick-keys",
       "levels"
     ],
     "allow": [
@@ -165,6 +171,9 @@
     "files": [
       "move",
       "tick",
+      "tick-step",
+      "tick-jump",
+      "tick-keys",
       "levels"
     ],
     "allow": [
@@ -306,5 +315,95 @@
     ],
     "enforce": true,
     "since": "Р3.2 знание ш.3, 26.11: одна точка записи (engine/know/knowledge.js)"
+  },
+  "planting": {
+    "channel": "бомба",
+    "files": [
+      "bomb"
+    ],
+    "allow": [
+      "bombActAbort",
+      "bombActReset"
+    ],
+    "enforce": true,
+    "since": "Р3.2 ход ш.2, 26.11: плант / дефуз — у хозяина бомбы (engine/match/bomb.js); ход прерывает через bombActAbort"
+  },
+  "defusing": {
+    "channel": "бомба",
+    "files": [
+      "bomb"
+    ],
+    "allow": [
+      "bombActAbort",
+      "bombActReset"
+    ],
+    "enforce": true,
+    "since": "Р3.2 ход ш.2, 26.11: плант / дефуз — у хозяина бомбы (engine/match/bomb.js); ход прерывает через bombActAbort"
+  },
+  "_route": {
+    "channel": "место",
+    "files": [
+      "task"
+    ],
+    "allow": [
+      "routeDrop"
+    ],
+    "enforce": true,
+    "since": "Р3.2 место / ход, 26.11: маршрут — у хозяина места (engine/bot/task.js); снаружи — routeDrop"
+  },
+  "_routeDone": {
+    "channel": "место",
+    "files": [
+      "task"
+    ],
+    "allow": [
+      "routeDrop"
+    ],
+    "enforce": true,
+    "since": "Р3.2 место / ход, 26.11: маршрут — у хозяина места (engine/bot/task.js); снаружи — routeDrop"
+  },
+  "baseX": {
+    "channel": "ход",
+    "files": [
+      "move",
+      "tick",
+      "tick-step",
+      "tick-jump",
+      "tick-keys"
+    ],
+    "allow": [
+      "movePlace",
+      "ladderTick",
+      "resetRound",
+      "warmSpawn",
+      "warmTick",
+      "sbPlace",
+      "dvPlace"
+    ],
+    "enforce": true,
+    "since": "Р3.2 ход ш.2, 26.11: позиция бота — у хода (engine/bot/move.js, движок шага engine/core/tick*); бой — через movePlace",
+    "why": "кроме хода: подъём по лестнице (ladderTick — движок подъёма), расстановка на спавн (resetRound), режимы страницы (разминка, песочница, просмотр демки) ставят бота сами; новые писатели — ошибка сборки"
+  },
+  "baseY": {
+    "channel": "ход",
+    "files": [
+      "move",
+      "tick",
+      "tick-step",
+      "tick-jump",
+      "tick-keys"
+    ],
+    "allow": [
+      "movePlace",
+      "ladderTick",
+      "resetRound",
+      "warmSpawn",
+      "warmTick",
+      "sbPlace",
+      "dvPlace"
+    ],
+    "enforce": true,
+    "since": "Р3.2 ход ш.2, 26.11: позиция бота — у хода (engine/bot/move.js, движок шага engine/core/tick*); бой — через movePlace",
+    "why": "кроме хода: подъём по лестнице (ladderTick — движок подъёма), расстановка на спавн (resetRound), режимы страницы (разминка, песочница, просмотр демки) ставят бота сами; новые писатели — ошибка сборки"
   }
 }

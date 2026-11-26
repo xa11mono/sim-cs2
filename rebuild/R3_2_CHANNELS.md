@@ -33,3 +33,9 @@
   `NADE_FAIL` остался для журнала и инструментов; регулярка по нему в коде игры — ошибка сборки.
 - **знание ш.3:** `heardSound` / `lastIntel` — одна точка записи `knowHear` / `knowSound` / `knowIntel` (`engine/know/knowledge.js`,
   32 места в 15 файлах), запись — в след (канал «знание»); `owners.json` — `enforce`.
+- **ход ш.2 (зависимости, которые уходят):** плант / дефуз прерывает хозяин бомбы (`bombActAbort`, сброс — `bombActReset`; `planting` /
+  `defusing` — `enforce`); маршрут снимает хозяин места (`routeDrop`, 8 мест в 5 файлах; `_route`, `_routeDone` — `enforce`); бой двигает
+  бота через ход (`movePlace`; `baseX` / `baseY` — `enforce`, исключения списком: лестница, спавн, режимы страницы).
+- **место (TaskKind):** таблица видов задач `rebuild/task_kinds.json` (`tools/rebuild/task_kinds.js`), неописанный тег — ошибка сборки.
+- **Р4.4:** `tick.js` → 4 модуля (`stepTick` пишет счёт тиков через `clockTick()` у часов), `draw.js` → 5 файлов.
+

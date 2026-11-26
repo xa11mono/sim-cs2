@@ -1,4 +1,4 @@
-// [хозяева: clearPost, clearPostDo, detourOk, placeResetPost, placeStance, routeTick, setPost, setPostDo, startRoute, taskDetourKind, taskProp, updatePost] ---------- посты: "куда встать и куда смотреть" ----------
+// [хозяева: clearPost, clearPostDo, detourOk, placeResetPost, placeStance, routeDrop, routeTick, setPost, setPostDo, startRoute, taskDetourKind, taskProp, updatePost] ---------- посты: "куда встать и куда смотреть" ----------
 // Когда у бота в патруле есть пост — он идёт к нему, а дойдя (hold) стоит и
 // смотрит в look. Бой (engage/hold/retreat) по-прежнему перебивает всё.
 // ---- маршруты по названиям зон ----
@@ -274,6 +274,11 @@ function taskKeepUntil(b, tag){
 }
 // (17.11, перестройка, фаза 3 шаг 3) срок перестановки в бою (repos:*) — у арбитра места: механики не пишут свой замок _reposUntil
 // (было 32 места в 8 файлах), а просят taskKeep(b, до_тика, причина); читают — taskKeepUntil(b, "repos"). Причина — b._keepWhy
+// (Р3.2 место / ход, 26.11) маршрут (_route) — у хозяина места: снять его снаружи (смена плана IGL, лёрк, стадия, сброс раунда) — только
+// так; done: true — стереть отметку «маршрут пройден» (_routeDone), "пройден" — поставить её по снимаемому маршруту. Порядок записей — прежний
+function routeDrop(b, done){
+  if(done === "пройден"){ if(b._route) b._routeDone = b._route.key + "|" + roundNum; b._route = null; return; }
+  b._route = null; if(done) b._routeDone = null; }
 function taskKeep(b, until, why){ b._reposUntil = until; b._keepWhy = why; }
 function taskTagB(tag){ tag = String(tag); var r = /^repos:\w+/.exec(tag); return r ? r[0] : tag.replace(/[:|].*$/, ""); }
 function taskLevel(tag){ tag = String(tag || ""); for(var i=0;i<TASK_LEVEL.length;i++) if(TASK_LEVEL[i].re.test(tag)) return TASK_LEVEL[i].lv; return 1; }

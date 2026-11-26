@@ -1,4 +1,4 @@
-// [хозяева: movePath, moveRunWhy, moveSpeed, moveSpeedTick, moveWalk, moveWalkTick, moveWalkWhy] ======================= (v522) РЕЖИМ ДВИЖЕНИЯ — одно место: шагом / бегом / стоять =======================
+// [хозяева: movePath, movePlace, moveRunWhy, moveSpeed, moveSpeedTick, moveWalk, moveWalkTick, moveWalkWhy] ======================= (v522) РЕЖИМ ДВИЖЕНИЯ — одно место: шагом / бегом / стоять =======================
 // Раньше эти решения были размазаны по stepTick одним условием из полутора десятков причин и цепочкой отмен после него.
 // Логика перенесена сюда БЕЗ изменений (тот же порядок проверок, отпечаток бит в бит) — но теперь у решения есть причина:
 //   bot._walkWhy — почему идёт шагом (null — не шагом), bot._runWhy — какая отмена сняла шаг (null — не снимала),
@@ -18,6 +18,9 @@ var MOVE = {run: 0, burn: null};   // выход moveSpeedTick: скорость
 // разминка (warmup), повтор (replay), песочница (sandbox), демо (demo). Причина — b._moveWhy.
 // (17.11, перестройка, фаза 3 шаг 3) «подождать флешку перед выходом» — причина стоять у хода; механики (размен 190, ранний выход CT 320,
 // просьба о флешке 365, флешка под пик 380, своя флешка 410, сейв 180) не пишут _waitPopUntil / _waitPopKey, а просят moveWaitPop
+// (Р3.2 ход ш.2, 26.11) сдвинуть бота на точку (бой: шаг стрейфа, отход за укрытие) — позицию пишет ход, не бой. vis — и видимую (x, y)
+// сразу. Порядок записей — прежний (baseX, baseY, затем x, y)
+function movePlace(b, x, y, vis){ b.baseX = x; b.baseY = y; if(vis){ b.x = x; b.y = y; } }
 function moveWaitPop(b, until, key, why){ b._waitPopUntil = until; if(key !== undefined) b._waitPopKey = key; b._moveWhy = why; }
 function movePath(b, p, why){ b.path = p; b._moveWhy = why; }
 function moveSpeed(b, v, why){ b.curSpeed = v; b._moveWhy = why; }
@@ -137,9 +140,8 @@ function moveSpeedTick(bot, runSpeed, BRAKE_RADIUS, maxDelta){
   if(burn && !fireCommit(bot)){
     // Из огня бот ВЫХОДИТ обычным бегом по пути к ближайшему краю (раньше его
     // каждый тик сдвигало наружу напрямую — выглядело как отбрасывание).
-    if(bot.defusing){ bot.defuseCooldownUntil = tick + 32; logEvent(bot.id+" прервал дефуз — молотов, не доживёт"); }
-    if(bot.planting){ bot._noPlantUntil = tick + 32; bot._plantAbort = {t:tick, why:"огонь"}; logEvent(bot.id+" прервал плант — молотов, не доживёт"); }
-    bot.atPost = false; bot.defusing = false; bot.planting = false;
+    bombActAbort(bot, "огонь", "молотов, не доживёт");   // (Р3.2 ход ш.2) плант / дефуз прерывает хозяин бомбы, не ход
+    bot.atPost = false;
     bot._burning = true;
     if(!bot._fireExit || inFire(bot._fireExit.x, bot._fireExit.y, bot.z) || bot._fireExitFire !== burn){
       var best = null, bd = Infinity;

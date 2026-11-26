@@ -259,6 +259,6 @@ function nadeCancel(b, why){ nadeTaskEnd(b, why, 0, true); b._nadeWhy = why; }
 function resetNades(){
   nadesInAir.length = 0; smokes.length = 0; fires.length = 0; nadeFx.length = 0; nadeFlagsReset(); groundWeapons.length = 0; groundItems.length = 0;
   comboCdReset();
-  bots.forEach(function(b){ b._route = null; b.nadeTask = null; b.nadeQueue = null; b.blindUntil = 0; b.throwUntil = 0; b._fireAcc = 0; b._fireIn = null; b._nadeCd = 0; if(!b.nades) b.nades = emptyNades(); });
+  bots.forEach(function(b){ routeDrop(b); b.nadeTask = null; b.nadeQueue = null; b.blindUntil = 0; b.throwUntil = 0; b._fireAcc = 0; b._fireIn = null; b._nadeCd = 0; if(!b.nades) b.nades = emptyNades(); });
 }
 

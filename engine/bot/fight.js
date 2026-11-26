@@ -154,7 +154,7 @@ function fightStrafe(b, F, dtSec){
     if(stepBlocked(b.baseX, b.baseY, nx, ny, b)){ F.sv = 0; F.sdir = -F.sdir; F.legT = 0; }
     else if(b._sawEnemy && hasLOS(b.baseX, b.baseY, e.x, e.y, b.z, e.z) && !hasLOS(nx, ny, e.x, e.y, b.z, e.z)){
       var sg = F.sv < 0 ? -1 : 1, dE = csDecel(Math.abs(F.sv), vmax)*dtSec; F.sdir = -sg; F.legT = 0; F.sv = Math.abs(F.sv) <= dE ? 0 : F.sv - sg*dE; }
-    else { b.baseX = nx; b.baseY = ny; }
+    else movePlace(b, nx, ny);
   }
   moveSpeed(b, Math.abs(F.sv), "strafe"); moveWalk(b, false, "strafe");
 }
@@ -378,7 +378,7 @@ function fightCycleTick(b, dtSec, busy){
   F.mv = mv;
   var stp = Math.min(d, mv*dtSec), nx = b.baseX + (tx-b.baseX)/d*stp, ny = b.baseY + (ty-b.baseY)/d*stp;
   if(stepBlocked(b.baseX, b.baseY, nx, ny, b)){ b._fc = null; fcWhy(b, "конец: упёрся по пути к укрытию"); return; }
-  b.baseX = nx; b.baseY = ny; F.moving = true; placeStance(b, false, "fight-move"); moveWalk(b, false, "strafe");
+  movePlace(b, nx, ny); F.moving = true; placeStance(b, false, "fight-move"); moveWalk(b, false, "strafe");
 }
 // ---- (3) безопасная ротация: путь мимо известных T ----
 // опасность пути: рядом (≤380px) со свежей (≤10с) позицией живого T или через

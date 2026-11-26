@@ -54,7 +54,7 @@ function lurkerBrain(b, tt, other){
     if(SO){
       if(b._sawEnemy || ROUND_TIME_SEC - (simTime - roundStartTime) <= EXU_LATE){ b._lurkSolo = null; }   // бой — свой контакт (contact); мало времени — к своим
       else { var si = Math.min(SO.i, SO.route.length-1), lk = si < SO.route.length-1 ? SO.route[si+1] : GEO[tt.site].ctEntry;
-        b._route = null; setPost(b, SO.route[si], lk, true, si === SO.route.length-1 ? "lurkRot" : "lurk"+si);
+        routeDrop(b); setPost(b, SO.route[si], lk, true, si === SO.route.length-1 ? "lurkRot" : "lurk"+si);
         if(b.atPost){ if(!SO.t) SO.t = tick; if(tick - SO.t > LURK_CHECK*TICK_HZ && si < SO.route.length-1){ SO.i = si+1; SO.t = 0; } }
         return; }
     }
@@ -82,7 +82,7 @@ function lurkerBrain(b, tt, other){
     var site = SITES[tt.site], gs = GEO[tt.site];
     if(!b._lurkGo || b._lurkGo.round !== roundNum || b._lurkGo.site !== tt.site){
       var nearOther = DM.hypot(b.x-LP.entry.x, b.y-LP.entry.y) < 500, soloOn = b._lurkSolo && b._lurkSolo.round === roundNum;
-      b._route = null; b._routeDone = null;   // маршрут лёрка сетапа — закончен
+      routeDrop(b, true);   // маршрут лёрка сетапа — закончен
       // (ответ владельца 05.11) прошёл свою сторону сам до выхода — поздний выход оттуда: с прохода ротации в спину сайту выхода
       b._lurkGo = {round:roundNum, site:tt.site, route: soloOn ? [GEO.rotator, gs.ctEntry] : nearOther ? [LP.entry, go.anchor, GEO.rotator, gs.ctEntry] : [gs.tStage || gs.tEntry, gs.tEntry], i:0, t:0};
       voiceLog("T", "lurkgo"+roundNum, b.id, soloOn ? "иду в спину на "+tt.site : nearOther ? "режу ротацию с "+other : "иду к вам на "+tt.site);

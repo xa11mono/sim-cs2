@@ -10,6 +10,7 @@ var lastFrame = null;
 // (сброс матча 530, разминка 660, повтор 675, демо 678, кадр и кнопки 680 — через них; импорт модуля только для чтения)
 function clockPause(on){ paused = on; }
 function clockSet(t){ tick = t; }
+function clockTick(){ tick++; }
 function clockAcc(v){ accumulator = v; }
 function clockFrameDt(ts){ if(lastFrame===null) lastFrame = ts; var dt = ts - lastFrame; lastFrame = ts; return dt; }
 roundSetState(BAL.freeze > 0 ? "freeze" : "live");

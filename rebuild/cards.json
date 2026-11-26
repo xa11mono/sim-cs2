@@ -103,6 +103,7 @@
     "detourOk",
     "placeResetPost",
     "placeStance",
+    "routeDrop",
     "routeTick",
     "setPost",
     "setPostDo",
@@ -116,6 +117,8 @@
   "bomb.js": {
    "mech": "бомба: bombTick, урон взрыва bombDamageAt (BOMB_DMG), куда бежать bombFleePoint, дефуз",
    "owns": [
+    "bombActAbort",
+    "bombActReset",
     "bombDamageAt",
     "bombFleePoint",
     "bombTick"
@@ -571,6 +574,7 @@
    "mech": "шагом / бегом / стоять (одно место, v522): moveWalkWhy (причина шага), moveRunWhy (отмена шага), moveWalkTick, целевая скорость moveSpeedTick; причины у бота _walkWhy / _runWhy / _stopWhy",
    "owns": [
     "movePath",
+    "movePlace",
     "moveRunWhy",
     "moveSpeed",
     "moveSpeedTick",
@@ -688,7 +692,10 @@
   },
   "warmup.js": {
    "mech": "разминка warm*; автообсервер obs* (числа OBS_K, бой obsFight, слежка OBS.lock), мини-карта; повтор клатча rp* (запись rpRecord, клип rpBuild, эмоции rpEmotions, перейти к раунду rpGoto / #round=М.Р); звук snd*, разбор событий игры для показа showSync (звуки, баннеры, карточка раунда, закупка), главн",
-   "owns": [],
+   "owns": [
+    "warmSpawn",
+    "warmTick"
+   ],
    "src": "таблица «Где что»"
   },
   "observer.js": {
@@ -725,7 +732,9 @@
   },
   "demo.js": {
    "mech": "(v571) РАУНД ИЗ ДЕМКИ («режим тени», В136) — одно место",
-   "owns": [],
+   "owns": [
+    "dvPlace"
+   ],
    "src": "шапка файла"
   },
   "app.js": {

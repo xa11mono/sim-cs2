@@ -79,7 +79,7 @@ function tIglReplan(tt, site, other, secLeft){
     if(!tt.regroup && untraded >= 2 && aliveT <= 3 && aliveCT >= aliveT && iglTake(tt, sd[sd.length-1].tick)){
       var lk = bots.filter(function(b){ return b.team === "T" && b.alive && b.tRole === "lurker"; })[0];
       tt.regroup = tick;
-      if(lk){ lk._route = null; lk._routeDone = null; }
+      if(lk){ routeDrop(lk, true); }
       tt.execTick = Math.max(tt.execTick, tick + 5*TICK_HZ); // дать дойти
       voiceLog("T", "regroup", "IGL", "минус два — "+(lk ? lk.id+" к нам, " : "")+"заходим все вместе");
       logEvent("IGL: потеряли двоих без размена — перегруппировка"+(lk ? " (лёркер "+lk.id+" к основной группе)" : ""));
@@ -124,7 +124,7 @@ function tIglReplan(tt, site, other, secLeft){
       tsA.forEach(function(b){ ctr.x += b.x/tsA.length; ctr.y += b.y/tsA.length; });
       var travel = DM.hypot(ctr.x-SITES[other].x, ctr.y-SITES[other].y)*1.4/SPEED;
       var goOther = otherB < 1.2 && secLeft > travel + 15 && !tSiteTaking(tt);   // (22.11, Ж16)
-      tsA.forEach(function(b){ b._route = null; b._routeDone = null; b._stageInfo = null; });
+      tsA.forEach(function(b){ routeDrop(b, true); b._stageInfo = null; });
       tt.takeAssign = null; tt.plantPick = null; tt.wave2 = null; tt.w1Contact = null; tt._popDone = false; tt._waitLog = false;
       nadeFlags.tExec = false; nadeFlags.tExecSm = false; nadeFlags.peekFlashPlanned = false;
       if(goOther){
@@ -214,8 +214,7 @@ function tSetSite(tt, site){ var _ev = simEvIn("tSetSite", arguments);
     if(b.team !== "T") return;
     // маршрут тактики задан под старый сайт — снят и помечен пройденным, чтобы тактика не запустила его заново
     // (раньше два пути смены обнуляли и «пройден», и группа снова шла по маршруту к старому сайту)
-    if(b._route) b._routeDone = b._route.key + "|" + roundNum;
-    b._route = null; b._stageInfo = null;
+    routeDrop(b, "пройден"); b._stageInfo = null;
     // (п.4 владельца 29.10, м1 р2: после перекола B→A носитель ещё 3 с шёл на «stageB» в B Apartments) пост под старый сайт (стадия,
     // зачистка, удержание) — снят: новый даст тактика под новый сайт
     var tg = b.post && b.post.tag;

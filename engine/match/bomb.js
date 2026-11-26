@@ -1,4 +1,4 @@
-// [хозяева: bombDamageAt, bombFleePoint, bombTick] ---------- бомба ----------
+// [хозяева: bombActAbort, bombActReset, bombDamageAt, bombFleePoint, bombTick] ---------- бомба ----------
 var DEFUSE_JUDGE = 0.3;   // (v519) с — ошибка оценки таймера игроком, проектное число
 var PLANT_TICKS = Math.round(3.2*64), BOMB_TICKS = 40*64, DEFUSE_TICKS = 10*64, DEFUSE_KIT_TICKS = 5*64;
 // (v271) Урон взрыва — как в CS2 после июля 2025: волна расходится по карте от бомбы, углы и
@@ -8,6 +8,15 @@ var PLANT_TICKS = Math.round(3.2*64), BOMB_TICKS = 40*64, DEFUSE_TICKS = 10*64, 
 // путь 1500–1750 → 60, 1750–2000 → 37, 2000–2250 → 31, 2250–2500 → 17, 2500–3000 → 5; до ~500 — гибнут.
 // Броня не учитывается отдельно: в демках урон по HP у игроков почти всегда в броне.
 var BOMB_DMG = {max:182, sigma:1091/2.5, reach:2900/2.5};   // px (1 px = 2.5 юнита, PX_UNITS)
+// (Р3.2 ход ш.2, 26.11) прервать плант / дефуз по причине из другого канала (ход: выбегает из огня) — запись полей бомбы только здесь.
+// Порядок и тексты — прежние (были в engine/bot/move.js): пауза дефуза / планта 0,5 с, причина отмены планта, запись в журнал
+function bombActAbort(bot, why, text){
+  if(bot.defusing){ bot.defuseCooldownUntil = tick + 32; logEvent(bot.id+" прервал дефуз — " + text); }
+  if(bot.planting){ bot._noPlantUntil = tick + 32; bot._plantAbort = {t:tick, why:why}; logEvent(bot.id+" прервал плант — " + text); }
+  bombActReset(bot);
+}
+// сброс планта / дефуза (смерть, новый раунд, разминка) — те же две записи, что были у вызывающих
+function bombActReset(b){ b.planting = false; b.defusing = false; }
 function bombPathLen(x, y){
   if(!bomb) return Infinity;
   var C = bomb._pathC || (bomb._pathC = {}), k = Math.round(x/8)+","+Math.round(y/8);
