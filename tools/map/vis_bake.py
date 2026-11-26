@@ -214,7 +214,7 @@ def bots(runs, sim):
 
 
 if __name__ == '__main__':
-    sim = os.path.join(ROOT, 'sim.html')
+    sim = os.path.join(ROOT, 'dist', 'sim.html')
     if len(sys.argv) > 2 and sys.argv[1] == '--bots':
         B = bots(sys.argv[2:], sim)
         P = json.load(open(os.path.join(ROOT, 'src', 'data', 'trades.json'))).get('vis', {})

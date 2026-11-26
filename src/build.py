@@ -1,5 +1,5 @@
 # Сборка (v239: игра — v166; v377: исходник — модули src/game/NNN_*.js|html, склейка — src/gamesrc.py; ветка rebuild-v238 — старая модульная версия).
-# python3 src/build.py [--map ancient] [куда]  → sim.html (с тестовым входом window.__ev для замеров)
+# python3 src/build.py [--map ancient] [куда]  → dist/sim.html (с тестовым входом window.__ev для замеров)
 # v255: на место метки @@BUILD@@ вставляется «Отметить момент» (src/marks_build.py)
 # v317: на место метки @@MAP@@ — набор выбранной карты из data/maps/<карта>/ (src/mapset.py)
 import sys, os
@@ -8,7 +8,8 @@ from marks_build import inject
 from mapset import map_arg, inject_map
 from gamesrc import game_source   # v377: исходник игры — склейка src/game/*
 name, args = map_arg(sys.argv[1:])
-out = args[0] if args else os.path.join(HERE, '..', 'sim.html')
+out = args[0] if args else os.path.join(HERE, '..', 'dist', 'sim.html')   # (Р4.3) артефакты сборки — dist/
+os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
 s = inject_map(inject(game_source()), name)
 open(out, 'w', encoding='utf-8').write(s)
 from gamesrc import bundle_modules; bundle_modules(out)   # (17.11, перестройка — модули) каналы-модули — esbuild

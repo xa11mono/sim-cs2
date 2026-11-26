@@ -110,7 +110,7 @@ def run_bots(runs, sim):
     return collect(meta, V.evaluate(pairs, sim).strip(), TB)
 
 if __name__ == '__main__':
-    sim = os.path.join(ROOT, 'sim.html')
+    sim = os.path.join(ROOT, 'dist', 'sim.html')
     if sys.argv[1] == 'pro':
         R = run_pro(sim); json.dump(R, open(os.path.join(HERE, 'runs', 'memory_pro.json'), 'w'), ensure_ascii=False, indent=1)
     else:

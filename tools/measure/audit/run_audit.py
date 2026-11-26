@@ -6,7 +6,7 @@ import sys, os, subprocess
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(os.path.dirname(os.path.dirname(HERE)))
 args = [a for a in sys.argv[1:] if not a.startswith('--')]
 label = args[0] if args else 'audit'
-sim = os.path.join(ROOT, 'sim.html'); matches = [3, 7, 11, 13, 17, 19]; ticks = 200000; jobs = 2; rec = 'audit_rec.js'; prefix = 'aud'
+sim = os.path.join(ROOT, 'dist', 'sim.html'); matches = [3, 7, 11, 13, 17, 19]; ticks = 200000; jobs = 2; rec = 'audit_rec.js'; prefix = 'aud'
 for a in sys.argv[1:]:
     if a.startswith('--sim='): sim = os.path.abspath(a.split('=', 1)[1])
     if a.startswith('--matches='): matches = [int(x) for x in a.split('=')[1].split(',')]

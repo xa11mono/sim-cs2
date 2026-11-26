@@ -130,12 +130,12 @@ const CMDS = {
   context, graph,
   inv: a => run('node', [path.join(ROOT, 'tools', 'measure', 'inv_run.js')].concat(a)),
   diverge: a => run('node', [path.join(ROOT, 'tools', 'measure', 'diverge.js')].concat(a)),
-  health: a => run(PY, [path.join(ROOT, 'tools', 'health.py')].concat(pos(a).length ? pos(a) : ['sim.html'])),
+  health: a => run(PY, [path.join(ROOT, 'tools', 'health.py')].concat(pos(a).length ? pos(a) : [path.join(ROOT, 'dist', 'sim.html')])),
   typecheck: a => run('node', [path.join(ROOT, 'tools', 'rebuild', 'typecheck.js')].concat(a)),
   tomain: a => run('node', [path.join(ROOT, 'tools', 'rebuild', 'to_main.js')].concat(a)),
 };
 const HELP = `node tools/sim.js <команда> — единая точка входа (Р0.3)
-  build [--map=ancient|mirage] [куда]     сборка тестовой страницы (src/build.py) → sim.html
+  build [--map=ancient|mirage] [куда]     сборка тестовой страницы (src/build.py) → dist/sim.html
   pub --map=<карта>                       публикуемая страница (src/mkpub.py) → <карта>-radar.html
   fp <sim.html> <папка> [--matches=…]     отпечаток матчей (как tools/measure/fingerprint.sh) + env.json
   fpdiff <папка1> <папка2>                 сравнить отпечатки: бит в бит или первый различный раунд

@@ -121,7 +121,7 @@ def run_pro():
         print(demo, file=sys.stderr)
     print('проверка на убийствах:', dict(A.check), file=sys.stderr)
     if '--nolos' in sys.argv: return {'проверка': dict(A.check)}
-    A.finish(os.path.join(ROOT, 'sim.html')); R = A.out(); R['проверка на убийствах'] = dict(A.check); return R
+    A.finish(os.path.join(ROOT, 'dist', 'sim.html')); R = A.out(); R['проверка на убийствах'] = dict(A.check); return R
 
 def run_bots(labels):
     A = Acc()
@@ -140,7 +140,7 @@ def run_bots(labels):
                     S = [q for q in L if t0 <= q[0] <= t1]
                     if S: players[b] = ([q[0] for q in S], [q[3] for q in S], [q[4] for q in S], [q[5] for q in S], S[0][2])
                 process(players, SH, A, t0, r.get('plant') or t1)
-    A.finish(os.path.join(ROOT, 'sim.html')); return A.out()
+    A.finish(os.path.join(ROOT, 'dist', 'sim.html')); return A.out()
 
 if __name__ == '__main__':
     if sys.argv[1] == 'pro':

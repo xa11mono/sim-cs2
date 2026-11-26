@@ -13,7 +13,7 @@ for f in ('metrics.py','extra.py','mech.py','smooth.py'):
 args=[a for a in sys.argv[1:] if not a.startswith('--')]
 label=args[0] if args else time.strftime('run_%H%M')
 matches=[3,7,11,13,17,19,23,29]
-SIMFILE='sim.html'   # --sim=путь: замерить другую сборку (например, старую версию)
+SIMFILE='dist/sim.html'   # (Р4.3) сборка — dist/; --sim=путь: замерить другую сборку (например, старую версию)
 for a in sys.argv[1:]:
     if a.startswith('--matches'): matches=[int(x) for x in a.split('=')[1].split(',')]
     if a.startswith('--sim='): SIMFILE=os.path.abspath(a.split('=',1)[1])
