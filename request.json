@@ -1,0 +1,16 @@
+{
+ "par": 8,
+ "resume": true,
+ "fp": [
+  {
+   "label": "v626a_r4_anc",
+   "ref": "0ef43aa9668dccd4279f257d19ce4ba644f72873",
+   "map": "ancient"
+  },
+  {
+   "label": "v626a_r4_mir",
+   "ref": "0ef43aa9668dccd4279f257d19ce4ba644f72873",
+   "map": "mirage"
+  }
+ ]
+}
