@@ -1,4 +1,4 @@
-// [хозяева: buyPhase, coreLoadEnd, endRound, freshMatch, resetRound, sideSwapNow, swapSides]
+// [хозяева: buyPhase, coreLoadEnd, endRound, freshMatch, resetRound, runMatch, sideSwapNow, swapSides]
 function buyPhase(){
   showEv("buyShow", tick, bots.map(function(b){ return {id: b.id, team: b.team, _knife: b._knife, weapon: b.weapon, helmet: b.helmet, armor: b.armor, kit: b.kit, nades: Object.assign({}, b.nades), primary: b.primary, secondary: b.secondary}; }));   // (17.11) снаряжение до закупа — для показа закупки по одной (scoreboard)
   ["CT","T"].forEach(function(team){
@@ -250,4 +250,23 @@ function coreLoadEnd(){
   BOT_INIT = bots.map(function(b){ var o = {keys:{}, vals:{}}; for(var k in b){ o.keys[k] = 1; var v = b[k]; if(v === null || (typeof v !== "object" && typeof v !== "function")) o.vals[k] = v; } return o; });
   // (Т-2) состояние после загрузки — для чистого старта следующих матчей в этой странице (530 matchBegin → mkMatchClean); до разминки
   if(typeof mkSnapshot === "function") MK_LOAD = mkSnapshot();
+}
+// (Р5.3, 26.11) вход ядра без окна: матч целиком по номеру → итог раундов и события. Для Node (tools/node/core_run.js),
+// freshMatch(номер), stepTick до конца матча; события — подпиской simEvOn (только чтение, Р0.4).
+var RUN_MATCH = null;        // идущий вызов runMatch: куда складывать события; вне вызова подписки ничего не делают
+var RUN_MATCH_SUB = false;   // подписки поставлены (один раз на загрузку ядра)
+function runMatch(cfg){
+  cfg = cfg || {};
+  if(!RUN_MATCH_SUB){ RUN_MATCH_SUB = true;
+    simEvOn("endRound", function(ph, A){ if(ph === "in" && RUN_MATCH) RUN_MATCH.rounds.push({round: roundNum, tick: tick, winner: A[0], reason: A[1], bomb: bomb && bomb.state}); });
+    simEvOn("feedKill", function(ph, A){ if(ph === "in" && RUN_MATCH) RUN_MATCH.kills.push({tick: tick, round: roundNum, att: A[0] ? A[0].id : null, vic: A[1].id, weapon: String(A[2]), hs: !!A[3]}); });
+    simEvOn("throwNade", function(ph, A){ if(ph === "in" && RUN_MATCH) RUN_MATCH.nades.push({tick: tick, round: roundNum, bot: A[0].id, type: A[1]}); }); }
+  var max = cfg.maxTicks || 400000, R = RUN_MATCH = {rounds: [], kills: [], nades: []};
+  try {
+    freshMatch(cfg.match || 1);
+    var M0 = matchNum, T1 = tick;
+    for(var t = 0; t < max; t++){ stepTick(); if(matchNum !== M0) break; T1 = tick; if(cfg.onTick) cfg.onTick(tick); }
+    var won = {T: 0, CT: 0}; R.rounds.forEach(function(r){ if(won[r.winner] != null) won[r.winner]++; });
+    return {match: M0, ticks: matchNum !== M0 ? T1 + 1 : tick, finished: matchNum !== M0, score: won, rounds: R.rounds, kills: R.kills, nades: R.nades};
+  } finally { RUN_MATCH = null; }
 }

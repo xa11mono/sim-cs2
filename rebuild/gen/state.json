@@ -7228,6 +7228,32 @@
    },
    "snap": true
   },
+  "RUN_MATCH": {
+   "decl": "round.js:256",
+   "init": "Literal",
+   "w": {
+    "runMatch · round": 2
+   },
+   "m": {
+    "runMatch · round": 3
+   },
+   "r": {
+    "round": 6
+   },
+   "snap": "нет: STATIC"
+  },
+  "RUN_MATCH_SUB": {
+   "decl": "round.js:257",
+   "init": "Literal",
+   "w": {
+    "runMatch · round": 1
+   },
+   "m": {},
+   "r": {
+    "round": 1
+   },
+   "snap": "нет: STATIC"
+  },
   "RUN_NEAR": {
    "decl": "throw.js:490",
    "init": "Literal",
@@ -9863,7 +9889,7 @@
     "replay": 23,
     "replay-play": 3,
     "roles": 9,
-    "round": 8,
+    "round": 10,
     "sandbox": 4,
     "save-retake": 80,
     "scoreboard": 7,
@@ -10869,7 +10895,7 @@
     "problem-watch": 2,
     "replay": 5,
     "replay-play": 2,
-    "round": 4,
+    "round": 8,
     "save-retake": 2,
     "scoreboard": 2,
     "sites-spots": 1,
@@ -11413,7 +11439,7 @@
     "replay": 5,
     "replay-play": 6,
     "roles": 8,
-    "round": 17,
+    "round": 20,
     "save-retake": 3,
     "scoreboard": 2,
     "self": 3,
@@ -12124,7 +12150,7 @@
     "replay": 12,
     "replay-play": 2,
     "roles": 15,
-    "round": 5,
+    "round": 12,
     "sandbox": 2,
     "save-retake": 25,
     "scoreboard": 3,

@@ -8,7 +8,7 @@ ref — ветка или коммит, чью игру играть; инстр
 import sys, os, json, subprocess, shutil, tempfile
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(os.path.dirname(HERE))
 PY = sys.executable
-sys.path.insert(0, HERE); import procguard   # (Р2.6) защита памяти ПК
+sys.path.insert(0, HERE); import procguard, fingerprint_jobs   # (Р2.6) защита памяти ПК; (26.11) задания отпечатков — fingerprint_jobs.py
 
 # вне папки репо: открытый Get-Content -Wait держит файл, и GitHub не мог почистить папку перед следующим заданием
 LOG = os.path.join(os.path.expanduser('~'), 'simcs2_run.log')   # смотреть на ПК: Get-Content $HOME\simcs2_run.log -Wait -Encoding UTF8
