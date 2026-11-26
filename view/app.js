@@ -253,6 +253,15 @@ function wkStart(){
   WK.w.onerror = function(e){ showFatal(new Error("Worker: " + (e.message || e))); };
   WK.on = true; return true;
 }
+// (Р5.4, 26.11) локальный режим (?local=1, сервер tools/node/local_server.js): симуляция — процесс Node этого компьютера; тот же интерфейс,
+// что у Worker (postMessage / message), поверх HTTP: команда — POST /cmd, ответ — кадр текстом (mkPack)
+function wkLocal(){
+  var L = {h: [], onmessage: null, addEventListener: function(n, f){ L.h.push(f); }, removeEventListener: function(n, f){ L.h = L.h.filter(function(x){ return x !== f; }); },
+    postMessage: function(m){ fetch("/cmd", {method: "POST", body: JSON.stringify(m)}).then(function(r){ return r.json(); }).then(function(d){
+      var e = {data: {tick: d.tick, F: mkUnpack(d.F)}}; if(L.onmessage) L.onmessage(e); L.h.slice().forEach(function(f){ f(e); }); })
+      .catch(function(e){ showFatal(new Error("локальный режим: " + e)); }); }, terminate: function(){} };
+  WK.w = L; L.onmessage = function(e){ WK.F = e.data.F; WK.busy = false; }; WK.on = true; return true;
+}
 function wkSend(m){ WK.busy = true; WK.w.postMessage(m); }
 function wkFrame(ms){
   if(WK.F){ frameApply(WK.F); WK.F = null; }
@@ -300,6 +309,7 @@ function frameBody(ts){
 document.getElementById("btnFreshMatch").addEventListener("click", function(){ var n = Math.max(1, parseInt(document.getElementById("inpMatchNum").value, 10) || 1); if(WK.on){ wkSend({cmd: "match", n: n}); return; }   /* (Р5.2) режим Worker: новый матч — в Worker (серия, профили — пока на странице) */ var sel = document.getElementById("selSeries"), bo = sel ? +sel.value : 3; if(bo !== SERIES.bo || seriesDone()) SERIES = {bo:bo, maps:{}}; var cw = document.getElementById("chkWarm"); if(cw && !cw.checked) freshMatch(n); else warmStart(n); clockPause(false); var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); } logEvent("Матч №"+n+" с чистого листа (воспроизводимый)", true); });
 setInterval(function(){ var el = document.getElementById("matchTick"); if(el) el.textContent = "матч "+matchNum+" · тик "+tick; }, 250);
 if(/[?&]worker=1/.test(location.search)) wkStart();   // (Р5.2) режим Worker — по адресу страницы
+else if(/[?&]local=1/.test(location.search)) wkLocal();   // (Р5.4) локальный режим — симуляция в процессе Node
 coreLoadEnd();   // (Р5, 26.11) конец загрузки ядра — на прежнем месте (после настроек страницы, до разминки): BOT_INIT, MK_LOAD (engine/match/round.js)
 window.__ev=function(src){return eval(src);};
 /*@@WARM_AUTO@@*/
