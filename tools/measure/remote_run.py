@@ -165,18 +165,28 @@ def main():
         cmd = (['node', os.path.join(ROOT, 'tools', 'node', 'core_run.js'), sim, '@' + cf] if eng == 'node' else ['node', os.path.join(ROOT, 'src', 'q.js'), sim, '@' + cf])
         pool.add({'name': 'fp %s m%d' % (os.path.basename(sim), m), 'cmd': cmd, 'cwd': ROOT,
                   'env': dict(os.environ, SIM_BROWSER=eng), 'out': out, 'err': files[1], 'guard': files[2], 'engine': eng, 'valid': fp_ok,
+                  'est_key': eng + ':' + FPMETA[lab]['map'],
                   'save': {'dir': os.path.join(procguard.DONE, lab, 'm%d' % m), 'meta': meta, 'files': files}})
     for c in covs:
         pool.add({'name': 'cov ' + os.path.basename(c[4]) + ' ' + c[-1], 'cmd': c, 'cwd': ROOT, 'engine': 'chromium'})
     pool.wait_all()
     # (Р5) время фаз: от старта фазы до конца её последнего матча (по guard_<m>.json)
     for lab0, P in PH.items():
-        d = os.path.join(ROOT, 'tools', 'measure', 'runs', lab0); ends = []
+        d = os.path.join(ROOT, 'tools', 'measure', 'runs', lab0); ends = []; iv = []; resumed = 0
         for f in os.listdir(d):
             if f.startswith('guard_'):
                 try: g = json.load(open(os.path.join(d, f), encoding='utf-8')); ends.append(g.get('t_end') or 0)
-                except Exception: pass
-        json.dump({'par': P['par'], 't0': P['t0'], 'ends': ends}, open(os.path.join(d, 'phase.json'), 'w', encoding='utf-8'))
+                except Exception: continue
+                if (g.get('t_start') or 0) >= P['t0'] - 1: iv.append((g['t_start'], g['t_end']))
+                else: resumed += 1   # взят готовым из прерванного прогона — в параллельность фазы не входит
+        # (26.11) фактическая параллельность фазы: наибольшее число матчей одновременно и средняя (сумма длительностей / время фазы) —
+        # сравнение скорости движков честно только при одинаковой фактической параллельности
+        ev = sorted([(a, 1) for a, b in iv] + [(b, -1) for a, b in iv]); cur = mx = 0
+        for _, k in ev: cur += k; mx = max(mx, cur)
+        wall = (max(b for a, b in iv) - P['t0']) if iv else 0
+        json.dump({'par': P['par'], 'par_req': P['par'], 'par_max': mx, 'par_avg': round(sum(b - a for a, b in iv) / wall, 2) if wall > 0 else None,
+                   'matches_played': len(iv), 'matches_resumed': resumed, 't0': P['t0'], 'ends': ends, 'cap_log': [c for c in pool.cap_log if c[0] >= P['t0'] - 1]},
+                  open(os.path.join(d, 'phase.json'), 'w', encoding='utf-8'))
     # ловец полей — из fp_<m>.json в fw_<m>.json (отпечаток остаётся как без ловца — сравним с прошлыми); код замера — удалить
     for sim, m, out, fw, eng, phase in fps:
         try: os.remove(out[:-5] + '.code.js')

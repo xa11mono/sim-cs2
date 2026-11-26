@@ -151,7 +151,14 @@ class Job:
 
 # ---------------- пул ----------------
 DEF = {'reserve_mb': None, 'critical_mb': None, 'critical_polls': 3, 'match_mem_mb': 6144, 'match_timeout_min': 90, 'poll_s': 2, 'tree_s': 10,
-       'est_mb': {'chromium': 1000, 'webkit': 1500, 'firefox': 2000}, 'job': True, 'log_s': 30}
+       'est_mb': {'chromium': 1000, 'webkit': 1500, 'firefox': 2000, 'node': 800}, 'job': True, 'log_s': 30, 'recover_s': 60}
+# (26.11, прогоны 329–332: par 8 падал до 4, а после повтора снятых — до 1 навсегда, и в следующих фазах тоже) адаптивная параллельность:
+#  * допуск — по прогнозу: свободно − (сколько ещё вырастут идущие матчи до пика своего движка) − пик нового ≥ запас; пик движка — наибольший
+#    замеченный у его матчей (est_mb — только пока замеров нет): матч Chromium растёт с ~0,6 до ~2 ГБ, по одной «свободно сейчас» допускалось 8;
+#  * снижение cap при нехватке (снятие самого нового) — как было; восстановление — по одному шагу за recover_s, пока нет нехватки и прогноз
+#    допускает ещё матч, до заданного par;
+#  * повтор снятых по памяти — по одному (матч идёт один), но cap не трогает; конец фазы (wait_all) возвращает cap к par;
+#  * фактическая параллельность: у матча — сколько шло одновременно (средняя по времени и наибольшая), у пула — история cap (cap_log)
 STATE = os.path.join(os.path.expanduser('~'), 'simcs2_guard_state.json')   # последнее состояние памяти: переживает перезагрузку ПК
 DONE = os.path.join(os.path.expanduser('~'), 'simcs2_done')                # готовые матчи вне рабочей папки (её чистит checkout)
 
@@ -163,7 +170,7 @@ class Pool:
         tot, av = mem_mb(); self.total = tot
         self.reserve = c['reserve_mb'] or max(3072, tot * 20 // 100)
         self.critical = c['critical_mb'] or max(1536, tot * 8 // 100)
-        self.par = max(1, int(par)); self.cap = self.par; self.low = 0
+        self.par = max(1, int(par)); self.cap = self.par; self.low = 0; self.t_cap = time.time(); self.cap_log = []
         self.q, self.run, self.retry, self.peak_by_eng, self.seen_all, self.nojob = [], [], [], {}, set(), set()
         self.before = browser_pids(bdir) if bdir else set()
         if os.path.exists(STATE):   # прошлый прогон не дошёл до конца (перезагрузка, снятие): последнее, что он видел
@@ -196,8 +203,20 @@ class Pool:
             if os.path.exists(f): shutil.copyfile(f, os.path.join(sv['dir'], os.path.basename(f)))
         with open(os.path.join(sv['dir'], 'meta.json'), 'w', encoding='utf-8') as f: json.dump(sv['meta'], f, ensure_ascii=False)
 
-    def _est(self, eng):
-        return max(self.peak_by_eng.get(eng, 0), self.c['est_mb'].get(eng, 1500))
+    @staticmethod
+    def _key(t):   # ключ оценки пика: est_key задания («движок:карта» — матчи Ancient и Mirage разного размера) или движок
+        return t.get('est_key') or t.get('engine', 'chromium')
+    def _est(self, key):
+        # пик: наибольший замеченный у матчей с этим ключом (и у идущих — растут), пока замеров нет — est_mb движка
+        live = max([r['peak'] for r in self.run if self._key(r['t']) == key] or [0])
+        return max(self.peak_by_eng.get(key, 0), live, self.c['est_mb'].get(key.split(':')[0], 1500))
+    def _need(self):
+        # сколько ещё памяти возьмут идущие матчи до своего пика (матч без замера — весь пик)
+        return sum(max(0, self._est(self._key(r['t'])) - (r.get('now') or 0)) for r in self.run)
+    def _cap_set(self, v, why):
+        v = max(1, min(self.par, v))
+        if v != self.cap: self.cap_log.append([round(time.time(), 1), v, why]); self.log('guard: параллельность %d → %d (%s)' % (self.cap, v, why))
+        self.cap = v; self.t_cap = time.time()
 
     def _start(self, t):
         fo = open(t['out'], 'w', encoding='utf-8') if t.get('out') else None
@@ -206,7 +225,8 @@ class Pool:
         eng = t.get('engine', 'chromium')
         job = Job(self.c['match_mem_mb']) if (WIN and self.c['job'] and eng not in self.nojob) else None
         if job and not job.assign(p): self.log('guard: %s — объект задания не назначен (%s), только опрос' % (t['name'], job.err)); job.close(False); job = None
-        r = {'t': t, 'p': p, 'fo': fo, 'fe': fe, 'job': job, 't0': time.time(), 'peak': 0, 'nproc': 0, 'nproc_max': 0, 'seen': set(), 'why': None}
+        r = {'t': t, 'p': p, 'fo': fo, 'fe': fe, 'job': job, 't0': time.time(), 'peak': 0, 'nproc': 0, 'nproc_max': 0, 'seen': set(), 'why': None,
+             'conc_s': 0.0, 'conc_max': 0}
         self.run.append(r); self.log('start %s (идёт %d, свободно %d МБ)' % (t['name'], len(self.run), mem_mb()[1]))
 
     def _stop(self, r, why):
@@ -232,11 +252,12 @@ class Pool:
             if f: f.close()
         t = r['t']; eng = t.get('engine', 'chromium'); dur = time.time() - r['t0']
         ok = rc == 0 and not r['why'] and (not t.get('valid') or not t.get('out') or t['valid'](t['out']))
-        if ok and r['peak']: self.peak_by_eng[eng] = max(self.peak_by_eng.get(eng, 0), r['peak'])
+        if ok and r['peak']: k = self._key(t); self.peak_by_eng[k] = max(self.peak_by_eng.get(k, 0), r['peak'])
         av = mem_mb()[1]
         g = {'name': t['name'], 'engine': eng, 'rc': rc, 'ok': ok, 'secs': round(dur, 1), 't_start': round(r['t0'], 1), 't_end': round(time.time(), 1), 'peak_mb': r['peak'], 'procs_max': r['nproc_max'],
              'stopped': r['why'], 'orphans_killed': left, 'job': bool(r['job']), 'par_cap': self.cap, 'running_with': len(self.run),
-             'mem_total_mb': self.total, 'mem_avail_mb_after': av, 'retry': bool(t.get('retried'))}
+             'mem_total_mb': self.total, 'mem_avail_mb_after': av, 'retry': bool(t.get('retried')),
+             'par_req': self.par, 'par_seen_max': r['conc_max'], 'par_seen_avg': round(r['conc_s'] / dur, 2) if dur > 0 else None}
         if t.get('guard'):
             with open(t['guard'], 'w', encoding='utf-8') as f: json.dump(g, f, ensure_ascii=False)
         if t.get('err') and (r['why'] or not ok):
@@ -281,11 +302,13 @@ class Pool:
         last_tree = last_log = 0; done = False
         try:
             while self.q or self.run or self.retry:
-                if not self.q and not self.run and self.retry:
-                    self.log('guard: переигровка снятых по памяти: %d (по одному)' % len(self.retry)); self.q, self.retry = self.retry, []; self.cap = 1
+                if not self.q and not self.run and self.retry:   # по одному (retried — идёт один), cap не трогается
+                    self.log('guard: переигровка снятых по памяти: %d (по одному)' % len(self.retry)); self.q, self.retry = self.retry, []
                 for r in [r for r in self.run if r['p'].poll() is not None]:
                     self.run.remove(r); self._finish(r)
                 now = time.time(); tot, av = mem_mb()
+                dt = now - getattr(self, '_t_loop', now); self._t_loop = now
+                for r in self.run: r['conc_s'] += len(self.run) * dt; r['conc_max'] = max(r['conc_max'], len(self.run))
                 if self.run and (now - last_tree >= self.c['tree_s'] or av < self.reserve):
                     last_tree = now; P = procs()
                     for r in self.run:
@@ -304,18 +327,25 @@ class Pool:
                     cand = [r for r in self.run if not r['why']]
                     if cand:
                         r = max(cand, key=lambda r: r['t0']); self._stop(r, 'lowmem (свободно %d МБ)' % av)
-                        self.cap = max(1, len(self.run) - 1); self.low = 0; self.log('guard: мало памяти — параллельность %d' % self.cap)
+                        self._cap_set(len(self.run) - 1, 'мало памяти: свободно %d МБ' % av); self.low = 0
                 if now - last_log >= self.c['log_s'] and self.run:
                     last_log = now; st = self._state(av, tot)
                     self.log('mem: свободно %d / %d МБ; par ≤ %d; очередь %d; идёт %d: %s' % (av, tot, self.cap, len(self.q), len(self.run),
                              ', '.join('%s %s МБ / %d проц.' % (x['name'], x['mb'], x['procs']) for x in st['running'])))
                 # допуск (адаптивная параллельность): следующий матч — только если после него останется запас памяти
+                # восстановление: нет нехватки recover_s с прошлой смены и прогноз допускает ещё матч — cap + 1 (до par)
+                if self.cap < self.par and self.low == 0 and now - self.t_cap >= self.c['recover_s'] and self.q and \
+                   av - self._need() - self._est(self._key(self.q[0])) >= self.reserve:
+                    self._cap_set(self.cap + 1, 'память позволяет: свободно %d МБ, прогноз идущих +%d' % (av, self._need()))
                 while self.q and len(self.run) < self.cap:
                     eng = self.q[0].get('engine', 'chromium')
-                    if self.run and av - self._est(eng) < self.reserve: break
+                    if self.run and (self.q[0].get('retried') or any(x['t'].get('retried') for x in self.run)): break   # повтор — один
+                    if self.run and av - self._need() - self._est(self._key(self.q[0])) < self.reserve: break
                     self._start(self.q.pop(0)); av = mem_mb()[1]
                 time.sleep(self.c['poll_s'])
             done = True
+            if self.cap != self.par: self._cap_set(self.par, 'конец фазы: следующая начинает с заданного par')   # защита — допуском
+            self.low = 0
         finally:
             if not done:   # состояние до остановки: какие матчи шли, сколько памяти и процессов
                 st = self._state(*mem_mb()[::-1]); st['aborted'] = repr(sys.exc_info()[1])
