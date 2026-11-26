@@ -165,9 +165,17 @@
    "src": "таблица «Где что»"
   },
   "170_tbrain.js": {
-   "mech": "мозг T tBrain",
+   "mech": "мозг T tBrain — части в прежнем порядке (Р3.2 команда): вступление и роли в tBrain; tBrainExecGo (сейв, момент выхода, постплант) → tBrainSiteSwitch (смена сайта, IGL) → tBrainMidTake (мид, чтение расстановки CT) → tBrainTeam (постплант-позиции, сейв) → tBrainBomb (за бомбой) → фаза: tBrainSetup / tBrainExecute / tBrainPostplant; общее — контекст K",
    "owns": [
-    "tBrain"
+    "tBrain",
+    "tBrainBomb",
+    "tBrainExecGo",
+    "tBrainExecute",
+    "tBrainMidTake",
+    "tBrainPostplant",
+    "tBrainSetup",
+    "tBrainSiteSwitch",
+    "tBrainTeam"
    ],
    "src": "таблица «Где что»"
   },
