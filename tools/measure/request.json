@@ -78,5 +78,9 @@
     "node_v8": "13.6.233.17-node.53",
     "playwright": "1.63.0",
     "chromium": "153.0.8010.12"
+  },
+  "resume_from": {
+    "results": "106e68c5ec86c74d7295708e0407afab1f1a3562",
+    "runner": "35739b6fc96c7a6ad6bcb594bd2ec752774e2566"
   }
 }
