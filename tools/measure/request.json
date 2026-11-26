@@ -1,3 +1,82 @@
-{"par": 8, "jobs": [
-  {"label": "b2_mir_a5", "ref": "d71ba75743497183374dc3762db1de5484583fbc", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29]}
-]}
+{
+  "par": 8,
+  "resume": true,
+  "fp": [
+    {
+      "label": "r34_off_anc",
+      "ref": "1713806fa03aa629a533c5df9074ee311ce6ee53",
+      "map": "ancient",
+      "matches": [
+        3,
+        7,
+        11,
+        13,
+        17,
+        19,
+        23,
+        29
+      ],
+      "trace": false
+    },
+    {
+      "label": "r34_off_mir",
+      "ref": "1713806fa03aa629a533c5df9074ee311ce6ee53",
+      "map": "mirage",
+      "matches": [
+        3,
+        7,
+        11,
+        13,
+        17,
+        19,
+        23,
+        29
+      ],
+      "trace": false
+    }
+  ],
+  "rec": [
+    {
+      "label": "r34_rec_anc",
+      "ref": "1713806fa03aa629a533c5df9074ee311ce6ee53",
+      "map": "ancient",
+      "matches": [
+        3,
+        7,
+        11,
+        13,
+        17,
+        19,
+        23,
+        29
+      ],
+      "complete": true,
+      "fingerprint": true
+    },
+    {
+      "label": "r34_rec_mir",
+      "ref": "1713806fa03aa629a533c5df9074ee311ce6ee53",
+      "map": "mirage",
+      "matches": [
+        3,
+        7,
+        11,
+        13,
+        17,
+        19,
+        23,
+        29
+      ],
+      "complete": true,
+      "fingerprint": true
+    }
+  ],
+  "require_runtime": {
+    "platform": "win32",
+    "arch": "x64",
+    "node": "v24.21.0",
+    "node_v8": "13.6.233.17-node.53",
+    "playwright": "1.63.0",
+    "chromium": "153.0.8010.12"
+  }
+}
