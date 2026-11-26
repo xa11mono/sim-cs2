@@ -169,6 +169,24 @@ def main():
                   'save': {'dir': os.path.join(procguard.DONE, lab, 'm%d' % m), 'meta': meta, 'files': files}})
     for c in covs:
         pool.add({'name': 'cov ' + os.path.basename(c[4]) + ' ' + c[-1], 'cmd': c, 'cwd': ROOT, 'engine': 'chromium'})
+    # (26.11) запись матча со сторожами (как engine/walk_run.py: audit/watch.js + ходьба, знание, стрельба) — через сторож памяти procguard:
+    # {"rec": [{"label", "ref", "map", "matches"?, "ticks"?}]} → runs/<label>/rec_<m>.json (счётчики W.n, в т. ч. stall.*, stall.ep, danger.flashKnown)
+    if req.get('rec'):
+        tpl = open(os.path.join(HERE, 'rec2.js'), encoding='utf-8').read(); E = os.path.join(HERE, 'engine')
+        watch = '\n'.join(open(f, encoding='utf-8').read() for f in (os.path.join(HERE, 'audit', 'watch.js'), os.path.join(E, 'walk_watch.js'), os.path.join(E, 'know_watch.js'), os.path.join(E, 'g_watch.js')))
+        A = "if(typeof WATCH!=='undefined') WATCH.tick();"; B = "if(typeof WATCH!=='undefined') REC.watch=WATCH.report();"
+        tpl = tpl.replace(A, A + " WALK.tick(); KNOWW.tick(); GWATCH.tick();").replace(B, B + " REC.walk=WALK.report(); REC.know=KNOWW.report(); REC.gw=GWATCH.report();")
+        def rec_ok(path):
+            try: return 'watch' in json.load(open(path, encoding='utf-8'))
+            except Exception: return False
+        for j in req['rec']:
+            sim = os.path.join(sims, j['label'] + '.html'); build(j['ref'], j.get('map', 'ancient'), sim)
+            out = os.path.join(ROOT, 'tools', 'measure', 'runs', j['label']); os.makedirs(out, exist_ok=True)
+            for m in j.get('matches', [3, 7, 11, 13, 17, 19, 23, 29]):
+                js = os.path.join(out, '_rec_%d.js' % m); open(js, 'w', encoding='utf-8').write(tpl.replace('__M__', str(m)).replace('__T__', str(j.get('ticks', 200000))).replace('/*@@WATCH@@*/', watch))
+                pool.add({'name': 'rec %s m%d' % (j['label'], m), 'cmd': ['node', os.path.join(ROOT, 'src', 'q.js'), sim, '@' + js], 'cwd': ROOT, 'engine': 'chromium',
+                          'est_key': 'chromium:' + j.get('map', 'ancient'), 'out': os.path.join(out, 'rec_%d.json' % m), 'err': os.path.join(out, 'err_%d.txt' % m),
+                          'guard': os.path.join(out, 'guard_%d.json' % m), 'valid': rec_ok})
     pool.wait_all()
     # (Р5) время фаз: от старта фазы до конца её последнего матча (по guard_<m>.json)
     for lab0, P in PH.items():
