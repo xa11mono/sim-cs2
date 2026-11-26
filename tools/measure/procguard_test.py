@@ -29,7 +29,9 @@ class P2(_Popen):
     def __init__(self, cmd, **kw):
         super().__init__(cmd, **kw); PEAK[self.pid] = int(kw['env']['FAKE_PEAK']); T0[self.pid] = time.time()
 G.subprocess.Popen = P2
-G.STATE = '/tmp/procguard_test_state.json'
+import tempfile
+TEMP = tempfile.TemporaryDirectory(prefix='procguard-test-')
+G.STATE = os.path.join(TEMP.name, 'state.json')
 
 LOG = []
 def pool(par, est):
@@ -37,7 +39,7 @@ def pool(par, est):
            'job': False, 'est_mb': {'chromium': est}, 'match_timeout_min': 5}
     return G.Pool(par, cfg, None, log=LOG.append)
 def task(i, secs, peak, tag):
-    g = '/tmp/procguard_test_%s_%d.json' % (tag, i)
+    g = os.path.join(TEMP.name, '%s_%d.json' % (tag, i))
     return {'name': '%s m%d' % (tag, i), 'cmd': [sys.executable, '-c', 'import time; time.sleep(%g)' % secs], 'engine': 'chromium', 'est_key': 'chromium:' + tag,
             'env': dict(os.environ, FAKE_PEAK=str(peak)), 'guard': g}, g
 import json
@@ -50,6 +52,7 @@ def check(c, msg):
 
 # 1 + 2: занижена оценка, затем фаза малых матчей
 P = pool(8, 500)
+P._learn({'est_key': 'chromium:ph1'}, 500, complete=True)  # история занизила пик, первая волна теперь имеет право идти параллельно
 gs = []
 for i in range(10): t, g = task(i, 3.0, 2000, 'ph1'); P.add(t); gs.append(g)
 P.wait_all(); R1 = guards(gs)
@@ -60,7 +63,7 @@ check(all(r['ok'] for r in R1 if not r['stopped']) and len(stopped) > 0 and sum(
 check(all(r['par_seen_max'] == 1 for r in R1 if r['retry']), 'фаза 1: повтор снятых — по одному')
 check(P.cap == 8, 'после фазы 1 cap = par (%d)' % P.cap)
 gs2 = []
-for i in range(8): t, g = task(i, 2.0, 400, 'ph2'); P.add(t); gs2.append(g)
+for i in range(9): t, g = task(i, 2.0, 400, 'ph2'); P.add(t); gs2.append(g)
 P.wait_all(); R2 = guards(gs2)
 check(max(r['par_seen_max'] for r in R2) == 8, 'фаза 2: фактическая параллельность снова 8 (была %d)' % max(r['par_seen_max'] for r in R2))
 check(all(r['ok'] for r in R2), 'фаза 2: все годны')
@@ -70,6 +73,6 @@ for i in range(8): t, g = task(i, 2.5, 2000, 'ph3'); P3.add(t); gs3.append(g)
 P3.wait_all(); R3 = guards(gs3)
 check(not any(r['stopped'] for r in R3), 'фаза 3 (оценка = пик): снятий нет')
 mx = max(r['par_seen_max'] for r in R3)
-check(mx <= (TOTAL - BASE - 3000) // 2000 + 1, 'фаза 3: одновременно %d — не больше, чем позволяет память (запас 3000 МБ)' % mx)
+check(mx <= (TOTAL - BASE - 3000) // 2000, 'фаза 3: одновременно %d — не больше, чем позволяет память (запас 3000 МБ)' % mx)
 print('итог: ' + ('всё прошло' if not fails else 'НЕ прошло: %d' % len(fails)))
 sys.exit(1 if fails else 0)

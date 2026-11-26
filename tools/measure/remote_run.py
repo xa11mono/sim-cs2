@@ -5,7 +5,7 @@
 ref — ветка или коммит, чью игру играть; инструменты замера (сторож, раннер) берутся из текущей ветки measure/…
 Для каждого задания: сборка игры ref во временную папку → walk_run.py (сторож ходьбы + обычный сторож) → tools/measure/runs/<label>/.
 Папку runs исполнитель выкладывает артефактом. Запуск руками: python tools/measure/remote_run.py [путь к request.json]"""
-import sys, os, json, subprocess, shutil, tempfile, time
+import sys, os, json, subprocess, shutil, tempfile
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(os.path.dirname(HERE))
 PY = sys.executable
 sys.path.insert(0, HERE); import procguard   # (Р2.6) защита памяти ПК
@@ -44,59 +44,87 @@ def ensure_playwright():
         sh([npx, 'install', 'chromium'], cwd=home)
     log('playwright ' + PW_VER + ', браузеры: ' + os.environ['PLAYWRIGHT_BROWSERS_PATH'])
 
-BUILT = {}   # (Р2, владелец 25.11) одна версия одной карты в одном прогоне собирается один раз: (коммит, карта) → готовая сборка
+BUILT, REFS = {}, {}
 
-def build(ref, mapname, out):
-    sh(['git', 'fetch', '--quiet', 'origin', ref], cwd=ROOT)
-    key = (subprocess.run(['git', 'rev-parse', 'FETCH_HEAD'], cwd=ROOT, capture_output=True, text=True).stdout.strip(), mapname)
-    if key in BUILT and os.path.exists(BUILT[key]):
-        if os.path.abspath(BUILT[key]) != os.path.abspath(out): shutil.copyfile(BUILT[key], out)
-        log('сборка %s %s — уже есть в этом прогоне (%s)' % (key[0][:10], mapname, os.path.basename(BUILT[key]))); return key[0]
-    _build(ref, mapname, out); BUILT[key] = out
-    return key[0]
 
-def _build(ref, mapname, out):
+def resolve_ref(ref):
+    if ref not in REFS:
+        # Полный SHA уже может быть в checkout. Имена веток фиксируются одним fetch за запрос.
+        sha = None
+        if len(ref) == 40 and all(c in '0123456789abcdef' for c in ref):
+            found = subprocess.run(['git', 'rev-parse', '--verify', ref + '^{commit}'], cwd=ROOT,
+                                   capture_output=True, text=True)
+            if found.returncode == 0:
+                sha = found.stdout.strip()
+        if sha is None:
+            sh(['git', 'fetch', '--quiet', 'origin', ref], cwd=ROOT)
+            sha = subprocess.check_output(['git', 'rev-parse', '--verify', 'FETCH_HEAD^{commit}'], cwd=ROOT, text=True).strip()
+        REFS[ref] = REFS[sha] = sha
+    return REFS[ref]
+
+
+def build(ref, mapname, out, core=False):
+    sha = resolve_ref(ref)
+    key = (sha, mapname, core)
+    cached = BUILT.get(key)
+    if cached and os.path.isfile(cached):
+        if os.path.abspath(cached) != os.path.abspath(out):
+            shutil.copyfile(cached, out)
+        return sha
     tmp = tempfile.mkdtemp(prefix='simbuild_')
     try:
-        sh(['git', 'fetch', '--quiet', 'origin', ref], cwd=ROOT)
-        sh(['git', '-c', 'core.autocrlf=false', 'worktree', 'add', '--quiet', '--detach', '--force', tmp, 'FETCH_HEAD'], cwd=ROOT)
-        # без CRLF: Git для Windows по умолчанию меняет концы строк — сборка была бы не та, что в облаке
-        sh([PY, os.path.join(tmp, 'src', 'build.py'), '--map', mapname, out], cwd=tmp)
+        sh(['git', '-c', 'core.autocrlf=false', 'worktree', 'add', '--quiet', '--detach', '--force', tmp, sha], cwd=ROOT)
+        builder = ('tools', 'node', 'core_build.py') if core else ('src', 'build.py')
+        sh([PY, os.path.join(tmp, *builder), '--map', mapname, out], cwd=tmp)
     finally:
         subprocess.run(['git', 'worktree', 'remove', '--force', tmp], cwd=ROOT)
+    BUILT[key] = out
+    return sha
 
-def build_core(ref, mapname, out):
-    """(Р5, 26.11) ядро без показа (tools/node/core_build.py коммита ref) → out.js; одна сборка на коммит и карту, как build"""
-    sh(['git', 'fetch', '--quiet', 'origin', ref], cwd=ROOT)
-    key = (subprocess.run(['git', 'rev-parse', 'FETCH_HEAD'], cwd=ROOT, capture_output=True, text=True).stdout.strip(), mapname, 'core')
-    if key in BUILT and os.path.exists(BUILT[key]):
-        if os.path.abspath(BUILT[key]) != os.path.abspath(out): shutil.copyfile(BUILT[key], out)
-        return key[0]
-    tmp = tempfile.mkdtemp(prefix='simbuild_')
-    try:
-        sh(['git', '-c', 'core.autocrlf=false', 'worktree', 'add', '--quiet', '--detach', '--force', tmp, 'FETCH_HEAD'], cwd=ROOT)
-        sh([PY, os.path.join(tmp, 'tools', 'node', 'core_build.py'), '--map', mapname, out], cwd=tmp)
-    finally:
-        subprocess.run(['git', 'worktree', 'remove', '--force', tmp], cwd=ROOT)
-    BUILT[key] = out; return key[0]
 
-def versions():
-    """точные версии среды: Node, V8 Node, Chromium Playwright (браузер) и его V8"""
-    v = {'node': subprocess.run(['node', '--version'], capture_output=True, text=True).stdout.strip(),
-         'node_v8': subprocess.run(['node', '-p', 'process.versions.v8'], capture_output=True, text=True).stdout.strip(), 'playwright': PW_VER}
-    try:
-        r = subprocess.run(['node', '-e', "const p=require('playwright');(async()=>{const b=await p.chromium.launch();const pg=await b.newPage();"
-                            "const v=await pg.evaluate(()=>navigator.userAgent);const c=await b.newBrowserCDPSession();const bv=await c.send('Browser.getVersion');console.log(b.version()+'|'+v+'|'+bv.jsVersion);await b.close();})()"], capture_output=True, text=True, cwd=ROOT, timeout=120)
-        cv, ua, jv = (r.stdout.strip().split('|') + ['', ''])[:3]; v['chromium'] = cv; v['chromium_ua'] = ua; v['chromium_v8'] = jv
-    except Exception as e: v['chromium'] = 'не определена: %s' % e
-    return v
+def versions(engines):
+    """Один запуск проверки среды, по одному запуску каждого используемого браузера."""
+    script = """
+    const p = require('playwright');
+    const result = {
+      node: process.version, node_v8: process.versions.v8, arch: process.arch, platform: process.platform,
+      playwright: require('playwright/package.json').version, browsers: {}
+    };
+    (async () => {
+      for (const engine of process.argv.slice(1)) {
+        const browser = await p[engine].launch();
+        try {
+          const page = await browser.newPage();
+          const ua = await page.evaluate(() => navigator.userAgent);
+          const row = result.browsers[engine] = {version: browser.version(), ua};
+          if (engine === 'chromium') {
+            const session = await browser.newBrowserCDPSession();
+            row.v8 = (await session.send('Browser.getVersion')).jsVersion;
+          }
+        } finally {
+          await browser.close();
+        }
+      }
+      console.log(JSON.stringify(result));
+    })().catch(error => { console.error(error); process.exitCode = 1; });
+    """
+    v = subprocess.run(['node', '-e', script, *sorted(engines - {'node'})], cwd=ROOT,
+                       check=True, capture_output=True, text=True, timeout=120)
+    result = json.loads(v.stdout)
+    chromium = result['browsers'].get('chromium')
+    if chromium:
+        result.update(chromium=chromium['version'], chromium_ua=chromium['ua'], chromium_v8=chromium['v8'])
+    return result
+
 
 def main():
+    BUILT.clear(); REFS.clear()
     open(LOG, 'w', encoding='utf-8').close()
     req = json.load(open(sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, 'request.json'), encoding='utf-8'))
     ensure_playwright()
     # (Р0.1, 24.11) среда рядом с каждым результатом: runs/<label>/env.json (Playwright, Chromium, Node, ОС)
     for k, v in req.items():
+        if k == 'fp': continue  # проверка среды общая для всех фаз отпечатков
         for j in (v if isinstance(v, list) else []):
             if isinstance(j, dict) and j.get('label'):
                 d = os.path.join(ROOT, 'tools', 'measure', 'runs', j['label']); os.makedirs(d, exist_ok=True)
@@ -113,23 +141,6 @@ def main():
             sh(['node', os.path.join(ROOT, 'tools', 'marks', scr), sim, str(j['match']), str(j['round']), out, str(j.get('ticks', 3000))], cwd=ROOT); continue
         sh(['node', os.path.join(ROOT, 'tools', 'marks', scr), sim, str(j['match']), str(j['round']), out,
             str(j.get('step', 900)), str(j.get('n', 26)), '1600', '900', j.get('mode', 'both')], cwd=ROOT)
-    # (15.11, перестройка) отпечаток бит в бит: {"fp": [{"label", "ref", "map", "matches"?}]} — fingerprint.js на каждый матч (параллельно
-    # по par) → runs/<label>/fp_<m>.json; сравнение в облаке — diff двух меток (игру не меняет, только играет и хэширует)
-    fps = []; FPMETA = {}
-    VER = versions() if any(j.get('engine') == 'node' or j.get('phase') for j in req.get('fp', [])) else None
-    for j in req.get('fp', []):
-        # (Р5) "engine": "node" — ядро без показа в чистом Node (tools/node/core_run.js); "phase": true — метка ждёт конца предыдущих матчей
-        # (без смешения сред на ПК), её общее время — runs/<метка>/phase.json (производительность параллельных матчей)
-        if j.get('engine') == 'node':
-            sim = os.path.join(sims, j['label'] + '.core.js'); sha = build_core(j['ref'], j.get('map', 'ancient'), sim)
-        else:
-            sim = os.path.join(sims, j['label'] + '.html'); sha = build(j['ref'], j.get('map', 'ancient'), sim)
-        out = os.path.join(ROOT, 'tools', 'measure', 'runs', j['label']); os.makedirs(out, exist_ok=True)
-        if VER: json.dump(VER, open(os.path.join(out, 'versions.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
-        for m in j.get('matches', [3, 7, 11, 13, 17, 19, 23, 29]): fps.append((sim, m, os.path.join(out, 'fp_%d.json' % m), bool(j.get('fields')), j.get('engine', 'chromium'), bool(j.get('phase'))))
-        FPMETA[j['label']] = {'sha': sha, 'map': j.get('map', 'ancient'), 'engine': j.get('engine', 'chromium'), 'pw': PW_VER, 'fields': bool(j.get('fields'))}
-    fpjs = open(os.path.join(HERE, 'fingerprint.js'), encoding='utf-8').read()
-    fwjs = open(os.path.join(HERE, 'engine', 'field_watch.js'), encoding='utf-8').read()   # (15.11) "fields": true — ловец писателей полей
     # (15.11, перестройка) покрытие кода: {"cov": [{"label", "ref", "map", "matches"?, "rounds"?}]} — code_cov.js по матчу на процесс →
     # runs/<label>/cov_<m>.json (функция и сколько раз вызвана); мёртвые — не вызванные ни в одном матче (сводит облако)
     covs = []
@@ -138,41 +149,26 @@ def main():
         out = os.path.join(ROOT, 'tools', 'measure', 'runs', j['label']); os.makedirs(out, exist_ok=True)
         for m in j.get('matches', [3, 7, 11, 13, 17, 19, 23, 29]):
             covs.append(['node', os.path.join(HERE, 'code_cov.js'), sim, os.path.join(out, 'cov_%d.json' % m), str(j.get('rounds', 99)), str(m)])
-    # (Р2.6) "engine": "firefox" | "webkit" — отпечаток в другом движке (src/q.js, SIM_BROWSER); движки ставятся один раз
-    need = sorted(set(e for *_, e, _ph in fps if e not in ('chromium', 'node')))
+    fp = req.get('fp', [])
+    engines = {j.get('engine', 'chromium') for j in fp}
+    if engines - fingerprint_jobs.ENGINES:
+        raise ValueError('Unknown fingerprint engine: ' + ', '.join(sorted(engines - fingerprint_jobs.ENGINES)))
+    need = sorted(engines - {'chromium', 'node'})
     if need:
-        home = os.path.join(os.path.expanduser('~'), '.simcs2_node'); npx = os.path.join(home, 'node_modules', '.bin', 'playwright.cmd' if os.name == 'nt' else 'playwright')
+        home = os.path.join(os.path.expanduser('~'), '.simcs2_node')
+        npx = os.path.join(home, 'node_modules', '.bin', 'playwright.cmd' if os.name == 'nt' else 'playwright')
         sh([npx, 'install'] + need, cwd=home)
-    # (Р2.6, 25.11) пул с защитой памяти (procguard.py): прогон 323 (par 8, три движка) исчерпал память ПК (99 %, перезагрузка).
-    # Матч стартует, только если хватает свободной памяти; лимиты памяти и времени на матч; дерево процессов снимается целиком.
-    # Рядом с отпечатком: err_<m>.txt — ошибки движка / страницы (публикуются), guard_<m>.json — пик памяти, время, код, причина снятия
-    # "resume": true — готовые матчи прерванного прогона (~/simcs2_done) берутся, если совпали коммит игры, карта, движок, Playwright,
-    # код замера и q.js (meta); иначе играются заново
+    actual = versions(engines) if fp else None
+    archive = None
+    if fp and req.get('resume') and req.get('resume_from'):
+        archive = fingerprint_jobs.PublishedRun(req['resume_from'], resolve_ref, ROOT)
     pool = procguard.Pool(par, req.get('guard'), os.environ.get('PLAYWRIGHT_BROWSERS_PATH'), log, resume=bool(req.get('resume')))
-    qsha = __import__('hashlib').sha256(open(os.path.join(ROOT, 'src', 'q.js'), 'rb').read()).hexdigest()
-    def fp_ok(path):
-        try: return 'hash' in json.load(open(path, encoding='utf-8'))
-        except Exception: return False
-    PH = {}
-    for sim, m, out, fw, eng, phase in fps:
-        lab0 = os.path.basename(os.path.dirname(out))
-        if phase and lab0 not in PH:   # новая фаза: дождаться предыдущих матчей, засечь время
-            pool.wait_all(); PH[lab0] = {'t0': time.time(), 'par': par}
-        code = (fwjs + '\n' if fw else '') + fpjs.replace('__M__', str(m)); cf = out[:-5] + '.code.js'; open(cf, 'w', encoding='utf-8').write(code)
-        d = os.path.dirname(out); lab = os.path.basename(d); files = [out, os.path.join(d, 'err_%d.txt' % m), os.path.join(d, 'guard_%d.json' % m)]
-        runner = qsha if eng != 'node' else __import__('hashlib').sha256(open(os.path.join(ROOT, 'tools', 'node', 'core_run.js'), 'rb').read()).hexdigest()
-        meta = dict(FPMETA[lab], match=m, code=__import__('hashlib').sha256(code.encode('utf-8')).hexdigest(), q=runner)
-        cmd = (['node', os.path.join(ROOT, 'tools', 'node', 'core_run.js'), sim, '@' + cf] if eng == 'node' else ['node', os.path.join(ROOT, 'src', 'q.js'), sim, '@' + cf])
-        pool.add({'name': 'fp %s m%d' % (os.path.basename(sim), m), 'cmd': cmd, 'cwd': ROOT,
-                  'env': dict(os.environ, SIM_BROWSER=eng), 'out': out, 'err': files[1], 'guard': files[2], 'engine': eng, 'valid': fp_ok,
-                  'est_key': eng + ':' + FPMETA[lab]['map'],
-                  'save': {'dir': os.path.join(procguard.DONE, lab, 'm%d' % m), 'meta': meta, 'files': files}})
+    fingerprint_jobs.run(fp, pool, ROOT, HERE, sims, resolve_ref, build, actual, archive)
     for c in covs:
         pool.add({'name': 'cov ' + os.path.basename(c[4]) + ' ' + c[-1], 'cmd': c, 'cwd': ROOT, 'engine': 'chromium'})
     # (26.11) запись матча со сторожами (как engine/walk_run.py: audit/watch.js + ходьба, знание, стрельба) — через сторож памяти procguard:
     # {"rec": [{"label", "ref", "map", "matches"?, "ticks"?}]} → runs/<label>/rec_<m>.json (счётчики W.n, в т. ч. stall.*, stall.ep, danger.flashKnown)
     if req.get('rec'):
-        if PH: pool.wait_all()   # запись — после последней фазы замера скорости (не мешать её времени)
         tpl = open(os.path.join(HERE, 'rec2.js'), encoding='utf-8').read(); E = os.path.join(HERE, 'engine')
         watch = '\n'.join(open(f, encoding='utf-8').read() for f in (os.path.join(HERE, 'audit', 'watch.js'), os.path.join(E, 'walk_watch.js'), os.path.join(E, 'know_watch.js'), os.path.join(E, 'g_watch.js')))
         A = "if(typeof WATCH!=='undefined') WATCH.tick();"; B = "if(typeof WATCH!=='undefined') REC.watch=WATCH.report();"
@@ -188,32 +184,7 @@ def main():
                 pool.add({'name': 'rec %s m%d' % (j['label'], m), 'cmd': ['node', os.path.join(ROOT, 'src', 'q.js'), sim, '@' + js], 'cwd': ROOT, 'engine': 'chromium',
                           'est_key': 'chromium:' + j.get('map', 'ancient'), 'out': os.path.join(out, 'rec_%d.json' % m), 'err': os.path.join(out, 'err_%d.txt' % m),
                           'guard': os.path.join(out, 'guard_%d.json' % m), 'valid': rec_ok})
-    pool.wait_all()
-    # (Р5) время фаз: от старта фазы до конца её последнего матча (по guard_<m>.json)
-    for lab0, P in PH.items():
-        d = os.path.join(ROOT, 'tools', 'measure', 'runs', lab0); ends = []; iv = []; resumed = 0
-        for f in os.listdir(d):
-            if f.startswith('guard_'):
-                try: g = json.load(open(os.path.join(d, f), encoding='utf-8')); ends.append(g.get('t_end') or 0)
-                except Exception: continue
-                if (g.get('t_start') or 0) >= P['t0'] - 1: iv.append((g['t_start'], g['t_end']))
-                else: resumed += 1   # взят готовым из прерванного прогона — в параллельность фазы не входит
-        # (26.11) фактическая параллельность фазы: наибольшее число матчей одновременно и средняя (сумма длительностей / время фазы) —
-        # сравнение скорости движков честно только при одинаковой фактической параллельности
-        ev = sorted([(a, 1) for a, b in iv] + [(b, -1) for a, b in iv]); cur = mx = 0
-        for _, k in ev: cur += k; mx = max(mx, cur)
-        wall = (max(b for a, b in iv) - P['t0']) if iv else 0
-        json.dump({'par': P['par'], 'par_req': P['par'], 'par_max': mx, 'par_avg': round(sum(b - a for a, b in iv) / wall, 2) if wall > 0 else None,
-                   'matches_played': len(iv), 'matches_resumed': resumed, 't0': P['t0'], 'ends': ends, 'cap_log': [c for c in pool.cap_log if c[0] >= P['t0'] - 1]},
-                  open(os.path.join(d, 'phase.json'), 'w', encoding='utf-8'))
-    # ловец полей — из fp_<m>.json в fw_<m>.json (отпечаток остаётся как без ловца — сравним с прошлыми); код замера — удалить
-    for sim, m, out, fw, eng, phase in fps:
-        try: os.remove(out[:-5] + '.code.js')
-        except OSError: pass
-        if not fw: continue
-        try: d = json.load(open(out, encoding='utf-8'))
-        except Exception: continue
-        if 'fields' in d: json.dump(d.pop('fields'), open(os.path.join(os.path.dirname(out), 'fw_%d.json' % m), 'w', encoding='utf-8')); json.dump(d, open(out, 'w', encoding='utf-8'), separators=(',', ':'))
+    if pool.q or pool.run or pool.retry: pool.wait_all()
     # ---- (Р0.6, Р0.11, Р0.13, Р0.14, 24.11) задания перестройки: каждое пишет в runs/<label>/; ошибка задания не валит остальные ----
     R0 = os.path.join(ROOT, 'tools', 'measure')
     def r0out(j): d = os.path.join(R0, 'runs', j['label']); os.makedirs(d, exist_ok=True); return d

@@ -1,0 +1,17 @@
+{
+  "kind": "short smoke",
+  "results": {
+    "node": {
+      "matches_played": 1,
+      "par_max": 1,
+      "ticks": 1200,
+      "fingerprint": 2965923483
+    },
+    "chromium": {
+      "matches_played": 1,
+      "par_max": 1,
+      "ticks": 1200,
+      "fingerprint": 2965923483
+    }
+  }
+}

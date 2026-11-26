@@ -1,0 +1,120 @@
+{
+  "archive": "66949d4298100f03964bc1d7a68e4073fa2cdca2",
+  "rows": {
+    "v636a_single_chr": {
+      "engine": "chromium",
+      "map": "mirage",
+      "ready": [
+        3
+      ],
+      "missing": [],
+      "peak_range_mb": [
+        1145,
+        1145
+      ],
+      "max_running_at_launch": 1
+    },
+    "v636a_single_node": {
+      "engine": "node",
+      "map": "mirage",
+      "ready": [
+        3
+      ],
+      "missing": [],
+      "peak_range_mb": [
+        1090,
+        1090
+      ],
+      "max_running_at_launch": 1
+    },
+    "v636a_chr_anc": {
+      "engine": "chromium",
+      "map": "ancient",
+      "ready": [
+        3,
+        7,
+        11,
+        13,
+        17,
+        19,
+        23,
+        29
+      ],
+      "missing": [],
+      "peak_range_mb": [
+        1931,
+        2153
+      ],
+      "max_running_at_launch": 8
+    },
+    "v636a_node_anc": {
+      "engine": "node",
+      "map": "ancient",
+      "ready": [
+        3,
+        7,
+        11,
+        13,
+        17,
+        19,
+        23,
+        29
+      ],
+      "missing": [],
+      "peak_range_mb": [
+        1316,
+        1892
+      ],
+      "max_running_at_launch": 1
+    },
+    "v636a_chr_mir": {
+      "engine": "chromium",
+      "map": "mirage",
+      "ready": [
+        3,
+        7,
+        11,
+        13,
+        17,
+        19,
+        23
+      ],
+      "missing": [
+        29
+      ],
+      "peak_range_mb": [
+        1132,
+        1182
+      ],
+      "max_running_at_launch": 1
+    },
+    "v636a_node_mir": {
+      "engine": "node",
+      "map": "mirage",
+      "ready": [],
+      "missing": [
+        3,
+        7,
+        11,
+        13,
+        17,
+        19,
+        23,
+        29
+      ],
+      "peak_range_mb": null,
+      "max_running_at_launch": 0
+    }
+  },
+  "ancient_equal_fingerprints": 8,
+  "old_archive_browser_env_probes": 6,
+  "old_archive_git_fetches": 8,
+  "old_archive_real_builds": 4,
+  "v637a_cold_ancient_scenario": {
+    "available_mb": 8293,
+    "reserve_mb": 3195,
+    "estimate_mb": 1000,
+    "admitted": 5,
+    "simultaneous_observed_peak_mb": 10765
+  }
+}
