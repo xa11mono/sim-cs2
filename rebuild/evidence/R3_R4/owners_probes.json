@@ -1,0 +1,32 @@
+{
+  "extra-owner": {
+    "rc": 1,
+    "errors": [
+      "ОШИБКА: новый писатель поля бота — lookReason ← task · r3Probe (хозяин поля — rebuild/field_writers.json)"
+    ]
+  },
+  "knowledge-param": {
+    "rc": 1,
+    "errors": [
+      "ОШИБКА: новый писатель поля бота — heardSound ← task · r3Probe (хозяин поля — rebuild/field_writers.json)"
+    ]
+  },
+  "knowledge-alias": {
+    "rc": 0,
+    "errors": []
+  },
+  "owner-card": {
+    "rc": 1,
+    "errors": [
+      "карточки механик: файлов 101, расхождений 1",
+      "  ✗ шапка trace.js: хозяева в шапке «madeUp, dlogBot, dlogOf, dlogTeam» ≠ карточка «dlog, dlogBot, dlogOf, dlogTeam»",
+      "ОШИБКА: карточка механики расходится с кодом — поправить rebuild/cards.json вместе с кодом"
+    ]
+  },
+  "old-file-prefix": {
+    "rc": 1,
+    "errors": [
+      "Error: порядок загрузки (rebuild/files.json): нет в списке: 999_accept_probe.js; "
+    ]
+  }
+}

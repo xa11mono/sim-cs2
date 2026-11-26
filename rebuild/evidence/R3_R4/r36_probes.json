@@ -1,0 +1,88 @@
+{
+  "type": "Р3.6: новые счётчики stall.* рядом со старым",
+  "cases": [
+    {
+      "id": "R36_geom",
+      "observed": {
+        "stall.geom": 1
+      },
+      "detail": "стена на шаге → stall.geom (старый stall = 1)"
+    },
+    {
+      "id": "R36_free",
+      "observed": {
+        "stall.free": 1
+      },
+      "detail": "шаг свободен, а стоит → stall.free, не geom"
+    },
+    {
+      "id": "R36_block",
+      "observed": {
+        "stall.block": 1
+      },
+      "detail": "задача выше не пускает (отказы арбитра) → stall.block"
+    },
+    {
+      "id": "R36_hold_none",
+      "observed": {},
+      "detail": "держит пост по плану — ни одного stall.*"
+    },
+    {
+      "id": "R36_overlap_split",
+      "observed": {
+        "ep": 1,
+        "stall.free": 1,
+        "stall.block": 1
+      },
+      "detail": "одно стояние даёт два старых stall (известный двойной счёт, P05) — по причинам видно: block + второе; эпизод стояния (PROB.ep) — один"
+    },
+    {
+      "id": "R36_ep_two",
+      "observed": {
+        "stall": 2,
+        "ep": 2
+      },
+      "detail": "отошёл на 200 и снова стоит → эпизодов 2"
+    },
+    {
+      "id": "R36_flash_unknown",
+      "observed": {
+        "old": 1,
+        "known": 0
+      },
+      "detail": "источник неизвестен: старый счёт 1, новый 0 (поворота не требует)"
+    },
+    {
+      "id": "R36_flash_known",
+      "observed": {
+        "old": 1,
+        "known": 1
+      },
+      "detail": "видел бросавшего, не повернулся, не ушёл → новый 1"
+    },
+    {
+      "id": "R36_flash_known_blind",
+      "observed": {
+        "old": 1,
+        "known": 0
+      },
+      "detail": "знал, но ослеплён — реакции не требуется → новый 0"
+    },
+    {
+      "id": "R36_flash_known_fight",
+      "observed": {
+        "old": 1,
+        "known": 0
+      },
+      "detail": "знал, но в бою (видит врага) → новый 0"
+    },
+    {
+      "id": "R36_all_complete",
+      "observed": {
+        "prob": 2,
+        "danger": 1
+      },
+      "detail": "PROB.all = сумма счётчиков, у каждого события причина; W.all.danger = W.n.danger"
+    }
+  ]
+}
