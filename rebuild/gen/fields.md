@@ -17,10 +17,10 @@
 | `_tradeLock` | 1 | 1 | `tradeEnd · 190` |
 | `state` | 2 | 2 | `fightStateDo · 500`, `fightReset · 500` |
 | `nadeTask` | 30 | 10 | `(верх файла) · 360`, `nadeAskFlash · 365`, `exuReassign · 366`, `assignNadeDo · 380`, `nadeQueueNext · 380`, `runupTick · 380`, `updateNadeTask1 · 380`, `lineupTick · 390`, `nadeCancel · 420`, `resetNades · 420` |
-| `holding` | 5 | 4 | `fightReset · 500`, `fightHoldOff · 500`, `leaveHold · 500`, `resolveEngagements · 510` |
+| `holding` | 5 | 4 | `fightReset · 500`, `fightHoldOff · 500`, `leaveHold · 500`, `engDecide · 510` |
 | `crouching` | 1 | 1 | `placeStance · 110` |
 | `path` | 13 | 7 | `fireRepath · 370`, `ladderTick · 370`, `navFollowFloor · 370`, `movePath · 535`, `moveSpeedTick · 535`, `navSnap · 540`, `stepTick · 540` |
-| `phase` | 14 | 2 | — |
+| `phase` | 14 | 6 | — |
 
 ## `facing`
 
@@ -37,12 +37,12 @@
 - **хозяин** `moveWalk · 535` — 1 (стр. 24)
 - **хозяин** `moveWalkTick · 535` — 1 (стр. 109)
 - **хозяин** `moveSpeedTick · 535` — 1 (стр. 164)
-- **хозяин** `stepTick · 540` — 1 (стр. 501)
+- **хозяин** `stepTick · 540` — 1 (стр. 502)
 
 ## `curSpeed`
 
 - **хозяин** `moveSpeedTick · 535` — 5 (стр. 184, 186, 187, 188, 189)
-- **хозяин** `stepTick · 540` — 5 (стр. 334, 361, 484, 499, 501)
+- **хозяин** `stepTick · 540` — 5 (стр. 335, 362, 485, 500, 502)
 - **хозяин** `jumpFaceWait · 370` — 1 (стр. 110)
 - **хозяин** `ladderTick · 370` — 1 (стр. 216)
 - **хозяин** `moveSpeed · 535` — 1 (стр. 23)
@@ -50,15 +50,15 @@
 ## `post`
 
 - **хозяин** `setPostDo · 110` — 1 (стр. 462)
-- **хозяин** `clearPostDo · 110` — 1 (стр. 512)
-- **хозяин** `placeResetPost · 110` — 1 (стр. 521)
+- **хозяин** `clearPostDo · 110` — 1 (стр. 514)
+- **хозяин** `placeResetPost · 110` — 1 (стр. 523)
 
 ## `_task`
 
 - **хозяин** `routeTick · 110` — 1 (стр. 66)
 - **хозяин** `setPostDo · 110` — 1 (стр. 417)
-- **хозяин** `clearPostDo · 110` — 1 (стр. 512)
-- **хозяин** `placeResetTask · 110` — 1 (стр. 522)
+- **хозяин** `clearPostDo · 110` — 1 (стр. 514)
+- **хозяин** `placeResetTask · 110` — 1 (стр. 524)
 
 ## `_reposUntil`
 
@@ -90,7 +90,7 @@
 - **хозяин** `fightStateDo · 500` — 1 (стр. 4)
 - **хозяин** `fightReset · 500` — 1 (стр. 13)
 
-не бот (то же имя у другого объекта — в проверку владения не идёт): `dropBomb · 120` (96 bomb), `bombTick · 120` (228 bomb; 269 bomb; 286 bomb), `exuThrown · 366` (70 it), `exuLanded · 366` (82 it), `exuFail · 366` (86 it), `exuReassign · 366` (137 it), `exuTick · 366` (149 it; 151 it; 155 it), `bombPassTick · 460` (86 bomb), `checkRoundEnd · 530` (134 bomb), `mapEdQueueSave · 570` (66 S; 67 S), `mapEdSaveNow · 570` (74 S; 81 S; 82 S), `dvTick · 678` (46 bomb; 47 bomb)
+не бот (то же имя у другого объекта — в проверку владения не идёт): `dropBomb · 120` (96 bomb), `bombTick · 120` (228 bomb; 269 bomb; 286 bomb), `exuThrown · 366` (70 it), `exuLanded · 366` (82 it), `exuFail · 366` (86 it), `exuReassign · 366` (137 it), `exuTick · 366` (149 it; 151 it; 155 it), `bombPassTick · 460` (86 bomb), `checkRoundEnd · 530` (136 bomb), `mapEdQueueSave · 570` (66 S; 67 S), `mapEdSaveNow · 570` (74 S; 81 S; 82 S), `dvTick · 678` (46 bomb; 47 bomb)
 
 ## `nadeTask`
 
@@ -107,7 +107,7 @@
 
 ## `holding`
 
-- **хозяин** `resolveEngagements · 510` — 2 (стр. 114, 133)
+- **хозяин** `engDecide · 510` — 2 (стр. 133, 152)
 - **хозяин** `fightReset · 500` — 1 (стр. 13)
 - **хозяин** `fightHoldOff · 500` — 1 (стр. 14)
 - **хозяин** `leaveHold · 500` — 1 (стр. 185)
@@ -116,11 +116,11 @@
 
 ## `crouching`
 
-- **хозяин** `placeStance · 110` — 1 (стр. 520)
+- **хозяин** `placeStance · 110` — 1 (стр. 522)
 
 ## `path`
 
-- **хозяин** `stepTick · 540` — 5 (стр. 499, 573, 612, 634, 649)
+- **хозяин** `stepTick · 540` — 5 (стр. 500, 574, 613, 635, 650)
 - **хозяин** `navFollowFloor · 370` — 2 (стр. 384, 423)
 - **хозяин** `moveSpeedTick · 535` — 2 (стр. 156, 163)
 - **хозяин** `fireRepath · 370` — 1 (стр. 29)
@@ -132,5 +132,9 @@
 
 ## `phase`
 
-- `tBrain · 170` — 11 (стр. 64, 81, 86, 145, 160, 204, 205, 240, …)
+- `tBrainSiteSwitch · 170` — 4 (стр. 217, 232, 276, 277)
 - `tIglReplan · 160` — 3 (стр. 105, 128, 132)
+- `tBrainExecGo · 170` — 3 (стр. 136, 153, 158)
+- `tBrainMidTake · 170` — 2 (стр. 314, 333)
+- `tBrain · 170` — 1 (стр. 78)
+- `tBrainSetup · 170` — 1 (стр. 609)

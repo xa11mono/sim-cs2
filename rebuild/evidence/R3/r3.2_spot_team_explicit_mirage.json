@@ -1,0 +1,138 @@
+{
+ "sim": "mirage.html",
+ "match": 7,
+ "ticks": 80000,
+ "by_caller": {
+  "lurkerBrain": {
+   "team T = SPOT_TEAM": 14593
+  },
+  "groupPost": {
+   "SPOT_TEAM T": 91257,
+   "SPOT_TEAM CT": 2211
+  },
+  "ctEarlyPeek": {
+   "team CT = SPOT_TEAM": 3
+  },
+  "ctSetupRole": {
+   "team CT = SPOT_TEAM": 151811
+  },
+  "contactSpots": {
+   "SPOT_TEAM null": 12682
+  },
+  "аноним:40485 < forEach": {
+   "team CT = SPOT_TEAM": 5636
+  },
+  "namedSpot": {
+   "SPOT_TEAM CT": 24693,
+   "SPOT_TEAM T": 19653
+  },
+  "аноним:40371 < forEach": {
+   "team CT = SPOT_TEAM": 47189
+  },
+  "аноним:40399 < forEach": {
+   "team CT = SPOT_TEAM": 19968
+  },
+  "assistPeek": {
+   "SPOT_TEAM null": 171
+  },
+  "flankSpot": {
+   "SPOT_TEAM null": 118
+  },
+  "ctBrain": {
+   "team CT = SPOT_TEAM": 13
+  },
+  "lowHpBack": {
+   "SPOT_TEAM null": 104
+  },
+  "coverForReload": {
+   "SPOT_TEAM null": 7
+  },
+  "killMoveCover": {
+   "SPOT_TEAM null": 35
+  },
+  "аноним:40387 < forEach": {
+   "team CT = SPOT_TEAM": 2892
+  },
+  "аноним:39611 < forEach": {
+   "SPOT_TEAM null": 40
+  },
+  "hurtReactTick": {
+   "SPOT_TEAM null": 94
+  },
+  "finishPush": {
+   "SPOT_TEAM null": 16
+  },
+  "nadeThrowSpot": {
+   "SPOT_TEAM null": 86
+  },
+  "ambushTick": {
+   "SPOT_TEAM null": 13
+  },
+  "аноним:38526 < forEach": {
+   "SPOT_TEAM null": 23
+  },
+  "аноним:11030 < forEach": {
+   "SPOT_TEAM null": 23
+  },
+  "postKillDecide": {
+   "SPOT_TEAM null": 3
+  },
+  "аноним:39614 < forEach": {
+   "SPOT_TEAM null": 16
+  },
+  "shiftHold": {
+   "SPOT_TEAM null": 1
+  },
+  "аноним:40501 < forEach": {
+   "team CT = SPOT_TEAM": 42
+  },
+  "ctInfoCheck": {
+   "team CT = SPOT_TEAM": 1
+  },
+  "intelDeath": {
+   "SPOT_TEAM null": 8
+  },
+  "аноним:40359 < forEach": {
+   "team CT = SPOT_TEAM": 472
+  },
+  "аноним:40365 < forEach": {
+   "team CT = SPOT_TEAM": 48
+  },
+  "аноним:40264 < forEach": {
+   "team CT = SPOT_TEAM": 633
+  },
+  "аноним:34227 < forEach": {
+   "team CT = SPOT_TEAM": 22
+  },
+  "аноним:38084 < forEach": {
+   "team T = SPOT_TEAM": 73
+  },
+  "retakeClear": {
+   "team CT = SPOT_TEAM": 4787
+  },
+  "retakePost": {
+   "team CT = SPOT_TEAM": 483
+  },
+  "reloadPeek": {
+   "SPOT_TEAM null": 7
+  },
+  "аноним:6248 < forEach": {
+   "SPOT_TEAM null": 6
+  },
+  "tBrain": {
+   "team T = SPOT_TEAM": 2
+  },
+  "onBlind": {
+   "SPOT_TEAM null": 1
+  },
+  "аноним:38692 < forEach": {
+   "SPOT_TEAM null": 2
+  },
+  "afterKillReact": {
+   "SPOT_TEAM null": 4
+  },
+  "midCoverPost": {
+   "team CT = SPOT_TEAM": 2
+  }
+ }
+}

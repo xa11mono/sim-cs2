@@ -1,0 +1,685 @@
+{
+  "source_ref": "pc-results/320",
+  "source_sha": "5f6954bd855bcfb2ce5d433e0d3d8d7e0b73aa09",
+  "validation": "existing recorder JSON, match 3 per map/treatment; no simulation run",
+  "matches": {
+    "v599a_dm_anc_3": {
+      "source_path": "v599a_dm_anc/rec_3.json.gz",
+      "rounds_started": 23,
+      "rounds_with_end": 23,
+      "coverage": {
+        "stall": {
+          "increments": 118,
+          "rows": 40,
+          "missing_rows": 78
+        },
+        "nav": {
+          "increments": 2,
+          "rows": 2,
+          "missing_rows": 0
+        },
+        "tug": {
+          "increments": 24,
+          "rows": 24,
+          "missing_rows": 0
+        },
+        "danger": {
+          "increments": 9,
+          "rows": 9,
+          "missing_rows": 0
+        },
+        "flip": {
+          "increments": 3,
+          "rows": 3,
+          "missing_rows": 0
+        },
+        "wait": {
+          "increments": 9,
+          "rows": 9,
+          "missing_rows": 0
+        },
+        "empty": {
+          "increments": 0,
+          "rows": 0,
+          "missing_rows": 0
+        },
+        "smokeKill": {
+          "increments": 14,
+          "rows": 14,
+          "missing_rows": 0
+        }
+      },
+      "sampled_stall_types": {
+        "refusal": 40
+      },
+      "sampled_stall_by_round": {
+        "2": 1,
+        "3": 39
+      },
+      "sampled_stall_first_two": [
+        [
+          11504,
+          "CT1",
+          "залип: «save» 9 с не пускает «lineup»",
+          330,
+          811,
+          2
+        ],
+        [
+          17232,
+          "CT2",
+          "залип: «endhunt» 12 с не пускает «anchor»",
+          1500,
+          776,
+          3
+        ]
+      ],
+      "danger_counts_by_type": {
+        "флешка без реакции": 7,
+        "стоит в огне": 2
+      },
+      "sampled_danger_first_two": [
+        [
+          16315,
+          "CT2",
+          "флешка T3 — не повернулся",
+          "bombwatch"
+        ],
+        [
+          16315,
+          "CT4",
+          "флешка T3 — не повернулся",
+          "repos:killmove"
+        ]
+      ],
+      "retained_nade_funnel_totals": {
+        "hands": 588,
+        "intent": 398,
+        "reached": 241,
+        "thrown": 145,
+        "lost": 243,
+        "lostWhy": 243
+      }
+    },
+    "v599a_dm_mir_3": {
+      "source_path": "v599a_dm_mir/rec_3.json.gz",
+      "rounds_started": 22,
+      "rounds_with_end": 22,
+      "coverage": {
+        "stall": {
+          "increments": 33,
+          "rows": 33,
+          "missing_rows": 0
+        },
+        "nav": {
+          "increments": 44,
+          "rows": 40,
+          "missing_rows": 4
+        },
+        "tug": {
+          "increments": 37,
+          "rows": 37,
+          "missing_rows": 0
+        },
+        "danger": {
+          "increments": 12,
+          "rows": 12,
+          "missing_rows": 0
+        },
+        "flip": {
+          "increments": 2,
+          "rows": 2,
+          "missing_rows": 0
+        },
+        "wait": {
+          "increments": 1,
+          "rows": 1,
+          "missing_rows": 0
+        },
+        "empty": {
+          "increments": 0,
+          "rows": 0,
+          "missing_rows": 0
+        },
+        "smokeKill": {
+          "increments": 8,
+          "rows": 8,
+          "missing_rows": 0
+        }
+      },
+      "sampled_stall_types": {
+        "refusal": 23,
+        "movement": 10
+      },
+      "sampled_stall_by_round": {
+        "1": 1,
+        "3": 3,
+        "5": 1,
+        "6": 5,
+        "7": 1,
+        "9": 3,
+        "10": 1,
+        "11": 1,
+        "12": 3,
+        "13": 3,
+        "14": 1,
+        "15": 1,
+        "17": 1,
+        "18": 2,
+        "19": 2,
+        "20": 1,
+        "21": 2,
+        "22": 1
+      },
+      "sampled_stall_first_two": [
+        [
+          2624,
+          "CT3",
+          "залип: «ambush» 8 с не пускает «anchor»",
+          921,
+          544,
+          1
+        ],
+        [
+          14320,
+          "CT4",
+          "застрял («backstab»): стена",
+          1316,
+          1441,
+          3
+        ]
+      ],
+      "danger_counts_by_type": {
+        "флешка без реакции": 8,
+        "стоит в огне": 3,
+        "взрыв": 1
+      },
+      "sampled_danger_first_two": [
+        [
+          8153,
+          "CT0",
+          "флешка T2 — не повернулся",
+          "mid"
+        ],
+        [
+          8153,
+          "CT1",
+          "флешка T2 — не повернулся",
+          "rotate"
+        ]
+      ],
+      "retained_nade_funnel_totals": {
+        "hands": 610,
+        "intent": 440,
+        "reached": 289,
+        "thrown": 144,
+        "lost": 277,
+        "lostWhy": 277
+      }
+    },
+    "v599a_pre_anc_3": {
+      "source_path": "v599a_pre_anc/rec_3.json.gz",
+      "rounds_started": 20,
+      "rounds_with_end": 20,
+      "coverage": {
+        "stall": {
+          "increments": 22,
+          "rows": 22,
+          "missing_rows": 0
+        },
+        "nav": {
+          "increments": 5,
+          "rows": 5,
+          "missing_rows": 0
+        },
+        "tug": {
+          "increments": 31,
+          "rows": 31,
+          "missing_rows": 0
+        },
+        "danger": {
+          "increments": 8,
+          "rows": 8,
+          "missing_rows": 0
+        },
+        "flip": {
+          "increments": 3,
+          "rows": 3,
+          "missing_rows": 0
+        },
+        "wait": {
+          "increments": 5,
+          "rows": 5,
+          "missing_rows": 0
+        },
+        "empty": {
+          "increments": 0,
+          "rows": 0,
+          "missing_rows": 0
+        },
+        "smokeKill": {
+          "increments": 10,
+          "rows": 10,
+          "missing_rows": 0
+        }
+      },
+      "sampled_stall_types": {
+        "refusal": 13,
+        "movement": 9
+      },
+      "sampled_stall_by_round": {
+        "1": 1,
+        "4": 2,
+        "6": 1,
+        "7": 2,
+        "8": 1,
+        "9": 1,
+        "10": 1,
+        "11": 3,
+        "12": 1,
+        "13": 1,
+        "16": 1,
+        "17": 1,
+        "18": 4,
+        "19": 2
+      },
+      "sampled_stall_first_two": [
+        [
+          4768,
+          "CT2",
+          "залип: «backstab» 12 с не пускает «anchor»",
+          1213,
+          1183,
+          1
+        ],
+        [
+          22416,
+          "CT3",
+          "застрял («rotate»): шаг проходит, а стоит (стоп: —; скорость 90; пост заново 1 раз за 5 с)",
+          1375,
+          518,
+          4
+        ]
+      ],
+      "danger_counts_by_type": {
+        "взрыв": 2,
+        "флешка без реакции": 6
+      },
+      "sampled_danger_first_two": [
+        [
+          11338,
+          "CT1",
+          "в зоне взрыва",
+          "defuse"
+        ],
+        [
+          11338,
+          "T0",
+          "в зоне взрыва",
+          "antidefuse"
+        ]
+      ],
+      "retained_nade_funnel_totals": {
+        "hands": 537,
+        "intent": 364,
+        "reached": 233,
+        "thrown": 126,
+        "lost": 233,
+        "lostWhy": 233
+      }
+    },
+    "v599a_pre_mir_3": {
+      "source_path": "v599a_pre_mir/rec_3.json.gz",
+      "rounds_started": 30,
+      "rounds_with_end": 29,
+      "coverage": {
+        "stall": {
+          "increments": 34,
+          "rows": 34,
+          "missing_rows": 0
+        },
+        "nav": {
+          "increments": 44,
+          "rows": 40,
+          "missing_rows": 4
+        },
+        "tug": {
+          "increments": 36,
+          "rows": 36,
+          "missing_rows": 0
+        },
+        "danger": {
+          "increments": 20,
+          "rows": 20,
+          "missing_rows": 0
+        },
+        "flip": {
+          "increments": 2,
+          "rows": 2,
+          "missing_rows": 0
+        },
+        "wait": {
+          "increments": 6,
+          "rows": 6,
+          "missing_rows": 0
+        },
+        "empty": {
+          "increments": 0,
+          "rows": 0,
+          "missing_rows": 0
+        },
+        "smokeKill": {
+          "increments": 14,
+          "rows": 14,
+          "missing_rows": 0
+        }
+      },
+      "sampled_stall_types": {
+        "refusal": 21,
+        "movement": 13
+      },
+      "sampled_stall_by_round": {
+        "1": 1,
+        "3": 3,
+        "6": 4,
+        "7": 1,
+        "8": 1,
+        "9": 1,
+        "11": 3,
+        "13": 1,
+        "16": 1,
+        "18": 3,
+        "19": 1,
+        "20": 1,
+        "21": 7,
+        "22": 1,
+        "25": 2,
+        "30": 3
+      },
+      "sampled_stall_first_two": [
+        [
+          2624,
+          "CT3",
+          "залип: «ambush» 8 с не пускает «anchor»",
+          921,
+          544,
+          1
+        ],
+        [
+          14320,
+          "CT4",
+          "застрял («backstab»): стена",
+          1316,
+          1441,
+          3
+        ]
+      ],
+      "danger_counts_by_type": {
+        "флешка без реакции": 8,
+        "стоит в огне": 7,
+        "взрыв": 5
+      },
+      "sampled_danger_first_two": [
+        [
+          8153,
+          "CT0",
+          "флешка T2 — не повернулся",
+          "mid"
+        ],
+        [
+          8153,
+          "CT1",
+          "флешка T2 — не повернулся",
+          "rotate"
+        ]
+      ],
+      "retained_nade_funnel_totals": {
+        "hands": 807,
+        "intent": 551,
+        "reached": 350,
+        "thrown": 177,
+        "lost": 354,
+        "lostWhy": 354
+      }
+    }
+  },
+  "r2_check_totals": {
+    "check_ancient_v599a_dm_anc.json": {
+      "rounds": 164,
+      "rates": {
+        "stall": 182.9,
+        "wait": 42.1,
+        "waitCould": 15.2,
+        "tug": 117.7,
+        "flip": 19.5,
+        "danger": 65.9,
+        "empty": 0.0,
+        "nav": 15.9,
+        "kills": 673.2,
+        "smokeKill": 85.4
+      },
+      "danger_types": {
+        "взрыв": 20,
+        "флешка без реакции": 75,
+        "стоит в огне": 13
+      },
+      "events_per_category": {
+        "stall": 12,
+        "wait": 12,
+        "tug": 12,
+        "flip": 12,
+        "danger": 12,
+        "empty": 0,
+        "nav": 12,
+        "smoke": 12
+      }
+    },
+    "check_ancient_v599a_pre_anc.json": {
+      "rounds": 192,
+      "rates": {
+        "stall": 124.0,
+        "wait": 34.4,
+        "waitCould": 10.9,
+        "tug": 114.6,
+        "flip": 8.9,
+        "danger": 52.6,
+        "empty": 0.0,
+        "nav": 31.2,
+        "kills": 696.4,
+        "smokeKill": 85.9
+      },
+      "danger_types": {
+        "взрыв": 23,
+        "флешка без реакции": 59,
+        "стоит в огне": 19
+      },
+      "events_per_category": {
+        "stall": 12,
+        "wait": 12,
+        "tug": 12,
+        "flip": 12,
+        "danger": 12,
+        "empty": 0,
+        "nav": 12,
+        "smoke": 12
+      }
+    },
+    "check_mirage_v599a_dm_mir.json": {
+      "rounds": 182,
+      "rates": {
+        "stall": 118.1,
+        "wait": 16.5,
+        "waitCould": 6.6,
+        "tug": 140.7,
+        "flip": 10.4,
+        "danger": 44.5,
+        "empty": 0.0,
+        "nav": 170.3,
+        "kills": 657.1,
+        "smokeKill": 63.7
+      },
+      "danger_types": {
+        "флешка без реакции": 43,
+        "стоит в огне": 16,
+        "взрыв": 22
+      },
+      "events_per_category": {
+        "stall": 12,
+        "wait": 12,
+        "tug": 12,
+        "flip": 12,
+        "danger": 12,
+        "empty": 0,
+        "nav": 12,
+        "smoke": 12
+      }
+    },
+    "check_mirage_v599a_pre_mir.json": {
+      "rounds": 191,
+      "rates": {
+        "stall": 123.6,
+        "wait": 16.8,
+        "waitCould": 4.7,
+        "tug": 137.2,
+        "flip": 14.1,
+        "danger": 51.3,
+        "empty": 0.0,
+        "nav": 158.1,
+        "kills": 678.5,
+        "smokeKill": 57.1
+      },
+      "danger_types": {
+        "взрыв": 26,
+        "стоит в огне": 28,
+        "флешка без реакции": 44
+      },
+      "events_per_category": {
+        "stall": 12,
+        "wait": 12,
+        "tug": 12,
+        "flip": 12,
+        "danger": 12,
+        "empty": 0,
+        "nav": 12,
+        "smoke": 12
+      }
+    }
+  },
+  "history_selected_match3": {
+    "129": {
+      "source_sha": "d01e1ca46bcb66cf8149dd0dc0a0188939565e9b",
+      "source_path": "final3_mir/rec_3.json.gz",
+      "rounds": 21,
+      "measurements": {
+        "stall": [
+          24,
+          24
+        ],
+        "nav": [
+          12,
+          12
+        ],
+        "tug": [
+          27,
+          27
+        ],
+        "danger": [
+          24,
+          24
+        ]
+      },
+      "trace_present": [
+        "watch"
+      ]
+    },
+    "146": {
+      "source_sha": "9ba4336e59783a6df5a2ae5ef44821a1a0efbf7f",
+      "source_path": "k494_mir/rec_3.json.gz",
+      "rounds": 24,
+      "measurements": {
+        "stall": [
+          25,
+          25
+        ],
+        "nav": [
+          5,
+          5
+        ],
+        "tug": [
+          20,
+          20
+        ],
+        "danger": [
+          22,
+          22
+        ]
+      },
+      "trace_present": [
+        "task",
+        "watch"
+      ]
+    },
+    "276": {
+      "source_sha": "c2cc183124b35fa8e71f02ef97a05d9c1c886d4f",
+      "source_path": "v583e_mir/rec_3.json.gz",
+      "rounds": 17,
+      "measurements": {
+        "stall": [
+          21,
+          21
+        ],
+        "nav": [
+          18,
+          18
+        ],
+        "tug": [
+          24,
+          24
+        ],
+        "danger": [
+          17,
+          17
+        ]
+      },
+      "trace_present": [
+        "refuse",
+        "dmg",
+        "act",
+        "task",
+        "see",
+        "watch"
+      ]
+    },
+    "279": {
+      "source_sha": "ba625cbedda5e02173d5ed6fd12759135fb9e95c",
+      "source_path": "v583h_mir/rec_3.json.gz",
+      "rounds": 20,
+      "measurements": {
+        "stall": [
+          26,
+          26
+        ],
+        "nav": [
+          42,
+          40
+        ],
+        "tug": [
+          32,
+          32
+        ],
+        "danger": [
+          22,
+          22
+        ]
+      },
+      "trace_present": [
+        "refuse",
+        "dmg",
+        "act",
+        "task",
+        "see",
+        "watch"
+      ]
+    }
+  }
+}

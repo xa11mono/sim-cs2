@@ -1,0 +1,33 @@
+{
+ "what": "Р3.4 явный порядок загрузки mapBoot (060): стены → навмеш → таблица «простреливается»; было — три вызова при загрузке в 030 / 050 / 060",
+ "tool": "tools/rebuild/load_state_cmp.js (кадры и таймеры страницы отключены до скриптов игры; все переменные реестра и поля ботов)",
+ "ancient": {
+  "a": "c5/ancient.html",
+  "b": "c6/ancient.html",
+  "vars": 976,
+  "bot_fields": 75,
+  "tick": [
+   0,
+   0
+  ],
+  "diff_vars": [],
+  "diff_bot_fields": [],
+  "same": true
+ },
+ "mirage": {
+  "a": "c5/mirage.html",
+  "b": "c6/mirage.html",
+  "vars": 976,
+  "bot_fields": 77,
+  "tick": [
+   0,
+   0
+  ],
+  "diff_vars": [],
+  "diff_bot_fields": [],
+  "same": true
+ },
+ "control_same_build_mirage": "одинаковое",
+ "sensitivity": "сборка Р2 против v612a (ancient): различия DLOG, MAP, MATCH_DIRTY, NAV_DROP_EDGE_STEP, SPOT_TEAM, VIS_DANGER_DIRTY — ровно изменения Р3",
+ "locator": "diverge v611a → v612a, матч 3, 30000 тиков: расхождения нет (обе карты)"
+}

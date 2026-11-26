@@ -1,0 +1,477 @@
+{
+ "run": "https://github.com/xa11mono/sim-cs2/actions/runs/45693942501",
+ "results": "pc-results/325",
+ "engine": "Chromium (ПК), par 8, procguard, resume",
+ "labels": {
+  "v602a_t3_mir": {
+   "m3": {
+    "hash": 4106069815,
+    "equal_except_ticks": true,
+    "equal_full": true,
+    "ticks": 134558,
+    "peak_mb": 1134,
+    "retry": false
+   },
+   "m7": {
+    "hash": 1370457148,
+    "equal_except_ticks": true,
+    "equal_full": true,
+    "ticks": 160751,
+    "peak_mb": 1154,
+    "retry": false
+   },
+   "m11": {
+    "hash": 1910219274,
+    "equal_except_ticks": true,
+    "equal_full": true,
+    "ticks": 140539,
+    "peak_mb": 1147,
+    "retry": false
+   },
+   "m13": {
+    "hash": 97707557,
+    "equal_except_ticks": true,
+    "equal_full": true,
+    "ticks": 127410,
+    "peak_mb": 1126,
+    "retry": false
+   },
+   "m17": {
+    "hash": 3103032371,
+    "equal_except_ticks": true,
+    "equal_full": true,
+    "ticks": 116992,
+    "peak_mb": 1097,
+    "retry": false
+   },
+   "m19": {
+    "hash": 1466641057,
+    "equal_except_ticks": true,
+    "equal_full": true,
+    "ticks": 141185,
+    "peak_mb": 1136,
+    "retry": false
+   },
+   "m23": {
+    "hash": 820641300,
+    "equal_except_ticks": true,
+    "equal_full": true,
+    "ticks": 116617,
+    "peak_mb": 1130,
+    "retry": false
+   },
+   "m29": {
+    "hash": 3720724760,
+    "equal_except_ticks": true,
+    "equal_full": true,
+    "ticks": 175676,
+    "peak_mb": 1165,
+    "retry": false
+   }
+  },
+  "v604a_t2_anc": {
+   "m3": {
+    "hash": 411469562,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 2276,
+    "retry": false
+   },
+   "m7": {
+    "hash": 1025371035,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 2245,
+    "retry": false
+   },
+   "m11": {
+    "hash": 934132218,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 2050,
+    "retry": false
+   },
+   "m13": {
+    "hash": 4026826252,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 2325,
+    "retry": false
+   },
+   "m17": {
+    "hash": 2111240709,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 2202,
+    "retry": false
+   },
+   "m19": {
+    "hash": 1664643189,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 2121,
+    "retry": false
+   },
+   "m23": {
+    "hash": 2806320362,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 2081,
+    "retry": false
+   },
+   "m29": {
+    "hash": 4072545020,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 2296,
+    "retry": false
+   }
+  },
+  "v604a_t2_mir": {
+   "m3": {
+    "hash": 4106069815,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 1275,
+    "retry": false
+   },
+   "m7": {
+    "hash": 1370457148,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 1293,
+    "retry": false
+   },
+   "m11": {
+    "hash": 1910219274,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 1287,
+    "retry": false
+   },
+   "m13": {
+    "hash": 97707557,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 1277,
+    "retry": false
+   },
+   "m17": {
+    "hash": 3103032371,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 1233,
+    "retry": false
+   },
+   "m19": {
+    "hash": 1466641057,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 1270,
+    "retry": false
+   },
+   "m23": {
+    "hash": 820641300,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 1289,
+    "retry": false
+   },
+   "m29": {
+    "hash": 3720724760,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 1308,
+    "retry": false
+   }
+  },
+  "v606a_t1b_anc": {
+   "m3": {
+    "hash": 411469562,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 2227,
+    "retry": false
+   },
+   "m7": {
+    "hash": 1025371035,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 2221,
+    "retry": false
+   },
+   "m11": {
+    "hash": 934132218,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 2040,
+    "retry": false
+   },
+   "m13": {
+    "hash": 4026826252,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 2302,
+    "retry": false
+   },
+   "m17": {
+    "hash": 2111240709,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 2155,
+    "retry": false
+   },
+   "m19": {
+    "hash": 1664643189,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 2206,
+    "retry": false
+   },
+   "m23": {
+    "hash": 2806320362,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 2121,
+    "retry": false
+   },
+   "m29": {
+    "hash": 4072545020,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 2189,
+    "retry": true
+   }
+  },
+  "v606a_t1b_mir": {
+   "m3": {
+    "hash": 4106069815,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 1166,
+    "retry": true
+   },
+   "m7": {
+    "hash": 1370457148,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 1298,
+    "retry": false
+   },
+   "m11": {
+    "hash": 1910219274,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 1313,
+    "retry": false
+   },
+   "m13": {
+    "hash": 97707557,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 1305,
+    "retry": false
+   },
+   "m17": {
+    "hash": 3103032371,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 1287,
+    "retry": false
+   },
+   "m19": {
+    "hash": 1466641057,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 1349,
+    "retry": false
+   },
+   "m23": {
+    "hash": 820641300,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 1297,
+    "retry": false
+   },
+   "m29": {
+    "hash": 3720724760,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 1357,
+    "retry": false
+   }
+  },
+  "v607a_r32_anc": {
+   "m3": {
+    "hash": 411469562,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 2254,
+    "retry": false
+   },
+   "m7": {
+    "hash": 1025371035,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 2242,
+    "retry": false
+   },
+   "m11": {
+    "hash": 934132218,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 2080,
+    "retry": false
+   },
+   "m13": {
+    "hash": 4026826252,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 2318,
+    "retry": false
+   },
+   "m17": {
+    "hash": 2111240709,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 2203,
+    "retry": false
+   },
+   "m19": {
+    "hash": 1664643189,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 2252,
+    "retry": false
+   },
+   "m23": {
+    "hash": 2806320362,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 2200,
+    "retry": false
+   },
+   "m29": {
+    "hash": 4072545020,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 2287,
+    "retry": false
+   }
+  },
+  "v607a_r32_mir": {
+   "m3": {
+    "hash": 4106069815,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 1305,
+    "retry": false
+   },
+   "m7": {
+    "hash": 1370457148,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 1292,
+    "retry": false
+   },
+   "m11": {
+    "hash": 1910219274,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 1311,
+    "retry": false
+   },
+   "m13": {
+    "hash": 97707557,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 1315,
+    "retry": false
+   },
+   "m17": {
+    "hash": 3103032371,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 1400,
+    "retry": false
+   },
+   "m19": {
+    "hash": 1466641057,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 1321,
+    "retry": false
+   },
+   "m23": {
+    "hash": 820641300,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 1294,
+    "retry": false
+   },
+   "m29": {
+    "hash": 3720724760,
+    "equal_except_ticks": true,
+    "equal_full": false,
+    "ticks": 0,
+    "peak_mb": 1347,
+    "retry": false
+   }
+  }
+ },
+ "summary": "56 / 56 отпечатков = эталон Р2 по хэшу игры, раундам, убийствам, броскам; поле ticks отличается только у сборок с Т-2 (переход к следующему матчу обнуляет часы, старый fingerprint.js писал tick после перехода — исправлено в 49527f3). procguard: 2 матча сняты по нехватке памяти (свободно < 1,5 ГБ) и переиграны по одному — отпечатки верные",
+ "acceptance": {
+  "Т-3": "Э1 16/16 (Ancient — облако, Mirage — ПК) + целевой (граф после перестройки = загрузка)",
+  "Т-4": "Э1 = Т-3 (доказанная идентичность исполнения) + целевой (граф сразу после перестройки)",
+  "Т-2": "Э1 16/16 + I-22 (обе карты; после конца матча 8000 бит в бит)",
+  "Т-1 / Т-1б": "Э1 16/16 + I-23 (значения 8/8, полное состояние с тождеством — 0)",
+  "Р3.2 группа 1 (место / гранаты / ход, шаги 1)": "Э1 16/16 + локаторы по каждому шагу 0 + сцены аудита без изменений"
+ }
+}

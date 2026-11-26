@@ -1,0 +1,132 @@
+{
+ "sim": "ancient.html",
+ "match": 7,
+ "ticks": 80000,
+ "by_caller": {
+  "bStageFix": {
+   "team T = SPOT_TEAM": 2
+  },
+  "lurkerBrain": {
+   "team T = SPOT_TEAM": 14367
+  },
+  "groupPost": {
+   "SPOT_TEAM T": 86483,
+   "SPOT_TEAM CT": 384
+  },
+  "аноним:29672 < forEach": {
+   "team CT = SPOT_TEAM": 48036
+  },
+  "namedSpot": {
+   "SPOT_TEAM CT": 62100,
+   "SPOT_TEAM T": 8869
+  },
+  "аноним:29758 < forEach": {
+   "team CT = SPOT_TEAM": 15717
+  },
+  "ctEarlyPeek": {
+   "team CT = SPOT_TEAM": 3
+  },
+  "contactSpots": {
+   "SPOT_TEAM null": 10544
+  },
+  "аноним:27799 < forEach": {
+   "SPOT_TEAM null": 26
+  },
+  "flankSpot": {
+   "SPOT_TEAM null": 111
+  },
+  "assistPeek": {
+   "SPOT_TEAM null": 55
+  },
+  "killMoveCover": {
+   "SPOT_TEAM null": 44
+  },
+  "аноним:29644 < forEach": {
+   "team CT = SPOT_TEAM": 40817
+  },
+  "аноним:11030 < forEach": {
+   "SPOT_TEAM null": 23
+  },
+  "ctBrain": {
+   "team CT = SPOT_TEAM": 10
+  },
+  "lowHpBack": {
+   "SPOT_TEAM null": 107
+  },
+  "ambushTick": {
+   "SPOT_TEAM null": 4
+  },
+  "hurtReactTick": {
+   "SPOT_TEAM null": 60
+  },
+  "аноним:28884 < forEach": {
+   "SPOT_TEAM null": 45
+  },
+  "аноним:28887 < forEach": {
+   "SPOT_TEAM null": 21
+  },
+  "coverForReload": {
+   "SPOT_TEAM null": 8
+  },
+  "аноним:29660 < forEach": {
+   "team CT = SPOT_TEAM": 2546
+  },
+  "midCoverPost": {
+   "team CT = SPOT_TEAM": 3
+  },
+  "finishPush": {
+   "SPOT_TEAM null": 8
+  },
+  "ctSetupRole": {
+   "team CT = SPOT_TEAM": 60505
+  },
+  "intelDeath": {
+   "SPOT_TEAM null": 16
+  },
+  "nadeThrowSpot": {
+   "SPOT_TEAM null": 86
+  },
+  "postKillDecide": {
+   "SPOT_TEAM null": 5
+  },
+  "utilWait0": {
+   "team T = SPOT_TEAM": 4
+  },
+  "onBlind": {
+   "SPOT_TEAM null": 4
+  },
+  "аноним:6248 < forEach": {
+   "SPOT_TEAM null": 3
+  },
+  "аноним:29537 < forEach": {
+   "team CT = SPOT_TEAM": 1219
+  },
+  "аноним:27357 < forEach": {
+   "team T = SPOT_TEAM": 150
+  },
+  "afterKillReact": {
+   "SPOT_TEAM null": 6
+  },
+  "аноним:29774 < forEach": {
+   "team CT = SPOT_TEAM": 3996
+  },
+  "аноним:23500 < forEach": {
+   "team CT = SPOT_TEAM": 6
+  },
+  "retakeClear": {
+   "team CT = SPOT_TEAM": 1500
+  },
+  "shiftHold": {
+   "SPOT_TEAM null": 2
+  },
+  "ctInfoCheck": {
+   "team CT = SPOT_TEAM": 7
+  },
+  "аноним:29638 < forEach": {
+   "team CT = SPOT_TEAM": 1076
+  },
+  "retakePost": {
+   "team CT = SPOT_TEAM": 161
+  }
+ }
+}
