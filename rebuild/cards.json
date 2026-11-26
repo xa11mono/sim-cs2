@@ -170,10 +170,7 @@
     "tBrain",
     "tBrainBomb",
     "tBrainExecGo",
-    "tBrainExecute",
     "tBrainMidTake",
-    "tBrainPostplant",
-    "tBrainSetup",
     "tBrainSiteSwitch",
     "tBrainTeam"
    ],
@@ -338,7 +335,6 @@
     "ctBrainBombDown",
     "ctBrainCall",
     "ctBrainFlank",
-    "ctBrainPlayers",
     "ctBrainRotate",
     "ctBrainSave"
    ],
@@ -747,6 +743,28 @@
    "mech": "разминка warm*; автообсервер obs* (числа OBS_K, бой obsFight, слежка OBS.lock), мини-карта; повтор клатча rp* (запись rpRecord, клип rpBuild, эмоции rpEmotions, перейти к раунду rpGoto / #round=М.Р); звук snd*, разбор событий игры для показа showSync (звуки, баннеры, карточка раунда, закупка), главн",
    "owns": [],
    "src": "таблица «Где что»"
+  },
+  "brain-t-phases.js": {
+   "mech": "мозг T, фазы раунда до планта: tBrainSetup (сетап, стадии) и tBrainExecute (выход) — части tBrain (Р3.2), контекст K",
+   "owns": [
+    "tBrainExecute",
+    "tBrainSetup"
+   ],
+   "src": "Р4.4 (деление крупного файла)"
+  },
+  "brain-t-postplant.js": {
+   "mech": "мозг T после планта: tBrainPostplant — часть tBrain (Р3.2), контекст K",
+   "owns": [
+    "tBrainPostplant"
+   ],
+   "src": "Р4.4 (деление крупного файла)"
+  },
+  "brain-ct-players.js": {
+   "mech": "мозг CT по игроку: ctBrainPlayers — часть ctBrain (Р3.2), контекст K",
+   "owns": [
+    "ctBrainPlayers"
+   ],
+   "src": "Р4.4 (деление крупного файла)"
   }
  }
 }

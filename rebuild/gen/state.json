@@ -300,7 +300,8 @@
     "(верх файла) · tuning": 1
    },
    "r": {
-    "brain-ct": 4,
+    "brain-ct": 2,
+    "brain-ct-players": 2,
     "brain-t": 3,
     "contact": 1,
     "ct-early": 1,
@@ -412,7 +413,8 @@
    "w": {},
    "m": {},
    "r": {
-    "brain-t": 2,
+    "brain-t": 1,
+    "brain-t-phases": 1,
     "igl": 2
    },
    "snap": true
@@ -545,7 +547,8 @@
     "belief": 11,
     "bomb": 2,
     "brain-ct": 14,
-    "brain-t": 7,
+    "brain-t": 6,
+    "brain-t-phases": 1,
     "contact": 1,
     "ct-early": 12,
     "ct-setup": 16,
@@ -640,7 +643,7 @@
     "tClearCalls · lurker": 1
    },
    "r": {
-    "brain-t": 2,
+    "brain-t-phases": 2,
     "ct-early": 2,
     "ct-setup": 2,
     "draw": 3,
@@ -1163,7 +1166,7 @@
     "applyZoneLayer · zone-danger": 2
    },
    "r": {
-    "brain-t": 6,
+    "brain-t-postplant": 6,
     "economy": 1,
     "fight": 6,
     "fov": 1,
@@ -1569,7 +1572,7 @@
    "m": {},
    "r": {
     "bomb": 2,
-    "brain-t": 2
+    "brain-t-postplant": 2
    },
    "snap": true
   },
@@ -1600,7 +1603,7 @@
    "m": {},
    "r": {
     "bomb": 3,
-    "brain-t": 2,
+    "brain-t-postplant": 2,
     "draw": 1,
     "replay": 1
    },
@@ -1634,7 +1637,7 @@
    "m": {},
    "r": {
     "bomb": 3,
-    "brain-t": 1,
+    "brain-t-postplant": 1,
     "draw": 1,
     "replay": 1
    },
@@ -1646,7 +1649,7 @@
    "w": {},
    "m": {},
    "r": {
-    "brain-t": 2
+    "brain-t-phases": 2
    },
    "snap": true
   },
@@ -1762,8 +1765,11 @@
     "assist": 34,
     "belief": 2,
     "bomb": 16,
-    "brain-ct": 51,
-    "brain-t": 66,
+    "brain-ct": 30,
+    "brain-ct-players": 21,
+    "brain-t": 18,
+    "brain-t-phases": 33,
+    "brain-t-postplant": 15,
     "contact": 37,
     "ct-early": 21,
     "ct-setup": 14,
@@ -1904,7 +1910,7 @@
    "w": {},
    "m": {},
    "r": {
-    "brain-t": 2
+    "brain-t-phases": 2
    },
    "snap": true
   },
@@ -2003,7 +2009,8 @@
    "w": {},
    "m": {},
    "r": {
-    "brain-t": 4,
+    "brain-t": 3,
+    "brain-t-phases": 1,
     "exec-sync": 3,
     "lurker": 2
    },
@@ -2540,8 +2547,11 @@
    },
    "r": {
     "assist": 3,
-    "brain-ct": 83,
-    "brain-t": 33,
+    "brain-ct": 14,
+    "brain-ct-players": 69,
+    "brain-t": 8,
+    "brain-t-phases": 24,
+    "brain-t-postplant": 1,
     "contact": 2,
     "ct-early": 26,
     "ct-setup": 5,
@@ -4220,8 +4230,10 @@
    "w": {},
    "m": {},
    "r": {
-    "brain-ct": 5,
-    "brain-t": 3,
+    "brain-ct": 1,
+    "brain-ct-players": 4,
+    "brain-t": 1,
+    "brain-t-phases": 2,
     "ct-early": 2,
     "ct-setup": 9,
     "damage": 4,
@@ -4995,7 +5007,7 @@
    },
    "m": {},
    "r": {
-    "brain-t": 1,
+    "brain-t-postplant": 1,
     "draw": 1,
     "fight-state": 1,
     "geometry3d": 1,
@@ -5068,7 +5080,7 @@
     "rebuildNav · paths": 3
    },
    "r": {
-    "brain-t": 1,
+    "brain-t-postplant": 1,
     "draw": 1,
     "fight-state": 1,
     "levels": 4,
@@ -5847,8 +5859,9 @@
    "m": {},
    "r": {
     "bomb": 1,
-    "brain-ct": 3,
-    "brain-t": 7,
+    "brain-ct-players": 3,
+    "brain-t": 6,
+    "brain-t-phases": 1,
     "draw": 1,
     "replay": 1,
     "save-retake": 1
@@ -6065,8 +6078,10 @@
    "w": {},
    "m": {},
    "r": {
-    "brain-ct": 4,
-    "brain-t": 9,
+    "brain-ct-players": 4,
+    "brain-t": 1,
+    "brain-t-phases": 7,
+    "brain-t-postplant": 1,
     "ct-early": 1,
     "ct-setup": 3,
     "decide": 1,
@@ -6546,7 +6561,7 @@
    "w": {},
    "m": {},
    "r": {
-    "brain-ct": 2
+    "brain-ct-players": 2
    },
    "snap": true
   },
@@ -6769,7 +6784,7 @@
     "intelDeath · intel": 4
    },
    "r": {
-    "brain-ct": 2,
+    "brain-ct-players": 2,
     "ct-early": 1,
     "ct-setup": 1,
     "decide": 1,
@@ -6886,8 +6901,10 @@
    "m": {},
    "r": {
     "bomb": 1,
-    "brain-ct": 3,
-    "brain-t": 4,
+    "brain-ct": 2,
+    "brain-ct-players": 1,
+    "brain-t": 2,
+    "brain-t-phases": 2,
     "draw": 2,
     "endgame": 1,
     "exec-sync": 2,
@@ -7369,8 +7386,11 @@
     "assist": 5,
     "belief": 2,
     "bomb": 1,
-    "brain-ct": 43,
-    "brain-t": 76,
+    "brain-ct": 25,
+    "brain-ct-players": 18,
+    "brain-t": 50,
+    "brain-t-phases": 22,
+    "brain-t-postplant": 4,
     "contact": 2,
     "ct-early": 35,
     "ct-setup": 11,
@@ -7672,8 +7692,10 @@
    "r": {
     "assist": 1,
     "bomb": 4,
-    "brain-ct": 1,
-    "brain-t": 13,
+    "brain-ct-players": 1,
+    "brain-t": 6,
+    "brain-t-phases": 4,
+    "brain-t-postplant": 3,
     "contact": 1,
     "events": 1,
     "exec-sync": 2,
@@ -7875,7 +7897,7 @@
    "w": {},
    "m": {},
    "r": {
-    "brain-t": 1
+    "brain-t-phases": 1
    },
    "snap": true
   },
@@ -7885,7 +7907,7 @@
    "w": {},
    "m": {},
    "r": {
-    "brain-t": 1
+    "brain-t-phases": 1
    },
    "snap": true
   },
@@ -7895,7 +7917,7 @@
    "w": {},
    "m": {},
    "r": {
-    "brain-t": 1
+    "brain-t-phases": 1
    },
    "snap": true
   },
@@ -8136,8 +8158,11 @@
     "assist": 16,
     "belief": 3,
     "bomb": 16,
-    "brain-ct": 29,
-    "brain-t": 70,
+    "brain-ct": 17,
+    "brain-ct-players": 12,
+    "brain-t": 35,
+    "brain-t-phases": 24,
+    "brain-t-postplant": 11,
     "contact": 27,
     "ct-early": 22,
     "ct-setup": 7,
@@ -8320,7 +8345,7 @@
    "m": {},
    "r": {
     "bomb": 1,
-    "brain-t": 3,
+    "brain-t-phases": 3,
     "contact": 2,
     "ct-early": 2,
     "fight-state": 4,
@@ -8437,7 +8462,7 @@
     "applyZoneLayer · zone-danger": 2
    },
    "r": {
-    "brain-t": 6,
+    "brain-t-phases": 6,
     "ct-early": 5,
     "ct-setup": 2,
     "economy": 1,
@@ -8534,7 +8559,7 @@
    "w": {},
    "m": {},
    "r": {
-    "brain-t": 1
+    "brain-t-phases": 1
    },
    "snap": true
   },
@@ -8544,7 +8569,7 @@
    "w": {},
    "m": {},
    "r": {
-    "brain-t": 1
+    "brain-t-phases": 1
    },
    "snap": true
   },
@@ -8554,7 +8579,7 @@
    "w": {},
    "m": {},
    "r": {
-    "brain-t": 1
+    "brain-t-phases": 1
    },
    "snap": true
   },
@@ -8564,7 +8589,7 @@
    "w": {},
    "m": {},
    "r": {
-    "brain-t": 1
+    "brain-t-phases": 1
    },
    "snap": true
   },
@@ -9687,8 +9712,11 @@
     "assist": 5,
     "belief": 2,
     "bomb": 92,
-    "brain-ct": 47,
-    "brain-t": 109,
+    "brain-ct": 35,
+    "brain-ct-players": 12,
+    "brain-t": 79,
+    "brain-t-phases": 5,
+    "brain-t-postplant": 25,
     "contact": 20,
     "ct-early": 10,
     "ct-setup": 12,
@@ -9749,7 +9777,8 @@
     "belief": 4,
     "bomb": 14,
     "brain-ct": 9,
-    "brain-t": 14,
+    "brain-t": 8,
+    "brain-t-postplant": 6,
     "contact": 16,
     "ct-early": 8,
     "ct-setup": 11,
@@ -10676,8 +10705,10 @@
     "app": 2,
     "belief": 2,
     "bomb": 3,
-    "brain-ct": 10,
-    "brain-t": 5,
+    "brain-ct-players": 10,
+    "brain-t": 3,
+    "brain-t-phases": 1,
+    "brain-t-postplant": 1,
     "ct-early": 7,
     "ct-setup": 11,
     "economy": 7,
@@ -10738,7 +10769,7 @@
     "updateRetake · save-retake": 1
    },
    "r": {
-    "brain-t": 3,
+    "brain-t-phases": 3,
     "ct-early": 5,
     "damage": 2,
     "decide": 25,
@@ -10825,7 +10856,7 @@
     "throwNadeTry · throw": 1
    },
    "r": {
-    "brain-t": 1,
+    "brain-t-phases": 1,
     "damage": 5,
     "decide": 1,
     "draw": 1,
@@ -11195,8 +11226,11 @@
     "assist": 7,
     "belief": 3,
     "bomb": 10,
-    "brain-ct": 49,
-    "brain-t": 72,
+    "brain-ct": 16,
+    "brain-ct-players": 33,
+    "brain-t": 28,
+    "brain-t-phases": 27,
+    "brain-t-postplant": 17,
     "contact": 4,
     "ct-early": 26,
     "ct-setup": 25,
@@ -11259,7 +11293,8 @@
    "r": {
     "belief": 1,
     "brain-ct": 2,
-    "brain-t": 8,
+    "brain-t": 6,
+    "brain-t-phases": 2,
     "contact": 1,
     "ct-early": 5,
     "ct-setup": 5,
@@ -11292,8 +11327,10 @@
    "m": {},
    "r": {
     "bomb": 1,
-    "brain-ct": 3,
-    "brain-t": 3,
+    "brain-ct": 2,
+    "brain-ct-players": 1,
+    "brain-t": 2,
+    "brain-t-phases": 1,
     "draw": 1,
     "economy": 1,
     "endgame": 1,
@@ -11526,8 +11563,10 @@
    "m": {},
    "r": {
     "bomb": 1,
-    "brain-ct": 3,
-    "brain-t": 3,
+    "brain-ct": 2,
+    "brain-ct-players": 1,
+    "brain-t": 2,
+    "brain-t-phases": 1,
     "draw": 3,
     "economy": 1,
     "endgame": 1,
@@ -11563,7 +11602,7 @@
     "endRound · round": 1
    },
    "r": {
-    "brain-ct": 4,
+    "brain-ct-players": 4,
     "round": 2,
     "tactics": 1
    },
@@ -11599,7 +11638,7 @@
     "resetNades · decide": 1
    },
    "r": {
-    "brain-t": 1,
+    "brain-t-phases": 1,
     "contact": 1,
     "damage": 9,
     "decide": 2,
@@ -11736,7 +11775,7 @@
    },
    "r": {
     "bomb": 1,
-    "brain-t": 1,
+    "brain-t-postplant": 1,
     "ct-setup": 6,
     "decide": 1,
     "economy": 14,
@@ -11764,8 +11803,10 @@
    },
    "r": {
     "assist": 2,
-    "brain-ct": 8,
-    "brain-t": 6,
+    "brain-ct": 4,
+    "brain-ct-players": 4,
+    "brain-t": 4,
+    "brain-t-phases": 2,
     "contact": 4,
     "ct-early": 4,
     "damage": 2,
@@ -11866,8 +11907,11 @@
     "assist": 44,
     "belief": 6,
     "bomb": 41,
-    "brain-ct": 45,
-    "brain-t": 101,
+    "brain-ct": 30,
+    "brain-ct-players": 15,
+    "brain-t": 38,
+    "brain-t-phases": 39,
+    "brain-t-postplant": 24,
     "contact": 49,
     "ct-early": 37,
     "ct-setup": 13,
@@ -12188,7 +12232,7 @@
     "rebuildNav · paths": 6
    },
    "r": {
-    "brain-t": 1,
+    "brain-t-postplant": 1,
     "draw": 2,
     "fight-state": 1,
     "levels": 6,
@@ -12460,14 +12504,14 @@
   },
   "_adSpot": {
    "w": [
-    "brain-t.js:973 tBrainPostplant"
+    "brain-t-postplant.js:83 tBrainPostplant"
    ],
    "lit": [],
    "r": 7
   },
   "_afPt": {
    "w": [
-    "brain-ct.js:635 ctBrainPlayers"
+    "brain-ct-players.js:187 ctBrainPlayers"
    ],
    "lit": [],
    "r": 5
@@ -12621,7 +12665,7 @@
   },
   "_awpLog": {
    "w": [
-    "brain-ct.js:673 ctBrainPlayers"
+    "brain-ct-players.js:225 ctBrainPlayers"
    ],
    "lit": [],
    "r": 2
@@ -12721,7 +12765,7 @@
   },
   "_clr": {
    "w": [
-    "brain-t.js:850 tBrainExecute"
+    "brain-t-phases.js:420 tBrainExecute"
    ],
    "lit": [],
    "r": 2
@@ -13275,9 +13319,9 @@
   "_flee": {
    "w": [
     "bomb.js:72 bombFleePoint",
-    "brain-t.js:910 tBrainPostplant",
-    "brain-t.js:914 tBrainPostplant",
-    "brain-t.js:916 tBrainPostplant"
+    "brain-t-postplant.js:20 tBrainPostplant",
+    "brain-t-postplant.js:24 tBrainPostplant",
+    "brain-t-postplant.js:26 tBrainPostplant"
    ],
    "lit": [],
    "r": 6
@@ -13291,7 +13335,7 @@
   },
   "_fleePt": {
    "w": [
-    "brain-t.js:914 tBrainPostplant"
+    "brain-t-postplant.js:24 tBrainPostplant"
    ],
    "lit": [],
    "r": 2
@@ -13463,8 +13507,8 @@
   },
   "_holdLog": {
    "w": [
-    "brain-ct.js:625 ctBrainPlayers",
-    "brain-ct.js:723 ctBrainPlayers",
+    "brain-ct-players.js:177 ctBrainPlayers",
+    "brain-ct-players.js:275 ctBrainPlayers",
     "ct-early.js:121 secondOnSite"
    ],
    "lit": [],
@@ -13493,8 +13537,8 @@
   },
   "_huntArrive": {
    "w": [
-    "brain-t.js:1042 tBrainPostplant",
-    "brain-t.js:1043 tBrainPostplant",
+    "brain-t-postplant.js:152 tBrainPostplant",
+    "brain-t-postplant.js:153 tBrainPostplant",
     "round.js:233 resetRound"
    ],
    "lit": [],
@@ -13502,9 +13546,9 @@
   },
   "_huntIdx": {
    "w": [
-    "brain-t.js:1038 tBrainPostplant",
-    "brain-t.js:1040 tBrainPostplant",
-    "brain-t.js:1043 tBrainPostplant",
+    "brain-t-postplant.js:148 tBrainPostplant",
+    "brain-t-postplant.js:150 tBrainPostplant",
+    "brain-t-postplant.js:153 tBrainPostplant",
     "round.js:233 resetRound"
    ],
    "lit": [],
@@ -13512,9 +13556,9 @@
   },
   "_huntStart": {
    "w": [
-    "brain-t.js:1038 tBrainPostplant",
-    "brain-t.js:1040 tBrainPostplant",
-    "brain-t.js:1043 tBrainPostplant"
+    "brain-t-postplant.js:148 tBrainPostplant",
+    "brain-t-postplant.js:150 tBrainPostplant",
+    "brain-t-postplant.js:153 tBrainPostplant"
    ],
    "lit": [],
    "r": 4
@@ -13916,14 +13960,14 @@
   },
   "_midBack": {
    "w": [
-    "brain-ct.js:691 ctBrainPlayers"
+    "brain-ct-players.js:243 ctBrainPlayers"
    ],
    "lit": [],
    "r": 8
   },
   "_midCareV": {
    "w": [
-    "brain-ct.js:707 ctBrainPlayers"
+    "brain-ct-players.js:259 ctBrainPlayers"
    ],
    "lit": [],
    "r": 2
@@ -13971,7 +14015,7 @@
   },
   "_mwV": {
    "w": [
-    "brain-ct.js:719 ctBrainPlayers"
+    "brain-ct-players.js:271 ctBrainPlayers"
    ],
    "lit": [],
    "r": 2
@@ -14065,8 +14109,8 @@
   },
   "_noStopLog": {
    "w": [
-    "brain-ct.js:487 ctBrainPlayers",
-    "brain-ct.js:498 ctBrainPlayers"
+    "brain-ct-players.js:39 ctBrainPlayers",
+    "brain-ct-players.js:50 ctBrainPlayers"
    ],
    "lit": [],
    "r": 4
@@ -14367,7 +14411,7 @@
   },
   "_ppSaid": {
    "w": [
-    "brain-t.js:1080 tBrainPostplant"
+    "brain-t-postplant.js:190 tBrainPostplant"
    ],
    "lit": [],
    "r": 2
@@ -14551,7 +14595,7 @@
   },
   "_reangleNext": {
    "w": [
-    "brain-ct.js:528 ctBrainPlayers"
+    "brain-ct-players.js:80 ctBrainPlayers"
    ],
    "lit": [],
    "r": 2
@@ -14644,15 +14688,15 @@
   },
   "_rotMidLog": {
    "w": [
-    "brain-ct.js:744 ctBrainPlayers"
+    "brain-ct-players.js:296 ctBrainPlayers"
    ],
    "lit": [],
    "r": 2
   },
   "_route": {
    "w": [
+    "brain-t-phases.js:104 tBrainSetup",
     "brain-t.js:296 tBrainMidTake",
-    "brain-t.js:534 tBrainSetup",
     "decide.js:254 resetNades",
     "igl.js:124 tIglReplan",
     "igl.js:215 tSetSite",
@@ -14702,14 +14746,14 @@
   },
   "_saveSpot": {
    "w": [
+    "brain-ct-players.js:10 ctBrainPlayers",
+    "brain-ct-players.js:21 ctBrainPlayers",
     "brain-ct.js:428 ctBrainSave",
     "brain-ct.js:433 ctBrainSave",
-    "brain-ct.js:458 ctBrainPlayers",
-    "brain-ct.js:469 ctBrainPlayers",
+    "brain-t-postplant.js:38 tBrainPostplant",
+    "brain-t-postplant.js:73 tBrainPostplant",
     "brain-t.js:110 tBrainExecGo",
     "brain-t.js:371 tBrainTeam",
-    "brain-t.js:928 tBrainPostplant",
-    "brain-t.js:963 tBrainPostplant",
     "fight-state.js:260 afterKillReact",
     "round.js:233 resetRound",
     "save-retake.js:86 tSaveHold"
@@ -14937,10 +14981,10 @@
   },
   "_stageInfo": {
    "w": [
-    "brain-t.js:514 tBrainSetup",
-    "brain-t.js:534 tBrainSetup",
-    "brain-t.js:540 tBrainSetup",
-    "brain-t.js:544 tBrainSetup",
+    "brain-t-phases.js:104 tBrainSetup",
+    "brain-t-phases.js:110 tBrainSetup",
+    "brain-t-phases.js:114 tBrainSetup",
+    "brain-t-phases.js:84 tBrainSetup",
     "igl.js:124 tIglReplan",
     "igl.js:180 stagePost",
     "igl.js:215 tSetSite"
@@ -14987,17 +15031,17 @@
   },
   "_stopPlantLog": {
    "w": [
-    "brain-ct.js:501 ctBrainPlayers"
+    "brain-ct-players.js:53 ctBrainPlayers"
    ],
    "lit": [],
    "r": 2
   },
   "_stopPlantUntil": {
    "w": [
-    "brain-ct.js:502 ctBrainPlayers",
-    "brain-t.js:945 tBrainPostplant",
-    "brain-t.js:963 tBrainPostplant",
-    "brain-t.js:977 tBrainPostplant"
+    "brain-ct-players.js:54 ctBrainPlayers",
+    "brain-t-postplant.js:55 tBrainPostplant",
+    "brain-t-postplant.js:73 tBrainPostplant",
+    "brain-t-postplant.js:87 tBrainPostplant"
    ],
    "lit": [],
    "r": 8
@@ -15036,8 +15080,8 @@
   },
   "_takeAt": {
    "w": [
-    "brain-t.js:871 tBrainExecute",
-    "brain-t.js:881 tBrainExecute"
+    "brain-t-phases.js:441 tBrainExecute",
+    "brain-t-phases.js:451 tBrainExecute"
    ],
    "lit": [],
    "r": 3
@@ -15146,18 +15190,18 @@
   },
   "_utilW": {
    "w": [
-    "brain-t.js:654 tBrainExecute",
-    "brain-t.js:666 tBrainExecute",
-    "brain-t.js:675 tBrainExecute",
-    "brain-t.js:686 tBrainExecute"
+    "brain-t-phases.js:224 tBrainExecute",
+    "brain-t-phases.js:236 tBrainExecute",
+    "brain-t-phases.js:245 tBrainExecute",
+    "brain-t-phases.js:256 tBrainExecute"
    ],
    "lit": [],
    "r": 13
   },
   "_utilWDone": {
    "w": [
-    "brain-t.js:653 tBrainExecute",
-    "brain-t.js:692 tBrainExecute"
+    "brain-t-phases.js:223 tBrainExecute",
+    "brain-t-phases.js:262 tBrainExecute"
    ],
    "lit": [],
    "r": 3
@@ -16575,7 +16619,7 @@
   },
   "until": {
    "w": [
-    "brain-ct.js:694 ctBrainPlayers"
+    "brain-ct-players.js:246 ctBrainPlayers"
    ],
    "lit": [],
    "r": 0
@@ -16735,7 +16779,7 @@
   },
   "esc._probeLock": {
    "w": [
-    "brain-t.js:753 tBrainExecute"
+    "brain-t-phases.js:323 tBrainExecute"
    ]
   },
   "hudScale._set": {

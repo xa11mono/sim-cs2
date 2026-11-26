@@ -86,7 +86,7 @@
 - `stepTick (tick)` — 40
 - `contactTick (contact)` — 33
 - `draw (draw)` — 32
-- `tBrainExecute (brain-t)` — 30
+- `tBrainExecute (brain-t-phases)` — 30
 - `lineupTick (lineups)` — 27
 - `updateNadeTask1 (throw)` — 26
 - `(верх файла) (task)` — 24
@@ -102,13 +102,13 @@
 - `chooseTactic (tactics)` — 15
 - `ctBrainRotate (brain-ct)` — 15
 - `(верх файла) (app)` — 15
-- `tBrainSetup (brain-t)` — 14
+- `tBrainSetup (brain-t-phases)` — 14
 - `intelDeath (intel)` — 14
 - `smoothLookFilter (look)` — 14
 - `endgameBrain (endgame)` — 14
 - `buildWaypointPath0 (paths)` — 13
-- `tBrainPostplant (brain-t)` — 13
-- `ctBrainPlayers (brain-ct)` — 13
+- `tBrainPostplant (brain-t-postplant)` — 13
+- `ctBrainPlayers (brain-ct-players)` — 13
 - `throwNadeTry (throw)` — 13
 - `(верх файла) (observer)` — 13
 - `contactInfo (contact)` — 12

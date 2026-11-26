@@ -561,9 +561,9 @@
    "perception": false
   },
   {
-   "file": "brain-ct.js",
+   "file": "brain-ct-players.js",
    "fn": "ctBrainPlayers",
-   "line": 460,
+   "line": 12,
    "props": [
     "bomb.x,y"
    ],
@@ -581,9 +581,9 @@
    "perception": false
   },
   {
-   "file": "brain-t.js",
+   "file": "brain-t-postplant.js",
    "fn": "tBrainPostplant",
-   "line": 908,
+   "line": 18,
    "props": [
     "teamBot.z"
    ],

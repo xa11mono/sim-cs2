@@ -460,3 +460,5 @@ CT идёт через зону с ролью `CTspawn`.
 - (v559) **Цель раунда команды** — одно место `roundGoal` (520): читают выход на врага (`contactTick`), подбор оружия, ранний пик CT, гранаты-комбо, оценка действия (`decideAction`). Темп тактики T по закупу — `TAC_TEMPO` в `chooseTactic` (130).
 
 - (v566) `team.js` — «разбор команды»: только показ, читает решения механик (`teamEco[*].buyWhy` / `ecoWhy` — 520; `TACT_DBG` — 130; `CTSET_DBG` — 140; журнал `TEAMDBG.log` — из `logEvent`, 440).
+
+- **Р4.4 (26.11): деление крупных файлов.** `engine/bot/brain-t.js` → + `brain-t-phases.js` (`tBrainSetup`, `tBrainExecute`), `brain-t-postplant.js` (`tBrainPostplant`); `engine/bot/brain-ct.js` → + `brain-ct-players.js` (`ctBrainPlayers`). Склейка по списку `rebuild/files.json` даёт прежний текст байт в байт (новые файлы — сразу за исходным).

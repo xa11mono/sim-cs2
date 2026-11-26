@@ -137,4 +137,4 @@
 - `tBrainExecGo · brain-t` — 3 (стр. 136, 153, 158)
 - `tBrainMidTake · brain-t` — 2 (стр. 314, 333)
 - `tBrain · brain-t` — 1 (стр. 78)
-- `tBrainSetup · brain-t` — 1 (стр. 609)
+- `tBrainSetup · brain-t-phases` — 1 (стр. 179)

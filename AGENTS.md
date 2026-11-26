@@ -302,9 +302,9 @@
 | позиции по названиям зон, расстановки CT `chooseCtSetup`, любимые углы | `engine/team/ct-setup` |
 | лёркер `lurkerBrain`, пробы, «проверено — пусто» `markClear` | `engine/team/lurker` |
 | IGL `tIglReplan`, стадии `stagePost` / `tSetSite` | `engine/team/igl` |
-| мозг T `tBrain` | `engine/bot/brain-t` |
+| мозг T `tBrain` (вступление и ранние части); фазы `tBrainSetup` / `tBrainExecute`; после планта `tBrainPostplant` (Р4.4) | `engine/bot/brain-t`, `engine/bot/brain-t-phases`, `engine/bot/brain-t-postplant` |
 | сейв `pickSaveSpot`, ретейк `updateRetake` | `engine/team/save-retake` |
-| мозг CT `ctBrain` | `engine/bot/brain-ct` |
+| мозг CT `ctBrain`; по игроку `ctBrainPlayers` (Р4.4) | `engine/bot/brain-ct`, `engine/bot/brain-ct-players` |
 | эндгейм, клатч CT, ранний пик CT, мид | `engine/team/ct-early`, `engine/team/endgame` |
 | роли `pRole`, `tFallbackTick`, ребаланс сайта; про-позиции `ppLayer`/`proPick` | `engine/team/roles`, `engine/team/pro-positions` |
 | память команды v166 (только радар + войс): `intelPush`, `teamInfoTick`, `commSend` = радар, `intelEstimate`, `lkpNear`, названия зон `calloutName` | `engine/know/intel`; `teamHeardToIntel` — `engine/know/voice` |

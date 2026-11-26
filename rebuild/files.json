@@ -24,6 +24,8 @@
   "lurker.js",
   "igl.js",
   "brain-t.js",
+  "brain-t-phases.js",
+  "brain-t-postplant.js",
   "save-retake.js",
   "intel.js",
   "reach.js",
@@ -42,6 +44,7 @@
   "ct-early.js",
   "endgame.js",
   "brain-ct.js",
+  "brain-ct-players.js",
   "contact.js",
   "smoke.js",
   "plan.js",
@@ -279,6 +282,20 @@
    "legacy": "170"
   },
   {
+   "file": "brain-t-phases.js",
+   "id": "brain-t-phases",
+   "part": "decide",
+   "sys": "мозг T",
+   "dir": "engine/bot"
+  },
+  {
+   "file": "brain-t-postplant.js",
+   "id": "brain-t-postplant",
+   "part": "decide",
+   "sys": "мозг T",
+   "dir": "engine/bot"
+  },
+  {
    "file": "save-retake.js",
    "id": "save-retake",
    "part": "decide",
@@ -421,6 +438,13 @@
    "sys": "мозг CT",
    "dir": "engine/bot",
    "legacy": "340"
+  },
+  {
+   "file": "brain-ct-players.js",
+   "id": "brain-ct-players",
+   "part": "decide",
+   "sys": "мозг CT",
+   "dir": "engine/bot"
   },
   {
    "file": "contact.js",

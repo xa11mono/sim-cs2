@@ -29,7 +29,9 @@
     ],
     "_stopPlantUntil": [
       "brain-t",
-      "brain-ct"
+      "brain-ct",
+      "brain-t-postplant",
+      "brain-ct-players"
     ],
     "_tagUntil": [
       "items",
