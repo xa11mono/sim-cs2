@@ -249,6 +249,7 @@ function lineupTick(){
         if(nadeFlags["_lu0"+L.id] === undefined) nadeFlags["_lu0"+L.id] = since;
         return;
       }
+      if(DLOG.on) dlogTeam(L.team, "гранаты", "лайнап «" + (L.name||LU_TYPE[L.type]) + "»: некому бросить (нет бойца с гранатой рядом с точкой, по пути) — снят");   // (Р3.3) отсев
       nadeFlags[key] = true; return; // так и не нашли, кто бросит — сдаёмся
     }
     nadeFlags[key] = true;
@@ -256,6 +257,7 @@ function lineupTick(){
     // (v340, отметка владельца: sh1ro шёл на смок Connector, задание сгорело у уступа — развернулся, «отталкивает») срок — не
     // меньше дороги до точки броска по пути + LU_REACH_PAD с (проектное число); раньше только 7 / 12 / 20 с
     var LS = spotOf(cand);
+    if(DLOG.on) dlogTeam(L.team, "гранаты", "лайнап «" + (L.name||LU_TYPE[L.type]) + "»: бросает " + cand.id + (L.pro && L.grp && npOwner(cand, L) ? " (хозяин по плану)" : L.pro && L.grp ? " (вместо хозяина по плану)" : ""));   // (Р3.3) выбор
     var luBase = hot ? ((L.trigger === "timed") ? 12 : 7) : 20, luP = buildWaypointPath(cand.baseX, cand.baseY, cand.z, LS.from.x, LS.from.y, 0), luLen = 0, luX = cand.baseX, luY = cand.baseY;
     luP.forEach(function(q){ luLen += DM.hypot(q[0]-luX, q[1]-luY); luX = q[0]; luY = q[1]; });
     var luSec = Math.max(luBase, Math.ceil(luLen/(SPEED*weaponSpeedMul(cand)) + LU_REACH_PAD));

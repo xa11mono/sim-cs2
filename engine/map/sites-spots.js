@@ -212,15 +212,17 @@ function pickSpots(key, center, count, o){
   o = o || {};
   var rMin = o.rMin||0, rMax = o.rMax||170, gap = o.minGap||55;
   var cands = [];
+  // (Р3.3, 26.11) след хозяина места: варианты и отсев по причинам — только при включённом следе (вне состояния игры)
+  var RJ = DLOG.on ? {} : null, rj = function(k){ if(RJ) RJ[k] = (RJ[k] || 0) + 1; };
   NAVAREAS.forEach(function(z){
     if(NAV_BLOCKED[z.id] || !(zoneGraph[z.id]||[]).length) return;
     var c = zoneCentroid(z);
     var d = DM.hypot(c.x-center.x, c.y-center.y);
     if(d < rMin || d > rMax) return;
-    if(insideSolidWall(c.x, c.y)) return;
-    if(o.zone && zoneIdAt(c.x, c.y) !== o.zone) return;   // (Г4, 04.11, п.13) место — внутри названной зоны
-    if(o.must && !o.must.every(function(m){ return hasLOS(c.x, c.y, m.x, m.y); })) return;
-    if(o.reach && segCrossesManualWalls(center.x, center.y, c.x, c.y) && d < 60) return;
+    if(insideSolidWall(c.x, c.y)){ rj("в стене"); return; }
+    if(o.zone && zoneIdAt(c.x, c.y) !== o.zone){ rj("не та зона"); return; }   // (Г4, 04.11, п.13) место — внутри названной зоны
+    if(o.must && !o.must.every(function(m){ return hasLOS(c.x, c.y, m.x, m.y); })){ rj("не видно нужного"); return; }
+    if(o.reach && segCrossesManualWalls(center.x, center.y, c.x, c.y) && d < 60){ rj("не дойти"); return; }
     var sc = 0;
     (o.hideFrom||[]).forEach(function(h){ if(!hasLOS(c.x, c.y, h.x, h.y)) sc += 2; });
     (o.see||[]).forEach(function(h){ if(hasLOS(c.x, c.y, h.x, h.y)) sc += 1; });
@@ -250,10 +252,11 @@ function pickSpots(key, center, count, o){
   var out = [];
   for(var i=0;i<cands.length && out.length<count;i++){
     var c = cands[i];
-    if(out.some(function(q){ return DM.hypot(q.x-c.x, q.y-c.y) < gap; })) continue;
+    if(out.some(function(q){ return DM.hypot(q.x-c.x, q.y-c.y) < gap; })){ rj("рядом со взятым"); continue; }
     out.push(c);
   }
   while(out.length < count) out.push({x:center.x, y:center.y}); // запас, если места не нашлось
+  if(RJ) dlogTeam(expT || "?", "места", "«" + key + "»: вариантов " + cands.length + ", отсев " + JSON.stringify(RJ) + ", выбрано " + out.length + " из " + count);
   spotCache[ck] = out;
   return out;
 }
