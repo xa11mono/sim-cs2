@@ -84,6 +84,7 @@
   "team.js",
   "draw.js",
   "view3d.js",
+  "view3d-frame.js",
   "killfeed.js",
   "fx.js",
   "scoreboard.js",
@@ -92,6 +93,7 @@
   "warmup.js",
   "observer.js",
   "replay.js",
+  "replay-play.js",
   "timeout.js",
   "sandbox.js",
   "demo.js",
@@ -759,6 +761,13 @@
    "legacy": "625"
   },
   {
+   "file": "view3d-frame.js",
+   "id": "view3d-frame",
+   "part": "show",
+   "sys": "показ и инструменты",
+   "dir": "view"
+  },
+  {
    "file": "killfeed.js",
    "id": "killfeed",
    "part": "show",
@@ -823,6 +832,14 @@
    "mode": true,
    "dir": "view",
    "legacy": "675"
+  },
+  {
+   "file": "replay-play.js",
+   "id": "replay-play",
+   "part": "show",
+   "sys": "показ и инструменты",
+   "mode": true,
+   "dir": "view"
   },
   {
    "file": "timeout.js",

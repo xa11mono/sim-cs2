@@ -643,9 +643,7 @@
   "view3d.js": {
    "mech": "3D-вид (кнопка «3D», только показ, v571): D3, сцена d3Build (пол — навмеш, ящики — m3() до D3_CUT), кадр d3Frame, таблички d3Tag; своё WebGL2",
    "owns": [
-    "d3Build",
-    "d3Frame",
-    "d3Tag"
+    "d3Build"
    ],
    "src": "таблица «Где что»"
   },
@@ -701,8 +699,6 @@
    "mech": "разминка warm*; автообсервер obs* (числа OBS_K, бой obsFight, слежка OBS.lock), мини-карта; повтор клатча rp* (запись rpRecord, клип rpBuild, эмоции rpEmotions, перейти к раунду rpGoto / #round=М.Р); звук snd*, разбор событий игры для показа showSync (звуки, баннеры, карточка раунда, закупка), главн",
    "owns": [
     "rpBuild",
-    "rpEmotions",
-    "rpGoto",
     "rpRecord"
    ],
    "src": "таблица «Где что»"
@@ -775,6 +771,22 @@
     "funnel",
     "hasLOS",
     "zoneDijkstra"
+   ],
+   "src": "Р4.4 (деление крупного файла)"
+  },
+  "view3d-frame.js": {
+   "mech": "3D-вид (показ): кадр d3Frame, проекция d3Proj, таблички d3Tag, запуск вида",
+   "owns": [
+    "d3Frame",
+    "d3Tag"
+   ],
+   "src": "Р4.4 (деление крупного файла)"
+  },
+  "replay-play.js": {
+   "mech": "повтор клатча (показ): проигрывание — скорость, рисование rpDraw, звук rpSound, переход к раунду",
+   "owns": [
+    "rpEmotions",
+    "rpGoto"
    ],
    "src": "Р4.4 (деление крупного файла)"
   }

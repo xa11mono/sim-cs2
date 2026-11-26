@@ -338,10 +338,10 @@
 | редактор карты `MAPED` (вкладки, Ctrl+Z, база; стены); высоты; укрытия; прострелы | `view/editors/map-walls`, `view/editors/map-heights`, `view/editors/map-cover`, `view/editors/map-wallbang` |
 | проверка «кто кого видит» `visToolDraw`; разбор взгляда `lookDbgPanel` | `view/debug/look-debug` |
 | рисование кадра `draw` | `view/draw` |
-| **3D-вид** (кнопка «3D», только показ, v571): `D3`, сцена `d3Build` (пол — навмеш, ящики — `m3()` до `D3_CUT`), кадр `d3Frame`, таблички `d3Tag`; своё WebGL2 | `view/view3d` |
+| **3D-вид** (кнопка «3D», только показ, v571): `D3`, сцена `d3Build` (пол — навмеш, ящики — `m3()` до `D3_CUT`), кадр `d3Frame`, таблички `d3Tag`; своё WebGL2 | `view/view3d` (+ кадр — `view/view3d-frame`) |
 | киллфид — рисует `renderFeed` (иконки `KF_ICON`, затухание `kfExpireTick`), силуэты летящих гранат `NADE_ICON` / `nadeImg`, баннеры, карточка раунда, экономика на экране | `view/hud/killfeed` |
 | табло `scoreboardUpdate`, панели игроков `playersUpdate` | `view/hud/scoreboard` |
 | место вставки «Отметить момент» (`@@BUILD@@`) | `view/marks-hook` |
 | **песочница** (одно место, v536): `SANDBOX`, `sbTick` (часы стоят), `sbPlace` / `sbRevive` / `sbRemove`, панель `sbRender` / `sbLogic`; приказ `sbGo` | `view/sandbox` |
-| разминка `warm*`; автообсервер `obs*` (числа `OBS_K`, бой `obsFight`, слежка `OBS.lock`), мини-карта; **повтор клатча** `rp*` (запись `rpRecord`, клип `rpBuild`, эмоции `rpEmotions`, перейти к раунду `rpGoto` / `#round=М.Р`); звук `snd*`, разбор событий игры для показа `showSync` (звуки, баннеры, карточка раунда, закупка), главный цикл `frame`, кнопки | `view/warmup`, `view/observer`, `view/replay`, `view/app` |
+| разминка `warm*`; автообсервер `obs*` (числа `OBS_K`, бой `obsFight`, слежка `OBS.lock`), мини-карта; **повтор клатча** `rp*` (запись `rpRecord`, клип `rpBuild`, эмоции `rpEmotions`, перейти к раунду `rpGoto` / `#round=М.Р`); звук `snd*`, разбор событий игры для показа `showSync` (звуки, баннеры, карточка раунда, закупка), главный цикл `frame`, кнопки | `view/warmup`, `view/observer`, `view/replay` (+ проигрывание — `view/replay-play`), `view/app` |
 | **отметки владельца** (v255): `src/marks.js` (кнопка M, снимок, перемотка), сборка — `src/marks_build.py`; открыть снимок — `tools/marks/mark_open.js`; разбор по истории (что было до, что перебило, веса зон) — `tools/marks/mark_story.js` (v401); раскадровка со слоями — `tools/marks/mark_frames.js` (v407б); повтор с хранилищем браузера владельца — `tools/marks/replay_owner.js` | отдельные файлы |

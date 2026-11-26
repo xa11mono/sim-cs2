@@ -428,7 +428,7 @@
    "r": {
     "bomb": 1,
     "demo": 1,
-    "replay": 1,
+    "replay-play": 1,
     "save-retake": 1
    },
    "snap": true
@@ -1245,23 +1245,24 @@
    "init": "ObjectExpression",
    "w": {},
    "m": {
-    "(верх файла) · view3d": 23,
+    "(верх файла) · view3d-frame": 23,
     "d3AutoCam · view3d": 5,
     "d3Build · view3d": 20,
     "d3Corpse · view3d": 1,
     "d3FlyThru · view3d": 2,
     "d3FpBot · view3d": 1,
-    "d3Frame · view3d": 23,
+    "d3Frame · view3d-frame": 23,
     "d3Hist · view3d": 1,
     "d3Init · view3d": 7,
     "d3NadeCam · view3d": 1,
-    "d3Tag · view3d": 1,
+    "d3Tag · view3d-frame": 1,
     "d3Toggle · view3d": 1
    },
    "r": {
     "app": 3,
-    "replay": 7,
-    "view3d": 269
+    "replay-play": 7,
+    "view3d": 71,
+    "view3d-frame": 198
    },
    "snap": true
   },
@@ -1271,7 +1272,8 @@
    "w": {},
    "m": {},
    "r": {
-    "view3d": 2
+    "view3d": 1,
+    "view3d-frame": 1
    },
    "snap": true
   },
@@ -1323,7 +1325,7 @@
    "w": {},
    "m": {},
    "r": {
-    "view3d": 2
+    "view3d-frame": 2
    },
    "snap": true
   },
@@ -1333,7 +1335,7 @@
    "w": {},
    "m": {},
    "r": {
-    "view3d": 2
+    "view3d-frame": 2
    },
    "snap": true
   },
@@ -1353,7 +1355,7 @@
    "w": {},
    "m": {},
    "r": {
-    "view3d": 1
+    "view3d-frame": 1
    },
    "snap": true
   },
@@ -1363,7 +1365,7 @@
    "w": {},
    "m": {},
    "r": {
-    "view3d": 1
+    "view3d-frame": 1
    },
    "snap": true
   },
@@ -1393,7 +1395,8 @@
    "w": {},
    "m": {},
    "r": {
-    "view3d": 50
+    "view3d": 22,
+    "view3d-frame": 28
    },
    "snap": true
   },
@@ -1413,7 +1416,7 @@
    "w": {},
    "m": {},
    "r": {
-    "view3d": 1
+    "view3d-frame": 1
    },
    "snap": true
   },
@@ -1493,7 +1496,7 @@
    "w": {},
    "m": {},
    "r": {
-    "view3d": 8
+    "view3d-frame": 8
    },
    "snap": true
   },
@@ -1503,7 +1506,7 @@
    "w": {},
    "m": {},
    "r": {
-    "view3d": 1
+    "view3d-frame": 1
    },
    "snap": true
   },
@@ -1513,7 +1516,7 @@
    "w": {},
    "m": {},
    "r": {
-    "view3d": 2
+    "view3d-frame": 2
    },
    "snap": true
   },
@@ -2465,7 +2468,7 @@
    "init": "ArrayExpression",
    "w": {
     "freezeFxReset · round": 1,
-    "rpWorldDraw · replay": 2
+    "rpWorldDraw · replay-play": 2
    },
    "m": {
     "awpSwap · economy": 2,
@@ -2477,7 +2480,7 @@
    "r": {
     "draw": 2,
     "economy": 6,
-    "replay": 1,
+    "replay-play": 1,
     "scoreboard": 1
    },
    "snap": true
@@ -2858,7 +2861,7 @@
     "app": 4,
     "damage": 3,
     "highlights": 8,
-    "view3d": 3
+    "view3d-frame": 3
    },
    "snap": true
   },
@@ -3292,7 +3295,7 @@
     "fx": 3,
     "killfeed": 5,
     "scoreboard": 5,
-    "view3d": 1
+    "view3d-frame": 1
    },
    "snap": "нет: STATIC"
   },
@@ -3325,7 +3328,7 @@
    "m": {},
    "r": {
     "killfeed": 2,
-    "replay": 1
+    "replay-play": 1
    },
    "snap": true
   },
@@ -4583,7 +4586,7 @@
     "smoke-react": 2,
     "sound": 3,
     "throw": 11,
-    "view3d": 1
+    "view3d-frame": 1
    },
    "snap": true
   },
@@ -5458,13 +5461,14 @@
    "decl": "tuning.js:47",
    "init": "ObjectExpression",
    "w": {
-    "rpWorldDraw · replay": 2
+    "rpWorldDraw · replay-play": 2
    },
    "m": {
     "seatPlayers · rosters": 1
    },
    "r": {
-    "replay": 5,
+    "replay": 4,
+    "replay-play": 1,
     "rosters": 6,
     "tuning": 2
    },
@@ -5528,21 +5532,23 @@
    "w": {},
    "m": {
     "(верх файла) · observer": 17,
-    "(верх файла) · view3d": 5,
+    "(верх файла) · view3d-frame": 5,
     "obsCtx · observer": 2,
     "obsFrame · observer": 29,
     "obsManual · observer": 2,
     "obsOverlay · observer": 1,
     "obsSet · observer": 6,
     "rpEnd · replay": 1,
-    "rpJump · replay": 1,
+    "rpJump · replay-play": 1,
     "tsEnd · timeout": 1
    },
    "r": {
     "observer": 137,
-    "replay": 6,
+    "replay": 4,
+    "replay-play": 2,
     "timeout": 4,
-    "view3d": 20
+    "view3d": 9,
+    "view3d-frame": 11
    },
    "snap": "нет: UI"
   },
@@ -5904,7 +5910,7 @@
    "w": {},
    "m": {},
    "r": {
-    "replay": 1,
+    "replay-play": 1,
     "scoreboard": 1
    },
    "snap": true
@@ -5981,7 +5987,7 @@
    "w": {},
    "m": {},
    "r": {
-    "replay": 1,
+    "replay-play": 1,
     "scoreboard": 1,
     "timeout": 1
    },
@@ -6986,13 +6992,14 @@
    "init": "ObjectExpression",
    "w": {},
    "m": {
-    "(верх файла) · replay": 4,
-    "rpDraw · replay": 2,
+    "(верх файла) · replay": 2,
+    "(верх файла) · replay-play": 2,
+    "rpDraw · replay-play": 2,
     "rpEnd · replay": 3,
     "rpFrame · replay": 3,
-    "rpGoto · replay": 2,
+    "rpGoto · replay-play": 2,
     "rpHold · replay": 1,
-    "rpJump · replay": 2,
+    "rpJump · replay-play": 2,
     "rpPlay · replay": 2,
     "rpRecord · replay": 14,
     "rpRoundEnd · replay": 2,
@@ -7001,7 +7008,8 @@
    },
    "r": {
     "app": 3,
-    "replay": 82,
+    "replay": 65,
+    "replay-play": 17,
     "timeout": 2
    },
    "snap": "нет: UI"
@@ -7012,7 +7020,8 @@
    "w": {},
    "m": {},
    "r": {
-    "replay": 4
+    "replay": 1,
+    "replay-play": 3
    },
    "snap": "нет: UI"
   },
@@ -7036,17 +7045,18 @@
    "w": {},
    "m": {},
    "r": {
-    "replay": 32
+    "replay": 24,
+    "replay-play": 8
    },
    "snap": "нет: UI"
   },
   "RP_LANG": {
-   "decl": "replay.js:480",
+   "decl": "replay-play.js:138",
    "init": "ObjectExpression",
    "w": {},
    "m": {},
    "r": {
-    "replay": 2,
+    "replay-play": 2,
     "timeout": 4
    },
    "snap": true
@@ -7067,38 +7077,39 @@
    "w": {},
    "m": {},
    "r": {
-    "replay": 21
+    "replay": 4,
+    "replay-play": 17
    },
    "snap": true
   },
   "RP_RU": {
-   "decl": "replay.js:481",
+   "decl": "replay-play.js:139",
    "init": "ObjectExpression",
    "w": {},
    "m": {},
    "r": {
-    "replay": 2,
+    "replay-play": 2,
     "timeout": 1
    },
    "snap": true
   },
   "RP_SAY": {
-   "decl": "replay.js:482",
+   "decl": "replay-play.js:140",
    "init": "ObjectExpression",
    "w": {},
    "m": {},
    "r": {
-    "replay": 3
+    "replay-play": 3
    },
    "snap": true
   },
   "RP_SNAPS": {
-   "decl": "replay.js:630",
+   "decl": "replay-play.js:288",
    "init": "ObjectExpression",
    "w": {},
    "m": {},
    "r": {
-    "replay": 1
+    "replay-play": 1
    },
    "snap": "нет: UI"
   },
@@ -7376,13 +7387,14 @@
    "init": "ObjectExpression",
    "w": {
     "newMatch · round": 1,
-    "rpWorldDraw · replay": 2,
+    "rpWorldDraw · replay-play": 2,
     "swapSides · round": 1
    },
    "m": {},
    "r": {
     "ct-setup": 1,
-    "replay": 3,
+    "replay": 2,
+    "replay-play": 1,
     "rosters": 3,
     "round": 6,
     "scoreboard": 1,
@@ -7561,7 +7573,8 @@
    },
    "r": {
     "app": 107,
-    "replay": 6
+    "replay": 3,
+    "replay-play": 3
    },
    "snap": "нет: показ (звук / HUD — фильтр mkSnapList)"
   },
@@ -8217,7 +8230,8 @@
     "pro-positions": 1,
     "problem-watch": 11,
     "reach": 3,
-    "replay": 24,
+    "replay": 16,
+    "replay-play": 8,
     "roles": 8,
     "round": 1,
     "sandbox": 1,
@@ -8234,7 +8248,8 @@
     "tick": 23,
     "trace": 2,
     "turn": 3,
-    "view3d": 11,
+    "view3d": 9,
+    "view3d-frame": 2,
     "voice": 1,
     "warmup": 1
    },
@@ -8248,10 +8263,10 @@
    "r": {
     "app": 2,
     "draw": 3,
-    "replay": 3,
+    "replay-play": 3,
     "sandbox": 1,
     "tick": 2,
-    "view3d": 2
+    "view3d-frame": 2
    },
    "snap": true
   },
@@ -8380,7 +8395,7 @@
    "w": {},
    "m": {
     "engDecide · engagements": 2,
-    "rpJump · replay": 1,
+    "rpJump · replay-play": 1,
     "tsEls · timeout": 1,
     "tsEnd · timeout": 1,
     "tsFrame · timeout": 2,
@@ -8392,7 +8407,7 @@
     "ct-setup": 4,
     "engagements": 5,
     "observer": 3,
-    "replay": 3,
+    "replay-play": 3,
     "timeout": 21,
     "warmup": 2
    },
@@ -8930,7 +8945,7 @@
    "w": {
     "dvStart · demo": 1,
     "matchBegin · round": 1,
-    "rpJump · replay": 1,
+    "rpJump · replay-play": 1,
     "warmEnd · warmup": 1,
     "warmStart · warmup": 1
    },
@@ -8941,7 +8956,8 @@
     "app": 2,
     "demo": 1,
     "observer": 2,
-    "replay": 2,
+    "replay": 1,
+    "replay-play": 1,
     "round": 2,
     "sandbox": 2,
     "scoreboard": 5,
@@ -9053,7 +9069,7 @@
     "items": 14,
     "killfeed": 2,
     "map-cover": 3,
-    "replay": 1,
+    "replay-play": 1,
     "round": 1,
     "save-retake": 1,
     "scoreboard": 4,
@@ -9596,8 +9612,8 @@
    "r": {
     "app": 3,
     "draw": 3,
-    "replay": 1,
-    "view3d": 2
+    "replay-play": 1,
+    "view3d-frame": 2
    },
    "snap": "нет: UI"
   },
@@ -9712,7 +9728,7 @@
    "init": "Literal",
    "w": {
     "resetBomb · bomb": 1,
-    "rpWorldDraw · replay": 2
+    "rpWorldDraw · replay-play": 2
    },
    "m": {
     "bombPassTick · sound": 4,
@@ -9722,7 +9738,7 @@
     "ctBombPos · save-retake": 2,
     "dropBomb · bomb": 4,
     "dvTick · demo": 8,
-    "rpWorldDraw · replay": 1,
+    "rpWorldDraw · replay-play": 1,
     "sbTick · sandbox": 1,
     "tBrainBomb · brain-t": 1,
     "updateRetake · save-retake": 1
@@ -9765,7 +9781,8 @@
     "plan": 4,
     "position": 8,
     "pro-positions": 4,
-    "replay": 26,
+    "replay": 23,
+    "replay-play": 3,
     "roles": 9,
     "round": 8,
     "sandbox": 4,
@@ -9779,7 +9796,7 @@
     "team": 4,
     "throw": 3,
     "tick": 4,
-    "view3d": 30
+    "view3d-frame": 30
    },
    "snap": true
   },
@@ -9833,7 +9850,8 @@
     "position": 5,
     "problem-watch": 2,
     "reach": 3,
-    "replay": 26,
+    "replay": 14,
+    "replay-play": 12,
     "roles": 9,
     "rosters": 3,
     "round": 13,
@@ -9855,7 +9873,8 @@
     "trace": 2,
     "tuning": 1,
     "turn": 2,
-    "view3d": 14,
+    "view3d": 9,
+    "view3d-frame": 5,
     "voice": 5,
     "warmup": 3,
     "weapons-bots": 7
@@ -10238,7 +10257,7 @@
    "init": "CallExpression",
    "w": {
     "d3Draw2D · view3d": 2,
-    "rpWorldDraw · replay": 2,
+    "rpWorldDraw · replay-play": 2,
     "strafeKeysTick · tick": 1,
     "zoneDijkstra · path-search": 1
    },
@@ -10272,7 +10291,7 @@
     "map-walls": 37,
     "observer": 24,
     "path-search": 13,
-    "replay": 3,
+    "replay-play": 3,
     "tick": 10,
     "turn": 5,
     "view3d": 1
@@ -10283,7 +10302,7 @@
    "decl": "nav-zones.js:2",
    "init": "CallExpression",
    "w": {
-    "rpWorldDraw · replay": 2,
+    "rpWorldDraw · replay-play": 2,
     "visBuild · vision": 1
    },
    "m": {
@@ -10302,11 +10321,12 @@
     "nav-zones": 7,
     "observer": 4,
     "reach": 3,
-    "replay": 2,
+    "replay-play": 2,
     "sandbox": 1,
     "scoreboard": 2,
     "sound": 4,
-    "view3d": 9,
+    "view3d": 2,
+    "view3d-frame": 7,
     "vision": 2
    },
    "snap": true
@@ -10361,12 +10381,13 @@
     "look-arbiter": 1,
     "observer": 1,
     "path-search": 5,
-    "replay": 3,
+    "replay": 2,
+    "replay-play": 1,
     "round": 1,
     "self": 1,
     "throw": 1,
     "tick": 1,
-    "view3d": 1
+    "view3d-frame": 1
    },
    "snap": true
   },
@@ -10387,7 +10408,7 @@
    "decl": "items.js:88",
    "init": "ArrayExpression",
    "w": {
-    "rpWorldDraw · replay": 2
+    "rpWorldDraw · replay-play": 2
    },
    "m": {
     "dropWeaponOnDeath · items": 3,
@@ -10399,7 +10420,8 @@
     "decide": 1,
     "draw": 1,
     "items": 10,
-    "replay": 2,
+    "replay": 1,
+    "replay-play": 1,
     "round": 1,
     "save-retake": 1
    },
@@ -10409,7 +10431,7 @@
    "decl": "items.js:83",
    "init": "ArrayExpression",
    "w": {
-    "rpWorldDraw · replay": 2
+    "rpWorldDraw · replay-play": 2
    },
    "m": {
     "buyItem · economy": 1,
@@ -10424,7 +10446,8 @@
     "draw": 1,
     "economy": 1,
     "items": 10,
-    "replay": 2,
+    "replay": 1,
+    "replay-play": 1,
     "round": 1
    },
    "snap": true
@@ -10747,7 +10770,8 @@
     "position": 3,
     "pro-positions": 3,
     "problem-watch": 2,
-    "replay": 7,
+    "replay": 5,
+    "replay-play": 2,
     "round": 4,
     "save-retake": 2,
     "scoreboard": 2,
@@ -10819,9 +10843,10 @@
     "damage": 5,
     "decide": 1,
     "draw": 1,
-    "replay": 2,
+    "replay": 1,
+    "replay-play": 1,
     "round": 1,
-    "view3d": 1
+    "view3d-frame": 1
    },
    "snap": true
   },
@@ -10883,11 +10908,13 @@
     "draw": 1,
     "exec-sync": 1,
     "observer": 1,
-    "replay": 3,
+    "replay": 2,
+    "replay-play": 1,
     "round": 1,
     "self": 2,
     "throw": 3,
-    "view3d": 4
+    "view3d": 2,
+    "view3d-frame": 2
    },
    "snap": true
   },
@@ -11126,12 +11153,13 @@
     "items": 1,
     "journal": 3,
     "look-debug": 2,
-    "replay": 2,
+    "replay": 1,
+    "replay-play": 1,
     "shoot": 2,
     "smoke-react": 1,
     "team": 2,
     "tick": 2,
-    "view3d": 1
+    "view3d-frame": 1
    },
    "snap": "нет: UI"
   },
@@ -11156,7 +11184,7 @@
    "w": {
     "(верх файла) · observer": 1,
     "(верх файла) · scoreboard": 2,
-    "(верх файла) · view3d": 1,
+    "(верх файла) · view3d-frame": 1,
     "obsFrame · observer": 1,
     "obsSet · observer": 1,
     "playersUpdate · scoreboard": 1,
@@ -11167,7 +11195,8 @@
     "look-arbiter": 2,
     "observer": 4,
     "scoreboard": 4,
-    "view3d": 5
+    "view3d": 2,
+    "view3d-frame": 3
    },
    "snap": true
   },
@@ -11240,7 +11269,7 @@
    "w": {
     "newMatch · round": 1,
     "resetRound · round": 1,
-    "rpWorldDraw · replay": 2
+    "rpWorldDraw · replay-play": 2
    },
    "m": {},
    "r": {
@@ -11281,7 +11310,8 @@
     "position": 14,
     "pro-positions": 3,
     "problem-watch": 4,
-    "replay": 11,
+    "replay": 5,
+    "replay-play": 6,
     "roles": 8,
     "round": 17,
     "save-retake": 3,
@@ -11382,7 +11412,7 @@
     "endRound · round": 2,
     "resetRound · round": 1,
     "roundSetState · round": 1,
-    "rpWorldDraw · replay": 2,
+    "rpWorldDraw · replay-play": 2,
     "warmStart · warmup": 1
    },
    "m": {},
@@ -11407,7 +11437,8 @@
     "observer": 6,
     "position": 1,
     "problem-watch": 1,
-    "replay": 6,
+    "replay": 4,
+    "replay-play": 2,
     "roles": 3,
     "round": 1,
     "sandbox": 2,
@@ -11539,7 +11570,7 @@
    "m": {},
    "r": {
     "draw": 1,
-    "view3d": 2
+    "view3d-frame": 2
    },
    "snap": true
   },
@@ -11579,7 +11610,7 @@
    "init": "Literal",
    "w": {
     "matchBegin · round": 1,
-    "rpWorldDraw · replay": 2,
+    "rpWorldDraw · replay-play": 2,
     "simTimeSet · round": 1
    },
    "m": {},
@@ -11601,7 +11632,8 @@
     "look-peek": 2,
     "lurker": 3,
     "position": 1,
-    "replay": 8,
+    "replay": 7,
+    "replay-play": 1,
     "roles": 1,
     "round": 3,
     "sandbox": 1,
@@ -11672,14 +11704,15 @@
     "look-debug": 1,
     "look-peek": 3,
     "observer": 1,
-    "replay": 3,
+    "replay": 2,
+    "replay-play": 1,
     "round": 1,
     "self": 1,
     "smoke": 7,
     "smoke-react": 9,
     "sound": 1,
     "throw": 2,
-    "view3d": 1
+    "view3d-frame": 1
    },
    "snap": true
   },
@@ -11687,7 +11720,7 @@
    "decl": "items.js:22",
    "init": "ArrayExpression",
    "w": {
-    "rpWorldDraw · replay": 2
+    "rpWorldDraw · replay-play": 2
    },
    "m": {
     "draw · draw": 1,
@@ -11697,7 +11730,7 @@
    },
    "r": {
     "draw": 4,
-    "replay": 1,
+    "replay-play": 1,
     "round": 1,
     "tick": 4
    },
@@ -11868,7 +11901,7 @@
    "decl": "tactics.js:8",
    "init": "ObjectExpression",
    "w": {
-    "rpWorldDraw · replay": 2
+    "rpWorldDraw · replay-play": 2
    },
    "m": {
     "chooseCtSetup · ct-setup": 1,
@@ -11901,7 +11934,7 @@
     "nav-zones": 4,
     "observer": 4,
     "plan": 13,
-    "replay": 1,
+    "replay-play": 1,
     "roles": 1,
     "round": 4,
     "save-retake": 4,
@@ -11974,7 +12007,8 @@
     "pro-positions": 1,
     "problem-watch": 11,
     "reach": 9,
-    "replay": 14,
+    "replay": 12,
+    "replay-play": 2,
     "roles": 15,
     "round": 5,
     "sandbox": 2,
@@ -11993,7 +12027,8 @@
     "tick": 63,
     "trace": 6,
     "turn": 23,
-    "view3d": 35,
+    "view3d": 22,
+    "view3d-frame": 13,
     "voice": 27,
     "warmup": 3
    },
@@ -12003,7 +12038,7 @@
    "decl": "items.js:1",
    "init": "ArrayExpression",
    "w": {
-    "rpWorldDraw · replay": 2
+    "rpWorldDraw · replay-play": 2
    },
    "m": {
     "blindBullet · smoke-react": 2,
@@ -12014,11 +12049,12 @@
    },
    "r": {
     "draw": 4,
-    "replay": 2,
+    "replay": 1,
+    "replay-play": 1,
     "round": 2,
     "shoot": 3,
     "smoke-react": 3,
-    "view3d": 1
+    "view3d-frame": 1
    },
    "snap": true
   },
@@ -12040,10 +12076,10 @@
    "w": {},
    "m": {
     "(верх файла) · lineup-editor": 5,
-    "(верх файла) · view3d": 5,
+    "(верх файла) · view3d-frame": 5,
     "fit · nav-zones": 3,
     "obsFrame · observer": 6,
-    "rpWorldDraw · replay": 6,
+    "rpWorldDraw · replay-play": 6,
     "tsCam · timeout": 3,
     "tsEnd · timeout": 3
    },
@@ -12058,11 +12094,12 @@
     "map-walls": 6,
     "nav-zones": 12,
     "observer": 38,
-    "replay": 9,
+    "replay-play": 9,
     "sandbox": 1,
     "scoreboard": 1,
     "timeout": 9,
-    "view3d": 21
+    "view3d": 4,
+    "view3d-frame": 17
    },
    "snap": "нет: UI"
   },
@@ -12115,7 +12152,7 @@
    "r": {
     "app": 1,
     "nav-zones": 1,
-    "replay": 2
+    "replay-play": 2
    },
    "snap": true
   },
@@ -15174,8 +15211,8 @@
   },
   "_trail": {
    "w": [
-    "replay.js:434 rpWorldDraw",
-    "replay.js:442 rpWorldDraw",
+    "replay-play.js:100 rpWorldDraw",
+    "replay-play.js:92 rpWorldDraw",
     "round.js:217 resetRound",
     "sandbox.js:38 sbPlace",
     "tick.js:359 stepTick",
@@ -16199,8 +16236,8 @@
   },
   "pfacing": {
    "w": [
-    "replay.js:434 rpWorldDraw",
-    "replay.js:442 rpWorldDraw",
+    "replay-play.js:100 rpWorldDraw",
+    "replay-play.js:92 rpWorldDraw",
     "tick.js:334 stepTick",
     "turn.ts:164 freezeLookTick"
    ],
@@ -16314,8 +16351,8 @@
   "px": {
    "w": [
     "demo.js:53 dvPlace",
-    "replay.js:434 rpWorldDraw",
-    "replay.js:442 rpWorldDraw",
+    "replay-play.js:100 rpWorldDraw",
+    "replay-play.js:92 rpWorldDraw",
     "round.js:211 resetRound",
     "sandbox.js:36 sbPlace",
     "tick.js:334 stepTick",
@@ -16330,8 +16367,8 @@
   "py": {
    "w": [
     "demo.js:53 dvPlace",
-    "replay.js:434 rpWorldDraw",
-    "replay.js:442 rpWorldDraw",
+    "replay-play.js:100 rpWorldDraw",
+    "replay-play.js:92 rpWorldDraw",
     "round.js:211 resetRound",
     "sandbox.js:36 sbPlace",
     "tick.js:334 stepTick",
@@ -16794,8 +16831,8 @@
   },
   "draw.noHud": {
    "w": [
-    "replay.js:436 rpWorldDraw",
-    "replay.js:441 rpWorldDraw"
+    "replay-play.js:94 rpWorldDraw",
+    "replay-play.js:99 rpWorldDraw"
    ]
   },
   "dvRender._t": {
