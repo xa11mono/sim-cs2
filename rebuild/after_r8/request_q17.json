@@ -1,0 +1,47 @@
+{
+ "_": "Вопрос 17 (владелец 26.11): перепроверка двух откатов новыми инструментами — выполнить ПОСЛЕ Р8 (длительный прогон). Пары база / вариант как в исходных прогонах; запись со сторожами через procguard (rec). В рабочую ветку изменения не возвращаются. Разбор — rebuild/R3_6_REVIEW.md, «Вопрос 17».",
+ "par": 8,
+ "resume": true,
+ "rec": [
+  {
+   "label": "q17_eco_base_mir",
+   "ref": "ac357f6f5ef25cd20734b0e8c92a35fd5d707dbe",
+   "map": "mirage"
+  },
+  {
+   "label": "q17_eco_var_mir",
+   "ref": "458f975bbf8029c8de91bb9976504fba631d66da",
+   "map": "mirage"
+  },
+  {
+   "label": "q17_eco_base_anc",
+   "ref": "ac357f6f5ef25cd20734b0e8c92a35fd5d707dbe",
+   "map": "ancient"
+  },
+  {
+   "label": "q17_eco_var_anc",
+   "ref": "458f975bbf8029c8de91bb9976504fba631d66da",
+   "map": "ancient"
+  },
+  {
+   "label": "q17_know_base_anc",
+   "ref": "e6ebc94f8f451344bb2f2473f5ad43ea0cfd37fe",
+   "map": "ancient"
+  },
+  {
+   "label": "q17_know_var_anc",
+   "ref": "a3c3c2ec80fbfd6d5cfbe0b4f2f268a79b44570c",
+   "map": "ancient"
+  },
+  {
+   "label": "q17_know_base_mir",
+   "ref": "e6ebc94f8f451344bb2f2473f5ad43ea0cfd37fe",
+   "map": "mirage"
+  },
+  {
+   "label": "q17_know_var_mir",
+   "ref": "a3c3c2ec80fbfd6d5cfbe0b4f2f268a79b44570c",
+   "map": "mirage"
+  }
+ ]
+}
