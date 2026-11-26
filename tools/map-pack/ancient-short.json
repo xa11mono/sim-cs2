@@ -1,0 +1,19 @@
+{
+  "node": "v24.22.3",
+  "completeMatches": false,
+  "tickLimit": 3000,
+  "matches": [
+    {
+      "match": 3,
+      "ticks": 3000,
+      "hash": 1982554255,
+      "rounds": 0
+    },
+    {
+      "match": 7,
+      "ticks": 3000,
+      "hash": 1508323423,
+      "rounds": 0
+    }
+  ]
+}
