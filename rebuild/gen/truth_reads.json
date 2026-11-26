@@ -251,8 +251,8 @@
   },
   {
    "file": "340_ctbrain.js",
-   "fn": "ctBrain",
-   "line": 47,
+   "fn": "ctBrainBombDown",
+   "line": 77,
    "props": [
     "x",
     "y"
@@ -552,8 +552,18 @@
   },
   {
    "file": "340_ctbrain.js",
-   "fn": "ctBrain",
-   "line": 47,
+   "fn": "ctBrainBombDown",
+   "line": 77,
+   "props": [
+    "bomb.x,y"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "340_ctbrain.js",
+   "fn": "ctBrainPlayers",
+   "line": 460,
    "props": [
     "bomb.x,y"
    ],
@@ -572,8 +582,8 @@
   },
   {
    "file": "170_tbrain.js",
-   "fn": "tBrain",
-   "line": 865,
+   "fn": "tBrainPostplant",
+   "line": 908,
    "props": [
     "teamBot.z"
    ],

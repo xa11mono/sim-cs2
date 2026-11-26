@@ -6346,12 +6346,12 @@
    "init": "ObjectExpression",
    "w": {},
    "m": {
-    "probEvent · 545": 3,
-    "probReset · 545": 5,
+    "probEvent · 545": 5,
+    "probReset · 545": 6,
     "probTick · 545": 5
    },
    "r": {
-    "545": 19,
+    "545": 24,
     "620": 3
    },
    "snap": true
@@ -8180,7 +8180,7 @@
     "530": 1,
     "535": 5,
     "540": 23,
-    "545": 10,
+    "545": 11,
     "550": 4,
     "610": 17,
     "612": 3,
@@ -9680,7 +9680,7 @@
     "dvTick · 678": 8,
     "rpWorldDraw · 675": 1,
     "sbTick · 677": 1,
-    "tBrain · 170": 1,
+    "tBrainBomb · 170": 1,
     "updateRetake · 180": 1
    },
    "r": {
@@ -11576,7 +11576,8 @@
     "endRound · 530": 1
    },
    "m": {
-    "tBrain · 170": 4
+    "tBrainExecGo · 170": 2,
+    "tBrainMidTake · 170": 2
    },
    "r": {
     "170": 4,
@@ -11911,7 +11912,7 @@
     "530": 5,
     "535": 20,
     "540": 63,
-    "545": 10,
+    "545": 11,
     "550": 4,
     "610": 22,
     "612": 2,
@@ -12459,14 +12460,14 @@
   },
   "_adSpot": {
    "w": [
-    "170_tbrain.js:930 tBrain"
+    "170_tbrain.js:973 tBrainPostplant"
    ],
    "lit": [],
    "r": 7
   },
   "_afPt": {
    "w": [
-    "340_ctbrain.js:603 ctBrain"
+    "340_ctbrain.js:635 ctBrainPlayers"
    ],
    "lit": [],
    "r": 5
@@ -12620,7 +12621,7 @@
   },
   "_awpLog": {
    "w": [
-    "340_ctbrain.js:641 ctBrain"
+    "340_ctbrain.js:673 ctBrainPlayers"
    ],
    "lit": [],
    "r": 2
@@ -12720,7 +12721,7 @@
   },
   "_clr": {
    "w": [
-    "170_tbrain.js:810 tBrain"
+    "170_tbrain.js:850 tBrainExecute"
    ],
    "lit": [],
    "r": 2
@@ -12975,7 +12976,7 @@
   },
   "_egC": {
    "w": [
-    "170_tbrain.js:89 tBrain",
+    "170_tbrain.js:161 tBrainExecGo",
     "330_endgame_smoke_push.js:166 endgameBrain",
     "330_endgame_smoke_push.js:183 endgameBrain",
     "330_endgame_smoke_push.js:193 endgameBrain",
@@ -13274,9 +13275,9 @@
   "_flee": {
    "w": [
     "120_bomb.js:72 bombFleePoint",
-    "170_tbrain.js:867 tBrain",
-    "170_tbrain.js:871 tBrain",
-    "170_tbrain.js:873 tBrain"
+    "170_tbrain.js:910 tBrainPostplant",
+    "170_tbrain.js:914 tBrainPostplant",
+    "170_tbrain.js:916 tBrainPostplant"
    ],
    "lit": [],
    "r": 6
@@ -13290,7 +13291,7 @@
   },
   "_fleePt": {
    "w": [
-    "170_tbrain.js:871 tBrain"
+    "170_tbrain.js:914 tBrainPostplant"
    ],
    "lit": [],
    "r": 2
@@ -13463,8 +13464,8 @@
   "_holdLog": {
    "w": [
     "320_pro_lineups_ct_early.js:121 secondOnSite",
-    "340_ctbrain.js:593 ctBrain",
-    "340_ctbrain.js:691 ctBrain"
+    "340_ctbrain.js:625 ctBrainPlayers",
+    "340_ctbrain.js:723 ctBrainPlayers"
    ],
    "lit": [],
    "r": 6
@@ -13492,8 +13493,8 @@
   },
   "_huntArrive": {
    "w": [
-    "170_tbrain.js:1000 tBrain",
-    "170_tbrain.js:999 tBrain",
+    "170_tbrain.js:1042 tBrainPostplant",
+    "170_tbrain.js:1043 tBrainPostplant",
     "530_round_sides_match.js:233 resetRound"
    ],
    "lit": [],
@@ -13501,9 +13502,9 @@
   },
   "_huntIdx": {
    "w": [
-    "170_tbrain.js:1000 tBrain",
-    "170_tbrain.js:995 tBrain",
-    "170_tbrain.js:997 tBrain",
+    "170_tbrain.js:1038 tBrainPostplant",
+    "170_tbrain.js:1040 tBrainPostplant",
+    "170_tbrain.js:1043 tBrainPostplant",
     "530_round_sides_match.js:233 resetRound"
    ],
    "lit": [],
@@ -13511,9 +13512,9 @@
   },
   "_huntStart": {
    "w": [
-    "170_tbrain.js:1000 tBrain",
-    "170_tbrain.js:995 tBrain",
-    "170_tbrain.js:997 tBrain"
+    "170_tbrain.js:1038 tBrainPostplant",
+    "170_tbrain.js:1040 tBrainPostplant",
+    "170_tbrain.js:1043 tBrainPostplant"
    ],
    "lit": [],
    "r": 4
@@ -13915,14 +13916,14 @@
   },
   "_midBack": {
    "w": [
-    "340_ctbrain.js:659 ctBrain"
+    "340_ctbrain.js:691 ctBrainPlayers"
    ],
    "lit": [],
    "r": 8
   },
   "_midCareV": {
    "w": [
-    "340_ctbrain.js:675 ctBrain"
+    "340_ctbrain.js:707 ctBrainPlayers"
    ],
    "lit": [],
    "r": 2
@@ -13937,8 +13938,8 @@
   },
   "_midFlank": {
    "w": [
-    "170_tbrain.js:222 tBrain",
-    "170_tbrain.js:89 tBrain"
+    "170_tbrain.js:161 tBrainExecGo",
+    "170_tbrain.js:296 tBrainMidTake"
    ],
    "lit": [],
    "r": 8
@@ -13970,7 +13971,7 @@
   },
   "_mwV": {
    "w": [
-    "340_ctbrain.js:687 ctBrain"
+    "340_ctbrain.js:719 ctBrainPlayers"
    ],
    "lit": [],
    "r": 2
@@ -14064,8 +14065,8 @@
   },
   "_noStopLog": {
    "w": [
-    "340_ctbrain.js:455 ctBrain",
-    "340_ctbrain.js:466 ctBrain"
+    "340_ctbrain.js:487 ctBrainPlayers",
+    "340_ctbrain.js:498 ctBrainPlayers"
    ],
    "lit": [],
    "r": 4
@@ -14366,7 +14367,7 @@
   },
   "_ppSaid": {
    "w": [
-    "170_tbrain.js:1037 tBrain"
+    "170_tbrain.js:1080 tBrainPostplant"
    ],
    "lit": [],
    "r": 2
@@ -14550,7 +14551,7 @@
   },
   "_reangleNext": {
    "w": [
-    "340_ctbrain.js:496 ctBrain"
+    "340_ctbrain.js:528 ctBrainPlayers"
    ],
    "lit": [],
    "r": 2
@@ -14643,7 +14644,7 @@
   },
   "_rotMidLog": {
    "w": [
-    "340_ctbrain.js:712 ctBrain"
+    "340_ctbrain.js:744 ctBrainPlayers"
    ],
    "lit": [],
    "r": 2
@@ -14658,8 +14659,8 @@
     "150_lurker_probes_clear.js:85 lurkerBrain",
     "160_igl_replan.js:124 tIglReplan",
     "160_igl_replan.js:215 tSetSite",
-    "170_tbrain.js:222 tBrain",
-    "170_tbrain.js:497 tBrain",
+    "170_tbrain.js:296 tBrainMidTake",
+    "170_tbrain.js:534 tBrainSetup",
     "420_nades_brains.js:254 resetNades"
    ],
    "lit": [],
@@ -14671,7 +14672,7 @@
     "150_lurker_probes_clear.js:85 lurkerBrain",
     "160_igl_replan.js:124 tIglReplan",
     "160_igl_replan.js:214 tSetSite",
-    "170_tbrain.js:222 tBrain"
+    "170_tbrain.js:296 tBrainMidTake"
    ],
    "lit": [],
    "r": 6
@@ -14701,15 +14702,15 @@
   },
   "_saveSpot": {
    "w": [
-    "170_tbrain.js:297 tBrain",
-    "170_tbrain.js:38 tBrain",
-    "170_tbrain.js:885 tBrain",
-    "170_tbrain.js:920 tBrain",
+    "170_tbrain.js:110 tBrainExecGo",
+    "170_tbrain.js:371 tBrainTeam",
+    "170_tbrain.js:928 tBrainPostplant",
+    "170_tbrain.js:963 tBrainPostplant",
     "180_save_retake.js:86 tSaveHold",
-    "340_ctbrain.js:400 ctBrain",
-    "340_ctbrain.js:405 ctBrain",
-    "340_ctbrain.js:426 ctBrain",
-    "340_ctbrain.js:437 ctBrain",
+    "340_ctbrain.js:428 ctBrainSave",
+    "340_ctbrain.js:433 ctBrainSave",
+    "340_ctbrain.js:458 ctBrainPlayers",
+    "340_ctbrain.js:469 ctBrainPlayers",
     "500_decide_afterkill_cover.js:260 afterKillReact",
     "530_round_sides_match.js:233 resetRound"
    ],
@@ -14800,7 +14801,7 @@
   },
   "_shift": {
    "w": [
-    "170_tbrain.js:89 tBrain"
+    "170_tbrain.js:161 tBrainExecGo"
    ],
    "lit": [],
    "r": 6
@@ -14939,10 +14940,10 @@
     "160_igl_replan.js:124 tIglReplan",
     "160_igl_replan.js:180 stagePost",
     "160_igl_replan.js:215 tSetSite",
-    "170_tbrain.js:477 tBrain",
-    "170_tbrain.js:497 tBrain",
-    "170_tbrain.js:503 tBrain",
-    "170_tbrain.js:507 tBrain"
+    "170_tbrain.js:514 tBrainSetup",
+    "170_tbrain.js:534 tBrainSetup",
+    "170_tbrain.js:540 tBrainSetup",
+    "170_tbrain.js:544 tBrainSetup"
    ],
    "lit": [],
    "r": 12
@@ -14986,17 +14987,17 @@
   },
   "_stopPlantLog": {
    "w": [
-    "340_ctbrain.js:469 ctBrain"
+    "340_ctbrain.js:501 ctBrainPlayers"
    ],
    "lit": [],
    "r": 2
   },
   "_stopPlantUntil": {
    "w": [
-    "170_tbrain.js:902 tBrain",
-    "170_tbrain.js:920 tBrain",
-    "170_tbrain.js:934 tBrain",
-    "340_ctbrain.js:470 ctBrain"
+    "170_tbrain.js:945 tBrainPostplant",
+    "170_tbrain.js:963 tBrainPostplant",
+    "170_tbrain.js:977 tBrainPostplant",
+    "340_ctbrain.js:502 ctBrainPlayers"
    ],
    "lit": [],
    "r": 8
@@ -15007,7 +15008,7 @@
     "540_step_tick.js:362 stepTick"
    ],
    "lit": [],
-   "r": 3
+   "r": 4
   },
   "_stuckResets": {
    "w": [
@@ -15035,8 +15036,8 @@
   },
   "_takeAt": {
    "w": [
-    "170_tbrain.js:831 tBrain",
-    "170_tbrain.js:841 tBrain"
+    "170_tbrain.js:871 tBrainExecute",
+    "170_tbrain.js:881 tBrainExecute"
    ],
    "lit": [],
    "r": 3
@@ -15056,7 +15057,7 @@
     "110_post_routes.js:66 routeTick"
    ],
    "lit": [],
-   "r": 34
+   "r": 37
   },
   "_tcV": {
    "w": [
@@ -15145,18 +15146,18 @@
   },
   "_utilW": {
    "w": [
-    "170_tbrain.js:614 tBrain",
-    "170_tbrain.js:626 tBrain",
-    "170_tbrain.js:635 tBrain",
-    "170_tbrain.js:646 tBrain"
+    "170_tbrain.js:654 tBrainExecute",
+    "170_tbrain.js:666 tBrainExecute",
+    "170_tbrain.js:675 tBrainExecute",
+    "170_tbrain.js:686 tBrainExecute"
    ],
    "lit": [],
    "r": 13
   },
   "_utilWDone": {
    "w": [
-    "170_tbrain.js:613 tBrain",
-    "170_tbrain.js:652 tBrain"
+    "170_tbrain.js:653 tBrainExecute",
+    "170_tbrain.js:692 tBrainExecute"
    ],
    "lit": [],
    "r": 3
@@ -15229,7 +15230,7 @@
     "535_move_mode.js:109 moveWalkTick"
    ],
    "lit": [],
-   "r": 1
+   "r": 2
   },
   "_wv": {
    "w": [
@@ -15903,7 +15904,7 @@
     "530_round_sides_match.js:218 resetRound"
    ],
    "lit": [],
-   "r": 24
+   "r": 25
   },
   "lookTarget": {
    "w": [
@@ -16177,7 +16178,7 @@
     "110_post_routes.js:523 placeResetPost"
    ],
    "lit": [],
-   "r": 514
+   "r": 516
   },
   "pp": {
    "w": [
@@ -16476,7 +16477,7 @@
    "lit": [
     "070_weapons_bots_roam.js:82"
    ],
-   "r": 66
+   "r": 67
   },
   "stateSince": {
    "w": [
@@ -16574,7 +16575,7 @@
   },
   "until": {
    "w": [
-    "340_ctbrain.js:662 ctBrain"
+    "340_ctbrain.js:694 ctBrainPlayers"
    ],
    "lit": [],
    "r": 0
@@ -16734,7 +16735,7 @@
   },
   "esc._probeLock": {
    "w": [
-    "170_tbrain.js:713 tBrain"
+    "170_tbrain.js:753 tBrainExecute"
    ]
   },
   "hudScale._set": {

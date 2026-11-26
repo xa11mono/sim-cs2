@@ -20,7 +20,7 @@
 | `holding` | 5 | 4 | `fightReset · 500`, `fightHoldOff · 500`, `leaveHold · 500`, `engDecide · 510` |
 | `crouching` | 1 | 1 | `placeStance · 110` |
 | `path` | 13 | 7 | `fireRepath · 370`, `ladderTick · 370`, `navFollowFloor · 370`, `movePath · 535`, `moveSpeedTick · 535`, `navSnap · 540`, `stepTick · 540` |
-| `phase` | 14 | 2 | — |
+| `phase` | 14 | 6 | — |
 
 ## `facing`
 
@@ -132,5 +132,9 @@
 
 ## `phase`
 
-- `tBrain · 170` — 11 (стр. 64, 81, 86, 145, 160, 204, 205, 240, …)
+- `tBrainSiteSwitch · 170` — 4 (стр. 217, 232, 276, 277)
 - `tIglReplan · 160` — 3 (стр. 105, 128, 132)
+- `tBrainExecGo · 170` — 3 (стр. 136, 153, 158)
+- `tBrainMidTake · 170` — 2 (стр. 314, 333)
+- `tBrain · 170` — 1 (стр. 78)
+- `tBrainSetup · 170` — 1 (стр. 609)
