@@ -4207,7 +4207,7 @@
    "snap": "нет: STATIC"
   },
   "M3_SKIN": {
-   "decl": "geometry3d.js:338",
+   "decl": "geometry3d.js:341",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -4217,7 +4217,7 @@
    "snap": true
   },
   "M3_SOLID": {
-   "decl": "geometry3d.js:285",
+   "decl": "geometry3d.js:288",
    "init": "Literal",
    "w": {
     "m3SolidGrid · geometry3d": 1,
@@ -9230,11 +9230,12 @@
    "w": {},
    "m": {
     "wkFrame · app": 3,
+    "wkLocal · app": 4,
     "wkSend · app": 1,
     "wkStart · app": 6
    },
    "r": {
-    "app": 18
+    "app": 22
    },
    "snap": "нет: UI"
   },
@@ -11298,6 +11299,7 @@
    },
    "m": {},
    "r": {
+    "app": 1,
     "demo": 2,
     "draw-fx": 2,
     "items": 1,
