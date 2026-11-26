@@ -62,3 +62,9 @@
 | `rebuild/gen/*.md` (6) | генерировать автоматически | уже так: пишет `tools/rebuild/gen_maps.js` при каждой сборке |
 Действующий документ без входящих ссылок: `rebuild/R5_1_FRAME.md` — ссылка добавлена в раздел Р5 `MASTER_PLAN.md`.
 
+**Требования владельца на месте (сверка 26.11):** `python3 tools/rebuild/doc_coverage.py 9c791f6 AGENTS.md CLAUDE.md rebuild/RULES.md
+docs/tasks/work_rules.md docs/PRINCIPLES.md -- AGENTS.md CLAUDE.md rebuild/RULES.md docs docs/archive tools/README.md` (правила на вершине
+v633a, до слияния) — 365 предложений, не найдено дословно 7: 4 — пути к `docs/tasks/work_rules.md` в ссылках (текст правил — в
+`docs/rules/`, «Как двигать цифры» — `docs/rules/runs.md`); 3 — «один план — `00_PLAN.md`, других нет» заменено на «планы — по одному на
+вид» (`MASTER_PLAN.md` перестройки действует с 24.11 по решению владельца; `00_PLAN.md` — по-прежнему единственный план игры). Смысл не потерян.
+
