@@ -1,0 +1,4 @@
+[q] ошибка: page.evaluate: Target page, context or browser has been closed
+    at C:\actions-runner\_work\sim-cs2\sim-cs2\src\q.js:12:22
+
+[guard] {"name": "fp v636a_chr_mir.html m29", "engine": "chromium", "rc": 1, "ok": false, "secs": 68.4, "t_start": 1795687697.7, "t_end": 1795687766.2, "peak_mb": 995, "procs_max": 5, "stopped": "раннер завершается", "orphans_killed": 0, "job": true, "par_cap": 1, "running_with": 0, "mem_total_mb": 15977, "mem_avail_mb_after": 8452, "retry": false}
