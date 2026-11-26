@@ -6,8 +6,8 @@
 | поле | мест | функций | из них хозяин |
 |---|---|---|---|
 | `facing` | 11 | 7 | `lookFace · turn`, `lookTurnBy · turn`, `lookReset · turn`, `lookTick · turn`, `lookTrack · turn`, `handTurn · turn`, `freezeLookTick · turn` |
-| `walking` | 4 | 4 | `moveWalk · move`, `moveWalkTick · move`, `moveSpeedTick · move`, `stepTick · tick` |
-| `curSpeed` | 13 | 5 | `jumpFaceWait · levels`, `ladderTick · levels`, `moveSpeed · move`, `moveSpeedTick · move`, `stepTick · tick` |
+| `walking` | 4 | 4 | `moveWalk · move`, `moveWalkTick · move`, `moveSpeedTick · move`, `stepBot · tick` |
+| `curSpeed` | 13 | 5 | `jumpFaceWait · levels`, `ladderTick · levels`, `moveSpeed · move`, `moveSpeedTick · move`, `stepBot · tick` |
 | `post` | 3 | 3 | `setPostDo · task`, `clearPostDo · task`, `placeResetPost · task` |
 | `_task` | 4 | 4 | `routeTick · task`, `setPostDo · task`, `clearPostDo · task`, `placeResetTask · task` |
 | `_reposUntil` | 1 | 1 | `taskKeep · task` |
@@ -19,7 +19,7 @@
 | `nadeTask` | 30 | 10 | `(верх файла) · smoke`, `nadeAskFlash · plan`, `exuReassign · exec-sync`, `assignNadeDo · throw`, `nadeQueueNext · throw`, `runupTick · throw`, `updateNadeTask1 · throw`, `lineupTick · lineups`, `nadeCancel · decide`, `resetNades · decide` |
 | `holding` | 5 | 4 | `fightReset · fight-state`, `fightHoldOff · fight-state`, `leaveHold · fight-state`, `engDecide · engagements` |
 | `crouching` | 1 | 1 | `placeStance · task` |
-| `path` | 13 | 7 | `fireRepath · levels`, `ladderTick · levels`, `navFollowFloor · levels`, `movePath · move`, `moveSpeedTick · move`, `navSnap · tick`, `stepTick · tick` |
+| `path` | 13 | 7 | `fireRepath · levels`, `ladderTick · levels`, `navFollowFloor · levels`, `movePath · move`, `moveSpeedTick · move`, `navSnap · tick`, `stepBot · tick` |
 | `phase` | 14 | 6 | — |
 
 ## `facing`
@@ -37,12 +37,12 @@
 - **хозяин** `moveWalk · move` — 1 (стр. 24)
 - **хозяин** `moveWalkTick · move` — 1 (стр. 109)
 - **хозяин** `moveSpeedTick · move` — 1 (стр. 164)
-- **хозяин** `stepTick · tick` — 1 (стр. 502)
+- **хозяин** `stepBot · tick` — 1 (стр. 521)
 
 ## `curSpeed`
 
 - **хозяин** `moveSpeedTick · move` — 5 (стр. 184, 186, 187, 188, 189)
-- **хозяин** `stepTick · tick` — 5 (стр. 335, 362, 485, 500, 502)
+- **хозяин** `stepBot · tick` — 5 (стр. 354, 381, 504, 519, 521)
 - **хозяин** `jumpFaceWait · levels` — 1 (стр. 110)
 - **хозяин** `ladderTick · levels` — 1 (стр. 216)
 - **хозяин** `moveSpeed · move` — 1 (стр. 23)
@@ -120,7 +120,7 @@
 
 ## `path`
 
-- **хозяин** `stepTick · tick` — 5 (стр. 500, 574, 613, 635, 650)
+- **хозяин** `stepBot · tick` — 5 (стр. 519, 593, 632, 654, 669)
 - **хозяин** `navFollowFloor · levels` — 2 (стр. 384, 423)
 - **хозяин** `moveSpeedTick · move` — 2 (стр. 156, 163)
 - **хозяин** `fireRepath · levels` — 1 (стр. 29)

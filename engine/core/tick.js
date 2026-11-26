@@ -329,7 +329,26 @@ function stepTick(){
   // перепады этажей и ловит именно лестницы/рампы (плюс любой резкий обрыв,
   // что по факту тоже честная "точность падает, не задерживайся" ситуация)
   var STAIRS_SLOPE_THRESHOLD = 0.35;
-  bots.forEach(function(bot){
+  bots.forEach(function(bot){ stepBot(bot, dtSec, maxDelta, ARRIVE_RADIUS, BRAKE_RADIUS, TURN_RATE, STAIRS_SLOPE_THRESHOLD); });
+  if(postRun) return;   // (v564, В89) после конца раунда — только шаги
+  // ── этап 6. перестрелки целиком (resolveEngagements: видимость, взгляд, выстрел) → этап 7. восприятие этого тика в знание
+  //    (ecoKnowSeeTick, smokeSpamTick, infoFallbackTick, smokeHeTick, teamInfoTick, posTick, knowTick, teamTick, beliefTick)
+  resolveEngagements(); ecoKnowSeeTick();   // (Г1) с каким оружием видели врагов — для подсчёта их денег
+  smokeSpamTick();
+  infoFallbackTick();
+  smokeHeTick();
+  teamInfoTick(); // раздел 11: коллы из восприятия этого тика → командная память
+  posTick();      // где бот стоит (память «не сработало — меняю место»)
+  knowTick();     // знание каждого бота о врагах (гипотезы) — из того, что он увидел/услышал/узнал
+  teamTick();     // войс: каждый говорит, что узнал; тиммейты узнают, когда фраза договорена
+  beliefTick();   // раздел 13: карта вероятностей врага
+  // ── этап 8. конец раунда и наблюдение (счёт ошибок движения)
+  checkRoundEnd();
+  probTick();     // (v407) счёт ошибок движения — только наблюдает (545)
+}
+// (Р4.4, 26.11) шаг одного бота в тике — тело обхода bots.forEach из stepTick, перенесено дословно (return — к следующему боту, как было);
+// числа тика (dtSec, maxDelta, радиусы, поворот, порог ступенек) — параметрами с теми же именами, тело их только читает
+function stepBot(bot, dtSec, maxDelta, ARRIVE_RADIUS, BRAKE_RADIUS, TURN_RATE, STAIRS_SLOPE_THRESHOLD){
     if(!bot.alive) return;
     bot.px = bot.x; bot.py = bot.y; bot.pfacing = bot.facing;
     if(bot._sbOff && !bot._sbGo && !bot._climb){ bot.curSpeed = 0; return; }   // (v543) начатый подъём / прыжок доводится до конца   // (v536) песочница: ИИ выключен — стоит; (v538) но идёт по приказу владельца, ИИ при этом не включается (677)   // (v414, М154) взгляд на начало тика — только для рисования (сглаживание, 620_draw)
@@ -697,21 +716,5 @@ function stepTick(){
     if(!bot._climb) navFollowFloor(bot);
     bot.x = bot.baseX + offX;
     bot.y = bot.baseY + offY;
-  });
-  if(postRun) return;   // (v564, В89) после конца раунда — только шаги
-  // ── этап 6. перестрелки целиком (resolveEngagements: видимость, взгляд, выстрел) → этап 7. восприятие этого тика в знание
-  //    (ecoKnowSeeTick, smokeSpamTick, infoFallbackTick, smokeHeTick, teamInfoTick, posTick, knowTick, teamTick, beliefTick)
-  resolveEngagements(); ecoKnowSeeTick();   // (Г1) с каким оружием видели врагов — для подсчёта их денег
-  smokeSpamTick();
-  infoFallbackTick();
-  smokeHeTick();
-  teamInfoTick(); // раздел 11: коллы из восприятия этого тика → командная память
-  posTick();      // где бот стоит (память «не сработало — меняю место»)
-  knowTick();     // знание каждого бота о врагах (гипотезы) — из того, что он увидел/услышал/узнал
-  teamTick();     // войс: каждый говорит, что узнал; тиммейты узнают, когда фраза договорена
-  beliefTick();   // раздел 13: карта вероятностей врага
-  // ── этап 8. конец раунда и наблюдение (счёт ошибок движения)
-  checkRoundEnd();
-  probTick();     // (v407) счёт ошибок движения — только наблюдает (545)
-}
+  }
 
