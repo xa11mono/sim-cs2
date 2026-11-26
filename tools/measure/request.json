@@ -1,3 +1,16 @@
-{"par": 8, "jobs": [
-  {"label": "b2_mir_a5", "ref": "d71ba75743497183374dc3762db1de5484583fbc", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29]}
-]}
+{
+ "par": 8,
+ "resume": true,
+ "fp": [
+  {
+   "label": "v632a_anc",
+   "ref": "1e749ce723696483a92b797b82a27406e8b35c27",
+   "map": "ancient"
+  },
+  {
+   "label": "v632a_mir",
+   "ref": "1e749ce723696483a92b797b82a27406e8b35c27",
+   "map": "mirage"
+  }
+ ]
+}
