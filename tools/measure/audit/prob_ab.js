@@ -12,9 +12,9 @@ const A = Object.fromEntries(process.argv.slice(3).map(a => { const t = a.replac
 const EV = require(path.resolve(__dirname, '..', '..', 'node', 'core_run.js')).load(path.resolve(process.argv[2]));
 const M = +(A.match || 3), T = +(A.ticks || 20000);
 const res = JSON.parse(EV(`(function(){
-  paused = true; matchNum = ${M}; freshMatch && freshMatch(); DLOG.on = true;
+  paused = true; DLOG.on = true; freshMatch(${M}); var M0 = matchNum;   // как tools/measure/fingerprint.js
   var H = {}, every = 16;   // история: тик → [x, y, хочет идти, стоит законно]
-  for(var t = 0; t < ${T}; t++){ stepTick();
+  for(var t = 0; t < ${T}; t++){ stepTick(); if(matchNum !== M0) break;   // новый матч обнуляет PROB — до конца своего
     if(tick % every === 0 && roundState === "live") bots.forEach(function(b){ if(!b.alive) return;
       var want = !!(b.post && !b.atPost && b.state === "patrol" && !b.holding && DM.hypot(b.post.x-b.baseX, b.post.y-b.baseY) > 40);
       var busy = !!(b.planting || b.defusing || b._climb || b._sawEnemy || b._fc || tick < (b.blindUntil||0) || tick < (b.throwUntil||0));
