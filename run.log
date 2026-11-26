@@ -1,0 +1,141 @@
+playwright 1.63.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\v618a_g3_anc\env.json
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\v618a_g3_mir\env.json
+> git fetch --quiet origin 18fbed7812726d7d081fe88b97acffacfeee4732
+> git fetch --quiet origin 18fbed7812726d7d081fe88b97acffacfeee4732
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_ofn0fd15 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_ofn0fd15\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v618a_g3_anc.html
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+модули: 110_post_routes.js, 190_team_intel_lkp_calls.js, 220_know_events_tick.js, 275_look_turn.ts, 360_nades_buy_smoke_vision.js, 365_nade_plan.js, 366_exec_sync.js, 370_fire_nav_levels_ladders.js, 380_nades_throw.js, 385_nades_flight.js, 390_nades_lineups.js, 400_nades_physics_damage.js, 410_nades_tactical_self.js, 420_nades_brains.js, 470_fight_cycle.js, 480_assist_flank_reload.js, 490_shoot.js, 500_decide_afterkill_cover.js, 510_engagements.js, 535_move_mode.js, 540_step_tick.js — ядро отдаёт 286 имён, берёт 664
+пометок 1734 | полей facing:7 walking:4 curSpeed:5 post:3 _task:4 _reposUntil:1 _waitPopUntil:1 _avoidPeekUntil:1 _tradeUntil:2 _tradeLock:1 state:2 nadeTask:10 holding:4 crouching:1 path:7 phase:6 | функций 1320
+общих переменных 975 из чужих файлов пишут 85
+реестр состояния: строк 1467, не размечено 0
+карточки механик: файлов 86, расхождений 0
+чтения истины врага (решения): мест 52, новых 0; известных нарушений «истина» 13 (BEHAVIOR_BACKLOG, после Р8)
+> git fetch --quiet origin 18fbed7812726d7d081fe88b97acffacfeee4732
+> git fetch --quiet origin 18fbed7812726d7d081fe88b97acffacfeee4732
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_1v8tumfa FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_1v8tumfa\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v618a_g3_mir.html
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+модули: 110_post_routes.js, 190_team_intel_lkp_calls.js, 220_know_events_tick.js, 275_look_turn.ts, 360_nades_buy_smoke_vision.js, 365_nade_plan.js, 366_exec_sync.js, 370_fire_nav_levels_ladders.js, 380_nades_throw.js, 385_nades_flight.js, 390_nades_lineups.js, 400_nades_physics_damage.js, 410_nades_tactical_self.js, 420_nades_brains.js, 470_fight_cycle.js, 480_assist_flank_reload.js, 490_shoot.js, 500_decide_afterkill_cover.js, 510_engagements.js, 535_move_mode.js, 540_step_tick.js — ядро отдаёт 286 имён, берёт 664
+пометок 1734 | полей facing:7 walking:4 curSpeed:5 post:3 _task:4 _reposUntil:1 _waitPopUntil:1 _avoidPeekUntil:1 _tradeUntil:2 _tradeLock:1 state:2 nadeTask:10 holding:4 crouching:1 path:7 phase:6 | функций 1320
+общих переменных 975 из чужих файлов пишут 85
+реестр состояния: строк 1467, не размечено 0
+карточки механик: файлов 86, расхождений 0
+чтения истины врага (решения): мест 52, новых 0; известных нарушений «истина» 13 (BEHAVIOR_BACKLOG, после Р8)
+guard: память 15977 МБ, свободно 10462; запас 3195, критично 1536; на матч ≤ 6144 МБ, ≤ 90 мин; par ≤ 8; объект задания: да; продолжение: да
+start fp v618a_g3_anc.html m3 (идёт 1, свободно 10464 МБ)
+start fp v618a_g3_anc.html m7 (идёт 2, свободно 10463 МБ)
+start fp v618a_g3_anc.html m11 (идёт 3, свободно 10459 МБ)
+start fp v618a_g3_anc.html m13 (идёт 4, свободно 10449 МБ)
+start fp v618a_g3_anc.html m17 (идёт 5, свободно 10440 МБ)
+start fp v618a_g3_anc.html m19 (идёт 6, свободно 10421 МБ)
+start fp v618a_g3_anc.html m23 (идёт 7, свободно 10408 МБ)
+start fp v618a_g3_anc.html m29 (идёт 8, свободно 10394 МБ)
+mem: свободно 6911 / 15977 МБ; par ≤ 8; очередь 8; идёт 8: fp v618a_g3_anc.html m3 623 МБ / 5 проц., fp v618a_g3_anc.html m7 641 МБ / 5 проц., fp v618a_g3_anc.html m11 629 МБ / 5 проц., fp v618a_g3_anc.html m13 632 МБ / 5 проц., fp v618a_g3_anc.html m17 633 МБ / 5 проц., fp v618a_g3_anc.html m19 649 МБ / 5 проц., fp v618a_g3_anc.html m23 636 МБ / 5 проц., fp v618a_g3_anc.html m29 655 МБ / 5 проц.
+mem: свободно 3821 / 15977 МБ; par ≤ 8; очередь 8; идёт 8: fp v618a_g3_anc.html m3 970 МБ / 5 проц., fp v618a_g3_anc.html m7 1003 МБ / 5 проц., fp v618a_g3_anc.html m11 1012 МБ / 5 проц., fp v618a_g3_anc.html m13 1018 МБ / 5 проц., fp v618a_g3_anc.html m17 1010 МБ / 5 проц., fp v618a_g3_anc.html m19 1080 МБ / 5 проц., fp v618a_g3_anc.html m23 1067 МБ / 5 проц., fp v618a_g3_anc.html m29 1020 МБ / 5 проц.
+mem: свободно 2809 / 15977 МБ; par ≤ 8; очередь 8; идёт 8: fp v618a_g3_anc.html m3 1084 МБ / 5 проц., fp v618a_g3_anc.html m7 1156 МБ / 5 проц., fp v618a_g3_anc.html m11 1191 МБ / 5 проц., fp v618a_g3_anc.html m13 1218 МБ / 5 проц., fp v618a_g3_anc.html m17 1062 МБ / 5 проц., fp v618a_g3_anc.html m19 1120 МБ / 5 проц., fp v618a_g3_anc.html m23 1328 МБ / 5 проц., fp v618a_g3_anc.html m29 1071 МБ / 5 проц.
+mem: свободно 1497 / 15977 МБ; par ≤ 8; очередь 8; идёт 8: fp v618a_g3_anc.html m3 1251 МБ / 5 проц., fp v618a_g3_anc.html m7 1342 МБ / 5 проц., fp v618a_g3_anc.html m11 1351 МБ / 5 проц., fp v618a_g3_anc.html m13 1399 МБ / 5 проц., fp v618a_g3_anc.html m17 1247 МБ / 5 проц., fp v618a_g3_anc.html m19 1317 МБ / 5 проц., fp v618a_g3_anc.html m23 1305 МБ / 5 проц., fp v618a_g3_anc.html m29 1259 МБ / 5 проц.
+guard: мало памяти — параллельность 7
+end fp v618a_g3_anc.html m29: код 1, 104 с, пик 1333 МБ, процессов до 5, СНЯТ: lowmem (свободно 1382 МБ)
+mem: свободно 1653 / 15977 МБ; par ≤ 7; очередь 8; идёт 7: fp v618a_g3_anc.html m3 1435 МБ / 5 проц., fp v618a_g3_anc.html m7 1364 МБ / 5 проц., fp v618a_g3_anc.html m11 1492 МБ / 5 проц., fp v618a_g3_anc.html m13 1570 МБ / 5 проц., fp v618a_g3_anc.html m17 1400 МБ / 5 проц., fp v618a_g3_anc.html m19 1383 МБ / 5 проц., fp v618a_g3_anc.html m23 1504 МБ / 5 проц.
+guard: мало памяти — параллельность 6
+end fp v618a_g3_anc.html m23: код 1, 141 с, пик 1504 МБ, процессов до 5, СНЯТ: lowmem (свободно 1492 МБ)
+mem: свободно 2201 / 15977 МБ; par ≤ 6; очередь 8; идёт 6: fp v618a_g3_anc.html m3 1483 МБ / 5 проц., fp v618a_g3_anc.html m7 1516 МБ / 5 проц., fp v618a_g3_anc.html m11 1613 МБ / 5 проц., fp v618a_g3_anc.html m13 1631 МБ / 5 проц., fp v618a_g3_anc.html m17 1500 МБ / 5 проц., fp v618a_g3_anc.html m19 1620 МБ / 5 проц.
+mem: свободно 1485 / 15977 МБ; par ≤ 6; очередь 8; идёт 6: fp v618a_g3_anc.html m3 1700 МБ / 5 проц., fp v618a_g3_anc.html m7 1612 МБ / 5 проц., fp v618a_g3_anc.html m11 1730 МБ / 5 проц., fp v618a_g3_anc.html m13 1690 МБ / 5 проц., fp v618a_g3_anc.html m17 1732 МБ / 5 проц., fp v618a_g3_anc.html m19 1627 МБ / 5 проц.
+guard: мало памяти — параллельность 5
+end fp v618a_g3_anc.html m19: код 1, 204 с, пик 1685 МБ, процессов до 5, СНЯТ: lowmem (свободно 1320 МБ)
+mem: свободно 2437 / 15977 МБ; par ≤ 5; очередь 8; идёт 5: fp v618a_g3_anc.html m3 1770 МБ / 5 проц., fp v618a_g3_anc.html m7 1802 МБ / 5 проц., fp v618a_g3_anc.html m11 1798 МБ / 5 проц., fp v618a_g3_anc.html m13 1833 МБ / 5 проц., fp v618a_g3_anc.html m17 1733 МБ / 5 проц.
+mem: свободно 2078 / 15977 МБ; par ≤ 5; очередь 8; идёт 5: fp v618a_g3_anc.html m3 1878 МБ / 5 проц., fp v618a_g3_anc.html m7 1809 МБ / 5 проц., fp v618a_g3_anc.html m11 1880 МБ / 5 проц., fp v618a_g3_anc.html m13 1909 МБ / 5 проц., fp v618a_g3_anc.html m17 1794 МБ / 5 проц.
+end fp v618a_g3_anc.html m11: код 0, 274 с, пик 1915 МБ, процессов до 5
+mem: свободно 3380 / 15977 МБ; par ≤ 5; очередь 8; идёт 4: fp v618a_g3_anc.html m3 1839 МБ / 5 проц., fp v618a_g3_anc.html m7 1929 МБ / 5 проц., fp v618a_g3_anc.html m13 2032 МБ / 5 проц., fp v618a_g3_anc.html m17 1857 МБ / 5 проц.
+mem: свободно 3215 / 15977 МБ; par ≤ 5; очередь 8; идёт 4: fp v618a_g3_anc.html m3 1927 МБ / 5 проц., fp v618a_g3_anc.html m7 1941 МБ / 5 проц., fp v618a_g3_anc.html m13 2040 МБ / 5 проц., fp v618a_g3_anc.html m17 2015 МБ / 5 проц.
+end fp v618a_g3_anc.html m17: код 0, 345 с, пик 2111 МБ, процессов до 5
+mem: свободно 4815 / 15977 МБ; par ≤ 5; очередь 8; идёт 3: fp v618a_g3_anc.html m3 1984 МБ / 5 проц., fp v618a_g3_anc.html m7 2093 МБ / 5 проц., fp v618a_g3_anc.html m13 2058 МБ / 5 проц.
+mem: свободно 4741 / 15977 МБ; par ≤ 5; очередь 8; идёт 3: fp v618a_g3_anc.html m3 2067 МБ / 5 проц., fp v618a_g3_anc.html m7 2131 МБ / 5 проц., fp v618a_g3_anc.html m13 2074 МБ / 5 проц.
+end fp v618a_g3_anc.html m3: код 0, 405 с, пик 2146 МБ, процессов до 5
+end fp v618a_g3_anc.html m7: код 0, 405 с, пик 2131 МБ, процессов до 5
+start fp v618a_g3_mir.html m3 (идёт 2, свободно 8398 МБ)
+start fp v618a_g3_mir.html m7 (идёт 3, свободно 8397 МБ)
+start fp v618a_g3_mir.html m11 (идёт 4, свободно 8395 МБ)
+start fp v618a_g3_mir.html m13 (идёт 5, свободно 8391 МБ)
+end fp v618a_g3_anc.html m13: код 0, 410 с, пик 2167 МБ, процессов до 5
+mem: свободно 8538 / 15977 МБ; par ≤ 5; очередь 4; идёт 4: fp v618a_g3_mir.html m3 None МБ / 0 проц., fp v618a_g3_mir.html m7 None МБ / 0 проц., fp v618a_g3_mir.html m11 None МБ / 0 проц., fp v618a_g3_mir.html m13 None МБ / 0 проц.
+start fp v618a_g3_mir.html m17 (идёт 5, свободно 8552 МБ)
+mem: свободно 6773 / 15977 МБ; par ≤ 5; очередь 3; идёт 5: fp v618a_g3_mir.html m3 1056 МБ / 5 проц., fp v618a_g3_mir.html m7 1086 МБ / 5 проц., fp v618a_g3_mir.html m11 1087 МБ / 5 проц., fp v618a_g3_mir.html m13 1066 МБ / 5 проц., fp v618a_g3_mir.html m17 1024 МБ / 5 проц.
+mem: свободно 6531 / 15977 МБ; par ≤ 5; очередь 3; идёт 5: fp v618a_g3_mir.html m3 1124 МБ / 5 проц., fp v618a_g3_mir.html m7 1111 МБ / 5 проц., fp v618a_g3_mir.html m11 1095 МБ / 5 проц., fp v618a_g3_mir.html m13 1123 МБ / 5 проц., fp v618a_g3_mir.html m17 1118 МБ / 5 проц.
+mem: свободно 6298 / 15977 МБ; par ≤ 5; очередь 3; идёт 5: fp v618a_g3_mir.html m3 1150 МБ / 5 проц., fp v618a_g3_mir.html m7 1133 МБ / 5 проц., fp v618a_g3_mir.html m11 1212 МБ / 5 проц., fp v618a_g3_mir.html m13 1173 МБ / 5 проц., fp v618a_g3_mir.html m17 1154 МБ / 5 проц.
+mem: свободно 6246 / 15977 МБ; par ≤ 5; очередь 3; идёт 5: fp v618a_g3_mir.html m3 1192 МБ / 5 проц., fp v618a_g3_mir.html m7 1161 МБ / 5 проц., fp v618a_g3_mir.html m11 1215 МБ / 5 проц., fp v618a_g3_mir.html m13 1180 МБ / 5 проц., fp v618a_g3_mir.html m17 1174 МБ / 5 проц.
+mem: свободно 6080 / 15977 МБ; par ≤ 5; очередь 3; идёт 5: fp v618a_g3_mir.html m3 1269 МБ / 5 проц., fp v618a_g3_mir.html m7 1217 МБ / 5 проц., fp v618a_g3_mir.html m11 1232 МБ / 5 проц., fp v618a_g3_mir.html m13 1182 МБ / 5 проц., fp v618a_g3_mir.html m17 1240 МБ / 5 проц.
+mem: свободно 5873 / 15977 МБ; par ≤ 5; очередь 3; идёт 5: fp v618a_g3_mir.html m3 1252 МБ / 5 проц., fp v618a_g3_mir.html m7 1241 МБ / 5 проц., fp v618a_g3_mir.html m11 1335 МБ / 5 проц., fp v618a_g3_mir.html m13 1204 МБ / 5 проц., fp v618a_g3_mir.html m17 1224 МБ / 5 проц.
+mem: свободно 6003 / 15977 МБ; par ≤ 5; очередь 3; идёт 5: fp v618a_g3_mir.html m3 1219 МБ / 5 проц., fp v618a_g3_mir.html m7 1188 МБ / 5 проц., fp v618a_g3_mir.html m11 1249 МБ / 5 проц., fp v618a_g3_mir.html m13 1189 МБ / 5 проц., fp v618a_g3_mir.html m17 1250 МБ / 5 проц.
+mem: свободно 5978 / 15977 МБ; par ≤ 5; очередь 3; идёт 5: fp v618a_g3_mir.html m3 1229 МБ / 5 проц., fp v618a_g3_mir.html m7 1240 МБ / 5 проц., fp v618a_g3_mir.html m11 1265 МБ / 5 проц., fp v618a_g3_mir.html m13 1217 МБ / 5 проц., fp v618a_g3_mir.html m17 1250 МБ / 5 проц.
+mem: свободно 5872 / 15977 МБ; par ≤ 5; очередь 3; идёт 5: fp v618a_g3_mir.html m3 1224 МБ / 5 проц., fp v618a_g3_mir.html m7 1279 МБ / 5 проц., fp v618a_g3_mir.html m11 1277 МБ / 5 проц., fp v618a_g3_mir.html m13 1234 МБ / 5 проц., fp v618a_g3_mir.html m17 1278 МБ / 5 проц.
+mem: свободно 5901 / 15977 МБ; par ≤ 5; очередь 3; идёт 5: fp v618a_g3_mir.html m3 1284 МБ / 5 проц., fp v618a_g3_mir.html m7 1250 МБ / 5 проц., fp v618a_g3_mir.html m11 1286 МБ / 5 проц., fp v618a_g3_mir.html m13 1283 МБ / 5 проц., fp v618a_g3_mir.html m17 1284 МБ / 5 проц.
+mem: свободно 5704 / 15977 МБ; par ≤ 5; очередь 3; идёт 5: fp v618a_g3_mir.html m3 1260 МБ / 5 проц., fp v618a_g3_mir.html m7 1302 МБ / 5 проц., fp v618a_g3_mir.html m11 1295 МБ / 5 проц., fp v618a_g3_mir.html m13 1312 МБ / 5 проц., fp v618a_g3_mir.html m17 1277 МБ / 5 проц.
+end fp v618a_g3_mir.html m17: код 0, 353 с, пик 1296 МБ, процессов до 5
+start fp v618a_g3_mir.html m19 (идёт 5, свободно 6668 МБ)
+end fp v618a_g3_mir.html m13: код 0, 380 с, пик 1312 МБ, процессов до 5
+mem: свободно 6865 / 15977 МБ; par ≤ 5; очередь 2; идёт 4: fp v618a_g3_mir.html m3 1258 МБ / 5 проц., fp v618a_g3_mir.html m7 1305 МБ / 5 проц., fp v618a_g3_mir.html m11 1285 МБ / 5 проц., fp v618a_g3_mir.html m19 1012 МБ / 5 проц.
+start fp v618a_g3_mir.html m23 (идёт 5, свободно 6865 МБ)
+mem: свободно 6180 / 15977 МБ; par ≤ 5; очередь 1; идёт 5: fp v618a_g3_mir.html m3 1264 МБ / 5 проц., fp v618a_g3_mir.html m7 1284 МБ / 5 проц., fp v618a_g3_mir.html m11 1322 МБ / 5 проц., fp v618a_g3_mir.html m19 1107 МБ / 5 проц., fp v618a_g3_mir.html m23 1048 МБ / 5 проц.
+end fp v618a_g3_mir.html m11: код 0, 416 с, пик 1347 МБ, процессов до 5
+start fp v618a_g3_mir.html m29 (идёт 5, свободно 7074 МБ)
+end fp v618a_g3_mir.html m3: код 0, 421 с, пик 1316 МБ, процессов до 5
+mem: свободно 7212 / 15977 МБ; par ≤ 5; очередь 0; идёт 4: fp v618a_g3_mir.html m7 1292 МБ / 5 проц., fp v618a_g3_mir.html m19 1154 МБ / 5 проц., fp v618a_g3_mir.html m23 1115 МБ / 5 проц., fp v618a_g3_mir.html m29 1046 МБ / 5 проц.
+mem: свободно 7493 / 15977 МБ; par ≤ 5; очередь 0; идёт 4: fp v618a_g3_mir.html m7 1290 МБ / 5 проц., fp v618a_g3_mir.html m19 1169 МБ / 5 проц., fp v618a_g3_mir.html m23 1155 МБ / 5 проц., fp v618a_g3_mir.html m29 1135 МБ / 5 проц.
+end fp v618a_g3_mir.html m7: код 0, 477 с, пик 1305 МБ, процессов до 5
+mem: свободно 8205 / 15977 МБ; par ≤ 5; очередь 0; идёт 3: fp v618a_g3_mir.html m19 1231 МБ / 5 проц., fp v618a_g3_mir.html m23 1153 МБ / 5 проц., fp v618a_g3_mir.html m29 1181 МБ / 5 проц.
+mem: свободно 8076 / 15977 МБ; par ≤ 5; очередь 0; идёт 3: fp v618a_g3_mir.html m19 1237 МБ / 5 проц., fp v618a_g3_mir.html m23 1216 МБ / 5 проц., fp v618a_g3_mir.html m29 1242 МБ / 5 проц.
+mem: свободно 8079 / 15977 МБ; par ≤ 5; очередь 0; идёт 3: fp v618a_g3_mir.html m19 1245 МБ / 5 проц., fp v618a_g3_mir.html m23 1218 МБ / 5 проц., fp v618a_g3_mir.html m29 1236 МБ / 5 проц.
+mem: свободно 8103 / 15977 МБ; par ≤ 5; очередь 0; идёт 3: fp v618a_g3_mir.html m19 1228 МБ / 5 проц., fp v618a_g3_mir.html m23 1252 МБ / 5 проц., fp v618a_g3_mir.html m29 1266 МБ / 5 проц.
+mem: свободно 7988 / 15977 МБ; par ≤ 5; очередь 0; идёт 3: fp v618a_g3_mir.html m19 1222 МБ / 5 проц., fp v618a_g3_mir.html m23 1251 МБ / 5 проц., fp v618a_g3_mir.html m29 1273 МБ / 5 проц.
+mem: свободно 8001 / 15977 МБ; par ≤ 5; очередь 0; идёт 3: fp v618a_g3_mir.html m19 1272 МБ / 5 проц., fp v618a_g3_mir.html m23 1244 МБ / 5 проц., fp v618a_g3_mir.html m29 1242 МБ / 5 проц.
+mem: свободно 7822 / 15977 МБ; par ≤ 5; очередь 0; идёт 3: fp v618a_g3_mir.html m19 1308 МБ / 5 проц., fp v618a_g3_mir.html m23 1361 МБ / 5 проц., fp v618a_g3_mir.html m29 1269 МБ / 5 проц.
+end fp v618a_g3_mir.html m23: код 0, 328 с, пик 1361 МБ, процессов до 5
+mem: свободно 8707 / 15977 МБ; par ≤ 5; очередь 0; идёт 2: fp v618a_g3_mir.html m19 1266 МБ / 5 проц., fp v618a_g3_mir.html m29 1308 МБ / 5 проц.
+mem: свободно 8708 / 15977 МБ; par ≤ 5; очередь 0; идёт 2: fp v618a_g3_mir.html m19 1276 МБ / 5 проц., fp v618a_g3_mir.html m29 1306 МБ / 5 проц.
+end fp v618a_g3_mir.html m19: код 0, 418 с, пик 1308 МБ, процессов до 5
+mem: свободно 9513 / 15977 МБ; par ≤ 5; очередь 0; идёт 1: fp v618a_g3_mir.html m29 1288 МБ / 5 проц.
+mem: свободно 9503 / 15977 МБ; par ≤ 5; очередь 0; идёт 1: fp v618a_g3_mir.html m29 1301 МБ / 5 проц.
+mem: свободно 9515 / 15977 МБ; par ≤ 5; очередь 0; идёт 1: fp v618a_g3_mir.html m29 1303 МБ / 5 проц.
+end fp v618a_g3_mir.html m29: код 0, 461 с, пик 1334 МБ, процессов до 5
+guard: переигровка снятых по памяти: 3 (по одному)
+start fp v618a_g3_anc.html m29 (идёт 1, свободно 10549 МБ)
+mem: свободно 10037 / 15977 МБ; par ≤ 1; очередь 2; идёт 1: fp v618a_g3_anc.html m29 633 МБ / 5 проц.
+mem: свободно 9639 / 15977 МБ; par ≤ 1; очередь 2; идёт 1: fp v618a_g3_anc.html m29 1025 МБ / 5 проц.
+mem: свободно 9421 / 15977 МБ; par ≤ 1; очередь 2; идёт 1: fp v618a_g3_anc.html m29 1231 МБ / 5 проц.
+mem: свободно 9209 / 15977 МБ; par ≤ 1; очередь 2; идёт 1: fp v618a_g3_anc.html m29 1453 МБ / 5 проц.
+mem: свободно 9151 / 15977 МБ; par ≤ 1; очередь 2; идёт 1: fp v618a_g3_anc.html m29 1501 МБ / 5 проц.
+mem: свободно 9014 / 15977 МБ; par ≤ 1; очередь 2; идёт 1: fp v618a_g3_anc.html m29 1638 МБ / 5 проц.
+mem: свободно 8873 / 15977 МБ; par ≤ 1; очередь 2; идёт 1: fp v618a_g3_anc.html m29 1780 МБ / 5 проц.
+mem: свободно 8770 / 15977 МБ; par ≤ 1; очередь 2; идёт 1: fp v618a_g3_anc.html m29 1901 МБ / 5 проц.
+mem: свободно 8667 / 15977 МБ; par ≤ 1; очередь 2; идёт 1: fp v618a_g3_anc.html m29 1996 МБ / 5 проц.
+mem: свободно 8584 / 15977 МБ; par ≤ 1; очередь 2; идёт 1: fp v618a_g3_anc.html m29 2075 МБ / 5 проц.
+mem: свободно 8601 / 15977 МБ; par ≤ 1; очередь 2; идёт 1: fp v618a_g3_anc.html m29 2054 МБ / 5 проц.
+mem: свободно 8509 / 15977 МБ; par ≤ 1; очередь 2; идёт 1: fp v618a_g3_anc.html m29 2153 МБ / 5 проц.
+end fp v618a_g3_anc.html m29: код 0, 353 с, пик 2153 МБ, процессов до 5
+start fp v618a_g3_anc.html m23 (идёт 1, свободно 10559 МБ)
+mem: свободно 9600 / 15977 МБ; par ≤ 1; очередь 1; идёт 1: fp v618a_g3_anc.html m23 1048 МБ / 5 проц.
+mem: свободно 9324 / 15977 МБ; par ≤ 1; очередь 1; идёт 1: fp v618a_g3_anc.html m23 1298 МБ / 5 проц.
+mem: свободно 9244 / 15977 МБ; par ≤ 1; очередь 1; идёт 1: fp v618a_g3_anc.html m23 1380 МБ / 5 проц.
+mem: свободно 9193 / 15977 МБ; par ≤ 1; очередь 1; идёт 1: fp v618a_g3_anc.html m23 1519 МБ / 5 проц.
+mem: свободно 8976 / 15977 МБ; par ≤ 1; очередь 1; идёт 1: fp v618a_g3_anc.html m23 1716 МБ / 5 проц.
+mem: свободно 8832 / 15977 МБ; par ≤ 1; очередь 1; идёт 1: fp v618a_g3_anc.html m23 1852 МБ / 5 проц.
+mem: свободно 8822 / 15977 МБ; par ≤ 1; очередь 1; идёт 1: fp v618a_g3_anc.html m23 1869 МБ / 5 проц.
+end fp v618a_g3_anc.html m23: код 0, 225 с, пик 1958 МБ, процессов до 5
+start fp v618a_g3_anc.html m19 (идёт 1, свободно 10572 МБ)
+mem: свободно 9763 / 15977 МБ; par ≤ 1; очередь 0; идёт 1: fp v618a_g3_anc.html m19 908 МБ / 5 проц.
+mem: свободно 9546 / 15977 МБ; par ≤ 1; очередь 0; идёт 1: fp v618a_g3_anc.html m19 1140 МБ / 5 проц.
+mem: свободно 9358 / 15977 МБ; par ≤ 1; очередь 0; идёт 1: fp v618a_g3_anc.html m19 1314 МБ / 5 проц.
+mem: свободно 9206 / 15977 МБ; par ≤ 1; очередь 0; идёт 1: fp v618a_g3_anc.html m19 1470 МБ / 5 проц.
+mem: свободно 9085 / 15977 МБ; par ≤ 1; очередь 0; идёт 1: fp v618a_g3_anc.html m19 1600 МБ / 5 проц.
+mem: свободно 8929 / 15977 МБ; par ≤ 1; очередь 0; идёт 1: fp v618a_g3_anc.html m19 1760 МБ / 5 проц.
+mem: свободно 8885 / 15977 МБ; par ≤ 1; очередь 0; идёт 1: fp v618a_g3_anc.html m19 1778 МБ / 5 проц.
+mem: свободно 8821 / 15977 МБ; par ≤ 1; очередь 0; идёт 1: fp v618a_g3_anc.html m19 1852 МБ / 5 проц.
+mem: свободно 8757 / 15977 МБ; par ≤ 1; очередь 0; идёт 1: fp v618a_g3_anc.html m19 1906 МБ / 5 проц.
+mem: свободно 8643 / 15977 МБ; par ≤ 1; очередь 0; идёт 1: fp v618a_g3_anc.html m19 2019 МБ / 5 проц.
+end fp v618a_g3_anc.html m19: код 0, 312 с, пик 2029 МБ, процессов до 5
+all done
