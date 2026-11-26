@@ -9,7 +9,11 @@
 const pw = require('playwright'), url = require('url'), fs = require('fs'), path = require('path');
 const DVS = require(path.join(__dirname, '..', 'measure', 'dv_state.js'));
 const [cmd, sim, ...rest] = process.argv.slice(2);
-const SETUP = DVS.setupCode(DVS.skipDefault(), DVS.SKIPF_DEFAULT);
+// (Р5, 26.11) без полей и переменных показа / диагностики, которые ядро не читает (доказательство — разбор tools/rebuild/frame_contract.js,
+// rebuild/gen/ui.json): отметка снимает экран (рисунок пишет в ботов _idle и т. п.), повтор не рисует
+const UI = (() => { try { return require(path.join(__dirname, '..', '..', 'rebuild', 'gen', 'ui.json')); } catch (e) { return { showFields: [], showVars: [] }; } })();
+const rx = x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), SF = UI.showFields.filter(x => !x.read_by_core.length).map(x => rx(x.field)), SV = (UI.showVars || []).filter(x => !x.read_by_core.length).map(x => rx(x.var));
+const SETUP = DVS.setupCode(SV.length ? DVS.skipDefault().replace(/\)\$$/, '|' + SV.join('|') + ')$') : DVS.skipDefault(), SF.length ? DVS.SKIPF_DEFAULT.replace(/\)\$$/, '|' + SF.join('|') + ')$') : DVS.SKIPF_DEFAULT);
 
 async function page(b, file) {
   const p = await b.newPage(); await p.route(/^https?:/, r => r.abort());

@@ -176,9 +176,10 @@ console.log('Frame: переменных ' + Object.keys(R.reads).length + ' (+ 
   fs.writeFileSync(path.join(ROOT, 'rebuild', 'gen', 'ui.json'), JSON.stringify(U, null, 1) + '\n');
   // таблица управления со статусами: «автотест» — элемент (#id) или клавиша есть в проверках состояния (tools/page/ui_state_check.js,
   // tools/page/worker_check.js — настоящие клики / клавиши, сравнение полного состояния); иначе — «нет автотеста»
-  const TT = ['ui_state_check.js', 'worker_check.js'].map(f => { try { return fs.readFileSync(path.join(ROOT, 'tools', 'page', f), 'utf8'); } catch (e) { return ''; } }).join('\n');
-  const tested = h => (h.el && h.el[0] === '#' && TT.includes("'" + h.el + "'")) || (h.keys.length && h.keys.some(k => TT.includes("press('" + k + "')"))) ||
-    (h.what === 'requestAnimationFrame' && TT.includes('frameBody')) || (h.ev === 'resize' && TT.includes('setViewportSize'));
+  // покрытие — по факту успешных прогонов (rebuild/gen/ui_tested.json, ui_state_check.js --record): нажатые элементы и клавиши, кадр, размер окна
+  let COV = {}; try { COV = JSON.parse(fs.readFileSync(path.join(ROOT, 'rebuild', 'gen', 'ui_tested.json'), 'utf8')); } catch (e) {}
+  const tested = h => (h.el && h.el[0] === '#' && (COV.ids || []).includes(h.el)) || (h.keys.length && h.keys.some(k => (COV.keys || []).includes(k))) ||
+    (h.what === 'requestAnimationFrame' && COV.frame) || (h.ev === 'resize' && COV.resize);
   const esc = t => String(t == null ? '' : t).replace(/\|/g, '\\|');
   let md = '# Реестр управления: интерфейс → ядро (генерируется: `node tools/rebuild/frame_contract.js`, по коду)\n\n' +
     'Класс — по тому, что обработчик делает (через функции показа до ядра, транзитивно): **только показ**; **меняет игру** (вызывает функции ядра, которые пишут ' +

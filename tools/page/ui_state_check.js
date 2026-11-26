@@ -46,6 +46,10 @@ async function frames(p, until, dts, worker) {
     if (tk >= until - 40 || await ev(p, 'paused')) return tk;   // пауза: кадры идут, тиков нет
   }
 }
+async function framesN(p, n, dts, worker) {   // ровно n кадров (разминка: тики не идут, кадры — да)
+  for (let i = 0; i < n; i++) { p.ts += dts[i % dts.length]; await ev(p, 'frameBody(' + p.ts + '); 1');
+    if (worker) { for (let w = 0; w < 400 && await ev(p, 'WK.on && WK.busy'); w++) await p.waitForTimeout(5); await ev(p, 'if(WK.on && WK.F){ frameApply(WK.F); WK.F = null; } 1'); } }
+}
 async function finish(p, worker) {   // ровно до T и состояние (Worker / Node — сперва на страницу: снимок ядра)
   if (await ev(p, 'WK.on')) { await p.evaluate(t => new Promise(ok => { const w = __ev('WK.w'); const h = e => { if (e.data.tick >= t || e.data.S) { w.removeEventListener('message', h); ok(); } }; w.addEventListener('message', h); __ev('WK.busy = true; 1'); w.postMessage({ cmd: 'to', t, now: 1e6 }); }), T);
     await p.evaluate(() => new Promise(ok => { __ev('wkToPage')(ok); })); }
@@ -58,6 +62,25 @@ async function start(p) {   // новый матч — как владелец: 
   for (let w = 0; w < 200 && await ev(p, 'WK.on && (WK.busy || WK.hand)'); w++) await p.waitForTimeout(20);
 }
 const F60 = [16.667], F30 = [33.3, 33.3, 100, 5, 33.3, 250];
+// элементы показа с id из реестра (rebuild/gen/ui.json): кроме паузы (своя проверка), выгрузки файла, отметки (своя проверка) и входов игры
+const VIEW_IDS = [...new Set(UI.handlers.filter(h => h.el && h.el[0] === '#' && /^(click|change|input)$/.test(h.ev) && h.class !== 'меняет игру').map(h => h.el))]
+  .filter(id => !/^#(btnPause|btnExportProject|btnMark|mkCancel|mkCopy|mkFile|mkText|mkX|mkLX|hlP|btnFreshMatch|btnRestartRound)$/.test(id)).concat(['#chkVis', '#chkWallbang', '#btn3d']);
+// действие с элементом: флажок — щёлкнуть (on / off), список — следующий пункт / вернуть, ползунок — другое значение / вернуть, кнопка — щёлкнуть
+const SKIPPED = {}, DONE = {};
+const STATIC_IDS = ['#chkWarm', '#inpMatchNum', '#btnFreshMatch', '#btnPause', '#mkCancel', '#btnRestartRound', '#btn3d', '#v3Fp', '#btnWarmSkip'], KEYS = ['m', 'o', 'ArrowRight', 'ArrowLeft'];
+async function act(p, id, how, worker) {
+  const t = await p.evaluate(s => { const e = document.querySelector(s); return e ? (e.tagName === 'SELECT' ? 'select' : e.type === 'range' ? 'range' : e.type === 'checkbox' ? 'checkbox' : 'button') : null; }, id);
+  if (!t) return;
+  // невидимый (панель режима закрыта) — пользователь его не нажмёт: пропуск, в отчёт
+  if (!(await p.isVisible(id))) { await p.evaluate(s => { const d = document.querySelector(s); const dd = d && d.closest('details'); if (dd && !dd.open) dd.querySelector('summary').click(); }, id);
+    if (!(await p.isVisible(id))) { (SKIPPED[id] = SKIPPED[id] || 0); SKIPPED[id]++; return; } }
+  (DONE[id] = DONE[id] || 0); DONE[id]++;
+  if (t === 'select') { const o = await p.evaluate(s => { const e = document.querySelector(s); return { v: e.value, all: [...e.options].map(x => x.value) }; }, id); p.__sel = p.__sel || {};
+    if (how !== 'off') { p.__sel[id] = o.v; const nv = o.all[(o.all.indexOf(o.v) + 1) % o.all.length]; await p.selectOption(id, nv); } else if (p.__sel[id] != null) await p.selectOption(id, p.__sel[id]); return; }
+  if (t === 'range') { await p.focus(id); for (let i = 0; i < 3; i++) await p.keyboard.press(how !== 'off' ? 'ArrowRight' : 'ArrowLeft'); return; }   // ползунок — клавишами, как человек
+  if (t === 'checkbox' && how === 'off' && !(await p.isChecked(id))) return;
+  await click(p, id);
+}
 const VARIANTS = {
   base: async (p) => { await start(p); await DVS.stopFrames(p); await ev(p, 'clockPause(false); 1'); },
   draw60: async (p) => { await start(p); await frames(p, T, F60); },
@@ -69,6 +92,23 @@ const VARIANTS = {
     if (await p.isVisible('#v3Fp')) await click(p, '#v3Fp'); await frames(p, T, F60); },
   hud: async (p) => { await start(p); await frames(p, T / 3, F60); await p.keyboard.press('o'); await p.setViewportSize({ width: 1100, height: 700 }); await frames(p, 2 * T / 3, F30);
     await p.keyboard.press('o'); await p.setViewportSize({ width: 1600, height: 1000 }); await frames(p, T, F60); },
+  // все элементы «только показ» / настройки показа с id (rebuild/gen/ui.json) — настоящими кликами по ходу игры: включить, кадры, вернуть
+  allview: async (p) => { await start(p); const step = Math.floor(T / (VIEW_IDS.length + 2)); let at = step;
+    for (const id of VIEW_IDS) { if (!(await p.$(id))) continue; at += step; await frames(p, at - step / 2, F60); await act(p, id, 'on'); await frames(p, at, F60); await act(p, id, 'off'); }
+    await frames(p, T, F60); },
+  // меняет игру: одна и та же последовательность в обычном режиме, Worker и Node — все элементы, которые меняют игру без мыши по карте
+  allcmd: async (p, worker) => { if (!(await p.isChecked('#chkWarm'))) await click(p, '#chkWarm'); await p.fill('#inpMatchNum', String(M)); await click(p, '#btnFreshMatch');   // разминка
+    await framesN(p, 300, F60, worker); if (await p.isVisible('#btnWarmSkip')) await click(p, '#btnWarmSkip');   // 5 с разминки, затем «пропустить»
+    for (let w = 0; w < 200 && await ev(p, 'WARM.on || (WK.on && (WK.busy || WK.hand))'); w++) await framesN(p, 5, F60, worker);
+    if (await ev(p, 'paused')) await click(p, '#btnPause');
+    const seqAt = [['#btnRestartRound'], ['#hlP', 'set'], ['#selSeries', 'set'], ['#btnSandbox', 'on', '#btnSandbox'], ['#btnDemoView', 'on', '#btnDemoView'], ['#btnToTake'], ['#btnRpLast'],
+      ['#chkMapEdit', 'on', '#chkMapEdit'], ['#chkLineups', 'on', '#chkLineups'], ['#btnBack10']];
+    const step = Math.floor(T / (seqAt.length + 2)); let at = step;
+    for (const [id, how, off] of seqAt) { at += step; await frames(p, at - step / 2, F60, worker); if (!(await p.$(id))) continue; await act(p, id, how || 'on', worker);
+      for (let w = 0; w < 300 && await ev(p, '(WK.on && (WK.busy || WK.hand)) || MK.busy'); w++) await p.waitForTimeout(20);
+      if (await ev(p, 'paused')) await click(p, '#btnPause');
+      await frames(p, at, F60, worker); if (off) { await act(p, off, 'off', worker); if (await ev(p, 'paused')) await click(p, '#btnPause'); } }
+    await frames(p, T, F60, worker); },
   // меняет игру: одна и та же последовательность в обычном режиме, Worker и Node
   seqM: async (p, worker) => { await start(p); await frames(p, 2500, F60, worker); await p.keyboard.press('m');
     for (let w = 0; w < 200 && await ev(p, '!MK.cur'); w++) await p.waitForTimeout(20);
@@ -132,12 +172,22 @@ async function cacheKeys(p, names) {   // для различающихся кэ
     console.log((ok ? '✓ ' : '✗ ') + name + ' = ' + ref + ' (тик ' + b.tick + ', переменных ' + Object.keys(b.st).length + ')' + (c.game.length ? ' — РАЗНЫЕ: ' + c.game.slice(0, 15).join(', ') : '') + cacheNote + (b.errs.length ? '; ошибки страницы: ' + b.errs.slice(0, 2).join(' | ') : '')); };
   const want = n => !ONLY || ONLY.includes(n);
   await run('base', SIM, '');
-  for (const n of ['draw60', 'draw30', 'layers', 'view3d', 'hud']) if (want(n)) { await run(n, SIM, ''); await report(n, 'base'); }
+  for (const n of ['draw60', 'draw30', 'layers', 'view3d', 'hud', 'allview']) if (want(n)) { await run(n, SIM, ''); await report(n, 'base'); }
+  if (want('allcmd')) { await run('allcmd', SIM, '');
+    if (A['worker-sim']) { await run('allcmd:worker', path.resolve(A['worker-sim']), '?worker=1', null, true); await report('allcmd:worker', 'allcmd'); }
+    if (A.local) { await run('allcmd:local', null, '/?local=1', A.local, true); await report('allcmd:local', 'allcmd'); } }
   for (const n of ['seqM', 'seqP']) if (ONLY && ONLY.includes(n)) { await run(n, SIM, ''); await report(n, 'base'); if (A['worker-sim']) { await run(n + ':worker', path.resolve(A['worker-sim']), '?worker=1', null, true); await report(n + ':worker', n); } }
   if (want('seq')) {
     await run('seq', SIM, '');
     if (A['worker-sim']) { await run('seq:worker', path.resolve(A['worker-sim']), '?worker=1', null, true); await report('seq:worker', 'seq'); }
     if (A.local) { await run('seq:local', null, '/?local=1', A.local, true); await report('seq:local', 'seq'); }
   }
+  if (Object.keys(DONE).length || Object.keys(SKIPPED).length) console.log('элементы: нажаты ' + Object.keys(DONE).join(' ') + (Object.keys(SKIPPED).length ? '; не видны без режима (пропущены): ' + Object.keys(SKIPPED).join(' ') : ''));
+  // --record: успешный прогон дописывает покрытие (rebuild/gen/ui_tested.json — объединение по прогонам): нажатые элементы, клавиши, варианты
+  if (A.record && !bad) { const F = path.join(ROOT, 'rebuild', 'gen', 'ui_tested.json'); let o = {}; try { o = JSON.parse(fs.readFileSync(F, 'utf8')); } catch (e) {}
+    const U = (a, b) => [...new Set([...(a || []), ...b])].sort();
+    o = { _: 'покрытие проверки полного состояния (tools/page/ui_state_check.js --record; только успешные прогоны): элементы, клавиши, варианты', ids: U(o.ids, Object.keys(DONE).concat(STATIC_IDS)),
+      keys: U(o.keys, KEYS), variants: U(o.variants, Object.keys(R)), skipped: U(o.skipped, Object.keys(SKIPPED)), frame: true, resize: true, date: new Date().toISOString().slice(0, 10) };
+    fs.writeFileSync(F, JSON.stringify(o, null, 1) + '\n'); console.log('покрытие записано: ' + F); }
   await br.close(); console.log(bad ? 'НЕ ПРОШЛО: ' + bad : 'итог: всё равно'); process.exit(bad ? 1 : 0);
 })().catch(e => { console.error(e); process.exit(2); });

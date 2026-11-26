@@ -3795,7 +3795,7 @@
   },
   {
    "file": "src/marks.js",
-   "line": 189,
+   "line": 195,
    "what": "setTimeout",
    "el": "—",
    "ev": "setTimeout",
@@ -3811,7 +3811,7 @@
   },
   {
    "file": "src/marks.js",
-   "line": 271,
+   "line": 277,
    "what": "событие",
    "el": "#mkToast",
    "ev": "ev",
@@ -3827,7 +3827,7 @@
   },
   {
    "file": "src/marks.js",
-   "line": 272,
+   "line": 278,
    "what": "событие",
    "el": "#btnMark",
    "ev": "click",
@@ -3843,7 +3843,7 @@
   },
   {
    "file": "src/marks.js",
-   "line": 273,
+   "line": 279,
    "what": "событие",
    "el": "#btnBack10",
    "ev": "click",
@@ -3887,7 +3887,7 @@
   },
   {
    "file": "src/marks.js",
-   "line": 274,
+   "line": 280,
    "what": "событие",
    "el": "#btnMarks",
    "ev": "click",
@@ -3903,7 +3903,7 @@
   },
   {
    "file": "src/marks.js",
-   "line": 275,
+   "line": 281,
    "what": "событие",
    "el": "#mkLX",
    "ev": "click",
@@ -3919,7 +3919,7 @@
   },
   {
    "file": "src/marks.js",
-   "line": 276,
+   "line": 282,
    "what": "событие",
    "el": "#mkX",
    "ev": "click",
@@ -3935,7 +3935,7 @@
   },
   {
    "file": "src/marks.js",
-   "line": 276,
+   "line": 282,
    "what": "событие",
    "el": "#mkCancel",
    "ev": "click",
@@ -3951,7 +3951,7 @@
   },
   {
    "file": "src/marks.js",
-   "line": 277,
+   "line": 283,
    "what": "событие",
    "el": "#mkGo",
    "ev": "click",
@@ -3977,7 +3977,7 @@
   },
   {
    "file": "src/marks.js",
-   "line": 278,
+   "line": 284,
    "what": "событие",
    "el": "#mkFile",
    "ev": "click",
@@ -3993,7 +3993,7 @@
   },
   {
    "file": "src/marks.js",
-   "line": 279,
+   "line": 285,
    "what": "событие",
    "el": "#mkText",
    "ev": "input",
@@ -4009,7 +4009,7 @@
   },
   {
    "file": "src/marks.js",
-   "line": 280,
+   "line": 286,
    "what": "событие",
    "el": "mkEl(id)",
    "ev": "keydown",
@@ -4037,7 +4037,7 @@
   },
   {
    "file": "src/marks.js",
-   "line": 281,
+   "line": 287,
    "what": "событие",
    "el": "#mkCopy",
    "ev": "click",
@@ -4053,7 +4053,7 @@
   },
   {
    "file": "src/marks.js",
-   "line": 282,
+   "line": 288,
    "what": "событие",
    "el": "#mkItems",
    "ev": "click",
@@ -4097,7 +4097,7 @@
   },
   {
    "file": "src/marks.js",
-   "line": 290,
+   "line": 296,
    "what": "событие",
    "el": "cv",
    "ev": "mousedown",
@@ -4113,7 +4113,7 @@
   },
   {
    "file": "src/marks.js",
-   "line": 298,
+   "line": 304,
    "what": "событие",
    "el": "window",
    "ev": "keydown",
@@ -4134,7 +4134,7 @@
   },
   {
    "file": "src/marks.js",
-   "line": 302,
+   "line": 308,
    "what": "событие",
    "el": "#btnRestartRound",
    "ev": "click",
@@ -4150,7 +4150,7 @@
   },
   {
    "file": "src/marks.js",
-   "line": 303,
+   "line": 309,
    "what": "событие",
    "el": "#btnFreshMatch",
    "ev": "click",
