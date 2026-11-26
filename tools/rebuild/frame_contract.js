@@ -55,11 +55,33 @@ for (const f of sim) { const ast = parse(f), sm = escope.analyze(ast, { ecmaVers
     if (glob.set && glob.set.has(nm) && glob.set.get(nm).defs.length) continue;
     let typeofG = false; for (let x = r.from; x; x = x.upper) {}
     (need[nm] = need[nm] || { from: SHOWV[nm] || SHOWF[nm], by: new Set(), how: new Set() }).by.add(G.fileId(f)); need[nm].how.add(r.isWrite() ? 'запись' : 'чтение'); } }
+// (Р5.1, 26.11) косвенные чтения: функции симуляции, которые вызывает показ (calls, fnReads), сами читают переменные симуляции — по графу
+// вызовов внутри симуляции (транзитивно). Без них кадр неполон: проверка tools/page/frame_apply_check.js (слои отладки — знание, «простреливается»)
+const FG = {};   // функция симуляции → {v: переменные, f: вызванные функции}
+for (const f of sim) for (const s of parse(f).body) { if (s.type !== 'FunctionDeclaration') continue;
+  const loc = new Set(), V = new Set(), F = new Set();
+  walk.full(s, n => { if (n.type === 'VariableDeclarator' && n.id.type === 'Identifier') loc.add(n.id.name); if (/Function/.test(n.type)) n.params.forEach(q => { if (q.type === 'Identifier') loc.add(q.name); });
+    if (n.type === 'FunctionDeclaration' && n !== s && n.id) loc.add(n.id.name); });
+  walk.ancestor(s, { Identifier(n, anc) { const nm = n.name, p = anc[anc.length - 2]; if (loc.has(nm)) return;
+    if (p && p.type === 'MemberExpression' && p.property === n && !p.computed) return; if (p && p.type === 'Property' && p.key === n && !p.computed) return;
+    if (SIMF[nm]) F.add(nm); else if (SIMV[nm]) V.add(nm); } });
+  FG[s.id.name] = { v: V, f: F }; }
+const via = {};
+// корни — функции симуляции, которые вызывает сам рисунок кадра: функции показа, достижимые из draw / d3Frame (команды — паузу, перемотку,
+// песочницу — исполняет симуляция, их чтения в кадр не идут)
+const SG = {};
+for (const f of show) for (const s of parse(f).body) { if (s.type !== 'FunctionDeclaration') continue; const F = new Set();
+  walk.full(s, n => { if (n.type === 'CallExpression' && n.callee.type === 'Identifier') F.add(n.callee.name); }); SG[s.id.name] = F; }
+const drawRoots = new Set(), seenS = new Set(), stS = ['draw', 'd3Frame'].filter(x => SG[x]);
+while (stS.length) { const fn = stS.pop(); if (seenS.has(fn)) continue; seenS.add(fn); SG[fn].forEach(x => { if (SG[x]) stS.push(x); else if (SIMF[x]) drawRoots.add(x); }); }
+for (const root of drawRoots) { const seen = new Set(), st = [root];
+  while (st.length) { const fn = st.pop(); if (seen.has(fn) || !FG[fn]) continue; seen.add(fn); FG[fn].v.forEach(v => { (via[v] = via[v] || new Set()).add(root); }); FG[fn].f.forEach(x => st.push(x)); } }
 const out = o => Object.fromEntries(Object.keys(o).sort().map(k => [k, { from: SIMV[k] || SIMF[k] || null, by: [...o[k]].sort() }]));
 const R = { _: 'генерируется tools/rebuild/frame_contract.js (Р5.1): reads — общие переменные симуляции, которые читает показ (состав Frame); bot — поля бота, которые читает показ (с запасом); calls / writes — команды показа к симуляции (вызов функции симуляции / запись её переменной)',
   reads: out(Object.fromEntries(Object.entries(reads).filter(([k]) => SIMV[k]))), fnReads: out(Object.fromEntries(Object.entries(reads).filter(([k]) => SIMF[k]))),
+  readsVia: Object.fromEntries(Object.keys(via).filter(k => !reads[k]).sort().map(k => [k, { from: SIMV[k], via: [...via[k]].sort().slice(0, 12) }])),
   bot: Object.keys(botf).sort(), calls: out(calls), writes: out(writes),
   simNeedsShow: Object.fromEntries(Object.keys(need).sort().map(k => [k, { from: need[k].from, by: [...need[k].by].sort(), how: [...need[k].how] }])) };
 fs.writeFileSync(path.join(ROOT, 'rebuild', 'gen', 'frame.json'), JSON.stringify(R, null, 1) + '\n');
 console.log('ядро берёт у показа: ' + Object.keys(need).length + ' (' + Object.keys(need).sort().join(', ') + ')');
-console.log('Frame: переменных ' + Object.keys(R.reads).length + ', полей бота ' + R.bot.length + '; команды: вызовов ' + Object.keys(R.calls).length + ', записей ' + Object.keys(R.writes).length + ' (rebuild/gen/frame.json)');
+console.log('Frame: переменных ' + Object.keys(R.reads).length + ' (+ косвенно через вызовы ' + Object.keys(R.readsVia).length + '), полей бота ' + R.bot.length + '; команды: вызовов ' + Object.keys(R.calls).length + ', записей ' + Object.keys(R.writes).length + ' (rebuild/gen/frame.json)');

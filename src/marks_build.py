@@ -88,7 +88,7 @@ def inject(s):
     sf = sorted(set(k.split('.', 1)[1] for k in REG if k.startswith('f:')))
     # (Р5.1, 26.11) состав кадра показа: переменные, которые читает показ (rebuild/gen/frame.json, tools/rebuild/frame_contract.js), кроме
     # неизменяемых и настроек (они загружены с обеих сторон) — то, что меняет симуляция; кадр = снимок только их (src/snapshot.js frameMake)
-    try: FR = json.load(open(os.path.join(os.path.dirname(REGISTRY), 'gen', 'frame.json'), encoding='utf-8'))['reads']
+    try: FJ = json.load(open(os.path.join(os.path.dirname(REGISTRY), 'gen', 'frame.json'), encoding='utf-8')); FR = dict(FJ.get('reads', {}), **FJ.get('readsVia', {}))   # + косвенно через вызовы функций симуляции
     except (OSError, ValueError, KeyError): FR = {}
     frame = sorted(v for v in FR if v in V and (REG.get('g:' + v) or {}).get('class') not in ('неизменяемое', 'вход'))
     return s.replace(MARK, snap + 'var MK_BUILD = "%s";\nvar MK_KEEP = %s, MK_REF_ROOTS = %s, MK_STATIC_FIELDS = %s, FRAME_VARS = %s;\n' % (build, json.dumps(keep), json.dumps(roots), json.dumps(sf), json.dumps(frame)) + mod)
