@@ -1,252 +1,252 @@
 {
  "_": "Реестр известных чтений истины врага в коде решений (tools/rebuild/truth_reads.js, проверка сборки gen_maps --check). Ключ — файл:функция:поля. class: свои — элемент свой / действующий (ложное срабатывание детектора); восприятие — модель зрения / слуха; движок — физика / правила; истина — решение по истинному состоянию врага (известное нарушение: исправление меняет поведение — после Р8, BEHAVIOR_BACKLOG). Новое место или больше мест (n) — сборка падает. Охват детектора: (1) обходы bots с отбором врага по стороне; (2) бомба (место, носитель) в коде, достижимом только из ctBrain; (3) живой объект по номеру var o = teamBot(id) — поля истины и передача в функцию; не охвачено: ids.map(teamBot), убийца (killer) в событиях, поля внутри вызванных функций — отдельным шагом (Р3.2 знание).",
  "known": {
-  "120:resetBomb:tRole": {
+  "bomb:resetBomb:tRole": {
    "class": "свои",
    "why": "движок раунда: носитель бомбы выбирается среди T",
    "n": 1
   },
-  "130:coachPlan:primary,tRole": {
+  "tactics:coachPlan:primary,tRole": {
    "class": "свои",
    "why": "ветка плана тренера CT (side !== \"T\"): есть ли AWP / мид у своей команды",
    "n": 1
   },
-  "130:chooseTactic:tRole": {
+  "tactics:chooseTactic:tRole": {
    "class": "свои",
    "why": "IGL своей команды T",
    "n": 1
   },
-  "150:tClearCalls:x,y": {
+  "lurker:tClearCalls:x,y": {
    "class": "восприятие",
    "why": "T проверяет, видит ли кто-то из своих CT (hasVision от своих — модель зрения; без конуса взгляда — как есть) + список своих T; 3 места",
    "n": 3
   },
-  "190:intelDeath:defusing,planting,tRole,weapon,x,y,z": {
+  "intel:intelDeath:defusing,planting,tRole,weapon,x,y,z": {
    "class": "свои",
    "why": "тиммейты убитого (o.team === victim.team) — кто идёт разменивать",
    "n": 1
   },
-  "190:intelDeath:defusing,planting,tRole,x,y,z": {
+  "intel:intelDeath:defusing,planting,tRole,x,y,z": {
    "class": "свои",
    "why": "тиммейты убитого — кто заполняет",
    "n": 1
   },
-  "190:intelDeath:nades,planting,x,y": {
+  "intel:intelDeath:nades,planting,x,y": {
    "class": "свои",
    "why": "убит T — флешки у своих T рядом (ветка victim.team === \"T\")",
    "n": 1
   },
-  "290:smokeSpamTick:x,y": {
+  "smoke-react:smokeSpamTick:x,y": {
    "class": "движок",
    "why": "прострел смока: куда целится — решение (P.pt); враг на линии стрельбы за дымом — попадание пули (tryShoot по тому, кто на линии), а не выбор цели",
    "n": 1
   },
-  "290:smokeShiftOnDetonate:lookTarget,post,x,y,z": {
+  "smoke-react:smokeShiftOnDetonate:lookTarget,post,x,y,z": {
    "class": "свои",
    "why": "элемент — действующий: держал угол, который закрыл чужой смок, сам меняет позицию",
    "n": 1
   },
-  "300:tFallbackTick:x,y": {
+  "roles:tFallbackTick:x,y": {
    "class": "свои",
    "why": "свои T рядом",
    "n": 1
   },
-  "300:rebalSpot:x,y": {
+  "roles:rebalSpot:x,y": {
    "class": "свои",
    "why": "свои CT на точке",
    "n": 1
   },
-  "330:smokePushReason:x,y": {
+  "endgame:smokePushReason:x,y": {
    "class": "свои",
    "why": "ротирующий CT считает своих CT на сайте",
    "n": 1
   },
-  "390:tCrossSmoke:nadeTask,nades,x,y": {
+  "lineups:tCrossSmoke:nadeTask,nades,x,y": {
    "class": "свои",
    "why": "свои T с дымом у точки броска",
    "n": 1
   },
-  "390:tCrossSmoke:path,pathIdx,x,y,z": {
+  "lineups:tCrossSmoke:path,pathIdx,x,y,z": {
    "class": "свои",
    "why": "свои T на пути через дым",
    "n": 1
   },
-  "390:lineupTick:post,x,y": {
+  "lineups:lineupTick:post,x,y": {
    "class": "свои",
    "why": "свои CT смотрят на точку флешки",
    "n": 1
   },
-  "480:ambFoes:x,y": {
+  "assist:ambFoes:x,y": {
    "class": "восприятие",
    "why": "враги только увиденные (_visible) или услышанные (heardSound — по месту звука)",
    "n": 1
   },
-  "500:decideAction:x,y,z": {
+  "fight-state:decideAction:x,y,z": {
    "class": "свои",
    "why": "носитель бомбы T: тиммейт T рядом для размена",
    "n": 1
   },
-  "510:engDecide:x,y": {
+  "engagements:engDecide:x,y": {
    "class": "восприятие",
    "why": "сколько врагов видит: hasVision (модель зрения; без конуса — как есть)",
    "n": 1
   },
-  "520:buyForPlayer:kit": {
+  "economy:buyForPlayer:kit": {
    "class": "свои",
    "why": "закуп: набор у своих CT",
    "n": 1
   },
-  "520:buyForPlayer:money": {
+  "economy:buyForPlayer:money": {
    "class": "свои",
    "why": "закуп: деньги своих CT",
    "n": 1
   },
-  "535:moveSpeedTick:x,y": {
+  "move:moveSpeedTick:x,y": {
    "class": "свои",
    "why": "свои T рядом (ожидание у входа)",
    "n": 1
   },
-  "535:moveSpeedTick:tRole": {
+  "move:moveSpeedTick:tRole": {
    "class": "свои",
    "why": "свои T не лёркеры",
    "n": 1
   },
-  "540:jumpCheckTick:crouching,facing,x,y,z": {
+  "tick:jumpCheckTick:crouching,facing,x,y,z": {
    "class": "восприятие",
    "why": "кто кого видит на вершине прыжка (visParts, конус взгляда, ослепление) → intelPush",
    "n": 1
   },
-  "390:tSoloThrower:nades,tRole,x,y": {
+  "lineups:tSoloThrower:nades,tRole,x,y": {
    "class": "свои",
    "why": "кто из своих T бросит (список своих T, расстояние до сайта)",
    "n": 1
   },
-  "130:timeoutCheck:x,y,z": {
+  "tactics:timeoutCheck:x,y,z": {
    "class": "свои",
    "why": "где умирали свои — тренер стороны s видит по своей команде",
    "n": 1
   },
-  "140:ctSeatRoles:tRole": {
+  "ct-setup:ctSeatRoles:tRole": {
    "class": "свои",
    "why": "рассадка ролей своей команды CT",
    "n": 1
   },
-  "300:siteRebalanceTick:curSpeed,nadeTask,post,x,y": {
+  "roles:siteRebalanceTick:curSpeed,nadeTask,post,x,y": {
    "class": "свои",
    "why": "ребаланс своих CT",
    "n": 1
   },
-  "300:infoFallbackTick:x,y": {
+  "roles:infoFallbackTick:x,y": {
    "class": "свои",
    "why": "тиммейты CT (o.team === \"CT\" в ветке CT)",
    "n": 1
   },
-  "366:fireSmokeTick:baseX,baseY,nadeTask,nades,path,pathIdx,planting,x,y,z": {
+  "exec-sync:fireSmokeTick:baseX,baseY,nadeTask,nades,path,pathIdx,planting,x,y,z": {
    "class": "свои",
    "why": "свои T у огня — кто бросит смок",
    "n": 1
   },
-  "420:nadeBrains:nadeTask,nades,tRole,x,y": {
+  "decide:nadeBrains:nadeTask,nades,tRole,x,y": {
    "class": "свои",
    "why": "распорядитель гранат: список T — для решений T",
    "n": 1
   },
-  "420:nadeBrains:nadeTask,nades,x,y": {
+  "decide:nadeBrains:nadeTask,nades,x,y": {
    "class": "свои",
    "why": "распорядитель гранат: список CT — для решений CT",
    "n": 1
   },
-  "460:bombPassTick:hp,tRole": {
+  "sound:bombPassTick:hp,tRole": {
    "class": "свои",
    "why": "кому из своих T передать бомбу",
    "n": 1
   },
-  "180:ctBombPos:bomb.x,y": {
+  "save-retake:ctBombPos:bomb.x,y": {
    "class": "истина",
    "why": "модель знания CT о бомбе: заложена — видели / по писку с шумом (законно); НЕ заложена (выбита, у носителя) — отдаёт точное место — Р3-К3",
    "n": 1
   },
-  "180:gTag:bomb.x,y": {
+  "save-retake:gTag:bomb.x,y": {
    "class": "истина",
    "why": "тег сбора ретейка: точка сбора у сайта — по точное место заложенной бомбы вместо знания CT (ctBombPos: видели — точно, иначе по писку с шумом) — BEHAVIOR_BACKLOG Р3-К3, после Р8",
    "n": 1
   },
-  "180:updateRetake:bomb.x,y": {
+  "save-retake:updateRetake:bomb.x,y": {
    "class": "истина",
    "why": "ретейк: кто дошёл до подхода — по точное место заложенной бомбы вместо знания CT (ctBombPos: видели — точно, иначе по писку с шумом) — BEHAVIOR_BACKLOG Р3-К3, после Р8",
    "n": 1
   },
-  "180:retakeEntryPick:bomb.x,y": {
+  "save-retake:retakeEntryPick:bomb.x,y": {
    "class": "истина",
    "why": "ретейк: порядок входа — по точное место заложенной бомбы вместо знания CT (ctBombPos: видели — точно, иначе по писку с шумом) — BEHAVIOR_BACKLOG Р3-К3, после Р8",
    "n": 1
   },
-  "180:retakePost:bomb.x,y": {
+  "save-retake:retakePost:bomb.x,y": {
    "class": "истина",
    "why": "ретейк: подходы — по точное место заложенной бомбы вместо знания CT (ctBombPos: видели — точно, иначе по писку с шумом) — BEHAVIOR_BACKLOG Р3-К3, после Р8",
    "n": 1
   },
-  "180:retakeDefGo:bomb.x,y": {
+  "save-retake:retakeDefGo:bomb.x,y": {
    "class": "истина",
    "why": "ретейк: идти дефузить — по точное место заложенной бомбы вместо знания CT (ctBombPos: видели — точно, иначе по писку с шумом) — BEHAVIOR_BACKLOG Р3-К3, после Р8 (в 320 от бомбы её почти всегда видно — расхождение мало)",
    "n": 1
   },
-  "320:flankPost:bomb.x,y": {
+  "ct-early:flankPost:bomb.x,y": {
    "class": "истина",
    "why": "фланг CT после планта: точка и взгляд — по точное место заложенной бомбы вместо знания CT (ctBombPos: видели — точно, иначе по писку с шумом) — BEHAVIOR_BACKLOG Р3-К3, после Р8",
    "n": 1
   },
-  "470:ninjaOk:bomb.x,y": {
+  "fight:ninjaOk:bomb.x,y": {
    "class": "истина",
    "why": "ниндзя-дефуз: далеко ли известные T от бомбы — по точное место заложенной бомбы вместо знания CT (ctBombPos: видели — точно, иначе по писку с шумом) — BEHAVIOR_BACKLOG Р3-К3, после Р8",
    "n": 1
   },
-  "210:hearReal:teamBot.z": {
+  "knowledge:hearReal:teamBot.z": {
    "class": "восприятие",
    "why": "слух: источник звука сверху / снизу — высота источника (модель слуха)",
    "n": 1
   },
-  "350:contactTick:teamBot.→duelOdds": {
+  "contact:contactTick:teamBot.→duelOdds": {
    "class": "восприятие",
    "why": "оценка дуэли с врагом контакта: оружие и присед врага (duelOdds) — видны в контакте; место — из контакта (C.x, C.y). Допущение: контакт свежий — Р3-К4 (проверить, что всегда видел)",
    "n": 1
   },
-  "380:nadeOwnerOk:teamBot.post": {
+  "throw:nadeOwnerOk:teamBot.post": {
    "class": "свои",
    "why": "бросающий своей команды (F.by)",
    "n": 1
   },
-  "390:tSoloThrower:teamBot.nades,tRole,x,y": {
+  "lineups:tSoloThrower:teamBot.nades,tRole,x,y": {
    "class": "свои",
    "why": "свой T-бросающий",
    "n": 1
   },
-  "480:flankAssist:teamBot.x,y,z": {
+  "assist:flankAssist:teamBot.x,y,z": {
    "class": "истина",
    "why": "обход: видно ли врага с точки обхода — по истинному месту врага (FL.x / y / z), а не по знанию — Р3-К4",
    "n": 1
   },
-  "480:ambushTick:teamBot.x,y,→ambPassing,→applyDamage": {
+  "assist:ambushTick:teamBot.x,y,→ambPassing,→applyDamage": {
    "class": "восприятие",
    "why": "засада: цель — среди увиденных / услышанных (seenNow ⊂ ambFoes); нож — движок",
    "n": 1
   },
-  "170:tBrainPostplant:teamBot.z": {
-   "class": "истина",
-   "why": "успеет ли CT дефузить: место CT — из знания (beliefLast), а высота — истинная (fo.z) — Р3-К4",
-   "n": 1
-  },
-  "340:ctBrainBombDown:x,y": {
+  "brain-ct:ctBrainBombDown:x,y": {
    "class": "истина",
    "why": "ctBrainBombDown (часть ctBrain): CT (bombWatch) проверяет, лежит ли у брошенной бомбы мёртвый T — место трупа и бомбы без восприятия; исправление меняет поведение — после Р8 (BEHAVIOR_BACKLOG Р3-К1)",
    "n": 1
   },
-  "340:ctBrainBombDown:bomb.x,y": {
+  "brain-ct:ctBrainBombDown:bomb.x,y": {
    "class": "истина",
    "why": "ctBrainBombDown (часть ctBrain): «бомба выбита» — место бомбы и трупа носителя (Р3-К1); кто её видит — hasVision (восприятие)",
    "n": 1
   },
-  "340:ctBrainPlayers:bomb.x,y": {
+  "brain-t-postplant:tBrainPostplant:teamBot.z": {
+   "class": "истина",
+   "why": "успеет ли CT дефузить: место CT — из знания (beliefLast), а высота — истинная (fo.z) — Р3-К4",
+   "n": 1
+  },
+  "brain-ct-players:ctBrainPlayers:bomb.x,y": {
    "class": "истина",
    "why": "ctBrainPlayers (часть ctBrain): взгляд сейва и держащего бомбу — на точное место бомбы (сейв — после планта / выбитая бомба) — Р3-К3; до разрезания входило в ключ ctBrain",
    "n": 1

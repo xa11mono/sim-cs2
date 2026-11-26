@@ -1,0 +1,101 @@
+# Р4.2 — переименование файлов игры (26.11)
+
+Файлы игры переехали из src/game/NNN_имя в `engine/…` и `view/…` без числовых префиксов (карта — `rebuild/r4_map.json`, по
+`rebuild/preparation/path_migration.csv` Codex; отступления: `560` → `view/editors/lineup-editor.js`, `610` → `view/debug/look-debug.js` —
+имя файла уникально и служит ключом). Порядок склейки — список `rebuild/files.json` (Р4.1), часть / метка / система — там же (Р4.2а).
+Ссылки вида «(110)», «110:264» в комментариях кода и в старых документах — по этой таблице (комментарии кода игры не переписывались,
+чтобы сборка совпала с прежней: отличаются только сгенерированные имена `__mi_*`, пути модулей, версия подбора гранат и `MK_BUILD`).
+
+| было | стало | метка (id) |
+|---|---|---|
+| `000_head.html` | `view/page/head.html` | `head` |
+| `001_fonts.html` | `view/page/fonts.html` | `fonts` |
+| `002_style.html` | `view/page/style.html` | `style` |
+| `004_markup.html` | `view/page/markup.html` | `markup` |
+| `005_dmath.ts` | `engine/core/dmath.ts` | `dmath` |
+| `010_map_zones_warp.js` | `engine/map/zones.js` | `zones` |
+| `020_map_navmesh_autowalls.js` | `engine/nav/navmesh.js` | `navmesh` |
+| `030_map_walls_heights_cover_wallbang.js` | `engine/map/walls-heights-cover.js` | `walls-heights-cover` |
+| `035_map3d.js` | `engine/map/geometry3d.js` | `geometry3d` |
+| `040_visibility.js` | `engine/sense/vision.js` | `vision` |
+| `050_nav_rebuild_paths.js` | `engine/nav/paths.js` | `paths` |
+| `060_zone_danger_user_zones.js` | `engine/map/zone-danger.js` | `zone-danger` |
+| `070_weapons_bots_roam.js` | `engine/match/weapons-bots.js` | `weapons-bots` |
+| `080_bal.js` | `engine/core/tuning.js` | `tuning` |
+| `090_profiles_teams.js` | `engine/team/rosters.js` | `rosters` |
+| `100_sites_spots.js` | `engine/map/sites-spots.js` | `sites-spots` |
+| `110_post_routes.js` | `engine/bot/task.js` | `task` |
+| `120_bomb.js` | `engine/match/bomb.js` | `bomb` |
+| `130_tactics_match_adapt.js` | `engine/team/tactics.js` | `tactics` |
+| `140_named_spots_ct_setup.js` | `engine/team/ct-setup.js` | `ct-setup` |
+| `150_lurker_probes_clear.js` | `engine/team/lurker.js` | `lurker` |
+| `160_igl_replan.js` | `engine/team/igl.js` | `igl` |
+| `170_tbrain.js` | `engine/bot/brain-t.js` | `brain-t` |
+| `180_save_retake.js` | `engine/team/save-retake.js` | `save-retake` |
+| `190_team_intel_lkp_calls.js` | `engine/know/intel.js` | `intel` |
+| `200_belief_reach.js` | `engine/know/reach.js` | `reach` |
+| `210_know_hyp.js` | `engine/know/knowledge.js` | `knowledge` |
+| `220_know_events_tick.js` | `engine/know/events.js` | `events` |
+| `230_team_voice.js` | `engine/know/voice.js` | `voice` |
+| `240_belief_tick.js` | `engine/know/belief.js` | `belief` |
+| `250_look_prepeek_corners.js` | `engine/bot/look-peek.js` | `look-peek` |
+| `260_look_threat.js` | `engine/bot/look-threat.js` | `look-threat` |
+| `270_look_plan_smooth.js` | `engine/bot/look.js` | `look` |
+| `275_look_turn.ts` | `engine/bot/turn.ts` | `turn` |
+| `280_pos_pref_hold.js` | `engine/bot/position.js` | `position` |
+| `290_smoke_react.js` | `engine/nades/smoke-react.js` | `smoke-react` |
+| `300_roles_fallback_rebalance.js` | `engine/team/roles.js` | `roles` |
+| `310_pro_positions.js` | `engine/team/pro-positions.js` | `pro-positions` |
+| `320_pro_lineups_ct_early.js` | `engine/team/ct-early.js` | `ct-early` |
+| `330_endgame_smoke_push.js` | `engine/team/endgame.js` | `endgame` |
+| `340_ctbrain.js` | `engine/bot/brain-ct.js` | `brain-ct` |
+| `350_contact_reaction.js` | `engine/bot/contact.js` | `contact` |
+| `360_nades_buy_smoke_vision.js` | `engine/nades/smoke.js` | `smoke` |
+| `365_nade_plan.js` | `engine/nades/plan.js` | `plan` |
+| `366_exec_sync.js` | `engine/nades/exec-sync.js` | `exec-sync` |
+| `370_fire_nav_levels_ladders.js` | `engine/nav/levels.js` | `levels` |
+| `380_nades_throw.js` | `engine/nades/throw.js` | `throw` |
+| `385_nades_flight.js` | `engine/nades/flight.js` | `flight` |
+| `390_nades_lineups.js` | `engine/nades/lineups.js` | `lineups` |
+| `400_nades_physics_damage.js` | `engine/match/damage.js` | `damage` |
+| `410_nades_tactical_self.js` | `engine/nades/self.js` | `self` |
+| `420_nades_brains.js` | `engine/nades/decide.js` | `decide` |
+| `430_fov_roam.js` | `engine/sense/fov.js` | `fov` |
+| `435_match_events.js` | `engine/match/journal.js` | `journal` |
+| `440_voicepanel_console.js` | `view/hud/voice-console.js` | `voice-console` |
+| `450_combat_items_knife.js` | `engine/match/items.js` | `items` |
+| `460_sound_situations.js` | `engine/sense/sound.js` | `sound` |
+| `470_fight_cycle.js` | `engine/bot/fight.js` | `fight` |
+| `480_assist_flank_reload.js` | `engine/bot/assist.js` | `assist` |
+| `490_shoot.js` | `engine/bot/shoot.js` | `shoot` |
+| `495_highlights.js` | `engine/bot/highlights.js` | `highlights` |
+| `500_decide_afterkill_cover.js` | `engine/bot/fight-state.js` | `fight-state` |
+| `510_engagements.js` | `engine/bot/engagements.js` | `engagements` |
+| `520_economy.js` | `engine/team/economy.js` | `economy` |
+| `530_round_sides_match.js` | `engine/match/round.js` | `round` |
+| `535_move_mode.js` | `engine/bot/move.js` | `move` |
+| `540_step_tick.js` | `engine/core/tick.js` | `tick` |
+| `545_problem_watch.js` | `engine/debug/problem-watch.js` | `problem-watch` |
+| `550_render_nav_zone_tools.js` | `view/editors/nav-zones.js` | `nav-zones` |
+| `560_lineup_zone_editor.js` | `view/editors/lineup-editor.js` | `lineup-editor` |
+| `570_maped_core_walls.js` | `view/editors/map-walls.js` | `map-walls` |
+| `580_maped_heights.js` | `view/editors/map-heights.js` | `map-heights` |
+| `590_maped_cover.js` | `view/editors/map-cover.js` | `map-cover` |
+| `600_maped_wallbang.js` | `view/editors/map-wallbang.js` | `map-wallbang` |
+| `610_vistool_lookdebug.js` | `view/debug/look-debug.js` | `look-debug` |
+| `612_team_debug.js` | `view/debug/team.js` | `team` |
+| `620_draw.js` | `view/draw.js` | `draw` |
+| `625_view3d.js` | `view/view3d.js` | `view3d` |
+| `630_killfeed_banners_econ.js` | `view/hud/killfeed.js` | `killfeed` |
+| `635_hud_fx.js` | `view/hud/fx.js` | `fx` |
+| `640_scoreboard_players.js` | `view/hud/scoreboard.js` | `scoreboard` |
+| `645_decision_log.js` | `engine/debug/trace.js` | `trace` |
+| `650_marks_hook.js` | `view/marks-hook.js` | `marks-hook` |
+| `660_warmup.js` | `view/warmup.js` | `warmup` |
+| `670_observer.js` | `view/observer.js` | `observer` |
+| `675_replay.js` | `view/replay.js` | `replay` |
+| `676_timeout_show.js` | `view/hud/timeout.js` | `timeout` |
+| `677_sandbox.js` | `view/sandbox.js` | `sandbox` |
+| `678_demo_view.js` | `view/demo.js` | `demo` |
+| `680_sound_frame_buttons.js` | `view/app.js` | `app` |
+| `990_tail.html` | `view/page/tail.html` | `tail` |

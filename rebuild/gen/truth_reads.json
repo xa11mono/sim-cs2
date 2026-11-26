@@ -2,7 +2,7 @@
  "_": "генерируется tools/rebuild/truth_reads.js: чтения истины врага в коде решений (perception — восприятие / движок, не нарушение)",
  "sites": [
   {
-   "file": "120_bomb.js",
+   "file": "bomb.js",
    "fn": "resetBomb",
    "line": 81,
    "props": [
@@ -12,7 +12,7 @@
    "perception": false
   },
   {
-   "file": "120_bomb.js",
+   "file": "bomb.js",
    "fn": "bombTick",
    "line": 246,
    "props": [
@@ -23,7 +23,7 @@
    "perception": true
   },
   {
-   "file": "120_bomb.js",
+   "file": "bomb.js",
    "fn": "bombTick",
    "line": 267,
    "props": [
@@ -35,7 +35,7 @@
    "perception": true
   },
   {
-   "file": "120_bomb.js",
+   "file": "bomb.js",
    "fn": "bombTick",
    "line": 299,
    "props": [
@@ -47,7 +47,7 @@
    "perception": true
   },
   {
-   "file": "130_tactics_match_adapt.js",
+   "file": "tactics.js",
    "fn": "timeoutCheck",
    "line": 102,
    "props": [
@@ -59,7 +59,7 @@
    "perception": false
   },
   {
-   "file": "130_tactics_match_adapt.js",
+   "file": "tactics.js",
    "fn": "coachPlan",
    "line": 192,
    "props": [
@@ -70,7 +70,7 @@
    "perception": false
   },
   {
-   "file": "130_tactics_match_adapt.js",
+   "file": "tactics.js",
    "fn": "chooseTactic",
    "line": 325,
    "props": [
@@ -80,7 +80,7 @@
    "perception": false
   },
   {
-   "file": "140_named_spots_ct_setup.js",
+   "file": "ct-setup.js",
    "fn": "ctSeatRoles",
    "line": 159,
    "props": [
@@ -90,7 +90,7 @@
    "perception": false
   },
   {
-   "file": "150_lurker_probes_clear.js",
+   "file": "lurker.js",
    "fn": "tClearCalls",
    "line": 323,
    "props": [
@@ -101,7 +101,7 @@
    "perception": false
   },
   {
-   "file": "150_lurker_probes_clear.js",
+   "file": "lurker.js",
    "fn": "tClearCalls",
    "line": 340,
    "props": [
@@ -112,7 +112,7 @@
    "perception": false
   },
   {
-   "file": "150_lurker_probes_clear.js",
+   "file": "lurker.js",
    "fn": "tClearCalls",
    "line": 341,
    "props": [
@@ -123,7 +123,7 @@
    "perception": false
   },
   {
-   "file": "190_team_intel_lkp_calls.js",
+   "file": "intel.js",
    "fn": "intelDeath",
    "line": 275,
    "props": [
@@ -139,7 +139,7 @@
    "perception": false
   },
   {
-   "file": "190_team_intel_lkp_calls.js",
+   "file": "intel.js",
    "fn": "intelDeath",
    "line": 331,
    "props": [
@@ -154,7 +154,7 @@
    "perception": false
   },
   {
-   "file": "190_team_intel_lkp_calls.js",
+   "file": "intel.js",
    "fn": "intelDeath",
    "line": 359,
    "props": [
@@ -167,7 +167,7 @@
    "perception": false
   },
   {
-   "file": "290_smoke_react.js",
+   "file": "smoke-react.js",
    "fn": "smokeSpamTick",
    "line": 113,
    "props": [
@@ -178,7 +178,7 @@
    "perception": false
   },
   {
-   "file": "290_smoke_react.js",
+   "file": "smoke-react.js",
    "fn": "smokeShiftOnDetonate",
    "line": 203,
    "props": [
@@ -192,7 +192,7 @@
    "perception": false
   },
   {
-   "file": "300_roles_fallback_rebalance.js",
+   "file": "roles.js",
    "fn": "tFallbackTick",
    "line": 39,
    "props": [
@@ -203,7 +203,7 @@
    "perception": false
   },
   {
-   "file": "300_roles_fallback_rebalance.js",
+   "file": "roles.js",
    "fn": "rebalSpot",
    "line": 78,
    "props": [
@@ -214,7 +214,7 @@
    "perception": false
   },
   {
-   "file": "300_roles_fallback_rebalance.js",
+   "file": "roles.js",
    "fn": "siteRebalanceTick",
    "line": 97,
    "props": [
@@ -228,7 +228,7 @@
    "perception": false
   },
   {
-   "file": "300_roles_fallback_rebalance.js",
+   "file": "roles.js",
    "fn": "infoFallbackTick",
    "line": 167,
    "props": [
@@ -239,7 +239,7 @@
    "perception": false
   },
   {
-   "file": "330_endgame_smoke_push.js",
+   "file": "endgame.js",
    "fn": "smokePushReason",
    "line": 223,
    "props": [
@@ -250,7 +250,7 @@
    "perception": false
   },
   {
-   "file": "340_ctbrain.js",
+   "file": "brain-ct.js",
    "fn": "ctBrainBombDown",
    "line": 77,
    "props": [
@@ -261,7 +261,7 @@
    "perception": false
   },
   {
-   "file": "366_exec_sync.js",
+   "file": "exec-sync.js",
    "fn": "fireSmokeTick",
    "line": 246,
    "props": [
@@ -280,7 +280,7 @@
    "perception": false
   },
   {
-   "file": "390_nades_lineups.js",
+   "file": "lineups.js",
    "fn": "tCrossSmoke",
    "line": 58,
    "props": [
@@ -293,7 +293,7 @@
    "perception": false
   },
   {
-   "file": "390_nades_lineups.js",
+   "file": "lineups.js",
    "fn": "tCrossSmoke",
    "line": 60,
    "props": [
@@ -307,7 +307,7 @@
    "perception": false
   },
   {
-   "file": "390_nades_lineups.js",
+   "file": "lineups.js",
    "fn": "tSoloThrower",
    "line": 78,
    "props": [
@@ -320,7 +320,7 @@
    "perception": false
   },
   {
-   "file": "390_nades_lineups.js",
+   "file": "lineups.js",
    "fn": "lineupTick",
    "line": 121,
    "props": [
@@ -332,7 +332,7 @@
    "perception": false
   },
   {
-   "file": "400_nades_physics_damage.js",
+   "file": "damage.js",
    "fn": "nadeOrigin",
    "line": 27,
    "props": [
@@ -343,7 +343,7 @@
    "perception": true
   },
   {
-   "file": "400_nades_physics_damage.js",
+   "file": "damage.js",
    "fn": "detonate",
    "line": 52,
    "props": [
@@ -354,7 +354,7 @@
    "perception": true
   },
   {
-   "file": "420_nades_brains.js",
+   "file": "decide.js",
    "fn": "nadeBrains",
    "line": 71,
    "props": [
@@ -368,7 +368,7 @@
    "perception": false
   },
   {
-   "file": "420_nades_brains.js",
+   "file": "decide.js",
    "fn": "nadeBrains",
    "line": 72,
    "props": [
@@ -381,7 +381,7 @@
    "perception": false
   },
   {
-   "file": "460_sound_situations.js",
+   "file": "sound.js",
    "fn": "bombPassTick",
    "line": 72,
    "props": [
@@ -392,7 +392,7 @@
    "perception": false
   },
   {
-   "file": "480_assist_flank_reload.js",
+   "file": "assist.js",
    "fn": "ambFoes",
    "line": 212,
    "props": [
@@ -403,7 +403,7 @@
    "perception": false
   },
   {
-   "file": "500_decide_afterkill_cover.js",
+   "file": "fight-state.js",
    "fn": "decideAction",
    "line": 96,
    "props": [
@@ -415,7 +415,7 @@
    "perception": false
   },
   {
-   "file": "510_engagements.js",
+   "file": "engagements.js",
    "fn": "engDecide",
    "line": 140,
    "props": [
@@ -426,7 +426,7 @@
    "perception": false
   },
   {
-   "file": "520_economy.js",
+   "file": "economy.js",
    "fn": "buyForPlayer",
    "line": 363,
    "props": [
@@ -436,7 +436,7 @@
    "perception": false
   },
   {
-   "file": "520_economy.js",
+   "file": "economy.js",
    "fn": "buyForPlayer",
    "line": 364,
    "props": [
@@ -446,7 +446,7 @@
    "perception": false
   },
   {
-   "file": "535_move_mode.js",
+   "file": "move.js",
    "fn": "moveSpeedTick",
    "line": 129,
    "props": [
@@ -457,7 +457,7 @@
    "perception": false
   },
   {
-   "file": "535_move_mode.js",
+   "file": "move.js",
    "fn": "moveSpeedTick",
    "line": 130,
    "props": [
@@ -467,7 +467,7 @@
    "perception": false
   },
   {
-   "file": "540_step_tick.js",
+   "file": "tick.js",
    "fn": "jumpCheckTick",
    "line": 186,
    "props": [
@@ -481,7 +481,7 @@
    "perception": false
   },
   {
-   "file": "180_save_retake.js",
+   "file": "save-retake.js",
    "fn": "ctBombPos",
    "line": 137,
    "props": [
@@ -491,7 +491,7 @@
    "perception": false
   },
   {
-   "file": "180_save_retake.js",
+   "file": "save-retake.js",
    "fn": "gTag",
    "line": 203,
    "props": [
@@ -501,7 +501,7 @@
    "perception": false
   },
   {
-   "file": "180_save_retake.js",
+   "file": "save-retake.js",
    "fn": "updateRetake",
    "line": 265,
    "props": [
@@ -511,7 +511,7 @@
    "perception": false
   },
   {
-   "file": "180_save_retake.js",
+   "file": "save-retake.js",
    "fn": "retakeEntryPick",
    "line": 335,
    "props": [
@@ -521,7 +521,7 @@
    "perception": false
   },
   {
-   "file": "180_save_retake.js",
+   "file": "save-retake.js",
    "fn": "retakePost",
    "line": 422,
    "props": [
@@ -531,7 +531,7 @@
    "perception": false
   },
   {
-   "file": "180_save_retake.js",
+   "file": "save-retake.js",
    "fn": "retakeDefGo",
    "line": 456,
    "props": [
@@ -541,7 +541,7 @@
    "perception": false
   },
   {
-   "file": "320_pro_lineups_ct_early.js",
+   "file": "ct-early.js",
    "fn": "flankPost",
    "line": 84,
    "props": [
@@ -551,7 +551,7 @@
    "perception": false
   },
   {
-   "file": "340_ctbrain.js",
+   "file": "brain-ct.js",
    "fn": "ctBrainBombDown",
    "line": 77,
    "props": [
@@ -561,9 +561,9 @@
    "perception": false
   },
   {
-   "file": "340_ctbrain.js",
+   "file": "brain-ct-players.js",
    "fn": "ctBrainPlayers",
-   "line": 460,
+   "line": 12,
    "props": [
     "bomb.x,y"
    ],
@@ -571,7 +571,7 @@
    "perception": false
   },
   {
-   "file": "470_fight_cycle.js",
+   "file": "fight.js",
    "fn": "ninjaOk",
    "line": 420,
    "props": [
@@ -581,9 +581,9 @@
    "perception": false
   },
   {
-   "file": "170_tbrain.js",
+   "file": "brain-t-postplant.js",
    "fn": "tBrainPostplant",
-   "line": 908,
+   "line": 18,
    "props": [
     "teamBot.z"
    ],
@@ -591,7 +591,7 @@
    "perception": false
   },
   {
-   "file": "210_know_hyp.js",
+   "file": "knowledge.js",
    "fn": "hearReal",
    "line": 65,
    "props": [
@@ -601,7 +601,7 @@
    "perception": false
   },
   {
-   "file": "350_contact_reaction.js",
+   "file": "contact.js",
    "fn": "contactTick",
    "line": 189,
    "props": [
@@ -611,7 +611,7 @@
    "perception": false
   },
   {
-   "file": "380_nades_throw.js",
+   "file": "throw.js",
    "fn": "nadeOwnerOk",
    "line": 419,
    "props": [
@@ -621,7 +621,7 @@
    "perception": false
   },
   {
-   "file": "390_nades_lineups.js",
+   "file": "lineups.js",
    "fn": "tSoloThrower",
    "line": 89,
    "props": [
@@ -631,7 +631,7 @@
    "perception": false
   },
   {
-   "file": "480_assist_flank_reload.js",
+   "file": "assist.js",
    "fn": "flankAssist",
    "line": 52,
    "props": [
@@ -641,7 +641,7 @@
    "perception": false
   },
   {
-   "file": "480_assist_flank_reload.js",
+   "file": "assist.js",
    "fn": "ambushTick",
    "line": 334,
    "props": [

@@ -1,0 +1,130 @@
+old_path,new_path,stage,assembly_order,legacy_prefix,note
+.github/workflows/demos.yml,.github/workflows/demos.yml,обновить ссылки,,,"Сохранить действующий путь; подключить порядок, полные пути и идентификаторы файлов по Р4."
+.github/workflows/measure.yml,.github/workflows/measure.yml,обновить ссылки,,,"Сохранить действующий путь; подключить порядок, полные пути и идентификаторы файлов по Р4."
+.gitignore,.gitignore,обновить ссылки,,,"Сохранить действующий путь; подключить порядок, полные пути и идентификаторы файлов по Р4."
+.graphifyignore,.graphifyignore,обновить ссылки,,,"Сохранить действующий путь; подключить порядок, полные пути и идентификаторы файлов по Р4."
+ancient-radar.html,ancient-radar.html,совместимость Р4.3,,,Оставить отслеживаемую корневую страницу по решению владельца. Выход локальной сборки dist/ancient-radar.html; публикация через явный шаг.
+mirage-radar.html,mirage-radar.html,совместимость Р4.3,,,Оставить отслеживаемую корневую страницу по решению владельца. Выход локальной сборки dist/mirage-radar.html; публикация через явный шаг.
+rebuild/files.json,rebuild/files.json,обновить ссылки,,,"Сохранить действующий путь; подключить порядок, полные пути и идентификаторы файлов по Р4."
+rebuild/modules.json,rebuild/modules.json,обновить ссылки,,,"Сохранить действующий путь; подключить порядок, полные пути и идентификаторы файлов по Р4."
+rebuild/owners.json,rebuild/owners.json,обновить ссылки,,,"Сохранить действующий путь; подключить порядок, полные пути и идентификаторы файлов по Р4."
+rebuild/var_cats.json,rebuild/var_cats.json,обновить ссылки,,,"Сохранить действующий путь; подключить порядок, полные пути и идентификаторы файлов по Р4."
+sim.html,dist/sim.html,Р4.3,,,Нетрековый тестовый артефакт; пользовательский явный out сохраняется.
+src/build.py,src/build.py,совместимость,,,"Сохранить путь сборщика, входа измерений, типов или наследуемых данных до отдельной подтверждённой миграции."
+src/data/player_positions.json,src/data/player_positions.json,совместимость,,,"Сохранить путь сборщика, входа измерений, типов или наследуемых данных до отдельной подтверждённой миграции."
+src/data/trades.json,src/data/trades.json,совместимость,,,"Сохранить путь сборщика, входа измерений, типов или наследуемых данных до отдельной подтверждённой миграции."
+src/fonts/GolosText-var.woff,view/page/fonts/GolosText-var.woff,Р4.2,,,Сохранить ресурс и лицензию; обновить tools/page/embed_fonts.py.
+src/fonts/IBMPlexMono-Bold.woff,view/page/fonts/IBMPlexMono-Bold.woff,Р4.2,,,Сохранить ресурс и лицензию; обновить tools/page/embed_fonts.py.
+src/fonts/IBMPlexMono-Medium.woff,view/page/fonts/IBMPlexMono-Medium.woff,Р4.2,,,Сохранить ресурс и лицензию; обновить tools/page/embed_fonts.py.
+src/fonts/IBMPlexMono-Regular.woff,view/page/fonts/IBMPlexMono-Regular.woff,Р4.2,,,Сохранить ресурс и лицензию; обновить tools/page/embed_fonts.py.
+src/fonts/IBMPlexMono-SemiBold.woff,view/page/fonts/IBMPlexMono-SemiBold.woff,Р4.2,,,Сохранить ресурс и лицензию; обновить tools/page/embed_fonts.py.
+src/fonts/IBMPlexSans-var.woff,view/page/fonts/IBMPlexSans-var.woff,Р4.2,,,Сохранить ресурс и лицензию; обновить tools/page/embed_fonts.py.
+src/fonts/OFL-GolosText.txt,view/page/fonts/OFL-GolosText.txt,Р4.2,,,Сохранить ресурс и лицензию; обновить tools/page/embed_fonts.py.
+src/fonts/OFL-IBMPlex.txt,view/page/fonts/OFL-IBMPlex.txt,Р4.2,,,Сохранить ресурс и лицензию; обновить tools/page/embed_fonts.py.
+src/fonts/OFL-RobotoCondensed.txt,view/page/fonts/OFL-RobotoCondensed.txt,Р4.2,,,Сохранить ресурс и лицензию; обновить tools/page/embed_fonts.py.
+src/fonts/RobotoCondensed-var.woff,view/page/fonts/RobotoCondensed-var.woff,Р4.2,,,Сохранить ресурс и лицензию; обновить tools/page/embed_fonts.py.
+src/game/000_head.html,view/page/head.html,Р4.2,1,000,Имя по карте этапа 4; расширение соответствует базе.
+src/game/001_fonts.html,view/page/fonts.html,Р4.2,2,001,Имя по карте этапа 4; расширение соответствует базе.
+src/game/002_style.html,view/page/style.html,Р4.2,3,002,Имя по карте этапа 4; расширение соответствует базе.
+src/game/004_markup.html,view/page/markup.html,Р4.2,4,004,Имя по карте этапа 4; расширение соответствует базе.
+src/game/005_dmath.ts,engine/core/dmath.ts,Р4.2,5,005,"Р2 добавил общий детерминированный math до IIFE, исходная карта не знала файл."
+src/game/010_map_zones_warp.js,engine/map/zones.js,Р4.2,6,010,Имя по карте этапа 4; расширение соответствует базе.
+src/game/020_map_navmesh_autowalls.js,engine/nav/navmesh.js,Р4.2,7,020,Имя по карте этапа 4; расширение соответствует базе.
+src/game/030_map_walls_heights_cover_wallbang.js,engine/map/walls-heights-cover.js,Р4.2,8,030,Имя по карте этапа 4; расширение соответствует базе.
+src/game/035_map3d.js,engine/map/geometry3d.js,Р4.2,9,035,Имя по карте этапа 4; расширение соответствует базе.
+src/game/040_visibility.js,engine/sense/vision.js,Р4.2,10,040,Имя по карте этапа 4; расширение соответствует базе.
+src/game/050_nav_rebuild_paths.js,engine/nav/paths.js,Р4.2,11,050,Имя по карте этапа 4; расширение соответствует базе.
+src/game/060_zone_danger_user_zones.js,engine/map/zone-danger.js,Р4.2,12,060,Имя по карте этапа 4; расширение соответствует базе.
+src/game/070_weapons_bots_roam.js,engine/match/weapons-bots.js,Р4.2,13,070,Имя по карте этапа 4; расширение соответствует базе.
+src/game/080_bal.js,engine/core/tuning.js,Р4.2,14,080,Имя по карте этапа 4; расширение соответствует базе.
+src/game/090_profiles_teams.js,engine/team/rosters.js,Р4.2,15,090,Имя по карте этапа 4; расширение соответствует базе.
+src/game/100_sites_spots.js,engine/map/sites-spots.js,Р4.2,16,100,Имя по карте этапа 4; расширение соответствует базе.
+src/game/110_post_routes.js,engine/bot/task.js,Р4.2,17,110,Имя по карте этапа 4; расширение соответствует базе.
+src/game/120_bomb.js,engine/match/bomb.js,Р4.2,18,120,Имя по карте этапа 4; расширение соответствует базе.
+src/game/130_tactics_match_adapt.js,engine/team/tactics.js,Р4.2,19,130,Имя по карте этапа 4; расширение соответствует базе.
+src/game/140_named_spots_ct_setup.js,engine/team/ct-setup.js,Р4.2,20,140,Имя по карте этапа 4; расширение соответствует базе.
+src/game/150_lurker_probes_clear.js,engine/team/lurker.js,Р4.2,21,150,Имя по карте этапа 4; расширение соответствует базе.
+src/game/160_igl_replan.js,engine/team/igl.js,Р4.2,22,160,Имя по карте этапа 4; расширение соответствует базе.
+src/game/170_tbrain.js,engine/bot/brain-t.js,Р4.2,23,170,Имя по карте этапа 4; расширение соответствует базе.
+src/game/180_save_retake.js,engine/team/save-retake.js,Р4.2,24,180,Имя по карте этапа 4; расширение соответствует базе.
+src/game/190_team_intel_lkp_calls.js,engine/know/intel.js,Р4.2,25,190,Имя по карте этапа 4; расширение соответствует базе.
+src/game/200_belief_reach.js,engine/know/reach.js,Р4.2,26,200,Имя по карте этапа 4; расширение соответствует базе.
+src/game/210_know_hyp.js,engine/know/knowledge.js,Р4.2,27,210,Имя по карте этапа 4; расширение соответствует базе.
+src/game/220_know_events_tick.js,engine/know/events.js,Р4.2,28,220,Имя по карте этапа 4; расширение соответствует базе.
+src/game/230_team_voice.js,engine/know/voice.js,Р4.2,29,230,Имя по карте этапа 4; расширение соответствует базе.
+src/game/240_belief_tick.js,engine/know/belief.js,Р4.2,30,240,Имя по карте этапа 4; расширение соответствует базе.
+src/game/250_look_prepeek_corners.js,engine/bot/look-peek.js,Р4.2,31,250,Имя по карте этапа 4; расширение соответствует базе.
+src/game/260_look_threat.js,engine/bot/look-threat.js,Р4.2,32,260,Имя по карте этапа 4; расширение соответствует базе.
+src/game/270_look_plan_smooth.js,engine/bot/look.js,Р4.2,33,270,Имя по карте этапа 4; расширение соответствует базе.
+src/game/275_look_turn.ts,engine/bot/turn.ts,Р4.2,34,275,Расширение уже изменено в Р1.3; соответствие прежнему 275_look_turn.js.
+src/game/280_pos_pref_hold.js,engine/bot/position.js,Р4.2,35,280,Имя по карте этапа 4; расширение соответствует базе.
+src/game/290_smoke_react.js,engine/nades/smoke-react.js,Р4.2,36,290,Имя по карте этапа 4; расширение соответствует базе.
+src/game/300_roles_fallback_rebalance.js,engine/team/roles.js,Р4.2,37,300,Имя по карте этапа 4; расширение соответствует базе.
+src/game/310_pro_positions.js,engine/team/pro-positions.js,Р4.2,38,310,Имя по карте этапа 4; расширение соответствует базе.
+src/game/320_pro_lineups_ct_early.js,engine/team/ct-early.js,Р4.2,39,320,Имя по карте этапа 4; расширение соответствует базе.
+src/game/330_endgame_smoke_push.js,engine/team/endgame.js,Р4.2,40,330,Имя по карте этапа 4; расширение соответствует базе.
+src/game/340_ctbrain.js,engine/bot/brain-ct.js,Р4.2,41,340,Имя по карте этапа 4; расширение соответствует базе.
+src/game/350_contact_reaction.js,engine/bot/contact.js,Р4.2,42,350,Имя по карте этапа 4; расширение соответствует базе.
+src/game/360_nades_buy_smoke_vision.js,engine/nades/smoke.js,Р4.2,43,360,Имя по карте этапа 4; расширение соответствует базе.
+src/game/365_nade_plan.js,engine/nades/plan.js,Р4.2,44,365,Имя по карте этапа 4; расширение соответствует базе.
+src/game/366_exec_sync.js,engine/nades/exec-sync.js,Р4.2,45,366,Имя по карте этапа 4; расширение соответствует базе.
+src/game/370_fire_nav_levels_ladders.js,engine/nav/levels.js,Р4.2,46,370,Имя по карте этапа 4; расширение соответствует базе.
+src/game/380_nades_throw.js,engine/nades/throw.js,Р4.2,47,380,Имя по карте этапа 4; расширение соответствует базе.
+src/game/385_nades_flight.js,engine/nades/flight.js,Р4.2,48,385,Имя по карте этапа 4; расширение соответствует базе.
+src/game/390_nades_lineups.js,engine/nades/lineups.js,Р4.2,49,390,Имя по карте этапа 4; расширение соответствует базе.
+src/game/400_nades_physics_damage.js,engine/match/damage.js,Р4.2,50,400,Имя по карте этапа 4; расширение соответствует базе.
+src/game/410_nades_tactical_self.js,engine/nades/self.js,Р4.2,51,410,Имя по карте этапа 4; расширение соответствует базе.
+src/game/420_nades_brains.js,engine/nades/decide.js,Р4.2,52,420,Имя по карте этапа 4; расширение соответствует базе.
+src/game/430_fov_roam.js,engine/sense/fov.js,Р4.2,53,430,Имя по карте этапа 4; расширение соответствует базе.
+src/game/435_match_events.js,engine/match/journal.js,Р4.2,54,435,Имя по карте этапа 4; расширение соответствует базе.
+src/game/440_voicepanel_console.js,view/hud/voice-console.js,Р4.2,55,440,Имя по карте этапа 4; расширение соответствует базе.
+src/game/450_combat_items_knife.js,engine/match/items.js,Р4.2,56,450,Имя по карте этапа 4; расширение соответствует базе.
+src/game/460_sound_situations.js,engine/sense/sound.js,Р4.2,57,460,Имя по карте этапа 4; расширение соответствует базе.
+src/game/470_fight_cycle.js,engine/bot/fight.js,Р4.2,58,470,Имя по карте этапа 4; расширение соответствует базе.
+src/game/480_assist_flank_reload.js,engine/bot/assist.js,Р4.2,59,480,Имя по карте этапа 4; расширение соответствует базе.
+src/game/490_shoot.js,engine/bot/shoot.js,Р4.2,60,490,Имя по карте этапа 4; расширение соответствует базе.
+src/game/495_highlights.js,engine/bot/highlights.js,Р4.2,61,495,"HL, hlTag/hlTick влияют на бой; UI ползунка уже в 680."
+src/game/500_decide_afterkill_cover.js,engine/bot/fight-state.js,Р4.2,62,500,Имя по карте этапа 4; расширение соответствует базе.
+src/game/510_engagements.js,engine/bot/engagements.js,Р4.2,63,510,Имя по карте этапа 4; расширение соответствует базе.
+src/game/520_economy.js,engine/team/economy.js,Р4.2,64,520,Имя по карте этапа 4; расширение соответствует базе.
+src/game/530_round_sides_match.js,engine/match/round.js,Р4.2,65,530,Имя по карте этапа 4; расширение соответствует базе.
+src/game/535_move_mode.js,engine/bot/move.js,Р4.2,66,535,Имя по карте этапа 4; расширение соответствует базе.
+src/game/540_step_tick.js,engine/core/tick.js,Р4.2,67,540,Имя по карте этапа 4; расширение соответствует базе.
+src/game/545_problem_watch.js,engine/debug/problem-watch.js,Р4.2,68,545,"Наблюдатель состояния; оставить порядок/интерфейс, Р3.3 уточнит границу."
+src/game/550_render_nav_zone_tools.js,view/editors/nav-zones.js,Р4.2,69,550,Имя по карте этапа 4; расширение соответствует базе.
+src/game/560_lineup_zone_editor.js,view/editors/lineups.js,Р4.2,70,560,Имя по карте этапа 4; расширение соответствует базе.
+src/game/570_maped_core_walls.js,view/editors/map-walls.js,Р4.2,71,570,Имя по карте этапа 4; расширение соответствует базе.
+src/game/580_maped_heights.js,view/editors/map-heights.js,Р4.2,72,580,Имя по карте этапа 4; расширение соответствует базе.
+src/game/590_maped_cover.js,view/editors/map-cover.js,Р4.2,73,590,Имя по карте этапа 4; расширение соответствует базе.
+src/game/600_maped_wallbang.js,view/editors/map-wallbang.js,Р4.2,74,600,Имя по карте этапа 4; расширение соответствует базе.
+src/game/610_vistool_lookdebug.js,view/debug/look.js,Р4.2,75,610,Имя по карте этапа 4; расширение соответствует базе.
+src/game/612_team_debug.js,view/debug/team.js,Р4.2,76,612,Имя по карте этапа 4; расширение соответствует базе.
+src/game/620_draw.js,view/draw.js,Р4.2,77,620,Имя по карте этапа 4; расширение соответствует базе.
+src/game/625_view3d.js,view/view3d.js,Р4.2,78,625,Имя по карте этапа 4; расширение соответствует базе.
+src/game/630_killfeed_banners_econ.js,view/hud/killfeed.js,Р4.2,79,630,Имя по карте этапа 4; расширение соответствует базе.
+src/game/635_hud_fx.js,view/hud/fx.js,Р4.2,80,635,Имя по карте этапа 4; расширение соответствует базе.
+src/game/640_scoreboard_players.js,view/hud/scoreboard.js,Р4.2,81,640,Имя по карте этапа 4; расширение соответствует базе.
+src/game/645_decision_log.js,engine/debug/trace.js,Р4.2,82,645,Имя по карте этапа 4; расширение соответствует базе.
+src/game/650_marks_hook.js,view/marks-hook.js,Р4.2,83,650,Имя по карте этапа 4; расширение соответствует базе.
+src/game/660_warmup.js,view/warmup.js,Р4.2,84,660,Имя по карте этапа 4; расширение соответствует базе.
+src/game/670_observer.js,view/observer.js,Р4.2,85,670,Имя по карте этапа 4; расширение соответствует базе.
+src/game/675_replay.js,view/replay.js,Р4.2,86,675,Имя по карте этапа 4; расширение соответствует базе.
+src/game/676_timeout_show.js,view/hud/timeout.js,Р4.2,87,676,Имя по карте этапа 4; расширение соответствует базе.
+src/game/677_sandbox.js,view/sandbox.js,Р4.2,88,677,Имя по карте этапа 4; расширение соответствует базе.
+src/game/678_demo_view.js,view/demo.js,Р4.2,89,678,Имя по карте этапа 4; расширение соответствует базе.
+src/game/680_sound_frame_buttons.js,view/app.js,Р4.2,90,680,Имя по карте этапа 4; расширение соответствует базе.
+src/game/990_tail.html,view/page/tail.html,Р4.2,91,990,Имя по карте этапа 4; расширение соответствует базе.
+src/gamesrc.py,src/gamesrc.py,совместимость,,,"Сохранить путь сборщика, входа измерений, типов или наследуемых данных до отдельной подтверждённой миграции."
+src/mapset.py,src/mapset.py,совместимость,,,"Сохранить путь сборщика, входа измерений, типов или наследуемых данных до отдельной подтверждённой миграции."
+src/marks.js,src/marks.js,совместимость,,,"Сохранить путь сборщика, входа измерений, типов или наследуемых данных до отдельной подтверждённой миграции."
+src/marks_build.py,src/marks_build.py,совместимость,,,"Сохранить путь сборщика, входа измерений, типов или наследуемых данных до отдельной подтверждённой миграции."
+src/mkpub.py,src/mkpub.py,совместимость,,,"Сохранить путь сборщика, входа измерений, типов или наследуемых данных до отдельной подтверждённой миграции."
+src/q.js,src/q.js,совместимость,,,"Сохранить путь сборщика, входа измерений, типов или наследуемых данных до отдельной подтверждённой миграции."
+src/syntaxcheck.py,src/syntaxcheck.py,совместимость,,,"Сохранить путь сборщика, входа измерений, типов или наследуемых данных до отдельной подтверждённой миграции."
+src/types/core.d.ts,engine/core/core.d.ts,Р4.2,,,"Обновить tsconfig.json, typecheck.js и импорты типов. Тест не входит в склейку."
+src/types/types.ts,engine/core/types.ts,Р4.2,,,"Обновить tsconfig.json, typecheck.js и импорты типов. Тест не входит в склейку."
+src/types/types_test.ts,tools/tests/types_test.ts,Р4.2,,,"Обновить tsconfig.json, typecheck.js и импорты типов. Тест не входит в склейку."
+src/zones.json,src/zones.json,совместимость,,,"Сохранить путь сборщика, входа измерений, типов или наследуемых данных до отдельной подтверждённой миграции."
+tools/rebuild/package.json,tools/rebuild/package.json,обновить ссылки,,,"Сохранить действующий путь; подключить порядок, полные пути и идентификаторы файлов по Р4."
+tools/sim.js,tools/sim.js,обновить ссылки,,,"Сохранить действующий путь; подключить порядок, полные пути и идентификаторы файлов по Р4."
+tsconfig.json,tsconfig.json,совместимость,,,"Сохранить путь сборщика, входа измерений, типов или наследуемых данных до отдельной подтверждённой миграции."

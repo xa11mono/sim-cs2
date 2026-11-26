@@ -5,5 +5,5 @@
 (границы каналов Р3.2). Материалы Р4 и документации остаются в ветке Codex.
 
 Файлы — как у Codex, не правятся: это исходные данные. Действующий реестр — машинная часть `rebuild/gen/state.json` (строится из кода,
-`tools/rebuild/state_gen.js`) + смысловая разметка `rebuild/state_classes.json`. Сверка с кодом v599a 25.11 —
+`tools/rebuild/gen_maps.js`, часть «реестр состояния») + смысловая разметка `rebuild/state_classes.json`. Сверка с кодом v599a 25.11 —
 `rebuild/evidence/R3/r3_prep_registry_check.json` (3009 адресов, устаревших 0). Порядок работ — `rebuild/R3_ORDER.md`.

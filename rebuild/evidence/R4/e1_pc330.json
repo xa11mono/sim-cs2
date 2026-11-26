@@ -1,0 +1,9 @@
+{
+ "what": "Э1 прогон ПК 330 (measure/v626a-r4e2): v626a — Р4.3 (dist), Р4.4 (деление файлов, stepBot, draw), обе карты 8+8 Chromium",
+ "results_branch": "pc-results/330",
+ "reference": "rebuild/evidence/R2/fp_cloud_chromium158",
+ "equal": 16,
+ "total": 16,
+ "diff": 0,
+ "verdict": "Р4.1–Р4.5 — Э1 бит в бит"
+}
