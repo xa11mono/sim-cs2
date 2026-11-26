@@ -35,7 +35,7 @@ function sbPlace(b, x, y){
   var w = snapToWalkable(x, y), a = navFloorNear(w.x, w.y, 40, null) || navAt(w.x, w.y, b.z || 0);
   b.x = b.baseX = b.px = w.x; b.y = b.baseY = b.py = w.y;
   if(a){ b.z = navFloorZ(a, w.x, w.y); b._area = a.id; }
-  movePath(b, [], "sandbox"); b.pathIdx = 0; b._climb = null; b._fc = null; b._hold = null; b._trail = []; moveSpeed(b, 0, "sandbox");
+  movePath(b, [], "sandbox", 0); b._climb = null; b._fc = null; b._hold = null; b._trail = []; moveSpeed(b, 0, "sandbox");
   b._underV = null; b._overV = null; b._fall = null; floorViewTick(b);
 }
 function sbRevive(b, x, y){

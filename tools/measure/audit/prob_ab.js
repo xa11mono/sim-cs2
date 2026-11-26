@@ -14,12 +14,14 @@ const M = +(A.match || 3), T = +(A.ticks || 20000);
 const res = JSON.parse(EV(`(function(){
   paused = true; DLOG.on = true; freshMatch(${M}); var M0 = matchNum;   // как tools/measure/fingerprint.js
   var H = {}, every = 16;   // история: тик → [x, y, хочет идти, стоит законно]
-  for(var t = 0; t < ${T}; t++){ stepTick(); if(matchNum !== M0) break;   // новый матч обнуляет PROB — до конца своего
+  var P0 = null;   // PROB своего матча: в тике смены матча probTick его обнуляет (новые объекты) — держим прежние
+  for(var t = 0; t < ${T}; t++){ P0 = {all: PROB.all, n: PROB.n, sub: PROB.sub, ep: PROB.ep}; stepTick(); if(matchNum !== M0) break;
     if(tick % every === 0 && roundState === "live") bots.forEach(function(b){ if(!b.alive) return;
       var want = !!(b.post && !b.atPost && b.state === "patrol" && !b.holding && DM.hypot(b.post.x-b.baseX, b.post.y-b.baseY) > 40);
       var busy = !!(b.planting || b.defusing || b._climb || b._sawEnemy || b._fc || tick < (b.blindUntil||0) || tick < (b.throwUntil||0));
       (H[b.id] = H[b.id] || []).push([tick, b.baseX, b.baseY, want && !busy ? 1 : 0, (!b.post || b.atPost || b.holding) && !want ? 1 : 0, roundNum]); }); }
-  return JSON.stringify({H: H, ev: PROB.all || [], sec: PROB_STALL_SEC, mv: PROB_STALL_MOVE, bsec: PROB_BLOCK_SEC, hz: TICK_HZ, ep: PROB.ep, n: PROB.n, sub: PROB.sub,
+  if(matchNum === M0) P0 = {all: PROB.all, n: PROB.n, sub: PROB.sub, ep: PROB.ep};
+  return JSON.stringify({H: H, ev: P0.all || [], sec: PROB_STALL_SEC, mv: PROB_STALL_MOVE, bsec: PROB_BLOCK_SEC, hz: TICK_HZ, ep: P0.ep, n: P0.n, sub: P0.sub,
     dl: Object.fromEntries(Object.keys(DLOG.by).map(function(id){ var L = (DLOG.by[id]._dlog || []).filter(function(e){ return e[1] === "место" && e[3] && e[3].busy; }); return [id, L.map(function(e){ return e[0]; })]; }))});
 })()`));
 const W = res.sec * res.hz, out = { match: M, ticks: T, n: res.n, sub: res.sub, ep: res.ep, A: { ok: 0, bad: [] }, B: { windows: 0, bad: [] } };
