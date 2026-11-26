@@ -1,0 +1,1067 @@
+{
+ "_": "Таблица видов задач (TaskKind, Р3.2 место, Р-6): тег → уровень арбитра (TASK_LEVEL), свойства (TASK_PROP), файлы. Пишет node tools/rebuild/task_kinds.js --write; проверяет сборка. «…» — переменная часть тега. dynamic — места, где тег из данных (позиция роли, тактика).",
+ "kinds": {
+  "after:hold": {
+   "lv": 1,
+   "level": "пост роли",
+   "props": [
+    "ownLine"
+   ],
+   "files": [
+    "task.js"
+   ]
+  },
+  "ambush": {
+   "lv": 9,
+   "level": "бой",
+   "props": [
+    "exactSpot",
+    "flankTask"
+   ],
+   "files": [
+    "assist.js"
+   ]
+  },
+  "anchor": {
+   "lv": 1,
+   "level": "пост роли",
+   "props": [
+    "siteDefender",
+    "reangleHolder",
+    "holdsGround",
+    "holdsSite",
+    "ownLine"
+   ],
+   "files": [
+    "brain-ct-players.js"
+   ]
+  },
+  "anchor2…": {
+   "lv": 1,
+   "level": "пост роли",
+   "props": [
+    "siteDefender",
+    "reangleHolder",
+    "holdsGround",
+    "holdsSite",
+    "ownLine"
+   ],
+   "files": [
+    "ct-early.js"
+   ]
+  },
+  "anchor:fall": {
+   "lv": 1,
+   "level": "пост роли",
+   "props": [
+    "siteDefender",
+    "reangleHolder",
+    "holdsGround",
+    "holdsSite",
+    "ownLine"
+   ],
+   "files": [
+    "brain-ct-players.js"
+   ]
+  },
+  "antidefuse": {
+   "lv": 11,
+   "level": "бомба",
+   "props": [
+    "pieBusy",
+    "fireCommit",
+    "dangerWalkSkip",
+    "tradeUrgent",
+    "shiftHoldBusy",
+    "holdStrafeSkip",
+    "exactSpot"
+   ],
+   "files": [
+    "brain-t-postplant.js"
+   ]
+  },
+  "backstab": {
+   "lv": 9,
+   "level": "бой",
+   "props": [
+    "flankTask"
+   ],
+   "files": [
+    "assist.js"
+   ]
+  },
+  "bombEscort": {
+   "lv": 5,
+   "level": "команда",
+   "props": [],
+   "files": [
+    "brain-t-phases.js"
+   ]
+  },
+  "bombWait": {
+   "lv": 5,
+   "level": "команда",
+   "props": [
+    "rushFollowable"
+   ],
+   "files": [
+    "brain-t-phases.js"
+   ]
+  },
+  "bombwatch": {
+   "lv": 8,
+   "level": "ретейк/сбор/ротация",
+   "props": [
+    "ownLine"
+   ],
+   "files": [
+    "brain-ct-players.js"
+   ]
+  },
+  "clear…": {
+   "lv": 1,
+   "level": "пост роли",
+   "props": [
+    "pieCareful",
+    "nadeFight"
+   ],
+   "files": [
+    "brain-t-phases.js"
+   ]
+  },
+  "clutch:…": {
+   "lv": 7,
+   "level": "эндгейм/клатч",
+   "props": [
+    "pieCareful",
+    "holdsGround",
+    "holdsSite",
+    "ownLine"
+   ],
+   "files": [
+    "ct-early.js"
+   ]
+  },
+  "defuse": {
+   "lv": 11,
+   "level": "бомба",
+   "props": [
+    "pieBusy",
+    "fireCommit",
+    "blindCoverBusy",
+    "dangerWalkSkip",
+    "tradeUrgent",
+    "shiftHoldBusy",
+    "cautiousEnd",
+    "bombSpot",
+    "retakeMove",
+    "holdStrafeSkip",
+    "exactSpot",
+    "defuseTask"
+   ],
+   "files": [
+    "save-retake.js"
+   ]
+  },
+  "earlyPeek": {
+   "lv": 3,
+   "level": "личная перестановка",
+   "props": [
+    "pieCareful"
+   ],
+   "files": [
+    "ct-early.js"
+   ]
+  },
+  "endhunt": {
+   "lv": 7,
+   "level": "эндгейм/клатч",
+   "props": [
+    "pieCareful",
+    "tradeUrgent",
+    "shiftHoldBusy",
+    "ownLine",
+    "endhuntTask"
+   ],
+   "files": [
+    "endgame.js"
+   ]
+  },
+  "fetch": {
+   "lv": 8,
+   "level": "ретейк/сбор/ротация",
+   "props": [
+    "pieBusy",
+    "fireCommit",
+    "dangerWalkSkip",
+    "briefStop",
+    "exactSpot"
+   ],
+   "files": [
+    "brain-t.js"
+   ]
+  },
+  "fetchCover": {
+   "lv": 5,
+   "level": "команда",
+   "props": [
+    "pieBusy",
+    "fireCommit",
+    "dangerWalkSkip",
+    "briefStop",
+    "exactSpot"
+   ],
+   "files": [
+    "brain-t.js"
+   ]
+  },
+  "fill": {
+   "lv": 5,
+   "level": "команда",
+   "props": [
+    "ownLine"
+   ],
+   "files": [
+    "intel.js"
+   ]
+  },
+  "flee": {
+   "lv": 11,
+   "level": "бомба",
+   "props": [
+    "pieBusy",
+    "lookAlongRetreat",
+    "fireCommit",
+    "blindCoverBusy",
+    "dangerWalkSkip"
+   ],
+   "files": [
+    "brain-t-postplant.js"
+   ]
+  },
+  "hunt": {
+   "lv": 7,
+   "level": "эндгейм/клатч",
+   "props": [
+    "pieCareful"
+   ],
+   "files": [
+    "brain-t-postplant.js"
+   ]
+  },
+  "lineup": {
+   "lv": 4,
+   "level": "гранаты/ожидания",
+   "props": [
+    "pieBusy",
+    "blindCoverBusy",
+    "dangerWalkSkip",
+    "shiftHoldBusy",
+    "holdStrafeSkip",
+    "briefStop",
+    "exactSpot",
+    "lineupTask"
+   ],
+   "files": [
+    "plan.js",
+    "throw.js"
+   ]
+  },
+  "lurkBack": {
+   "lv": 1,
+   "level": "пост роли",
+   "props": [
+    "pieCareful",
+    "earAmbush",
+    "lurkTask"
+   ],
+   "files": [
+    "lurker.js"
+   ]
+  },
+  "lurkPeek": {
+   "lv": 1,
+   "level": "пост роли",
+   "props": [
+    "pieCareful",
+    "earAmbush",
+    "lurkTask"
+   ],
+   "files": [
+    "lurker.js"
+   ]
+  },
+  "lurkRot": {
+   "lv": 1,
+   "level": "пост роли",
+   "props": [
+    "pieCareful",
+    "earAmbush",
+    "lurkTask"
+   ],
+   "files": [
+    "lurker.js"
+   ]
+  },
+  "lurkStage…": {
+   "lv": 1,
+   "level": "пост роли",
+   "props": [
+    "pieCareful",
+    "earAmbush",
+    "lurkTask"
+   ],
+   "files": [
+    "lurker.js"
+   ]
+  },
+  "lurk…": {
+   "lv": 1,
+   "level": "пост роли",
+   "props": [
+    "pieCareful",
+    "earAmbush",
+    "lurkTask"
+   ],
+   "files": [
+    "lurker.js"
+   ]
+  },
+  "mid": {
+   "lv": 1,
+   "level": "пост роли",
+   "props": [
+    "ownLine"
+   ],
+   "files": [
+    "brain-ct-players.js"
+   ]
+  },
+  "mid:back": {
+   "lv": 1,
+   "level": "пост роли",
+   "props": [
+    "ownLine"
+   ],
+   "files": [
+    "brain-ct-players.js"
+   ]
+  },
+  "midcover": {
+   "lv": 3,
+   "level": "личная перестановка",
+   "props": [
+    "pieCareful",
+    "holdsGround",
+    "ownLine"
+   ],
+   "files": [
+    "ct-early.js"
+   ]
+  },
+  "midcover:go": {
+   "lv": 3,
+   "level": "личная перестановка",
+   "props": [
+    "pieCareful",
+    "holdsGround",
+    "ownLine"
+   ],
+   "files": [
+    "ct-early.js"
+   ]
+  },
+  "pickup": {
+   "lv": 3,
+   "level": "личная перестановка",
+   "props": [
+    "pieBusy",
+    "dangerWalkSkip",
+    "shiftHoldBusy",
+    "holdStrafeSkip",
+    "briefStop",
+    "exactSpot",
+    "pickupTask"
+   ],
+   "files": [
+    "items.js"
+   ]
+  },
+  "plantspot": {
+   "lv": 11,
+   "level": "бомба",
+   "props": [
+    "rushFollowable",
+    "pieBusy",
+    "fireCommit",
+    "blindCoverBusy",
+    "dangerWalkSkip",
+    "tradeUrgent",
+    "shiftHoldBusy",
+    "bombSpot",
+    "exactSpot",
+    "plantSpot",
+    "plantGo"
+   ],
+   "files": [
+    "brain-t-phases.js"
+   ]
+  },
+  "postplant:split": {
+   "lv": 8,
+   "level": "ретейк/сбор/ротация",
+   "props": [
+    "ownLine"
+   ],
+   "files": [
+    "brain-t-postplant.js"
+   ]
+  },
+  "postplant:time:…": {
+   "lv": 8,
+   "level": "ретейк/сбор/ротация",
+   "props": [
+    "ownLine"
+   ],
+   "files": [
+    "igl.js"
+   ]
+  },
+  "postplant:…": {
+   "lv": 8,
+   "level": "ретейк/сбор/ротация",
+   "props": [
+    "ownLine"
+   ],
+   "files": [
+    "brain-t-postplant.js"
+   ]
+  },
+  "probeHide": {
+   "lv": 6,
+   "level": "перестановка в бою",
+   "props": [
+    "pieCareful",
+    "earAmbush",
+    "exactSpot",
+    "probeTask"
+   ],
+   "files": [
+    "ct-early.js"
+   ]
+  },
+  "probeInfo": {
+   "lv": 5,
+   "level": "команда",
+   "props": [
+    "pieCareful",
+    "earAmbush",
+    "probeTask"
+   ],
+   "files": [
+    "ct-early.js"
+   ]
+  },
+  "probePair…": {
+   "lv": 3,
+   "level": "личная перестановка",
+   "props": [
+    "pieCareful",
+    "probeTask"
+   ],
+   "files": [
+    "lurker.js"
+   ]
+  },
+  "probe…": {
+   "lv": 3,
+   "level": "личная перестановка",
+   "props": [
+    "pieCareful",
+    "probeTask"
+   ],
+   "files": [
+    "lurker.js"
+   ]
+  },
+  "rebal…": {
+   "lv": 3,
+   "level": "личная перестановка",
+   "props": [
+    "siteDefender",
+    "ownLine"
+   ],
+   "files": [
+    "roles.js"
+   ]
+  },
+  "repos": {
+   "lv": 6,
+   "level": "перестановка в бою",
+   "props": [
+    "pieBusy",
+    "lookAlongRetreat",
+    "dangerWalkSkip",
+    "shiftHoldBusy",
+    "reposMove"
+   ],
+   "files": [
+    "brain-ct-players.js",
+    "fight-state.js",
+    "shoot.js"
+   ]
+  },
+  "repos:assist": {
+   "lv": 6,
+   "level": "перестановка в бою",
+   "props": [
+    "detourHelp",
+    "pieBusy",
+    "lookAlongRetreat",
+    "dangerWalkSkip",
+    "shiftHoldBusy",
+    "reposMove"
+   ],
+   "files": [
+    "assist.js"
+   ]
+  },
+  "repos:back": {
+   "lv": 6,
+   "level": "перестановка в бою",
+   "props": [
+    "detourSelf",
+    "pieBusy",
+    "lookAlongRetreat",
+    "escape",
+    "dangerWalkSkip",
+    "shiftHoldBusy",
+    "reposMove"
+   ],
+   "files": [
+    "contact.js",
+    "fight-state.js"
+   ]
+  },
+  "repos:coverblind": {
+   "lv": 6,
+   "level": "перестановка в бою",
+   "props": [
+    "detourHelp",
+    "pieBusy",
+    "lookAlongRetreat",
+    "dangerWalkSkip",
+    "shiftHoldBusy",
+    "reposMove"
+   ],
+   "files": [
+    "sound.js"
+   ]
+  },
+  "repos:fallback": {
+   "lv": 6,
+   "level": "перестановка в бою",
+   "props": [
+    "pieBusy",
+    "lookAlongRetreat",
+    "dangerWalkSkip",
+    "shiftHoldBusy",
+    "reposMove"
+   ],
+   "files": [
+    "roles.js"
+   ]
+  },
+  "repos:finish": {
+   "lv": 9,
+   "level": "бой",
+   "props": [
+    "pieBusy",
+    "lookAlongRetreat",
+    "dangerWalkSkip",
+    "shiftHoldBusy",
+    "reposMove"
+   ],
+   "files": [
+    "sound.js"
+   ]
+  },
+  "repos:flank": {
+   "lv": 6,
+   "level": "перестановка в бою",
+   "props": [
+    "detourHelp",
+    "pieBusy",
+    "lookAlongRetreat",
+    "dangerWalkSkip",
+    "shiftHoldBusy",
+    "reposMove"
+   ],
+   "files": [
+    "assist.js"
+   ]
+  },
+  "repos:he": {
+   "lv": 6,
+   "level": "перестановка в бою",
+   "props": [
+    "pieBusy",
+    "lookAlongRetreat",
+    "dangerWalkSkip",
+    "shiftHoldBusy",
+    "reposMove"
+   ],
+   "files": [
+    "self.js"
+   ]
+  },
+  "repos:hurt": {
+   "lv": 6,
+   "level": "перестановка в бою",
+   "props": [
+    "detourSelf",
+    "pieBusy",
+    "lookAlongRetreat",
+    "escape",
+    "dangerWalkSkip",
+    "shiftHoldBusy",
+    "reposMove"
+   ],
+   "files": [
+    "contact.js"
+   ]
+  },
+  "repos:killmove": {
+   "lv": 9,
+   "level": "бой",
+   "props": [
+    "pieBusy",
+    "lookAlongRetreat",
+    "dangerWalkSkip",
+    "shiftHoldBusy",
+    "reposMove"
+   ],
+   "files": [
+    "fight-state.js"
+   ]
+  },
+  "repos:land": {
+   "lv": 6,
+   "level": "перестановка в бою",
+   "props": [
+    "detourSeek",
+    "pieBusy",
+    "lookAlongRetreat",
+    "dangerWalkSkip",
+    "shiftHoldBusy",
+    "reposMove"
+   ],
+   "files": [
+    "endgame.js"
+   ]
+  },
+  "repos:lowhp": {
+   "lv": 6,
+   "level": "перестановка в бою",
+   "props": [
+    "detourSelf",
+    "pieBusy",
+    "lookAlongRetreat",
+    "dangerWalkSkip",
+    "shiftHoldBusy",
+    "reposMove"
+   ],
+   "files": [
+    "fight.js"
+   ]
+  },
+  "repos:mateDown": {
+   "lv": 6,
+   "level": "перестановка в бою",
+   "props": [
+    "pieBusy",
+    "lookAlongRetreat",
+    "dangerWalkSkip",
+    "shiftHoldBusy",
+    "reposMove"
+   ],
+   "files": [
+    "fight.js"
+   ]
+  },
+  "repos:push": {
+   "lv": 6,
+   "level": "перестановка в бою",
+   "props": [
+    "detourSeek",
+    "pieBusy",
+    "lookAlongRetreat",
+    "dangerWalkSkip",
+    "shiftHoldBusy",
+    "reposMove"
+   ],
+   "files": [
+    "fight-state.js"
+   ]
+  },
+  "repos:reload": {
+   "lv": 6,
+   "level": "перестановка в бою",
+   "props": [
+    "detourSeek",
+    "pieBusy",
+    "lookAlongRetreat",
+    "dangerWalkSkip",
+    "shiftHoldBusy",
+    "reposMove"
+   ],
+   "files": [
+    "sound.js"
+   ]
+  },
+  "repos:rlcover": {
+   "lv": 6,
+   "level": "перестановка в бою",
+   "props": [
+    "detourSelf",
+    "pieBusy",
+    "lookAlongRetreat",
+    "escape",
+    "dangerWalkSkip",
+    "shiftHoldBusy",
+    "reposMove"
+   ],
+   "files": [
+    "assist.js",
+    "fight.js"
+   ]
+  },
+  "repos:swing": {
+   "lv": 6,
+   "level": "перестановка в бою",
+   "props": [
+    "detourSeek",
+    "pieBusy",
+    "lookAlongRetreat",
+    "dangerWalkSkip",
+    "shiftHoldBusy",
+    "reposMove"
+   ],
+   "files": [
+    "fight-state.js"
+   ]
+  },
+  "retake": {
+   "lv": 8,
+   "level": "ретейк/сбор/ротация",
+   "props": [
+    "pieBusy",
+    "teamMove",
+    "fireCommit",
+    "fireIfLate",
+    "nadeFight",
+    "dangerWalkSkip",
+    "holdsSite",
+    "tradeUrgent",
+    "shiftHoldBusy",
+    "cautiousEnd",
+    "retakeMove",
+    "holdStrafeSkip"
+   ],
+   "files": [
+    "save-retake.js"
+   ]
+  },
+  "retakeCover": {
+   "lv": 8,
+   "level": "ретейк/сбор/ротация",
+   "props": [
+    "pieBusy",
+    "teamMove",
+    "fireCommit",
+    "fireIfLate",
+    "nadeFight",
+    "dangerWalkSkip",
+    "holdsSite",
+    "tradeUrgent",
+    "shiftHoldBusy",
+    "retakeMove",
+    "holdStrafeSkip",
+    "ownLine"
+   ],
+   "files": [
+    "save-retake.js"
+   ]
+  },
+  "retakeEntry": {
+   "lv": 8,
+   "level": "ретейк/сбор/ротация",
+   "props": [
+    "pieBusy",
+    "teamMove",
+    "fireCommit",
+    "fireIfLate",
+    "nadeFight",
+    "dangerWalkSkip",
+    "holdsSite",
+    "tradeUrgent",
+    "shiftHoldBusy",
+    "retakeMove",
+    "holdStrafeSkip"
+   ],
+   "files": [
+    "save-retake.js"
+   ]
+  },
+  "retakeKit": {
+   "lv": 8,
+   "level": "ретейк/сбор/ротация",
+   "props": [
+    "pieBusy",
+    "teamMove",
+    "fireCommit",
+    "fireIfLate",
+    "nadeFight",
+    "dangerWalkSkip",
+    "holdsSite",
+    "tradeUrgent",
+    "shiftHoldBusy",
+    "retakeMove",
+    "holdStrafeSkip"
+   ],
+   "files": [
+    "save-retake.js"
+   ]
+  },
+  "rotate": {
+   "lv": 8,
+   "level": "ретейк/сбор/ротация",
+   "props": [
+    "teamMove",
+    "cautiousEnd",
+    "retakeMove"
+   ],
+   "files": [
+    "brain-ct-players.js"
+   ]
+  },
+  "rotate:bomb": {
+   "lv": 8,
+   "level": "ретейк/сбор/ротация",
+   "props": [
+    "teamMove",
+    "retakeMove"
+   ],
+   "files": [
+    "brain-ct-players.js"
+   ]
+  },
+  "rotateHold": {
+   "lv": 5,
+   "level": "команда",
+   "props": [
+    "siteDefender",
+    "teamMove",
+    "retakeMove",
+    "ownLine"
+   ],
+   "files": [
+    "brain-ct-players.js"
+   ]
+  },
+  "rotator": {
+   "lv": 1,
+   "level": "пост роли",
+   "props": [
+    "siteDefender",
+    "ownLine"
+   ],
+   "files": [
+    "brain-ct-players.js"
+   ]
+  },
+  "route:…": {
+   "lv": 2,
+   "level": "маршрут",
+   "props": [
+    "rushFollowable",
+    "briefStop",
+    "exactSpot",
+    "onRoute"
+   ],
+   "files": [
+    "task.js"
+   ]
+  },
+  "rushFollow": {
+   "lv": 1,
+   "level": "пост роли",
+   "props": [
+    "rushFollowable"
+   ],
+   "files": [
+    "brain-t-phases.js"
+   ]
+  },
+  "save": {
+   "lv": 10,
+   "level": "выжить",
+   "props": [
+    "pieBusy",
+    "lookAlongRetreat",
+    "blindCoverBusy",
+    "dangerWalkSkip",
+    "shiftHoldBusy",
+    "holdStrafeSkip",
+    "saveTask"
+   ],
+   "files": [
+    "brain-ct-players.js",
+    "brain-t-postplant.js",
+    "save-retake.js"
+   ]
+  },
+  "sbGo": {
+   "lv": 12,
+   "level": "приказ песочницы",
+   "props": [
+    "exactSpot"
+   ],
+   "files": [
+    "sandbox.js"
+   ]
+  },
+  "shift": {
+   "lv": 3,
+   "level": "личная перестановка",
+   "props": [
+    "pieCareful",
+    "shiftTask"
+   ],
+   "files": [
+    "brain-t.js"
+   ]
+  },
+  "sitehold…": {
+   "lv": 1,
+   "level": "пост роли",
+   "props": [
+    "siteDefender",
+    "ownLine"
+   ],
+   "files": [
+    "brain-t-phases.js"
+   ]
+  },
+  "smokeLine": {
+   "lv": 4,
+   "level": "гранаты/ожидания",
+   "props": [],
+   "files": [
+    "exec-sync.js"
+   ]
+  },
+  "smokeWait": {
+   "lv": 4,
+   "level": "гранаты/ожидания",
+   "props": [
+    "dangerWalkSkip",
+    "exactSpot"
+   ],
+   "files": [
+    "endgame.js"
+   ]
+  },
+  "stage…": {
+   "lv": 1,
+   "level": "пост роли",
+   "props": [
+    "planStage"
+   ],
+   "files": [
+    "brain-t-phases.js"
+   ]
+  },
+  "stopplant": {
+   "lv": 11,
+   "level": "бомба",
+   "props": [
+    "pieBusy",
+    "fireCommit",
+    "dangerWalkSkip",
+    "shiftHoldBusy",
+    "holdStrafeSkip",
+    "exactSpot"
+   ],
+   "files": [
+    "brain-ct-players.js"
+   ]
+  },
+  "tradeR": {
+   "lv": 9,
+   "level": "бой",
+   "props": [
+    "pieBusy",
+    "nadeFight",
+    "blindCoverBusy",
+    "dangerWalkSkip",
+    "tradeUrgent"
+   ],
+   "files": [
+    "intel.js"
+   ]
+  },
+  "trade…": {
+   "lv": 1,
+   "level": "пост роли",
+   "props": [
+    "dangerWalkSkip"
+   ],
+   "files": [
+    "brain-t-phases.js"
+   ]
+  },
+  "utilHold": {
+   "lv": 4,
+   "level": "гранаты/ожидания",
+   "props": [
+    "rushFollowable"
+   ],
+   "files": [
+    "brain-t-phases.js"
+   ]
+  },
+  "utilWait": {
+   "lv": 4,
+   "level": "гранаты/ожидания",
+   "props": [
+    "rushFollowable"
+   ],
+   "files": [
+    "brain-t-phases.js"
+   ]
+  }
+ },
+ "dynamic": [
+  "sites-spots.js:273",
+  "task.js:67",
+  "task.js:335",
+  "task.js:389",
+  "ct-setup.js:289",
+  "save-retake.js:391",
+  "save-retake.js:398",
+  "save-retake.js:399",
+  "save-retake.js:426",
+  "save-retake.js:429",
+  "position.js:374",
+  "position.js:376",
+  "position.js:411",
+  "roles.js:100",
+  "pro-positions.js:81",
+  "ct-early.js:86",
+  "ct-early.js:99",
+  "endgame.js:259",
+  "contact.js:243",
+  "fight-state.js:337"
+ ]
+}

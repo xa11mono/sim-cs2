@@ -387,6 +387,8 @@ if (CHECK) {
     console.log("ответ хозяина не прочитан (Р-7): мест " + tot + (less.length ? "; стало меньше — обновить rebuild/unread_results.json: " + less.map(([k]) => k).join(", ") : ""));
     if (more.length) { console.error("ОШИБКА (Р-7): ответ хозяина (setPost / assignNade → {ok, why}) не прочитан — " + more.map(([k, n]) => k + " ×" + n).join(", ") + "; прочитать .ok / .why"); process.exit(1); } }
 }
+// ---- (Р3.2 место, Р-6, 26.11) виды задач TaskKind: неописанный тег задачи — ошибка (tools/rebuild/task_kinds.js, rebuild/task_kinds.json)
+if (CHECK) { const TK = require("./task_kinds.js").check(); TK.lines.forEach(l => (TK.bad ? console.error : console.log)(l)); if (TK.bad) { console.error("ОШИБКА: вид задачи не описан / таблица устарела — rebuild/task_kinds.json"); process.exit(1); } }
 // ---- (Р-9, 26.11) текст как интерфейс: регулярка по тексту причины отказа броска — ошибка (решения читают код: nadeFailIs)
 if (CHECK) { const R9 = [...all.matchAll(/\.test\(\s*\(?\s*NADE_FAIL\b|NADE_FAIL[^;\n]{0,12}\.(match|search)\(/g)].map(m => { const f = fileAt(m.index); return f[2] + ":" + lineAt(m.index); });
   if (R9.length) { console.error("ОШИБКА (Р-9): регулярка по тексту NADE_FAIL — " + R9.join(", ") + "; код отказа — nadeFailIs(группа), engine/nades/throw.js"); process.exit(1); } }
