@@ -1,0 +1,2 @@
+
+[guard] {"name": "fp r34_off_anc.html m7", "engine": "chromium", "rc": 1, "ok": false, "secs": 1699.2810000000027, "t_start": 1795716177.4677453, "t_end": 1795717876.7497008, "peak_mb": 887, "procs_max": 6, "stopped": "раннер завершается", "orphans_killed": 0, "job": true, "par_cap": 8, "running_with": 6, "mem_total_mb": 15977, "mem_avail_mb_after": 7403, "retry": false, "par_req": 8, "par_seen_max": 8, "par_seen_avg": 7.723994442355318, "group_limit_mb": 5177}

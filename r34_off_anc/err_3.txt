@@ -1,0 +1,5 @@
+[q] страница упала (crash)
+[q] ошибка: page.evaluate: Target crashed 
+    at C:\actions-runner\_work\sim-cs2\sim-cs2\src\q.js:12:22
+
+[guard] {"name": "fp r34_off_anc.html m3", "engine": "chromium", "rc": 1, "ok": false, "secs": 27.593000000008033, "t_start": 1795716177.4637456, "t_end": 1795716205.060276, "peak_mb": 909, "procs_max": 6, "stopped": null, "orphans_killed": 0, "job": true, "par_cap": 8, "running_with": 6, "mem_total_mb": 15977, "mem_avail_mb_after": 4879, "retry": false, "par_req": 8, "par_seen_max": 7, "par_seen_avg": 6.822273765085053, "group_limit_mb": 5177}
