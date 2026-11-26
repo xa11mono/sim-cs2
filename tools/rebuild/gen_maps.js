@@ -389,6 +389,18 @@ if (CHECK) {
 }
 // ---- (Р3.2 место, Р-6, 26.11) виды задач TaskKind: неописанный тег задачи — ошибка (tools/rebuild/task_kinds.js, rebuild/task_kinds.json)
 if (CHECK) { const TK = require("./task_kinds.js").check(); TK.lines.forEach(l => (TK.bad ? console.error : console.log)(l)); if (TK.bad) { console.error("ОШИБКА: вид задачи не описан / таблица устарела — rebuild/task_kinds.json"); process.exit(1); } }
+// ---- (Р3.2 «все поля живого тика имеют хозяина», 26.11) у каждого поля бота — список писателей (файл · функция): rebuild/field_writers.json;
+// новый писатель поля — ошибка сборки (решить: это хозяин поля или запись должна идти через него). Поля с хозяином-функцией — ещё и
+// owners.json (enforce, строже). FW_WRITE=1 node tools/rebuild/gen_maps.js — переписать список по коду (после решения)
+{ const FWF = path.join(ROOT, "rebuild", "field_writers.json"), cur = {};
+  Object.entries(BOTW).forEach(([fld, L]) => { cur[fld] = [...new Set(L.map(s => { const m = /^(\S+?):\d+ (.*)$/.exec(s); return m ? GS.fileId(m[1]) + " · " + m[2] : s; }))].sort(); });
+  if (!CHECK && process.env.FW_WRITE) fs.writeFileSync(FWF, JSON.stringify({ _: "Писатели полей бота (Р3.2, 26.11): поле → файл · функция. Новый писатель — ошибка сборки (tools/rebuild/gen_maps.js); FW_WRITE=1 node tools/rebuild/gen_maps.js — переписать после решения, что запись законна.", fields: Object.fromEntries(Object.keys(cur).sort().map(k => [k, cur[k]])) }, null, 1) + "\n");
+  if (CHECK) { let K = {}; try { K = JSON.parse(fs.readFileSync(FWF, "utf8")).fields; } catch (e) { console.error("ОШИБКА: нет rebuild/field_writers.json — FW_WRITE=1 node tools/rebuild/gen_maps.js"); process.exit(1); }
+    const neu = []; Object.entries(cur).forEach(([f, L]) => L.forEach(w => { if (!(K[f] || []).includes(w)) neu.push(f + " ← " + w); }));
+    const n = Object.values(cur).reduce((a, L) => a + L.length, 0);
+    console.log("писатели полей бота: полей " + Object.keys(cur).length + ", писателей " + n + ", новых " + neu.length);
+    if (neu.length) { console.error("ОШИБКА: новый писатель поля бота — " + neu.slice(0, 15).join("; ") + (neu.length > 15 ? " … ещё " + (neu.length - 15) : "") + " (хозяин поля — rebuild/field_writers.json)"); process.exit(1); } }
+}
 // ---- (Р3.2, 26.11) правила сборки Р-1, Р-3, Р-4, Р-5, Р-16, Р-17: новое место шаблона — ошибка (tools/rebuild/build_rules.js)
 if (CHECK) { const BR = require("./build_rules.js").check(); BR.lines.forEach(l => (BR.bad ? console.error : console.log)(l)); if (BR.bad) { console.error("ОШИБКА: новое место запрещённого шаблона — rebuild/build_rules_known.json"); process.exit(1); } }
 // ---- (Р-9, 26.11) текст как интерфейс: регулярка по тексту причины отказа броска — ошибка (решения читают код: nadeFailIs)

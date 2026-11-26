@@ -1,0 +1,1796 @@
+{
+ "_": "Писатели полей бота (Р3.2, 26.11): поле → файл · функция. Новый писатель — ошибка сборки (tools/rebuild/gen_maps.js); FW_WRITE=1 node tools/rebuild/gen_maps.js — переписать после решения, что запись законна.",
+ "fields": {
+  "F": [
+   "observer · obsCtx"
+  ],
+  "_2nd": [
+   "ct-early · secondOnSite"
+  ],
+  "_actS": [
+   "fight-state · decideActionR"
+  ],
+  "_adSpot": [
+   "brain-t-postplant · tBrainPostplant"
+  ],
+  "_afPt": [
+   "brain-ct-players · ctBrainPlayers"
+  ],
+  "_aft": [
+   "task · afterTaskPick"
+  ],
+  "_aftSaid": [
+   "task · afterTaskPick"
+  ],
+  "_agV": [
+   "look-peek · prePeekDecide"
+  ],
+  "_aimFix": [
+   "tick-step · stepBot",
+   "turn · lookTick",
+   "turn · lookTrack"
+  ],
+  "_aimTrk": [
+   "turn · lookTick",
+   "turn · lookTrack"
+  ],
+  "_amb": [
+   "assist · ambEnd",
+   "assist · ambushStartBack",
+   "assist · ambushTick"
+  ],
+  "_ammoFor": [
+   "assist · updateReload",
+   "demo · dvStart",
+   "items · itemPickupTick",
+   "items · weaponPickupTick",
+   "round · resetRound",
+   "sound · pistolBack",
+   "sound · pistolSwap",
+   "warmup · warmSpawn"
+  ],
+  "_apBest": [
+   "task · updatePost"
+  ],
+  "_apId": [
+   "task · updatePost"
+  ],
+  "_apT": [
+   "task · updatePost"
+  ],
+  "_apfC": [
+   "look-peek · appearFrom"
+  ],
+  "_apfP": [
+   "look-peek · appearFrom"
+  ],
+  "_area": [
+   "levels · ladderTick",
+   "levels · navFollowFloor",
+   "round · resetRound",
+   "sandbox · sbPlace",
+   "tick · navSnap",
+   "tick-step · stepBot"
+  ],
+  "_assistNext": [
+   "assist · assistPeek"
+  ],
+  "_assistVoice": [
+   "assist · assistPeek"
+  ],
+  "_avoidPeekAt": [
+   "events · knowAvoidPeek"
+  ],
+  "_avoidPeekUntil": [
+   "events · knowAvoidPeek"
+  ],
+  "_awpLog": [
+   "brain-ct-players · ctBrainPlayers"
+  ],
+  "_belOwn": [
+   "belief · beliefTick"
+  ],
+  "_blind": [
+   "move · moveSpeedTick",
+   "round · resetRound",
+   "sandbox · sbRevive",
+   "sound · onBlind"
+  ],
+  "_blindBy": [
+   "damage · detonate",
+   "round · resetRound"
+  ],
+  "_bomb": [
+   "fx · hudBombEdge"
+  ],
+  "_boost": [
+   "round · resetRound",
+   "tick-jump · boostEnd",
+   "tick-jump · jumpCheckTick"
+  ],
+  "_boostTry": [
+   "tick-jump · jumpCheckTick"
+  ],
+  "_bought": [
+   "economy · buyItem"
+  ],
+  "_burning": [
+   "move · moveSpeedTick"
+  ],
+  "_chk": [
+   "look · lookPlan"
+  ],
+  "_chkNext": [
+   "look · lookPlan"
+  ],
+  "_climb": [
+   "levels · ladderTick",
+   "round · resetRound",
+   "sandbox · sbPlace"
+  ],
+  "_clr": [
+   "brain-t-phases · tBrainExecute"
+  ],
+  "_clutch": [
+   "ct-early · ctClutch"
+  ],
+  "_contact": [
+   "contact · contactTick",
+   "fight-state · killMoveCover",
+   "sandbox · sbRevive"
+  ],
+  "_contactT": [
+   "contact · contactTick"
+  ],
+  "_cornerPK": [
+   "look-peek · cornerLook0"
+  ],
+  "_cornerPt": [
+   "look-peek · cornerLook0"
+  ],
+  "_covLog": [
+   "fight · fightCycleTick",
+   "shoot · tryShoot"
+  ],
+  "_covShot": [
+   "shoot · tryShoot"
+  ],
+  "_covT": [
+   "fight · fightCycleTick",
+   "shoot · tryShoot"
+  ],
+  "_defuseCont": [
+   "bomb · defuseContTick"
+  ],
+  "_defuseHeard": [
+   "bomb · defuseSound",
+   "bomb · resetBomb"
+  ],
+  "_delayT": [
+   "contact · ctDelayNade"
+  ],
+  "_detour": [
+   "contact · hurtReactTick",
+   "task · clearPostDo",
+   "task · detourStart",
+   "task · taskCanSet"
+  ],
+  "_djErr": [
+   "bomb · bombTick"
+  ],
+  "_djLog": [
+   "bomb · bombTick"
+  ],
+  "_djT": [
+   "bomb · bombTick"
+  ],
+  "_dmgBy": [
+   "damage · applyDamage",
+   "round · resetRound"
+  ],
+  "_drawUntil": [
+   "items · knifeTick",
+   "round · resetRound",
+   "shoot · tryShoot"
+  ],
+  "_duckT": [
+   "engagements · duckDecide"
+  ],
+  "_dumpCd": [
+   "self · nadeReact"
+  ],
+  "_dumpVoice": [
+   "self · nadeReact"
+  ],
+  "_dvName": [
+   "demo · dvStart",
+   "demo · dvStop"
+  ],
+  "_dwOnT": [
+   "fight · dangerWalk"
+  ],
+  "_dwTick": [
+   "fight · dangerWalk"
+  ],
+  "_dwVal": [
+   "fight · dangerWalk"
+  ],
+  "_dwWhy": [
+   "fight · dangerWalk"
+  ],
+  "_early": [
+   "ct-early · ctEarlyPeek"
+  ],
+  "_earlyAt": [
+   "ct-setup · ctSetupRole"
+  ],
+  "_earlyDone": [
+   "ct-setup · ctSetupRole"
+  ],
+  "_earlyLog": [
+   "ct-setup · ctSetupRole"
+  ],
+  "_earlyLogged": [
+   "ct-setup · ctSetupRole"
+  ],
+  "_earlySaw": [
+   "ct-setup · ctSetupRole"
+  ],
+  "_egC": [
+   "brain-t · tBrainExecGo",
+   "endgame · endgameBrain"
+  ],
+  "_egEnd": [
+   "endgame · endgameBrain"
+  ],
+  "_egF": [
+   "endgame · endgameBrain"
+  ],
+  "_egFv": [
+   "endgame · endgameBrain"
+  ],
+  "_egL": [
+   "endgame · endgameBrain"
+  ],
+  "_egWait": [
+   "endgame · egWaitPartner"
+  ],
+  "_entryWait": [
+   "move · moveSpeedTick"
+  ],
+  "_esT": [
+   "look-peek · exposedShiftTick"
+  ],
+  "_exposedUntil": [
+   "shoot · tryShoot"
+  ],
+  "_faceWhy": [
+   "turn · lookFace",
+   "turn · lookReset",
+   "turn · lookTurnBy"
+  ],
+  "_fakePlantAt": [
+   "bomb · bombTick"
+  ],
+  "_fakePlanted": [
+   "bomb · bombTick"
+  ],
+  "_fall": [
+   "levels · navFollowFloor",
+   "round · resetRound",
+   "sandbox · sbPlace"
+  ],
+  "_fbRound": [
+   "roles · infoFallbackTick",
+   "roles · tFallbackTick"
+  ],
+  "_fc": [
+   "fight · fcEnd",
+   "fight · fightCycleTick",
+   "round · resetRound",
+   "sandbox · sbPlace",
+   "sandbox · sbRemove"
+  ],
+  "_fcCv": [
+   "fight · fightCycleTick"
+  ],
+  "_fcD": [
+   "fight · fightCycleTick"
+  ],
+  "_fcFlank": [
+   "assist · flankAssist"
+  ],
+  "_fcP": [
+   "fight · fightCycleTick"
+  ],
+  "_fcS": [
+   "fight · fightCycleTick"
+  ],
+  "_fcSnap": [
+   "fight · fightCycleTick"
+  ],
+  "_fcV": [
+   "fight · fightCycleTick"
+  ],
+  "_fcWhy": [
+   "fight · fcWhy"
+  ],
+  "_fcWhyT": [
+   "fight · fcWhy"
+  ],
+  "_ffFrac": [
+   "damage · applyDamage"
+  ],
+  "_fillLock": [
+   "bomb · resetBomb",
+   "save-retake · saveCancelTrades",
+   "task · taskKeepUntil"
+  ],
+  "_finId": [
+   "sound · finishPush"
+  ],
+  "_finNext": [
+   "sound · finishPush"
+  ],
+  "_fire": [
+   "shoot · fireReady",
+   "shoot · tryShoot"
+  ],
+  "_fireAcc": [
+   "decide · resetNades"
+  ],
+  "_fireExit": [
+   "move · moveSpeedTick",
+   "round · resetRound"
+  ],
+  "_fireExitFire": [
+   "move · moveSpeedTick",
+   "round · resetRound"
+  ],
+  "_fireIn": [
+   "damage · nadesTick",
+   "decide · resetNades"
+  ],
+  "_fireRp": [
+   "tick-step · stepBot"
+  ],
+  "_fireWaitT": [
+   "tick-step · stepBot"
+  ],
+  "_flankE": [
+   "assist · flankAssist"
+  ],
+  "_flankT": [
+   "assist · flankAssist"
+  ],
+  "_flee": [
+   "bomb · bombFleePoint",
+   "brain-t-postplant · tBrainPostplant"
+  ],
+  "_fleeLog": [
+   "bomb · bombFleePoint"
+  ],
+  "_fleePt": [
+   "brain-t-postplant · tBrainPostplant"
+  ],
+  "_flx": [
+   "levels · navFollowFloor"
+  ],
+  "_fly": [
+   "levels · navFollowFloor"
+  ],
+  "_fpT": [
+   "items · weaponPickupTick"
+  ],
+  "_fpV": [
+   "items · weaponPickupTick"
+  ],
+  "_fsFail": [
+   "endgame · endgameBrain"
+  ],
+  "_fullKit": [
+   "economy · buyFullKit"
+  ],
+  "_fz": [
+   "turn · freezeLookTick"
+  ],
+  "_gl": [
+   "look · smoothLookFilter"
+  ],
+  "_glNext": [
+   "look · smoothLookFilter"
+  ],
+  "_hTask": [
+   "position · holdGroup"
+  ],
+  "_hand": [
+   "turn · handTurn",
+   "turn · lookTick"
+  ],
+  "_heDodgeLog": [
+   "self · heDodgeTick"
+  ],
+  "_heDone": [
+   "self · nadeReact",
+   "smoke-react · smokeHeTick"
+  ],
+  "_headLvl": [
+   "shoot · tryShoot"
+  ],
+  "_heardReload": [
+   "sound · reloadHeard"
+  ],
+  "_heat": [
+   "shoot · tryShoot"
+  ],
+  "_heldAim": [
+   "shoot · tryShoot"
+  ],
+  "_hes": [
+   "shoot · tryShoot"
+  ],
+  "_hitFx": [
+   "shoot · tryShoot"
+  ],
+  "_hitIn": [
+   "damage · applyDamage"
+  ],
+  "_hitOut": [
+   "damage · applyDamage"
+  ],
+  "_hold": [
+   "round · resetRound",
+   "sandbox · sbPlace",
+   "tick-step · stepBot"
+  ],
+  "_holdLog": [
+   "brain-ct-players · ctBrainPlayers",
+   "ct-early · secondOnSite"
+  ],
+  "_holdWhy": [
+   "fight-state · fightHoldOff"
+  ],
+  "_hot": [
+   "highlights · hlContact"
+  ],
+  "_hs": [
+   "fight-state · shiftHold"
+  ],
+  "_huntArrive": [
+   "brain-t-postplant · tBrainPostplant",
+   "round · resetRound"
+  ],
+  "_huntIdx": [
+   "brain-t-postplant · tBrainPostplant",
+   "round · resetRound"
+  ],
+  "_huntStart": [
+   "brain-t-postplant · tBrainPostplant"
+  ],
+  "_hurtDone": [
+   "contact · hurtReactTick"
+  ],
+  "_hurtFrom": [
+   "damage · applyDamage"
+  ],
+  "_hurtSndT": [
+   "damage · applyDamage"
+  ],
+  "_hurtSrc": [
+   "damage · applyDamage"
+  ],
+  "_hurtT": [
+   "damage · applyDamage"
+  ],
+  "_idle": [
+   "draw-map · drawNav"
+  ],
+  "_idlePhase": [
+   "draw-map · drawNav"
+  ],
+  "_idleT": [
+   "tick-step · stepBot"
+  ],
+  "_intelPre": [
+   "engagements · engDecide"
+  ],
+  "_jc": [
+   "round · resetRound",
+   "tick-jump · jumpCheckTick"
+  ],
+  "_jfw": [
+   "levels · jumpFaceWait"
+  ],
+  "_jnw": [
+   "levels · ladderTick"
+  ],
+  "_jump": [
+   "levels · navFollowFloor",
+   "round · resetRound",
+   "tick-jump · boostEnd",
+   "tick-jump · jumpCheckTick"
+  ],
+  "_jumpPrep": [
+   "levels · jumpFaceWait",
+   "levels · ladderTick"
+  ],
+  "_keepWhy": [
+   "task · taskKeep"
+  ],
+  "_keys": [
+   "tick-keys · strafeKeysTick"
+  ],
+  "_killHow": [
+   "damage · applyDamage"
+  ],
+  "_killHowT": [
+   "damage · applyDamage"
+  ],
+  "_killer": [
+   "damage · applyDamage"
+  ],
+  "_knDef": [
+   "items · knifeDefuseTick"
+  ],
+  "_knU": [
+   "items · knifeTick"
+  ],
+  "_knife": [
+   "assist · ambushTick",
+   "items · knifeDefuseTick",
+   "items · knifeTick",
+   "round · resetRound",
+   "shoot · tryShoot"
+  ],
+  "_kwl": [
+   "look · knownWayLook"
+  ],
+  "_land": [
+   "look-arbiter · landLook"
+  ],
+  "_landAt": [
+   "levels · navFollowFloor",
+   "tick-jump · landSound"
+  ],
+  "_lastNade": [
+   "throw · throwNadeTry"
+  ],
+  "_lastSawT": [
+   "engagements · engSee"
+  ],
+  "_ld": [
+   "turn · lookTick"
+  ],
+  "_ldArb": [
+   "look-arbiter · lookApply"
+  ],
+  "_ldPlan": [
+   "look · lookPlan"
+  ],
+  "_ldZones": [
+   "look · lookCands0"
+  ],
+  "_lkAltPt": [
+   "look-arbiter · lookAngleCand",
+   "look-arbiter · lookAssigned"
+  ],
+  "_lkC": [
+   "look · lookPlan",
+   "reach · beliefReset"
+  ],
+  "_lkPick": [
+   "look · lookPlan"
+  ],
+  "_lkPt": [
+   "look · lookPlan",
+   "reach · beliefReset"
+  ],
+  "_lkTop": [
+   "look · lookPlan",
+   "reach · beliefReset"
+  ],
+  "_lkW": [
+   "turn · lookTick"
+  ],
+  "_lkZ": [
+   "look · lookPlan",
+   "reach · beliefReset"
+  ],
+  "_lookLvl": [
+   "look-arbiter · lookApply"
+  ],
+  "_lowHpNext": [
+   "fight · lowHpBack"
+  ],
+  "_lp": [
+   "endgame · ctLandPunish"
+  ],
+  "_lpDone": [
+   "endgame · ctLandPunish"
+  ],
+  "_lurkArr": [
+   "lurker · lurkerBrain",
+   "round · resetRound"
+  ],
+  "_lurkGo": [
+   "lurker · lurkerBrain"
+  ],
+  "_lurkIdx": [
+   "lurker · lurkerBrain",
+   "round · resetRound"
+  ],
+  "_lurkPh": [
+   "lurker · lurkerBrain",
+   "round · resetRound"
+  ],
+  "_lurkPlan": [
+   "lurker · lurkerBrain"
+  ],
+  "_lurkSolo": [
+   "lurker · lurkerBrain"
+  ],
+  "_lvc": [
+   "look-arbiter · lookVisible"
+  ],
+  "_mateReT": [
+   "contact · contactTick"
+  ],
+  "_midBack": [
+   "brain-ct-players · ctBrainPlayers"
+  ],
+  "_midCareV": [
+   "brain-ct-players · ctBrainPlayers"
+  ],
+  "_midCover": [
+   "ct-early · midCoverPost"
+  ],
+  "_midFlank": [
+   "brain-t · tBrainExecGo",
+   "brain-t · tBrainMidTake"
+  ],
+  "_mistakes": [
+   "ct-setup · noteMistake",
+   "tactics · resetMatchMemory"
+  ],
+  "_moV": [
+   "fight-state · decideActionR"
+  ],
+  "_moveWhy": [
+   "move · movePath",
+   "move · moveSpeed",
+   "move · moveWaitPop",
+   "move · moveWalk"
+  ],
+  "_mwV": [
+   "brain-ct-players · ctBrainPlayers"
+  ],
+  "_nadeCd": [
+   "decide · nadeBrains",
+   "decide · resetNades"
+  ],
+  "_nadeNo": [
+   "round · resetRound",
+   "throw · nadeNoteFail"
+  ],
+  "_nadeT": [
+   "round · resetRound",
+   "throw · throwNadeTry"
+  ],
+  "_nadeUseT": [
+   "decide · nadeUseTick"
+  ],
+  "_nadeWhy": [
+   "decide · nadeCancel"
+  ],
+  "_nearBombT": [
+   "save-retake · retakeDefGo"
+  ],
+  "_nearestEnemyBot": [
+   "engagements · engSee",
+   "engagements · engTarget",
+   "warmup · warmTick"
+  ],
+  "_nearestEnemyDist": [
+   "engagements · engSee",
+   "engagements · engTarget"
+  ],
+  "_netStuck": [
+   "tick-step · stepBot"
+  ],
+  "_noPlantUntil": [
+   "bomb · bombActAbort",
+   "bomb · bombTick"
+  ],
+  "_noStopLog": [
+   "brain-ct-players · ctBrainPlayers"
+  ],
+  "_noisyT": [
+   "tick-step · stepBot"
+  ],
+  "_notice": [
+   "knowledge · noticeShooter"
+  ],
+  "_np": [
+   "tick-step · stepBot"
+  ],
+  "_nplan": [
+   "plan · npBought",
+   "plan · npRoundStart"
+  ],
+  "_npz": [
+   "lineups · lineupTick"
+  ],
+  "_nv": [
+   "throw · nadeVelTrack"
+  ],
+  "_nvP": [
+   "throw · nadeVelTrack"
+  ],
+  "_odK": [
+   "look-peek · openDirNear"
+  ],
+  "_odV": [
+   "look-peek · openDirNear"
+  ],
+  "_odl": [
+   "look-peek · openDirLook"
+  ],
+  "_offNav": [
+   "tick · navSnap",
+   "tick-step · stepBot"
+  ],
+  "_olK": [
+   "look-peek · openLook"
+  ],
+  "_olV": [
+   "look-peek · openLook"
+  ],
+  "_onPistol": [
+   "round · resetRound",
+   "sound · pistolBack",
+   "sound · pistolSwap"
+  ],
+  "_overV": [
+   "levels · floorViewTick",
+   "round · resetRound",
+   "sandbox · sbPlace"
+  ],
+  "_passTried": [
+   "sound · bombPassTick"
+  ],
+  "_paused": [
+   "fx · hudPaused"
+  ],
+  "_pdT": [
+   "items · weaponPickupTick"
+  ],
+  "_peekLag": [
+   "shoot · tryShoot"
+  ],
+  "_pickBan": [
+   "items · weaponPickupTick"
+  ],
+  "_pickGo": [
+   "items · weaponPickupTick"
+  ],
+  "_pickIgnore": [
+   "items · weaponPickupTick"
+  ],
+  "_pickSave": [
+   "items · weaponPickupTick"
+  ],
+  "_pickSeen": [
+   "items · weaponPickupTick"
+  ],
+  "_pickSince": [
+   "items · weaponPickupTick"
+  ],
+  "_pickT": [
+   "items · weaponPickupTick"
+  ],
+  "_pie": [
+   "look-peek · prePeekTick"
+  ],
+  "_place": [
+   "shoot · tryShoot"
+  ],
+  "_plantAbort": [
+   "bomb · bombActAbort",
+   "bomb · bombTick"
+  ],
+  "_posMem": [
+   "position · posRoundEnd"
+  ],
+  "_posT": [
+   "position · posTick"
+  ],
+  "_postSets": [
+   "task · setPostDo"
+  ],
+  "_ppAlt": [
+   "igl · ppTimeNamed"
+  ],
+  "_ppDone": [
+   "look-peek · prePeekDecide"
+  ],
+  "_ppFlashR": [
+   "look-peek · prePeekDecide"
+  ],
+  "_ppMate": [
+   "look-peek · prePeekDecide"
+  ],
+  "_ppSaid": [
+   "brain-t-postplant · tBrainPostplant"
+  ],
+  "_ppTN": [
+   "igl · ppTimeNamed"
+  ],
+  "_ppV": [
+   "look-peek · prePeekDecide"
+  ],
+  "_ppWaitUntil": [
+   "look-peek · prePeekDecide",
+   "look-peek · prePeekTick"
+  ],
+  "_prV": [
+   "bomb · bombTick"
+  ],
+  "_preAim": [
+   "shoot · tryShoot"
+  ],
+  "_prevOffX": [
+   "round · resetRound",
+   "tick-step · stepBot"
+  ],
+  "_prevOffY": [
+   "round · resetRound",
+   "tick-step · stepBot"
+  ],
+  "_proM": [
+   "task · proSpotLook"
+  ],
+  "_proRole": [
+   "pro-positions · proRolePost"
+  ],
+  "_probe": [
+   "igl · tSetSite",
+   "lurker · tProbes"
+  ],
+  "_probeLock": [
+   "assist · assistPeek",
+   "assist · flankAssist",
+   "contact · contactTick",
+   "contact · hurtReactTick",
+   "fight · lowHpBack",
+   "fight-state · afterKillReact",
+   "fight-state · killMoveCover",
+   "fight-state · postKillDecide",
+   "fight-state · shiftHold",
+   "intel · intelDeath",
+   "roles · infoFallbackTick",
+   "roles · tFallbackTick",
+   "sound · finishPush",
+   "sound · reloadPeek"
+  ],
+  "_progBest": [
+   "tick-step · stepBot"
+  ],
+  "_progIdx": [
+   "tick-step · stepBot"
+  ],
+  "_progPath": [
+   "tick-step · stepBot"
+  ],
+  "_progTick": [
+   "tick-step · stepBot"
+  ],
+  "_psK": [
+   "task · proSnap"
+  ],
+  "_psM": [
+   "task · proSnap"
+  ],
+  "_psR": [
+   "task · proSnap"
+  ],
+  "_psV": [
+   "task · proSnap"
+  ],
+  "_reactMul": [
+   "shoot · tryShoot"
+  ],
+  "_reangleNext": [
+   "brain-ct-players · ctBrainPlayers"
+  ],
+  "_rearNext": [
+   "look · smoothLookFilter"
+  ],
+  "_reloading": [
+   "assist · updateReload",
+   "fight · fightCycleTick",
+   "round · resetRound",
+   "sandbox · sbRevive",
+   "sound · pistolBack",
+   "sound · pistolSwap",
+   "warmup · warmSpawn"
+  ],
+  "_repeeked": [
+   "fight-state · afterKillReact"
+  ],
+  "_reposUntil": [
+   "task · taskKeep"
+  ],
+  "_retreatNade": [
+   "decide · nadeBrains"
+  ],
+  "_rlCoverT": [
+   "fight · coverForReload"
+  ],
+  "_rlPeekDone": [
+   "sound · reloadPeek"
+  ],
+  "_rlVoice": [
+   "sound · reloadHeard"
+  ],
+  "_roamSoundHandled": [
+   "fov · updateRoamer",
+   "weapons-bots · initRoam"
+  ],
+  "_roamSoundLockUntil": [
+   "fov · updateRoamer",
+   "weapons-bots · initRoam"
+  ],
+  "_rotMidLog": [
+   "brain-ct-players · ctBrainPlayers"
+  ],
+  "_route": [
+   "task · routeDrop",
+   "task · routeTick",
+   "task · setPostDo",
+   "task · startRoute"
+  ],
+  "_routeDone": [
+   "task · routeDrop",
+   "task · routeTick"
+  ],
+  "_rtChk": [
+   "engagements · engRetreatCheck"
+  ],
+  "_runWhy": [
+   "move · moveWalkTick"
+  ],
+  "_safeRotK": [
+   "fight · safeRotate"
+  ],
+  "_saveSpot": [
+   "brain-ct · ctBrainSave",
+   "brain-ct-players · ctBrainPlayers",
+   "brain-t · tBrainExecGo",
+   "brain-t · tBrainTeam",
+   "brain-t-postplant · tBrainPostplant",
+   "fight-state · afterKillReact",
+   "round · resetRound",
+   "save-retake · tSaveHold"
+  ],
+  "_sawEnemy": [
+   "engagements · engSee",
+   "warmup · warmSpawn",
+   "warmup · warmTick"
+  ],
+  "_sbGo": [
+   "sandbox · sbTick"
+  ],
+  "_sbOff": [
+   "sandbox · sbPanel",
+   "sandbox · sbToggle"
+  ],
+  "_sbWalk": [
+   "sandbox · sbPanel"
+  ],
+  "_seatRole": [
+   "ct-setup · ctSeatRoles"
+  ],
+  "_seatSide": [
+   "ct-setup · ctSeatRoles"
+  ],
+  "_secAmmo": [
+   "items · itemPickupTick",
+   "round · resetRound",
+   "sound · pistolBack"
+  ],
+  "_seenAt": [
+   "engagements · engSee"
+  ],
+  "_selfDone": [
+   "self · selfExitFlash"
+  ],
+  "_selfFlashCd": [
+   "self · nadeReact"
+  ],
+  "_shift": [
+   "brain-t · tBrainExecGo"
+  ],
+  "_shotAtBy": [
+   "shoot · tryShoot"
+  ],
+  "_shotAtT": [
+   "shoot · tryShoot"
+  ],
+  "_shoulderShot": [
+   "shoot · tryShoot"
+  ],
+  "_sl": [
+   "look · slNew",
+   "look · smoothLookFilter"
+  ],
+  "_slAtPrev": [
+   "look · smoothLookFilter"
+  ],
+  "_slw": [
+   "exec-sync · smokeLineTick"
+  ],
+  "_smk": [
+   "exec-sync · fireSmokeTick"
+  ],
+  "_smkParts": [
+   "engagements · engSee"
+  ],
+  "_smokeLog": [
+   "endgame · smokeEdgeTick"
+  ],
+  "_smokePush": [
+   "endgame · smokeEdgeTick"
+  ],
+  "_smokeShot": [
+   "smoke-react · smokeSpamTick"
+  ],
+  "_smokeWait": [
+   "endgame · smokeEdgeTick"
+  ],
+  "_spam": [
+   "smoke-react · smokeSpamTick"
+  ],
+  "_spamDone": [
+   "smoke-react · smokeSpamTick"
+  ],
+  "_stabT": [
+   "assist · ambushTick",
+   "items · knifeDefuseTick"
+  ],
+  "_stageInfo": [
+   "brain-t-phases · tBrainSetup",
+   "igl · stagePost",
+   "igl · tIglReplan",
+   "igl · tSetSite"
+  ],
+  "_stanceWhy": [
+   "task · placeStance"
+  ],
+  "_stateWhy": [
+   "fight-state · fightStateDo"
+  ],
+  "_stateWhyT": [
+   "fight-state · fightStateDo"
+  ],
+  "_stepDist": [
+   "tick-step · stepBot"
+  ],
+  "_stepP": [
+   "tick-step · stepBot"
+  ],
+  "_stopPlantLog": [
+   "brain-ct-players · ctBrainPlayers"
+  ],
+  "_stopPlantUntil": [
+   "brain-ct-players · ctBrainPlayers",
+   "brain-t-postplant · tBrainPostplant"
+  ],
+  "_stopWhy": [
+   "move · moveSpeedTick",
+   "tick-step · stepBot"
+  ],
+  "_stuckResets": [
+   "tick-step · stepBot"
+  ],
+  "_swSaid": [
+   "contact · contactTick"
+  ],
+  "_tagUntil": [
+   "round · resetRound",
+   "shoot · tryShoot"
+  ],
+  "_takeAt": [
+   "brain-t-phases · tBrainExecute"
+  ],
+  "_tap": [
+   "shoot · tryShoot"
+  ],
+  "_task": [
+   "task · clearPostDo",
+   "task · placeResetTask",
+   "task · routeTick",
+   "task · setPostDo"
+  ],
+  "_tcV": [
+   "fight-state · decideActionR"
+  ],
+  "_tgt": [
+   "engagements · engTarget"
+  ],
+  "_thrownT": [
+   "throw · throwNadeTry"
+  ],
+  "_tnMiss": [
+   "throw · throwNadeDo"
+  ],
+  "_tradeLock": [
+   "intel · tradeEnd"
+  ],
+  "_tradeUntil": [
+   "intel · tradeAlertSet",
+   "intel · tradeEnd"
+  ],
+  "_trail": [
+   "replay-play · rpWorldDraw",
+   "round · resetRound",
+   "sandbox · sbPlace",
+   "tick-step · stepBot"
+  ],
+  "_ts": [
+   "damage · detonate",
+   "engagements · engDecide",
+   "round · resetRound",
+   "sandbox · sbRevive",
+   "warmup · warmSpawn",
+   "warmup · warmTick"
+  ],
+  "_underV": [
+   "levels · floorViewTick",
+   "round · resetRound",
+   "sandbox · sbPlace"
+  ],
+  "_unstickT": [
+   "round · resetRound",
+   "tick-step · stepBot"
+  ],
+  "_utilW": [
+   "brain-t-phases · tBrainExecute"
+  ],
+  "_utilWDone": [
+   "brain-t-phases · tBrainExecute"
+  ],
+  "_visFacing": [
+   "draw-map · drawNav",
+   "warmup · warmTurn"
+  ],
+  "_visLag": [
+   "shoot · tryShoot"
+  ],
+  "_visible": [
+   "engagements · engSee"
+  ],
+  "_wIdx": [
+   "warmup · warmTick"
+  ],
+  "_wPath": [
+   "warmup · warmSpawn",
+   "warmup · warmTick"
+  ],
+  "_wRespawn": [
+   "warmup · warmSpawn",
+   "warmup · warmTick"
+  ],
+  "_waitPopKey": [
+   "move · moveWaitPop"
+  ],
+  "_waitPopUntil": [
+   "move · moveWaitPop"
+  ],
+  "_walkWhy": [
+   "move · moveWalkTick"
+  ],
+  "_wv": [
+   "warmup · warmTick"
+  ],
+  "_zoomTick": [
+   "task · updatePost"
+  ],
+  "alive": [
+   "damage · applyDamage",
+   "events · knowKill",
+   "knowledge · knowRoundStart",
+   "round · resetRound",
+   "sandbox · sbRemove",
+   "sandbox · sbRevive",
+   "scoreboard · plCardUpdate",
+   "warmup · warmSpawn"
+  ],
+  "ammo": [
+   "assist · updateReload",
+   "shoot · tryShoot",
+   "smoke-react · blindBullet",
+   "sound · pistolBack",
+   "sound · pistolSwap",
+   "warmup · warmSpawn"
+  ],
+  "armor": [
+   "damage · applyDamage",
+   "damage · armorSoak",
+   "demo · dvStart",
+   "economy · buyArmor",
+   "round · startHalf",
+   "warmup · warmSpawn"
+  ],
+  "armorHp": [
+   "damage · applyDamage",
+   "damage · armorSoak",
+   "economy · armorHpOf",
+   "economy · buyArmor",
+   "round · startHalf",
+   "warmup · warmSpawn"
+  ],
+  "assists": [
+   "round · newMatch"
+  ],
+  "atPost": [
+   "move · moveSpeedTick",
+   "round · resetRound",
+   "task · clearPostDo",
+   "task · setPostDo",
+   "task · updatePost"
+  ],
+  "baseX": [
+   "demo · dvPlace",
+   "levels · ladderTick",
+   "move · movePlace",
+   "round · resetRound",
+   "sandbox · sbPlace",
+   "tick · navSnap",
+   "tick-jump · jumpCheckTick",
+   "tick-keys · strafeKeysTick",
+   "tick-step · stepBot",
+   "warmup · warmSpawn",
+   "warmup · warmTick"
+  ],
+  "baseY": [
+   "demo · dvPlace",
+   "levels · ladderTick",
+   "move · movePlace",
+   "round · resetRound",
+   "sandbox · sbPlace",
+   "tick · navSnap",
+   "tick-jump · jumpCheckTick",
+   "tick-keys · strafeKeysTick",
+   "tick-step · stepBot",
+   "warmup · warmSpawn",
+   "warmup · warmTick"
+  ],
+  "blindUntil": [
+   "damage · detonate",
+   "decide · resetNades",
+   "sandbox · sbRevive",
+   "smoke · (верх файла)",
+   "warmup · warmSpawn"
+  ],
+  "burstCount": [
+   "engagements · engTarget",
+   "round · resetRound",
+   "shoot · tryShoot",
+   "sound · pistolSwap"
+  ],
+  "className": [
+   "app · (верх файла)",
+   "map-cover · (верх файла)",
+   "map-heights · (верх файла)",
+   "map-wallbang · (верх файла)",
+   "map-walls · (верх файла)",
+   "map-walls · mapEdSwitch"
+  ],
+  "contactStreak": [
+   "damage · detonate",
+   "engagements · engDecide",
+   "round · resetRound",
+   "sandbox · sbRevive",
+   "warmup · warmSpawn",
+   "warmup · warmTick"
+  ],
+  "cool": [
+   "ct-setup · (верх файла)"
+  ],
+  "crouching": [
+   "task · placeStance"
+  ],
+  "curSpeed": [
+   "levels · jumpFaceWait",
+   "levels · ladderTick",
+   "move · moveSpeed",
+   "move · moveSpeedTick",
+   "tick-step · stepBot"
+  ],
+  "deaths": [
+   "damage · applyDamage",
+   "round · newMatch"
+  ],
+  "decisionTick": [
+   "engagements · engDecide",
+   "fight-state · leaveHold",
+   "round · resetRound"
+  ],
+  "defuseCooldownUntil": [
+   "bomb · bombActAbort",
+   "bomb · bombTick"
+  ],
+  "defuseUntil": [
+   "bomb · bombTick"
+  ],
+  "defusing": [
+   "bomb · bombActReset",
+   "bomb · bombTick",
+   "bomb · resetBomb"
+  ],
+  "diedAt": [
+   "voice · teamDeath"
+  ],
+  "disabled": [
+   "map-cover · (верх файла)",
+   "map-heights · (верх файла)",
+   "map-wallbang · (верх файла)"
+  ],
+  "display": [
+   "demo · (верх файла)"
+  ],
+  "ears": [
+   "knowledge · knowHearing",
+   "knowledge · knowRoundStart"
+  ],
+  "exec": [
+   "exec-sync · exuReassign"
+  ],
+  "exu": [
+   "exec-sync · exuReassign"
+  ],
+  "exuThrown": [
+   "throw · throwNadeTry"
+  ],
+  "f": [
+   "scoreboard · plCardUpdate",
+   "turn · lookTick"
+  ],
+  "facing": [
+   "turn · freezeLookTick",
+   "turn · handTurn",
+   "turn · lookFace",
+   "turn · lookReset",
+   "turn · lookTick",
+   "turn · lookTrack",
+   "turn · lookTurnBy"
+  ],
+  "fakeHoldUntil": [
+   "bomb · bombTick",
+   "bomb · resetBomb"
+  ],
+  "fakeUntil": [
+   "bomb · bombTick",
+   "bomb · resetBomb"
+  ],
+  "fire": [
+   "smoke-react · smokeSpamTick",
+   "sound · onBlind"
+  ],
+  "forcedRetreat": [
+   "engagements · engDecide",
+   "round · resetRound",
+   "tick-step · stepBot"
+  ],
+  "fresh": [
+   "ct-setup · (верх файла)"
+  ],
+  "grp": [
+   "ct-early · proLineups"
+  ],
+  "heading": [
+   "round · resetRound",
+   "tick-step · stepBot",
+   "warmup · warmTick"
+  ],
+  "helmet": [
+   "damage · applyDamage",
+   "damage · armorSoak",
+   "demo · dvStart",
+   "economy · buyArmor",
+   "economy · buyFullKit",
+   "round · startHalf",
+   "warmup · warmSpawn"
+  ],
+  "hits": [
+   "damage · nadesTick"
+  ],
+  "holdSinceTick": [
+   "engagements · engDecide",
+   "round · resetRound"
+  ],
+  "holding": [
+   "engagements · engDecide",
+   "fight-state · fightHoldOff",
+   "fight-state · fightReset",
+   "fight-state · leaveHold"
+  ],
+  "hp": [
+   "damage · applyDamage",
+   "demo · dvPlace",
+   "round · resetRound",
+   "sandbox · sbRemove",
+   "sandbox · sbRevive",
+   "warmup · warmSpawn"
+  ],
+  "kills": [
+   "damage · applyDamage",
+   "round · newMatch"
+  ],
+  "kit": [
+   "damage · applyDamage",
+   "economy · buyForPlayer",
+   "economy · buyFullKit",
+   "items · itemPickupTick",
+   "round · startHalf"
+  ],
+  "know": [
+   "knowledge · knowRoundStart"
+  ],
+  "land": [
+   "tick · moveSoundEmit"
+  ],
+  "lastShotTick": [
+   "demo · dvTick",
+   "round · resetRound",
+   "shoot · tryShoot",
+   "smoke-react · blindBullet"
+  ],
+  "lastStepTick": [
+   "round · resetRound",
+   "tick-step · stepBot"
+  ],
+  "log": [
+   "move · moveSpeedTick"
+  ],
+  "look": [
+   "task · setPostDo"
+  ],
+  "lookMoving": [
+   "position · ppProGroup"
+  ],
+  "lookReason": [
+   "look-arbiter · lookApply",
+   "look-arbiter · lookReasonSet"
+  ],
+  "lookTarget": [
+   "round · resetRound",
+   "turn · lookTick"
+  ],
+  "money": [
+   "bomb · bombTick",
+   "damage · applyDamage",
+   "economy · buyArmor",
+   "economy · buyForPlayer",
+   "economy · buyFullKit",
+   "economy · buyItem",
+   "economy · payRoundEconomy",
+   "economy · sellItem",
+   "economy · teamAwp",
+   "economy · teamDrops",
+   "round · resetRound",
+   "round · startHalf",
+   "smoke · buyNades"
+  ],
+  "n": [
+   "shoot · tryShoot"
+  ],
+  "nadeQueue": [
+   "decide · nadeTaskEnd",
+   "decide · resetNades",
+   "exec-sync · exuReassign",
+   "lineups · lineupTick",
+   "smoke · (верх файла)"
+  ],
+  "nadeTask": [
+   "decide · nadeTaskEnd",
+   "decide · resetNades",
+   "exec-sync · exuReassign",
+   "lineups · lineupTick",
+   "plan · nadeAskFlash",
+   "smoke · (верх файла)",
+   "throw · assignNadeDo",
+   "throw · nadeQueueNext"
+  ],
+  "nades": [
+   "damage · applyDamage",
+   "decide · resetNades",
+   "economy · buyForPlayer",
+   "round · startHalf",
+   "smoke · (верх файла)",
+   "smoke · buyNades"
+  ],
+  "nextShotTick": [
+   "engagements · engTarget",
+   "round · resetRound",
+   "sandbox · sbRevive",
+   "shoot · tryShoot",
+   "smoke-react · blindBullet",
+   "sound · pistolSwap",
+   "warmup · warmSpawn"
+  ],
+  "onStairs": [
+   "round · resetRound",
+   "tick-step · stepBot"
+  ],
+  "path": [
+   "levels · fireRepath",
+   "levels · ladderTick",
+   "levels · navFollowFloor",
+   "move · movePath",
+   "move · moveSpeedTick",
+   "tick · navSnap",
+   "tick-step · stepBot"
+  ],
+  "pathIdx": [
+   "levels · fireRepath",
+   "levels · ladderTick",
+   "levels · navFollowFloor",
+   "move · movePath",
+   "move · movePathIdx",
+   "move · moveSpeedTick",
+   "tick · navSnap",
+   "tick-step · stepBot"
+  ],
+  "pending": [
+   "voice · teamDeath"
+  ],
+  "pfacing": [
+   "replay-play · rpWorldDraw",
+   "tick-step · stepBot",
+   "turn · freezeLookTick"
+  ],
+  "pickTick": [
+   "engagements · assignNewDestination",
+   "round · resetRound"
+  ],
+  "plantUntil": [
+   "bomb · bombTick"
+  ],
+  "planting": [
+   "bomb · bombActReset",
+   "bomb · bombTick",
+   "bomb · resetBomb"
+  ],
+  "post": [
+   "task · clearPostDo",
+   "task · placeResetPost",
+   "task · setPostDo"
+  ],
+  "pp": [
+   "observer · obsCtx"
+  ],
+  "ppAlt": [
+   "position · ppProGroup"
+  ],
+  "ppT": [
+   "observer · obsCtx"
+  ],
+  "primary": [
+   "damage · applyDamage",
+   "demo · dvStart",
+   "economy · awpSwap",
+   "economy · buyItem",
+   "economy · teamAwp",
+   "economy · teamDrops",
+   "items · weaponPickupTick",
+   "round · startHalf",
+   "warmup · warmSpawn"
+  ],
+  "pro": [
+   "task · setPostDo"
+  ],
+  "prof": [
+   "rosters · seatPlayers"
+  ],
+  "px": [
+   "demo · dvPlace",
+   "replay-play · rpWorldDraw",
+   "round · resetRound",
+   "sandbox · sbPlace",
+   "tick-step · stepBot",
+   "warmup · warmSpawn",
+   "warmup · warmTick"
+  ],
+  "py": [
+   "demo · dvPlace",
+   "replay-play · rpWorldDraw",
+   "round · resetRound",
+   "sandbox · sbPlace",
+   "tick-step · stepBot",
+   "warmup · warmSpawn",
+   "warmup · warmTick"
+  ],
+  "reactionTicks": [
+   "rosters · seatPlayers"
+  ],
+  "reloadUntil": [
+   "assist · updateReload",
+   "fight · fightCycleTick",
+   "sound · pistolBack",
+   "sound · pistolSwap"
+  ],
+  "retakeRole": [
+   "bomb · resetBomb",
+   "save-retake · updateRetake"
+  ],
+  "roamCheckStart": [
+   "fov · updateRoamer",
+   "weapons-bots · initRoam"
+  ],
+  "roamCheckUntil": [
+   "fov · updateRoamer",
+   "weapons-bots · initRoam"
+  ],
+  "roamChecking": [
+   "engagements · engDecide",
+   "fov · updateRoamer",
+   "tick-step · stepBot",
+   "weapons-bots · buildRoamRoutes",
+   "weapons-bots · initRoam"
+  ],
+  "roamIdx": [
+   "fov · updateRoamer",
+   "weapons-bots · buildRoamRoutes",
+   "weapons-bots · initRoam"
+  ],
+  "roamLookPt": [
+   "fov · updateRoamer",
+   "weapons-bots · initRoam"
+  ],
+  "roamPrevPt": [
+   "fov · updateRoamer",
+   "weapons-bots · initRoam"
+  ],
+  "roamTarget": [
+   "engagements · assignNewDestination",
+   "weapons-bots · buildRoamRoutes",
+   "weapons-bots · initRoam"
+  ],
+  "role": [
+   "weapons-bots · (верх файла)"
+  ],
+  "roundDmg": [
+   "damage · applyDamage",
+   "round · resetRound"
+  ],
+  "roundKills": [
+   "damage · applyDamage",
+   "round · resetRound"
+  ],
+  "secondary": [
+   "damage · applyDamage",
+   "demo · dvStart",
+   "economy · buyItem",
+   "items · itemPickupTick",
+   "round · startHalf"
+  ],
+  "setupLook": [
+   "ct-setup · ctSetupRole",
+   "position · ppProGroup"
+  ],
+  "skill": [
+   "rosters · seatPlayers"
+  ],
+  "speaking": [
+   "voice · teamChannel"
+  ],
+  "state": [
+   "fight-state · fightReset",
+   "fight-state · fightStateDo"
+  ],
+  "stateSince": [
+   "engagements · engDecide",
+   "items · weaponPickupTick"
+  ],
+  "stuckTicks": [
+   "round · resetRound",
+   "tick-step · stepBot"
+  ],
+  "t": [
+   "items · weaponPickupTick",
+   "task · postKeep",
+   "task · setPostDo"
+  ],
+  "tRole": [
+   "ct-setup · ctSeatRoles",
+   "rosters · seatPlayers",
+   "tuning · (верх файла)"
+  ],
+  "tag": [
+   "task · setPostDo"
+  ],
+  "team": [
+   "ct-setup · (верх файла)"
+  ],
+  "textContent": [
+   "app · (верх файла)",
+   "map-walls · mapEdSwitch"
+  ],
+  "throwUntil": [
+   "decide · resetNades",
+   "throw · throwNadeTry"
+  ],
+  "title": [
+   "app · (верх файла)",
+   "view3d · d3Toggle"
+  ],
+  "top": [
+   "economy · buyFullKit"
+  ],
+  "until": [
+   "brain-ct-players · ctBrainPlayers"
+  ],
+  "v": [
+   "fight · fightStrafe"
+  ],
+  "voice": [
+   "voice · teamTick"
+  ],
+  "walking": [
+   "move · moveSpeedTick",
+   "move · moveWalk",
+   "move · moveWalkTick",
+   "tick-step · stepBot"
+  ],
+  "weapon": [
+   "demo · dvStart",
+   "economy · buyForPlayer",
+   "economy · buyFullKit",
+   "items · itemPickupTick",
+   "items · weaponPickupTick",
+   "round · startHalf",
+   "sound · pistolBack",
+   "sound · pistolSwap",
+   "warmup · warmSpawn",
+   "weapons-bots · makeTeam"
+  ],
+  "weight": [
+   "knowledge · knowBuild"
+  ],
+  "windows": [
+   "knowledge · knowBuild"
+  ],
+  "x": [
+   "demo · dvPlace",
+   "levels · ladderTick",
+   "move · movePlace",
+   "round · resetRound",
+   "sandbox · sbPlace",
+   "tick · navSnap",
+   "tick-step · stepBot",
+   "warmup · warmSpawn",
+   "warmup · warmTick"
+  ],
+  "y": [
+   "demo · dvPlace",
+   "levels · ladderTick",
+   "move · movePlace",
+   "round · resetRound",
+   "sandbox · sbPlace",
+   "tick · navSnap",
+   "tick-step · stepBot",
+   "warmup · warmSpawn",
+   "warmup · warmTick"
+  ],
+  "z": [
+   "knowledge · hearReal",
+   "levels · ladderTick",
+   "levels · navFollowFloor",
+   "round · resetRound",
+   "sandbox · sbPlace",
+   "tick · navSnap",
+   "tick-step · stepBot"
+  ]
+ }
+}
