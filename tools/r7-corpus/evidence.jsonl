@@ -1,0 +1,2 @@
+{"map":"ancient","total":72,"stats":[{"cases":24,"hits":12,"misses":12},{"cases":24,"hits":12,"misses":12},{"cases":24,"hits":12,"misses":12}],"native":"bit-exact","wasm":"bit-exact"}
+{"map":"mirage","total":72,"stats":[{"cases":24,"hits":12,"misses":12},{"cases":24,"hits":12,"misses":12},{"cases":24,"hits":12,"misses":12}],"native":"bit-exact","wasm":"bit-exact"}
