@@ -1,3 +1,51 @@
-{"par": 8, "jobs": [
-  {"label": "b2_mir_a5", "ref": "d71ba75743497183374dc3762db1de5484583fbc", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29]}
-]}
+{
+ "par": 8,
+ "resume": true,
+ "fp": [
+  {
+   "label": "v636a_single_chr",
+   "ref": "7aba8b8faaff4254cf6598ee4d11ee6f21677079",
+   "map": "mirage",
+   "matches": [
+    3
+   ],
+   "phase": true
+  },
+  {
+   "label": "v636a_single_node",
+   "ref": "7aba8b8faaff4254cf6598ee4d11ee6f21677079",
+   "map": "mirage",
+   "engine": "node",
+   "matches": [
+    3
+   ],
+   "phase": true
+  },
+  {
+   "label": "v636a_chr_anc",
+   "ref": "7aba8b8faaff4254cf6598ee4d11ee6f21677079",
+   "map": "ancient",
+   "phase": true
+  },
+  {
+   "label": "v636a_node_anc",
+   "ref": "7aba8b8faaff4254cf6598ee4d11ee6f21677079",
+   "map": "ancient",
+   "engine": "node",
+   "phase": true
+  },
+  {
+   "label": "v636a_chr_mir",
+   "ref": "7aba8b8faaff4254cf6598ee4d11ee6f21677079",
+   "map": "mirage",
+   "phase": true
+  },
+  {
+   "label": "v636a_node_mir",
+   "ref": "7aba8b8faaff4254cf6598ee4d11ee6f21677079",
+   "map": "mirage",
+   "engine": "node",
+   "phase": true
+  }
+ ]
+}
