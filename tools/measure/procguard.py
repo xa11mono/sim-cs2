@@ -173,6 +173,9 @@ class Pool:
         self.par = max(1, int(par)); self.cap = self.par; self.low = 0; self.t_cap = time.time(); self.cap_log = []
         self.q, self.run, self.retry, self.peak_by_eng, self.seen_all, self.nojob = [], [], [], {}, set(), set()
         self.before = browser_pids(bdir) if bdir else set()
+        if self.before:   # (26.11) осиротевшие браузеры прошлого (отменённого) прогона: из папки Playwright, родителя нет — снять; с живым родителем — не трогать
+            P0 = procs(); orph = [q for q in self.before if q in P0 and (P0[q][0] not in P0 or P0[q][0] <= 1)]
+            if orph: self.log('guard: старт — осиротевшие процессы браузера прошлого прогона: %d, снимаю' % len(orph)); kill_pids(sorted(orph)); self.before -= set(orph)
         if os.path.exists(STATE):   # прошлый прогон не дошёл до конца (перезагрузка, снятие): последнее, что он видел
             try: self.log('guard: прошлый прогон оборвался; последнее состояние: ' + open(STATE, encoding='utf-8').read())
             except OSError: pass
