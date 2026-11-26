@@ -1,0 +1,109 @@
+{
+ "branch": "v638a",
+ "note": "Р5.6 три вида сборки (src/build_variants.py) — приёмка Codex (tools/browser-acceptance), облако, Chromium, через локальный сервер; отпечаток 3000 тиков м3 в каждом виде = одиночная сборка (Mirage 1395720187, Ancient 1982554255)",
+ "playwright": "1.63.0",
+ "results": [
+  {
+   "build": "single-map",
+   "map": "ancient",
+   "version": "158.0.8127.36",
+   "checks": {
+    "interface": "passed",
+    "hud": "passed",
+    "radar2d": "passed",
+    "view3d": "passed",
+    "sound": "passed",
+    "marks": "fallback",
+    "markSnapshot": "passed",
+    "editors": "passed",
+    "sandbox": "passed",
+    "replay": "passed"
+   }
+  },
+  {
+   "build": "single-map",
+   "map": "mirage",
+   "version": "158.0.8127.36",
+   "checks": {
+    "interface": "passed",
+    "hud": "passed",
+    "radar2d": "passed",
+    "view3d": "passed",
+    "sound": "passed",
+    "marks": "fallback",
+    "markSnapshot": "passed",
+    "editors": "passed",
+    "sandbox": "passed",
+    "replay": "passed"
+   }
+  },
+  {
+   "build": "all-maps",
+   "map": "ancient",
+   "version": "158.0.8127.36",
+   "checks": {
+    "interface": "passed",
+    "hud": "passed",
+    "radar2d": "passed",
+    "view3d": "passed",
+    "sound": "passed",
+    "marks": "fallback",
+    "markSnapshot": "passed",
+    "editors": "passed",
+    "sandbox": "passed",
+    "replay": "passed"
+   }
+  },
+  {
+   "build": "all-maps",
+   "map": "mirage",
+   "version": "158.0.8127.36",
+   "checks": {
+    "interface": "passed",
+    "hud": "passed",
+    "radar2d": "passed",
+    "view3d": "passed",
+    "sound": "passed",
+    "marks": "fallback",
+    "markSnapshot": "passed",
+    "editors": "passed",
+    "sandbox": "passed",
+    "replay": "passed"
+   }
+  },
+  {
+   "build": "variant-b",
+   "map": "ancient",
+   "version": "158.0.8127.36",
+   "checks": {
+    "interface": "passed",
+    "hud": "passed",
+    "radar2d": "passed",
+    "view3d": "passed",
+    "sound": "passed",
+    "marks": "fallback",
+    "markSnapshot": "passed",
+    "editors": "passed",
+    "sandbox": "passed",
+    "replay": "passed"
+   }
+  },
+  {
+   "build": "variant-b",
+   "map": "mirage",
+   "version": "158.0.8127.36",
+   "checks": {
+    "interface": "passed",
+    "hud": "passed",
+    "radar2d": "passed",
+    "view3d": "passed",
+    "sound": "passed",
+    "marks": "fallback",
+    "markSnapshot": "passed",
+    "editors": "passed",
+    "sandbox": "passed",
+    "replay": "passed"
+   }
+  }
+ ]
+}
