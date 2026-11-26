@@ -8,7 +8,7 @@
 const fs = require("fs"), path = require("path"), os = require("os");
 const NM = process.env.MOD_NODE_MODULES || path.join(__dirname, "node_modules");
 const acorn = require(path.join(NM, "acorn")), walk = require(path.join(NM, "acorn-walk")), esbuild = require(path.join(NM, "esbuild"));
-const { readGame } = require("./game_src.js");   // (Р1.1) модуль .ts — текст без типов (позиции те же)
+const { readGame, GAME } = require("./game_src.js");   // (Р1.1) модуль .ts — текст без типов (позиции те же)
 const argv = process.argv.slice(2), COMPACT = argv.includes("--compact");   // --compact — без лишних пробелов (публикуемая страница, mkpub.py)
 const [page, srcDir, ...mods] = argv.filter(a => a !== "--compact");
 let html = fs.readFileSync(page, "utf8");
@@ -54,7 +54,8 @@ function splitInit(src, f) {
 }
 const C = topNames(core, false), CU = usedNames(C.a);
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "modb_")), coreExp = new Set(), coreImp = {};
-const M = mods.map(f => { const src = readGame(path.join(srcDir, f)), t = topNames(src, true), U = usedNames(t.a);
+const M = mods.map(f => { const src = readGame(path.resolve(srcDir) === path.resolve(GAME) ? f : path.join(srcDir, f)),   // (Р4.2а) каталог игры — путь по описанию
+   t = topNames(src, true), U = usedNames(t.a);
   const imp = [...U].filter(n => C.N.has(n) && !t.N.has(n)); imp.forEach(n => coreExp.add(n));
   const exp = [...t.N].filter(n => CU.has(n)); coreImp[f] = exp;
   return { f, src, imp, exp, N: t.N }; });

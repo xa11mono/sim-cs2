@@ -38,7 +38,7 @@ def nade_hash(name):
     import gamesrc
     meta = gamesrc.game_meta()
     for fn in gamesrc.order():   # порядок списка = прежний порядок имён (Р4.1)
-        if meta[fn]['id'] in NADE_SRC: h.update(fn.encode()); h.update(open(os.path.join(gamesrc.GAME_DIR, fn), 'rb').read())
+        if meta[fn]['id'] in NADE_SRC: h.update(fn.encode()); h.update(open(gamesrc.game_path(fn), 'rb').read())
     d = os.path.join(MAPS, name)
     for fn in sorted(os.listdir(d)):
         if fn.endswith('.json') and not fn.startswith('_') and fn not in NOT_MAP and fn not in ('nadeguess.json', 'demorounds.json', 'turnmodel.json', 'tactics.json'):   # (v571) раунды демок (678) к броскам не относятся; (15.11) модель поворота прицела (510) — тоже: с ней отпечаток не совпадал, и сборка выкидывала подбор бросков во всех прогонах В147 (249–252); (15.11, перестройка) тактики и расстановки (tactics.json) — тоже: подбор хранится по точным входам броска (тип, откуда, куда), а лайнапы — из lineups / pro; правка расстановок CT в v581a устарила подбор Mirage, хотя пересчёт дал те же 312 решений

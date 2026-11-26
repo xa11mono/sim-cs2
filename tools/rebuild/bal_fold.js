@@ -9,19 +9,19 @@
 "use strict";
 const acorn = require("acorn"), fs = require("fs"), path = require("path");
 const ROOT = path.resolve(__dirname, "..", "..");
-const GAME = path.join(ROOT, "src", "game");
+const GS = require("./game_src.js"), GAME = GS.GAME;   // (Р4.2а) файлы игры — через описание (gamePath)
 const args = process.argv.slice(2);
 const keep = new Set(((args.find(a => a.startsWith("--keep=")) || "--keep=").slice(7)).split(",").filter(Boolean));
 
 // ---- значения BAL из 080_bal.js
-const balSrc = fs.readFileSync(path.join(GAME, "080_bal.js"), "utf8");
+const balSrc = fs.readFileSync(GS.gamePath("080_bal.js"), "utf8");
 const balAst = acorn.parse(balSrc, { ecmaVersion: "latest", ranges: true, locations: true, onComment: [] });
 let balObj = null;
 for (const st of balAst.body) if (st.type === "VariableDeclaration" && st.declarations[0].id.name === "BAL") balObj = st.declarations[0].init;
 const BALV = {};
 for (const p of balObj.properties) if (p.value.type === "Literal") BALV[p.key.name] = p.value.value;
 
-const files = fs.readdirSync(GAME).filter(f => /\.(js|ts)$/.test(f)).map(f => path.join(GAME, f))   // (Р1.1) .ts — правится как текст.concat([path.join(ROOT, "src", "marks.js")]);
+const files = GS.gameFiles().filter(f => /\.(js|ts)$/.test(f)).map(f => GS.gamePath(f))   // (Р1.1) .ts — правится как текст.concat([path.join(ROOT, "src", "marks.js")]);
 function jsUnder(d) { let r = []; for (const f of fs.readdirSync(d, { withFileTypes: true })) { const q = path.join(d, f.name);
   if (f.isDirectory()) { if (f.name !== "node_modules" && f.name !== "runs" && f.name !== "results") r = r.concat(jsUnder(q)); } else if (/\.js$/.test(f.name)) r.push(q); } return r; }
 // писатели ищутся и в инструментах: ключ, который выключают тесты / замеры (BAL.execErr = false), — не вечный
@@ -159,7 +159,7 @@ for (const f of files) {
 }
 
 // ---- 080_bal.js: убрать ключи из объекта (описание — в реестр)
-let bs = fs.readFileSync(path.join(GAME, "080_bal.js"), "utf8");
+let bs = fs.readFileSync(GS.gamePath("080_bal.js"), "utf8");
 const desc = {};
 {
   const ast = parse(bs); let obj = null;
@@ -182,7 +182,7 @@ const desc = {};
   });
   cuts.sort((a, b) => b.s - a.s).forEach(c => { bs = bs.slice(0, c.s) + bs.slice(c.e); });
 }
-fs.writeFileSync(path.join(GAME, "080_bal.js"), bs);
+fs.writeFileSync(GS.gamePath("080_bal.js"), bs);
 
 // ---- реестр
 const R = path.join(ROOT, "rebuild", "bal_removed.md");

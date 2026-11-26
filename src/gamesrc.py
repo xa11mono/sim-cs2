@@ -27,13 +27,15 @@ SRC_EXT = ('.html', '.js', '.ts')
 # (Р4.1, 26.11) порядок загрузки — один список rebuild/files.json («files», по порядку склейки), а не сортировка имён: после переименования
 # без числовых префиксов (Р4.2) порядок остаётся тем же. Файл на диске не из списка или строка без файла — ошибка (новый файл — только
 # с согласием владельца: сначала строка в списке, AGENTS.md §7)
+ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 FILES_JSON = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'rebuild', 'files.json')
 
 
 def order():
     import json
     L = list(json.load(open(FILES_JSON, encoding='utf-8'))['files'])
-    disk = set(f for f in os.listdir(GAME_DIR) if f.endswith(SRC_EXT))
+    dirs = {g['dir'] for g in json.load(open(FILES_JSON, encoding='utf-8'))['game']}   # (Р4.2а) каталоги файлов игры
+    disk = set(f for d in dirs for f in os.listdir(os.path.join(ROOT, d)) if f.endswith(SRC_EXT))
     extra, missing = sorted(disk - set(L)), [f for f in L if f not in disk]
     if extra or missing:
         sys.exit('порядок загрузки (rebuild/files.json): ' + ('нет в списке: ' + ', '.join(extra) + '; ' if extra else '') +
@@ -44,7 +46,7 @@ def order():
 def read_game_file(f):
     """(Р1.1) Текст файла игры, как его видит браузер: .ts — без типов (tools/rebuild/game_src.js: типы заменены пробелами, строки и
     позиции те же); остальное — как есть. Байты — для склейки (game_source), как раньше."""
-    p = f if os.path.isabs(f) else os.path.join(GAME_DIR, f)
+    p = f if os.path.isabs(f) else game_path(f)
     if not p.endswith('.ts'):
         return open(p, 'rb').read()
     import subprocess
@@ -59,6 +61,12 @@ def game_meta():
     """(Р4.2а) описание файлов игры из rebuild/files.json «game»: имя → {id, part, sys} (как tools/rebuild/game_src.js gameMeta)"""
     import json
     return {g['file']: g for g in json.load(open(FILES_JSON, encoding='utf-8'))['game']}
+
+
+def game_path(name):
+    """(Р4.2а) путь файла игры по имени: каталог — rebuild/files.json dir (имя файла уникально)"""
+    b = os.path.basename(name)
+    return os.path.join(ROOT, game_meta().get(b, {}).get('dir', 'src/game'), b)
 
 
 def file_id(name):
@@ -90,7 +98,7 @@ def bundle_modules(page, compact=False):
 
 def game_files():
     skip = set(module_files())
-    return [os.path.join(GAME_DIR, f) for f in order() if f not in skip]
+    return [game_path(f) for f in order() if f not in skip]
 
 
 def _all_files():

@@ -16,32 +16,38 @@ function stripTs(src, file) {
 }
 // текст файла игры так, как его видит браузер (для .ts — без типов)
 function readGame(file) {
-  const p = path.isAbsolute(file) ? file : path.join(GAME, file), s = fs.readFileSync(p, "utf8");
+  const p = path.isAbsolute(file) ? file : gamePath(file), s = fs.readFileSync(p, "utf8");
   return /\.ts$/.test(p) ? stripTs(s, p) : s;
 }
 // (Р4.1, 26.11) порядок загрузки — список rebuild/files.json (как src/gamesrc.py order()); другой каталог (опыты) — по именам, как было
 function gameFiles(dir = GAME) {
   if (path.resolve(dir) !== path.resolve(GAME)) return fs.readdirSync(dir).filter(f => SRC_RE.test(f)).sort();
   const L = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "..", "rebuild", "files.json"), "utf8")).files;
-  const disk = new Set(fs.readdirSync(dir).filter(f => SRC_RE.test(f))), extra = [...disk].filter(f => !L.includes(f)), miss = L.filter(f => !disk.has(f));
+  // (Р4.2а) файлы игры могут лежать в нескольких каталогах (dir в описании): на диске — все файлы игры этих каталогов
+  const dirs = [...new Set(Object.values(gameMeta()).map(g => g.dir))], disk = new Set();
+  dirs.forEach(d => fs.readdirSync(path.join(ROOT, d)).filter(f => SRC_RE.test(f)).forEach(f => disk.add(f)));
+  const extra = [...disk].filter(f => !L.includes(f)), miss = L.filter(f => !disk.has(f));
   if (extra.length || miss.length) throw new Error("порядок загрузки (rebuild/files.json): " + (extra.length ? "нет в списке: " + extra.join(", ") + "; " : "") + (miss.length ? "нет файла: " + miss.join(", ") : ""));
   return L.slice();
 }
 // склейка всех файлов с границами: { all, spans: [[начало, конец, файл], …] } — как src/gamesrc.py, но модули — своим текстом
 function concat(dir = GAME) {
   let all = ""; const spans = [];
-  for (const f of gameFiles(dir)) { const s = readGame(path.join(dir, f)); spans.push([all.length, all.length + s.length, f]); all += s; }
+  for (const f of gameFiles(dir)) { const s = readGame(path.resolve(dir) === path.resolve(GAME) ? f : path.join(dir, f)); spans.push([all.length, all.length + s.length, f]); all += s; }
   return { all, spans };
 }
 // (Р4.2а, 26.11) описание файла игры — rebuild/files.json «game»: id (короткая метка вместо номера в имени), part (page / infra / decide /
 // engine / watch / show), sys (система). Инструменты берут это отсюда, а не из номера в имени файла — переименование (Р4.2б) их не ломает
 let META = null;
 function gameMeta() { if (!META) { META = {}; JSON.parse(fs.readFileSync(path.join(__dirname, "..", "..", "rebuild", "files.json"), "utf8")).game.forEach(g => { META[g.file] = g; }); } return META; }
+const ROOT = path.join(__dirname, "..", "..");
+// путь файла игры по имени: каталог — из описания (rebuild/files.json dir); имени нет в описании — каталог игры (src/game)
+const gamePath = f => path.join(ROOT, (gameMeta()[path.basename(f)] || { dir: "src/game" }).dir, path.basename(f));
 const metaOf = f => gameMeta()[path.basename(f)] || { file: path.basename(f), id: "?", part: "?", sys: "?" };
 const fileId = f => metaOf(f).id, filePart = f => metaOf(f).part, fileSys = f => metaOf(f).sys;
 const isCalc = f => /\.(js|ts)$/.test(f) && !["show", "page"].includes(filePart(f));   // код расчёта (DM.*, без показа)
 const isShow = f => ["show", "page"].includes(filePart(f));
-module.exports = { GAME, SRC_RE, gameFiles, readGame, stripTs, concat, gameMeta, fileId, filePart, fileSys, isCalc, isShow };
+module.exports = { GAME, ROOT, SRC_RE, gameFiles, readGame, gamePath, stripTs, concat, gameMeta, fileId, filePart, fileSys, isCalc, isShow };
 
 if (require.main === module) {
   const [cmd, file] = process.argv.slice(2);

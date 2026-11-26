@@ -6,14 +6,14 @@
 const fs = require('fs'), path = require('path');
 const NM = path.join(__dirname, '..', 'rebuild', 'node_modules');
 const acorn = require(path.join(NM, 'acorn')), walk = require(path.join(NM, 'acorn-walk'));
-const { GAME, gameFiles, readGame, isCalc: calcF, filePart } = require(path.join(__dirname, '..', 'rebuild', 'game_src.js'));
+const { gamePath, gameFiles, readGame, isCalc: calcF, filePart } = require(path.join(__dirname, '..', 'rebuild', 'game_src.js'));
 const [fn] = process.argv.slice(2), CHECK = process.argv.includes('--check');
 const FNS = ['hypot', 'atan2', 'sin', 'cos', 'exp', 'log', 'pow', 'atan', 'acos'];
 if (!FNS.includes(fn)) { console.error('node tools/dmath/replace.js <' + FNS.join('|') + '> [--check]'); process.exit(2); }
 const isCalc = f => calcF(f) && filePart(f) !== 'math';   // (Р4.2а) код расчёта, кроме самой DM — rebuild/files.json
 let total = 0; const per = {}, errs = [], outs = {};
 for (const f of gameFiles().filter(isCalc)) {
-  const raw = fs.readFileSync(path.join(GAME, f), 'utf8'), src = readGame(f).replace(/@@[A-Z_]+@@/g, m => '0'.padEnd(m.length, ' '));
+  const raw = fs.readFileSync(gamePath(f), 'utf8'), src = readGame(f).replace(/@@[A-Z_]+@@/g, m => '0'.padEnd(m.length, ' '));
   // кусок склейки: 010 открывает обёртку игры, 680 закрывает — дописать / снять для разбора (позиции те же)
   let ast; const opts = { ecmaVersion: 'latest', allowReturnOutsideFunction: true, sourceType: 'script' };
   try { ast = acorn.parse(src, opts); } catch (e) { ast = acorn.parse(src + '\n})();', opts); }
@@ -37,5 +37,5 @@ for (const f of gameFiles().filter(isCalc)) {
   outs[f] = out;
 }
 if (errs.length) { console.error('ОШИБКА (ничего не записано):\n  ' + errs.join('\n  ')); process.exit(1); }
-if (!CHECK) for (const [f, out] of Object.entries(outs)) fs.writeFileSync(path.join(GAME, f), out);   // все файлы — только если ошибок нет нигде
+if (!CHECK) for (const [f, out] of Object.entries(outs)) fs.writeFileSync(gamePath(f), out);   // все файлы — только если ошибок нет нигде
 console.log((CHECK ? 'найдено' : 'заменено') + ' Math.' + fn + ' → DM.' + fn + ': ' + total + ' вызовов в ' + Object.keys(per).length + ' файлах — ' + Object.entries(per).map(([f, n]) => f.slice(0, 3) + ':' + n).join(' '));
