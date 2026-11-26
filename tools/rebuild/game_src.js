@@ -19,7 +19,14 @@ function readGame(file) {
   const p = path.isAbsolute(file) ? file : path.join(GAME, file), s = fs.readFileSync(p, "utf8");
   return /\.ts$/.test(p) ? stripTs(s, p) : s;
 }
-const gameFiles = (dir = GAME) => fs.readdirSync(dir).filter(f => SRC_RE.test(f)).sort();
+// (Р4.1, 26.11) порядок загрузки — список rebuild/files.json (как src/gamesrc.py order()); другой каталог (опыты) — по именам, как было
+function gameFiles(dir = GAME) {
+  if (path.resolve(dir) !== path.resolve(GAME)) return fs.readdirSync(dir).filter(f => SRC_RE.test(f)).sort();
+  const L = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "..", "rebuild", "files.json"), "utf8")).files;
+  const disk = new Set(fs.readdirSync(dir).filter(f => SRC_RE.test(f))), extra = [...disk].filter(f => !L.includes(f)), miss = L.filter(f => !disk.has(f));
+  if (extra.length || miss.length) throw new Error("порядок загрузки (rebuild/files.json): " + (extra.length ? "нет в списке: " + extra.join(", ") + "; " : "") + (miss.length ? "нет файла: " + miss.join(", ") : ""));
+  return L.slice();
+}
 // склейка всех файлов с границами: { all, spans: [[начало, конец, файл], …] } — как src/gamesrc.py, но модули — своим текстом
 function concat(dir = GAME) {
   let all = ""; const spans = [];

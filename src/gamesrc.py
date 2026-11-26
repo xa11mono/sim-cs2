@@ -24,6 +24,22 @@ def module_files():
 
 SRC_EXT = ('.html', '.js', '.ts')
 
+# (Р4.1, 26.11) порядок загрузки — один список rebuild/files.json («files», по порядку склейки), а не сортировка имён: после переименования
+# без числовых префиксов (Р4.2) порядок остаётся тем же. Файл на диске не из списка или строка без файла — ошибка (новый файл — только
+# с согласием владельца: сначала строка в списке, AGENTS.md §7)
+FILES_JSON = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'rebuild', 'files.json')
+
+
+def order():
+    import json
+    L = list(json.load(open(FILES_JSON, encoding='utf-8'))['files'])
+    disk = set(f for f in os.listdir(GAME_DIR) if f.endswith(SRC_EXT))
+    extra, missing = sorted(disk - set(L)), [f for f in L if f not in disk]
+    if extra or missing:
+        sys.exit('порядок загрузки (rebuild/files.json): ' + ('нет в списке: ' + ', '.join(extra) + '; ' if extra else '') +
+                 ('нет файла: ' + ', '.join(missing) if missing else ''))
+    return L
+
 
 def read_game_file(f):
     """(Р1.1) Текст файла игры, как его видит браузер: .ts — без типов (tools/rebuild/game_src.js: типы заменены пробелами, строки и
@@ -41,7 +57,7 @@ def read_game_file(f):
 
 def module_source():
     """Текст каналов-модулей (по порядку номеров) — для тех, кто ищет переменные игры по исходнику (снимок отметки)."""
-    return ''.join(read_game_file(f).decode('utf-8') for f in sorted(module_files()))
+    return ''.join(read_game_file(f).decode('utf-8') for f in (x for x in order() if x in set(module_files())))
 
 
 def bundle_modules(page, compact=False):
@@ -63,11 +79,11 @@ def bundle_modules(page, compact=False):
 
 def game_files():
     skip = set(module_files())
-    return [os.path.join(GAME_DIR, f) for f in sorted(os.listdir(GAME_DIR)) if f.endswith(SRC_EXT) and f not in skip]
+    return [os.path.join(GAME_DIR, f) for f in order() if f not in skip]
 
 
 def _all_files():
-    return [f for f in sorted(os.listdir(GAME_DIR)) if f.endswith(SRC_EXT)]
+    return order()
 
 
 def game_source():
