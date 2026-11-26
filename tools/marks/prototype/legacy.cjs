@@ -99,6 +99,24 @@ async function convert(input, out, options = {}) {
     need(uint(tr.fromTick) && uint(tr.toTick) && tr.fromTick <= tr.toTick, 'След: нужны fromTick <= toTick');
     mark.trace = { fromTick: tr.fromTick, toTick: tr.toTick, asset: add('trace.json', buffer, 'sim-cs2/dlog') };
   }
+  // (Р5.7, шаг 3 Codex) вклады метрик ошибок движения (engine/debug/problem-watch.js, полный журнал матча PROB.all) за окно следа:
+  // одна запись — один вклад «counted» (+1 к своей метрике), seq — номер в журнале матча; чанки по раундам; итог — по записанному окну
+  if (options.diag) {
+    const zlib = require('node:zlib'), D = options.diag, rows = D.rows || [];
+    need(uint(D.match) && Array.isArray(rows) && rows.every((r, i) => uint(r.seq) && (i === 0 || r.seq === rows[i - 1].seq + 1)), 'Вклады метрик: нужны подряд идущие записи журнала матча');
+    const metrics = {}, summary = {}, segments = [], ids = ['stall', 'nav', 'tug'];
+    ids.forEach(id => { metrics[id] = { revision: 'problem-watch PROB.all v1', unit: 'событие' }; summary[id] = { counted: 0, eligible: 0, excluded: 0, censored: 0 }; });
+    const conv = r => { const e = r.e || {}; summary[e.kind] && summary[e.kind].counted++;
+      return { seq: r.seq, tick: e.tick, phase: 'live', episode: e.kind === 'stall' && e.ep ? 'stall#' + e.ep : e.kind + '@' + e.tick + ':' + e.id, metric: e.kind, outcome: 'counted', delta: 1,
+        reason: e.sub || e.kind, sourceEvent: 'PROB.all#' + r.seq, actor: e.id == null ? null : String(e.id), facts: { ref: 'PROB.all#' + r.seq, domain: 'world' }, text: e.text, why: e.why }; };
+    for (let i = 0; i < rows.length;) { const rd = rows[i].e.round; let j = i; while (j < rows.length && rows[j].e.round === rd) j++;
+      const part = rows.slice(i, j).map(conv), buf = zlib.gzipSync(Buffer.from(part.map(x => JSON.stringify(x)).join('\n') + '\n'));
+      segments.push({ kind: 'chunk', fromSeq: rows[i].seq, toSeq: rows[j - 1].seq + 1, round: rd, fromTick: part[0].tick, toTick: part[part.length - 1].tick, asset: add('diag-r' + rd + '-' + rows[i].seq + '.jsonl.gz', buf, 'jsonl+gzip') });
+      i = j; }
+    const from = rows.length ? rows[0].seq : D.total || 0;
+    mark.diagnostics = { version: 1, session: 'mark-export', match: D.match, fromSeq: from, toSeq: rows.length ? rows[rows.length - 1].seq + 1 : from, metrics, segments, summary,
+      window: { fromTick: D.fromTick, toTick: D.toTick }, matchTotals: D.n || null };
+  }
   if (options.image) {
     const buffer = read(options.image);
     const codec = buffer[0] === 0x89 ? 'png' : 'jpeg';

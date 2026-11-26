@@ -16,6 +16,7 @@ const SIM = path.resolve(process.argv[2]), M = +(A.match || 3), T = +(A.ticks ||
 const REG = require('../../rebuild/state_classes.json'), UI = require('../../rebuild/gen/ui.json');
 const CACHE = new Set(Object.keys(REG).filter(k => k.startsWith('g:') && REG[k].class === 'кэш').map(k => k.slice(2)));
 // поля показа, которые ядро не читает (доказательство — разбор кода, rebuild/gen/ui.json): не сравниваются
+const DSUB = {}; (require('../../rebuild/ui_boundary_known.json').diagnosticSubfields || []).forEach(x => { (DSUB[x.field] = DSUB[x.field] || []).push(x.sub); });
 const rx = x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const SHOWF = UI.showFields.filter(x => !x.read_by_core.length).map(x => rx(x.field)), SHOWV = (UI.showVars || []).filter(x => !x.read_by_core.length).map(x => rx(x.var));
 const SET = DVS.setupCode(DVS.skipDefault().replace(/\)\$$/, '|WK_STAT|' + SHOWV.join('|') + ')$'), DVS.SKIPF_DEFAULT.replace(/\)\$$/, '|' + SHOWF.join('|') + ')$')) + '\n1';
@@ -101,12 +102,27 @@ async function cacheKeys(p, names) {   // для различающихся кэ
     let cacheNote = '';
     if (c.cacheDiff.length) { const ka = await cacheKeys(a.page, c.cacheDiff), kb = await cacheKeys(b.page, c.cacheDiff); const realDiff = [];
       for (const n of c.cacheDiff) { const x = ka[n], y = kb[n]; if (!x || !y || typeof x !== 'object' || Array.isArray(x) || x.m) { realDiff.push(n); continue; }
-        const common = Object.keys(x).filter(q => q in y); if (common.some(q => JSON.stringify(x[q]) !== JSON.stringify(y[q]))) realDiff.push(n); else c.cacheExtra.push(n + ' (+' + (Object.keys(x).length - common.length) + ' / +' + (Object.keys(y).length - common.length) + ')'); }
+        // поля-памятки неизменяемых данных (MK_STATIC_FIELDS: _dz, _jcf, _jcq, _npz, zid — ленивый ответ функции от геометрии) — не значение кэша
+        const memo = v => JSON.stringify(v, (k, w) => (/^(_dz|_jcf|_jcq|_npz|zid)$/.test(k) ? undefined : w)).replace(/\{"#":\d+\}/g, '"#"');
+        const common = Object.keys(x).filter(q => q in y); if (common.some(q => memo(x[q]) !== memo(y[q]))) realDiff.push(n); else c.cacheExtra.push(n + ' (+' + (Object.keys(x).length - common.length) + ' / +' + (Object.keys(y).length - common.length) + ')'); }
       c.game.push(...realDiff.map(n => n + ' (кэш: разные значения по общим ключам)')); }
     if (c.cacheExtra.length) cacheNote = '; кэш — лишние ключи от показа (значения общих равны): ' + c.cacheExtra.join(', ');
     if (c.bots) {   // боты — по полям: игровые поля — провал, поля диагностики — отдельной строкой
-      const fa = JSON.parse(await a.page.evaluate(() => DV.last.bots)), fb = JSON.parse(await b.page.evaluate(() => DV.last.bots)), F = new Set();
-      fa.forEach((x, i) => { const y = fb[i] || {}; Object.keys(Object.assign({}, x, y)).forEach(f => { if (JSON.stringify(x[f]) !== JSON.stringify(y[f])) F.add(f); }); });
+      // каждое поле каждого бота — отдельно (номера общих ссылок дерева DV сдвигаются от лишнего объекта раньше по обходу); ссылка на бота — @id
+      const BFS = `(function(){ var ids = new Map(); bots.forEach(function(b){ ids.set(b, b.id); });
+        function enc(v, seen){ if(v === undefined) return {u: 1}; if(typeof v === 'number') return v !== v ? 'NaN' : (v === 0 && 1/v < 0) ? '-0' : v === Infinity ? 'I' : v === -Infinity ? '-I' : v;
+          if(typeof v === 'function') return {f: v.name || 1}; if(v === null || typeof v !== 'object') return v; if(ids.has(v) && seen.length) return '@' + ids.get(v);
+          if(seen.indexOf(v) >= 0) return '^'; seen = seen.concat([v]);
+          if(Array.isArray(v) || ArrayBuffer.isView(v)) return Array.prototype.map.call(v, function(x){ return enc(x, seen); });
+          if(v instanceof Map){ var m = []; v.forEach(function(x, k){ m.push([enc(k, seen), enc(x, seen)]); }); return {m: m}; }
+          if(v instanceof Set){ var q = []; v.forEach(function(x){ q.push(enc(x, seen)); }); return {s: q}; }
+          var o = {}; Object.keys(v).forEach(function(k){ if(!DV.skipf.test(k)) o[k] = enc(v[k], seen); }); return o; }
+        var SUB = ${JSON.stringify(DSUB)};   // подполя диагностики (rebuild/ui_boundary_known.json diagnosticSubfields) — с обоснованием
+        function strip(k, v){ var q = SUB[k]; if(!q || v == null) return v; var cut = function(x){ if(!x || typeof x !== 'object') return x; var y = {}; Object.keys(x).forEach(function(z){ if(q.indexOf(z) < 0) y[z] = x[z]; }); return y; };
+          return Array.isArray(v) ? v.map(cut) : cut(v); }
+        return JSON.stringify(bots.map(function(b){ var o = {}; Object.keys(b).forEach(function(k){ if(!DV.skipf.test(k)) o[k] = JSON.stringify(enc(strip(k, b[k]), [b])); }); return o; })); })()`;
+      const fa = JSON.parse(await a.page.evaluate(x => __ev(x), BFS)), fb = JSON.parse(await b.page.evaluate(x => __ev(x), BFS)), F = new Set();
+      fa.forEach((x, i) => { const y = fb[i] || {}; Object.keys(Object.assign({}, x, y)).forEach(f => { if (x[f] !== y[f]) F.add(f); }); });
       c.game.splice(c.game.indexOf('bots'), 1); [...F].forEach(f => (gameField(f) ? c.game : c.diag).push('bots.' + f)); }
     if (c.diag.length) cacheNote += '; диагностика (не игра по реестру): ' + c.diag.join(', ');
     if (A.detail) for (const k of [...c.game, ...c.diag, ...c.cacheDiff].map(x => x.split(' ')[0].split('.')[0]).filter((x, i, L) => L.indexOf(x) === i).slice(0, 6)) {   // --detail: где первое различие

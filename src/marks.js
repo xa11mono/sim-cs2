@@ -184,7 +184,13 @@ async function mkExportFile(){
     Object.keys(DLOG.by).forEach(function(id){ var B = DLOG.by[id], o = {}; Object.keys(B).forEach(function(k){ if(!Array.isArray(B[k])) return;
       var L = B[k].filter(function(e){ return e[0] >= t0 && e[0] <= m.tick; }); if(L.length) o[k] = L; }); if(Object.keys(o).length) by[id] = o; });
     tr = {fromTick: Math.max(0, t0), toTick: m.tick, on: !!DLOG.on, by: by}; }
-  var out = JSON.stringify({format: "sim-cs2/mark-export", version: 1, doc: doc, snapshot: mkPack(m.snap), pre: m.pre ? mkPack(m.pre.data) : null, image: img || null, trace: tr});
+  // (Р5.7, шаг 3 Codex) вклады метрик за то же окно: каждое увеличение счётчика ошибок движения — запись полного журнала матча PROB.all
+  // (problem-watch: вид, бот, тик, раунд, эпизод «стояния», причина, что делал бот) с её номером в журнале (seq); только чтение
+  var dg = null;
+  if(typeof PROB !== "undefined" && PROB.all && tr && PROB.match === m.match){ var rows = [];
+    PROB.all.forEach(function(e, i){ if(e.tick >= tr.fromTick && e.tick <= m.tick) rows.push({seq: i, e: e}); });
+    dg = {match: m.match, fromTick: tr.fromTick, toTick: m.tick, total: PROB.all.length, n: PROB.n, rows: rows}; }
+  var out = JSON.stringify({format: "sim-cs2/mark-export", version: 1, doc: doc, snapshot: mkPack(m.snap), pre: m.pre ? mkPack(m.pre.data) : null, image: img || null, trace: tr, diag: dg});
   var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([out], {type: "application/json"}));
   a.download = "mark-m" + m.match + "-t" + m.tick + ".json"; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
   mkToast("Отметка выгружена файлом (" + Math.round(out.length / 1024) + " КБ)");

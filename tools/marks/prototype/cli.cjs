@@ -62,6 +62,7 @@ async function main(command, args) {
     const im = typeof ex.image === 'string' && /^data:image\/(png|jpeg);base64,(.+)$/.exec(ex.image);
     if (im) opt.image = put(im[1] === 'png' ? 'mark.png' : 'mark.jpg', Buffer.from(im[2], 'base64'));
     if (ex.trace && typeof ex.trace === 'object') opt.trace = put('trace.json', JSON.stringify(ex.trace));
+    if (ex.diag && typeof ex.diag === 'object') opt.diag = ex.diag;   // (Р5.7) вклады метрик — журнал diagnostics пакета (legacy.cjs)
     const result = await convert(put('mark-doc.json', JSON.stringify(ex.doc)), output, opt);
     return stdout(stringify(inspections(result)));
   }
