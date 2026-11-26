@@ -45,7 +45,8 @@ var FIRE_LONG = 80, FIRE_STILL = 48;   // (v583a) тики: в огне доль
   detonate = function(n){
     if(roundState === "live" && n.type === "flash" && n.thrower) bots.forEach(function(o){
       if(!o.alive || o.team === n.team || Math.hypot(o.x-n.x, o.y-n.y) > 600 || !hasLOS(o.x, o.y, n.x, n.y)) return;
-      FL.push({b:o, t:tick, x:o.x, y:o.y, tx:n.ox, ty:n.oy, by:n.thrower.id}); });
+      var hs = o.heardSound, knew = (o._visible && o._visible.indexOf(n.thrower) >= 0) || !!(hs && hs.src === n.thrower.id && tick - hs.tick <= 96);
+      FL.push({b:o, t:tick, x:o.x, y:o.y, tx:n.ox, ty:n.oy, by:n.thrower.id, knew:knew, blind:false}); });
     return DT.apply(this, arguments); };
   // пустое чтение LKP: перебор ключей пустого LKP команды при свежем знании в beliefLast
   function wrapLKP(){
@@ -101,8 +102,12 @@ var FIRE_LONG = 80, FIRE_STILL = 48;   // (v583a) тики: в огне доль
     if(bomb.state === "planted" && bombTimeLeftTicks() <= 2*64) bots.forEach(function(b){ var s = S[b.id];
       if(b.alive && !s.boom && bombDamageAt(b.x, b.y) >= b.hp){ s.boom = 1; W.n.danger++; inc(W.dangerBy, "взрыв"); if(W.ev.danger.length < EVMAX) W.ev.danger.push([tick, b.id, "в зоне взрыва", b.post ? b.post.tag : "-"]); } });
     // флешки: через 1,5 с — повернулся к бросавшему или ушёл
-    FL = FL.filter(function(f){ if(tick - f.t < 96) return true; if(!f.b.alive) return false;
+    FL = FL.filter(function(f){ if(tick - f.t < 96){ if(tick < (f.b.blindUntil || 0)) f.blind = true; return true; } if(!f.b.alive) return false;
       var a = Math.atan2(f.ty-f.b.y, f.tx-f.b.x), d = Math.abs(Math.atan2(Math.sin(a-(f.b.facing||0)), Math.cos(a-(f.b.facing||0))));
+      // (Р3.6, аудит Codex D) флешка без реакции — по знанию: старый счёт (поворот к месту броска) остаётся для сравнения; новый
+      // danger.flashKnown — только если бот знал источник (видел бросавшего или слышал его ≤ 1,5 с до взрыва), не был ослеплён и не в бою
+      if(d > Math.PI/3 && Math.hypot(f.b.x-f.x, f.b.y-f.y) < 60 && f.knew && !f.blind && !f.b._sawEnemy && !f.b._fc){ W.n["danger.flashKnown"] = (W.n["danger.flashKnown"] || 0) + 1;
+        if((W.ev.flashKnown = W.ev.flashKnown || []).length < EVMAX) W.ev.flashKnown.push([tick, f.b.id, "флешка "+f.by+" — знал, откуда, не повернулся", f.b.post ? f.b.post.tag : "-"]); }
       if(d > Math.PI/3 && Math.hypot(f.b.x-f.x, f.b.y-f.y) < 60){ W.n.danger++; inc(W.dangerBy, "флешка без реакции"); if(W.ev.danger.length < EVMAX) W.ev.danger.push([tick, f.b.id, "флешка "+f.by+" — не повернулся", f.b.post ? f.b.post.tag : "-"]); }
       return false; });
     if(tick % 16) return;
@@ -130,6 +135,7 @@ var FIRE_LONG = 80, FIRE_STILL = 48;   // (v583a) тики: в огне доль
   };
   W.report = function(){
     // (v407) застой / перетягивание / перенос — из PROB игры (один счёт со слоем «ошибки движения» на странице)
+    if(typeof PROB !== "undefined" && PROB.sub) Object.keys(PROB.sub).forEach(function(k){ W.n[k] = PROB.sub[k]; });   // (Р3.6) stall по причинам — рядом
     if(typeof PROB !== "undefined"){ ["stall", "tug", "nav"].forEach(function(k){ W.n[k] = PROB.n[k];
       W.ev[k] = PROB.ev.filter(function(e){ return e.kind === k; }).slice(0, EVMAX).map(function(e){ return [e.tick, e.id, e.text, e.x, e.y, e.round]; }); }); }
     return {n:W.n, ev:W.ev, emptyBy:W.emptyBy, dangerBy:W.dangerBy, nade:W.nade}; };

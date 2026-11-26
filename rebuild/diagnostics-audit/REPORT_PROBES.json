@@ -1,0 +1,32 @@
+[
+  {
+    "id": "S01_end_of_round",
+    "observed": [
+      null,
+      null,
+      false,
+      false
+    ],
+    "note": "nade/death become false when horizon is incomplete, movement/approach become unknown"
+  },
+  {
+    "id": "S02_sample_gaps",
+    "observed": 128,
+    "note": "four samples treated as one second even when elapsed 128 ticks"
+  },
+  {
+    "id": "S03_overlapping_windows",
+    "observed": 5,
+    "note": "one throw contributes five near-future windows"
+  },
+  {
+    "id": "C01_missing_watcher",
+    "observed": 50.0,
+    "note": "one recorded hit in one observed round is divided by both rounds"
+  },
+  {
+    "id": "C02_zero_baseline",
+    "observed": "| nav | 0.00 | 50 | +0 % | ⚪ шум |",
+    "note": "0→50 per 100 rounds is labeled 0% noise by actual report"
+  }
+]

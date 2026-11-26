@@ -17,10 +17,25 @@
 // Числа — проектные (как в стороже v373: 5 с / 25 px / 2 с).
 var PROB_STALL_SEC = 5, PROB_STALL_MOVE = 25, PROB_TUG_SEC = 2, PROB_SHOW_SEC = 4, PROB_BLOCK_SEC = 8;
 var PROB = {n: {stall: 0, nav: 0, tug: 0}, ev: [], s: {}, round: -1, match: -1};
-function probReset(){ PROB.n = {stall: 0, nav: 0, tug: 0}; PROB.ev = []; PROB.s = {}; PROB.round = -1; PROB.match = -1; }
+function probReset(){ PROB.n = {stall: 0, nav: 0, tug: 0}; PROB.sub = {}; PROB.ev = []; PROB.s = {}; PROB.round = -1; PROB.match = -1; }
+// (Р3.6, 25.11, аудит Codex D: «stall смешивает физику и отказы») stall по причинам — РЯДОМ со старым счётом (PROB.n.stall не меняется,
+// историческое сравнение сохраняется): stall.block — задачу не пускает задача выше (отказ арбитра), stall.geom — шаг упирается в геометрию
+// (стена / уступ / край пола / огонь), stall.free — шаг свободен, а бот стоит (стоп, скорость), stall.path — нет пути / на точке пути
+function probStallSub(text){
+  if(/^залип/.test(text)) return "block";
+  var w = text.replace(/^застрял \([^)]*\): /, "");
+  return /^(стена|уступ|край пола|огонь)/.test(w) ? "geom" : /^шаг проходит/.test(w) ? "free" : /^(нет пути|на точке пути)/.test(w) ? "path" : "other";
+}
+// причинный след события (Р3.3 → Р3.6): какую задачу выполнял, почему шагом / стоял, куда и почему смотрел, последний ответ арбитра места
+function probTrace(b){
+  var A = (typeof dlogOf === "function" ? dlogOf(b, "_dlogA") : []), a = A[A.length-1];
+  return {task: b._task ? b._task.tag + " ур. " + b._task.lv : (b.post ? b.post.tag : null), walk: b._walkWhy || null, stop: b._stopWhy || null,
+    look: b.lookReason || null, state: b.state, arb: a ? Math.round((tick - a[0])/TICK_HZ*10)/10 + " с назад: " + a[2] : null};
+}
 function probEvent(kind, b, text){
   PROB.n[kind]++;
-  PROB.ev.push({kind: kind, id: b.id, x: Math.round(b.baseX), y: Math.round(b.baseY), tick: tick, round: roundNum, text: text});
+  var sub = kind === "stall" ? "stall." + probStallSub(text) : null; if(sub){ PROB.sub = PROB.sub || {}; PROB.sub[sub] = (PROB.sub[sub] || 0) + 1; }
+  PROB.ev.push({kind: kind, id: b.id, x: Math.round(b.baseX), y: Math.round(b.baseY), tick: tick, round: roundNum, text: text, sub: sub, why: probTrace(b)});
   if(PROB.ev.length > 400) PROB.ev.shift();
 }
 function probStallWhy(b){
