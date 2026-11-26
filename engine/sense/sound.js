@@ -1,4 +1,4 @@
-// [хозяева: emitSound] ======================= ЗВУК: направление, стены, новые источники =======================
+// [хозяева: emitSound, soundSetBlind, soundSetOnPistol] ======================= ЗВУК: направление, стены, новые источники =======================
 // Как слышит человек в CS2: НАПРАВЛЕНИЕ понятно довольно точно (±5–7°), дистанция —
 // примерно (±15%). Через стену звук глуше: слышно ближе, направление расплывается
 // (±15–20°), дистанция гуляет сильнее (±30%). Раньше услышанная точка = реальная
@@ -55,7 +55,7 @@ function reloadPeek(b){
   if(hashRand(tick*43 + (b.id.charCodeAt(b.id.length-1)||0)*3) > (0.35 + 0.5*prof(b, "aggr"))*(downN ? 0.5 : 1)) return false;
   var sp = pickSpots("rlpeek"+tick+b.id, {x:b.x, y:b.y}, 2, {rMax:140, minGap:40, see:[{x:R.x, y:R.y}]})[0];
   if(!sp) return false;
-  taskKeep(b, 0, "sound"); b._probeLock = 0;
+  taskKeep(b, 0, "sound"); taskSetProbeLock(b, 0);
   setPost(b, sp, {x:R.x, y:R.y}, true, "repos:reload");
   if(!b.post || b.post.tag !== "repos:reload") return false;
   taskKeep(b, Math.min(R.until + 32, tick + 3*TICK_HZ), "sound");
@@ -112,7 +112,7 @@ function finishPush(b){
   if(!tgt) return;
   var sp = pickSpots("finish"+tick+b.id, {x:b.x, y:b.y}, 2, {rMax:200, minGap:40, see:[{x:tgt.x, y:tgt.y}]})[0];
   if(!sp) return;
-  taskKeep(b, 0, "sound"); b._probeLock = 0;
+  taskKeep(b, 0, "sound"); taskSetProbeLock(b, 0);
   setPost(b, sp, {x:tgt.x, y:tgt.y}, true, "repos:finish");
   if(!b.post || b.post.tag !== "repos:finish") return;
   b._finId = tid; taskKeep(b, tick + 3*TICK_HZ, "sound"); knowIntel(b, {x:tgt.x, y:tgt.y, tick:tick, src:"call"});
@@ -176,12 +176,12 @@ function onBlind(b, threat){
   var wp = null;
   if(back) wp = [[back.x, back.y, b.z]];
   else { var cv = findCover(b, threat); if(cv){ wp = buildWaypointPath(b.baseX, b.baseY, b.z, cv.x, cv.y, 0); if(wp && wp.length) back = cv; else wp = null; } }
-  b._blind = {until:b.blindUntil, back:back, face:{x:threat.x, y:threat.y}};
+  soundSetBlind(b, {until:b.blindUntil, back:back, face:{x:threat.x, y:threat.y}});
   if(wp){ movePath(b, wp, "blind", 0); }
   // стрелять вслепую — только с настоящей причиной: видел врага перед самой вспышкой (≤ 1 с) и он рядом — он пойдёт на флешку.
   // Очередь в точку, где видел, заводит smokeSpamTick (smoke-react, хозяин огня по памяти); попадёт, если враг на линии
   var fire = threat.tick != null && threat.src !== "call" && tick - threat.tick <= TICK_HZ && DM.hypot(threat.x-b.x, threat.y-b.y) < BLIND_FIRE_R && b.ammo > 0 && b.weapon && !b.weapon.scopeTicks;
-  if(fire) b._blind.fire = {x:threat.x, y:threat.y, z:threat.z};   // (v556) очередь заводит хозяин огня по памяти — smokeSpamTick (smoke-react)
+  if(fire) blindSetFire(b._blind, {x:threat.x, y:threat.y, z:threat.z});   // (v556) очередь заводит хозяин огня по памяти — smokeSpamTick (smoke-react)
   logEvent(b.id+": ослеплён — "+(back ? (wp && wp.length > 1 ? "уходит в укрытие по памяти" : "отходит за угол") : "присел, держит направление")+(fire ? ", стреляет вслепую туда, где видел врага" : ""));
   // (S2) тиммейт рядом закрывает угол ослеплённого: смотрит туда и готов стрелять
   var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === b.team && !o._sawEnemy && tick >= (o.blindUntil||0) && nearP(o.x, o.y, o.z, b.x, b.y, b.z, 260) && !o.planting && !o.defusing; });
@@ -205,22 +205,27 @@ function pistolSwap(b){
   var e = b._nearestEnemyBot, near = e && e.alive && nearP(e.x, e.y, e.z, b.x, b.y, b.z, 650);
   if(!near && !(b.lastIntel && tick - b.lastIntel.tick < TICK_HZ && nearP(b.lastIntel.x, b.lastIntel.y, b.lastIntel.z, b.x, b.y, b.z, 650))) return false;
   var W = WEAPONS[b.secondary];
-  b._onPistol = {prim:b.primary, ammo:Math.max(0, b.ammo||0)};
-  b.weapon = W; b._ammoFor = W.key; b.ammo = b._secAmmo != null ? b._secAmmo : W.mag; b._reloading = false; b.reloadUntil = 0;
-  b.nextShotTick = Math.max(b.nextShotTick||0, tick + 14); // ~0.2с достать пистолет
-  b.burstCount = 0;
+  soundSetOnPistol(b, {prim:b.primary, ammo:Math.max(0, b.ammo||0)});
+  equipmentSetWeapon(b, W); reloadSetAmmoFor(b, W.key); shotSetAmmo(b, b._secAmmo != null ? b._secAmmo : W.mag); reloadSetReloading(b, false); reloadSetReloadUntil(b, 0);
+  shotSetNextShotTick(b, Math.max(b.nextShotTick||0, tick + 14)); // ~0.2с достать пистолет
+  shotSetBurstCount(b, 0);
   logEvent(b.id+": кончились патроны — на пистолет ("+W.name+")");
   return true;
 }
 function pistolBack(b){
   if(!b._onPistol || b._sawEnemy || tick - (b.lastShotTick||-999) < 96) return;
-  if(b.primary !== b._onPistol.prim){ b._onPistol = null; return; }
-  b._secAmmo = b.ammo;
+  if(b.primary !== b._onPistol.prim){ soundSetOnPistol(b, null); return; }
+  equipmentSetSecAmmo(b, b.ammo);
   var W = WEAPONS[b.primary];
-  b.weapon = W; b._ammoFor = W.key; b.ammo = b._onPistol.ammo; b._reloading = false; b.reloadUntil = 0;
-  b._onPistol = null;
+  equipmentSetWeapon(b, W); reloadSetAmmoFor(b, W.key); shotSetAmmo(b, b._onPistol.ammo); reloadSetReloading(b, false); reloadSetReloadUntil(b, 0);
+  soundSetOnPistol(b, null);
 }
 // ---- стрейф в дальней дуэли (ADAD) ----
 // Пистолетом (и винтовкой на большой дистанции) про не стоят столбом: шаг в
 // сторону → контр-страф → выстрел → шаг в другую сторону. Двигаясь, в него
 // труднее попасть (см. трекинг), а стреляет он только остановившись.
+
+// Запись состояния канала. Вызовы выполняются в исходной точке тика.
+function soundSetBlind(bot, value){ return bot._blind = value; }
+function blindSetFire(blind, value){ blind.fire = value; }
+function soundSetOnPistol(bot, value){ return bot._onPistol = value; }

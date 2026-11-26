@@ -198,8 +198,10 @@ console.log('Frame: переменных ' + Object.keys(R.reads).length + ' (+ 
   if (process.argv.includes('--check')) {
     const KF = path.join(ROOT, 'rebuild', 'ui_boundary_known.json'), known = fs.existsSync(KF) ? JSON.parse(fs.readFileSync(KF, 'utf8')).known || [] : [];
     const key = x => x.file + ' ' + x.fn + ' ' + x.write, K = new Set(known.map(key)), fresh = viol.filter(x => !K.has(key(x)));
-    const okShow = new Set((fs.existsSync(KF) ? JSON.parse(fs.readFileSync(KF, 'utf8')).showFieldsReadByCore || [] : []).map(x => x.field + ' ' + x.read_by_core.join(',')));
-    const badShow = showFields.filter(x => x.read_by_core.length && !okShow.has(x.field + ' ' + x.read_by_core.join(',')));
+    // сверка по файлам-читателям (строки сдвигаются при правках): новый файл, читающий поле показа, — ошибка
+    const files = L => [...new Set(L.map(r => r.split(':')[0]))].sort().join(',');
+    const okShow = new Set((fs.existsSync(KF) ? JSON.parse(fs.readFileSync(KF, 'utf8')).showFieldsReadByCore || [] : []).map(x => x.field + ' ' + files(x.read_by_core)));
+    const badShow = showFields.filter(x => x.read_by_core.length && !okShow.has(x.field + ' ' + files(x.read_by_core)));
     if (fresh.length || badShow.length) { console.error('ОШИБКА границы показ → игра: ' + fresh.map(key).join('; ') + (badShow.length ? '; ядро читает поля показа: ' + badShow.map(x => x.field + ' ← ' + x.read_by_core.slice(0, 3).join(',')).join('; ') : '')); process.exit(1); }
     console.log('граница показ → игра: новых прямых записей нет (известных ' + known.length + ', rebuild/ui_boundary_known.json)');
   }

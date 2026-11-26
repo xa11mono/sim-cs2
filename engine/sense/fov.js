@@ -1,4 +1,4 @@
-// [хозяева: updateRoamer] ---------- поле зрения ----------
+// [хозяева: roamSetRoamCheckStart, roamSetRoamCheckUntil, roamSetRoamChecking, roamSetRoamIdx, roamSetRoamLookPt, roamSetRoamPrevPt, roamSetRoamSoundHandled, roamSetRoamSoundLockUntil, roamSetRoamTarget, updateRoamer] ---------- поле зрения ----------
 // Бот видит врага, только если тот в конусе взгляда (FOV_DEG) или совсем
 // рядом (слышно/"спиной почувствовал" — FOV_NEAR), либо контакт уже идёт
 // (не теряет цель, повернувшись к ней). Раньше обзор был на 360° — тогда
@@ -24,9 +24,9 @@ function updateRoamer(bot){
       var done = route[bot.roamIdx % route.length];
       done.cleared = tick;
       logEvent(bot.id+" (роумер): "+roamPtLabel(done)+" — чисто");
-      bot.roamPrevPt = done;
-      bot.roamChecking = false;
-      bot.roamIdx = (bot.roamIdx+1) % route.length;
+      roamSetRoamPrevPt(bot, done);
+      roamSetRoamChecking(bot, false);
+      roamSetRoamIdx(bot, (bot.roamIdx+1) % route.length);
       movePath(bot, [], "roam", 0);
     }
     return;
@@ -48,7 +48,7 @@ function updateRoamer(bot){
     }
   }
   if(snd && bot._roamSoundHandled !== sndKey && tick >= (bot._roamSoundLockUntil||0)){
-    bot._roamSoundHandled = sndKey;
+    roamSetRoamSoundHandled(bot, sndKey);
     var bi = -1, bd = Infinity;
     route.forEach(function(p,i){
       if(tick - p.cleared < ROAM_RECHECK_TICKS) return;
@@ -56,22 +56,33 @@ function updateRoamer(bot){
       if(d < bd){ bd = d; bi = i; }
     });
     if(bi >= 0 && bi !== bot.roamIdx % route.length){
-      bot.roamIdx = bi; movePath(bot, [], "roam", 0);
-      bot._roamSoundLockUntil = tick + 192;
+      roamSetRoamIdx(bot, bi); movePath(bot, [], "roam", 0);
+      roamSetRoamSoundLockUntil(bot, tick + 192);
       logEvent(bot.id+" (роумер): "+(snd===bot.heardSound?"услышал шаги":"по коллу тиммейта")+" — иду чекать "+roamPtLabel(route[bi]));
     }
   }
   var cur = route[bot.roamIdx % route.length];
   if(bot.roamTarget === cur && DM.hypot(cur.x-bot.baseX, cur.y-bot.baseY) < 45){
-    bot.roamChecking = true;
-    bot.roamCheckStart = tick; bot.roamCheckUntil = tick + ROAM_CHECK_TICKS;
+    roamSetRoamChecking(bot, true);
+    roamSetRoamCheckStart(bot, tick); roamSetRoamCheckUntil(bot, tick + ROAM_CHECK_TICKS);
     movePath(bot, [], "roam", 0);
     // смотрим туда, откуда вероятнее придёт враг — в сторону его спавна
     var en = bot.team==="CT" ? T_SPAWN : CT_SPAWN;
-    bot.roamLookPt = {x:en.x, y:en.y};
+    roamSetRoamLookPt(bot, {x:en.x, y:en.y});
   }
 }
 
 // ---------- combat ----------
 var DECISION_INTERVAL_TICKS = 12;
 
+
+// Запись состояния канала. Вызовы выполняются в исходной точке тика.
+function roamSetRoamSoundHandled(bot, value){ return bot._roamSoundHandled = value; }
+function roamSetRoamSoundLockUntil(bot, value){ return bot._roamSoundLockUntil = value; }
+function roamSetRoamChecking(bot, value){ return bot.roamChecking = value; }
+function roamSetRoamCheckStart(bot, value){ return bot.roamCheckStart = value; }
+function roamSetRoamCheckUntil(bot, value){ return bot.roamCheckUntil = value; }
+function roamSetRoamIdx(bot, value){ return bot.roamIdx = value; }
+function roamSetRoamLookPt(bot, value){ return bot.roamLookPt = value; }
+function roamSetRoamPrevPt(bot, value){ return bot.roamPrevPt = value; }
+function roamSetRoamTarget(bot, value){ return bot.roamTarget = value; }

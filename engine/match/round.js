@@ -25,8 +25,8 @@ function buyPhase(){
 function startHalf(silent){
   ecoKnowReset();   // (Г1) подсчёт денег соперника — заново: у всех $800
   bots.forEach(function(b){
-    b.money = START_MONEY; b.primary = null; b.secondary = b.team==="CT" ? "USP" : "GLOCK";
-    b.armor = false; b.helmet = false; b.armorHp = 0; b.kit = false; b.weapon = WEAPONS[b.secondary]; b.nades = emptyNades();
+    economySetMoney(b, START_MONEY); equipmentSetPrimary(b, null); equipmentSetSecondary(b, b.team==="CT" ? "USP" : "GLOCK");
+    damageSetArmor(b, false); damageSetHelmet(b, false); damageSetArmorHp(b, 0); equipmentSetKit(b, false); equipmentSetWeapon(b, WEAPONS[b.secondary]); nadeSetNades(b, emptyNades());
   });
   teamEco.CT.lossLevel = 1; teamEco.T.lossLevel = 1;
   if(!silent) logEvent("ВТОРАЯ ПОЛОВИНА — деньги сброшены до $"+START_MONEY, true);
@@ -60,7 +60,9 @@ function swapSides(){
   // игроки пересаживаются на место с тем же номером на другой стороне — с собой K/D и счётчик ошибок
   for(var i = 0; i < 5; i++){
     var a = teamBot("CT"+i), b = teamBot("T"+i); if(!a || !b) continue;
-    ["kills","deaths","_mistakes"].forEach(function(k){ var v = a[k]; a[k] = b[k]; b[k] = v; });
+    var kills = a.kills; damageSetKills(a, b.kills); damageSetKills(b, kills);
+    var deaths = a.deaths; damageSetDeaths(a, b.deaths); damageSetDeaths(b, deaths);
+    var mistakes = a._mistakes; setupSetMistakes(a, b._mistakes); setupSetMistakes(b, mistakes);
   }
   SIDE_TEAM = {T: SIDE_TEAM.CT, CT: SIDE_TEAM.T};
   seatPlayers();
@@ -120,7 +122,7 @@ function newMatch(){
   resetMatchMemory(); timeoutsReset();
   score.CT = 0; score.T = 0;
   roundNum = 0;
-  bots.forEach(function(b){ b.kills = 0; b.deaths = 0; b.assists = 0; });
+  bots.forEach(function(b){ damageSetKills(b, 0); damageSetDeaths(b, 0); b.assists = 0; });
   startHalf(true);
   logEvent("Новый матч #"+matchNum, true);
   resetRound(); // roundNum → 1, закуп пистолетного
@@ -186,12 +188,12 @@ function resetRound(){
   if(sideSwapNow(roundNum)) swapSides();
   if(roundResetsGear(roundNum)){   // вторая половина / половина овертайма: деньги и оружие с нуля
     if(roundNum === HALF_ROUNDS+1) startHalf();
-    else { startHalf(true); bots.forEach(function(b){ b.money = OT_MONEY; }); logEvent("Овертайм: половина — по $"+OT_MONEY, true); }
+    else { startHalf(true); bots.forEach(function(b){ economySetMoney(b, OT_MONEY); }); logEvent("Овертайм: половина — по $"+OT_MONEY, true); }
   }
   bots.forEach(function(b){
     var sp = b.spawnPt;
     var spp = spawnPosFor(sp, b.spawnOx, b.spawnOy);
-    b.x = spp.x; b.y = spp.y; b.z = sp.z||0;
+    moveSetX(b, spp.x); moveSetY(b, spp.y); navSetZ(b, sp.z||0);
     // (v321, М19) точки спавна из демок (map.json, spawnSpots): каждый раунд игроки случайно (воспроизводимо: матч и раунд)
     // попадают на разные точки своей стороны — как в CS2; от точки зависят ранняя агрессия и тайминги
     var SS = MAP.spawnSpots && MAP.spawnSpots[b.team];
@@ -199,24 +201,24 @@ function resetRound(){
       var mates = bots.filter(function(o){ return o.team === b.team; }), mi = mates.indexOf(b);
       var perm = SS.map(function(_, i){ return i; }).sort(function(p, q){ return hashRand(roundNum*7919 + matchNum*104729 + p*31 + (b.team === "CT" ? 1 : 2)) - hashRand(roundNum*7919 + matchNum*104729 + q*31 + (b.team === "CT" ? 1 : 2)); });
       var spot = SS[perm[mi % perm.length]];
-      if(spot && !insideSolidWall(spot[0], spot[1])){ b.x = spot[0]; b.y = spot[1]; }
+      if(spot && !insideSolidWall(spot[0], spot[1])){ moveSetX(b, spot[0]); moveSetY(b, spot[1]); }
     }
-    var nsp = navAt(b.x, b.y, null); b._area = nsp ? nsp.id : null; if(nsp) b.z = nsp.z;   // (v321) высота — по навмешу под точкой спавна; (v323) и участок
-    b._jump = null; b._boost = null; b._jc = null; b._nadeT = null; b._nadeNo = null;   // (v340) интервал гранат — с нового раунда заново; (v489) память отказавших бросков
+    var nsp = navAt(b.x, b.y, null); navSetArea(b, nsp ? nsp.id : null); if(nsp) navSetZ(b, nsp.z);   // (v321) высота — по навмешу под точкой спавна; (v323) и участок
+    jumpSetJump(b, null); jumpSetBoost(b, null); jumpSetJc(b, null); nadeSetNadeT(b, null); nadeSetNadeNo(b, null);   // (v340) интервал гранат — с нового раунда заново; (v489) память отказавших бросков
     // (v375, отметки владельца: «заспавнился на Tetris / на сайте A в начале раунда») подъём по лестнице/ящику, начатый в конце
     // прошлого раунда, продолжался после спавна — бота тянуло обратно туда, где он лез. Всё движение прошлого раунда — сброс
-    b._climb = null; b._fireExit = null; b._fireExitFire = null; b._unstickT = null; placeResetTask(b); b._hold = null;
+    navSetClimb(b, null); moveSetFireExit(b, null); moveSetFireExitFire(b, null); moveSetUnstickT(b, null); placeResetTask(b); moveSetHold(b, null);
     // (v353, владелец: «тусклость кружка сохраняется после окончания раунда») этаж для рисования — сразу по спавну, а не через 16 тиков движения
-    b._underV = null; b._overV = null; b._fall = null; floorViewTick(b);   // (v535) этаж — заново с нового места
+    b._underV = null; b._overV = null; navSetFall(b, null); floorViewTick(b);   // (v535) этаж — заново с нового места
     b.baseX = b.x; b.baseY = b.y;
     b.px = b.x; b.py = b.y;
-    movePath(b, [], "reset", 0); b.alive = true; b.hp = 100;
-    b.pickTick = -999; b.contactStreak = 0; b._ts = {}; b.nextShotTick = 0;
-    fightReset(b); b.decisionTick = -999; b.forcedRetreat = false;
-    lookReset(b); b.heading = undefined; moveSpeed(b, 0, "reset"); placeStance(b, false, "reset"); b.holdSinceTick = -999; b.onStairs = false;
-    knowIntel(b, null); moveWalk(b, false, "reset"); b.lastStepTick = -999; knowSound(b, null);
-    b.burstCount = 0; b.lastShotTick = -999; b._ammoFor = null; b._reloading = false; b._onPistol = null; b._secAmmo = null; b._blind = null; b._fc = null; b._trail = []; b._tagUntil = 0; b._knife = false; b._drawUntil = 0; b.stuckTicks = 0;
-    b._prevOffX = 0; b._prevOffY = 0; b.lookTarget = null; lookReasonSet(b, null);
+    movePath(b, [], "reset", 0); damageSetAlive(b, true); damageSetHp(b, 100);
+    engagementSetPickTick(b, -999); engagementSetContactStreak(b, 0); engagementSetTs(b, {}); shotSetNextShotTick(b, 0);
+    fightReset(b); engagementSetDecisionTick(b, -999); engagementSetForcedRetreat(b, false);
+    lookReset(b); moveSetHeading(b, undefined); moveSpeed(b, 0, "reset"); placeStance(b, false, "reset"); engagementSetHoldSinceTick(b, -999); moveSetOnStairs(b, false);
+    knowIntel(b, null); moveWalk(b, false, "reset"); moveSetLastStepTick(b, -999); knowSound(b, null);
+    shotSetBurstCount(b, 0); shotSetLastShotTick(b, -999); reloadSetAmmoFor(b, null); reloadSetReloading(b, false); soundSetOnPistol(b, null); equipmentSetSecAmmo(b, null); soundSetBlind(b, null); fightSetFc(b, null); b._trail = []; shotSetTagUntil(b, 0); equipmentSetKnife(b, false); equipmentSetDrawUntil(b, 0); moveSetStuckTicks(b, 0);
+    moveSetPrevOffX(b, 0); moveSetPrevOffY(b, 0); lookSetLookTarget(b, null); lookReasonSet(b, null);
     initRoam(b);
   });
   tracers.length = 0;
@@ -231,7 +233,7 @@ function resetRound(){
   resetTeamIntel();
   beliefReset();
   clutchShown = null; clutchInfo = null;
-  bots.forEach(function(b){ b.roundKills = 0; b.roundDmg = 0; b._dmgBy = null; b._blindBy = null; placeResetPost(b); b.atPost = false; bombActReset(b); b._saveSpot = null; b._huntIdx = undefined; b._huntArrive = 0; b._lurkIdx = 0; b._lurkArr = 0; b._lurkPh = undefined; });
+  bots.forEach(function(b){ damageSetRoundKills(b, 0); damageSetRoundDmg(b, 0); damageSetDmgBy(b, null); damageSetBlindBy(b, null); placeResetPost(b); taskSetAtPost(b, false); bombActReset(b); retakeSetSaveSpot(b, null); huntSetHuntIdx(b, undefined); huntSetHuntArrive(b, 0); lurkSetLurkIdx(b, 0); lurkSetLurkArr(b, 0); lurkSetLurkPh(b, undefined); });
   spotCache = {};
   resetNades();
   buyPhase();   // (v428) выбор тактики — внутри, до закупа

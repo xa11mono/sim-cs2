@@ -9,9 +9,9 @@ function warmSpawn(b){
   // (v311, владелец 14.10: «как в CS2 — возрождаются на спавне») на спавне своей стороны, с разбросом точек спавна
   var sp = b.team === "T" ? T_SPAWN : CT_SPAWN, a0 = Math.random()*Math.PI*2, r0 = 20 + Math.random()*60;
   var q = walk({x: sp.x + Math.cos(a0)*r0, y: sp.y + Math.sin(a0)*r0}) || sp;
-  b.baseX = b.x = b.px = q.x; b.baseY = b.y = b.py = q.y; b.alive = true; b.hp = 100; b._wPath = null; b._sawEnemy = false; b._wRespawn = 0;
-  b.primary = b.team === "T" ? "AK" : "M4"; b.weapon = WEAPONS[b.primary] || b.weapon; b.ammo = b.weapon.mag; b._reloading = false; b._ammoFor = b.weapon.key;
-  b.armor = true; b.helmet = true; b.armorHp = 100; b._ts = {}; b.contactStreak = 0; b.blindUntil = 0; b.nextShotTick = 0; bombActReset(b);
+  b.baseX = moveSetX(b, b.px = q.x); b.baseY = moveSetY(b, b.py = q.y); damageSetAlive(b, true); damageSetHp(b, 100); b._wPath = null; engagementSetSawEnemy(b, false); b._wRespawn = 0;
+  equipmentSetPrimary(b, b.team === "T" ? "AK" : "M4"); equipmentSetWeapon(b, WEAPONS[b.primary] || b.weapon); shotSetAmmo(b, b.weapon.mag); reloadSetReloading(b, false); reloadSetAmmoFor(b, b.weapon.key);
+  damageSetArmor(b, true); damageSetHelmet(b, true); damageSetArmorHp(b, 100); engagementSetTs(b, {}); engagementSetContactStreak(b, 0); damageSetBlindUntil(b, 0); shotSetNextShotTick(b, 0); bombActReset(b);
 }
 function warmTurn(b, a, maxA){
   if(b.facing === undefined){ b._visFacing = a; lookFace(b, a, "warm"); return; }
@@ -51,16 +51,16 @@ function warmTick(dt){
     bots.forEach(function(o){ if(o.alive && o.team !== b.team){ var d = Math.hypot(o.x-b.x, o.y-b.y); if(d < fd && hasLOS(b.x, b.y, o.x, o.y, b.z, o.z)){ fd = d; foe = o; } } });
     if(foe){
       var a = Math.atan2(foe.y-b.y, foe.x-b.x);
-      warmTurn(b, a, AIM_TURN_RATE*dt); b._nearestEnemyBot = foe; b._wv = Math.max(0, (b._wv||0) - ACCEL*dt); moveSpeed(b, b._wv, "warm");   // (v312) доворот и торможение, а не щелчок
+      warmTurn(b, a, AIM_TURN_RATE*dt); engagementSetNearestEnemyBot(b, foe); b._wv = Math.max(0, (b._wv||0) - ACCEL*dt); moveSpeed(b, b._wv, "warm");   // (v312) доворот и торможение, а не щелчок
       // (v313, владелец 14.10: «в разминку такую же стрельбу») стрельба — та же, что в матче (tryShoot: реакция, разброс, отдача,
       // хитбоксы, урон, киллфид); разминка после себя всё сбрасывает (freshMatch), так что матч не меняется
-      if(!b._sawEnemy){ b._sawEnemy = true; b.contactStreak = 0; }
-      b.contactStreak = (b.contactStreak||0) + 1;
-      var TS = b._ts || (b._ts = {}); TS[foe.id] = (TS[foe.id]||0) + 1;
+      if(!b._sawEnemy){ engagementSetSawEnemy(b, true); engagementSetContactStreak(b, 0); }
+      engagementSetContactStreak(b, (b.contactStreak||0) + 1);
+      var TS = b._ts || (engagementSetTs(b, {})); engagementSetTargetTicks(TS, foe.id, (TS[foe.id]||0) + 1);
       tryShoot(b, foe, fd);
       return;
     }
-    b._sawEnemy = false;
+    engagementSetSawEnemy(b, false);
     // бег к случайной позиции про
     if(!b._wPath || b._wIdx >= b._wPath.length){
       var q = warmPick(b), wp = buildWaypointPath(b.x, b.y, 0, q.x, q.y, 0);
@@ -70,16 +70,16 @@ function warmTick(dt){
     // поворачивает не быстрее TURN-скорости (6 рад/с, дугой), взгляд доворачивает за ним (AIM_TURN_RATE)
     var t = b._wPath[b._wIdx], dx = t[0]-b.x, dy = t[1]-b.y, d = Math.hypot(dx, dy);
     if(d < 12 && b._wIdx < b._wPath.length - 1){ b._wIdx++; t = b._wPath[b._wIdx]; dx = t[0]-b.x; dy = t[1]-b.y; d = Math.hypot(dx, dy); }   // срезаем угол
-    var want = Math.atan2(dy, dx); if(b.heading === undefined) b.heading = want;
+    var want = Math.atan2(dy, dx); if(b.heading === undefined) moveSetHeading(b, want);
     var dh = ((want - b.heading + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI, mt = 6*dt;
-    b.heading += Math.max(-mt, Math.min(mt, dh));
+    moveSetHeading(b, b.heading + (Math.max(-mt, Math.min(mt, dh))));
     var vT = SPEED * (Math.abs(dh) > 1.2 ? 0.45 : 1);
     b._wv = (b._wv||0) < vT ? Math.min(vT, (b._wv||0) + ACCEL*dt) : Math.max(vT, (b._wv||0) - ACCEL*dt);
     var st = b._wv*dt;
-    if(d <= st && b._wIdx >= b._wPath.length - 1){ b.x = b.baseX = t[0]; b.y = b.baseY = t[1]; b._wIdx++; }
+    if(d <= st && b._wIdx >= b._wPath.length - 1){ moveSetX(b, b.baseX = t[0]); moveSetY(b, b.baseY = t[1]); b._wIdx++; }
     else { var nx = b.x + Math.cos(b.heading)*st, ny = b.y + Math.sin(b.heading)*st;
-      if(stepBlocked(b.x, b.y, nx, ny, b)){ nx = b.x + dx/(d||1)*st; ny = b.y + dy/(d||1)*st; b.heading = want; }
-      b.x = b.baseX = nx; b.y = b.baseY = ny; }
+      if(stepBlocked(b.x, b.y, nx, ny, b)){ nx = b.x + dx/(d||1)*st; ny = b.y + dy/(d||1)*st; moveSetHeading(b, want); }
+      moveSetX(b, b.baseX = nx); moveSetY(b, b.baseY = ny); }
     warmTurn(b, b.heading, AIM_TURN_RATE*dt);
     moveSpeed(b, b._wv, "warm");
   });

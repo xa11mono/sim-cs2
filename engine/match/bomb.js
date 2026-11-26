@@ -1,4 +1,4 @@
-// [хозяева: bombActAbort, bombActReset, bombDamageAt, bombFleePoint, bombTick] ---------- бомба ----------
+// [хозяева: bombActAbort, bombActReset, bombDamageAt, bombFleePoint, bombSetFlee, bombSetStopPlantUntil, bombTick] ---------- бомба ----------
 var DEFUSE_JUDGE = 0.3;   // (v519) с — ошибка оценки таймера игроком, проектное число
 var PLANT_TICKS = Math.round(3.2*64), BOMB_TICKS = 40*64, DEFUSE_TICKS = 10*64, DEFUSE_KIT_TICKS = 5*64;
 // (v271) Урон взрыва — как в CS2 после июля 2025: волна расходится по карте от бомбы, углы и
@@ -78,7 +78,7 @@ function bombFleePoint(b){
     var sc = Math.round(dq/FLEE_DMG_STEP)*1e5 + L + (minD < Math.min(R*0.75, dNow - 30) ? 900 : 0) + 600*beliefZoneKnownB(b, i);
     if(sc < bs){ bs = sc; best = q; }
   });
-  b._flee = {round:roundNum, m:matchNum, pt:best, hp:b.hp, x0:b.x, y0:b.y};
+  bombSetFlee(b, {round:roundNum, m:matchNum, pt:best, hp:b.hp, x0:b.x, y0:b.y});
   if(best && b._fleeLog !== roundNum){ b._fleeLog = roundNum; logEvent(b.id+": уходит от бомбы — "+calloutName(best.x, best.y)); }
   return best;
 }
@@ -90,7 +90,7 @@ function resetBomb(){
   order.forEach(function(r){ if(!carrier) carrier = bots.filter(function(b){ return b.team==="T" && b.tRole===r; })[0]; });
   carrier = carrier || bots.filter(function(b){ return b.team==="T"; })[0];
   bomb = {state:"carried", carrier:carrier, x:carrier.x, y:carrier.y, site:null, plantTick:-1, explodeTick:-1};
-  bots.forEach(function(b){ b.planting = false; b.defusing = false; b.fakeUntil = 0; b.fakeHoldUntil = 0; b.retakeRole = null; b._defuseHeard = -9999; tradeEnd(b); b._fillLock = null; });
+  bots.forEach(function(b){ b.planting = false; b.defusing = false; b.fakeUntil = 0; b.fakeHoldUntil = 0; retakeSetRetakeRole(b, null); b._defuseHeard = -9999; tradeEnd(b); taskSetFillLock(b, null); });
 }
 // (00_PLAN, прогон 184: Mirage м23 — 32 переноса «вне пола» у T Ramp, 1482,1281, бот шёл за бомбой) упавшее (бомба, оружие, гранаты, кит) — на пол
 // навмеша: место смерти — рисуемая позиция (b.x: стрейф, отход от стены) и разброс предметов ±8 бывают в стене; там — ближайшая точка
@@ -236,7 +236,7 @@ function bombTick(){
         c.planting = false;
         bomb.state = "planted"; bomb.site = tac.site; bomb.x = c.baseX; bomb.y = c.baseY; bomb.z = c.z;   // (v353) высота — для «видно ли бомбу» при дефузе soundEv("sndBomb", "planted", c.baseX, c.baseY);
         bomb.plantTick = tick; bomb.explodeTick = tick + BOMB_TICKS; bomb.carrier = null;
-        c.money = Math.min(MAX_MONEY, c.money + 300);
+        economySetMoney(c, Math.min(MAX_MONEY, c.money + 300));
         logEvent(c.id+" заложил бомбу на "+tac.site+" (+$300)", true);
         feedEvent("bomb", c.id+" заложил бомбу на "+tac.site);
       }
@@ -293,7 +293,7 @@ function bombTick(){
         def.defusing = false; def.defuseCooldownUntil = tick + 96; logEvent(def.id+" прервал дефуз — враг рядом");
       } else if(tick >= def.defuseUntil){
         def.defusing = false; bomb.state = "defused"; soundEv("sndBomb", "defused", bomb.x, bomb.y);
-        def.money = Math.min(MAX_MONEY, def.money + 300);
+        economySetMoney(def, Math.min(MAX_MONEY, def.money + 300));
         logEvent(def.id+" обезвредил бомбу (+$300)", true);
         feedEvent("defuse", def.id+" обезвредил бомбу"+(bots.some(function(o){ return o.team==="T" && o.alive; }) ? " под носом у T" : ""));
         endRound("CT", "defuse");
@@ -341,3 +341,7 @@ function bombTick(){
   }
 }
 
+
+// Запись состояния канала. Вызовы выполняются в исходной точке тика.
+function bombSetFlee(bot, value){ return bot._flee = value; }
+function bombSetStopPlantUntil(bot, value){ return bot._stopPlantUntil = value; }

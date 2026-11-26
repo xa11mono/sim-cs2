@@ -1,0 +1,23 @@
+{
+  "run": 334,
+  "run_id": 45824614322,
+  "job_id": 139925468149,
+  "run_commit": "551d4b3efe4634ea4a9e656fd90ad932a612822c",
+  "started_utc": "2026-11-26T12:58:18Z",
+  "play_matches": "cancelled",
+  "publish_results": "failure",
+  "results_refs": [],
+  "artifacts": [],
+  "notices": [
+    "Process completed with exit code 1.",
+    "The operation was canceled.",
+    "end rec v637a_rec_anc m29: код 3221225786, 33 с, пик 1172 МБ, процессов до 6, СНЯТ: раннер завершается",
+    "end rec v637a_rec_anc m23: код 1, 194 с, пик 2076 МБ, процессов до 6, СНЯТ: раннер завершается",
+    "guard: прогон прерван: {\"time\": \"2026-11-26 20:19:13\", \"avail_mb\": 5720, \"total_mb\": 15977, \"cap\": 8, \"queued\": 8, \"running\": [{\"name\": \"rec v637a_rec_anc m23\", \"mb\": 2076, \"procs\": 6, \"secs\": 194}, {\"name\": \"rec v637a_rec_anc m29\", \"mb\": 1172, \"procs\": 6, \"secs\": 33}], \"aborted\": \"KeyboardInterrupt()\"}",
+    "mem: свободно 6008 / 15977 МБ; par ≤ 8; очередь 8; идёт 2: rec v637a_rec_anc m23 1972 МБ / 6 проц., rec v637a_rec_anc m29 1018 МБ / 6 проц.",
+    "start rec v637a_rec_anc m29 (идёт 2, свободно 6652 МБ)",
+    "end rec v637a_rec_anc m19: код 0, 323 с, пик 2208 МБ, процессов до 6",
+    "mem: свободно 5007 / 15977 МБ; par ≤ 8; очередь 9; идёт 2: rec v637a_rec_anc m19 2207 МБ / 6 проц., rec v637a_rec_anc m23 1881 МБ / 6 проц.",
+    "mem: свободно 5362 / 15977 МБ; par ≤ 8; очередь 9; идёт 2: rec v637a_rec_anc m19 2168 МБ / 6 проц., rec v637a_rec_anc m23 1678 МБ / 6 проц."
+  ]
+}

@@ -145,6 +145,12 @@
     "demo"
    ]
   },
+  "DLOG": {
+   "from": "trace.js",
+   "by": [
+    "app"
+   ]
+  },
   "FOV_DEG": {
    "from": "fov.js",
    "by": [
@@ -1888,21 +1894,16 @@
  },
  "bot": [
   "F",
-  "_ammoFor",
-  "_area",
-  "_blind",
   "_bomb",
   "_climb",
   "_clutch",
   "_contact",
   "_coverDir",
   "_dvName",
-  "_fall",
   "_fc",
   "_fcSnap",
   "_fcWhy",
   "_fcWhyT",
-  "_hold",
   "_idle",
   "_idlePhase",
   "_jump",
@@ -1976,7 +1977,6 @@
   "kind",
   "kit",
   "lastIntel",
-  "lastShotTick",
   "log",
   "look",
   "lookReason",
@@ -1985,7 +1985,6 @@
   "n",
   "nadeTask",
   "nades",
-  "nextShotTick",
   "onStairs",
   "path",
   "pathIdx",
@@ -2193,6 +2192,12 @@
     "warmup"
    ]
   },
+  "contactSetContact": {
+   "from": "contact.js",
+   "by": [
+    "sandbox"
+   ]
+  },
   "coreLoadEnd": {
    "from": "round.js",
    "by": [
@@ -2246,6 +2251,51 @@
     "map-wallbang"
    ]
   },
+  "damageSetAlive": {
+   "from": "damage.js",
+   "by": [
+    "replay-play",
+    "sandbox",
+    "warmup"
+   ]
+  },
+  "damageSetArmor": {
+   "from": "damage.js",
+   "by": [
+    "demo",
+    "warmup"
+   ]
+  },
+  "damageSetArmorHp": {
+   "from": "damage.js",
+   "by": [
+    "warmup"
+   ]
+  },
+  "damageSetBlindUntil": {
+   "from": "damage.js",
+   "by": [
+    "replay-play",
+    "sandbox",
+    "warmup"
+   ]
+  },
+  "damageSetHelmet": {
+   "from": "damage.js",
+   "by": [
+    "demo",
+    "warmup"
+   ]
+  },
+  "damageSetHp": {
+   "from": "damage.js",
+   "by": [
+    "demo",
+    "replay-play",
+    "sandbox",
+    "warmup"
+   ]
+  },
   "distToSeg": {
    "from": "path-search.js",
    "by": [
@@ -2255,8 +2305,80 @@
     "nav-zones"
    ]
   },
+  "engagementSetContactStreak": {
+   "from": "engagements.js",
+   "by": [
+    "sandbox",
+    "warmup"
+   ]
+  },
+  "engagementSetNearestEnemyBot": {
+   "from": "engagements.js",
+   "by": [
+    "warmup"
+   ]
+  },
+  "engagementSetSawEnemy": {
+   "from": "engagements.js",
+   "by": [
+    "replay-play",
+    "warmup"
+   ]
+  },
+  "engagementSetTargetTicks": {
+   "from": "engagements.js",
+   "by": [
+    "warmup"
+   ]
+  },
+  "engagementSetTs": {
+   "from": "engagements.js",
+   "by": [
+    "sandbox",
+    "warmup"
+   ]
+  },
+  "equipmentSetKit": {
+   "from": "items.js",
+   "by": [
+    "replay-play"
+   ]
+  },
+  "equipmentSetKnife": {
+   "from": "items.js",
+   "by": [
+    "replay-play"
+   ]
+  },
+  "equipmentSetPrimary": {
+   "from": "items.js",
+   "by": [
+    "demo",
+    "warmup"
+   ]
+  },
+  "equipmentSetSecondary": {
+   "from": "items.js",
+   "by": [
+    "demo"
+   ]
+  },
+  "equipmentSetWeapon": {
+   "from": "items.js",
+   "by": [
+    "demo",
+    "replay-play",
+    "warmup"
+   ]
+  },
   "fightReset": {
    "from": "fight-state.js",
+   "by": [
+    "sandbox"
+   ]
+  },
+  "fightSetFc": {
+   "from": "fight.js",
    "by": [
     "sandbox"
    ]
@@ -2327,6 +2449,12 @@
    "from": "walls-heights-cover.js",
    "by": [
     "map-heights"
+   ]
+  },
+  "jumpSetJump": {
+   "from": "tick-jump.js",
+   "by": [
+    "replay-play"
    ]
   },
   "knowHear": {
@@ -2425,6 +2553,42 @@
     "sandbox"
    ]
   },
+  "moveSetHeading": {
+   "from": "tick-step.js",
+   "by": [
+    "warmup"
+   ]
+  },
+  "moveSetHold": {
+   "from": "tick-step.js",
+   "by": [
+    "sandbox"
+   ]
+  },
+  "moveSetOnStairs": {
+   "from": "tick-step.js",
+   "by": [
+    "replay-play"
+   ]
+  },
+  "moveSetX": {
+   "from": "move.js",
+   "by": [
+    "demo",
+    "replay-play",
+    "sandbox",
+    "warmup"
+   ]
+  },
+  "moveSetY": {
+   "from": "move.js",
+   "by": [
+    "demo",
+    "replay-play",
+    "sandbox",
+    "warmup"
+   ]
+  },
   "moveSpeed": {
    "from": "move.js",
    "by": [
@@ -2477,6 +2641,31 @@
    "by": [
     "draw-map",
     "nav-zones"
+   ]
+  },
+  "navSetArea": {
+   "from": "levels.js",
+   "by": [
+    "sandbox"
+   ]
+  },
+  "navSetClimb": {
+   "from": "levels.js",
+   "by": [
+    "sandbox"
+   ]
+  },
+  "navSetFall": {
+   "from": "levels.js",
+   "by": [
+    "sandbox"
+   ]
+  },
+  "navSetZ": {
+   "from": "levels.js",
+   "by": [
+    "replay-play",
+    "sandbox"
    ]
   },
   "nick": {
@@ -2557,6 +2746,27 @@
     "timeout"
    ]
   },
+  "reloadSetAmmoFor": {
+   "from": "assist.js",
+   "by": [
+    "demo",
+    "warmup"
+   ]
+  },
+  "reloadSetReloadUntil": {
+   "from": "assist.js",
+   "by": [
+    "replay-play"
+   ]
+  },
+  "reloadSetReloading": {
+   "from": "assist.js",
+   "by": [
+    "replay-play",
+    "sandbox",
+    "warmup"
+   ]
+  },
   "resetRound": {
    "from": "round.js",
    "by": [
@@ -2608,6 +2818,25 @@
     "sandbox"
    ]
   },
+  "shotSetAmmo": {
+   "from": "shoot.js",
+   "by": [
+    "warmup"
+   ]
+  },
+  "shotSetLastShotTick": {
+   "from": "shoot.js",
+   "by": [
+    "demo"
+   ]
+  },
+  "shotSetNextShotTick": {
+   "from": "shoot.js",
+   "by": [
+    "sandbox",
+    "warmup"
+   ]
+  },
   "smokeBlocks": {
    "from": "smoke.js",
    "by": [
@@ -2632,6 +2861,12 @@
     "sandbox"
    ]
   },
+  "soundSetBlind": {
+   "from": "sound.js",
+   "by": [
+    "sandbox"
+   ]
+  },
   "stepBlocked": {
    "from": "levels.js",
    "by": [
@@ -2650,6 +2885,12 @@
    "from": "tactics.js",
    "by": [
     "killfeed"
+   ]
+  },
+  "taskSetAtPost": {
+   "from": "task.js",
+   "by": [
+    "replay-play"
    ]
   },
   "teamBot": {
@@ -2861,6 +3102,12 @@
    "from": "modes.js",
    "by": [
     "demo"
+   ]
+  },
+  "DLOG": {
+   "from": "trace.js",
+   "by": [
+    "app"
    ]
   },
   "HGT_OWN": {

@@ -7,8 +7,9 @@
 дочерние процессы браузера после смерти node никто не добивал; новый матч запускался без взгляда на свободную память.
 
 Что делает пул (Pool):
-  * допуск учитывает прогноз оставшегося роста идущих матчей, прогноз нового матча и запас памяти. Непроверенную пару
-    движок/карта сначала калибрует один матч. При длительном отсутствии памяти допуск завершается явной ошибкой.
+  * Firefox и WebKit резервируют оставшийся рост до пиков и калибруют новую пару движок/карта одним матчем.
+    Chromium и Node допускаются по свободной памяти и текущему потреблению. Новые деревья учитываются до первого замера.
+    При длительном отсутствии памяти допуск завершается явной ошибкой.
   * свободной памяти меньше критической — снять самый новый матч (причина lowmem), уменьшить параллельность, переиграть его один раз в конце;
   * лимит памяти на матч (всё дерево процессов: node + браузер + его дети) и лимит времени — снять (memlimit / timeout);
   * Windows: родительский Job Object ограничивает суммарный commit пула, отдельный Job Object — commit дерева матча.
@@ -22,7 +23,7 @@
   * журнал памяти: строка в run.log раз в 30 с (свободно, по матчам МБ и число процессов) и ~/simcs2_guard_state.json — последнее
     состояние переживает перезагрузку, следующий прогон печатает его в run.log; на матч — guard_<m>.json (пик, процессы, время, код, причина).
 Числа по умолчанию — проектные (не из демок: это защита ПК, а не поведение игры); меняются в задании: "guard": {...}."""
-import os, sys, time, json, subprocess, tempfile, threading
+import os, sys, time, json, subprocess, tempfile, threading, shutil
 
 WIN = os.name == 'nt'
 MB = 1024 * 1024
@@ -54,39 +55,41 @@ def mem_mb():
         k, v = line.split(':', 1); d[k] = int(v.split()[0]) // 1024
     return d['MemTotal'], d.get('MemAvailable', d['MemFree'])
 
-# ---------------- список процессов: pid → (ppid, МБ, путь) ----------------
+# ---------------- список процессов: pid → (ppid, МБ, путь, с CPU) ----------------
+_HZ = os.sysconf('SC_CLK_TCK') if hasattr(os, 'sysconf') and not WIN else 100
 def procs():
     out = {}
     if WIN:
-        ps = ("Get-CimInstance Win32_Process | ForEach-Object { '{0}|{1}|{2}|{3}|{4}' -f $_.ProcessId,$_.ParentProcessId,"
-              "$_.WorkingSetSize,$_.PrivatePageCount,$_.ExecutablePath }")
+        # (335) + время CPU процесса (KernelModeTime + UserModeTime, по 100 нс): продвижение матча, когда тиков нет
+        ps = ("Get-CimInstance Win32_Process | ForEach-Object { '{0}|{1}|{2}|{3}|{4}|{5}|{6}' -f $_.ProcessId,$_.ParentProcessId,"
+              "$_.WorkingSetSize,$_.PrivatePageCount,$_.KernelModeTime,$_.UserModeTime,$_.ExecutablePath }")
         try:
             r = subprocess.run(['powershell', '-NoProfile', '-NonInteractive', '-Command', ps], capture_output=True, text=True, timeout=60,
                                encoding='utf-8', errors='replace', creationflags=0x08000000)   # CREATE_NO_WINDOW
         except Exception: return out
         for line in r.stdout.splitlines():
-            p = line.strip().split('|', 4)
-            if len(p) < 5 or not p[0].isdigit(): continue
+            p = line.strip().split('|', 6)
+            if len(p) < 7 or not p[0].isdigit(): continue
             ws = int(p[2] or 0); pr = int(p[3] or 0)
-            out[int(p[0])] = (int(p[1] or 0), max(ws, pr) // MB, p[4])
+            out[int(p[0])] = (int(p[1] or 0), max(ws, pr) // MB, p[6], (int(p[4] or 0) + int(p[5] or 0)) / 1e7)
         return out
     for d in os.listdir('/proc'):
         if not d.isdigit(): continue
         try:
-            st = open('/proc/%s/stat' % d).read(); ppid = int(st[st.rindex(')') + 2:].split()[1])
+            st = open('/proc/%s/stat' % d).read(); f = st[st.rindex(')') + 2:].split(); ppid = int(f[1]); cpu = (int(f[11]) + int(f[12])) / _HZ
             rss = 0
             for line in open('/proc/%s/status' % d):
                 if line.startswith('VmRSS:'): rss = int(line.split()[1]) // 1024; break
             try: exe = os.readlink('/proc/%s/exe' % d)
             except OSError: exe = ''
-            out[int(d)] = (ppid, rss, exe)
+            out[int(d)] = (ppid, rss, exe, cpu)
         except (OSError, ValueError): continue
     return out
 
 def tree(pid, P):
     """pid и все его потомки по снимку P."""
     kids = {}
-    for q, (pp, _, _) in P.items(): kids.setdefault(pp, []).append(q)
+    for q, v in P.items(): kids.setdefault(v[0], []).append(q)
     res, st = [], [pid]
     while st:
         q = st.pop()
@@ -109,7 +112,7 @@ def in_dir(path, d):
 
 def browser_pids(bdir, P=None):
     P = procs() if P is None else P
-    return {q for q, (_, _, exe) in P.items() if in_dir(exe, bdir)}
+    return {q for q, v in P.items() if in_dir(v[2], bdir)}
 
 # ---------------- Windows: объект задания на матч ----------------
 if WIN:
@@ -122,6 +125,8 @@ if WIN:
     class _EXT(ctypes.Structure):
         _fields_ = [('Basic', _BASIC), ('Io', _IO), ('ProcessMemoryLimit', ctypes.c_size_t), ('JobMemoryLimit', ctypes.c_size_t),
                     ('PeakProcessMemoryUsed', ctypes.c_size_t), ('PeakJobMemoryUsed', ctypes.c_size_t)]
+    class _JOB_MEMORY_USAGE(ctypes.Structure):
+        _fields_ = [('JobMemory', ctypes.c_ulonglong), ('PeakJobMemoryUsed', ctypes.c_ulonglong)]
     _k = ctypes.WinDLL('kernel32', use_last_error=True)
     _k.CreateJobObjectW.restype = W.HANDLE; _k.CreateJobObjectW.argtypes = [ctypes.c_void_p, W.LPCWSTR]
     _k.SetInformationJobObject.argtypes = [W.HANDLE, ctypes.c_int, ctypes.c_void_p, W.DWORD]
@@ -170,6 +175,17 @@ class Job:
         e = _EXT()
         if not _k.QueryInformationJobObject(self.h, 9, ctypes.byref(e), ctypes.sizeof(e), None): return None
         return e.PeakJobMemoryUsed // MB
+
+    def current_mb(self):
+        if not self.h:
+            return None
+        usage = _JOB_MEMORY_USAGE()
+        # JobObjectMemoryUsageInformation. Older Windows may not support this
+        # query, so let admission fall back to the conservative peak model.
+        if not _k.QueryInformationJobObject(self.h, 28, ctypes.byref(usage), ctypes.sizeof(usage), None):
+            return None
+        return (usage.JobMemory + MB - 1) // MB
+
     def close(self, kill=True):
         if not self.h: return
         if kill: _k.TerminateJobObject(self.h, 1)
@@ -177,8 +193,22 @@ class Job:
 
 # ---------------- пул ----------------
 DEF = {'reserve_mb': None, 'critical_mb': None, 'critical_polls': 3, 'match_mem_mb': 6144, 'match_timeout_min': 90, 'poll_s': 2, 'tree_s': 10,
-       'est_mb': {'chromium': 1000, 'webkit': 1500, 'firefox': 2000, 'node': 800}, 'job': True, 'log_s': 30, 'recover_s': 60}
-# Windows: внешний Job Object ограничивает суммарный commit всех матчей, внутренний — каждого дерева.
+       'est_mb': {'chromium': 1000, 'webkit': 1500, 'firefox': 2000, 'node': 800}, 'job': True, 'log_s': 30, 'recover_s': 60,
+       # (прогон 335) продвижение: тики страницы (tools/measure/progress.js, раз в progress_every тиков), CPU дерева; зависание — нет нового
+       # отчёта дольше hang_s = max(hang_floor_s, hang_k × наибольший промежуток между отчётами пары движок/карта в этом прогоне); без тиков
+       # (Node, старые сборки, движки, где доставка отчёта во время долгого evaluate не проверена) — CPU дерева за hang_s меньше cpu_idle ядра.
+       # Числа — замер тяжёлых тиков 26.11 (полные матчи 3, 7 обеих карт, ядро Node, 4 матча на 4 ядрах облака): блок 640 тиков — медиана
+       # 4,0–4,7 с, наибольший 13,7–31,7 с, наибольший / медиана до 6,75 (начало раунда, поиск пути). hang_k 10 ≥ 1,5 × 6,75; нижняя граница
+       # 60 с ≈ 1,9 × самого тяжёлого блока облака (ПК быстрее: матч 230–420 с). Доставка отчётов из страницы во время долгого evaluate
+       # проверена в Chromium (tools/measure/progress_check.py) — правило «нет тиков» только для tick_hang_engines
+       'progress': True, 'progress_every': 640, 'hang_floor_s': 60, 'hang_k': 10, 'cpu_idle': 0.05, 'retries': 2, 'tick_hang_engines': ['chromium']}
+PROGRESS_JS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'progress.js')
+DYNAMIC_ENGINES = {'chromium', 'node'}
+# Windows: внутренний Job Object — commit каждого дерева (match_mem_mb); внешний общий — у Firefox / WebKit ограничивает суммарный commit
+# их матчей (строгая защита по прогнозу пиков). (Прогон 335) Chromium / Node — в своём общем объекте БЕЗ лимита commit (только снятие
+# всего при закрытии): лимит «свободная RAM на момент старта − запас» на сумму commit всех матчей (5177 МБ в 335) отказывал в памяти
+# случайному процессу при свободной RAM (4508 МБ) — падение страницы (код 1), аварийный выход (134), а матч с упавшей страницей держал
+# слот. Их защита — допуск по фактической памяти, лимит дерева, снятие при нехватке RAM (lowmem) — управляемые действия, не отказ в памяти.
 # Допуск прогнозирует RAM по своим данным на пару движок/карта. Вне Windows остаётся опрос и запас.
 STATE = os.path.join(os.path.expanduser('~'), 'simcs2_guard_state.json')   # последнее состояние памяти: переживает перезагрузку ПК
 DONE = os.path.join(os.path.expanduser('~'), 'simcs2_done')                # готовые матчи вне рабочей папки (её чистит checkout)
@@ -224,10 +254,23 @@ class Pool:
         self.peaks, self.calibrated = {}, set()
         self.seen_all = set()
         self.protected = WIN and c['job']
-        self.group = None
+        self.group = None          # общий объект строгих движков (лимит commit)
+        self.dgroup = None         # общий объект Chromium / Node: без лимита commit (снятие всего при закрытии)
         self.group_limit = 0
         self.attempts = []
         self._spans = []
+        self.gaps = {}             # пара движок/карта → наибольший промежуток между отчётами о тиках (с), без первого (запуск, загрузка)
+        self.ptmp = tempfile.mkdtemp(prefix='simprog_') if c['progress'] else None; self.nprog = 0
+        # (прогон 336) путь модуля в NODE_OPTIONS — прямыми слешами: Node читает «\» в кавычках как экранирование (C:\a\b → C:ab — модуль не
+        # найден, каждый матч падал при запуске). Перед прогоном — пробный node с этими NODE_OPTIONS: не грузится — без тиков (CPU), не падать
+        self.node_opts = ' --require "%s"' % PROGRESS_JS.replace(os.sep, '/')
+        if self.ptmp:
+            try: ok = subprocess.run(['node', '-e', '0'], env=dict(os.environ, NODE_OPTIONS=(os.environ.get('NODE_OPTIONS', '') + self.node_opts).strip()),
+                                     capture_output=True, text=True, timeout=120)
+            except Exception as ex: ok = ex
+            if not (getattr(ok, 'returncode', 1) == 0):
+                self.log('guard: модуль продвижения не загружается (%s) — тики не отслеживаются, зависание — по CPU' % str(getattr(ok, 'stderr', '') or ok)[:300].replace('\n', ' '))
+                shutil.rmtree(self.ptmp, ignore_errors=True); self.ptmp = None
         self.before = browser_pids(bdir) if bdir else set()
         if self.before:   # (26.11) осиротевшие браузеры прошлого (отменённого) прогона: из папки Playwright, родителя нет — снять; с живым родителем — не трогать
             P0 = procs(); orph = [q for q in self.before if q in P0 and (P0[q][0] not in P0 or P0[q][0] <= 1)]
@@ -307,15 +350,36 @@ class Pool:
     @staticmethod
     def _key(t):   # ключ оценки пика: est_key задания («движок:карта» — матчи Ancient и Mirage разного размера) или движок
         return t.get('est_key') or t.get('engine', 'chromium')
+
+    @staticmethod
+    def _dynamic(t):
+        return t.get('engine', 'chromium') in DYNAMIC_ENGINES
+
+    def _seed(self, key):
+        engine = key.split(':')[0]
+        configured = self.c['est_mb']
+        return configured.get(key, configured.get(engine, DEF['est_mb'].get(engine, DEF['est_mb']['webkit'])))
+
     def _est(self, key):
         # пик: наибольший замеченный у матчей с этим ключом (и у идущих — растут), пока замеров нет — est_mb движка
         live = max([r['peak'] for r in self.run if self._key(r['t']) == key] or [0])
-        configured = self.c['est_mb']
-        floor = configured.get(key, configured.get(key.split(':')[0], DEF['est_mb'].get(key.split(':')[0], 1500)))
-        return max(self.peaks.get(key, 0), live, floor)
-    def _need(self):
+        return max(self.peaks.get(key, 0), live, self._seed(key))
+
+    def _start_cost(self, key):
+        current = [r.get('now') or 0 for r in self.run if self._key(r['t']) == key]
+        return max(self._seed(key), max(current, default=0))
+
+    def _need(self, dynamic=False):
         # сколько ещё памяти возьмут идущие матчи до своего пика (матч без замера — весь пик)
-        return sum(max(0, self._est(self._key(r['t'])) - (r.get('now') or 0)) for r in self.run)
+        need = 0
+        for r in self.run:
+            key, used = self._key(r['t']), r.get('now')
+            if dynamic and self._dynamic(r['t']):
+                if not used:
+                    need += r['start_cost']
+            else:
+                need += max(0, self._est(key) - (used or 0))
+        return need
     def _cap_set(self, v, why):
         v = max(1, min(self.par, v))
         if v != self.cap: self.cap_log.append([time.time(), v, why]); self.log('guard: параллельность %d → %d (%s)' % (self.cap, v, why))
@@ -324,31 +388,47 @@ class Pool:
     def _can_start(self, t, available):
         return self._admit(t, available)[0]
     def _admit(self, t, available):
-        # (26.11, владелец: «в журнал — причину недопуска») то же решение, что было, плюс числа для журнала
         key = self._key(t)
-        estimate = self._est(key); need = self._need()
-        info = {'key': key, 'est': estimate, 'need': need, 'avail': available, 'reserve': self.reserve, 'after_peak': available - need - estimate}
+        dynamic = self._dynamic(t)
+        estimate = self._start_cost(key) if dynamic else self._est(key)
+        need = self._need(dynamic)
+        info = {'key': key, 'est': estimate, 'need': need, 'avail': available, 'reserve': self.reserve,
+                'remaining': available - need - estimate, 'dynamic': dynamic}
         if self.run and (t.get('retried') or any(r['t'].get('retried') for r in self.run)):
             return False, dict(info, why='повтор снятого — идёт один')
-        # Без законченного измерения одной пары разрешён один калибровочный матч этой пары.
-        if key not in self.calibrated and any(self._key(r['t']) == key for r in self.run):
+        if not dynamic and key not in self.calibrated and any(self._key(r['t']) == key for r in self.run):
             return False, dict(info, why='калибровка: у пары %s нет законченного замера пика — один матч' % key)
-        if available - need - estimate < self.reserve:
-            return False, dict(info, why='память: свободно − рост идущих − пик нового < запас')
-        if self.group:
-            peaks = sum(self._est(self._key(r['t'])) for r in self.run)
-            info.update(commit_peaks=peaks, commit_limit=self.group_limit, commit_peak_used=self.group.peak_mb())
-            if peaks + estimate > self.group_limit:
-                return False, dict(info, why='общий лимит commit: пики идущих + пик нового > лимит')
+        if info['remaining'] < self.reserve:
+            return False, dict(info, why='RAM: после допуска осталось бы меньше запаса')
+        if self.group and not dynamic:
+            current = None
+            if current is None:
+                committed = sum(self._est(self._key(r['t'])) for r in self.run)
+                extra = self._est(key)
+            else:
+                committed, extra = current + need, estimate
+            info.update(commit_used=committed, commit_new=extra, commit_limit=self.group_limit,
+                        commit_current=current)
+            if committed + extra > self.group_limit:
+                return False, dict(info, why='общий Job Object: budget commit исчерпан')
+        elif self.protected and not dynamic:
+            budget = min(available, _windows_memory().ullAvailPageFile // MB) - self.reserve
+            if budget < estimate:
+                return False, dict(info, why='общий Job Object: свободный commit за вычетом запаса меньше бюджета запуска',
+                                   commit_used=0, commit_new=estimate, commit_limit=budget, commit_current=0)
         return True, dict(info, why='')
     def _log_block(self, t, info, now):
         k = (t['name'], info['why'])
         if k == getattr(self, '_blk', None) and now - getattr(self, '_blk_t', 0) < self.c['log_s']: return
         self._blk, self._blk_t = k, now
-        s = ('guard: недопуск %s — %s; прогноз пика нового %d МБ (%s), рост идущих до пика +%d МБ, свободно %d МБ, запас %d МБ → после пиков свободно %d МБ'
-             % (t['name'], info['why'], info['est'], info['key'], info['need'], info['avail'], info['reserve'], info['after_peak']))
+        policy = 'фактическая память' if info['dynamic'] else 'прогноз пиков'
+        s = ('guard: недопуск %s — %s; %s (%s): новое дерево +%d МБ, резерв для идущих +%d МБ, свободно %d МБ, запас %d МБ → остаток %d МБ'
+             % (t['name'], info['why'], policy, info['key'], info['est'], info['need'], info['avail'], info['reserve'], info['remaining']))
         if 'commit_limit' in info:
-            s += '; commit: пики идущих %d + новый %d = %d из лимита %d МБ (наибольший занятый %s МБ)' % (info['commit_peaks'], info['est'], info['commit_peaks'] + info['est'], info['commit_limit'], info['commit_peak_used'])
+            current = info['commit_current']
+            s += '; commit: учтено %d + новый %d из лимита %d МБ (факт %s)' % (
+                info['commit_used'], info['commit_new'], info['commit_limit'],
+                'нет замера' if current is None else '%d МБ' % current)
         self.log(s)
 
     def _increase_group_if_possible(self, available):
@@ -361,10 +441,18 @@ class Pool:
                 self.group_limit = budget
 
     def _ensure_group(self, available, t):
-        if not self.protected or self.group:
+        if not self.protected: return True
+        if self._dynamic(t):
+            if not self.dgroup:
+                g = Job(0)
+                if not g.h: raise RuntimeError('Не создан общий Job Object: ' + str(g.err))
+                self.dgroup = g
+            return True
+        if self.group:
             return True
         self.group_limit = min(available, _windows_memory().ullAvailPageFile // MB) - self.reserve
-        if self.group_limit < self._est(self._key(t)):
+        estimate = self._start_cost(self._key(t)) if self._dynamic(t) else self._est(self._key(t))
+        if self.group_limit < estimate:
             return False
         group = Job(self.group_limit)
         if not group.h:
@@ -390,14 +478,22 @@ class Pool:
                 # До сигнала bootstrap только читает pipe. Node и браузер уже наследуют оба ограничения.
                 gate = "import sys, subprocess; sys.exit(subprocess.call(sys.argv[1:]) if sys.stdin.buffer.read(1)==b'1' else 125)"
                 cmd = [sys.executable, '-c', gate, *cmd]
-            p = subprocess.Popen(cmd, cwd=t.get('cwd'), env=t.get('env'), stdout=fo, stderr=fe,
+            env, pf = t.get('env'), None
+            if self.ptmp and t.get('engine', 'chromium') != 'node' and os.path.exists(PROGRESS_JS):   # тики и падение страницы (progress.js)
+                self.nprog += 1; pf = os.path.join(self.ptmp, 'p%d.json' % self.nprog); env = dict(env or os.environ)
+                env.update(SIM_PROGRESS=pf, SIM_PROGRESS_EVERY=str(self.c['progress_every']),
+                           NODE_OPTIONS=(env.get('NODE_OPTIONS', '') + self.node_opts).strip())
+            p = subprocess.Popen(cmd, cwd=t.get('cwd'), env=env, stdout=fo, stderr=fe,
                                  stdin=subprocess.PIPE if self.protected else None)
             if self.protected:
                 job = Job(self.c['match_mem_mb'])
-                if not self.group.assign(p) or not job.assign(p):
-                    raise RuntimeError('Job Object не назначен для %s: %s / %s' % (t['name'], self.group.err, job.err))
+                grp = self.dgroup if self._dynamic(t) else self.group
+                if not grp.assign(p) or not job.assign(p):
+                    raise RuntimeError('Job Object не назначен для %s: %s / %s' % (t['name'], grp.err, job.err))
             r = {'t': t, 'p': p, 'fo': fo, 'fe': fe, 'job': job, 't0': time.time(), 'start': time.monotonic(),
-                 'peak': 0, 'nproc': 0, 'nproc_max': 0, 'seen': set(), 'why': None,
+                 'peak': 0, 'nproc': 0, 'nproc_max': 0, 'seen': set(), 'why': None, 'kind': None,
+                 'pf': pf, 'pn': 0, 'tick': None, 't_tick': time.monotonic(), 'w_tick': None, 'pstate': None, 'gap_max': 0, 'cpu': [],
+                 'start_cost': self._start_cost(self._key(t)),
                  'group_limit_mb': self.group_limit if self.protected else None}
             if self.protected:
                 p.stdin.write(b'1')
@@ -420,7 +516,8 @@ class Pool:
                     f.close()
             raise
 
-    def _stop(self, r, why):
+    def _stop(self, r, why, kind=None):
+        if not r['why']: r['kind'] = kind or why.split()[0]
         r['why'] = r['why'] or why
         if r['job']:
             r['peak'] = max(r['peak'], r['job'].peak_mb() or 0)
@@ -436,8 +533,50 @@ class Pool:
         P = procs(); left = [q for q in r['seen'] if q in P and in_dir(P[q][2], self.bdir)]
         kill_pids(left); return len(left)
 
+    def _progress(self, r, now):
+        """Отчёт progress.js: новый тик — промежуток в оценку пары (кроме первого: запуск браузера, загрузка); падение страницы /
+        отключение браузера — снять сразу (слот свободен, матч — в повтор)."""
+        if not r['pf']: return
+        try: st = read_json(r['pf'])
+        except (OSError, ValueError): return
+        r['pstate'] = st.get('state'); n = st.get('n') or 0
+        if n != r['pn']:
+            w = st.get('t')
+            if r['pn'] >= 1 and isinstance(w, (int, float)) and r['w_tick']:
+                gap = max(0.0, (w - r['w_tick']) / 1000.0); key = self._key(r['t'])
+                self.gaps[key] = max(self.gaps.get(key, 0.0), gap); r['gap_max'] = max(r['gap_max'], gap)
+            r['pn'] = n; r['tick'] = st.get('tick'); r['t_tick'] = now; r['w_tick'] = w
+        if not r['why'] and r['pstate'] in ('crash', 'disconnected'):
+            self._stop(r, 'страница упала (тик %s)' % r['tick'] if r['pstate'] == 'crash' else 'браузер отключился (тик %s)' % r['tick'], r['pstate'])
+
+    def _hang_s(self, key):
+        return max(self.c['hang_floor_s'], self.c['hang_k'] * self.gaps.get(key, 0.0))
+
+    def _hang(self, r, now):
+        """Зависание — не по времени матча, а по продвижению: тики есть — нет нового отчёта дольше порога; тиков нет (Node, старая
+        сборка, ещё загрузка) — CPU дерева за порог меньше cpu_idle ядра (упавшая страница, ждущий Node — CPU не растёт)."""
+        if r['why']: return
+        H = self._hang_s(self._key(r['t']))
+        if r['pn'] >= 1 and r['t'].get('engine', 'chromium') in self.c['tick_hang_engines']:
+            if now - r['t_tick'] > H:
+                self._stop(r, 'зависание: нет новых тиков %.0f с (последний тик %s; порог %.0f с)' % (now - r['t_tick'], r['tick'], H), 'hang')
+            return
+        old = [c for c in r['cpu'] if c[0] <= now - H]
+        if old and r['cpu']:
+            grow = r['cpu'][-1][1] - old[-1][1]
+            if grow < self.c['cpu_idle'] * (r['cpu'][-1][0] - old[-1][0]):
+                self._stop(r, 'стоит: CPU дерева +%.1f с за %.0f с, тиков нет (порог %.0f с)' % (grow, r['cpu'][-1][0] - old[-1][0], H), 'hang')
+
+    def _state_of(self, r, now):   # для журнала: считает / стоит / снят
+        if r['why']: return 'снят: ' + r['kind']
+        if r['pn'] >= 1: return 'тик %s, %.0f с назад' % (r['tick'], now - r['t_tick'])
+        c = r['cpu']
+        if len(c) >= 2 and c[-1][0] > c[-2][0]: return 'тиков ещё нет, CPU %.0f%%' % (100 * (c[-1][1] - c[-2][1]) / (c[-1][0] - c[-2][0]))
+        return 'тиков ещё нет'
+
     def _finish(self, r):
         rc = r['p'].returncode
+        self._progress(r, r.get('end', time.monotonic()))   # последний отчёт (тик, падение страницы) — после конца процесса
         if r['job']:
             pk = r['job'].peak_mb()
             if pk: r['peak'] = max(r['peak'], pk)
@@ -457,7 +596,9 @@ class Pool:
              'stopped': r['why'], 'orphans_killed': left, 'job': bool(r['job']), 'par_cap': self.cap, 'running_with': len(self.run),
              'mem_total_mb': self.total, 'mem_avail_mb_after': av, 'retry': bool(t.get('retried')),
              'par_req': self.par, 'par_seen_max': stats['par_max'], 'par_seen_avg': stats['par_avg'],
-             'group_limit_mb': r['group_limit_mb']}
+             'group_limit_mb': r['group_limit_mb'], 'stop_kind': r['kind'], 'tick_last': r['tick'], 'progress_reports': r['pn'],
+             'tick_gap_max_s': round(r['gap_max'], 1), 'cpu_s': round(r['cpu'][-1][1], 1) if r['cpu'] else None, 'page_state': r['pstate'],
+             'attempt': t.get('attempt', 1)}
         self.attempts.append(dict(g, start=r['start'], end=end, task=t['name']))
         if t.get('guard'):
             with open(t['guard'], 'w', encoding='utf-8') as f: json.dump(g, f, ensure_ascii=False)
@@ -466,8 +607,19 @@ class Pool:
         if ok and t.get('save'): self._save(t)
         self.log('end %s: код %s, %.0f с, пик %s МБ, процессов до %d%s%s' % (t['name'], rc, dur, r['peak'], r['nproc_max'],
                  ', СНЯТ: ' + r['why'] if r['why'] else ('' if ok else ', РЕЗУЛЬТАТ НЕГОДЕН'), ', добито осиротевших: %d' % left if left else ''))
-        if r['why'] and r['why'].startswith('lowmem') and not t.get('retried'):
+        lowmem = r['kind'] == 'lowmem'
+        # (335) незавершённый матч повторяется автоматически: падение страницы, отключение браузера, зависание, выход с ошибкой без
+        # снятия. Первый повтор — в общей очереди (параллельно, обычный допуск), второй — отдельно в конце; дальше — негоден (в журнал)
+        infra = r['kind'] in ('crash', 'disconnected', 'hang') or (rc != 0 and not r['why'])
+        n = t.get('attempt', 1)
+        if lowmem and not t.get('retried'):
             t = dict(t); t['retried'] = True; self.retry.append(t)
+        elif infra and not ok and n <= self.c['retries']:
+            t = dict(t); t['attempt'] = n + 1
+            if n == 1: self.q.append(t); self.log('guard: %s — повтор %d в общей очереди (%s)' % (t['name'], n, r['kind'] or 'код %s' % rc))
+            else: t['retried'] = True; self.retry.append(t); self.log('guard: %s — повтор %d отдельно в конце (%s)' % (t['name'], n, r['kind'] or 'код %s' % rc))
+        elif infra and not ok:
+            self.log('guard: %s — попыток %d, результата нет (%s)' % (t['name'], n, r['kind'] or 'код %s' % rc))
 
     def _sweep(self, where):
         """Процессы из папки браузеров Playwright, появившиеся за прогон, которые были в дереве наших матчей или осиротели (родителя
@@ -481,7 +633,7 @@ class Pool:
 
     def _state(self, av, tot):
         st = {'time': time.strftime('%Y-%m-%d %H:%M:%S'), 'avail_mb': av, 'total_mb': tot, 'cap': self.cap, 'queued': len(self.q),
-              'running': [{'name': r['t']['name'], 'mb': r.get('now'), 'procs': r['nproc'], 'secs': round(time.monotonic() - r['start'])} for r in self.run]}
+              'running': [{'name': r['t']['name'], 'mb': r.get('now'), 'procs': r['nproc'], 'secs': round(time.monotonic() - r['start']), 'tick': r['tick'], 'stop': r['kind']} for r in self.run]}
         try:
             with open(STATE, 'w', encoding='utf-8') as f: json.dump(st, f, ensure_ascii=False)
         except OSError: pass
@@ -506,8 +658,11 @@ class Pool:
                 if not self.run and self.group:
                     self.group.close(True)
                     self.group = None
+                if not self.run and self.dgroup:
+                    self.dgroup.close(True)
+                    self.dgroup = None
                 if not self.q and not self.run and self.retry:
-                    self.log('guard: переигровка снятых по памяти: %d (по одному)' % len(self.retry))
+                    self.log('guard: повтор остановленных или упавших матчей: %d (по одному)' % len(self.retry))
                     self.q, self.retry = self.retry, []
                 if not self.q and not self.run:
                     break
@@ -518,12 +673,16 @@ class Pool:
                     for r in self.run:
                         ids = tree(r['p'].pid, P); r['seen'].update(ids); self.seen_all.update(ids); r['nproc'] = len(ids); r['nproc_max'] = max(r['nproc_max'], len(ids))
                         r['now'] = sum(P[q][1] for q in ids); r['peak'] = max(r['peak'], r['now'])
+                        cpu = [P[q][3] for q in ids if len(P[q]) > 3 and P[q][3] is not None]
+                        if cpu: r['cpu'].append((now, sum(cpu))); r['cpu'] = r['cpu'][-200:]
                         if r['job']:
                             pk = r['job'].peak_mb()
                             if pk: r['peak'] = max(r['peak'], pk)
                         if not r['why'] and r['now'] > self.c['match_mem_mb']: self._stop(r, 'memlimit %d МБ' % r['now'])
                 for r in self.run:
-                    if not r['why'] and now - r['start'] > self.c['match_timeout_min'] * 60: self._stop(r, 'timeout %g мин' % self.c['match_timeout_min'])
+                    self._progress(r, now); self._hang(r, now)
+                    # (335) предел времени — только матчу без отчётов о тиках: идущий с тиками не снимается по времени
+                    if not r['why'] and r['pn'] == 0 and now - r['start'] > self.c['match_timeout_min'] * 60: self._stop(r, 'timeout %g мин' % self.c['match_timeout_min'])
                 # нехватка памяти: 1) новые матчи не стартуют (допуск ниже); 2) лишь если свободно меньше критического несколько опросов
                 # подряд — снять самый новый матч (переиграется в конце по одному) и уменьшить параллельность
                 self.low = self.low + 1 if av < self.critical else 0
@@ -534,15 +693,18 @@ class Pool:
                         self._cap_set(min(self.cap, len(self.run) - 1), 'мало памяти: свободно %d МБ' % av); self.low = 0
                 if now - last_log >= self.c['log_s'] and self.run:
                     last_log = now; st = self._state(av, tot)
-                    self.log('mem: свободно %d / %d МБ; par ≤ %d; очередь %d; идёт %d: %s' % (av, tot, self.cap, len(self.q), len(self.run),
-                             ', '.join('%s %s МБ / %d проц.' % (x['name'], x['mb'], x['procs']) for x in st['running'])))
+                    calc = sum(1 for x in self.run if not x['why'] and x['pn'] >= 1 and now - x['t_tick'] <= max(60, 2 * self.gaps.get(self._key(x['t']), 0)))
+                    self.log('mem: свободно %d / %d МБ; par ≤ %d; очередь %d; идёт %d (считают тики %d): %s' % (av, tot, self.cap, len(self.q), len(self.run), calc,
+                             ', '.join('%s %s МБ / %d проц. [%s]' % (x['name'], x['mb'], x['procs'], self._state_of(rr, now))
+                                       for x, rr in zip(st['running'], self.run))))
                 # После опроса процессов память могла измениться. Перед допуском берём свежее значение.
                 _, av = mem_mb()
                 if self.q:
                     self._increase_group_if_possible(av)
                 if (self.cap < self.par and self.low == 0 and now - self.t_cap >= self.c['recover_s']
                         and self.q and not self.q[0].get('retried') and self._can_start(self.q[0], av)):
-                    self._cap_set(self.cap + 1, 'память позволяет: свободно %d МБ, прогноз идущих +%d' % (av, self._need()))
+                    self._cap_set(self.cap + 1, 'память позволяет: свободно %d МБ, резерв идущих +%d' % (
+                        av, self._need(self._dynamic(self.q[0]))))
                 while self.q and len(self.run) < self.cap:
                     next_task = self.q[0]
                     ok, info = self._admit(next_task, av)
@@ -577,8 +739,15 @@ class Pool:
             if self.group:
                 self.group.close(True)
                 self.group = None
+            if self.dgroup:
+                self.dgroup.close(True)
+                self.dgroup = None
             self._spans.clear()
             self._sweep('конец')
+            if self.ptmp and not self.run:
+                for f in os.listdir(self.ptmp):
+                    try: os.remove(os.path.join(self.ptmp, f))
+                    except OSError: pass
             if done:
                 try: os.remove(STATE)
                 except OSError: pass

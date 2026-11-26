@@ -202,7 +202,7 @@ function lineupTick(){
           solo.nadeTask = {notBefore: sNB,type:L.type, x:L.to.x, y:L.to.y, from:{x:L.from.x, y:L.from.y}, until: tick + sP*TICK_HZ, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»", start:tick, lob:true, range:4000, now:true, lineup:true, exec:L.type === "smoke", npm:luM};
           logEvent(solo.id+": раскид — идёт на «"+(L.name||LU_TYPE[L.type])+"»");
         } else {
-          (solo.nadeQueue = solo.nadeQueue || []).push({type:L.type, x:L.to.x, y:L.to.y, from:{x:L.from.x, y:L.from.y}, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»", lineup:true, exec:true, npm:luM});
+          nadeAppendQueued(nadeSetNadeQueue(solo, solo.nadeQueue || []), {type:L.type, x:L.to.x, y:L.to.y, from:{x:L.from.x, y:L.from.y}, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»", lineup:true, exec:true, npm:luM});
           logEvent(solo.id+": раскид — следом «"+(L.name||LU_TYPE[L.type])+"»");
         }
         return;
@@ -216,7 +216,7 @@ function lineupTick(){
         .sort(function(a, b2){ return (utilRole(a) ? 0 : 400) + cost(a) - (utilRole(b2) ? 0 : 400) - cost(b2); })[0];
       if(qb){
         nadeFlags[key] = true; nadeFlags["luok"+L.id] = true; proGroupDone(L);
-        (qb.nadeQueue = qb.nadeQueue || []).push({type:L.type, x:L.to.x, y:L.to.y, from:{x:L.from.x, y:L.from.y}, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»", lineup:true, exec:true, npm:luM});
+        nadeAppendQueued(nadeSetNadeQueue(qb, qb.nadeQueue || []), {type:L.type, x:L.to.x, y:L.to.y, from:{x:L.from.x, y:L.from.y}, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»", lineup:true, exec:true, npm:luM});
         logEvent(qb.id+": следом кинет «"+(L.name||LU_TYPE[L.type])+"»");
         return;
       }
@@ -231,7 +231,7 @@ function lineupTick(){
       if(ow){
         var OS = spotOf(ow);
         nadeFlags[key] = true; nadeFlags["luok"+L.id] = true; proGroupDone(L);
-        (ow.nadeQueue = ow.nadeQueue || []).push({type:L.type, x:OS.to.x, y:OS.to.y, from:{x:OS.from.x, y:OS.from.y}, why:"лайнап «"+(OS.name||LU_TYPE[L.type])+"»", lineup:true, npm:luM, luL:L, luId:OS.id});
+        nadeAppendQueued(nadeSetNadeQueue(ow, ow.nadeQueue || []), {type:L.type, x:OS.to.x, y:OS.to.y, from:{x:OS.from.x, y:OS.from.y}, why:"лайнап «"+(OS.name||LU_TYPE[L.type])+"»", lineup:true, npm:luM, luL:L, luId:OS.id});
         logEvent(ow.id+": следом кинет «"+(OS.name||LU_TYPE[L.type])+"»");
         return;
       }

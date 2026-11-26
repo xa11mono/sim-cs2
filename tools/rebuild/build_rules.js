@@ -9,6 +9,7 @@ const fs = require('fs'), path = require('path');
 const ROOT = path.resolve(__dirname, '..', '..'), SRC = require('./game_src.js');
 const acorn = require('acorn'), walk = require('acorn-walk');
 const KNOWN = path.join(ROOT, 'rebuild', 'build_rules_known.json');
+const OWN = JSON.parse(fs.readFileSync(path.join(ROOT, 'rebuild', 'owners.json'), 'utf8'));
 // rule: id, что запрещено, где (part игры / файлы инструментов), шаблон (регулярка по строке кода без комментариев) или ast(node) → bool
 const RULES = [
   { id: 'Р-1', what: 'время «успею» по прямой: hypot(…) / SPEED — путь по навмешу (pathLenTo) и шаг / оружие', parts: ['decide'], re: /hypot\([^;]*\)\s*\/\s*\(?\s*SPEED\b/ },
@@ -30,7 +31,12 @@ function scanFile(file, text, rules, U) {
   const fnAt = pos => { const t = tops.find(([s, e]) => pos >= s && pos < e); return t ? t[2] : '(верх файла)'; };
   for (const r of rules) {
     const add = pos => { const k = r.id + ' · ' + file + ' · ' + fnAt(pos); U[k] = (U[k] || 0) + 1; };
-    if (r.re) { const g = new RegExp(r.re.source, 'g'); let m; while ((m = g.exec(code))) add(m.index); }
+    if (r.re) { const g = new RegExp(r.re.source, 'g'); let m; while ((m = g.exec(code))) {
+      // Р-16: gen_maps дополнительно подтверждает ровно одну фактическую запись в функции владельца.
+      const owner = r.id === 'Р-16' && OWN[m[1]];
+      if (owner?.exclusive && owner.ownerFile === SRC.fileId(file) && owner.writer === fnAt(m.index)) continue;
+      add(m.index);
+    } }
     if (r.ast && P) walk.simple(P.ast, { CallExpression(n) { if (r.ast(n)) add(n.start - P.off); } });
   }
 }

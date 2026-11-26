@@ -1,4 +1,4 @@
-// [хозяева: assignNewDestination, engDecide, engRetreatCheck, engSee, engShoot, engTarget, resolveEngagements] присед у про (12 демок Mirage): на приседе 11 % первых пуль винтовки, 37 % 2–3-х, 22 % дальше; сидят коротко (медиана 0,19 с)
+// [хозяева: assignNewDestination, engDecide, engRetreatCheck, engSee, engShoot, engTarget, engagementSetContactStreak, engagementSetDecisionTick, engagementSetForcedRetreat, engagementSetHoldSinceTick, engagementSetNearestEnemyBot, engagementSetPickTick, engagementSetSawEnemy, engagementSetStateSince, engagementSetTs, resolveEngagements] присед у про (12 демок Mirage): на приседе 11 % первых пуль винтовки, 37 % 2–3-х, 22 % дальше; сидят коротко (медиана 0,19 с)
 // Доли решений больше долей пуль: присед срывает «не видно из приседа» (v521), уход за укрытие (fight) и конец очереди — подобраны так, чтобы
 // на приседе было столько же пуль, сколько у про (замер — бот: 1-я 6 %, 2–3 28 %, 4+ 14 % при решениях 0,11 / 0,37 / 0,22; 17 / 42 / 28 % при 0,2 / 0,49 / 0,35)
 var DUCK_PRO = {first: 0.13, burst: 0.46, spray: 0.27};
@@ -23,7 +23,7 @@ function resolveEngagements(){
 // кто кого видит: пары CT × T (видимость 3D, дым, ван-вей, конус взгляда, ослепление); ближайший видимый враг у каждого
 function engSee(){
   var pairs = [];
-  bots.forEach(function(b){ b._sawEnemy = false; b._nearestEnemyDist = Infinity; b._nearestEnemyBot = null; b._visible = []; });
+  bots.forEach(function(b){ engagementSetSawEnemy(b, false); b._nearestEnemyDist = Infinity; engagementSetNearestEnemyBot(b, null); b._visible = []; });
   bots.forEach(function(ct){
     if(ct.team!=="CT"||!ct.alive) return;
     bots.forEach(function(t){
@@ -51,8 +51,8 @@ function engSee(){
       if(!ctSees && !tSees) return;
       if(ctSees) (ct._seenAt || (ct._seenAt = {}))[t.id] = tick;
       if(tSees) (t._seenAt || (t._seenAt = {}))[ct.id] = tick;
-      if(ctSees){ ct._sawEnemy = true; ct._lastSawT = tick; ct._visible.push(t); if(dist < ct._nearestEnemyDist){ ct._nearestEnemyDist = dist; ct._nearestEnemyBot = t; } }
-      if(tSees){ t._sawEnemy = true; t._lastSawT = tick; t._visible.push(ct); if(dist < t._nearestEnemyDist){ t._nearestEnemyDist = dist; t._nearestEnemyBot = ct; } }
+      if(ctSees){ engagementSetSawEnemy(ct, true); ct._lastSawT = tick; ct._visible.push(t); if(dist < ct._nearestEnemyDist){ ct._nearestEnemyDist = dist; engagementSetNearestEnemyBot(ct, t); } }
+      if(tSees){ engagementSetSawEnemy(t, true); t._lastSawT = tick; t._visible.push(ct); if(dist < t._nearestEnemyDist){ t._nearestEnemyDist = dist; engagementSetNearestEnemyBot(t, ct); } }
       pairs.push({ct:ct, t:t, dist:dist, ctSees:ctSees, tSees:tSees});
     });
   });
@@ -69,13 +69,13 @@ function engTarget(){
     var T0 = b._tgt;
     if(T0 && T0.alive && b._visible.indexOf(T0) >= 0){
       var d0 = DM.hypot(T0.x-b.x, T0.y-b.y);
-      if(d0 <= b._nearestEnemyDist*1.4 + 20){ b._nearestEnemyBot = T0; b._nearestEnemyDist = d0; return; }
+      if(d0 <= b._nearestEnemyDist*1.4 + 20){ engagementSetNearestEnemyBot(b, T0); b._nearestEnemyDist = d0; return; }
     }
     var NT = b._nearestEnemyBot;
     if(T0 && NT && T0 !== NT && tick - (b.lastShotTick||-999) < 20){
       var pT = 0.3 + 0.4*Math.max(0, Math.min(1, ((b.skill||1)-0.8)/0.4));
       if(hashRand(tick*37 + b.id.charCodeAt(1)*5) < pT){ if(hashRand(tick+11) < 0.3) logEvent(b.id+": перевёл спрей на "+NT.id); }
-      else { b.nextShotTick = Math.max(b.nextShotTick, tick + 8); b.burstCount = 0; }
+      else { shotSetNextShotTick(b, Math.max(b.nextShotTick, tick + 8)); shotSetBurstCount(b, 0); }
     }
     b._tgt = NT;
   });
@@ -85,9 +85,9 @@ function engDecide(){
   bots.forEach(function(b){
     if(!b.alive) return;
     if(b._sawEnemy){
-      b.contactStreak++;
+      engagementSetContactStreak(b, +b.contactStreak + 1);
       if(b.lastShotTick === tick - 1 && b.burstCount === 1) duckDecide(b, DUCK_PRO.burst, 12);   // (v575) началась очередь — сесть или нет
-      var TS = b._ts || (b._ts = {}), vis = {};
+      var TS = b._ts || (engagementSetTs(b, {})), vis = {};
       b._visible.forEach(function(e){ vis[e.id] = 1; TS[e.id] = (TS[e.id] || 0) + 1; });
       for(var tsId in TS) if(!vis[tsId]) TS[tsId] = Math.max(0, TS[tsId] - 3);
       // (аудит 11.10) что бот знал ДО этого контакта — префайр в tryShoot только по нему. Раньше lastIntel перезаписывался
@@ -103,10 +103,10 @@ function engDecide(){
       // проходил полную задержку реакции 20-48 тиков, т.е. просто переставал
       // стрелять. Теперь "реакция" остывает постепенно: короткая потеря
       // контакта почти не сбрасывает её, долгая — сбрасывает полностью.
-      b.contactStreak = Math.max(0, b.contactStreak - 3);
+      engagementSetContactStreak(b, Math.max(0, b.contactStreak - 3));
       // (v575, В140) врага не видно — присед кончается вместе с очередью (у про — 0,19 с); ослеплён — сидит (move)
       if(b.crouching && tick >= (b.blindUntil || 0) && tick - (b.lastShotTick || -1e9) >= DECISION_INTERVAL_TICKS) placeStance(b, false, "burst-end");
-      if(b._ts) for(var tsId2 in b._ts) b._ts[tsId2] = Math.max(0, b._ts[tsId2] - 3);   // (этап 2, P0-2) по целям — так же
+      if(b._ts) for(var tsId2 in b._ts) engagementSetTargetTicks(b._ts, tsId2, Math.max(0, b._ts[tsId2] - 3));   // (этап 2, P0-2) по целям — так же
       // holding on stale-but-recent intel = "ещё смотрю на угол, где только что
       // видел врага" — это ровно то состояние, из которого возможен префайр;
       // без этого "hold" схлопывался бы в patrol в тот же тик, когда контакт
@@ -130,12 +130,12 @@ function engDecide(){
       if((carGo || lostLong) && b._fc){ fcEnd(b, carGo ? "конец: несу бомбу ставить" : "конец: в выходе врага не вижу дольше паузы — иду по задаче"); }
       if(carGo || lostLong) taskAway = taskAway || (b.post && !b.atPost && DM.hypot(b.post.x-b.baseX, b.post.y-b.baseY) > 40);
       var stillWatching = b.holding && !taskAway && b.lastIntel && (tick - b.lastIntel.tick) < CAUTION_TICKS;
-      if(!stillWatching && b.state !== "patrol"){ fightState(b, "patrol", taskAway ? "врага не вижу, задача в другом месте" : "врага не вижу, угол больше не держу"); b.holding = false; b.forcedRetreat = false; }
+      if(!stillWatching && b.state !== "patrol"){ fightState(b, "patrol", taskAway ? "врага не вижу, задача в другом месте" : "врага не вижу, угол больше не держу"); b.holding = false; engagementSetForcedRetreat(b, false); }
       return;
     }
     if(tick - b.decisionTick < DECISION_INTERVAL_TICKS) return;
     if(b.planting || b.defusing) return; // закладывает/дефузит — решение уже принято
-    b.decisionTick = tick;
+    engagementSetDecisionTick(b, tick);
     var alliesNear = bots.filter(function(o){ return o!==b && o.team===b.team && o.alive && nearP(o.x, o.y, o.z, b.x, b.y, b.z, 550); }).length;
     var enemiesSeen = bots.filter(function(o){ return o.team!==b.team && o.alive && DM.hypot(o.x-b.x,o.y-b.y) <= (b._nearestEnemyDist===Infinity? b.weapon.range : Math.max(b.weapon.range, b._nearestEnemyDist)) && hasVision(b.x,b.y,o.x,o.y) && inFov(b, o.x, o.y); }).length;
     var AR = decideActionR(b, b._nearestEnemyDist, alliesNear, enemiesSeen), next = AR.state;
@@ -143,15 +143,15 @@ function engDecide(){
     // гистерезис: в отход и из отхода — не чаще раза в ~1.3с, иначе бот с низким
     // HP дёргался "отступаю / атакую / отступаю" каждые полсекунды
     if(next !== b.state && (next === "retreat" || b.state === "retreat") && tick - (b.stateSince||0) < 160) next = b.state; // ~2.5с
-    if(next !== b.state) b.stateSince = tick;
+    if(next !== b.state) engagementSetStateSince(b, tick);
     if(next !== b.state){
       logEvent(b.id+": "+STATE_LABEL[next]+" (HP "+Math.max(0,b.hp)+"%, союзников рядом "+alliesNear+", врагов видит "+enemiesSeen+")");
       if(next === "engage") aggrNote(b.id);   // как выглядывать — fightCycleTick (перестрелка по данным, v250)
     }
     if(next !== b.state){ var AS = b._actS || [0, 0, 0]; fightState(b, next, "оценка: держать " + AS[0].toFixed(2) + " · атаковать " + AS[1].toFixed(2) + " · отойти " + AS[2].toFixed(2)); }
-    if(next !== "patrol") b.roamChecking = false;
+    if(next !== "patrol") roamSetRoamChecking(b, false);
     b.holding = (next === "hold");
-    b.holdSinceTick = b.holding ? (b.holdSinceTick===-999 ? tick : b.holdSinceTick) : -999;
+    engagementSetHoldSinceTick(b, b.holding ? (b.holdSinceTick===-999 ? tick : b.holdSinceTick) : -999);
     // (v521, дуэли: присед за низким укрытием рвал линию — враг пропадал, перестрелка «расходилась») держит угол — приседает, только если
     // ближайший видимый враг виден и из приседа
     // (v575, В140, владелец 13.11: «очень часто стреляют и даже пикают на приседе») было: держит угол дольше 0,4 с — всегда сидит (8 % времени).
@@ -183,9 +183,9 @@ function engDecide(){
         if(dA < 1.2){ var cov = findCover(b, foe); if(cov) wp = buildWaypointPath(b.baseX, b.baseY, b.z, cov.x, cov.y, 0); }
       }
       movePath(b, wp, "fight", 0);
-      b.forcedRetreat = true;
+      engagementSetForcedRetreat(b, true);
     } else if(next !== "retreat"){
-      b.forcedRetreat = false;
+      engagementSetForcedRetreat(b, false);
     }
   });
 }
@@ -239,14 +239,14 @@ function assignNewDestination(bot, tick){
     var cv = foe ? findCover(bot, foe) : null;
     var tgt = cv || bot.spawnPt;
     movePath(bot, buildWaypointPath(bot.baseX, bot.baseY, bot.z, tgt.x, tgt.y, 0, bot.team, botLane(bot)), "fight", 0);
-    bot.pickTick = tick;
+    engagementSetPickTick(bot, tick);
     return;
   }
   if(bot.post && bot.state === "patrol"){
     if(bot.atPost || bot.planting || bot.defusing) return; // стоит на посту — путь не нужен
     var epp = fireSafe(bot.post, bot);
     movePath(bot, buildWaypointPath(bot.baseX, bot.baseY, bot.z, epp.x, epp.y, (epp === bot.post && bot.post.z) || 0, bot.team, botLane(bot), bot.walking), "fight", 0);   // (v546) высота поста (ящик), если известна
-    bot.pickTick = tick;
+    engagementSetPickTick(bot, tick);
     return;
   }
   if(bot.role === "roamer" && bot.state === "patrol"){
@@ -255,7 +255,7 @@ function assignNewDestination(bot, tick){
     if(route && route.length){
       var rp = route[bot.roamIdx % route.length];
       movePath(bot, buildWaypointPath(bot.baseX, bot.baseY, bot.z, rp.x, rp.y, 0, bot.team, botLane(bot), bot.walking), "fight", 0);
-      bot.pickTick = tick; bot.roamTarget = rp;
+      engagementSetPickTick(bot, tick); roamSetRoamTarget(bot, rp);
       return;
     }
   }
@@ -265,3 +265,15 @@ function assignNewDestination(bot, tick){
   if(bot.path.length) movePath(bot, [], "fight", 0); else movePathIdx(bot, 0);
 }
 
+
+// Запись состояния канала. Вызовы выполняются в исходной точке тика.
+function engagementSetNearestEnemyBot(bot, value){ return bot._nearestEnemyBot = value; }
+function engagementSetSawEnemy(bot, value){ return bot._sawEnemy = value; }
+function engagementSetTs(bot, value){ return bot._ts = value; }
+function engagementSetTargetTicks(targetTicks, id, value){ targetTicks[id] = value; }
+function engagementSetContactStreak(bot, value){ return bot.contactStreak = value; }
+function engagementSetDecisionTick(bot, value){ return bot.decisionTick = value; }
+function engagementSetForcedRetreat(bot, value){ return bot.forcedRetreat = value; }
+function engagementSetHoldSinceTick(bot, value){ return bot.holdSinceTick = value; }
+function engagementSetPickTick(bot, value){ return bot.pickTick = value; }
+function engagementSetStateSince(bot, value){ return bot.stateSince = value; }

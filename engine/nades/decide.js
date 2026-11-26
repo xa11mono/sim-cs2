@@ -1,4 +1,4 @@
-// [хозяева: nadeBrains, nadeTaskEnd, nadeCancel, nadeUseTick]
+// [хозяева: nadeBrains, nadeCancel, nadeSetNadeQueue, nadeTaskEnd, nadeUseTick]
 var FLASH_EXIT_MAX = 413;   // px: 90 % флешек «под свой выход» у про (pro_nades.csv, purpose flash_exit)
 function nadeUsePick(b, pts, R){
   var I = nadeLaneIdx(), L = I.L, best = null, bd = Infinity;
@@ -251,7 +251,7 @@ function retakeCutUseful(){
 // (Р3.2 гранаты ш.2, Р-6) конец задания гранаты — только здесь: причина (в след решений), связанный пост — post: 0 не трогать, 1 — снять
 // пост «лайнап», 2 — снять любой; queue — и очередь гранат. Порядок записей — прежний (задание, очередь, пост)
 function nadeTaskEnd(b, why, post, queue){
-  b.nadeTask = null; if(queue) b.nadeQueue = null;
+  b.nadeTask = null; if(queue) nadeSetNadeQueue(b, null);
   dlog(b, "граната", "задание снято: " + why, "_dlogG");   // свой ключ следа: общий _dlog читает сторож PROB
   if(post === 2 || (post === 1 && b.post && b.post.tag === "lineup")) clearPost(b);
 }
@@ -259,6 +259,12 @@ function nadeCancel(b, why){ nadeTaskEnd(b, why, 0, true); b._nadeWhy = why; }
 function resetNades(){
   nadesInAir.length = 0; smokes.length = 0; fires.length = 0; nadeFx.length = 0; nadeFlagsReset(); groundWeapons.length = 0; groundItems.length = 0;
   comboCdReset();
-  bots.forEach(function(b){ routeDrop(b); b.nadeTask = null; b.nadeQueue = null; b.blindUntil = 0; b.throwUntil = 0; b._fireAcc = 0; b._fireIn = null; b._nadeCd = 0; if(!b.nades) b.nades = emptyNades(); });
+  bots.forEach(function(b){ routeDrop(b); b.nadeTask = null; nadeSetNadeQueue(b, null); damageSetBlindUntil(b, 0); nadeSetThrowUntil(b, 0); b._fireAcc = 0; damageSetFireIn(b, null); b._nadeCd = 0; if(!b.nades) nadeSetNades(b, emptyNades()); });
 }
 
+
+// Запись состояния канала. Вызовы выполняются в исходной точке тика.
+function nadeSetNadeQueue(bot, value){ return bot.nadeQueue = value; }
+function nadeAppendQueued(queue, task){ queue.push(task); }
+function nadePrependQueued(queue, task){ queue.unshift(task); }
+function nadeShiftQueued(queue){ return queue.shift(); }

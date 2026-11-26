@@ -1,4 +1,4 @@
-// [хозяева: tBrainPostplant]
+// [хозяева: huntSetHuntArrive, huntSetHuntIdx, tBrainPostplant]
 
 // часть tBrain (Р3.2 команда, разрезание в прежнем порядке) — ветка строк 850–1075 исходного tBrain; true — выйти из мозга
 function tBrainPostplant(K){
@@ -18,13 +18,13 @@ function tBrainPostplant(K){
     var BLf = kvLast("T"), ctCanDefuse = false;
     for(var fid in BLf){ var fq = BLf[fid], fo = teamBot(fid); if(!fo || !fo.alive || fo.team !== "CT" || tick - fq.tick > 10*TICK_HZ) continue;
       if(polyLen(pathPts(fq.x, fq.y, bomb.x, bomb.y, fo.z, bomb.z))/SPEED + DEFUSE_KIT_TICKS/TICK_HZ < leftS){ ctCanDefuse = true; break; } }
-    if(ctCanDefuse) K.ts.forEach(function(b){ b._flee = null; if(b.post && b.post.tag === "flee") clearPost(b); });
+    if(ctCanDefuse) K.ts.forEach(function(b){ bombSetFlee(b, null); if(b.post && b.post.tag === "flee") clearPost(b); });
     var fleeing = (defusingNow || ctCanDefuse) ? [] : K.ts.filter(function(b){ if(b.planting) return false;
       if(b._flee === fleeKey) return true;
       var fp = bombFleePoint(b) || gs.tStage;
-      if(leftS < 6 || leftS < pathLenTo(b, fp.x, fp.y)/(SPEED*weaponSpeedMul(b)) + 2){ b._flee = fleeKey; b._fleePt = fp; return true; }
+      if(leftS < 6 || leftS < pathLenTo(b, fp.x, fp.y)/(SPEED*weaponSpeedMul(b)) + 2){ bombSetFlee(b, fleeKey); b._fleePt = fp; return true; }
       return false; });
-    if(defusingNow) K.ts.forEach(function(b){ b._flee = null; });
+    if(defusingNow) K.ts.forEach(function(b){ bombSetFlee(b, null); });
     if(fleeing.length){
       if(!K.tt.fleeLogged){ K.tt.fleeLogged = true; logEvent("T: уходим от бомбы — сейчас рванёт"); }
       fleeing.forEach(function(b){ setPost(b, b._fleePt || gs.tStage, {x:bomb.x, y:bomb.y}, true, "flee"); });
@@ -36,7 +36,7 @@ function tBrainPostplant(K){
     if(K.tt._defLate){
       if(bots.some(function(o){ return o.defusing && o.alive; })) K.tt._defLateSeen = tick;
       if(tick - (K.tt._defLateSeen || K.tt._defLate) > 2*TICK_HZ) K.tt._defLate = null;
-      else { K.ts.forEach(function(b){ if(!b._saveSpot) b._saveSpot = pickSaveSpotT(b); if(!b.planting) setPost(b, b._saveSpot, null, true, "save"); }); return true; }
+      else { K.ts.forEach(function(b){ if(!b._saveSpot) retakeSetSaveSpot(b, pickSaveSpotT(b)); if(!b.planting) setPost(b, b._saveSpot, null, true, "save"); }); return true; }
     }
     var antiDef = [], dfGo = false;
     defuseContTick();
@@ -53,7 +53,7 @@ function tBrainPostplant(K){
         // пришёл на точку, дефуз идёт, а дефузера не видно 0,5 с — идёт прямо на бомбу
         var AS = b._adSpot && b._adSpot.round === roundNum ? b._adSpot : null;
         if(AS && b.atPost && dfNow && !b._sawEnemy){ if(!AS.arr) AS.arr = tick; else if(tick - AS.arr > 32 && !AS.push){ AS.push = true; AS.pt = bpC; voiceLog("T", "adpush"+b.id+roundNum, b.id, "отсюда бомбу не видно — иду прямо на дефуз"); } }
-        setPost(b, AS ? AS.pt : bpC, bpC, true, "antidefuse"); b._stopPlantUntil = tick + 30; });
+        setPost(b, AS ? AS.pt : bpC, bpC, true, "antidefuse"); bombSetStopPlantUntil(b, tick + 30); });
     } else
     if((dfGo = tDefuseGo(K.tt, K.ts))){
       var bpA = {x:bomb.x, y:bomb.y};
@@ -71,7 +71,7 @@ function tBrainPostplant(K){
       if(dfz && late.length === antiDef.length && late.length && !K.tt._defLate){
         K.tt._defLate = tick;
         voiceLog("T", "deflate", late[0].id, "не успеваем на дефуз — сейв");
-        late.forEach(function(b){ if(!b._saveSpot) b._saveSpot = pickSaveSpotT(b); setPost(b, b._saveSpot, null, true, "save"); b._stopPlantUntil = 0; });
+        late.forEach(function(b){ if(!b._saveSpot) retakeSetSaveSpot(b, pickSaveSpotT(b)); setPost(b, b._saveSpot, null, true, "save"); bombSetStopPlantUntil(b, 0); });
         antiDef = [];
       } else if(dfz) antiDef = antiDef.filter(function(b){ return late.indexOf(b) < 0; });
       var spA = pickSpots("antidef"+Math.round(bpA.x/30)+","+Math.round(bpA.y/30), bpA, 4, {team: "T", rMin:50, rMax:300, minGap:45, must:[bpA]});
@@ -85,7 +85,7 @@ function tBrainPostplant(K){
         }
         // (v555) с ножом на дефузящего (knifeDefuseTick, items) — точка сбить дефуз — сам дефузящий, а не точка с видом на бомбу
         var kD = b._knife && b._knDef ? bots.filter(function(o){ return o.id === b._knDef && o.alive && o.defusing; })[0] : null;
-        setPost(b, kD ? {x:kD.x, y:kD.y} : b._adSpot.pt, kD || bpA, true, "antidefuse"); b._stopPlantUntil = tick + 30; // бегом, не шагом
+        setPost(b, kD ? {x:kD.x, y:kD.y} : b._adSpot.pt, kD || bpA, true, "antidefuse"); bombSetStopPlantUntil(b, tick + 30); // бегом, не шагом
       });
       if(dfGo === "all" && antiDef.length && K.tt._adVoice !== roundNum){ K.tt._adVoice = roundNum; voiceLog("T", "antidef", antiDef[0].id, "дефузят! все на бомбу!"); }
       // байт — не обязательство: проверяющий не держится за бомбу после звука (снимется с решением «фейк»); все — до конца дефуза (как было)
@@ -146,12 +146,12 @@ function tBrainPostplant(K){
       };
       hunters.forEach(function(b, hi){
         var taken = hunters.filter(function(o){ return o !== b && o._huntIdx !== undefined; }).map(function(o){ return o._huntIdx; });
-        if(b._huntIdx === undefined){ b._huntIdx = pickNext(b, taken); b._huntStart = tick; }
+        if(b._huntIdx === undefined){ huntSetHuntIdx(b, pickNext(b, taken)); b._huntStart = tick; }
         // не дошёл за 12с (точка недостижима/далеко) — следующая
-        if(!b.atPost && tick - (b._huntStart||tick) > 12*TICK_HZ){ b._huntIdx = pickNext(b, taken); b._huntStart = tick; }
+        if(!b.atPost && tick - (b._huntStart||tick) > 12*TICK_HZ){ huntSetHuntIdx(b, pickNext(b, taken)); b._huntStart = tick; }
         if(b.atPost && b.post && b.post.tag === "hunt"){
-          if(!b._huntArrive){ b._huntArrive = tick; K.tt._huntSeen[b._huntIdx] = tick; }
-          if(tick - b._huntArrive > 90){ b._huntIdx = pickNext(b, taken); b._huntArrive = 0; b._huntStart = tick; }
+          if(!b._huntArrive){ huntSetHuntArrive(b, tick); K.tt._huntSeen[b._huntIdx] = tick; }
+          if(tick - b._huntArrive > 90){ huntSetHuntIdx(b, pickNext(b, taken)); huntSetHuntArrive(b, 0); b._huntStart = tick; }
         }
         var hp = K.tt.huntPts[b._huntIdx];
         setPost(b, hp, bomb ? {x:bomb.x, y:bomb.y} : null, true, "hunt");
@@ -228,3 +228,7 @@ function tBrainPostplant(K){
     }
 }
 
+
+// Запись состояния канала. Вызовы выполняются в исходной точке тика.
+function huntSetHuntArrive(bot, value){ return bot._huntArrive = value; }
+function huntSetHuntIdx(bot, value){ return bot._huntIdx = value; }

@@ -35,8 +35,7 @@ function moveSoundEmit(bot, soundRadius, kind, label){
     var jitterMag = 20 + dHear*0.12, jang = hashRand(seed) * Math.PI*2;
     var hpF = hearPos(listener, bot.x, bot.y, seed, occS);
     knowHear(listener, hpF ? {x:hpF.x, y:hpF.y, tick:tick, team:bot.team, src:bot.id, kind:kind, occl:occS}
-                              : {x:bot.x+DM.cos(jang)*jitterMag, y:bot.y+DM.sin(jang)*jitterMag, tick:tick, team:bot.team, src:bot.id, kind:"steps", occl:occS});
-    if(listener.heardSound && /^приземление/.test(label || "")) listener.heardSound.land = true;   // (v343) звук приземления — для ctLandPunish
+                              : {x:bot.x+DM.cos(jang)*jitterMag, y:bot.y+DM.sin(jang)*jitterMag, tick:tick, team:bot.team, src:bot.id, kind:"steps", occl:occS}, label);
     if(wasStale) logEvent(listener.id+" услышал "+label+" ("+bot.team+")"+(occS ? " за стеной" : ""));
   });
 }
@@ -64,5 +63,5 @@ function navSnap(bot){
       var t = Math.max(0, Math.min(1, ((bot.baseX-p.x)*ex + (bot.baseY-p.y)*ey)/L2)), px = p.x+ex*t, py = p.y+ey*t, d = DM.hypot(px-bot.baseX, py-bot.baseY);
       if(d < nbd){ var cx = 0, cy = 0; a.points.forEach(function(r){ cx += r.x; cy += r.y; }); cx /= a.points.length; cy /= a.points.length;
         nbd = d; nb = {x: px + (cx-px)*0.15, y: py + (cy-py)*0.15, a: a}; } }); });
-  if(nb){ bot.baseX = bot.x = nb.x; bot.baseY = bot.y = nb.y; bot.z = nb.a.z; bot._area = nb.a.id; bot.path = []; bot.pathIdx = 0; bot._offNav = 0; logEvent(bot.id+": вне навмеша — перенесён на ближайший пол (заплатка)"); }
+  if(nb){ bot.baseX = moveSetX(bot, nb.x); bot.baseY = moveSetY(bot, nb.y); navSetZ(bot, nb.a.z); navSetArea(bot, nb.a.id); bot.path = []; bot.pathIdx = 0; moveSetOffNav(bot, 0); logEvent(bot.id+": вне навмеша — перенесён на ближайший пол (заплатка)"); }
 }

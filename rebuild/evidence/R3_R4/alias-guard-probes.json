@@ -1,0 +1,14 @@
+{
+  "var_collection_alias": {
+    "rejected": true,
+    "message": "aliasProbe пишет nades мимо"
+  },
+  "logical_alias": {
+    "rejected": true,
+    "message": "aliasProbe пишет _ts мимо"
+  },
+  "second_owner_write": {
+    "rejected": true,
+    "message": "_reloading: физический писатель должен быть один, найдено 2"
+  }
+}

@@ -1,4 +1,4 @@
-// [хозяева: chooseCtSetup] ---- позиции по названиям зон: кто где держит, занимает, ставит, ретейкает ----
+// [хозяева: chooseCtSetup, setupSetMistakes] ---- позиции по названиям зон: кто где держит, занимает, ставит, ретейкает ----
 // Порядок = приоритет (первые выбираются чаще, последние — реже, как офф-углы).
 var POS = MAP.tactics.pos;
 // точка на зоне с таким названием: укрытое место внутри/у зоны, откуда видно see
@@ -287,7 +287,7 @@ function ctSetupRole(b, role, ct){
   // "на Cave") — смотрим дальше НАРУЖУ по пути к T, а не себе под ноги/на сайт
   if(spC && lk && DM.hypot(spC.x-lk.x, spC.y-lk.y) < 150){ var ow = outwardLook(spC, lk); if(ow) lk = ow; }
   var placed = setPost(b, spC, lk, true, tag).ok;   // (v518a, пак 09.11 п.1) отказ арбитра — роль не обслужена (было: всегда «сделано»)
-  if(placed && spots._spot && b.post) b.post.setupLook = 1;   // (15.11) угол роли из демок (lookYaw) — поручен задачей: арбитр взгляда держит его (270 lookAngleCand)
+  if(placed && spots._spot && b.post) taskSetSetupLook(b.post, 1);   // (15.11) угол роли из демок (lookYaw) — поручен задачей: арбитр взгляда держит его (270 lookAngleCand)
   if(early && !b._earlyLog){ b._earlyLog = roundNum; }
   if(early && b._earlyLogged !== roundNum){ b._earlyLogged = roundNum; logEvent(b.id+" ("+ROLE_LABEL_CT(role)+"): выход за инфой — "+nm); }
   return placed;
@@ -430,7 +430,7 @@ function rememberRound(winner){
 // ---- любимые углы CT (для T) ----
 // ошибки исполнения — в лог не каждую (чтобы не засорять), но видно, что они есть
 function noteMistake(b, what){
-  b._mistakes = (b._mistakes||0) + 1;
+  setupSetMistakes(b, (b._mistakes||0) + 1);
   if(hashRand(tick*3 + b.id.charCodeAt(1)) < 0.35) logEvent(b.id+": ошибка — "+what);
 }
 // наблюдённая агрессия игрока: сколько раз за раунд он сам лезет в дуэль (по
@@ -453,3 +453,6 @@ function habitTop(ctId, minN){
 }
 var roundStartTick = 0;
 
+
+// Запись состояния канала. Вызовы выполняются в исходной точке тика.
+function setupSetMistakes(bot, value){ return bot._mistakes = value; }

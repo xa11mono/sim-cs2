@@ -1,0 +1,35 @@
+{
+  "before_fix": {
+    "ticks": 0,
+    "finished": null,
+    "stall": 0,
+    "stall.ep": null,
+    "prob": null
+  },
+  "after_fix": {
+    "ticks": 1024,
+    "finished": true,
+    "stall": 1,
+    "stall.ep": 1,
+    "prob": [
+      [
+        1024,
+        "CT0",
+        "stall",
+        "stall.free",
+        "контрольная причина",
+        630,
+        1403,
+        1,
+        {
+          "task": null,
+          "walk": null,
+          "stop": null,
+          "look": null,
+          "state": "patrol",
+          "arb": null
+        }
+      ]
+    ]
+  }
+}

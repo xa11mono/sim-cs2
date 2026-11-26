@@ -124,13 +124,13 @@ function exuReassign(it, tt){
   if(it.from){
     var sec = Math.ceil(pathLenTo(b, it.from.x, it.from.y)/(SPEED*weaponSpeedMul(b)) + LU_REACH_PAD);
     // своя граната резервного — в очередь (throw: nadeQueueNext вернёт её после смока выхода — и с точкой броска, и с места)
-    if(b.nadeTask) (b.nadeQueue = b.nadeQueue || []).unshift(b.nadeTask);
+    if(b.nadeTask) nadePrependQueued(nadeSetNadeQueue(b, b.nadeQueue || []), b.nadeTask);
     b.nadeTask = {type:"smoke", x:it.x, y:it.y, from:{x:it.from.x, y:it.from.y}, until:tick + Math.max(7, sec)*TICK_HZ, why:why, start:tick,
                   lob:true, range:4000, now:true, lineup:true, exec:true, npm:"exec", exu:it.id};
   } else {
     var own = b.nadeTask; b.nadeTask = null;   // своя граната — в очередь, смок выхода вперёд; не вышло назначить — вернуть как было
     if(!assignNade(b, "smoke", {x:it.x, y:it.y}, why, {now:true, range:1300, bkey:"T.exec.re."+it.id}).ok){ b.nadeTask = own; return false; }
-    if(own) (b.nadeQueue = b.nadeQueue || []).unshift(own);
+    if(own) nadePrependQueued(nadeSetNadeQueue(b, b.nadeQueue || []), own);
     b.nadeTask.exec = true; b.nadeTask.exu = it.id;
   }
   var was = it.owner;

@@ -1,4 +1,4 @@
-// [хозяева: lookCands, lookPlan, smoothLookFilter] (18.11, «чинить механику целиком») направление «по ходу» для взгляда — одно место: отходит от известных врагов (знание команды ≤ BACK_KNOW с,
+// [хозяева: lookCands, lookPlan, lookSetLkC, lookSetLkPt, lookSetLkTop, lookSetLkZ, smoothLookFilter] (18.11, «чинить механику целиком») направление «по ходу» для взгляда — одно место: отходит от известных врагов (знание команды ≤ BACK_KNOW с,
 // ближе BACK_R, ход от них дальше 115°) — пятится лицом к ним: «по ходу» / «за спиной» — от направления на врагов, иначе — по ходу движения
 function lookHeading(b){
   var h = b.heading; if(h === undefined) return h;
@@ -255,7 +255,7 @@ function lookPlan(team){
   var W = PORTAL_W[team];
   var list = bots.filter(function(b){ return b.alive && b.team === team && !b._sawEnemy; });
   list.forEach(function(b){
-    b._lkC = lookCands(b, W);
+    lookSetLkC(b, lookCands(b, W));
     // (v583a, владелец 17.11: «игрок 3 смотрит в смок, а Short никто не видит») угол, на который у меня линия закрыта дымом, — мне виден только
     // край дыма: вес ×LOOK_SMOKE_K (проектное число); свежий (только что видел / слышал) — как есть
     if(smokes.length) b._lkC.forEach(function(c){ if(!c.fresh && c.pt && smokeBlocks(b.x, b.y, c.pt.x, c.pt.y)){ c.sc *= LOOK_SMOKE_K; if(c.f) c.f.push(["в дым", LOOK_SMOKE_K]); } });
@@ -292,10 +292,10 @@ function lookPlan(team){
           b._chkNext = tick + Math.round((1 + hashRand(tick*7 + b.id.charCodeAt(b.id.length-1)*13)) * LOOK.checkEvery*TICK_HZ); }
       }
     } else b._chk = null;
-    if((p ? p.j : null) !== b._lkZ){ b._lkZ = p ? p.j : null; }
-    b._lkPt = p ? p.pt : null;
+    if((p ? p.j : null) !== b._lkZ){ lookSetLkZ(b, p ? p.j : null); }
+    lookSetLkPt(b, p ? p.pt : null);
     if(LOOKDBG.on) b._ldPlan = {tick: tick, pick: p ? p.j : null, why: why, cands: b._lkC.map(function(c){ return {j: c.j, pt: c.pt, src: c.src, pos: c.pos, sc: c.sc, f: c.f, fresh: c.fresh, snd: c.snd, pro: c.pro}; })};
-    b._lkTop = b._lkC.slice().sort(function(x, y){ return y.sc - x.sc; }).slice(0, 3).map(function(c){ return [c.pro ? "как у про" : c.snd ? "звук/контакт" : typeof c.j === "string" ? "свой угол" : c.j >= 1000 ? "выход из " + (ZONE_NAMES[BZ.ids[c.j-1000]] || BZ.ids[c.j-1000]) : (ZONE_NAMES[BZ.ids[c.j]] || BZ.ids[c.j]), c.sc]; });
+    lookSetLkTop(b, b._lkC.slice().sort(function(x, y){ return y.sc - x.sc; }).slice(0, 3).map(function(c){ return [c.pro ? "как у про" : c.snd ? "звук/контакт" : typeof c.j === "string" ? "свой угол" : c.j >= 1000 ? "выход из " + (ZONE_NAMES[BZ.ids[c.j-1000]] || BZ.ids[c.j-1000]) : (ZONE_NAMES[BZ.ids[c.j]] || BZ.ids[c.j]), c.sc]; }));
   });
 }
 // итоговая точка взгляда бота (кроме "вижу врага" — это выше)
@@ -454,3 +454,9 @@ function smoothLookFilter(b, look, urgent){
   slNew(b, look);
   return look;
 }
+
+// Запись состояния канала. Вызовы выполняются в исходной точке тика.
+function lookSetLkC(bot, value){ return bot._lkC = value; }
+function lookSetLkPt(bot, value){ return bot._lkPt = value; }
+function lookSetLkTop(bot, value){ return bot._lkTop = value; }
+function lookSetLkZ(bot, value){ return bot._lkZ = value; }

@@ -14,8 +14,11 @@ MATCHES = [3, 7, 11, 13, 17, 19, 23, 29]
 ENGINES = {'chromium', 'node', 'webkit', 'firefox'}
 
 
-def fingerprint_code(template, fields_code, match, fields=False):
-    return (fields_code + '\n' if fields else '') + template.replace('__M__', str(match))
+def fingerprint_code(template, fields_code, match, fields=False, trace=True):
+    prefix = fields_code + '\n' if fields else ''
+    if not trace:
+        prefix += 'DLOG.on = false;\n'
+    return prefix + template.replace('__M__', str(match))
 
 
 def text(data):
@@ -105,7 +108,8 @@ class PublishedRun:
                 return None
             if launcher not in self.runners:
                 self.runners[launcher] = digest(text(self._read(self.runner, launcher)))
-            if self.runners[launcher] != meta['q'] or digest(fingerprint_code(self.template, '', m)) != meta['code']:
+            if (self.runners[launcher] != meta['q']
+                    or digest(fingerprint_code(self.template, '', m, trace=original.get('trace', True))) != meta['code']):
                 return None
             result = self._json_gz(label, 'fp_%d.json' % m)
             guard = self._json_gz(label, 'guard_%d.json' % m)
@@ -162,6 +166,9 @@ def run(jobs, pool, root, here, sims, resolve, build, versions, archive=None):
         labels.add(label)
         ref = resolve(j['ref'])
         fields = bool(j.get('fields'))
+        trace = j.get('trace', True)
+        if type(trace) is not bool:
+            raise ValueError('fp trace must be true or false: ' + label)
         outdir = here / 'runs' / label
         outdir.mkdir(parents=True, exist_ok=True)
         procguard.atomic_write(outdir / 'versions.json', json.dumps(versions, ensure_ascii=False).encode('utf-8'))
@@ -174,7 +181,7 @@ def run(jobs, pool, root, here, sims, resolve, build, versions, archive=None):
         for m in matches:
             out, err, guard = [str(outdir / (name % m)) for name in ('fp_%d.json', 'err_%d.txt', 'guard_%d.json')]
             plan['all_out'].append(out)
-            code = fingerprint_code(template, fields_code, m, fields)
+            code = fingerprint_code(template, fields_code, m, fields, trace)
             codefile = out[:-5] + '.code.js'
             meta = dict(sha=ref, map=game_map, engine=engine, fields=fields, match=m, code=digest(code), q=launch_hash, runtime=actual)
             t = {'name': 'fp %s m%d' % (sim.name, m), 'cmd': ['node', str(root / launcher), str(sim), '@' + codefile],

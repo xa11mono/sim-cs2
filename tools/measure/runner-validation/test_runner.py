@@ -30,9 +30,10 @@ if USE_ARCHIVE:
 
 class FakeHost:
     """Deterministic process table, clock and Windows admission/gate contract."""
-    def __init__(self, folder, total=16000, base=2000, protected=False, max_commit=None):
+    def __init__(self, folder, total=16000, base=2000, protected=False, max_commit=None, job_usage=True):
         self.folder, self.total, self.base = folder, total, base
         self.protected, self.max_commit = protected, max_commit or total
+        self.job_usage = job_usage
         self.age = 100
         self.next_pid = 1
         self.children = {}
@@ -128,6 +129,9 @@ class FakeHost:
             def peak_mb(self):
                 return 0
 
+            def current_mb(self):
+                return sum(host.used(p) for p in host.children.values() if self in p.jobs) if host.job_usage else None
+
             def close(self, kill):
                 if kill:
                     for child in host.children.values():
@@ -184,13 +188,60 @@ class Tests(Sandbox):
             self.assertEqual([pool._est(k) for k in ('chromium:ancient', 'chromium:mirage', 'node:ancient', 'node:mirage')],
                              [2200, 1000, 800, 1200])
             for i in range(8):
-                pool.add(task('anc', 'chromium:ancient', 2200, i + 1, GROW='3'))
+                pool.add(task('anc', 'firefox:ancient', 2200, i + 1, GROW='3'))
             pool.wait_all()
             self.assertEqual(host.history[0][3], 1)
             self.assertGreater(host.history[1][0], host.history[0][0])
             self.assertEqual(max(a['par_seen_max'] for a in pool.attempts), 5)
             self.assertGreaterEqual(min(host.samples), 3000)
             self.assertTrue(all(a['ok'] for a in pool.attempts))
+
+    def test_dynamic_admission_replays_334_ancient_memory_sample(self):
+        # The last public memory sample before cancel: 15,977 MiB total,
+        # 6,008 available, two live trees at 1,972 and 1,018 MiB, peak
+        # of the preceding m19 at 2,208 MiB.
+        available = 6008
+        with FakeHost(self.folder, total=15977, protected=True).install():
+            pool = self.pool(reserve_mb=None)
+            for engine in ('chromium', 'node', 'firefox', 'webkit'):
+                with self.subTest(engine=engine):
+                    key = engine + ':ancient'
+                    existing = task('sample', key, 2208, 19)
+                    pool._learn(existing, 2208, complete=True)
+                    pool.run = [{'t': existing, 'peak': 2208, 'now': n} for n in (1972, 1018)]
+                    # Synthetic Windows commit limit, with 2,990 MiB charged
+                    # for the two sampled trees. The Actions notices lack it.
+                    pool.group = SimpleNamespace(current_mb=lambda: 2990)
+                    pool.group_limit = 6165
+                    ok, info = pool._admit(task('next', key, 0, 23), available)
+                    self.assertEqual(ok, engine in guard.DYNAMIC_ENGINES, info)
+                    if ok:
+                        self.assertEqual(info['need'], 0)
+                        self.assertEqual(info['commit_current'], 2990)
+                        pool.group_limit = 4000
+                        denied, info = pool._admit(task('next', key, 0, 23), available)
+                        self.assertFalse(denied)
+                        self.assertIn('Job Object', info['why'])
+
+    def test_dynamic_launches_multiple_trees_before_first_match_finishes(self):
+        for engine in ('chromium', 'node'):
+            with self.subTest(engine=engine), FakeHost(self.folder, protected=True).install() as host:
+                pool = self.pool()
+                for i in range(8):
+                    pool.add(task('cold', engine + ':mirage', 800, i + 1, GROW='2'))
+                pool.wait_all()
+                self.assertEqual(max(a['par_seen_max'] for a in pool.attempts), 8)
+                self.assertTrue(all(a['ok'] for a in pool.attempts))
+                self.assertEqual(host.denied, 0)
+
+    def test_unknown_group_usage_falls_back_to_peak_budget(self):
+        with FakeHost(self.folder, total=12000, max_commit=7800, protected=True, job_usage=False).install():
+            pool = self.pool(est_mb={'node:mirage': 1500})
+            pool._learn(task('old', 'node:mirage', 1500, 0), 1500, complete=True)
+            for i in range(4):
+                pool.add(task('fallback', 'node:mirage', 1500, i + 1))
+            pool.wait_all()
+            self.assertEqual(max(a['par_seen_max'] for a in pool.attempts), 3)
 
     def test_recovery_and_retries_do_not_leak_into_next_phase(self):
         with FakeHost(self.folder, total=14000).install():
@@ -234,7 +285,8 @@ class Tests(Sandbox):
             pool.wait_all()
             self.assertEqual(host.denied, 2)
             self.assertEqual(max(a['par_seen_max'] for a in pool.attempts), 4)
-            self.assertEqual(sum(a['ok'] for a in pool.attempts), 2)
+            self.assertEqual(sum(a['ok'] for a in pool.attempts), 4)
+            self.assertEqual([a['par_seen_max'] for a in pool.attempts if a['retry']], [1, 1])
             self.assertGreaterEqual(min(host.samples), 3000)
 
     def test_windows_group_grows_after_external_memory_release(self):

@@ -72,8 +72,8 @@
 | observer.js:346 | #btnWarmSkip | click | меняет игру | warmEnd |  | нет автотеста |
 | observer.js:350 | #chkWarm | change | меняет игру | warmEnd |  | нет автотеста |
 | observer.js:351 | #selSeries | change | меняет игру |  | SERIES | нет автотеста |
-| replay-play.js:323 | #btnRpLast | click | меняет игру | rpPlay |  | нет автотеста |
-| replay-play.js:324 | — | setTimeout | меняет игру | rpGoto |  | нет автотеста |
+| replay-play.js:346 | #btnRpLast | click | меняет игру | rpPlay |  | нет автотеста |
+| replay-play.js:347 | — | setTimeout | меняет игру | rpGoto |  | нет автотеста |
 | sandbox.js:58 | el | click | меняет игру | draw, sbRemove, sbRender | ._sbOff, ._sbWalk | нет автотеста |
 | sandbox.js:126 | cv | mousedown | меняет игру | draw, logEvent, sbRender, sbRevive | ._sbGo | нет автотеста |
 | sandbox.js:134 | window | mousemove | меняет игру | draw, sbPlace |  | нет автотеста |
@@ -99,8 +99,8 @@
 | killfeed.js:109 | #econ | keydown Enter   | настройки / данные карты |  |  | нет автотеста |
 | lineup-editor.js:112 | window | mouseup | настройки / данные карты |  |  | нет автотеста |
 | observer.js:356 | #btnObsMap | click | настройки / данные карты |  |  | нет автотеста |
-| replay-play.js:321 | #chkRp | change | настройки / данные карты |  |  | нет автотеста |
-| replay-play.js:322 | #selRp | change | настройки / данные карты |  |  | нет автотеста |
+| replay-play.js:344 | #chkRp | change | настройки / данные карты |  |  | нет автотеста |
+| replay-play.js:345 | #selRp | change | настройки / данные карты |  |  | нет автотеста |
 | app.js:187 | document | pt | только показ |  |  | нет автотеста |
 | app.js:202 | — | setTimeout | только показ |  |  | нет автотеста |
 | app.js:380 | — | setInterval | только показ |  |  | нет автотеста |
@@ -148,7 +148,7 @@
 | observer.js:368 | cv | mousedown | только показ |  |  | нет автотеста |
 | observer.js:369 | cv | mouseup | только показ |  |  | нет автотеста |
 | observer.js:374 | window | keydown o O щ Щ | только показ |  |  | нет автотеста |
-| replay-play.js:315 | — | setTimeout | только показ |  |  | нет автотеста |
+| replay-play.js:338 | — | setTimeout | только показ |  |  | нет автотеста |
 | replay.js:232 | RP_EL.skip | click | только показ |  |  | нет автотеста |
 | replay.js:233 | window | keydown Escape Space | только показ |  |  | нет автотеста |
 | sandbox.js:141 | window | mouseup | только показ |  |  | нет автотеста |
@@ -181,4 +181,4 @@
 | view3d-frame.js:308 | el | click | только показ |  |  | нет автотеста |
 | voice-console.js:20 | window | keydown Backquote | только показ |  |  | нет автотеста |
 
-Итого: обработчиков 176, с автотестом 0. Прямых записей показа в игру (функции и обработчики): 143.
+Итого: обработчиков 176, с автотестом 0. Прямых записей показа в игру (функции и обработчики): 89.

@@ -304,7 +304,7 @@ function intelDeath(victim, killer, side){
         var sc = Math.min(da, 0.8) - DM.hypot(q.x-o.x, q.y-o.y)/1500; if(sc > sBest){ sBest = sc; sw = q; } });
       sw = sw || {x:victim.x, y:victim.y};
       if(!setPost(o, sw, kp, true, "tradeR").ok) return;   // (v378) занят задачей важнее размена (бомба, сейв) — арбитр места
-      o._probeLock = 0; taskKeep(o, 0, "call");
+      taskSetProbeLock(o, 0); taskKeep(o, 0, "call");
       tradeStart(o, {x:victim.x, y:victim.y}, kp);
       knowSound(o, {x:kp.x, y:kp.y, tick:tick, team:killer.team, src:killer.id, kind:"call"});
       if(k === 0) voiceLog(o.team, "trade"+victim.id, o.id, "размен за "+victim.id+"!");
@@ -347,7 +347,7 @@ function intelDeath(victim, killer, side){
         .filter(function(q){ return DM.hypot(q.x-fc.x, q.y-fc.y) <= FILL_FUNC_R; })
         .sort(function(p, q){ return DM.hypot(p.x-fBest.x, p.y-fBest.y) - DM.hypot(q.x-fBest.x, q.y-fBest.y); }) : [];
       var fp = fpC[0] || (fl && pickSpots("fill"+tick+fBest.id, fc, 1, {team: side, rMax:170, minGap:30, see:[fl]})[0]) || fc;
-      if(setPost(fBest, fp, fl, true, "fill").ok){ fBest._fillLock = {until: tick + 15*TICK_HZ, team: victim.team, pt: fp, ph: victim.team === "T" ? teamTac.T.phase : null};
+      if(setPost(fBest, fp, fl, true, "fill").ok){ taskSetFillLock(fBest, {until: tick + 15*TICK_HZ, team: victim.team, pt: fp, ph: victim.team === "T" ? teamTac.T.phase : null});
       voiceLog(victim.team, "fill"+victim.id, fBest.id, "закрываю "+calloutName(fc.x, fc.y).replace(/^на /, "")+" за "+victim.id); }
     }
   }

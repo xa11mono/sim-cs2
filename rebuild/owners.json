@@ -1,14 +1,12 @@
 {
-  "_": "Хозяева полей бота (docs/ARCHITECTURE.md, «Устройство каналов»). allow — функции канала: хозяин и исполнитель внутри канала; остальные записи — мимо хозяина. enforce: false — предупреждение (канал ещё не перенесён), true — сборка падает (ставится, когда канал перенесён, фаза 3). Читают tools/rebuild/gen_maps.js и проверка сборки (src/build.py). Полей без хозяина (nadeTask, path, phase) здесь нет — назначит перенос.",
+  "_": "Владельцы полей. exclusive: true требует одного физического писателя в ownerFile и вызова интерфейса во всех остальных местах. Остальные записи сохраняют действующие контракты своих каналов.",
   "_show_ban": true,
   "_locks": {
     "_avoidPeekUntil": [
       "events"
     ],
     "_drawUntil": [
-      "items",
-      "shoot",
-      "round"
+      "items"
     ],
     "_exposedUntil": [
       "shoot"
@@ -24,19 +22,13 @@
       "task"
     ],
     "_roamSoundLockUntil": [
-      "weapons-bots",
       "fov"
     ],
     "_stopPlantUntil": [
-      "brain-t",
-      "brain-ct",
-      "brain-t-postplant",
-      "brain-ct-players"
+      "bomb"
     ],
     "_tagUntil": [
-      "items",
-      "shoot",
-      "round"
+      "shoot"
     ],
     "_tradeUntil": [
       "intel"
@@ -297,10 +289,11 @@
   "heardSound": {
     "channel": "знание",
     "files": [],
+    "exactProperty": true,
+    "ownerFile": "knowledge",
     "allow": [
       "knowHear",
-      "knowSound",
-      "knowIntel"
+      "knowSound"
     ],
     "enforce": true,
     "since": "Р3.2 знание ш.3, 26.11: одна точка записи (engine/know/knowledge.js)"
@@ -308,9 +301,9 @@
   "lastIntel": {
     "channel": "знание",
     "files": [],
+    "exactProperty": true,
+    "ownerFile": "knowledge",
     "allow": [
-      "knowHear",
-      "knowSound",
       "knowIntel"
     ],
     "enforce": true,
@@ -422,5 +415,754 @@
     ],
     "enforce": true,
     "since": "Р3.2 ход ш.2, 26.11: номер точки пути — у хода; снаружи — movePath(b, путь, причина, номер)"
+  },
+  "_aimFix": {
+    "channel": "взгляд",
+    "ownerFile": "turn",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "lookSetAimFix"
+  },
+  "_ammoFor": {
+    "channel": "бой",
+    "ownerFile": "assist",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "reloadSetAmmoFor"
+  },
+  "_area": {
+    "channel": "ход (уровни, лестницы, огонь)",
+    "ownerFile": "levels",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "navSetArea"
+  },
+  "_blind": {
+    "channel": "звук и ситуации",
+    "ownerFile": "sound",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "soundSetBlind"
+  },
+  "_blindBy": {
+    "channel": "гранаты",
+    "ownerFile": "damage",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "damageSetBlindBy"
+  },
+  "_boost": {
+    "channel": "ход",
+    "ownerFile": "tick-jump",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "jumpSetBoost"
+  },
+  "_climb": {
+    "channel": "ход (уровни, лестницы, огонь)",
+    "ownerFile": "levels",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "navSetClimb"
+  },
+  "_contact": {
+    "channel": "реакция на контакт",
+    "ownerFile": "contact",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "contactSetContact"
+  },
+  "_covLog": {
+    "channel": "бой",
+    "ownerFile": "fight",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "fightSetCovLog"
+  },
+  "_covT": {
+    "channel": "бой",
+    "ownerFile": "fight",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "fightSetCovT"
+  },
+  "_detour": {
+    "channel": "место",
+    "ownerFile": "task",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "taskSetDetour"
+  },
+  "_dmgBy": {
+    "channel": "гранаты",
+    "ownerFile": "damage",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "damageSetDmgBy"
+  },
+  "_drawUntil": {
+    "channel": "бой",
+    "ownerFile": "items",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "equipmentSetDrawUntil"
+  },
+  "_egC": {
+    "channel": "эндгейм, клатч, ранний пик",
+    "ownerFile": "endgame",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "huntSetEgC"
+  },
+  "_fall": {
+    "channel": "ход (уровни, лестницы, огонь)",
+    "ownerFile": "levels",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "navSetFall"
+  },
+  "_fc": {
+    "channel": "бой",
+    "ownerFile": "fight",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "fightSetFc"
+  },
+  "_fillLock": {
+    "channel": "место",
+    "ownerFile": "task",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "taskSetFillLock"
+  },
+  "_fireExit": {
+    "channel": "ход",
+    "ownerFile": "move",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "moveSetFireExit"
+  },
+  "_fireExitFire": {
+    "channel": "ход",
+    "ownerFile": "move",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "moveSetFireExitFire"
+  },
+  "_fireIn": {
+    "channel": "гранаты",
+    "ownerFile": "damage",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "damageSetFireIn"
+  },
+  "_flee": {
+    "channel": "бомба",
+    "ownerFile": "bomb",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "bombSetFlee"
+  },
+  "_heDone": {
+    "channel": "гранаты",
+    "ownerFile": "self",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "nadeSetHeDone"
+  },
+  "_hold": {
+    "channel": "ход",
+    "ownerFile": "tick-step",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "moveSetHold"
+  },
+  "_holdLog": {
+    "channel": "эндгейм, клатч, ранний пик",
+    "ownerFile": "ct-early",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "holdSetHoldLog"
+  },
+  "_huntArrive": {
+    "channel": "мозг T",
+    "ownerFile": "brain-t-postplant",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "huntSetHuntArrive"
+  },
+  "_huntIdx": {
+    "channel": "мозг T",
+    "ownerFile": "brain-t-postplant",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "huntSetHuntIdx"
+  },
+  "_jc": {
+    "channel": "ход",
+    "ownerFile": "tick-jump",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "jumpSetJc"
+  },
+  "_jump": {
+    "channel": "ход",
+    "ownerFile": "tick-jump",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "jumpSetJump"
+  },
+  "_knife": {
+    "channel": "бой",
+    "ownerFile": "items",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "equipmentSetKnife"
+  },
+  "_landAt": {
+    "channel": "ход (уровни, лестницы, огонь)",
+    "ownerFile": "levels",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "navSetLandAt"
+  },
+  "_lkC": {
+    "channel": "взгляд",
+    "ownerFile": "look",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "lookSetLkC"
+  },
+  "_lkPt": {
+    "channel": "взгляд",
+    "ownerFile": "look",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "lookSetLkPt"
+  },
+  "_lkTop": {
+    "channel": "взгляд",
+    "ownerFile": "look",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "lookSetLkTop"
+  },
+  "_lkZ": {
+    "channel": "взгляд",
+    "ownerFile": "look",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "lookSetLkZ"
+  },
+  "_lurkArr": {
+    "channel": "тактики T",
+    "ownerFile": "lurker",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "lurkSetLurkArr"
+  },
+  "_lurkIdx": {
+    "channel": "тактики T",
+    "ownerFile": "lurker",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "lurkSetLurkIdx"
+  },
+  "_lurkPh": {
+    "channel": "тактики T",
+    "ownerFile": "lurker",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "lurkSetLurkPh"
+  },
+  "_mistakes": {
+    "channel": "место",
+    "ownerFile": "ct-setup",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "setupSetMistakes"
+  },
+  "_nadeNo": {
+    "channel": "гранаты",
+    "ownerFile": "throw",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "nadeSetNadeNo"
+  },
+  "_nadeT": {
+    "channel": "гранаты",
+    "ownerFile": "throw",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "nadeSetNadeT"
+  },
+  "_nearestEnemyBot": {
+    "channel": "бой",
+    "ownerFile": "engagements",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "engagementSetNearestEnemyBot"
+  },
+  "_offNav": {
+    "channel": "ход",
+    "ownerFile": "tick-step",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "moveSetOffNav"
+  },
+  "_onPistol": {
+    "channel": "звук и ситуации",
+    "ownerFile": "sound",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "soundSetOnPistol"
+  },
+  "_prevOffX": {
+    "channel": "ход",
+    "ownerFile": "tick-step",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "moveSetPrevOffX"
+  },
+  "_prevOffY": {
+    "channel": "ход",
+    "ownerFile": "tick-step",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "moveSetPrevOffY"
+  },
+  "_probe": {
+    "channel": "тактики T",
+    "ownerFile": "lurker",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "lurkSetProbe"
+  },
+  "_probeLock": {
+    "channel": "место",
+    "ownerFile": "task",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "taskSetProbeLock"
+  },
+  "_reloading": {
+    "channel": "бой",
+    "ownerFile": "assist",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "reloadSetReloading"
+  },
+  "_roamSoundHandled": {
+    "channel": "взгляд",
+    "ownerFile": "fov",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "roamSetRoamSoundHandled"
+  },
+  "_roamSoundLockUntil": {
+    "channel": "взгляд",
+    "ownerFile": "fov",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "roamSetRoamSoundLockUntil"
+  },
+  "_saveSpot": {
+    "channel": "сейв, ретейк",
+    "ownerFile": "save-retake",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "retakeSetSaveSpot"
+  },
+  "_sawEnemy": {
+    "channel": "бой",
+    "ownerFile": "engagements",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "engagementSetSawEnemy"
+  },
+  "_secAmmo": {
+    "channel": "бой",
+    "ownerFile": "items",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "equipmentSetSecAmmo"
+  },
+  "_stabT": {
+    "channel": "бой",
+    "ownerFile": "assist",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "knifeSetStabT"
+  },
+  "_stageInfo": {
+    "channel": "тактики T",
+    "ownerFile": "igl",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "stageSetStageInfo"
+  },
+  "_stopPlantUntil": {
+    "channel": "бомба",
+    "ownerFile": "bomb",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "bombSetStopPlantUntil"
+  },
+  "_stopWhy": {
+    "channel": "ход",
+    "ownerFile": "move",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "moveSetStopWhy"
+  },
+  "_tagUntil": {
+    "channel": "бой",
+    "ownerFile": "shoot",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "shotSetTagUntil"
+  },
+  "_ts": {
+    "channel": "бой",
+    "ownerFile": "engagements",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "engagementSetTs"
+  },
+  "_unstickT": {
+    "channel": "ход",
+    "ownerFile": "tick-step",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "moveSetUnstickT"
+  },
+  "alive": {
+    "channel": "гранаты",
+    "ownerFile": "damage",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "damageSetAlive"
+  },
+  "ammo": {
+    "channel": "бой",
+    "ownerFile": "shoot",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "shotSetAmmo"
+  },
+  "armor": {
+    "channel": "гранаты",
+    "ownerFile": "damage",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "damageSetArmor"
+  },
+  "armorHp": {
+    "channel": "гранаты",
+    "ownerFile": "damage",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "damageSetArmorHp"
+  },
+  "atPost": {
+    "channel": "место",
+    "ownerFile": "task",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "taskSetAtPost"
+  },
+  "blindUntil": {
+    "channel": "гранаты",
+    "ownerFile": "damage",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "damageSetBlindUntil"
+  },
+  "burstCount": {
+    "channel": "бой",
+    "ownerFile": "shoot",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "shotSetBurstCount"
+  },
+  "contactStreak": {
+    "channel": "бой",
+    "ownerFile": "engagements",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "engagementSetContactStreak"
+  },
+  "deaths": {
+    "channel": "гранаты",
+    "ownerFile": "damage",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "damageSetDeaths"
+  },
+  "decisionTick": {
+    "channel": "бой",
+    "ownerFile": "engagements",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "engagementSetDecisionTick"
+  },
+  "forcedRetreat": {
+    "channel": "бой",
+    "ownerFile": "engagements",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "engagementSetForcedRetreat"
+  },
+  "heading": {
+    "channel": "ход",
+    "ownerFile": "tick-step",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "moveSetHeading"
+  },
+  "helmet": {
+    "channel": "гранаты",
+    "ownerFile": "damage",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "damageSetHelmet"
+  },
+  "holdSinceTick": {
+    "channel": "бой",
+    "ownerFile": "engagements",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "engagementSetHoldSinceTick"
+  },
+  "hp": {
+    "channel": "гранаты",
+    "ownerFile": "damage",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "damageSetHp"
+  },
+  "kills": {
+    "channel": "гранаты",
+    "ownerFile": "damage",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "damageSetKills"
+  },
+  "kit": {
+    "channel": "бой",
+    "ownerFile": "items",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "equipmentSetKit"
+  },
+  "lastShotTick": {
+    "channel": "бой",
+    "ownerFile": "shoot",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "shotSetLastShotTick"
+  },
+  "lastStepTick": {
+    "channel": "ход",
+    "ownerFile": "tick-step",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "moveSetLastStepTick"
+  },
+  "lookTarget": {
+    "channel": "взгляд",
+    "ownerFile": "turn",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "lookSetLookTarget"
+  },
+  "money": {
+    "channel": "экономика",
+    "ownerFile": "economy",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "economySetMoney"
+  },
+  "nadeQueue": {
+    "channel": "гранаты",
+    "ownerFile": "decide",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "nadeSetNadeQueue"
+  },
+  "nades": {
+    "channel": "гранаты",
+    "ownerFile": "throw",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "nadeSetNades"
+  },
+  "nextShotTick": {
+    "channel": "бой",
+    "ownerFile": "shoot",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "shotSetNextShotTick"
+  },
+  "onStairs": {
+    "channel": "ход",
+    "ownerFile": "tick-step",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "moveSetOnStairs"
+  },
+  "pickTick": {
+    "channel": "бой",
+    "ownerFile": "engagements",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "engagementSetPickTick"
+  },
+  "primary": {
+    "channel": "бой",
+    "ownerFile": "items",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "equipmentSetPrimary"
+  },
+  "reloadUntil": {
+    "channel": "бой",
+    "ownerFile": "assist",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "reloadSetReloadUntil"
+  },
+  "retakeRole": {
+    "channel": "сейв, ретейк",
+    "ownerFile": "save-retake",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "retakeSetRetakeRole"
+  },
+  "roamCheckStart": {
+    "channel": "взгляд",
+    "ownerFile": "fov",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "roamSetRoamCheckStart"
+  },
+  "roamCheckUntil": {
+    "channel": "взгляд",
+    "ownerFile": "fov",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "roamSetRoamCheckUntil"
+  },
+  "roamChecking": {
+    "channel": "взгляд",
+    "ownerFile": "fov",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "roamSetRoamChecking"
+  },
+  "roamIdx": {
+    "channel": "взгляд",
+    "ownerFile": "fov",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "roamSetRoamIdx"
+  },
+  "roamLookPt": {
+    "channel": "взгляд",
+    "ownerFile": "fov",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "roamSetRoamLookPt"
+  },
+  "roamPrevPt": {
+    "channel": "взгляд",
+    "ownerFile": "fov",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "roamSetRoamPrevPt"
+  },
+  "roamTarget": {
+    "channel": "взгляд",
+    "ownerFile": "fov",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "roamSetRoamTarget"
+  },
+  "roundDmg": {
+    "channel": "гранаты",
+    "ownerFile": "damage",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "damageSetRoundDmg"
+  },
+  "roundKills": {
+    "channel": "гранаты",
+    "ownerFile": "damage",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "damageSetRoundKills"
+  },
+  "secondary": {
+    "channel": "бой",
+    "ownerFile": "items",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "equipmentSetSecondary"
+  },
+  "setupLook": {
+    "channel": "место",
+    "ownerFile": "task",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "taskSetSetupLook"
+  },
+  "stateSince": {
+    "channel": "бой",
+    "ownerFile": "engagements",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "engagementSetStateSince"
+  },
+  "stuckTicks": {
+    "channel": "ход",
+    "ownerFile": "tick-step",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "moveSetStuckTicks"
+  },
+  "throwUntil": {
+    "channel": "гранаты",
+    "ownerFile": "throw",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "nadeSetThrowUntil"
+  },
+  "weapon": {
+    "channel": "бой",
+    "ownerFile": "items",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "equipmentSetWeapon"
+  },
+  "x": {
+    "channel": "ход",
+    "ownerFile": "move",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "moveSetX"
+  },
+  "y": {
+    "channel": "ход",
+    "ownerFile": "move",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "moveSetY"
+  },
+  "z": {
+    "channel": "ход (уровни, лестницы, огонь)",
+    "ownerFile": "levels",
+    "exclusive": true,
+    "enforce": true,
+    "writer": "navSetZ"
   }
 }

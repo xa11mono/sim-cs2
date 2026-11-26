@@ -1,10 +1,10 @@
-// [хозяева: landSound] (v335) звук приземления — одно место: слышат враги (как шаги, громко), на странице — запись приземления там, где он сейчас.
+// [хозяева: jumpSetBoost, jumpSetJc, jumpSetJump, landSound] (v335) звук приземления — одно место: слышат враги (как шаги, громко), на странице — запись приземления там, где он сейчас.
 // LAND_DELAY — время полёта при запрыгивании — в 050 (v546: нужно цене пути уже при загрузке)
 // (v546, владелец 10.11: «он может подойти вплотную и бесшумно запрыгнуть — должен уметь, когда нельзя палиться; на верхний этаж через
 // щель — с шумом») kind: "up" — запрыгнул на уступ / ящик (вплотную, шагом — бесшумно: bot.walking — решение хозяина шага, 535); "gap" — прыжок
 // через щель и спрыгивание — всегда слышно
 function landSound(bot, quiet, kind){
-  bot._landAt = 0;
+  navSetLandAt(bot, 0);
   if(kind === "up" && bot.walking) return;
   var R = SOUND_RADIUS_RUN*(quiet ? 0.5 : 1);
   soundPings.push({x:bot.baseX, y:bot.baseY, team:bot.team, born:nowTs, radius:R});
@@ -28,9 +28,9 @@ var JUMP_APEX = 57;
 var BOOST = {R: 40, pair: 120, tPad: 5, k: 1};   // R — как сетка мест в boosts_bake (40 px); pair, tPad — проектные
 function boostLift(b){ return b._boost && b._boost.top ? b._boost.lift : 0; }
 function boostEnd(b){
-  var BS = b._boost; if(!BS) return; b._boost = null;
+  var BS = b._boost; if(!BS) return; jumpSetBoost(b, null);
   var o = bots.filter(function(x){ return x.id === BS.pair; })[0]; if(o && o._boost && o._boost.pair === b.id) boostEnd(o);
-  if(BS.top && b.alive){ b._jump = {t: tick, up: false}; if(roundState === "live") landSound(b, false); }
+  if(BS.top && b.alive){ jumpSetJump(b, {t: tick, up: false}); if(roundState === "live") landSound(b, false); }
 }
 // (v575, В144) прыжок на бегу у про: прыжков на минуту бега по повороту хода за 0,75 с (до 15 / 30 / 60 / 90 / 180°), полёт, с, доля скорости
 // после приземления (12 демок Mirage, бег без своих выстрелов ±2 с — 4,15 в мин; pro_runjump_turn.py, pro_jumpspots.py)
@@ -95,18 +95,18 @@ function jumpCheckTick(b){
      tick - (b.lastShotTick||-1e9) >= 2*TICK_HZ && tick - (b._shotAtT||-1e9) >= 2*TICK_HZ){
     for(var bi = 0; bi < BO.length; bi++){ var q = BO[bi];
       if(q.side !== b.team || rtB < q.t[0] - BOOST.tPad || rtB > q.t[4] + BOOST.tPad || DM.hypot(q.x - b.x, q.y - b.y) > BOOST.R) continue;
-      var bt = b._boostTry || (b._boostTry = {}); if(bt[bi] === roundNum + "|" + matchNum) continue;
+      var boostAttempts = b._boostTry || (b._boostTry = {}); if(boostAttempts[bi] === roundNum + "|" + matchNum) continue;
       var mate = bots.filter(function(o){ return o !== b && o.alive && o.team === b.team && !o._boost && !o._fc && !o._sawEnemy && !o._jc && !o._climb && !o.onLadder &&
         DM.hypot(o.x - b.x, o.y - b.y) <= BOOST.pair; })[0];
       if(!mate) continue;
-      bt[bi] = roundNum + "|" + matchNum;   // одно решение на место за раунд — когда пара впервые у места
+      boostAttempts[bi] = roundNum + "|" + matchNum;   // одно решение на место за раунд — когда пара впервые у места
       // вероятность: подсадок у про за раунд / сколько раз за раунд у ботов складывается такой момент (botE — замер boost.sh, вписан в данные
       // tools/measure/motion/boost_calib.py); без замера — rate·k
       if(hashRand(tick*331 + b.id.charCodeAt(b.id.length-1)*17 + bi*7) >= Math.min(1, q.botE ? q.rate/q.botE : q.rate*BOOST.k)) continue;
       var dn = DM.hypot(q.x - b.x, q.y - b.y) <= DM.hypot(q.x - mate.x, q.y - mate.y) ? b : mate, up = dn === b ? mate : b;
       var until = tick + Math.round(peekQ(q.dur, hashRand(tick*53 + bi))*TICK_HZ);
-      dn._boost = {pair: up.id, top: false, until: until, lift: 0}; up._boost = {pair: dn.id, top: true, until: until, lift: q.lift};
-      up.baseX = dn.baseX; up.baseY = dn.baseY; up._jump = {t: tick, up: true};
+      jumpSetBoost(dn, {pair: up.id, top: false, until: until, lift: 0}); jumpSetBoost(up, {pair: dn.id, top: true, until: until, lift: q.lift});
+      up.baseX = dn.baseX; up.baseY = dn.baseY; jumpSetJump(up, {t: tick, up: true});
       logEvent(up.id + ": подсадка на " + dn.id + " — " + calloutName(dn.x, dn.y));
       return;
     }
@@ -124,10 +124,10 @@ function jumpCheckTick(b){
         if((oS.head || oS.body) && tick >= (o.blindUntil||0) && o.facing !== undefined && _angOff(DM.atan2(b.y-o.y, b.x-o.x), o.facing) < 1.05) intelPush(o.team, {type:"spotted", x:b.x, y:b.y, id:b.id, by:o.id, conf:1}); });
     }
     if(J.run && age >= Math.round(RUN_JUMP.air*TICK_HZ)){   // (v575, В144) приземление с бега — громко, ход теряет долю (у про ×0,65)
-      landSound(b, false); b._jc = null; landLook(b); return;
+      landSound(b, false); jumpSetJc(b, null); landLook(b); return;
     }
     if(!J.run && age === 38){   // приземление, с приседом
-      landSound(b, true); b._jc = null; landLook(b);
+      landSound(b, true); jumpSetJc(b, null); landLook(b);
     }
     return;
   }
@@ -139,11 +139,16 @@ function jumpCheckTick(b){
   if(sp >= 200 && !b.walking && !b._fc && !b._sawEnemy && !b._climb && !b.onLadder && !b.planting && !b.defusing && !(b.nadeTask && b.nadeTask.runPh) &&
      tick >= (b.throwUntil || 0) && tick - (b._shotAtT||-1e9) >= 2*TICK_HZ && tick - (b.lastShotTick||-1e9) >= 2*TICK_HZ && b.path && b.pathIdx < b.path.length){
     var tn = pathTurnAhead(b, (b.curSpeed || 0)*RUN_JUMP.air), k = 0; while(k < RUN_JUMP.turn.length - 1 && Math.abs(tn) > RUN_JUMP.turn[k]) k++;
-    if(hashRand(tick*613 + b.id.charCodeAt(b.id.length-1)*41 + roundNum*11) < RUN_JUMP.rate[k]/(60*TICK_HZ)){ b._jc = {t: tick, run: true, tn: tn, keys: airKeysPlan(b, tn), v0: b.curSpeed, kt: Math.max(0.1, peekQ(RUN_JUMP.keep, hashRand(tick*71 + b.id.charCodeAt(0)*5)) - RUN_JUMP.keepAcc)}; b._jump = {t: tick, up: true}; return; }
+    if(hashRand(tick*613 + b.id.charCodeAt(b.id.length-1)*41 + roundNum*11) < RUN_JUMP.rate[k]/(60*TICK_HZ)){ jumpSetJc(b, {t: tick, run: true, tn: tn, keys: airKeysPlan(b, tn), v0: b.curSpeed, kt: Math.max(0.1, peekQ(RUN_JUMP.keep, hashRand(tick*71 + b.id.charCodeAt(0)*5)) - RUN_JUMP.keepAcc)}); jumpSetJump(b, {t: tick, up: true}); return; }
   }
   if(!JS || !JS.length) return;
   if(b.curSpeed > 20 || b._sawEnemy || b.planting || b.defusing || tick - (b._shotAtT||-1e9) < 2*TICK_HZ || tick - (b.lastShotTick||-1e9) < 2*TICK_HZ) return;
   var sp = null; for(var i=0;i<JS.length;i++){ var q = JS[i]; if(q.side === b.team && DM.hypot(q.x-b.x, q.y-b.y) < 50){ sp = q; break; } }
   if(!sp) return;
-  if(hashRand(tick*977 + b.id.charCodeAt(b.id.length-1)*31 + roundNum*7) < sp.rate/(JUMP_HOLD_SEC*TICK_HZ)){ b._jc = {t:tick}; b._jump = {t:tick, up:true}; }
+  if(hashRand(tick*977 + b.id.charCodeAt(b.id.length-1)*31 + roundNum*7) < sp.rate/(JUMP_HOLD_SEC*TICK_HZ)){ jumpSetJc(b, {t:tick}); jumpSetJump(b, {t:tick, up:true}); }
 }
+
+// Запись состояния канала. Вызовы выполняются в исходной точке тика.
+function jumpSetBoost(bot, value){ return bot._boost = value; }
+function jumpSetJc(bot, value){ return bot._jc = value; }
+function jumpSetJump(bot, value){ return bot._jump = value; }

@@ -1,4 +1,4 @@
-// [хозяева: nadeReact, selfNadeTick] ---------- тактическое использование ----------
+// [хозяева: nadeReact, nadeSetHeDone, selfNadeTick] ---------- тактическое использование ----------
 var nadeFlags = {};
 var comboCd = {}; // раздел 11.1: кулдаун комбо-гранаты на конкретного замеченного врага
 function antiEco(team){
@@ -222,7 +222,7 @@ function nadeReact(){
       if(bots.some(function(o){ return o.alive && o.team === team && DM.hypot(o.x-lo.x, o.y-lo.y) < 170; })) continue;
       var th = bots.filter(function(b){ return b.alive && b.team === team && b.nades && b.nades.he > 0 && !b.nadeTask && !b._sawEnemy &&
         DM.hypot(b.x-lo.x, b.y-lo.y) > 150 && DM.hypot(b.x-lo.x, b.y-lo.y) < NADE_THROW_RANGE && !hasLOS(b.x, b.y, lo.x, lo.y, b.z); })[0];
-      if(th && assignNade(th, "he", {x:lo.x, y:lo.y}, "HE добить "+eH, {now:true, eid:eH}).ok){ h._heDone = true;
+      if(th && assignNade(th, "he", {x:lo.x, y:lo.y}, "HE добить "+eH, {now:true, eid:eH}).ok){ nadeSetHeDone(h, true);
         voiceLog(team, "hefin"+eH, th.id, eH+" на "+h.hp+" за углом — HE"); }
     }
   });
@@ -285,3 +285,6 @@ var NADE_USE_GAP = 192;   // 3 с (TICK_HZ объявлен ниже — чис�
 function nadeFlagsReset(){ nadeFlags = {}; }
 function comboCdReset(){ comboCd = {}; }
 function nadeReactReset(){ nadeReactCd = {CT:0, T:0}; }
+
+// Запись состояния канала. Вызовы выполняются в исходной точке тика.
+function nadeSetHeDone(hurt, value){ return hurt._heDone = value; }

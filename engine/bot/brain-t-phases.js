@@ -82,7 +82,7 @@ function tBrainSetup(K){
       // подготовка нового сайта; мид (TMID) — как был
       var memAll = [];
       K.tac.groups.forEach(function(G){ var mem = K.pick(G.roles); if(!mem.length) return;
-        if(G.stage === "TMID"){ mem.forEach(function(b){ b._stageInfo = null; }); groupPost(mem, K.tt.tMidPt || GEO.tMid, GEO.tMidLook, "tmid", K.midOpt); return; }
+        if(G.stage === "TMID"){ mem.forEach(function(b){ stageSetStageInfo(b, null); }); groupPost(mem, K.tt.tMidPt || GEO.tMid, GEO.tMidLook, "tmid", K.midOpt); return; }
         mem.forEach(function(b){ if(memAll.indexOf(b) < 0) memAll.push(b); }); });
       stagePost(memAll, K.tt.site);
     } else if(K.tac.groups && K.tac.style !== "fake"){
@@ -102,17 +102,17 @@ function tBrainSetup(K){
             voiceLog("T", "splitdec"+gi+roundNum, mem[0].id, GN.dec[gi] === "merge" ? "своего сняли — сплит отменяем, иду к основной" : "своего сняли — держу здесь, отвлекаю ротацию");
             logEvent("T: сплит — в группе «"+(G.stage || "?")+"» погиб свой — "+(GN.dec[gi] === "merge" ? "к основной группе" : "держат позицию")); }
           if(GN.dec[gi] === "merge"){ var GM = K.tac.groups[gMain], spM = GM.stage ? (zonePoint(GM.stage, K.g.tStage) || K.g.tStage) : K.g.tStage, lkM = GM.look ? (zonePoint(GM.look, spM) || K.g.tEntry) : K.g.tEntry;
-            mem.forEach(function(b){ routeDrop(b); b._stageInfo = {from:spM, to:lkM, look: GM.look ? SITES[K.tt.site] : K.g.anchor, round:roundNum}; });
+            mem.forEach(function(b){ routeDrop(b); stageSetStageInfo(b, {from:spM, to:lkM, look: GM.look ? SITES[K.tt.site] : K.g.anchor, round:roundNum}); });
             groupPost(mem, spM, lkM, "stage"+K.tt.site+(GM.stage ? ":"+GM.stage : ""), {team: "T", rMax:200, minGap:50, hideFrom:[SITES[K.tt.site], lkM], see:[lkM]});
             return; }
         }
         // после дефолта маршрут "от спавна" уже не нужен — идут к своей точке кратчайшим путём
         if(!K.tt.defUntil) mem.forEach(function(b){ startRoute(b, G.via, K.tac.id+":"+gi); });
-        if(G.stage === "TMID"){ mem.forEach(function(b){ b._stageInfo = null; }); groupPost(mem, K.tt.tMidPt || GEO.tMid, GEO.tMidLook, "tmid", K.midOpt); return; }
+        if(G.stage === "TMID"){ mem.forEach(function(b){ stageSetStageInfo(b, null); }); groupPost(mem, K.tt.tMidPt || GEO.tMid, GEO.tMidLook, "tmid", K.midOpt); return; }
         var sp = G.stage ? (zonePoint(G.stage, K.g.tStage) || K.g.tStage) : K.g.tStage;
         var lk = G.look ? (zonePoint(G.look, sp) || K.g.tEntry) : K.g.tEntry;
         var tag = "stage"+K.tt.site+(G.stage ? ":"+G.stage : "");
-        mem.forEach(function(b){ b._stageInfo = {from:sp, to:lk, look: G.look ? SITES[K.tt.site] : K.g.anchor, round:roundNum}; });
+        mem.forEach(function(b){ stageSetStageInfo(b, {from:sp, to:lk, look: G.look ? SITES[K.tt.site] : K.g.anchor, round:roundNum}); });
         groupPost(mem, sp, lk, tag, {team: "T", rMax:200, minGap:50, hideFrom:[SITES[K.tt.site], lk], see:[lk]});
       });
     } else if(K.tac.style === "exec"){
@@ -321,7 +321,7 @@ function tBrainExecute(K){
         var lnE = DM.hypot(ppt.x-carrier.x, ppt.y-carrier.y) || 1, ePt = walk({x: carrier.x + (ppt.x-carrier.x)/lnE*Math.min(90, lnE), y: carrier.y + (ppt.y-carrier.y)/lnE*Math.min(90, lnE)});
         if(!(esc.post && esc.post.tag === "bombEscort" && DM.hypot(postSrc(esc).x-ePt.x, postSrc(esc).y-ePt.y) < 80)) setPost(esc, ePt, K.g.ctEntry, true, "bombEscort");
         else postKeep(esc);
-        esc._probeLock = tick;
+        taskSetProbeLock(esc, tick);
         if(nearP(esc.x, esc.y, esc.z, carrier.x, carrier.y, carrier.z, TRADE_R)) setPost(carrier, ppt, K.g.ctEntry, true, "plantspot");   // (v532) напарник рядом — по пути
         else if(carrier.post && carrier.post.tag === "bombWait") postKeep(carrier);
         else setPost(carrier, {x:carrier.x, y:carrier.y}, esc, true, "bombWait");

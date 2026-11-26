@@ -1,0 +1,9 @@
+{
+  "map": "mirage",
+  "match": 3,
+  "equal": true,
+  "forced_matchover_tick": 2400,
+  "fingerprint_ticks": 2848,
+  "fingerprint_hash": 2241377198,
+  "round_entries": 1
+}

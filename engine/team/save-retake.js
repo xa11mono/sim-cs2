@@ -1,4 +1,4 @@
-// [хозяева: pickSaveSpot, updateRetake]
+// [хозяева: pickSaveSpot, retakeSetRetakeRole, retakeSetSaveSpot, updateRetake]
 var SAVE_TOPN = 12;
 function pickSaveSpot(b){
   // только то, что команда знает (радар/слышали за 15с), а не настоящие позиции T
@@ -84,7 +84,7 @@ function tPlantChance(ts, secLeft){
 // сейв T: каждый живой — к своему месту сейва (один раз выбранному), бомбу не ставит
 function tSaveHold(){
   bots.forEach(function(b){ if(b.team !== "T" || !b.alive) return;
-    if(!b._saveSpot) b._saveSpot = pickSaveSpotT(b);
+    if(!b._saveSpot) retakeSetSaveSpot(b, pickSaveSpotT(b));
     if(!b.planting) setPost(b, b._saveSpot, null, true, "save"); });
 }
 function pickSaveSpotT(b){
@@ -244,7 +244,7 @@ function updateRetake(cts){
   if(prevDef && def !== prevDef && (prevDef.defusing || defT(prevDef) - tBest < 2)) def = prevDef;
   if(def && prevDef && def !== prevDef && R.phase === "go") voiceLog("CT", "rtdef", def.id, "я ближе — дефужу я");
   if(def) R.defId = def.id;
-  alive.forEach(function(b){ b.retakeRole = (b === def) ? "defuser" : (R.assign[b.id] !== 0 ? "flank" : "cover"); });
+  alive.forEach(function(b){ retakeSetRetakeRole(b, (b === def) ? "defuser" : (R.assign[b.id] !== 0 ? "flank" : "cover")); });
   if((R.phase === "gather" || R.phase === "util") && def && ninjaOk()){
     var tLeftN = bombTimeLeftTicks()/TICK_HZ;
     if(tLeftN > defuseEta(def) + 1){
@@ -469,8 +469,12 @@ function retakeDefGo(b, R, cts){
 // (v247) сейв — решение команды: личные размены и пики отменяются, в дуэли никто не выходит
 function saveCancelTrades(team){
   bots.forEach(function(b){ if(b.team !== team || !b.alive) return;
-    tradeEnd(b, true); b._fillLock = null; moveWaitPop(b, 0, undefined, "save");
+    tradeEnd(b, true); taskSetFillLock(b, null); moveWaitPop(b, 0, undefined, "save");
     if(b.post && b.post.tag === "tradeR") clearPost(b); });
 }
 function teamSaving(team){ var t = team === "CT" ? teamTac.CT : teamTac.T; return !!(t && t.saving); }
 function cl0save(){ return teamTac.CT && teamTac.CT.saving; }
+
+// Запись состояния канала. Вызовы выполняются в исходной точке тика.
+function retakeSetSaveSpot(bot, value){ return bot._saveSpot = value; }
+function retakeSetRetakeRole(bot, value){ return bot.retakeRole = value; }

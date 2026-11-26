@@ -2735,7 +2735,7 @@
   },
   {
    "file": "replay-play.js",
-   "line": 315,
+   "line": 338,
    "what": "setTimeout",
    "el": "—",
    "ev": "setTimeout",
@@ -2751,7 +2751,7 @@
   },
   {
    "file": "replay-play.js",
-   "line": 321,
+   "line": 344,
    "what": "событие",
    "el": "#chkRp",
    "ev": "change",
@@ -2767,7 +2767,7 @@
   },
   {
    "file": "replay-play.js",
-   "line": 322,
+   "line": 345,
    "what": "событие",
    "el": "#selRp",
    "ev": "change",
@@ -2783,7 +2783,7 @@
   },
   {
    "file": "replay-play.js",
-   "line": 323,
+   "line": 346,
    "what": "событие",
    "el": "#btnRpLast",
    "ev": "click",
@@ -2803,7 +2803,7 @@
   },
   {
    "file": "replay-play.js",
-   "line": 324,
+   "line": 347,
    "what": "setTimeout",
    "el": "—",
    "ev": "setTimeout",
@@ -4199,7 +4199,7 @@
     "damage.js:135",
     "damage.js:135",
     "shoot.js:68",
-    "round.js:155",
+    "round.js:157",
     "tick-step.js:30"
    ]
   },
@@ -4208,15 +4208,19 @@
    "class": "диагностика",
    "read_by_core": [
     "sites-spots.js:216",
-    "knowledge.js:81",
-    "knowledge.js:83",
+    "knowledge.js:84",
+    "knowledge.js:86",
     "lineups.js:252",
     "lineups.js:260",
     "trace.js:9",
     "trace.js:9",
     "trace.js:10",
     "trace.js:13",
-    "trace.js:16"
+    "trace.js:18",
+    "trace.js:19",
+    "trace.js:19",
+    "trace.js:21",
+    "trace.js:39"
    ]
   },
   {
@@ -4228,15 +4232,15 @@
    "var": "KNOW_LOG",
    "class": "диагностика",
    "read_by_core": [
-    "knowledge.js:249"
+    "knowledge.js:252"
    ]
   },
   {
    "var": "KNOW_TRACE",
    "class": "диагностика",
    "read_by_core": [
-    "knowledge.js:247",
-    "knowledge.js:247"
+    "knowledge.js:250",
+    "knowledge.js:250"
    ]
   },
   {
@@ -4321,14 +4325,14 @@
    "var": "RUN_MATCH_SUB",
    "class": "диагностика",
    "read_by_core": [
-    "round.js:260"
+    "round.js:262"
    ]
   },
   {
    "var": "SANDBOX",
    "class": "показ",
    "read_by_core": [
-    "round.js:154",
+    "round.js:156",
     "move.js:112",
     "move.js:113",
     "tick-step.js:29"
@@ -4369,8 +4373,8 @@
    "var": "WARM",
    "class": "показ",
    "read_by_core": [
-    "round.js:93",
-    "round.js:93",
+    "round.js:95",
+    "round.js:95",
     "src/snapshot.js:237",
     "src/snapshot.js:237"
    ]
@@ -4398,7 +4402,7 @@
     "damage.js:239",
     "damage.js:239",
     "decide.js:260",
-    "round.js:100"
+    "round.js:102"
    ]
   },
   {
@@ -4429,7 +4433,7 @@
    "var": "soundPings",
    "class": "показ",
    "read_by_core": [
-    "round.js:100",
+    "round.js:102",
     "tick-jump.js:10",
     "tick-step.js:139",
     "tick-step.js:143",
@@ -4448,8 +4452,8 @@
     "shoot.js:359",
     "shoot.js:379",
     "shoot.js:379",
-    "round.js:100",
-    "round.js:222",
+    "round.js:102",
+    "round.js:224",
     "src/snapshot.js:172",
     "src/snapshot.js:172"
    ]
@@ -4465,11 +4469,6 @@
    "fn": "(обработчик click #btnFreshMatch)",
    "file": "app.js",
    "write": "SERIES"
-  },
-  {
-   "fn": "dvStart",
-   "file": "demo.js",
-   "write": "._ammoFor"
   },
   {
    "fn": "dvStart",
@@ -4492,11 +4491,6 @@
    "write": "._shotAtT"
   },
   {
-   "fn": "dvStart",
-   "file": "demo.js",
-   "write": ".armor"
-  },
-  {
    "fn": "dvPlace",
    "file": "demo.js",
    "write": ".baseX"
@@ -4507,29 +4501,9 @@
    "write": ".baseY"
   },
   {
-   "fn": "dvStart",
-   "file": "demo.js",
-   "write": ".helmet"
-  },
-  {
-   "fn": "dvPlace",
-   "file": "demo.js",
-   "write": ".hp"
-  },
-  {
    "fn": "dvPanel",
    "file": "demo.js",
    "write": ".id"
-  },
-  {
-   "fn": "dvTick",
-   "file": "demo.js",
-   "write": ".lastShotTick"
-  },
-  {
-   "fn": "dvStart",
-   "file": "demo.js",
-   "write": ".primary"
   },
   {
    "fn": "dvPlace",
@@ -4542,37 +4516,17 @@
    "write": ".py"
   },
   {
-   "fn": "dvStart",
-   "file": "demo.js",
-   "write": ".secondary"
-  },
-  {
    "fn": "dvTick",
    "file": "demo.js",
    "write": ".state"
   },
   {
-   "fn": "dvStart",
-   "file": "demo.js",
-   "write": ".weapon"
-  },
-  {
    "fn": "dvTick",
    "file": "demo.js",
    "write": ".x"
   },
   {
-   "fn": "dvPlace",
-   "file": "demo.js",
-   "write": ".x"
-  },
-  {
    "fn": "dvTick",
-   "file": "demo.js",
-   "write": ".y"
-  },
-  {
-   "fn": "dvPlace",
    "file": "demo.js",
    "write": ".y"
   },
@@ -4737,51 +4691,6 @@
    "write": "RP_EL"
   },
   {
-   "fn": "sbPlace",
-   "file": "sandbox.js",
-   "write": "._area"
-  },
-  {
-   "fn": "sbRevive",
-   "file": "sandbox.js",
-   "write": "._blind"
-  },
-  {
-   "fn": "sbPlace",
-   "file": "sandbox.js",
-   "write": "._climb"
-  },
-  {
-   "fn": "sbRevive",
-   "file": "sandbox.js",
-   "write": "._contact"
-  },
-  {
-   "fn": "sbPlace",
-   "file": "sandbox.js",
-   "write": "._fall"
-  },
-  {
-   "fn": "sbPlace",
-   "file": "sandbox.js",
-   "write": "._fc"
-  },
-  {
-   "fn": "sbRemove",
-   "file": "sandbox.js",
-   "write": "._fc"
-  },
-  {
-   "fn": "sbPlace",
-   "file": "sandbox.js",
-   "write": "._hold"
-  },
-  {
-   "fn": "sbRevive",
-   "file": "sandbox.js",
-   "write": "._reloading"
-  },
-  {
    "fn": "sbTick",
    "file": "sandbox.js",
    "write": "._sbGo"
@@ -4822,21 +4731,6 @@
    "write": "._trail"
   },
   {
-   "fn": "sbRevive",
-   "file": "sandbox.js",
-   "write": "._ts"
-  },
-  {
-   "fn": "sbRevive",
-   "file": "sandbox.js",
-   "write": ".alive"
-  },
-  {
-   "fn": "sbRemove",
-   "file": "sandbox.js",
-   "write": ".alive"
-  },
-  {
    "fn": "sbPlace",
    "file": "sandbox.js",
    "write": ".baseX"
@@ -4847,31 +4741,6 @@
    "write": ".baseY"
   },
   {
-   "fn": "sbRevive",
-   "file": "sandbox.js",
-   "write": ".blindUntil"
-  },
-  {
-   "fn": "sbRevive",
-   "file": "sandbox.js",
-   "write": ".contactStreak"
-  },
-  {
-   "fn": "sbRevive",
-   "file": "sandbox.js",
-   "write": ".hp"
-  },
-  {
-   "fn": "sbRemove",
-   "file": "sandbox.js",
-   "write": ".hp"
-  },
-  {
-   "fn": "sbRevive",
-   "file": "sandbox.js",
-   "write": ".nextShotTick"
-  },
-  {
    "fn": "sbPlace",
    "file": "sandbox.js",
    "write": ".px"
@@ -4880,21 +4749,6 @@
    "fn": "sbPlace",
    "file": "sandbox.js",
    "write": ".py"
-  },
-  {
-   "fn": "sbPlace",
-   "file": "sandbox.js",
-   "write": ".x"
-  },
-  {
-   "fn": "sbPlace",
-   "file": "sandbox.js",
-   "write": ".y"
-  },
-  {
-   "fn": "sbPlace",
-   "file": "sandbox.js",
-   "write": ".z"
   },
   {
    "fn": "sbTick",
@@ -4962,41 +4816,6 @@
    "write": ".x"
   },
   {
-   "fn": "warmSpawn",
-   "file": "warmup.js",
-   "write": "._ammoFor"
-  },
-  {
-   "fn": "warmTick",
-   "file": "warmup.js",
-   "write": "._nearestEnemyBot"
-  },
-  {
-   "fn": "warmSpawn",
-   "file": "warmup.js",
-   "write": "._reloading"
-  },
-  {
-   "fn": "warmSpawn",
-   "file": "warmup.js",
-   "write": "._sawEnemy"
-  },
-  {
-   "fn": "warmTick",
-   "file": "warmup.js",
-   "write": "._sawEnemy"
-  },
-  {
-   "fn": "warmSpawn",
-   "file": "warmup.js",
-   "write": "._ts"
-  },
-  {
-   "fn": "warmTick",
-   "file": "warmup.js",
-   "write": "._ts"
-  },
-  {
    "fn": "warmTick",
    "file": "warmup.js",
    "write": "._wIdx"
@@ -5029,26 +4848,6 @@
   {
    "fn": "warmSpawn",
    "file": "warmup.js",
-   "write": ".alive"
-  },
-  {
-   "fn": "warmSpawn",
-   "file": "warmup.js",
-   "write": ".ammo"
-  },
-  {
-   "fn": "warmSpawn",
-   "file": "warmup.js",
-   "write": ".armor"
-  },
-  {
-   "fn": "warmSpawn",
-   "file": "warmup.js",
-   "write": ".armorHp"
-  },
-  {
-   "fn": "warmSpawn",
-   "file": "warmup.js",
    "write": ".baseX"
   },
   {
@@ -5069,46 +4868,6 @@
   {
    "fn": "warmSpawn",
    "file": "warmup.js",
-   "write": ".blindUntil"
-  },
-  {
-   "fn": "warmSpawn",
-   "file": "warmup.js",
-   "write": ".contactStreak"
-  },
-  {
-   "fn": "warmTick",
-   "file": "warmup.js",
-   "write": ".contactStreak"
-  },
-  {
-   "fn": "warmTick",
-   "file": "warmup.js",
-   "write": ".heading"
-  },
-  {
-   "fn": "warmSpawn",
-   "file": "warmup.js",
-   "write": ".helmet"
-  },
-  {
-   "fn": "warmSpawn",
-   "file": "warmup.js",
-   "write": ".hp"
-  },
-  {
-   "fn": "warmSpawn",
-   "file": "warmup.js",
-   "write": ".nextShotTick"
-  },
-  {
-   "fn": "warmSpawn",
-   "file": "warmup.js",
-   "write": ".primary"
-  },
-  {
-   "fn": "warmSpawn",
-   "file": "warmup.js",
    "write": ".px"
   },
   {
@@ -5125,31 +4884,6 @@
    "fn": "warmTick",
    "file": "warmup.js",
    "write": ".py"
-  },
-  {
-   "fn": "warmSpawn",
-   "file": "warmup.js",
-   "write": ".weapon"
-  },
-  {
-   "fn": "warmSpawn",
-   "file": "warmup.js",
-   "write": ".x"
-  },
-  {
-   "fn": "warmTick",
-   "file": "warmup.js",
-   "write": ".x"
-  },
-  {
-   "fn": "warmSpawn",
-   "file": "warmup.js",
-   "write": ".y"
-  },
-  {
-   "fn": "warmTick",
-   "file": "warmup.js",
-   "write": ".y"
   },
   {
    "fn": "warmStart",
@@ -5246,8 +4980,8 @@
    "field": "_runWhy",
    "class": "диагностика",
    "read_by_core": [
-    "trace.js:34",
-    "trace.js:34"
+    "trace.js:38",
+    "trace.js:38"
    ]
   },
   {
@@ -5261,8 +4995,8 @@
    "read_by_core": [
     "problem-watch.js:28",
     "problem-watch.js:58",
-    "trace.js:34",
-    "trace.js:34"
+    "trace.js:38",
+    "trace.js:38"
    ]
   },
   {
@@ -5284,7 +5018,7 @@
    "class": "диагностика",
    "read_by_core": [
     "problem-watch.js:28",
-    "trace.js:34"
+    "trace.js:38"
    ]
   },
   {

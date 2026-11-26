@@ -34,7 +34,7 @@ var fires = [];        // {x,y,born,until,team,thrower}
 var nadeFx = [];       // визуальные вспышки/взрывы {type,x,y,born}
 
 function emptyNades(){ return {smoke:0, flash:0, he:0, molly:0}; }
-bots.forEach(function(b){ b.nades = emptyNades(); b.nadeTask = null; b.nadeQueue = null; b.blindUntil = 0; });
+bots.forEach(function(b){ nadeSetNades(b, emptyNades()); b.nadeTask = null; nadeSetNadeQueue(b, null); damageSetBlindUntil(b, 0); });
 
 // ---------- закуп гранат (вызывается из buyForPlayer) ----------
 var NADE_WISH = {
@@ -62,11 +62,11 @@ function buyNades(b, type){
   // (v373) эко и форс — план команды из демок (teamNadePlan), как на пистолетке; что не по карману после оружия и брони — не берёт
   if(type === "eco" || type === "force" || type === "half"){
     var TP = teamNadePlan(b.team, type === "eco" ? "eco" : "force")[b.id] || [];
-    if(!b.nades) b.nades = emptyNades();
+    if(!b.nades) nadeSetNades(b, emptyNades());
     var keepE = (type === "eco") ? fullNeed(b) - nextLossIncome(b.team) : -1e9;
     TP.forEach(function(t){ var pr = nadePrice(t, b.team), tot = b.nades.smoke + b.nades.flash + b.nades.he + b.nades.molly;
       if(tot >= 4 || (t === "flash" ? b.nades.flash >= 2 : b.nades[t] >= 1) || b.money < pr || b.money - pr < keepE) return;
-      b.money -= pr; b.nades[t]++; npBought(b, t); });
+      economySetMoney(b, b.money - (pr)); nadeChangeStock(b.nades, t, 1); npBought(b, t); });
     return;
   }
   var wish = (NADE_WISH_PRO[b.tRole]) || NADE_WISH[b.tRole] || [];
@@ -85,7 +85,7 @@ function buyNades(b, type){
     if((type === "eco" || type === "pistol") && t === "molly") continue;
     if(type === "eco" && b.money - pr < keepEco) continue;
     if(b.money < pr) continue;
-    b.money -= pr; b.nades[t]++; npBought(b, t); bought++;
+    economySetMoney(b, b.money - (pr)); nadeChangeStock(b.nades, t, 1); npBought(b, t); bought++;
   }
 }
 

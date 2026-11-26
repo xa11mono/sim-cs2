@@ -32,7 +32,7 @@ const COLLECT = `(function(id){
     'знание': {звук: b.heardSound ? b.heardSound.kind + ' ' + Math.round((tick - b.heardSound.tick)/TICK_HZ*10)/10 + ' с назад' : null,   // (Р3.2 знание ш.3) knowHear / knowSound
       место_врага: b.lastIntel ? pt(b.lastIntel) + ' ' + Math.round((tick - b.lastIntel.tick)/TICK_HZ*10)/10 + ' с назад' : null}
   };
-  var B = DLOG.by[b.id] || {}, L = [];
+  var B = DLOG.on && DLOG.by[b.id] || {}, L = [];
   Object.keys(B).forEach(function(k){ if(Array.isArray(B[k])) B[k].forEach(function(e){ if(e[0] <= tick) L.push([e[0], e[1], e[2]]); }); });
   L.sort(function(a, c){ return a[0] - c[0]; });
   return {tick: tick, round: roundNum, bot: b.id, team: b.team, alive: b.alive, hp: b.hp, где: pt({x: b.x, y: b.y}), channels: ch, trace: L, trace_on: DLOG.on};

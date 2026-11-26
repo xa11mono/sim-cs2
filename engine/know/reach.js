@@ -67,7 +67,7 @@ function beliefReset(){
   var n = BZ.ids.length;
   beliefSeen = {CT:{}, T:{}}; beliefLast = {CT:{}, T:{}}; LAST_CLEAR = {CT:{}, T:{}};
   reachReset();
-  bots.forEach(function(o){ o._lkZ = null; o._lkPt = null; o._lkC = null; o._lkTop = null; });
+  bots.forEach(function(o){ lookSetLkZ(o, null); lookSetLkPt(o, null); lookSetLkC(o, null); lookSetLkTop(o, null); });
   ["CT","T"].forEach(function(team){
     belief[team] = {};
     bots.forEach(function(e){

@@ -1,0 +1,131 @@
+поле,классификация v637a,итог,файл владельца,единственный писатель
+_aimFix,"несколько активных файлов, открыто","одна запись, enforce",turn,lookSetAimFix
+_ammoFor,"несколько активных файлов, открыто","одна запись, enforce",assist,reloadSetAmmoFor
+_area,"несколько активных файлов, открыто","одна запись, enforce",levels,navSetArea
+_blind,"несколько активных файлов, открыто","одна запись, enforce",sound,soundSetBlind
+_blindBy,"один активный писатель, без enforce","одна запись, enforce",damage,damageSetBlindBy
+_boost,"один активный файл, без enforce","одна запись, enforce",tick-jump,jumpSetBoost
+_climb,"один активный писатель, без enforce","одна запись, enforce",levels,navSetClimb
+_contact,"несколько активных файлов, открыто","одна запись, enforce",contact,contactSetContact
+_covLog,"несколько активных файлов, открыто","одна запись, enforce",fight,fightSetCovLog
+_covT,"несколько активных файлов, открыто","одна запись, enforce",fight,fightSetCovT
+_detour,"несколько активных файлов, открыто","одна запись, enforce",task,taskSetDetour
+_dmgBy,"один активный писатель, без enforce","одна запись, enforce",damage,damageSetDmgBy
+_drawUntil,"несколько активных файлов, открыто","одна запись, enforce",items,equipmentSetDrawUntil
+_egC,"несколько активных файлов, открыто","одна запись, enforce",endgame,huntSetEgC
+_fall,"один активный писатель, без enforce","одна запись, enforce",levels,navSetFall
+_fc,"один активный файл, без enforce","одна запись, enforce",fight,fightSetFc
+_fillLock,"несколько активных файлов, открыто","одна запись, enforce",task,taskSetFillLock
+_fireExit,"один активный писатель, без enforce","одна запись, enforce",move,moveSetFireExit
+_fireExitFire,"один активный писатель, без enforce","одна запись, enforce",move,moveSetFireExitFire
+_fireIn,"один активный писатель, без enforce","одна запись, enforce",damage,damageSetFireIn
+_flee,"несколько активных файлов, открыто","одна запись, enforce",bomb,bombSetFlee
+_heDone,"один активный писатель, без enforce","одна запись, enforce",self,nadeSetHeDone
+_hold,"один активный писатель, без enforce","одна запись, enforce",tick-step,moveSetHold
+_holdLog,"несколько активных файлов, открыто","одна запись, enforce",ct-early,holdSetHoldLog
+_huntArrive,"один активный писатель, без enforce","одна запись, enforce",brain-t-postplant,huntSetHuntArrive
+_huntIdx,"один активный писатель, без enforce","одна запись, enforce",brain-t-postplant,huntSetHuntIdx
+_jc,"один активный писатель, без enforce","одна запись, enforce",tick-jump,jumpSetJc
+_jump,"несколько активных файлов, открыто","одна запись, enforce",tick-jump,jumpSetJump
+_knife,"несколько активных файлов, открыто","одна запись, enforce",items,equipmentSetKnife
+_landAt,"несколько активных файлов, открыто","одна запись, enforce",levels,navSetLandAt
+_lkC,"один активный писатель, без enforce","одна запись, enforce",look,lookSetLkC
+_lkPt,"один активный писатель, без enforce","одна запись, enforce",look,lookSetLkPt
+_lkTop,"один активный писатель, без enforce","одна запись, enforce",look,lookSetLkTop
+_lkZ,"один активный писатель, без enforce","одна запись, enforce",look,lookSetLkZ
+_lurkArr,"один активный писатель, без enforce","одна запись, enforce",lurker,lurkSetLurkArr
+_lurkIdx,"один активный писатель, без enforce","одна запись, enforce",lurker,lurkSetLurkIdx
+_lurkPh,"один активный писатель, без enforce","одна запись, enforce",lurker,lurkSetLurkPh
+_mistakes,"один активный писатель, без enforce","одна запись, enforce",ct-setup,setupSetMistakes
+_nadeNo,"один активный писатель, без enforce","одна запись, enforce",throw,nadeSetNadeNo
+_nadeT,"один активный писатель, без enforce","одна запись, enforce",throw,nadeSetNadeT
+_nearestEnemyBot,"один активный файл, без enforce","одна запись, enforce",engagements,engagementSetNearestEnemyBot
+_offNav,"несколько активных файлов, открыто","одна запись, enforce",tick-step,moveSetOffNav
+_onPistol,"один активный файл, без enforce","одна запись, enforce",sound,soundSetOnPistol
+_overV,значение показа,исходная классификация подтверждена,,
+_prevOffX,"один активный писатель, без enforce","одна запись, enforce",tick-step,moveSetPrevOffX
+_prevOffY,"один активный писатель, без enforce","одна запись, enforce",tick-step,moveSetPrevOffY
+_probe,"несколько активных файлов, открыто","одна запись, enforce",lurker,lurkSetProbe
+_probeLock,"несколько активных файлов, открыто","одна запись, enforce",task,taskSetProbeLock
+_reloading,"несколько активных файлов, открыто","одна запись, enforce",assist,reloadSetReloading
+_roamSoundHandled,"один активный писатель, без enforce","одна запись, enforce",fov,roamSetRoamSoundHandled
+_roamSoundLockUntil,"один активный писатель, без enforce","одна запись, enforce",fov,roamSetRoamSoundLockUntil
+_saveSpot,"несколько активных файлов, открыто","одна запись, enforce",save-retake,retakeSetSaveSpot
+_sawEnemy,"один активный писатель, без enforce","одна запись, enforce",engagements,engagementSetSawEnemy
+_secAmmo,"несколько активных файлов, открыто","одна запись, enforce",items,equipmentSetSecAmmo
+_stabT,"несколько активных файлов, открыто","одна запись, enforce",assist,knifeSetStabT
+_stageInfo,"несколько активных файлов, открыто","одна запись, enforce",igl,stageSetStageInfo
+_stopPlantUntil,"несколько активных файлов, открыто","одна запись, enforce",bomb,bombSetStopPlantUntil
+_stopWhy,"несколько активных файлов, открыто","одна запись, enforce",move,moveSetStopWhy
+_tagUntil,"один активный писатель, без enforce","одна запись, enforce",shoot,shotSetTagUntil
+_trail,значение показа,исходная классификация подтверждена,,
+_ts,"несколько активных файлов, открыто","одна запись, enforce",engagements,engagementSetTs
+_underV,значение показа,исходная классификация подтверждена,,
+_unstickT,"один активный писатель, без enforce","одна запись, enforce",tick-step,moveSetUnstickT
+_visFacing,значение показа,исходная классификация подтверждена,,
+alive,"один активный писатель, без enforce","одна запись, enforce",damage,damageSetAlive
+ammo,"несколько активных файлов, открыто","одна запись, enforce",shoot,shotSetAmmo
+armor,"один активный файл, без enforce","одна запись, enforce",damage,damageSetArmor
+armorHp,"несколько активных файлов, открыто","одна запись, enforce",damage,damageSetArmorHp
+atPost,"несколько активных файлов, открыто","одна запись, enforce",task,taskSetAtPost
+baseX,канал ограничен сборкой,исходная классификация подтверждена,,
+baseY,канал ограничен сборкой,исходная классификация подтверждена,,
+blindUntil,"один активный писатель, без enforce","одна запись, enforce",damage,damageSetBlindUntil
+burstCount,"несколько активных файлов, открыто","одна запись, enforce",shoot,shotSetBurstCount
+className,совпадение имени,исходная классификация подтверждена,,
+contactStreak,"несколько активных файлов, открыто","одна запись, enforce",engagements,engagementSetContactStreak
+curSpeed,канал ограничен сборкой,исходная классификация подтверждена,,
+deaths,"один активный писатель, без enforce","одна запись, enforce",damage,damageSetDeaths
+decisionTick,"несколько активных файлов, открыто","одна запись, enforce",engagements,engagementSetDecisionTick
+disabled,совпадение имени,исходная классификация подтверждена,,
+f,совпадение имени,исходная классификация подтверждена,,
+fire,совпадение имени,исходная классификация подтверждена,,
+forcedRetreat,"несколько активных файлов, открыто","одна запись, enforce",engagements,engagementSetForcedRetreat
+heading,"один активный писатель, без enforce","одна запись, enforce",tick-step,moveSetHeading
+helmet,"один активный файл, без enforce","одна запись, enforce",damage,damageSetHelmet
+holdSinceTick,"один активный писатель, без enforce","одна запись, enforce",engagements,engagementSetHoldSinceTick
+holding,канал ограничен сборкой,исходная классификация подтверждена,,
+hp,"один активный писатель, без enforce","одна запись, enforce",damage,damageSetHp
+kills,"один активный писатель, без enforce","одна запись, enforce",damage,damageSetKills
+kit,"несколько активных файлов, открыто","одна запись, enforce",items,equipmentSetKit
+lastShotTick,"несколько активных файлов, открыто","одна запись, enforce",shoot,shotSetLastShotTick
+lastStepTick,"один активный писатель, без enforce","одна запись, enforce",tick-step,moveSetLastStepTick
+lookTarget,"один активный писатель, без enforce","одна запись, enforce",turn,lookSetLookTarget
+money,"несколько активных файлов, открыто","одна запись, enforce",economy,economySetMoney
+nadeQueue,"несколько активных файлов, открыто","одна запись, enforce",decide,nadeSetNadeQueue
+nadeTask,канал ограничен сборкой,исходная классификация подтверждена,,
+nades,"один активный писатель, без enforce","одна запись, enforce",throw,nadeSetNades
+nextShotTick,"несколько активных файлов, открыто","одна запись, enforce",shoot,shotSetNextShotTick
+onStairs,"один активный писатель, без enforce","одна запись, enforce",tick-step,moveSetOnStairs
+path,канал ограничен сборкой,исходная классификация подтверждена,,
+pathIdx,канал ограничен сборкой,исходная классификация подтверждена,,
+pfacing,значение показа,исходная классификация подтверждена,,
+pickTick,"один активный писатель, без enforce","одна запись, enforce",engagements,engagementSetPickTick
+primary,"несколько активных файлов, открыто","одна запись, enforce",items,equipmentSetPrimary
+px,значение показа,исходная классификация подтверждена,,
+py,значение показа,исходная классификация подтверждена,,
+reloadUntil,"несколько активных файлов, открыто","одна запись, enforce",assist,reloadSetReloadUntil
+retakeRole,"один активный писатель, без enforce","одна запись, enforce",save-retake,retakeSetRetakeRole
+roamCheckStart,"один активный писатель, без enforce","одна запись, enforce",fov,roamSetRoamCheckStart
+roamCheckUntil,"один активный писатель, без enforce","одна запись, enforce",fov,roamSetRoamCheckUntil
+roamChecking,"несколько активных файлов, открыто","одна запись, enforce",fov,roamSetRoamChecking
+roamIdx,"один активный писатель, без enforce","одна запись, enforce",fov,roamSetRoamIdx
+roamLookPt,"один активный писатель, без enforce","одна запись, enforce",fov,roamSetRoamLookPt
+roamPrevPt,"один активный писатель, без enforce","одна запись, enforce",fov,roamSetRoamPrevPt
+roamTarget,"один активный писатель, без enforce","одна запись, enforce",fov,roamSetRoamTarget
+roundDmg,"один активный писатель, без enforce","одна запись, enforce",damage,damageSetRoundDmg
+roundKills,"один активный писатель, без enforce","одна запись, enforce",damage,damageSetRoundKills
+secondary,"несколько активных файлов, открыто","одна запись, enforce",items,equipmentSetSecondary
+setupLook,"несколько активных файлов, открыто","одна запись, enforce",task,taskSetSetupLook
+stateSince,"несколько активных файлов, открыто","одна запись, enforce",engagements,engagementSetStateSince
+stuckTicks,"один активный писатель, без enforce","одна запись, enforce",tick-step,moveSetStuckTicks
+t,совпадение имени,исходная классификация подтверждена,,
+tRole,только границы или режимы,исходная классификация подтверждена,,
+textContent,совпадение имени,исходная классификация подтверждена,,
+throwUntil,"один активный писатель, без enforce","одна запись, enforce",throw,nadeSetThrowUntil
+title,совпадение имени,исходная классификация подтверждена,,
+walking,канал ограничен сборкой,исходная классификация подтверждена,,
+weapon,"несколько активных файлов, открыто","одна запись, enforce",items,equipmentSetWeapon
+x,"несколько активных файлов, открыто","одна запись, enforce",move,moveSetX
+y,"несколько активных файлов, открыто","одна запись, enforce",move,moveSetY
+z,"несколько активных файлов, открыто","одна запись, enforce",levels,navSetZ

@@ -107,7 +107,7 @@ function tBrainExecGo(K){
     if(!K.plantGo && (K.sitS === K.tt.saveSit || tSaveWant(K.tsS, K.tsS.length, aliveCount("CT"), K.secLeft, K.site))){ K.tt.saveSit = K.sitS; tSaveHold(); return true; }
     if(K.plantGo){ K.tt.plantGo = roundNum+":"+K.sitS; if(K.plantGo !== K.tt.site) tSetSite(K.tt, K.plantGo); voiceLog("T", "tplgo"+roundNum, K.tsS[0].id, K.plantGo+" пустой — успеваем поставить, идём"); }
     K.tt.saving = 0; K.tt.saveSit = null;
-    K.tsS.forEach(function(b){ b._saveSpot = null; if(b.post && b.post.tag === "save") clearPost(b); });
+    K.tsS.forEach(function(b){ retakeSetSaveSpot(b, null); if(b.post && b.post.tag === "save") clearPost(b); });
     logEvent("T: сейв снят — теперь "+K.sitS+", играем раунд");
     if(K.tsS[0]) voiceLog("T", "tunsave"+K.sitS, K.tsS[0].id, "теперь "+K.sitS.replace("v", " на ")+" — играем, не сейвим");
   }
@@ -158,7 +158,7 @@ function tBrainExecGo(K){
   if(bomb.state === "planted" && K.tt.phase !== "postplant"){ tPhaseSet(K.tt, "postplant", "tBrainExecGo");
     // (v144) фланг через мид и охота имели смысл до планта. После планта у них
     // не было исполнителя — стояли, где оставили. Теперь все в пост-плант
-    if(BAL.ppFix === true) bots.forEach(function(o){ if(o.team !== "T") return; o._midFlank = null; o._shift = null; o._egC = null;
+    if(BAL.ppFix === true) bots.forEach(function(o){ if(o.team !== "T") return; o._midFlank = null; o._shift = null; huntSetEgC(o, null);
       if(o.post && /^(endhunt|stage.*CTside)/.test(o.post.tag || "")) clearPost(o); });
   }
 }
@@ -368,7 +368,7 @@ function tBrainTeam(K){
     if(!K.plantGo && (K.sitS === K.tt.saveSit || tSaveWant(K.tsS, K.tsS.length, aliveCount("CT"), K.secLeft, K.site))){ K.tt.saveSit = K.sitS; tSaveHold(); return true; }
     if(K.plantGo){ K.tt.plantGo = roundNum+":"+K.sitS; if(K.plantGo !== K.tt.site) tSetSite(K.tt, K.plantGo); voiceLog("T", "tplgo"+roundNum, K.tsS[0].id, K.plantGo+" пустой — успеваем поставить, идём"); }
     K.tt.saving = 0; K.tt.saveSit = null;
-    K.tsS.forEach(function(b){ b._saveSpot = null; if(b.post && b.post.tag === "save") clearPost(b); });
+    K.tsS.forEach(function(b){ retakeSetSaveSpot(b, null); if(b.post && b.post.tag === "save") clearPost(b); });
     logEvent("T: сейв снят — теперь "+K.sitS+", играем раунд");
     if(K.tsS[0]) voiceLog("T", "tunsave"+K.sitS, K.tsS[0].id, "теперь "+K.sitS.replace("v", " на ")+" — играем, не сейвим");
   }
@@ -405,7 +405,7 @@ function tBrainBomb(K){
     });
     if(K.fetcher){ K.tt.fetchId = K.fetcher.id;
       // (v286, И26) сборщик бомбы — не проба: старая проба снимается (раньше проба на B каждые 6–9 с выдёргивала его от бомбы)
-      if(K.fetcher._probe && K.fetcher._probe.round === roundNum){ K.fetcher._probe = null; K.fetcher._probeLock = 0; }
+      if(K.fetcher._probe && K.fetcher._probe.round === roundNum){ lurkSetProbe(K.fetcher, null); taskSetProbeLock(K.fetcher, 0); }
       // (v269, пункт 2) за бомбой — не в одиночку: бомба лежит там, где убили носителя, — под тем же стрелком. У ботов 27 из
       // 159 смертей T «один» (нет своего в 350 px) были по дороге за бомбой; у про в одиночку гибнут 20 % T (у ботов 49 %),
       // а смерть рядом со своим разменивают в 27 % (у ботов 33 %). Ближайший к сборщику T (не лёркер, ≤ 500 px — как напарник
@@ -419,8 +419,8 @@ function tBrainBomb(K){
           pt: walk({x: bomb.x + (K.fetcher.x-bomb.x)/lnF*backF, y: bomb.y + (K.fetcher.y-bomb.y)/lnF*backF})};
       }
       var cov = FC.id ? K.ts.filter(function(o){ return o.id === FC.id && o.alive; })[0] : null;
-      if(cov && cov._probe && cov._probe.round === roundNum){ cov._probe = null; cov._probeLock = 0; } // прикрывающий — тоже не проба
-      if(cov && !cov._sawEnemy && !tradeGoing(cov)){ setPost(cov, FC.pt, {x:bomb.x, y:bomb.y}, true, "fetchCover"); cov._probeLock = tick; }
+      if(cov && cov._probe && cov._probe.round === roundNum){ lurkSetProbe(cov, null); taskSetProbeLock(cov, 0); } // прикрывающий — тоже не проба
+      if(cov && !cov._sawEnemy && !tradeGoing(cov)){ setPost(cov, FC.pt, {x:bomb.x, y:bomb.y}, true, "fetchCover"); taskSetProbeLock(cov, tick); }
       // к бомбе — когда прикрывающий рядом (350 px — «рядом свой» в замерах); до того сборщик идёт к точке прикрытия.
       // Нет прикрывающего (рядом никого) — идёт один, как раньше
       var withCov = !cov || DM.hypot(cov.x-K.fetcher.x, cov.y-K.fetcher.y) <= 350;

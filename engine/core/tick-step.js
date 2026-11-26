@@ -1,4 +1,4 @@
-// [хозяева: stepBot, stepTick] ── ЭТАПЫ ТИКА (перестройка, фаза 2, 15.11; порядок — как был, только названы; «Устройство» — docs/ARCHITECTURE.md §2) ──
+// [хозяева: moveSetHeading, moveSetHold, moveSetLastStepTick, moveSetOffNav, moveSetOnStairs, moveSetPrevOffX, moveSetPrevOffY, moveSetStuckTicks, moveSetUnstickT, stepBot, stepTick] ── ЭТАПЫ ТИКА (перестройка, фаза 2, 15.11; порядок — как был, только названы; «Устройство» — docs/ARCHITECTURE.md §2) ──
 // 0 часы → 1 раунд (конец, фриз) → 2 особые режимы → 3 после раунда → 4 решения команд и гранат → 5 каждый бот (место, ход, пики,
 // цикл перестрелки, физика шага) → 6 перестрелки (видимость, взгляд, выстрел) → 7 восприятие → знание → 8 конец раунда, наблюдение.
 // Знания (этап 7) обновляются в конце тика: решения этапов 4–6 опираются на знание прошлого тика. Переставить под слои
@@ -87,7 +87,7 @@ function stepBot(bot, dtSec, maxDelta, ARRIVE_RADIUS, BRAKE_RADIUS, TURN_RATE, S
     if(!bot.post) updateRoamer(bot);
     // (v530, отметка владельца 10.11 «застрял в фазе роумер проверяет точку»: флаг чека остался на 98 с — его снимает только updateRoamer,
     // а он не зовётся, пока у бота есть задача; скорость при этом 0) получил задачу — чек роумера кончился
-    else if(bot.roamChecking) bot.roamChecking = false;
+    else if(bot.roamChecking) roamSetRoamChecking(bot, false);
     // этаж под ботом (раздел 9: метка уровня на радаре) — раз в 16 тиков хватает
     floorViewTick(bot);   // (v535) под / над другим этажом — по 3D-геометрии, каждый тик (levels)
     // "на лестнице" пересчитывается только в ветке движения — если бот
@@ -95,7 +95,7 @@ function stepBot(bot, dtSec, maxDelta, ARRIVE_RADIUS, BRAKE_RADIUS, TURN_RATE, S
     // последнего отрезка пути навсегда: бот, дошедший до поста по лестнице,
     // весь раунд стрелял со штрафом лестницы 0.35 и не мог выбрать "держать
     // угол". Сбрасываем каждый тик; движение ниже выставит заново, если надо.
-    bot.onStairs = false;
+    moveSetOnStairs(bot, false);
     moveWalkTick(bot);   // шагом / бегом — одно место (move)
     knifeTick(bot); prePeekTick(bot); exposedShiftTick(bot); jumpCheckTick(bot);
     var runSpeed = (bot.walking ? SPEED*WALK_SPEED_FRAC : SPEED) * weaponSpeedMul(bot);
@@ -108,13 +108,13 @@ function stepBot(bot, dtSec, maxDelta, ARRIVE_RADIUS, BRAKE_RADIUS, TURN_RATE, S
     if(tick % 16 === 0){ var TR = bot._trail || (bot._trail = []); TR.push({x:bot.baseX, y:bot.baseY}); if(TR.length > 8) TR.shift(); }
     // перестрелка по данным: уйти с линии за укрытие и выглянуть снова
     fightCycleTick(bot, dtSec, bot.planting || bot.defusing || burn || tick < (bot.blindUntil||0) || ambushHoldFire(bot));   // (К1) в засаде не выглядывает
-    if(bot._fc && bot._fc.ph !== "line" && !fcSwingGo(bot)){ bot.curSpeed = bot._fc.moving ? (bot._fc.mv || 0) : 0; bot._stopWhy = bot._fc.moving ? "перестрелка — идёт за укрытие / на линию" : "перестрелка — стоит за укрытием"; }
+    if(bot._fc && bot._fc.ph !== "line" && !fcSwingGo(bot)){ bot.curSpeed = bot._fc.moving ? (bot._fc.mv || 0) : 0; moveSetStopWhy(bot, bot._fc.moving ? "перестрелка — идёт за укрытие / на линию" : "перестрелка — стоит за укрытием"); }
 
     // ---------- держит угол "живьём" ----------
     // (v575, В140) было: переминание шагом ±24 px с паузами 1–2,5 с (ручные числа). У про стоя на угле — частые мелкие касания A / D (52 в минуту,
     // нажатие ~0,11 с, сдвиг ~3 ед.) — теперь это клавиши стрейфа (strafeKeysTick ниже, данные демок); задачи без переминания — те же
     // (holdStrafeSkip, фейк-холд — условия в strafeKeysTick)
-    if(bot._fc) bot._hold = null;
+    if(bot._fc) moveSetHold(bot, null);
 
     // ---------- эмиссия звука шагов (план §13, минимальная версия для §3) ----------
     // Дискретные "шаги" с интервалом, не сплошное поле — бег громче и чаще,
@@ -134,7 +134,7 @@ function stepBot(bot, dtSec, maxDelta, ARRIVE_RADIUS, BRAKE_RADIUS, TURN_RATE, S
       bot._stepP = {x:bot.baseX, y:bot.baseY, z:bot.z}; bot._stepDist = (bot._stepDist||0) + mv;
       if(bot._stepDist >= stride){
         bot._stepDist -= stride; if(bot._stepDist > stride) bot._stepDist = 0;
-        bot.lastStepTick = tick;
+        moveSetLastStepTick(bot, tick);
         var soundRadius = (wet ? (bot.walking ? 220 : 460) : (bot.walking ? SOUND_RADIUS_WALK : SOUND_RADIUS_RUN)) * (BAL.stepHearMul || 1);
         soundPings.push({x:bot.baseX, y:bot.baseY, team:bot.team, born:nowTs, radius:soundRadius}); if(CL) soundEv("sndLadder", bot.baseX, bot.baseY); else { soundEv("sndStep", bot.baseX, bot.baseY); }   // (v552) на лестнице — звук лестницы
         // (4) сам знает, что шумит: бежал в пределах слышимости места, где враг вероятен
@@ -152,7 +152,7 @@ function stepBot(bot, dtSec, maxDelta, ARRIVE_RADIUS, BRAKE_RADIUS, TURN_RATE, S
     // и в перестрелке (fcSwingGo, fight): иначе бот стоял, не дойдя, и задача «встала» через 1,5 с
     if(!ladderTick(bot) && !((bot.holding && !bot._burning) || bot.curSpeed <= 0.5 || (bot._fc && !fcSwingGo(bot)))){
       if(bot.path.length === 0 || bot.pathIdx >= bot.path.length){
-        if(bot.forcedRetreat) bot.forcedRetreat = false;
+        if(bot.forcedRetreat) engagementSetForcedRetreat(bot, false);
         assignNewDestination(bot, tick);
       } else {
         // corner rounding: skip ahead past any waypoint already within
@@ -206,19 +206,19 @@ function stepBot(bot, dtSec, maxDelta, ARRIVE_RADIUS, BRAKE_RADIUS, TURN_RATE, S
         var legFromZ = bot.pathIdx > 0 ? bot.path[bot.pathIdx-1][2] : bot.z;
         var legToZ = target[2];
         var legLen = Math.max(1, DM.hypot(target[0]-(bot.pathIdx>0?bot.path[bot.pathIdx-1][0]:bot.baseX), target[1]-(bot.pathIdx>0?bot.path[bot.pathIdx-1][1]:bot.baseY)));
-        bot.onStairs = Math.abs(legToZ - legFromZ) / legLen > STAIRS_SLOPE_THRESHOLD;
+        moveSetOnStairs(bot, Math.abs(legToZ - legFromZ) / legLen > STAIRS_SLOPE_THRESHOLD);
 
         // smooth turning: ease the actual movement heading toward the
         // direction to target, capped at TURN_RATE — this is what replaces
         // the old instant-snap "walk in dead-straight lines" motion
         var desiredHeading = dist > 0.01 ? DM.atan2(dy,dx) : (bot.heading!==undefined ? bot.heading : 0);
-        if(bot.heading === undefined) bot.heading = desiredHeading;
+        if(bot.heading === undefined) moveSetHeading(bot, desiredHeading);
         var da = desiredHeading - bot.heading;
         da = ((da + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI; // shortest signed angle
         // при отходе разворачиваемся сразу, а не плавной дугой: иначе бот по
         // инерции ещё несколько шагов бежал туда же, куда бежал — то есть на врага
         var maxTurn = TURN_RATE * dtSec * (bot.state === "retreat" ? 5 : 1);
-        bot.heading += Math.max(-maxTurn, Math.min(maxTurn, da));
+        moveSetHeading(bot, bot.heading + (Math.max(-maxTurn, Math.min(maxTurn, da))));
         if(bot.facing === undefined) lookFace(bot, bot.heading, "start"); // first tick / just respawned — nothing to derive an actual-movement facing from yet
         // NOTE: bot.facing (the rendered/visual direction) is otherwise set
         // further down from the ACTUAL movement this tick, not from
@@ -297,7 +297,7 @@ function stepBot(bot, dtSec, maxDelta, ARRIVE_RADIUS, BRAKE_RADIUS, TURN_RATE, S
         var actuallyMoved = DM.hypot(bot.baseX-startX, bot.baseY-startY);
         // (v403) высота бота — одно место navFollowFloor (levels): после шага здесь и после любого другого движения за тик (конец цикла)
         if(actuallyMoved > 0) navFollowFloor(bot);
-        if(fireWait){ bot.stuckTicks = 0; bot._np = null; bot._netStuck = 0; bot._progTick = tick; bot._progBest = Infinity; bot._idleT = tick; bot._trail = []; }
+        if(fireWait){ moveSetStuckTicks(bot, 0); bot._np = null; bot._netStuck = 0; bot._progTick = tick; bot._progBest = Infinity; bot._idleT = tick; bot._trail = []; }
         else {
         // "топчется": каждый тик куда-то сдвигается (веер проб у угла туда-сюда),
         // но за 1.5с никуда не ушёл — раньше это не считалось застреванием
@@ -317,7 +317,7 @@ function stepBot(bot, dtSec, maxDelta, ARRIVE_RADIUS, BRAKE_RADIUS, TURN_RATE, S
             // (v341, отметка владельца: TeSeS «застрял и его тпшнуло» — на 380 ед.) snapToWalkable из стены ставит в центр ближайшего
             // участка, иногда далеко; рывок — не дальше 12 ед. (проектное число), иначе нет
             if(toward && DM.hypot(toward.x-bot.baseX, toward.y-bot.baseY) > 12) toward = null;
-            if(toward && DM.hypot(toward.x-bot.baseX, toward.y-bot.baseY) > 4){ bot.baseX = toward.x; bot.baseY = toward.y; bot.x = toward.x; bot.y = toward.y; }
+            if(toward && DM.hypot(toward.x-bot.baseX, toward.y-bot.baseY) > 4){ bot.baseX = toward.x; bot.baseY = toward.y; moveSetX(bot, toward.x); moveSetY(bot, toward.y); }
             if(bot.pathIdx < bot.path.length-1) bot.pathIdx++;
             bot._netStuck = 0;
           } else { escapeWallLine(bot); bot.path = []; bot.pathIdx = 0; }
@@ -336,16 +336,16 @@ function stepBot(bot, dtSec, maxDelta, ARRIVE_RADIUS, BRAKE_RADIUS, TURN_RATE, S
           // прицел не тянут. Было: доворот каждый тик — на бегу прицел неподвижен 36 % (у про 52 %)
           var mvA = pathAheadDir(bot, MOVE_LOOK_AHEAD); if(mvA === null) mvA = DM.atan2(bot.baseY-startY, bot.baseX-startX);   // (v583a, Д8) по пути, не за качанием
           var mvD = ((mvA - bot.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI;
-          if(Math.abs(mvD) >= 0.05) bot._aimFix = true; else if(Math.abs(mvD) <= 0.01) bot._aimFix = false;
+          if(Math.abs(mvD) >= 0.05) lookSetAimFix(bot, true); else if(Math.abs(mvD) <= 0.01) lookSetAimFix(bot, false);
           if(bot._aimFix){ var mvStep = TURN_RATE * dtSec; lookTurnBy(bot, Math.max(-mvStep, Math.min(mvStep, mvD)), "move"); }   // (В147) не рукой: у про на бегу взгляд идёт по ходу ровно (мерка формы run_lookoff; рукой — разница 10 → 65 %)
         }
         // (Б1, Х1, сторож 21.10) «не сдвинулся» — меньше 15 % своего шага, без порога 0,3 ед.: при скорости < 19 ед./с (тормозит у
         // точки, шифт с тяжёлым оружием) целый шаг меньше 0,3, и бот, честно идущий медленно, через 40 тиков «застревал» → перенос
         if(actuallyMoved > step*0.15){
-          bot.stuckTicks = 0;
+          moveSetStuckTicks(bot, 0);
           if(actuallyMoved > step*0.6) bot._stuckResets = 0;
         } else {
-          bot.stuckTicks = (bot.stuckTicks||0) + 1;
+          moveSetStuckTicks(bot, (bot.stuckTicks||0) + 1);
           if(bot.stuckTicks > 40){
             // второй подряд "совсем не двигается" без нормального движения между
             // ними — бот, скорее всего, стоит ровно НА линии стены (тогда любое
@@ -359,7 +359,7 @@ function stepBot(bot, dtSec, maxDelta, ARRIVE_RADIUS, BRAKE_RADIUS, TURN_RATE, S
             // this straight-line path is bad (cuts through wall geometry a
             // hand-drawn zone shouldn't have allowed) — drop it and pick a
             // fresh destination rather than crawl forever
-            bot.path = []; bot.pathIdx = 0; bot.stuckTicks = 0;
+            bot.path = []; bot.pathIdx = 0; moveSetStuckTicks(bot, 0);
           }
         }
         // Второй детектор — по ПРОГРЕССУ, а не по скорости: бот может
@@ -377,10 +377,10 @@ function stepBot(bot, dtSec, maxDelta, ARRIVE_RADIUS, BRAKE_RADIUS, TURN_RATE, S
         var TRl = bot._trail || [];
         if(TRl.length >= 8 && tick - (bot._unstickT||-1e9) > 2*TICK_HZ && tick - (bot._idleT||-1e9) > 2*TICK_HZ && bot.z != null && bot.path.length && bot.pathIdx < bot.path.length &&
            TRl.every(function(q){ return DM.hypot(q.x-TRl[0].x, q.y-TRl[0].y) < 4; })){
-          bot._unstickT = tick;
+          moveSetUnstickT(bot, tick);
           var pe = bot.path[bot.path.length-1], fr = buildWaypointPath(bot.baseX, bot.baseY, bot.z, pe[0], pe[1], pe[2], bot.team, botLane(bot), bot.walking), p0 = fr && fr[0];
           if(p0 && p0[2] != null && p0[2] <= bot.z + 18 && DM.hypot(p0[0]-bot.baseX, p0[1]-bot.baseY) <= 40 && DM.hypot(p0[0]-bot.baseX, p0[1]-bot.baseY) > 2 && !crossesWall(bot.baseX, bot.baseY, p0[0], p0[1])){
-            bot.baseX = bot.x = p0[0]; bot.baseY = bot.y = p0[1]; bot.z = p0[2]; var a0 = navAt(p0[0], p0[1], p0[2]); if(a0) bot._area = a0.id;
+            bot.baseX = moveSetX(bot, p0[0]); bot.baseY = moveSetY(bot, p0[1]); navSetZ(bot, p0[2]); var a0 = navAt(p0[0], p0[1], p0[2]); if(a0) navSetArea(bot, a0.id);
             bot.path = fr; bot.pathIdx = 1; bot._trail = [];
             logEvent(bot.id+": не может сойти с уступа по пути — спрыгнул на начало пути (заплатка)"); }
         }
@@ -389,14 +389,14 @@ function stepBot(bot, dtSec, maxDelta, ARRIVE_RADIUS, BRAKE_RADIUS, TURN_RATE, S
         // перенос его выкидывал (9 раз за 7 с в отметке владельца)
         // (Б1, Х1) «вне пола» — тем же navOnFloor, что пускает шаг: законная щель между связанными участками — пол (шов, вдоль которого
         // идёт путь, — 73 % переносов на Mirage)
-        if(bot.path.length && bot.pathIdx < bot.path.length && !navOnFloor(bot.baseX, bot.baseY, bot)){ if(++bot._offNav > 32) navSnap(bot); } else bot._offNav = 0;
+        if(bot.path.length && bot.pathIdx < bot.path.length && !navOnFloor(bot.baseX, bot.baseY, bot)){ if(moveSetOffNav(bot, +bot._offNav + 1) > 32) navSnap(bot); } else moveSetOffNav(bot, 0);
         if(bot.path.length && bot.pathIdx < bot.path.length){
           var pw = bot.path[bot.pathIdx];
           var pd = DM.hypot(pw[0]-bot.baseX, pw[1]-bot.baseY);
           if(pd < bot._progBest - 8){ bot._progBest = pd; bot._progTick = tick; }
           else if(tick - bot._progTick > 96){
             navUnlinkBlocked(bot, pw);
-            bot.path = []; bot.pathIdx = 0; bot.stuckTicks = 0;
+            bot.path = []; bot.pathIdx = 0; moveSetStuckTicks(bot, 0);
           }
         }
         }
@@ -406,7 +406,7 @@ function stepBot(bot, dtSec, maxDelta, ARRIVE_RADIUS, BRAKE_RADIUS, TURN_RATE, S
       // заново, с момента, когда он снова пошёл. Раньше «топчется» (_np), «нет продвижения» (_progTick), «стоит» (stuckTicks) и «на
       // уступе» (след _trail) засчитывали и время стоянки по делу: тронулся после 1,5 с на месте — сразу рывок / отталкивание от стены
       // / перенос со сбросом пути (85–90 % этих заплаток срабатывали без единого отказа шага)
-      bot.stuckTicks = 0; bot._np = null; bot._netStuck = 0; bot._progTick = tick; bot._progBest = Infinity; bot._idleT = tick;
+      moveSetStuckTicks(bot, 0); bot._np = null; bot._netStuck = 0; bot._progTick = tick; bot._progBest = Infinity; bot._idleT = tick;
     }
 
     var offX = 0, offY = 0;
@@ -439,12 +439,23 @@ function stepBot(bot, dtSec, maxDelta, ARRIVE_RADIUS, BRAKE_RADIUS, TURN_RATE, S
     // проба, заход в спину), врага не видно: смещение не обнуляется скачком, а гаснет за несколько тиков (×0,7 за тик, проектное число)
     else if(offX === 0 && offY === 0 && DM.hypot(bot._prevOffX || 0, bot._prevOffY || 0) > 1){
       var dx0 = bot._prevOffX*0.7, dy0 = bot._prevOffY*0.7; if(!crossesWall(bot.baseX, bot.baseY, bot.baseX+dx0, bot.baseY+dy0)){ offX = dx0; offY = dy0; } }
-    bot._prevOffX = offX; bot._prevOffY = offY;
+    moveSetPrevOffX(bot, offX); moveSetPrevOffY(bot, offY);
     // (v403, отметка владельца 22.10, Mirage A Default: CT4 «прошёл сквозь два укрытия») высота пересчитывалась только после шага
     // пути: в бою (стрейф, уход за укрытие — fightCycleTick), у угла и после пика бот сходил с ящика и шёл дальше на высоте ящика
     strafeKeysTick(bot, dtSec);   // (v575, В140) клавиши стрейфа вне перестрелки — качание стоя / на ходу, как у про
     if(!bot._climb) navFollowFloor(bot);
-    bot.x = bot.baseX + offX;
-    bot.y = bot.baseY + offY;
+    moveSetX(bot, bot.baseX + offX);
+    moveSetY(bot, bot.baseY + offY);
   }
 
+
+// Запись состояния канала. Вызовы выполняются в исходной точке тика.
+function moveSetHold(bot, value){ return bot._hold = value; }
+function moveSetOffNav(bot, value){ return bot._offNav = value; }
+function moveSetPrevOffX(bot, value){ return bot._prevOffX = value; }
+function moveSetPrevOffY(bot, value){ return bot._prevOffY = value; }
+function moveSetUnstickT(bot, value){ return bot._unstickT = value; }
+function moveSetHeading(bot, value){ return bot.heading = value; }
+function moveSetLastStepTick(bot, value){ return bot.lastStepTick = value; }
+function moveSetOnStairs(bot, value){ return bot.onStairs = value; }
+function moveSetStuckTicks(bot, value){ return bot.stuckTicks = value; }

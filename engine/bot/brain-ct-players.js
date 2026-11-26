@@ -8,7 +8,7 @@ function ctBrainPlayers(K){
     if((K.planted || K.ct.preSave) && K.ct.saving){
       // сейв не на CT-спавне (там T как раз и будут искать), а в месте подальше от
       // бомбы и от живых T, откуда их не видно; каждый — своё ближайшее такое место
-      if(!b._saveSpot){ b._saveSpot = pickSaveSpot(b); }
+      if(!b._saveSpot){ retakeSetSaveSpot(b, pickSaveSpot(b)); }
       if(b.post && taskProp(b.post.tag, "pickupTask") && taskAlive(b)) return;   // (v334, М63) по пути на сейв подбирает оружие — не перебивать
       setPost(b, b._saveSpot, {x:bomb.x, y:bomb.y}, true, "save"); // взгляд — на угол, из-за которого придут от бомбы
       return;
@@ -19,7 +19,7 @@ function ctBrainPlayers(K){
     if(K.ct.flank && !K.ct.flank.dead && K.ct.flank.id === b.id && !K.ct.saving && flankPost(b, K.ct.flank, K.planted)) return;
     // (35) ретейк 2 на 3+ — AWP не несут в почти проигранный ретейк: снайпер сейвит
     if(K.planted && b.primary === "AWP" && K.cts.length === 2 && aliveCount("T") >= 3 && saveWorth("CT")){
-      if(!b._saveSpot){ b._saveSpot = pickSaveSpot(b); voiceLog("CT", "awpsave"+b.id, b.id, "2 на "+aliveCount("T")+" — сейвлю AWP"); }
+      if(!b._saveSpot){ retakeSetSaveSpot(b, pickSaveSpot(b)); voiceLog("CT", "awpsave"+b.id, b.id, "2 на "+aliveCount("T")+" — сейвлю AWP"); }
       setPost(b, b._saveSpot, {x:bomb.x, y:bomb.y}, true, "save"); return;
     }
     if(K.planted){ retakePost(b, K.cts); return; }
@@ -52,7 +52,7 @@ function ctBrainPlayers(K){
         bsp = null; }
       if(bsp){
         if(b._stopPlantLog !== PHs.tick){ b._stopPlantLog = PHs.tick; voiceLog("CT", "stop"+b.id, b.id, "слышу плант — иду сбивать!"); }
-        b._stopPlantUntil = tick + 2*TICK_HZ; taskKeep(b, 0, "ct");
+        bombSetStopPlantUntil(b, tick + 2*TICK_HZ); taskKeep(b, 0, "ct");
         setPost(b, bsp, ppt, true, "stopplant");
         return;
       }
@@ -175,7 +175,7 @@ function ctBrainPlayers(K){
       if(off) ni = names.length - 1 - Math.floor(hashRand(roundNum*11 + matchNum)*Math.min(3, names.length));
       var nsp = namedSpot(names[ni], GEO[kA].anchor, {team: "CT", see:ents, hideFrom:[GEO[kA].tStage], key:"hold"+kA});
       var holdPt = nsp || opts[pickI];
-      if(nsp && b._holdLog !== roundNum){ b._holdLog = roundNum; logEvent(b.id+": держит "+kA+" с «"+names[ni]+"»"+(off ? " (офф-угол)" : "")); }
+      if(nsp && b._holdLog !== roundNum){ holdSetHoldLog(b, roundNum); logEvent(b.id+": держит "+kA+" с «"+names[ni]+"»"+(off ? " (офф-угол)" : "")); }
       // (плант 74%) опорник один на сайте, а туда идут 3+ (колл/гранаты выхода):
       // раньше стоял на своём угле и умирал первым, и сайт брали 4 на 0. Про в
       // такой ситуации отходит к входу CT, тянет время и остаётся живым на ретейк
@@ -273,7 +273,7 @@ function ctBrainPlayers(K){
         }   // (v520) ветка «пистолет / ПП — ближний угол, спрятанный от мида» убрана: правило на оружие ставило мидера за стену (отметка владельца
             // 09.11 м200 р1); место — общий выбор мида (midOpts: видеть мид, прятаться от T-мида), обзор поста проверяет setPost (postViewPoint)
       }
-      if(mp && b._holdLog !== roundNum){ b._holdLog = roundNum; logEvent(b.id+": мид с «"+mNames[mi]+"»"); }
+      if(mp && b._holdLog !== roundNum){ holdSetHoldLog(b, roundNum); logEvent(b.id+": мид с «"+mNames[mi]+"»"); }
       setPost(b, mp || midOpts[midPick], midLook, true, "mid");
     }
     else if(role === "rotator"){

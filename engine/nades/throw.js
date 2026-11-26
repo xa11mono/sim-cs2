@@ -1,4 +1,4 @@
-// [хозяева: nadeSolve, runupTick, throwNade] ---------- бросок ----------
+// [хозяева: nadeSetNadeNo, nadeSetNadeT, nadeSetNades, nadeSetThrowUntil, nadeSolve, runupTick, throwNade] ---------- бросок ----------
 // (физика гранат, 30.10.2026) бросок — как у человека: поворот на цель, наклон и сила (ЛКМ / обе / ПКМ), подобранные НАСТОЯЩИМ
 // полётом (flight: nadeAim — дуга, стены, крыши, отскоки, запал по геометрии игры, m3NadeTrace кубиком гранаты).
 // Куда упадёт и долетит ли — решает только физика: прежние навес по прямой к цели (полёт и рисунок — разные дуги), «дуги под
@@ -307,7 +307,7 @@ function throwNadeTry(b, type, tx, ty, lob, why, trusted, from){
   // (физика гранат) и там, где граната сработает на самом деле (точка полёта PR), и сам бросающий — тоже «свой»
   if((type === "he" || type === "molly") && bots.some(function(o){ return o.alive && o.team === b.team &&
       (DM.hypot(o.x-tx, o.y-ty) < NADE[type].radius || DM.hypot(o.x-PR[0], o.y-PR[1]) < NADE[type].radius); })){ nadeFail("ownZone"); return false; }
-  b.nades[type]--; b._nadeT = tick; b._lastNade = {type:type, x:tx, y:ty, t:tick, self: /себе/.test(String(why || (b.nadeTask && b.nadeTask.why) || ""))};   // (v448) self — флешка себе под пик (контакт — 350)
+  nadeChangeStock(b.nades, type, -1); nadeSetNadeT(b, tick); b._lastNade = {type:type, x:tx, y:ty, t:tick, self: /себе/.test(String(why || (b.nadeTask && b.nadeTask.why) || ""))};   // (v448) self — флешка себе под пик (контакт — 350)
   npUse(b, type, (b.nadeTask && b.nadeTask.type === type && b.nadeTask.npm) || npMomentNow(b), b.nadeTask && b.nadeTask.type === type && b.nadeTask.luL ? b.nadeTask.luL.grp : null);   // (v428) запись плана гранат снята
   var nd = Object.assign(nadeState(type, L.p, L.v), {type:type, x:b.x, y:b.y, z:L.p[2], tx:PR[0], ty:PR[1], born:tick, thrower:b, team:b.team,
             trail:[], why:why||"", ox:b.x, oy:b.y, lob:!!lob, etaDet: tick + Math.ceil(Fl.t*TICK_HZ), aimX:tx, aimY:ty, exec:[+dYaw.toFixed(2), +dPit.toFixed(2)], plan:[S.x, S.y, S.det[2], S.e3], from0:[b.x, b.y, bz], vel0:V});   // exec — ошибка исполнения (поворот, наклон, °); plan — где сработает по подбору (радар x, y; z, ошибка e3); from0 — откуда кинул
@@ -324,7 +324,7 @@ function throwNadeTry(b, type, tx, ty, lob, why, trusted, from){
   if(pkB && type === "flash"){ moveWaitPop(pkB, nd.etaDet + 1, "pop:"+nd.why, "peek-flash"); voiceLog(b.team, "pkfl"+b.id+roundNum, b.id, "флешу под пик "+pkB.id+" — выходи на хлопок"); }
   if(b.nadeTask) b.nadeTask.exuThrown = true; exuThrown(b, nd);   // (тактика 30.10) граната выхода T: когда сработает — знает команда (exec-sync)
   if(type === "flash" && b.voice) teamPropose(b, {kind: "flash", nade: nd});
-  b.throwUntil = tick + 18; // ~0.3с стоит на броске
+  nadeSetThrowUntil(b, tick + 18); // ~0.3с стоит на броске
   lookFace(b, a, "nade");   // (15.11, фаза 3) поворот — через канал взгляда
   logEvent(b.id+" кинул "+NADE[type].name+(why ? " — "+why : "")+(lob ? " (лайнап)" : ""));
   // раздел 11.1: бросок гранаты — тоже источник инфы о враге, не только выстрел/
@@ -365,7 +365,7 @@ function smokeCovered(x, y){
 var NADE_NO_TO = 80, NADE_NO_FROM = 120;
 function nadeNoteFail(b, type, tx, ty){
   if(!nadeFailIs("geo")) return;
-  var L = b._nadeNo && b._nadeNo.round === roundNum ? b._nadeNo.list : (b._nadeNo = {round: roundNum, list: []}).list;
+  var L = b._nadeNo && b._nadeNo.round === roundNum ? b._nadeNo.list : (nadeSetNadeNo(b, {round: roundNum, list: []})).list;
   L.push({type: type, tx: tx, ty: ty, x: b.x, y: b.y});
 }
 function nadeFailedHere(b, type, tx, ty){
@@ -449,7 +449,7 @@ function assignNade(b, type, target, why){
 function nadeQueueNext(b){
   // (v355) следующая граната из очереди того же бойца: с той же точки броска, срок 6 с (проектное число)
   if(!b.alive || !b.nadeQueue || !b.nadeQueue.length || b.nadeTask) return;
-  var q = b.nadeQueue.shift();
+  var q = nadeShiftQueued(b.nadeQueue);
   if(!b.nades || b.nades[q.type] <= 0 || roundState !== "live") return nadeQueueNext(b);
   // (v487) в очереди — и своя граната с места (без точки броска): её отложила передача смока выхода (exec-sync: exuReassign). Возвращается тем же
   // заданием со свежим сроком (как в assignNade: с места — 2 с, иначе 10 с). Было: очередь знала только броски с точки, q.from.x падал (v483)
@@ -689,3 +689,11 @@ function nadeThrowSpot(b, t){
   c.forEach(function(q){ var L = pathLenTo(b, q.x, q.y); if(L < bL){ bL = L; best = q; } });
   return best && bL <= NADE_SPOT_R*1.5 ? best : null;
 }
+
+// Запись состояния канала. Вызовы выполняются в исходной точке тика.
+function nadeSetNadeNo(bot, value){ return bot._nadeNo = value; }
+function nadeSetNadeT(bot, value){ return bot._nadeT = value; }
+function nadeSetNades(bot, value){ return bot.nades = value; }
+function nadeAddToStock(stock, type){ stock[type]++; }
+function nadeChangeStock(stock, type, delta){ stock[type] = +stock[type] + delta; }
+function nadeSetThrowUntil(bot, value){ return bot.throwUntil = value; }

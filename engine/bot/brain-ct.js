@@ -425,12 +425,12 @@ function ctBrainSave(K){
       // (v530) врагов не осталось (tsS = 0, видно по табло) — сохранять не от кого: сейв снимается, если просто успеть дефузнуть (было: при tsS = 0
       // сейв не снимался вовсе — оба CT уходили от бомбы при мёртвых T)
       if(tsS > 0 ? (evenS && needS + 2 < secsS) : needS < secsS){
-        K.ct.saving = false; K.ct._noResave = true; K.cts.forEach(function(b){ b._saveSpot = null; });
+        K.ct.saving = false; K.ct._noResave = true; K.cts.forEach(function(b){ retakeSetSaveSpot(b, null); });
         logEvent("CT: сейв → ретейк — теперь "+K.cts.length+"v"+tsS+", успеваем ("+Math.round(secsS)+"с)");
         voiceLog("CT", "sv2rt", K.cts[0].id, K.cts.length+" на "+tsS+" — успеваем, идём ретейкать!");
       }
     } else if(K.ct.preSave && K.cts.length >= tsS){
-      K.ct.saving = false; K.ct.preSave = false; K.ct._noResave = true; K.cts.forEach(function(b){ b._saveSpot = null; });
+      K.ct.saving = false; K.ct.preSave = false; K.ct._noResave = true; K.cts.forEach(function(b){ retakeSetSaveSpot(b, null); });
       logEvent("CT: сейв → ретейк — теперь "+K.cts.length+"v"+tsS+", играем раунд");
     }
   }
