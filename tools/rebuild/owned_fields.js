@@ -30,13 +30,17 @@ function enclosingDeclaration(anc){
   return "(верх файла)";
 }
 
-function constantAliases(ast){
+function localAliases(ast){
   const aliases = new WeakMap();
   walk.ancestor(ast,{ VariableDeclaration(node, anc){
-    if(node.kind !== "const") return;
-    const scope = anc.slice(0,-1).findLast(n => n.type === "BlockStatement" || n.type === "Program");
+    const scope = anc.slice(0,-1).findLast(n => n.type === "Program"
+      || (node.kind === "var" ? /Function/.test(n.type) : n.type === "BlockStatement" || n.type === "ForStatement"));
     if(!aliases.has(scope)) aliases.set(scope,new Map());
-    for(const {id, init} of node.declarations) if(id.type === "Identifier" && init) aliases.get(scope).set(id.name,init);
+    const bindings = aliases.get(scope);
+    for(const {id, init} of node.declarations) if(id.type === "Identifier"){
+      const value = init?.type === "LogicalExpression" && init.operator === "||" ? init.left : init;
+      bindings.set(id.name, !bindings.has(id.name) && value ? {value, constant:node.kind === "const"} : null);
+    }
   }});
   return aliases;
 }
@@ -55,7 +59,7 @@ function check({ asts, tops, owners, collisions, fileAt, lineAt }){
   }
 
   for(const {ast, off, src} of asts){
-    const aliases = constantAliases(ast);
+    const aliases = localAliases(ast);
     walk.fullAncestor(ast, (node, _state, anc) => {
       if(!writeNodes.has(node.type)) return;
       const source = fileAt(off + node.start)[2];
@@ -63,13 +67,15 @@ function check({ asts, tops, owners, collisions, fileAt, lineAt }){
       const fn = enclosingDeclaration(anc);
       const expression = src.slice(node.start,node.end);
       const invalid = field => errors.push(source + ":" + lineAt(off + node.start) + " " + fn + " пишет " + field);
-      function resolve(tgt){
+      function resolve(tgt, keysOnly = false){
         const visited = new Set();
         while(tgt?.type === "Identifier" && !visited.has(tgt.name)){
           visited.add(tgt.name);
           const scope = anc.findLast(a => aliases.get(a)?.has(tgt.name));
           if(!scope) break;
-          tgt = aliases.get(scope).get(tgt.name);
+          const binding = aliases.get(scope).get(tgt.name);
+          if(!binding || binding.value.start > node.start || keysOnly && !binding.constant) break;
+          tgt = binding.value;
         }
         return tgt;
       }
@@ -92,11 +98,13 @@ function check({ asts, tops, owners, collisions, fileAt, lineAt }){
         }
         invalid(field + " мимо " + rule.ownerFile + "." + rule.writer);
       }
+      const inspected = new Set();
       function target(tgt, depth = 0, direct = false){
         if(depth) tgt = resolve(tgt);
-        if(!tgt) return;
+        if(!tgt || inspected.has(tgt)) return;
+        inspected.add(tgt);
         if(tgt.type === "MemberExpression"){
-          const key = tgt.computed ? literalKey(resolve(tgt.property)) : memberKey(tgt);
+          const key = tgt.computed ? literalKey(resolve(tgt.property,true)) : memberKey(tgt);
           if(key !== undefined) record(key,depth,direct);
           else if(looksLikeBot(resolve(tgt.object))){
             // Старт чистого матча удаляет неприсутствующие в BOT_INIT ключи до живого тика.
@@ -132,7 +140,7 @@ function check({ asts, tops, owners, collisions, fileAt, lineAt }){
         || api === "Object" && method === "defineProperty"){
         const [object, prop] = node.arguments;
         target(object,1);
-        const key = literalKey(resolve(prop));
+        const key = literalKey(resolve(prop,true));
         if(key !== undefined) record(key,0,false);
         else if(looksLikeBot(object)) invalid("поле игрока через вычисляемый ключ");
       } else if(api === "Object" && ["assign","defineProperties"].includes(method)){

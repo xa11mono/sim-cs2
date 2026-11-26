@@ -1,0 +1,20 @@
+{
+  "base": "953d500d7ff9bd47ced19474d489c5a323875278",
+  "candidate": "1713806fa03aa629a533c5df9074ee311ce6ee53",
+  "maps": {
+    "ancient": {
+      "match": 3,
+      "engine": "chromium 151.0.7922.34",
+      "found_difference": false,
+      "ticks": 4096,
+      "every": 256
+    },
+    "mirage": {
+      "match": 3,
+      "engine": "chromium 151.0.7922.34",
+      "found_difference": false,
+      "ticks": 4096,
+      "every": 256
+    }
+  }
+}

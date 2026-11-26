@@ -694,5 +694,6 @@ function nadeThrowSpot(b, t){
 function nadeSetNadeNo(bot, value){ return bot._nadeNo = value; }
 function nadeSetNadeT(bot, value){ return bot._nadeT = value; }
 function nadeSetNades(bot, value){ return bot.nades = value; }
+function nadeAddToStock(stock, type){ stock[type]++; }
 function nadeChangeStock(stock, type, delta){ stock[type] = +stock[type] + delta; }
 function nadeSetThrowUntil(bot, value){ return bot.throwUntil = value; }

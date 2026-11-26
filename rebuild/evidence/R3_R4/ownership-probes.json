@@ -1,0 +1,42 @@
+{
+  "tested_fields": 107,
+  "rejected_fields": 107,
+  "separate_probes": {
+    "constant_key": {
+      "code": "const key = \"_flee\"; player[key] = null;",
+      "rejected_field": "_flee"
+    },
+    "computed_literal": {
+      "code": "player[\"_fle\" + \"e\"] = null;",
+      "rejected_field": "_flee"
+    },
+    "nested": {
+      "code": "player._contact.id = \"test\";",
+      "rejected_field": "_contact"
+    },
+    "nested_alias": {
+      "code": "const contact = player._contact; contact.id = \"test\";",
+      "rejected_field": "_contact"
+    },
+    "delete": {
+      "code": "delete player._flee;",
+      "rejected_field": "_flee"
+    },
+    "array_mutation": {
+      "code": "player.nadeQueue.push(null);",
+      "rejected_field": "nadeQueue"
+    },
+    "Reflect.set": {
+      "code": "Reflect.set(player, \"_flee\", null);",
+      "rejected_field": "_flee"
+    },
+    "Object.assign": {
+      "code": "Object.assign(player, { _flee: null });",
+      "rejected_field": "_flee"
+    },
+    "extra_writer_in_owner_file": {
+      "code": "player._reloading = true;",
+      "rejected_field": "_reloading"
+    }
+  }
+}

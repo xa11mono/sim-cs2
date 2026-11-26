@@ -56,7 +56,7 @@ function warmTick(dt){
       // хитбоксы, урон, киллфид); разминка после себя всё сбрасывает (freshMatch), так что матч не меняется
       if(!b._sawEnemy){ engagementSetSawEnemy(b, true); engagementSetContactStreak(b, 0); }
       engagementSetContactStreak(b, (b.contactStreak||0) + 1);
-      var TS = b._ts || (engagementSetTs(b, {})); TS[foe.id] = (TS[foe.id]||0) + 1;
+      var TS = b._ts || (engagementSetTs(b, {})); engagementSetTargetTicks(TS, foe.id, (TS[foe.id]||0) + 1);
       tryShoot(b, foe, fd);
       return;
     }

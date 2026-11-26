@@ -111,7 +111,7 @@ function itemPickupTick(){
       else if(G.kind === "nade"){
         var tot = N.smoke + N.flash + N.he + N.molly;
         if(tot >= 4 || (G.key === "flash" ? N.flash >= 2 : N[G.key] >= 1)) continue;
-        N[G.key]++;
+        nadeAddToStock(N, G.key);
       }
       else if(G.kind === "pistol"){
         if(!b.secondary || WEAPONS[G.key].tier <= WEAPONS[b.secondary].tier) continue;
