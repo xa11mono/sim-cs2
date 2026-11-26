@@ -9,6 +9,7 @@ ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'); sys
 import gamesrc, marks_build
 from mapset import map_arg, inject_map
 
+PACK = '--pack' in sys.argv; sys.argv = [x for x in sys.argv if x != '--pack']   # (Р5.5) ядро без карты: MAP — из пакета при загрузке
 name, args = map_arg(sys.argv[1:])
 out = args[0] if args else os.path.join(ROOT, 'dist', 'core-%s.js' % name)
 meta, mods = gamesrc.game_meta(), set(gamesrc.module_files())
@@ -38,7 +39,10 @@ glue = ('\n// (Р5) конец загрузки ядра без показа: т
         '  postMessage({tick: tick, F: frameMake()}); }; }\n'
         '})();\n')
 core = src + snap + glue
-core = inject_map('<script>' + core + '</script>', name, need=('@@MAP@@',))
+if PACK:   # (Р5.5) карта — из пакета .simmap (tools/map-pack): загрузчик кладёт её в globalThis.__SIM_MAP до ядра (tools/node/core_run.js --pack)
+    core = '<script>' + core.replace('@@MAP@@', 'globalThis.__SIM_MAP', 1) + '</script>'
+    if not args: out = os.path.join(ROOT, 'dist', 'core-pack.js')   # одно ядро на все карты
+else: core = inject_map('<script>' + core + '</script>', name, need=('@@MAP@@',))
 tmp = os.path.join(tempfile.mkdtemp(), 'core.html'); open(tmp, 'w', encoding='utf-8').write(core)
 gamesrc.bundle_modules(tmp)
 html = open(tmp, encoding='utf-8').read()
