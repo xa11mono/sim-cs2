@@ -12,7 +12,10 @@ function fightState(b, next, why){
 // снять удержание (нож — 450, огонь — 535). Причина снятия — b._holdWhy.
 function fightReset(b){ b.state = "patrol"; b.holding = false; }
 function fightHoldOff(b, why){ b.holding = false; b._holdWhy = why; }
-function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
+// (Р3.2, канал «бой», шаг 2) ответ оценки режима боя с причинами: RS — сработавшие поправки оценок (в порядке вычисления; арифметика прежняя);
+// decideAction — прежний ответ «режим» для старых вызовов
+function decideAction(bot, nearestDist, alliesNear, enemiesSeen){ return decideActionR(bot, nearestDist, alliesNear, enemiesSeen).state; }
+function decideActionR(bot, nearestDist, alliesNear, enemiesSeen){ var RS = [];
   var hpFrac = Math.max(0, bot.hp)/100;
   // было enemiesSeen - alliesNear — себя не считали, и КАЖДАЯ дуэль 1 на 1
   // выглядела как "меньшинство" → отступление. Теперь 1v1 — это 0.
@@ -25,9 +28,9 @@ function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
   // plan §3: on stairs, "приоритет не задерживаться" — holding an angle mid-staircase
   // isn't an option a real player takes, so take it off the table entirely rather
   // than just making it score worse (a bad-enough alternative could still win otherwise).
-  if(bot.onStairs) holdScore = -Infinity;
+  if(bot.onStairs) { RS.push("bot.onStairs"); holdScore = -Infinity; }
   // роумер играет от информации: увидел — охотнее уходит, чем лезет в дуэль
-  if(bot.role === "roamer"){ retreatScore += 0.12; engageScore -= 0.05; }
+  if(bot.role === "roamer"){ RS.push("bot.role === 'roamer'"); retreatScore += 0.12; engageScore -= 0.05; }
   // план §5: роль и оружие — это веса в той же формуле, а не отдельный код
   var r = bot.tRole, wk = bot.weapon && bot.weapon.key;
   // (5) клатч T: один против нескольких — дуэли по одной. Видно/известно двоих
@@ -36,7 +39,7 @@ function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
     var LKc = kvLast("T"), kF = enemiesSeen;
     for(var eC in LKc){ var qC = LKc[eC]; if(tick - qC.tick < 3*TICK_HZ && nearP(qC.x, qC.y, qC.z, bot.x, bot.y, bot.z, 700) && bots.some(function(o){ return o.id === eC && o.alive; })) kF = Math.max(kF, 1) + (enemiesSeen ? 0 : 0); }
     var kN = 0; for(var eC2 in LKc){ var q2 = LKc[eC2]; if(tick - q2.tick < 3*TICK_HZ && DM.hypot(q2.x-bot.x, q2.y-bot.y) < 700) kN++; }
-    if(Math.max(enemiesSeen, kN) >= 2){ retreatScore += 0.4; engageScore -= 0.3;
+    if(Math.max(enemiesSeen, kN) >= 2){ RS.push("Math.max(enemiesSeen, kN) >= 2"); retreatScore += 0.4; engageScore -= 0.3;
       if(bot._tcV !== roundNum){ bot._tcV = roundNum; voiceLog("T", "tcl"+roundNum, bot.id, "я один против "+aliveCount("CT")+" — не беру двоих сразу, по одному"); } }
   }
   // (1) мидер/роумер CT против группы T на миде: раньше "союзников рядом" считались
@@ -48,127 +51,127 @@ function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
     for(var eO in LKo){ var qO = LKo[eO]; if(tick - qO.tick < 4*TICK_HZ && nearP(qO.x, qO.y, qO.z, bot.x, bot.y, bot.z, 800) && bots.some(function(o){ return o.id === eO && o.alive; })) knownF++; }
     knownF = Math.max(knownF, enemiesSeen);
     var tradeM = bots.filter(function(o){ return o !== bot && o.alive && o.team === bot.team && nearP(o.x, o.y, o.z, bot.x, bot.y, bot.z, TRADE_R); }).length;
-    if(knownF >= 2 && knownF > tradeM + 1){ retreatScore += 0.35 + 0.1*(knownF - tradeM - 2); engageScore -= 0.25; holdScore -= 0.1;
+    if(knownF >= 2 && knownF > tradeM + 1){ RS.push("knownF >= 2 && knownF > tradeM + 1"); retreatScore += 0.35 + 0.1*(knownF - tradeM - 2); engageScore -= 0.25; holdScore -= 0.1;
       if(bot._moV !== roundNum){ bot._moV = roundNum; voiceLog("CT", "mo"+bot.id+roundNum, bot.id, "их "+knownF+" на миде, я один — отхожу, не дуэлю"); } }
   }
   // (v154) ценность дуэли. По демкам: у про в момент смерти в 71–77% рядом (≤350px)
   // есть свой на размен, у ботов было 38–54% — боты дерутся в одиночку.
   var dv = duelContext(bot, enemiesSeen, alliesNear);
   if(!dv.forced){
-    if(dv.trade === 0 && !dv.hurtFoe){ engageScore -= 0.18; retreatScore += 0.10; holdScore += 0.04; }
-    if(dv.up){ engageScore += 0.08; }
-    if(dv.awpLine && !dv.flashed){ engageScore -= 0.12; holdScore += 0.05; }
+    if(dv.trade === 0 && !dv.hurtFoe){ RS.push("dv.trade === 0 && !dv.hurtFoe"); engageScore -= 0.18; retreatScore += 0.10; holdScore += 0.04; }
+    if(dv.up){ RS.push("dv.up"); engageScore += 0.08; }
+    if(dv.awpLine && !dv.flashed){ RS.push("dv.awpLine && !dv.flashed"); engageScore -= 0.12; holdScore += 0.05; }
     // по демкам первым в раунде у T гибнет энтри (22%), лёркер — 13%, AWP — 4%;
     // у ботов было: лёркер 25%, AWP 9%, энтри 9%. Лёркер играет от инфы и
     // тайминга, а не от дуэлей; AWP T в дефолте — не первая жертва
-    if(bot.team === "T" && r === "lurker"){ engageScore -= 0.22; retreatScore += 0.14; }
-    if(bot.team === "T" && wk === "AWP"){ engageScore -= 0.08; retreatScore += 0.05; }
+    if(bot.team === "T" && r === "lurker"){ RS.push("bot.team === 'T' && r === 'lurker'"); engageScore -= 0.22; retreatScore += 0.14; }
+    if(bot.team === "T" && wk === "AWP"){ RS.push("bot.team === 'T' && wk === 'AWP'"); engageScore -= 0.08; retreatScore += 0.05; }
   }
-  if(r === "anchorA" || r === "anchorB"){ holdScore += 0.15; retreatScore -= 0.05; } // опорник держит, ждёт помощь
+  if(r === "anchorA" || r === "anchorB"){ RS.push("опорник держит, ждёт помощь"); holdScore += 0.15; retreatScore -= 0.05; } // опорник держит, ждёт помощь
   // (v440, док 27.10, р8: носитель с 22 HP держал угол и ждал файта) носитель бомбы не лезет в дуэль, пока есть кому разменять / донести:
   // те же веса, что у сейва (−0,25 / +0,25) — бомба дороже фрага
-  if(bomb && bomb.state === "carried" && bomb.carrier === bot && aliveCount(bot.team) > 1){ engageScore -= 0.25; retreatScore += 0.25; }
-  if(r === "entry"){ engageScore += 0.15; }                                          // энтри лезет в первую дуэль
-  if(r === "lurker"){ holdScore += 0.08; }
-  if(wk === "AWP" || wk === "SSG" || (bot.weapon && bot.weapon.scoped)){ holdScore += wk === "AWP" ? 0.15 : 0.08; engageScore -= wk === "AWP" ? 0.10 : 0.05; } // снайперки/прицел — дальняя линия
+  if(bomb && bomb.state === "carried" && bomb.carrier === bot && aliveCount(bot.team) > 1){ RS.push("bomb && bomb.state === 'carried' && bomb.carrier === bot && aliveCount(bot.team) > 1"); engageScore -= 0.25; retreatScore += 0.25; }
+  if(r === "entry"){ RS.push("энтри лезет в первую дуэль"); engageScore += 0.15; }                                          // энтри лезет в первую дуэль
+  if(r === "lurker"){ RS.push("r === 'lurker'"); holdScore += 0.08; }
+  if(wk === "AWP" || wk === "SSG" || (bot.weapon && bot.weapon.scoped)){ RS.push("снайперки/прицел — дальняя линия"); holdScore += wk === "AWP" ? 0.15 : 0.08; engageScore -= wk === "AWP" ? 0.10 : 0.05; } // снайперки/прицел — дальняя линия
   var ws = bot.weapon ? bot.weapon.slot : null;
-  if(wk === "MAC10" || wk === "MP9" || wk === "UMP" || wk === "MP7" || wk === "P90" || (ws === "secondary" && wk !== "DEAGLE")){ engageScore += 0.08; } // SMG/пистолеты — сближаться
-  if(bot.team === "T" && teamTac.T && teamTac.T.saving && !(bomb && bomb.state === "planted")){ engageScore -= 0.25; retreatScore += 0.25; } // сейв T — не лезть в дуэли
-  if(bot.team === "CT" && teamTac.CT && teamTac.CT.preSave && !(bomb && bomb.state === "planted")){ engageScore -= 0.25; retreatScore += 0.25; }
+  if(wk === "MAC10" || wk === "MP9" || wk === "UMP" || wk === "MP7" || wk === "P90" || (ws === "secondary" && wk !== "DEAGLE")){ RS.push("SMG/пистолеты — сближаться"); engageScore += 0.08; } // SMG/пистолеты — сближаться
+  if(bot.team === "T" && teamTac.T && teamTac.T.saving && !(bomb && bomb.state === "planted")){ RS.push("сейв T — не лезть в дуэли"); engageScore -= 0.25; retreatScore += 0.25; } // сейв T — не лезть в дуэли
+  if(bot.team === "CT" && teamTac.CT && teamTac.CT.preSave && !(bomb && bomb.state === "planted")){ RS.push("bot.team === 'CT' && teamTac.CT && teamTac.CT.preSave && !(bomb && bomb.state === 'planted"); engageScore -= 0.25; retreatScore += 0.25; }
   // враг ранен ("он на 20") — не отходить, а добивать
   // (v547, ответ владельца 10.11: «на сейве добивать раненого — нет: стрельба раскроет позицию, придут зажимать, потеря девайса») — не на сейве
   var savingD = taskAlive(bot) && taskProp(bot._task.tag, "saveTask");
   if(bot._nearestEnemyBot && !savingD){ var HTd = teamIntel[bot.team].hurt, hk = HTd && HTd[bot._nearestEnemyBot.id];
-    if(hk && hk.hp <= 35 && tick - hk.tick < 10*TICK_HZ){ engageScore += 0.2; retreatScore -= 0.15; } }
+    if(hk && hk.hp <= 35 && tick - hk.tick < 10*TICK_HZ){ RS.push("hk && hk.hp <= 35 && tick - hk.tick < 10*TICK_HZ"); engageScore += 0.2; retreatScore -= 0.15; } }
   // после планта T держат бомбу, CT обязаны идти — время важнее HP
   if(bomb && bomb.state === "planted"){
-    if(bot.team === "T"){ holdScore += 0.12; }
-    else if(teamTac.CT && teamTac.CT.saving){ engageScore -= 0.25; retreatScore += 0.25; } // сейв — не лезть в дуэли
-    else { engageScore += 0.15; retreatScore -= 0.20; holdScore -= 0.30; } // CT не могут "пересидеть" — надо идти на бомбу
+    if(bot.team === "T"){ RS.push("bot.team === 'T'"); holdScore += 0.12; }
+    else if(teamTac.CT && teamTac.CT.saving){ RS.push("сейв — не лезть в дуэли"); engageScore -= 0.25; retreatScore += 0.25; } // сейв — не лезть в дуэли
+    else { RS.push("иначе: сейв — не лезть в дуэли"); engageScore += 0.15; retreatScore -= 0.20; holdScore -= 0.30; } // CT не могут "пересидеть" — надо идти на бомбу
   }
   // ---- цель важнее HP: у кого задача по бомбе, тот не бегает туда-сюда ----
   var ttT = teamTac.T;
   if(bot.team === "T" && bomb){
-    if(bomb.state === "carried" && bomb.carrier === bot && ttT && ttT.phase !== "setup"){ retreatScore -= 0.5; } // носитель на выходе — ставить
+    if(bomb.state === "carried" && bomb.carrier === bot && ttT && ttT.phase !== "setup"){ RS.push("носитель на выходе — ставить"); retreatScore -= 0.5; } // носитель на выходе — ставить
     else if(bomb.state === "carried" && bomb.carrier === bot){
       // план §11.1 п.7: с бомбой не "всегда беги" — если рядом тиммейт для трейда,
       // играет как обычно; если изолирован — бомба дороже ещё одного фрага
       var mate = bots.some(function(o){ return o !== bot && o.alive && o.team === "T" && nearP(o.x, o.y, o.z, bot.x, bot.y, bot.z, TRADE_R); });
-      if(!mate){ engageScore -= 0.2; retreatScore += 0.15; }
+      if(!mate){ RS.push("!mate"); engageScore -= 0.2; retreatScore += 0.15; }
     }
     if(bomb.state === "planted"){
       var someoneDefusing = tick - (bot._defuseHeard||-9999) < 110; // слышал дефуз (реальный или фейк)
-      if(someoneDefusing){ engageScore += 0.4; retreatScore -= 0.6; }   // дефузят — любой ценой сбить дефуз
-      else retreatScore -= 0.25;                                        // держим бомбу, а не убегаем
+      if(someoneDefusing){ RS.push("дефузят — любой ценой сбить дефуз"); engageScore += 0.4; retreatScore -= 0.6; }   // дефузят — любой ценой сбить дефуз
+      else { RS.push("иначе: дефузят — любой ценой сбить дефуз"); retreatScore -= 0.25; }                                        // держим бомбу, а не убегаем
     }
   }
-  if(bot._smokePush && tick < bot._smokePush.until){ holdScore -= 0.2; engageScore += 0.05; }
+  if(bot._smokePush && tick < bot._smokePush.until){ RS.push("bot._smokePush && tick < bot._smokePush.until"); holdScore -= 0.2; engageScore += 0.05; }
   // только что на этом углу убили тиммейта, а стрелка не видели — не выходить туда же
-  if(knowAvoidPeekNear(bot, bot)){ engageScore -= 0.25; holdScore += 0.1; }
+  if(knowAvoidPeekNear(bot, bot)){ RS.push("knowAvoidPeekNear(bot, bot)"); engageScore -= 0.25; holdScore += 0.1; }
   // сбивает плант — время важнее всего: лезет в дуэль, не отходит
-  if(bot._stopPlantUntil > tick){ engageScore += 0.3; holdScore -= 0.15; retreatScore -= 0.25; }
+  if(bot._stopPlantUntil > tick){ RS.push("bot._stopPlantUntil > tick"); engageScore += 0.3; holdScore -= 0.15; retreatScore -= 0.25; }
   // раздел 14: перезаряжается посреди боя — не высовываться, уйти за угол
-  if(bot._reloading){ retreatScore += 0.35; engageScore -= 0.35; holdScore -= 0.1; }
+  if(bot._reloading){ RS.push("bot._reloading"); retreatScore += 0.35; engageScore -= 0.35; holdScore -= 0.1; }
   // ---- раздел 11: командная информация в весах ----
   // тиммейт только что погиб рядом — идти разменивать, а не прятаться
-  if(tradeAlert(bot)){ engageScore += 0.2; retreatScore -= 0.15; }
+  if(tradeAlert(bot)){ RS.push("tradeAlert(bot)"); engageScore += 0.2; retreatScore -= 0.15; }
   // команда знает, что рядом стак (2+ врагов), а своих меньше — в одиночку в дуэль не лезть
   var nearEst = intelEstimate(bot.team, bot.x, bot.y, 500, 4*64);
-  if(nearEst.n >= 2 && alliesNear + 1 < nearEst.n){ engageScore -= 0.15; holdScore += 0.08; }
+  if(nearEst.n >= 2 && alliesNear + 1 < nearEst.n){ RS.push("nearEst.n >= 2 && alliesNear + 1 < nearEst.n"); engageScore -= 0.15; holdScore += 0.08; }
   // ---- инициатива: бесконечно стоять нельзя ----
   // Держать угол без контакта становится всё менее выгодно (через 3с каждая
   // секунда −0.04, до −0.35) — рано или поздно бот либо идёт дальше по своим
   // делам, либо сам пикает. T без планта под конец раунда давит (время против
   // них), CT с бомбой на карте и так обязаны идти.
-  if(bot.holding && bot.holdSinceTick > 0){
+  if(bot.holding && bot.holdSinceTick > 0){ RS.push("bot.holding && bot.holdSinceTick > 0");
     var heldSec = (tick - bot.holdSinceTick)/TICK_HZ;
     holdScore -= Math.min(0.35, 0.04*Math.max(0, heldSec - 3));
   }
   if(bot.team === "T" && bomb && bomb.state !== "planted"){
     var secL = ROUND_TIME_SEC - (simTime - roundStartTime);
-    if(secL < 30){ engageScore += 0.25; holdScore -= 0.2; retreatScore -= 0.2; }
+    if(secL < 30){ RS.push("secL < 30"); engageScore += 0.25; holdScore -= 0.2; retreatScore -= 0.2; }
     // раздел: "T не слишком сильно пытаются взять бомбу, предпочитают холдить
     // углы" — на выходе/постпланте до закладки T должны продавливать контакт,
     // а не садиться в оборону, как только увидели первого CT
-    if(ttT && ttT.phase !== "setup"){ engageScore += 0.10; holdScore -= 0.06; }
+    if(ttT && ttT.phase !== "setup"){ RS.push("ttT && ttT.phase !== 'setup'"); engageScore += 0.10; holdScore -= 0.06; }
   }
 
   // раздел 12: анти-эко — у нас закуп, у них эко: не лезть в упор (там пистолет
   // опасен), держать дистанцию, где винтовка сильнее; не давать "геройский" пик
   // (v559, В76 ч.5) — цель раунда команды «выиграть, не отдав винтовок» (roundGoal, 520), одно место вместо своей проверки закупов
   if(roundGoal(bot.team) === "keepGuns"){
-    if(nearestDist < 220){ retreatScore += 0.12; engageScore -= 0.08; }
-    else { holdScore += 0.08; engageScore -= 0.04; }
+    if(nearestDist < 220){ RS.push("nearestDist < 220"); retreatScore += 0.12; engageScore -= 0.08; }
+    else { RS.push("иначе: nearestDist < 220"); holdScore += 0.08; engageScore -= 0.04; }
   }
   // раздел 12: клатч (1 против 2+). Изоляция дуэлей — видит двоих сразу →
   // уйти из линии и ловить по одному; CT до планта время на его стороне —
   // не лезть, держать и тянуть время; T после планта — сидеть и ждать звук дефуза
   var myAlive = aliveCount(bot.team), theirAlive = aliveCount(bot.team === "CT" ? "T" : "CT");
   if(myAlive === 1 && theirAlive >= 2){
-    if(enemiesSeen >= 2){ retreatScore += 0.30; engageScore -= 0.15; }
-    else if(enemiesSeen === 1){ engageScore += 0.05; }
-    if(bot.team === "CT" && bomb && bomb.state !== "planted"){ holdScore += 0.12; engageScore -= 0.08; }
-    if(bot.team === "T" && bomb && bomb.state === "planted"){ holdScore += 0.10; }
+    if(enemiesSeen >= 2){ RS.push("enemiesSeen >= 2"); retreatScore += 0.30; engageScore -= 0.15; }
+    else if(enemiesSeen === 1){ RS.push("enemiesSeen === 1"); engageScore += 0.05; }
+    if(bot.team === "CT" && bomb && bomb.state !== "planted"){ RS.push("bot.team === 'CT' && bomb && bomb.state !== 'planted'"); holdScore += 0.12; engageScore -= 0.08; }
+    if(bot.team === "T" && bomb && bomb.state === "planted"){ RS.push("bot.team === 'T' && bomb && bomb.state === 'planted'"); holdScore += 0.10; }
     // T один до планта: цель — поставить бомбу; дальних дуэлей избегает,
     // стреляет, только если враг совсем рядом
     if(bot.team === "T" && bomb && bomb.state !== "planted" && (bomb.state !== "carried" || bomb.carrier === bot)){
-      if(nearestDist > 230){ engageScore -= 0.25; retreatScore += 0.15; holdScore -= 0.05; }
+      if(nearestDist > 230){ RS.push("nearestDist > 230"); engageScore -= 0.25; retreatScore += 0.15; holdScore -= 0.05; }
     }
   }
-  if(bot.prof){
+  if(bot.prof){ RS.push("bot.prof");
     var pa = prof(bot, "aggr"), pd = prof(bot, "disc"), pr = prof(bot, "risk");
     engageScore += (pa-0.5)*0.24;
     holdScore   += (pd-0.5)*0.12 - (pa-0.5)*0.08;
     retreatScore+= (0.5-pr)*0.12*(1-hpFrac+0.3);
     // враг, про которого известно, что он агрессивно пикает, — пусть сам выйдет под прицел
     var ne = bot._nearestEnemyBot;
-    if(ne && aggrRate(ne.id) > 1.3){ holdScore += 0.06; engageScore -= 0.03; }
+    if(ne && aggrRate(ne.id) > 1.3){ RS.push("ne && aggrRate(ne.id) > 1.3"); holdScore += 0.06; engageScore -= 0.03; }
   }
   var best = "hold", bestScore = holdScore;
   if(engageScore > bestScore){ best = "engage"; bestScore = engageScore; }
   if(retreatScore > bestScore){ best = "retreat"; bestScore = retreatScore; }
   bot._actS = [holdScore, engageScore, retreatScore];   // (v525) для причины решения
-  return best;
+  return {state: best, why: RS, scores: [holdScore, engageScore, retreatScore]};
 }
 
 // ---- после фрага: AWP меняет угол, агрессивный добирает, остальные — как было ----

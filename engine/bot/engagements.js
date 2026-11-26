@@ -138,7 +138,8 @@ function engDecide(){
     b.decisionTick = tick;
     var alliesNear = bots.filter(function(o){ return o!==b && o.team===b.team && o.alive && nearP(o.x, o.y, o.z, b.x, b.y, b.z, 550); }).length;
     var enemiesSeen = bots.filter(function(o){ return o.team!==b.team && o.alive && DM.hypot(o.x-b.x,o.y-b.y) <= (b._nearestEnemyDist===Infinity? b.weapon.range : Math.max(b.weapon.range, b._nearestEnemyDist)) && hasVision(b.x,b.y,o.x,o.y) && inFov(b, o.x, o.y); }).length;
-    var next = decideAction(b, b._nearestEnemyDist, alliesNear, enemiesSeen);
+    var AR = decideActionR(b, b._nearestEnemyDist, alliesNear, enemiesSeen), next = AR.state;
+    dlog(b, "оценка боя", next + ": " + (AR.why.length ? AR.why.join("; ") : "без поправок"), "_dlogF");   // (Р3.2 бой ш.2) причины — в след (вне состояния игры)
     // гистерезис: в отход и из отхода — не чаще раза в ~1.3с, иначе бот с низким
     // HP дёргался "отступаю / атакую / отступаю" каждые полсекунды
     if(next !== b.state && (next === "retreat" || b.state === "retreat") && tick - (b.stateSince||0) < 160) next = b.state; // ~2.5с

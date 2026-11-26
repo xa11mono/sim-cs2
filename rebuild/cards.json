@@ -521,6 +521,7 @@
    "owns": [
     "afterKillMove",
     "decideAction",
+    "decideActionR",
     "fightHoldOff",
     "fightReset",
     "fightState",
