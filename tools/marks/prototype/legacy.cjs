@@ -93,6 +93,12 @@ async function convert(input, out, options = {}) {
   if (raw) snapshot(options.role, bytes);
   if (options.snapshot) snapshot('moment', read(options.snapshot));
   if (options.pre) snapshot('before', read(options.pre));
+  // (Р5.7, 26.11) причинный след решений (Р3.3) за окно до момента — вложение со своими границами (поле trace схемы v2)
+  if (options.trace) {
+    const buffer = read(options.trace), tr = json(buffer);
+    need(uint(tr.fromTick) && uint(tr.toTick) && tr.fromTick <= tr.toTick, 'След: нужны fromTick <= toTick');
+    mark.trace = { fromTick: tr.fromTick, toTick: tr.toTick, asset: add('trace.json', buffer, 'sim-cs2/dlog') };
+  }
   if (options.image) {
     const buffer = read(options.image);
     const codec = buffer[0] === 0x89 ? 'png' : 'jpeg';

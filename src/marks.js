@@ -178,7 +178,13 @@ async function mkExportFile(){
     text: m.text, want: m.want, bot: m.bot || null, principle: null, status: "new", version: null, fp: m.fp, state: m.state, created: Date.now(), updated: Date.now(),
     env: mkEnv(), preTick: m.pre ? m.pre.tick : null, map: MAP.id || null, seed: m.match,
     identity: {buildHash: typeof MK_BUILD_SHA !== "undefined" ? MK_BUILD_SHA : null, mapHash: globalThis.__MAP_SHA || null, dmath: typeof MK_DMATH_SHA !== "undefined" ? MK_DMATH_SHA : null} };   // map, seed — в identity пакета (номер матча задаёт зерно матча)
-  var out = JSON.stringify({format: "sim-cs2/mark-export", version: 1, doc: doc, snapshot: mkPack(m.snap), pre: m.pre ? mkPack(m.pre.data) : null, image: img || null});
+  // причинный след решений (Р3.3, DLOG — вне состояния игры) за 10 с до момента: по ботам и командам, все ключи (_dlog, ответы арбитра, бой, знание…)
+  var tr = null;
+  if(typeof DLOG !== "undefined" && DLOG.by){ var t0 = m.tick - 10*TICK_HZ, by = {};
+    Object.keys(DLOG.by).forEach(function(id){ var B = DLOG.by[id], o = {}; Object.keys(B).forEach(function(k){ if(!Array.isArray(B[k])) return;
+      var L = B[k].filter(function(e){ return e[0] >= t0 && e[0] <= m.tick; }); if(L.length) o[k] = L; }); if(Object.keys(o).length) by[id] = o; });
+    tr = {fromTick: Math.max(0, t0), toTick: m.tick, on: !!DLOG.on, by: by}; }
+  var out = JSON.stringify({format: "sim-cs2/mark-export", version: 1, doc: doc, snapshot: mkPack(m.snap), pre: m.pre ? mkPack(m.pre.data) : null, image: img || null, trace: tr});
   var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([out], {type: "application/json"}));
   a.download = "mark-m" + m.match + "-t" + m.tick + ".json"; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
   mkToast("Отметка выгружена файлом (" + Math.round(out.length / 1024) + " КБ)");
