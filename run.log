@@ -1,0 +1,305 @@
+playwright 1.63.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\r34_rec_anc\env.json
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\r34_rec_mir\env.json
+> git fetch --quiet origin 106e68c5ec86c74d7295708e0407afab1f1a3562
+guard: прошлый прогон оборвался; последнее состояние: {"time": "2026-11-26 22:31:16", "avail_mb": 5734, "total_mb": 15977, "cap": 8, "queued": 0, "running": [{"name": "fp r34_off_anc.html m7", "mb": 232, "procs": 5, "secs": 1699}, {"name": "fp r34_off_anc.html m13", "mb": 234, "procs": 5, "secs": 1699}, {"name": "fp r34_off_anc.html m19", "mb": 356, "procs": 5, "secs": 1697}, {"name": "fp r34_off_anc.html m23", "mb": 356, "procs": 5, "secs": 1697}, {"name": "fp r34_off_anc.html m29", "mb": 360, "procs": 5, "secs": 1669}, {"name": "fp r34_off_mir.html m3", "mb": 363, "procs": 5, "secs": 1611}, {"name": "fp r34_off_mir.html m29", "mb": 1338, "procs": 6, "secs": 428}], "aborted": "KeyboardInterrupt()"}
+guard: память 15977 МБ, свободно 7366; запас 3195, критично 1536; на матч ≤ 6144 МБ, ≤ 90 мин; par ≤ 8; объект задания: да; продолжение: да
+guard: fp r34_off_anc.html m11 — взят сохранённый результат
+guard: fp r34_off_mir.html m7 — взят сохранённый результат
+guard: fp r34_off_mir.html m11 — взят сохранённый результат
+guard: fp r34_off_mir.html m13 — взят сохранённый результат
+guard: fp r34_off_mir.html m17 — взят сохранённый результат
+guard: fp r34_off_mir.html m19 — взят сохранённый результат
+guard: fp r34_off_mir.html m23 — взят сохранённый результат
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_37iig9d_ 1713806fa03aa629a533c5df9074ee311ce6ee53
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_37iig9d_\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\r34_off_anc.html
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+модули: task.js, intel.js, events.js, turn.ts, smoke.js, plan.js, exec-sync.js, levels.js, throw.js, flight.js, lineups.js, damage.js, self.js, decide.js, fight.js, assist.js, shoot.js, fight-state.js, engagements.js, move.js, tick.js, tick-jump.js, tick-keys.js, tick-step.js — ядро отдаёт 303 имён, берёт 734
+Единственный писатель: полей 107, записей в обход 0
+пометок 1734 | полей facing:7 walking:4 curSpeed:5 post:3 _task:4 _reposUntil:1 _waitPopUntil:1 _avoidPeekUntil:1 _tradeUntil:2 _tradeLock:1 state:2 nadeTask:8 holding:4 crouching:1 path:7 phase:1 lookReason:2 _lookLvl:1 heardSound:2 lastIntel:1 planting:3 defusing:3 _route:4 _routeDone:2 baseX:11 baseY:11 pathIdx:8 _aimFix:1 _ammoFor:1 _area:1 _blind:1 _blindBy:1 _boost:1 _climb:1 _contact:1 _covLog:1 _covT:1 _detour:1 _dmgBy:1 _drawUntil:1 _egC:1 _fall:1 _fc:1 _fillLock:1 _fireExit:1 _fireExitFire:1 _fireIn:1 _flee:1 _heDone:2 _hold:1 _holdLog:1 _huntArrive:1 _huntIdx:1 _jc:1 _jump:1 _knife:1 _landAt:1 _lkC:1 _lkPt:1 _lkTop:1 _lkZ:1 _lurkArr:1 _lurkIdx:1 _lurkPh:1 _mistakes:1 _nadeNo:1 _nadeT:1 _nearestEnemyBot:1 _offNav:1 _onPistol:1 _prevOffX:1 _prevOffY:1 _probe:1 _probeLock:1 _reloading:1 _roamSoundHandled:1 _roamSoundLockUntil:1 _saveSpot:1 _sawEnemy:1 _secAmmo:1 _stabT:1 _stageInfo:1 _stopPlantUntil:1 _stopWhy:1 _tagUntil:1 _ts:1 _unstickT:1 alive:4 ammo:1 armor:1 armorHp:1 atPost:1 blindUntil:1 burstCount:1 contactStreak:1 deaths:1 decisionTick:1 forcedRetreat:1 heading:1 helmet:2 holdSinceTick:1 hp:1 kills:1 kit:2 lastShotTick:1 lastStepTick:1 lookTarget:1 money:1 nadeQueue:1 nades:1 nextShotTick:1 onStairs:1 pickTick:1 primary:1 reloadUntil:1 retakeRole:1 roamCheckStart:1 roamCheckUntil:1 roamChecking:1 roamIdx:1 roamLookPt:1 roamPrevPt:1 roamTarget:1 roundDmg:1 roundKills:1 secondary:1 setupLook:1 stateSince:1 stuckTicks:1 throwUntil:1 weapon:1 x:1 y:1 z:2 | функций 1460
+общих переменных 982 из чужих файлов пишут 85
+реестр состояния: строк 1470, не размечено 0
+карточки механик: файлов 101, расхождений 0
+чтения истины врага (решения): мест 55, новых 0; известных нарушений «истина» 13 (BEHAVIOR_BACKLOG, после Р8)
+ответ хозяина не прочитан (Р-7): мест 124
+виды задач (TaskKind): 79 литералом, мест с тегом из данных 20, расхождений 0
+писатели полей бота: полей 455, писателей 600, новых 0
+правила сборки Р-1…Р-17: известных мест Р-1 6, Р-3а 77, Р-3б 15, Р-4 46, Р-5 57, Р-16 0, Р-17 68; новых 0
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_7mx1lnfq 1713806fa03aa629a533c5df9074ee311ce6ee53
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_7mx1lnfq\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\r34_off_mir.html
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+модули: task.js, intel.js, events.js, turn.ts, smoke.js, plan.js, exec-sync.js, levels.js, throw.js, flight.js, lineups.js, damage.js, self.js, decide.js, fight.js, assist.js, shoot.js, fight-state.js, engagements.js, move.js, tick.js, tick-jump.js, tick-keys.js, tick-step.js — ядро отдаёт 303 имён, берёт 734
+Единственный писатель: полей 107, записей в обход 0
+пометок 1734 | полей facing:7 walking:4 curSpeed:5 post:3 _task:4 _reposUntil:1 _waitPopUntil:1 _avoidPeekUntil:1 _tradeUntil:2 _tradeLock:1 state:2 nadeTask:8 holding:4 crouching:1 path:7 phase:1 lookReason:2 _lookLvl:1 heardSound:2 lastIntel:1 planting:3 defusing:3 _route:4 _routeDone:2 baseX:11 baseY:11 pathIdx:8 _aimFix:1 _ammoFor:1 _area:1 _blind:1 _blindBy:1 _boost:1 _climb:1 _contact:1 _covLog:1 _covT:1 _detour:1 _dmgBy:1 _drawUntil:1 _egC:1 _fall:1 _fc:1 _fillLock:1 _fireExit:1 _fireExitFire:1 _fireIn:1 _flee:1 _heDone:2 _hold:1 _holdLog:1 _huntArrive:1 _huntIdx:1 _jc:1 _jump:1 _knife:1 _landAt:1 _lkC:1 _lkPt:1 _lkTop:1 _lkZ:1 _lurkArr:1 _lurkIdx:1 _lurkPh:1 _mistakes:1 _nadeNo:1 _nadeT:1 _nearestEnemyBot:1 _offNav:1 _onPistol:1 _prevOffX:1 _prevOffY:1 _probe:1 _probeLock:1 _reloading:1 _roamSoundHandled:1 _roamSoundLockUntil:1 _saveSpot:1 _sawEnemy:1 _secAmmo:1 _stabT:1 _stageInfo:1 _stopPlantUntil:1 _stopWhy:1 _tagUntil:1 _ts:1 _unstickT:1 alive:4 ammo:1 armor:1 armorHp:1 atPost:1 blindUntil:1 burstCount:1 contactStreak:1 deaths:1 decisionTick:1 forcedRetreat:1 heading:1 helmet:2 holdSinceTick:1 hp:1 kills:1 kit:2 lastShotTick:1 lastStepTick:1 lookTarget:1 money:1 nadeQueue:1 nades:1 nextShotTick:1 onStairs:1 pickTick:1 primary:1 reloadUntil:1 retakeRole:1 roamCheckStart:1 roamCheckUntil:1 roamChecking:1 roamIdx:1 roamLookPt:1 roamPrevPt:1 roamTarget:1 roundDmg:1 roundKills:1 secondary:1 setupLook:1 stateSince:1 stuckTicks:1 throwUntil:1 weapon:1 x:1 y:1 z:2 | функций 1460
+общих переменных 982 из чужих файлов пишут 85
+реестр состояния: строк 1470, не размечено 0
+карточки механик: файлов 101, расхождений 0
+чтения истины врага (решения): мест 55, новых 0; известных нарушений «истина» 13 (BEHAVIOR_BACKLOG, после Р8)
+ответ хозяина не прочитан (Р-7): мест 124
+виды задач (TaskKind): 79 литералом, мест с тегом из данных 20, расхождений 0
+писатели полей бота: полей 455, писателей 600, новых 0
+правила сборки Р-1…Р-17: известных мест Р-1 6, Р-3а 77, Р-3б 15, Р-4 46, Р-5 57, Р-16 0, Р-17 68; новых 0
+start fp r34_off_anc.html m3 (идёт 1, свободно 7456 МБ)
+start fp r34_off_anc.html m7 (идёт 2, свободно 7456 МБ)
+start fp r34_off_anc.html m13 (идёт 3, свободно 7451 МБ)
+start fp r34_off_anc.html m17 (идёт 4, свободно 7444 МБ)
+guard: недопуск fp r34_off_anc.html m19 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:ancient): новое дерево +1000 МБ, резерв для идущих +4000 МБ, свободно 7443 МБ, запас 3195 МБ → остаток 2443 МБ
+end fp r34_off_anc.html m3: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: fp r34_off_anc.html m3 — повтор 1 в общей очереди (код 1)
+end fp r34_off_anc.html m7: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: fp r34_off_anc.html m7 — повтор 1 в общей очереди (код 1)
+end fp r34_off_anc.html m13: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: fp r34_off_anc.html m13 — повтор 1 в общей очереди (код 1)
+end fp r34_off_anc.html m17: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: fp r34_off_anc.html m17 — повтор 1 в общей очереди (код 1)
+start fp r34_off_anc.html m19 (идёт 1, свободно 7472 МБ)
+start fp r34_off_anc.html m23 (идёт 2, свободно 7472 МБ)
+start fp r34_off_anc.html m29 (идёт 3, свободно 7472 МБ)
+start fp r34_off_mir.html m3 (идёт 4, свободно 7472 МБ)
+guard: недопуск fp r34_off_mir.html m29 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:mirage): новое дерево +1000 МБ, резерв для идущих +4000 МБ, свободно 7472 МБ, запас 3195 МБ → остаток 2472 МБ
+end fp r34_off_anc.html m19: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: fp r34_off_anc.html m19 — повтор 1 в общей очереди (код 1)
+end fp r34_off_anc.html m23: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: fp r34_off_anc.html m23 — повтор 1 в общей очереди (код 1)
+end fp r34_off_anc.html m29: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: fp r34_off_anc.html m29 — повтор 1 в общей очереди (код 1)
+end fp r34_off_mir.html m3: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: fp r34_off_mir.html m3 — повтор 1 в общей очереди (код 1)
+start fp r34_off_mir.html m29 (идёт 1, свободно 7399 МБ)
+start fp r34_off_anc.html m3 (идёт 2, свободно 7399 МБ)
+start fp r34_off_anc.html m7 (идёт 3, свободно 7399 МБ)
+start fp r34_off_anc.html m13 (идёт 4, свободно 7398 МБ)
+guard: недопуск fp r34_off_anc.html m17 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:ancient): новое дерево +1000 МБ, резерв для идущих +4000 МБ, свободно 7398 МБ, запас 3195 МБ → остаток 2398 МБ
+end fp r34_off_mir.html m29: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: fp r34_off_mir.html m29 — повтор 1 в общей очереди (код 1)
+end fp r34_off_anc.html m3: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: fp r34_off_anc.html m3 — повтор 2 отдельно в конце (код 1)
+end fp r34_off_anc.html m7: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: fp r34_off_anc.html m7 — повтор 2 отдельно в конце (код 1)
+end fp r34_off_anc.html m13: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: fp r34_off_anc.html m13 — повтор 2 отдельно в конце (код 1)
+start fp r34_off_anc.html m17 (идёт 1, свободно 7443 МБ)
+start fp r34_off_anc.html m19 (идёт 2, свободно 7442 МБ)
+start fp r34_off_anc.html m23 (идёт 3, свободно 7439 МБ)
+start fp r34_off_anc.html m29 (идёт 4, свободно 7436 МБ)
+guard: недопуск fp r34_off_mir.html m3 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:mirage): новое дерево +1000 МБ, резерв для идущих +4000 МБ, свободно 7436 МБ, запас 3195 МБ → остаток 2436 МБ
+end fp r34_off_anc.html m17: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: fp r34_off_anc.html m17 — повтор 2 отдельно в конце (код 1)
+end fp r34_off_anc.html m19: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: fp r34_off_anc.html m19 — повтор 2 отдельно в конце (код 1)
+end fp r34_off_anc.html m23: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: fp r34_off_anc.html m23 — повтор 2 отдельно в конце (код 1)
+end fp r34_off_anc.html m29: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: fp r34_off_anc.html m29 — повтор 2 отдельно в конце (код 1)
+start fp r34_off_mir.html m3 (идёт 1, свободно 7371 МБ)
+start fp r34_off_mir.html m29 (идёт 2, свободно 7371 МБ)
+end fp r34_off_mir.html m3: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: fp r34_off_mir.html m3 — повтор 2 отдельно в конце (код 1)
+end fp r34_off_mir.html m29: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: fp r34_off_mir.html m29 — повтор 2 отдельно в конце (код 1)
+guard: повтор остановленных или упавших матчей: 9 (по одному)
+start fp r34_off_anc.html m3 (идёт 1, свободно 7413 МБ)
+guard: недопуск fp r34_off_anc.html m7 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1000 МБ, резерв для идущих +1000 МБ, свободно 7413 МБ, запас 3195 МБ → остаток 5413 МБ
+end fp r34_off_anc.html m3: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: fp r34_off_anc.html m3 — попыток 3, результата нет (код 1)
+start fp r34_off_anc.html m7 (идёт 1, свободно 7415 МБ)
+guard: недопуск fp r34_off_anc.html m13 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1000 МБ, резерв для идущих +1000 МБ, свободно 7415 МБ, запас 3195 МБ → остаток 5415 МБ
+end fp r34_off_anc.html m7: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: fp r34_off_anc.html m7 — попыток 3, результата нет (код 1)
+start fp r34_off_anc.html m13 (идёт 1, свободно 7398 МБ)
+guard: недопуск fp r34_off_anc.html m17 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1000 МБ, резерв для идущих +1000 МБ, свободно 7398 МБ, запас 3195 МБ → остаток 5398 МБ
+end fp r34_off_anc.html m13: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: fp r34_off_anc.html m13 — попыток 3, результата нет (код 1)
+start fp r34_off_anc.html m17 (идёт 1, свободно 7480 МБ)
+guard: недопуск fp r34_off_anc.html m19 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1000 МБ, резерв для идущих +1000 МБ, свободно 7480 МБ, запас 3195 МБ → остаток 5480 МБ
+end fp r34_off_anc.html m17: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: fp r34_off_anc.html m17 — попыток 3, результата нет (код 1)
+start fp r34_off_anc.html m19 (идёт 1, свободно 7505 МБ)
+guard: недопуск fp r34_off_anc.html m23 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1000 МБ, резерв для идущих +1000 МБ, свободно 7505 МБ, запас 3195 МБ → остаток 5505 МБ
+end fp r34_off_anc.html m19: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: fp r34_off_anc.html m19 — попыток 3, результата нет (код 1)
+start fp r34_off_anc.html m23 (идёт 1, свободно 7519 МБ)
+guard: недопуск fp r34_off_anc.html m29 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1000 МБ, резерв для идущих +1000 МБ, свободно 7519 МБ, запас 3195 МБ → остаток 5519 МБ
+end fp r34_off_anc.html m23: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: fp r34_off_anc.html m23 — попыток 3, результата нет (код 1)
+start fp r34_off_anc.html m29 (идёт 1, свободно 7480 МБ)
+guard: недопуск fp r34_off_mir.html m3 — повтор снятого — идёт один; фактическая память (chromium:mirage): новое дерево +1000 МБ, резерв для идущих +1000 МБ, свободно 7480 МБ, запас 3195 МБ → остаток 5480 МБ
+end fp r34_off_anc.html m29: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: fp r34_off_anc.html m29 — попыток 3, результата нет (код 1)
+start fp r34_off_mir.html m3 (идёт 1, свободно 7476 МБ)
+guard: недопуск fp r34_off_mir.html m29 — повтор снятого — идёт один; фактическая память (chromium:mirage): новое дерево +1000 МБ, резерв для идущих +1000 МБ, свободно 7476 МБ, запас 3195 МБ → остаток 5476 МБ
+end fp r34_off_mir.html m3: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: fp r34_off_mir.html m3 — попыток 3, результата нет (код 1)
+start fp r34_off_mir.html m29 (идёт 1, свободно 7472 МБ)
+end fp r34_off_mir.html m29: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: fp r34_off_mir.html m29 — попыток 3, результата нет (код 1)
+start rec r34_rec_anc m3 (идёт 1, свободно 7495 МБ)
+start rec r34_rec_anc m7 (идёт 2, свободно 7489 МБ)
+start rec r34_rec_anc m11 (идёт 3, свободно 7485 МБ)
+start rec r34_rec_anc m13 (идёт 4, свободно 7482 МБ)
+guard: недопуск rec r34_rec_anc m17 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:ancient): новое дерево +1000 МБ, резерв для идущих +4000 МБ, свободно 7482 МБ, запас 3195 МБ → остаток 2482 МБ
+end rec r34_rec_anc m3: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_anc m3 — повтор 1 в общей очереди (код 1)
+end rec r34_rec_anc m7: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_anc m7 — повтор 1 в общей очереди (код 1)
+end rec r34_rec_anc m11: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_anc m11 — повтор 1 в общей очереди (код 1)
+end rec r34_rec_anc m13: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_anc m13 — повтор 1 в общей очереди (код 1)
+start rec r34_rec_anc m17 (идёт 1, свободно 7509 МБ)
+start rec r34_rec_anc m19 (идёт 2, свободно 7509 МБ)
+start rec r34_rec_anc m23 (идёт 3, свободно 7509 МБ)
+start rec r34_rec_anc m29 (идёт 4, свободно 7505 МБ)
+guard: недопуск rec r34_rec_mir m3 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:mirage): новое дерево +1000 МБ, резерв для идущих +4000 МБ, свободно 7504 МБ, запас 3195 МБ → остаток 2504 МБ
+end rec r34_rec_anc m17: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_anc m17 — повтор 1 в общей очереди (код 1)
+end rec r34_rec_anc m19: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_anc m19 — повтор 1 в общей очереди (код 1)
+end rec r34_rec_anc m23: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_anc m23 — повтор 1 в общей очереди (код 1)
+end rec r34_rec_anc m29: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_anc m29 — повтор 1 в общей очереди (код 1)
+start rec r34_rec_mir m3 (идёт 1, свободно 7510 МБ)
+start rec r34_rec_mir m7 (идёт 2, свободно 7505 МБ)
+start rec r34_rec_mir m11 (идёт 3, свободно 7498 МБ)
+start rec r34_rec_mir m13 (идёт 4, свободно 7495 МБ)
+guard: недопуск rec r34_rec_mir m17 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:mirage): новое дерево +1000 МБ, резерв для идущих +4000 МБ, свободно 7495 МБ, запас 3195 МБ → остаток 2495 МБ
+end rec r34_rec_mir m3: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_mir m3 — повтор 1 в общей очереди (код 1)
+end rec r34_rec_mir m7: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_mir m7 — повтор 1 в общей очереди (код 1)
+end rec r34_rec_mir m11: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_mir m11 — повтор 1 в общей очереди (код 1)
+end rec r34_rec_mir m13: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_mir m13 — повтор 1 в общей очереди (код 1)
+start rec r34_rec_mir m17 (идёт 1, свободно 7503 МБ)
+start rec r34_rec_mir m19 (идёт 2, свободно 7503 МБ)
+start rec r34_rec_mir m23 (идёт 3, свободно 7503 МБ)
+start rec r34_rec_mir m29 (идёт 4, свободно 7500 МБ)
+guard: недопуск rec r34_rec_anc m3 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:ancient): новое дерево +1000 МБ, резерв для идущих +4000 МБ, свободно 7500 МБ, запас 3195 МБ → остаток 2500 МБ
+end rec r34_rec_mir m17: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_mir m17 — повтор 1 в общей очереди (код 1)
+end rec r34_rec_mir m19: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_mir m19 — повтор 1 в общей очереди (код 1)
+end rec r34_rec_mir m23: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_mir m23 — повтор 1 в общей очереди (код 1)
+end rec r34_rec_mir m29: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_mir m29 — повтор 1 в общей очереди (код 1)
+start rec r34_rec_anc m3 (идёт 1, свободно 7502 МБ)
+start rec r34_rec_anc m7 (идёт 2, свободно 7502 МБ)
+start rec r34_rec_anc m11 (идёт 3, свободно 7500 МБ)
+start rec r34_rec_anc m13 (идёт 4, свободно 7493 МБ)
+guard: недопуск rec r34_rec_anc m17 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:ancient): новое дерево +1000 МБ, резерв для идущих +4000 МБ, свободно 7492 МБ, запас 3195 МБ → остаток 2492 МБ
+end rec r34_rec_anc m3: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_anc m3 — повтор 2 отдельно в конце (код 1)
+end rec r34_rec_anc m7: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_anc m7 — повтор 2 отдельно в конце (код 1)
+end rec r34_rec_anc m11: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_anc m11 — повтор 2 отдельно в конце (код 1)
+end rec r34_rec_anc m13: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_anc m13 — повтор 2 отдельно в конце (код 1)
+start rec r34_rec_anc m17 (идёт 1, свободно 7457 МБ)
+start rec r34_rec_anc m19 (идёт 2, свободно 7457 МБ)
+start rec r34_rec_anc m23 (идёт 3, свободно 7457 МБ)
+start rec r34_rec_anc m29 (идёт 4, свободно 7457 МБ)
+guard: недопуск rec r34_rec_mir m3 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:mirage): новое дерево +1000 МБ, резерв для идущих +4000 МБ, свободно 7457 МБ, запас 3195 МБ → остаток 2457 МБ
+end rec r34_rec_anc m17: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_anc m17 — повтор 2 отдельно в конце (код 1)
+end rec r34_rec_anc m19: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_anc m19 — повтор 2 отдельно в конце (код 1)
+end rec r34_rec_anc m23: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_anc m23 — повтор 2 отдельно в конце (код 1)
+end rec r34_rec_anc m29: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_anc m29 — повтор 2 отдельно в конце (код 1)
+start rec r34_rec_mir m3 (идёт 1, свободно 7452 МБ)
+start rec r34_rec_mir m7 (идёт 2, свободно 7452 МБ)
+start rec r34_rec_mir m11 (идёт 3, свободно 7452 МБ)
+start rec r34_rec_mir m13 (идёт 4, свободно 7452 МБ)
+guard: недопуск rec r34_rec_mir m17 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:mirage): новое дерево +1000 МБ, резерв для идущих +4000 МБ, свободно 7452 МБ, запас 3195 МБ → остаток 2452 МБ
+end rec r34_rec_mir m3: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_mir m3 — повтор 2 отдельно в конце (код 1)
+end rec r34_rec_mir m7: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_mir m7 — повтор 2 отдельно в конце (код 1)
+end rec r34_rec_mir m11: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_mir m11 — повтор 2 отдельно в конце (код 1)
+end rec r34_rec_mir m13: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_mir m13 — повтор 2 отдельно в конце (код 1)
+start rec r34_rec_mir m17 (идёт 1, свободно 7450 МБ)
+start rec r34_rec_mir m19 (идёт 2, свободно 7450 МБ)
+start rec r34_rec_mir m23 (идёт 3, свободно 7450 МБ)
+start rec r34_rec_mir m29 (идёт 4, свободно 7450 МБ)
+end rec r34_rec_mir m17: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_mir m17 — повтор 2 отдельно в конце (код 1)
+end rec r34_rec_mir m19: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_mir m19 — повтор 2 отдельно в конце (код 1)
+end rec r34_rec_mir m23: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_mir m23 — повтор 2 отдельно в конце (код 1)
+end rec r34_rec_mir m29: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_mir m29 — повтор 2 отдельно в конце (код 1)
+guard: повтор остановленных или упавших матчей: 16 (по одному)
+start rec r34_rec_anc m3 (идёт 1, свободно 7432 МБ)
+guard: недопуск rec r34_rec_anc m7 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1000 МБ, резерв для идущих +1000 МБ, свободно 7431 МБ, запас 3195 МБ → остаток 5431 МБ
+end rec r34_rec_anc m3: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_anc m3 — попыток 3, результата нет (код 1)
+start rec r34_rec_anc m7 (идёт 1, свободно 7486 МБ)
+guard: недопуск rec r34_rec_anc m11 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1000 МБ, резерв для идущих +1000 МБ, свободно 7486 МБ, запас 3195 МБ → остаток 5486 МБ
+end rec r34_rec_anc m7: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_anc m7 — попыток 3, результата нет (код 1)
+start rec r34_rec_anc m11 (идёт 1, свободно 7486 МБ)
+guard: недопуск rec r34_rec_anc m13 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1000 МБ, резерв для идущих +1000 МБ, свободно 7486 МБ, запас 3195 МБ → остаток 5486 МБ
+end rec r34_rec_anc m11: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_anc m11 — попыток 3, результата нет (код 1)
+start rec r34_rec_anc m13 (идёт 1, свободно 7480 МБ)
+guard: недопуск rec r34_rec_anc m17 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1000 МБ, резерв для идущих +1000 МБ, свободно 7480 МБ, запас 3195 МБ → остаток 5480 МБ
+end rec r34_rec_anc m13: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_anc m13 — попыток 3, результата нет (код 1)
+start rec r34_rec_anc m17 (идёт 1, свободно 7504 МБ)
+guard: недопуск rec r34_rec_anc m19 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1000 МБ, резерв для идущих +1000 МБ, свободно 7504 МБ, запас 3195 МБ → остаток 5504 МБ
+end rec r34_rec_anc m17: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_anc m17 — попыток 3, результата нет (код 1)
+start rec r34_rec_anc m19 (идёт 1, свободно 7465 МБ)
+guard: недопуск rec r34_rec_anc m23 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1000 МБ, резерв для идущих +1000 МБ, свободно 7465 МБ, запас 3195 МБ → остаток 5465 МБ
+end rec r34_rec_anc m19: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_anc m19 — попыток 3, результата нет (код 1)
+start rec r34_rec_anc m23 (идёт 1, свободно 7358 МБ)
+guard: недопуск rec r34_rec_anc m29 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1000 МБ, резерв для идущих +1000 МБ, свободно 7358 МБ, запас 3195 МБ → остаток 5358 МБ
+end rec r34_rec_anc m23: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_anc m23 — попыток 3, результата нет (код 1)
+start rec r34_rec_anc m29 (идёт 1, свободно 7350 МБ)
+guard: недопуск rec r34_rec_mir m3 — повтор снятого — идёт один; фактическая память (chromium:mirage): новое дерево +1000 МБ, резерв для идущих +1000 МБ, свободно 7350 МБ, запас 3195 МБ → остаток 5350 МБ
+end rec r34_rec_anc m29: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_anc m29 — попыток 3, результата нет (код 1)
+start rec r34_rec_mir m3 (идёт 1, свободно 7404 МБ)
+guard: недопуск rec r34_rec_mir m7 — повтор снятого — идёт один; фактическая память (chromium:mirage): новое дерево +1000 МБ, резерв для идущих +1000 МБ, свободно 7404 МБ, запас 3195 МБ → остаток 5404 МБ
+end rec r34_rec_mir m3: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_mir m3 — попыток 3, результата нет (код 1)
+start rec r34_rec_mir m7 (идёт 1, свободно 7325 МБ)
+guard: недопуск rec r34_rec_mir m11 — повтор снятого — идёт один; фактическая память (chromium:mirage): новое дерево +1000 МБ, резерв для идущих +1000 МБ, свободно 7325 МБ, запас 3195 МБ → остаток 5325 МБ
+end rec r34_rec_mir m7: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_mir m7 — попыток 3, результата нет (код 1)
+start rec r34_rec_mir m11 (идёт 1, свободно 7233 МБ)
+guard: недопуск rec r34_rec_mir m13 — повтор снятого — идёт один; фактическая память (chromium:mirage): новое дерево +1000 МБ, резерв для идущих +1000 МБ, свободно 7233 МБ, запас 3195 МБ → остаток 5233 МБ
+end rec r34_rec_mir m11: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_mir m11 — попыток 3, результата нет (код 1)
+start rec r34_rec_mir m13 (идёт 1, свободно 7252 МБ)
+guard: недопуск rec r34_rec_mir m17 — повтор снятого — идёт один; фактическая память (chromium:mirage): новое дерево +1000 МБ, резерв для идущих +1000 МБ, свободно 7252 МБ, запас 3195 МБ → остаток 5252 МБ
+end rec r34_rec_mir m13: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_mir m13 — попыток 3, результата нет (код 1)
+start rec r34_rec_mir m17 (идёт 1, свободно 7365 МБ)
+guard: недопуск rec r34_rec_mir m19 — повтор снятого — идёт один; фактическая память (chromium:mirage): новое дерево +1000 МБ, резерв для идущих +1000 МБ, свободно 7364 МБ, запас 3195 МБ → остаток 5364 МБ
+end rec r34_rec_mir m17: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_mir m17 — попыток 3, результата нет (код 1)
+start rec r34_rec_mir m19 (идёт 1, свободно 7386 МБ)
+guard: недопуск rec r34_rec_mir m23 — повтор снятого — идёт один; фактическая память (chromium:mirage): новое дерево +1000 МБ, резерв для идущих +1000 МБ, свободно 7385 МБ, запас 3195 МБ → остаток 5385 МБ
+end rec r34_rec_mir m19: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_mir m19 — попыток 3, результата нет (код 1)
+start rec r34_rec_mir m23 (идёт 1, свободно 7444 МБ)
+guard: недопуск rec r34_rec_mir m29 — повтор снятого — идёт один; фактическая память (chromium:mirage): новое дерево +1000 МБ, резерв для идущих +1000 МБ, свободно 7444 МБ, запас 3195 МБ → остаток 5444 МБ
+end rec r34_rec_mir m23: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_mir m23 — попыток 3, результата нет (код 1)
+start rec r34_rec_mir m29 (идёт 1, свободно 7470 МБ)
+end rec r34_rec_mir m29: код 1, 0 с, пик 23 МБ, процессов до 0, РЕЗУЛЬТАТ НЕГОДЕН
+guard: rec r34_rec_mir m29 — попыток 3, результата нет (код 1)
+all done

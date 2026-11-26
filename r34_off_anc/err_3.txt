@@ -1,0 +1,24 @@
+node:internal/modules/cjs/loader:1568
+  throw err;
+  ^
+
+Error: Cannot find module 'C:actions-runner_worksim-cs2sim-cs2toolsmeasureprogress.js'
+Require stack:
+- internal/preload
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1564:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1118:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1142:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1169:12)
+    at Module._load (node:internal/modules/cjs/loader:1341:5)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)
+    at Module.require (node:internal/modules/cjs/loader:1674:12)
+    at node:internal/modules/cjs/loader:2221:12
+    at loadPreloadModules (node:internal/process/pre_execution:732:5)
+    at initializeModuleLoaders (node:internal/process/pre_execution:244:5) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ 'internal/preload' ]
+}
+
+Node.js v24.21.0
+
+[guard] {"name": "fp r34_off_anc.html m3", "engine": "chromium", "rc": 1, "ok": false, "secs": 0.046000000002095476, "t_start": 1795720073.8841286, "t_end": 1795720073.935641, "peak_mb": 23, "procs_max": 0, "stopped": null, "orphans_killed": 0, "job": true, "par_cap": 8, "running_with": 0, "mem_total_mb": 15977, "mem_avail_mb_after": 7415, "retry": true, "par_req": 8, "par_seen_max": 1, "par_seen_avg": 1.0, "group_limit_mb": 0, "stop_kind": null, "tick_last": null, "progress_reports": 0, "tick_gap_max_s": 0, "cpu_s": null, "page_state": null, "attempt": 3}
