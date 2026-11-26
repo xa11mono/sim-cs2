@@ -261,6 +261,16 @@ class Pool:
         self._spans = []
         self.gaps = {}             # пара движок/карта → наибольший промежуток между отчётами о тиках (с), без первого (запуск, загрузка)
         self.ptmp = tempfile.mkdtemp(prefix='simprog_') if c['progress'] else None; self.nprog = 0
+        # (прогон 336) путь модуля в NODE_OPTIONS — прямыми слешами: Node читает «\» в кавычках как экранирование (C:\a\b → C:ab — модуль не
+        # найден, каждый матч падал при запуске). Перед прогоном — пробный node с этими NODE_OPTIONS: не грузится — без тиков (CPU), не падать
+        self.node_opts = ' --require "%s"' % PROGRESS_JS.replace(os.sep, '/')
+        if self.ptmp:
+            try: ok = subprocess.run(['node', '-e', '0'], env=dict(os.environ, NODE_OPTIONS=(os.environ.get('NODE_OPTIONS', '') + self.node_opts).strip()),
+                                     capture_output=True, text=True, timeout=120)
+            except Exception as ex: ok = ex
+            if not (getattr(ok, 'returncode', 1) == 0):
+                self.log('guard: модуль продвижения не загружается (%s) — тики не отслеживаются, зависание — по CPU' % str(getattr(ok, 'stderr', '') or ok)[:300].replace('\n', ' '))
+                shutil.rmtree(self.ptmp, ignore_errors=True); self.ptmp = None
         self.before = browser_pids(bdir) if bdir else set()
         if self.before:   # (26.11) осиротевшие браузеры прошлого (отменённого) прогона: из папки Playwright, родителя нет — снять; с живым родителем — не трогать
             P0 = procs(); orph = [q for q in self.before if q in P0 and (P0[q][0] not in P0 or P0[q][0] <= 1)]
@@ -472,7 +482,7 @@ class Pool:
             if self.ptmp and t.get('engine', 'chromium') != 'node' and os.path.exists(PROGRESS_JS):   # тики и падение страницы (progress.js)
                 self.nprog += 1; pf = os.path.join(self.ptmp, 'p%d.json' % self.nprog); env = dict(env or os.environ)
                 env.update(SIM_PROGRESS=pf, SIM_PROGRESS_EVERY=str(self.c['progress_every']),
-                           NODE_OPTIONS=(env.get('NODE_OPTIONS', '') + ' --require "%s"' % PROGRESS_JS).strip())
+                           NODE_OPTIONS=(env.get('NODE_OPTIONS', '') + self.node_opts).strip())
             p = subprocess.Popen(cmd, cwd=t.get('cwd'), env=env, stdout=fo, stderr=fe,
                                  stdin=subprocess.PIPE if self.protected else None)
             if self.protected:
@@ -734,7 +744,10 @@ class Pool:
                 self.dgroup = None
             self._spans.clear()
             self._sweep('конец')
-            if self.ptmp and not self.run: shutil.rmtree(self.ptmp, ignore_errors=True); self.ptmp = tempfile.mkdtemp(prefix='simprog_')
+            if self.ptmp and not self.run:
+                for f in os.listdir(self.ptmp):
+                    try: os.remove(os.path.join(self.ptmp, f))
+                    except OSError: pass
             if done:
                 try: os.remove(STATE)
                 except OSError: pass
