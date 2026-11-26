@@ -15,7 +15,7 @@ MAP_FILES = ('map.json', 'navmesh.json', 'map3d.json', 'zones.json', 'walls.json
              'ctshare.json', 'zoneprops.json', 'turnmodel.json', 'postplant.json', 'spawnearly.json', 'ctspots.json')
 # (v512) nadeguess.json — подборы бросков лайнапов, посчитанные заранее (tools/nades/guess_bake.py): в MAP только если отпечаток
 # кода подбора и данных карты (nade_hash) тот же, с которым считали; иначе игра считает их сама во freeze-тайм, как раньше
-NADE_SRC = ('035_', '080_', '360_', '365_', '380_', '385_', '390_', '400_')
+NADE_SRC = ('035', '080', '360', '365', '380', '385', '390', '400')   # (Р4.2а) метки файлов (rebuild/files.json id), чьи тексты входят в хэш подбора гранат
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 MAPS = os.path.join(HERE, '..', 'data', 'maps')
@@ -35,9 +35,10 @@ def map_arg(argv):
 def nade_hash(name):
     import hashlib
     h = hashlib.sha1()
-    g = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'game')
-    for fn in sorted(os.listdir(g)):
-        if fn.startswith(NADE_SRC): h.update(fn.encode()); h.update(open(os.path.join(g, fn), 'rb').read())
+    import gamesrc
+    meta = gamesrc.game_meta()
+    for fn in gamesrc.order():   # порядок списка = прежний порядок имён (Р4.1)
+        if meta[fn]['id'] in NADE_SRC: h.update(fn.encode()); h.update(open(os.path.join(gamesrc.GAME_DIR, fn), 'rb').read())
     d = os.path.join(MAPS, name)
     for fn in sorted(os.listdir(d)):
         if fn.endswith('.json') and not fn.startswith('_') and fn not in NOT_MAP and fn not in ('nadeguess.json', 'demorounds.json', 'turnmodel.json', 'tactics.json'):   # (v571) раунды демок (678) к броскам не относятся; (15.11) модель поворота прицела (510) — тоже: с ней отпечаток не совпадал, и сборка выкидывала подбор бросков во всех прогонах В147 (249–252); (15.11, перестройка) тактики и расстановки (tactics.json) — тоже: подбор хранится по точным входам броска (тип, откуда, куда), а лайнапы — из lineups / pro; правка расстановок CT в v581a устарила подбор Mirage, хотя пересчёт дал те же 312 решений

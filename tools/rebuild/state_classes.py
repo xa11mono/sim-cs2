@@ -22,7 +22,18 @@ CODEX = {'временное состояние раунда': 'раунд', 'в
          'генераторы случайных чисел': 'случайность'}
 ROUND_RESET = {'resetRound'}
 MATCH_RESET = {'newMatch', 'freshMatch', 'matchBegin', 'resetMatchMemory', 'startHalf', 'memStart', 'memRestore'}
-MODES = ('660', '675', '677', '678')   # разминка, повтор, песочница, демо
+# (Р4.2а) часть файла (показ / режим страницы) — из rebuild/files.json «game» (src/gamesrc.py game_meta), а не номер в имени
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'src'))
+import gamesrc
+META = gamesrc.game_meta()
+META_ID = {g['id']: g for g in META.values()}
+def is_show_id(f): g = META_ID.get(f, {}); return g.get('part') in ('show', 'page') and not g.get('mode')   # показ, не режим
+def is_mode_id(f): return bool(META_ID.get(f, {}).get('mode'))                                         # режим страницы
+def is_sim_id(f): return META_ID.get(f, {}).get('part') not in (None, 'show', 'page')                   # симуляция (было: номер < 550)
+def show_only(ws):
+    """пишут только файлы показа, не режимы страницы (разминка, повтор, песочница, демо)"""
+    fs = {w.split(':')[0] for w in ws}
+    return fs and all(META.get(f, {}).get('part') in ('show', 'page') and not META.get(f, {}).get('mode') for f in fs), sorted(META.get(f, {}).get('id', '?') for f in fs)
 # опыт: что меняется за матч (tools/rebuild/state_runtime.js → rebuild/evidence/R3/state_runtime_*.json); «неизменяемое» по правилу —
 # только если не меняется ни в одном опыте (статический разбор не видит записей через другие имена: 25.11 опроверг 5 переменных)
 import glob
@@ -47,7 +58,7 @@ def fns(d):   # {«функция · файл»: n} → [(функция, фай
 
 def rule_global(n, g):
     W = fns(g['w']) + fns(g['m']); wf = {f for _, f in W}; wn = {fn for fn, _ in W}
-    rsim = [f for f in g['r'] if f < '550']
+    rsim = [f for f in g['r'] if is_sim_id(f)]
     if not W:
         if not RUN or any(n not in r['globals'] for r in RUN): return None   # нет в опыте (новая переменная) — опыт её не видел
         ch = changed('globals', n)
@@ -58,16 +69,16 @@ def rule_global(n, g):
         return 'раунд', 'пишет resetRound (%s)' % ', '.join(sorted(f for fn, f in W if fn in ROUND_RESET)), 'раунд (resetRound)'
     if wn & MATCH_RESET:
         return 'матч', 'пишет ' + ', '.join(sorted(fn for fn in wn & MATCH_RESET)) + ', не resetRound', 'матч (' + '/'.join(sorted(wn & MATCH_RESET)) + ')'
-    if all(f >= '550' and not f.startswith(MODES) for f in wf) and not rsim:
+    if all(is_show_id(f) for f in wf) and not rsim:
         return 'показ', 'пишут только файлы показа (%s), симуляция (до 550) не читает' % ', '.join(sorted(wf)), 'показ'
-    if all(f.startswith(MODES) for f in wf) and not rsim:
+    if all(is_mode_id(f) for f in wf) and not rsim:
         return 'режим', 'пишут только режимы (%s), симуляция не читает' % ', '.join(sorted(wf)), 'режим'
     return None
 
 def rule_hidden(n, h):
     """Свойство функции (состояние вне переменных): пишут только файлы показа — показ; остальное — вручную."""
-    wf = {w.split(':')[0][:3] for w in h['w']}
-    if wf and all(f >= '550' and not f.startswith(MODES) for f in wf):
+    so, wf = show_only(h['w'])
+    if so:
         return 'показ', 'свойство функции; пишут только файлы показа (%s)' % ', '.join(sorted(wf)), 'показ'
     return None
 
@@ -79,10 +90,10 @@ def rule_bot(n, b):
         return 'раунд', 'пишет resetRound (%s)' % ', '.join(sorted(w.split(' ')[0] for w in b['w'] if w.endswith(' resetRound'))[:3]), 'раунд (resetRound)'
     if wn & MATCH_RESET:
         return 'матч', 'пишет ' + ', '.join(sorted(wn & MATCH_RESET)) + ', не resetRound', 'матч'
-    wf = {w.split(':')[0][:3] for w in b['w']}
-    if wf and all(f >= '550' and not f.startswith(MODES) for f in wf):
+    so, wf = show_only(b['w']); wf = set(wf)
+    if so:
         return 'показ', 'пишут только файлы показа (%s)' % ', '.join(sorted(wf)), 'показ'
-    if wf and all(f.startswith(MODES) for f in wf):
+    if wf and all(is_mode_id(f) for f in wf):
         return 'режим', 'пишут только режимы (%s)' % ', '.join(sorted(wf)), 'режим'
     V = BV.get(n) or []
     if V and all(re.match(r'obj\{.*\b(round|r)\b', x) for x in V):
@@ -91,7 +102,7 @@ def rule_bot(n, b):
         return 'раунд', 'поле-срок: номер тика (образцы: %s)' % '; '.join(V[:3]), 'по сроку (тик в значении)'
     # пишет симуляция, раундом не сбрасывается, метки нет: живёт до перезаписи; freshMatch удаляет поля, которых не было при загрузке
     # (530:97–100, BOT_INIT), newMatch — нет (вопрос Т-2). Поле без «_» и без образцов — скорее поле другого объекта: не размечается
-    if wf and all(f < '550' for f in wf) and (n.startswith('_') or V):
+    if wf and all(is_sim_id(f) for f in wf) and (n.startswith('_') or V):
         return 'матч', 'пишет симуляция (%s), resetRound не сбрасывает, метки раунда / срока нет%s' % (', '.join(sorted(wf)), '' if V else '; в опыте у ботов не появлялось'), 'до перезаписи; freshMatch удаляет (BOT_INIT), newMatch — нет (Т-2)'
     return None
 

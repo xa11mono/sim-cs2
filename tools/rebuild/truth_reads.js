@@ -11,6 +11,8 @@ const fs = require('fs'), path = require('path');
 const ROOT = path.resolve(__dirname, '..', '..');
 const acorn = require('acorn'), walk = require('acorn-walk');
 const SRC = require('./game_src.js');
+// (Р4.2а) код решений — part decide / engine в rebuild/files.json (было: номера 100–544 в имени)
+const DEC = f => ['decide', 'engine'].includes(SRC.filePart(f));
 const TRUTH = new Set(['x', 'y', 'z', 'baseX', 'baseY', 'hp', 'armor', 'armorHp', 'helmet', 'weapon', 'primary', 'secondary', 'nades', 'nadeTask',
   'post', 'state', 'path', 'pathIdx', 'facing', 'holding', 'crouching', 'walking', 'curSpeed', '_task', 'money', 'kit', 'planting', 'defusing',
   'lookTarget', 'heading', 'tRole', 'role']);
@@ -55,7 +57,7 @@ function brainOf() {
 // точно, иначе по писку с шумом). Функции, достижимые только из ctBrain (сама модель знания — тоже: не заложенная бомба там — точно)
 function bombReads(BR) {
   const out = [];
-  for (const f of SRC.gameFiles().filter(f => /\.(js|ts)$/.test(f))) { if (+f.slice(0, 3) < 100 || +f.slice(0, 3) >= 545) continue; let ast;
+  for (const f of SRC.gameFiles().filter(f => /\.(js|ts)$/.test(f))) { if (!DEC(f)) continue; let ast;
     try { ast = acorn.parse(SRC.readGame(f), { ecmaVersion: 'latest', allowReturnOutsideFunction: true, locations: true }); } catch (e) { continue; }
     walk.simple(ast, { FunctionDeclaration(fd) { const fn = fd.id.name; if (BR(fn) !== 'CT') return;
       const props = new Set(); let line = 0;
@@ -67,7 +69,7 @@ function bombReads(BR) {
 function analyze() {
   const sites = [], BR = brainOf();
   for (const f of SRC.gameFiles().filter(f => /\.(js|ts)$/.test(f))) {
-    const num = f.slice(0, 3); if (+num < 100 || +num >= 545) continue;   // решения: 100–535 (до движка 540 и показа 550+)
+    const num = SRC.fileId(f); if (!DEC(f)) continue;   // решения и движок тика (part decide / engine; rebuild/files.json)
     const src = SRC.readGame(f); let ast;
     try { ast = acorn.parse(src, { ecmaVersion: 'latest', allowReturnOutsideFunction: true, locations: true }); } catch (e) { continue; }
     const consider = (fnNode, p, line, anc, call) => {
@@ -152,7 +154,7 @@ function analyze() {
 // (там поля читаются уже без проверки). Номер — обычно из знания (beliefLast, контакт), а объект — истина. Кто жив (.alive) — открыто (киллфид)
 function teamBotReads() {
   const out = [];
-  for (const f of SRC.gameFiles().filter(f => /\.(js|ts)$/.test(f))) { const num = +f.slice(0, 3); if (num < 100 || num >= 545) continue; let ast;
+  for (const f of SRC.gameFiles().filter(f => /\.(js|ts)$/.test(f))) { if (!DEC(f)) continue; let ast;
     try { ast = acorn.parse(SRC.readGame(f), { ecmaVersion: 'latest', allowReturnOutsideFunction: true, locations: true }); } catch (e) { continue; }
     walk.ancestor(ast, { VariableDeclarator(d, anc) { if (!d.init || d.id.type !== 'Identifier') return; let i = d.init;
       if (i.type === 'ConditionalExpression') i = i.consequent.type === 'CallExpression' ? i.consequent : i.alternate;
@@ -167,12 +169,12 @@ function teamBotReads() {
   }
   return out;
 }
-const key = s => s.file.slice(0, 3) + ':' + s.fn + ':' + s.props.join(',');
+const key = s => SRC.fileId(s.file) + ':' + s.fn + ':' + s.props.join(',');
 // (Р3.2 знание, шаг 2) KnowledgeView только для чтения: запись в знание команды (beliefLast, в т. ч. через kvLast(…)) — только у хозяев
 const KNOW_OWNERS = { beliefLast: ['190', '200', '240'] };
 function knowWrites() {
   const bad = [];
-  for (const f of SRC.gameFiles().filter(f => /\.(js|ts)$/.test(f))) { const num = f.slice(0, 3); let ast;
+  for (const f of SRC.gameFiles().filter(f => /\.(js|ts)$/.test(f))) { const num = SRC.fileId(f); let ast;
     try { ast = acorn.parse(SRC.readGame(f), { ecmaVersion: 'latest', allowReturnOutsideFunction: true, locations: true }); } catch (e) { continue; }
     const root = n => { while (n.type === 'MemberExpression') n = n.object; return n; };
     const hit = (t, line) => { const r = root(t);
@@ -205,7 +207,7 @@ if (require.main === module) {
   if (process.argv.includes('--check')) { const r = check(sites); r.lines.forEach(l => console.log(l)); process.exit(r.bad ? 1 : 0); }
   else {
     console.log('мест ' + sites.length + ' (решения ' + dec.length + ', восприятие ' + (sites.length - dec.length) + ')');
-    dec.forEach(s => console.log(s.file.slice(0, 3) + ':' + s.line + ' ' + s.fn + ' [' + s.kind + '] ' + s.props.join(',')));
+    dec.forEach(s => console.log(SRC.fileId(s.file) + ':' + s.line + ' ' + s.fn + ' [' + s.kind + '] ' + s.props.join(',')));
   }
 }
 module.exports = { analyze, key, check };

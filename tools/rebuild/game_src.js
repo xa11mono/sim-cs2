@@ -33,7 +33,15 @@ function concat(dir = GAME) {
   for (const f of gameFiles(dir)) { const s = readGame(path.join(dir, f)); spans.push([all.length, all.length + s.length, f]); all += s; }
   return { all, spans };
 }
-module.exports = { GAME, SRC_RE, gameFiles, readGame, stripTs, concat };
+// (Р4.2а, 26.11) описание файла игры — rebuild/files.json «game»: id (короткая метка вместо номера в имени), part (page / infra / decide /
+// engine / watch / show), sys (система). Инструменты берут это отсюда, а не из номера в имени файла — переименование (Р4.2б) их не ломает
+let META = null;
+function gameMeta() { if (!META) { META = {}; JSON.parse(fs.readFileSync(path.join(__dirname, "..", "..", "rebuild", "files.json"), "utf8")).game.forEach(g => { META[g.file] = g; }); } return META; }
+const metaOf = f => gameMeta()[path.basename(f)] || { file: path.basename(f), id: "?", part: "?", sys: "?" };
+const fileId = f => metaOf(f).id, filePart = f => metaOf(f).part, fileSys = f => metaOf(f).sys;
+const isCalc = f => /\.(js|ts)$/.test(f) && !["show", "page"].includes(filePart(f));   // код расчёта (DM.*, без показа)
+const isShow = f => ["show", "page"].includes(filePart(f));
+module.exports = { GAME, SRC_RE, gameFiles, readGame, stripTs, concat, gameMeta, fileId, filePart, fileSys, isCalc, isShow };
 
 if (require.main === module) {
   const [cmd, file] = process.argv.slice(2);

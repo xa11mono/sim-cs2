@@ -6,11 +6,11 @@
 const fs = require('fs'), path = require('path');
 const NM = path.join(__dirname, '..', 'rebuild', 'node_modules');
 const acorn = require(path.join(NM, 'acorn')), walk = require(path.join(NM, 'acorn-walk'));
-const { GAME, gameFiles, readGame } = require(path.join(__dirname, '..', 'rebuild', 'game_src.js'));
+const { GAME, gameFiles, readGame, isCalc: calcF, filePart } = require(path.join(__dirname, '..', 'rebuild', 'game_src.js'));
 const [fn] = process.argv.slice(2), CHECK = process.argv.includes('--check');
 const FNS = ['hypot', 'atan2', 'sin', 'cos', 'exp', 'log', 'pow', 'atan', 'acos'];
 if (!FNS.includes(fn)) { console.error('node tools/dmath/replace.js <' + FNS.join('|') + '> [--check]'); process.exit(2); }
-const isCalc = f => /\.(js|ts)$/.test(f) && +f.slice(0, 3) < 550 && f !== '005_dmath.ts';
+const isCalc = f => calcF(f) && filePart(f) !== 'math';   // (Р4.2а) код расчёта, кроме самой DM — rebuild/files.json
 let total = 0; const per = {}, errs = [], outs = {};
 for (const f of gameFiles().filter(isCalc)) {
   const raw = fs.readFileSync(path.join(GAME, f), 'utf8'), src = readGame(f).replace(/@@[A-Z_]+@@/g, m => '0'.padEnd(m.length, ' '));

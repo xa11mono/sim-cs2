@@ -55,6 +55,17 @@ def read_game_file(f):
     return r.stdout
 
 
+def game_meta():
+    """(Р4.2а) описание файлов игры из rebuild/files.json «game»: имя → {id, part, sys} (как tools/rebuild/game_src.js gameMeta)"""
+    import json
+    return {g['file']: g for g in json.load(open(FILES_JSON, encoding='utf-8'))['game']}
+
+
+def file_id(name):
+    """короткая метка файла (вместо номера в имени)"""
+    return game_meta().get(os.path.basename(name), {}).get('id', '?')
+
+
 def module_source():
     """Текст каналов-модулей (по порядку номеров) — для тех, кто ищет переменные игры по исходнику (снимок отметки)."""
     return ''.join(read_game_file(f).decode('utf-8') for f in (x for x in order() if x in set(module_files())))

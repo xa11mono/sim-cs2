@@ -45,16 +45,8 @@ const fnFor = pos => { const n = fnAt(pos); if (n !== "(верх файла)") r
   if (t && /^[^\n]*(\n\s*(\/\/[^\n]*)?)*\s*$/.test(all.slice(pos, t.s))) return t.name; return n; };
 
 // ---- системы: файл → канал (по таблице «Где что» CLAUDE.md §11 и плану фазы 3: взгляд → место → гранаты → бой → ход)
-const SYS = [
-  [/^535/, "ход"], [/^545/, "наблюдение"], [/^495/, "бой"], [/^(365|366|385)/, "гранаты"], [/^035/, "карта и видимость"],
-  [/^(01|02|03|035|04|05)/, "карта и видимость"], [/^06/, "зоны"], [/^07/, "боты, оружие"], [/^08/, "числа BAL"], [/^09/, "игроки, команды"],
-  [/^10/, "место"], [/^11/, "место"], [/^12/, "бомба"], [/^13/, "тактики T, память матча"], [/^14/, "место"], [/^15/, "тактики T"],
-  [/^16/, "тактики T"], [/^17/, "мозг T"], [/^18/, "сейв, ретейк"], [/^(19|20|21|22|23|24)/, "знание и войс"], [/^(25|26|27)/, "взгляд"],
-  [/^28/, "место"], [/^29/, "смоки"], [/^(30|31)/, "роли, про-позиции"], [/^(32|33)/, "эндгейм, клатч, ранний пик"], [/^34/, "мозг CT"],
-  [/^35/, "реакция на контакт"], [/^(36|38|385|39|40|41|42)/, "гранаты"], [/^365/, "гранаты"], [/^366/, "гранаты"], [/^37/, "ход (уровни, лестницы, огонь)"],
-  [/^43/, "взгляд"], [/^44/, "показ"], [/^45/, "бой"], [/^46/, "звук и ситуации"], [/^(47|48|49|495|50|51)/, "бой"], [/^52/, "экономика"],
-  [/^53/, "раунд и стороны"], [/^535/, "ход"], [/^54/, "ход"], [/^545/, "наблюдение"], [/^645/, "наблюдение"], [/^(660|677|678)/, "режимы и инструменты"], [/^[5-9]/, "показ и инструменты"], [/^0/, "разметка"]];   // (17.11) журнал решений — наблюдение; разминка, песочница, демо — режимы игры, не показ
-const sysOf = f => { const n = f.slice(0, 3); for (const [re, s] of SYS) if (re.test(n)) return s; return "?"; };
+// (Р4.2а) системы файлов — поле sys в rebuild/files.json (было: таблица по номерам имён здесь)   // (17.11) журнал решений — наблюдение; разминка, песочница, демо — режимы игры, не показ
+const sysOf = f => GS.fileSys(f);   // (Р4.2а) система файла — rebuild/files.json, а не номер в имени
 
 // ---- 1) реестр решений
 const MARK = /\((?:v\d{3}[a-zа-я0-9]*|В\d{1,3}|[АБГДЖХ]\d{1,3}|\d{1,2}\.\d{1,2}(?:\.\d{2,4})?)[^)]{0,400}\)?/;
@@ -82,7 +74,7 @@ save(path.join(OUT, "registry.json"), JSON.stringify(R, null, 0));
   const multi = Object.entries(byVer).filter(([v, L]) => new Set(L.map(r => r.sys)).size >= 3).sort((a, b) => b[1].length - a[1].length).slice(0, 40);
   md += "\n## Одна версия — в трёх и более системах (кандидаты: одно решение, размазанное по каналам)\n\n| версия | мест | систем | системы |\n|---|---|---|---|\n";
   multi.forEach(([v, L]) => { const ss = [...new Set(L.map(r => r.sys))]; md += "| " + v + " | " + L.length + " | " + ss.length + " | " + ss.join(", ") + " |\n"; });
-  const fnHot = {}; R.forEach(r => { const k = r.fn + " (" + r.file.slice(0, 3) + ")"; fnHot[k] = (fnHot[k] || 0) + 1; });
+  const fnHot = {}; R.forEach(r => { const k = r.fn + " (" + GS.fileId(r.file) + ")"; fnHot[k] = (fnHot[k] || 0) + 1; });
   md += "\n## Функции с больше всего пометками (где решения копятся)\n\n" + Object.entries(fnHot).sort((a, b) => b[1] - a[1]).slice(0, 30).map(([k, n]) => "- `" + k + "` — " + n).join("\n") + "\n";
   save(path.join(OUT, "registry.md"), md);
 }
@@ -109,7 +101,7 @@ for (const { ast, off } of asts) walk.fullAncestor(ast, (n, _st, anc) => {
   const fld = tgt.property.name, pos = n.start + off, fn = fnAt(pos), f = fileAt(pos)[2];
   const objTxt = all.slice(tgt.object.start + off, tgt.object.end + off);
   const FLD = FIELDS.includes(fld);   // (Р3.1) остальные поля — только в реестр состояния (BOTW), в fields.md и проверку владения не идут
-  if (FLD && fld === "phase") { if (!/tt|tac|teamTac|T0|TT/.test(objTxt)) return; (W[fld][fn + " · " + f.slice(0, 3)] = W[fld][fn + " · " + f.slice(0, 3)] || []).push(lineAt(pos)); return; }   // фаза плана T
+  if (FLD && fld === "phase") { if (!/tt|tac|teamTac|T0|TT/.test(objTxt)) return; (W[fld][fn + " · " + GS.fileId(f)] = W[fld][fn + " · " + GS.fileId(f)] || []).push(lineAt(pos)); return; }   // фаза плана T
   const root = tgt.object.type === "Identifier" ? tgt.object.name : rootOf(tgt.object);
   const NONBOT = new Set(["bomb", "it", "S", "RP", "HGT_C", "E", "MAPED", "DEMOV", "SANDBOX"]), BOTN = new Set(["b", "bot", "bt", "sh", "shooter", "target", "vic", "victim", "att", "killer", "mate"]);
   let isBot = !NONBOT.has(root) && (root === "#bot" || /^bots\[/.test(objTxt) || BOTN.has(root));
@@ -124,7 +116,7 @@ for (const { ast, off } of asts) walk.fullAncestor(ast, (n, _st, anc) => {
       pm.set(root, [...props].some(p => BOTP.has(p))); }
     isBot = pm.get(root);
   }
-  const k = fn + " · " + f.slice(0, 3);
+  const k = fn + " · " + GS.fileId(f);
   if (isBot) (BOTW[fld] = BOTW[fld] || []).push(f + ":" + lineAt(pos) + " " + fn);
   if (!FLD) return;
   const T = isBot ? W : WO;
@@ -137,7 +129,7 @@ const BOTN0 = new Set(["b", "bot", "bt", "sh", "shooter", "target", "vic", "vict
 for (const { ast, off } of asts) walk.fullAncestor(ast, (m, _s, anc) => {
   if (m.type !== "MemberExpression" || m.computed || m.property.type !== "Identifier") return;
   const o = m.object, isB = (o.type === "Identifier" && BOTN0.has(o.name)) || (o.type === "MemberExpression" && o.computed && o.object.type === "Identifier" && o.object.name === "bots");
-  if (!isB || BUILTIN.has(m.property.name)) return; const pos = m.start + off; if (+fileAt(pos)[2].slice(0, 3) >= 550) return;   // показ зовёт «b» и не бота
+  if (!isB || BUILTIN.has(m.property.name)) return; const pos = m.start + off; if (GS.isShow(fileAt(pos)[2])) return;   // показ зовёт «b» и не бота
   BOTR[m.property.name] = (BOTR[m.property.name] || 0) + 1;
 });
 // (Р3.1) поля бота, заданные при создании (литерал объекта с полями, какие есть только у бота) — тоже поля бота, даже если потом не пишутся
@@ -191,8 +183,8 @@ for (const { ast, off } of asts) walk.simple(ast, { ObjectExpression(o) {
     const from = fileAt(n.start + main.off)[2], to = HOME[n.name]; if (from === to) return;
     const a = sysOf(from), b = sysOf(to); if (a !== b) { E[a] = E[a] || {}; E[a][b] = (E[a][b] || 0) + 1; }
     if (isSim(from) && SHOW.has(b) && !(OWN._show_marks || []).includes(n.name)) { const k = n.name, w = (p.type === "AssignmentExpression" && p.left === n) || p.type === "UpdateExpression";
-      const x = S2V[k] = S2V[k] || { home: to.slice(0, 3), from: {}, write: false, call: false };
-      x.from[from.slice(0, 3)] = (x.from[from.slice(0, 3)] || 0) + 1; if (w) x.write = true; if (p.type === "CallExpression" && p.callee === n) x.call = true; }
+      const x = S2V[k] = S2V[k] || { home: GS.fileId(to), from: {}, write: false, call: false };
+      x.from[GS.fileId(from)] = (x.from[GS.fileId(from)] || 0) + 1; if (w) x.write = true; if (p.type === "CallExpression" && p.callee === n) x.call = true; }
   });
   const sim2show = Object.entries(S2V).sort((a, b) => Object.values(b[1].from).reduce((s, v) => s + v, 0) - Object.values(a[1].from).reduce((s, v) => s + v, 0));
   if (CHECK) {
@@ -240,7 +232,7 @@ function callOrder(fnName) {
     "Это порядок вызовов в коде, а не замер: что срабатывает в тике — по условиям. Слои фазы 2 (знания → намерения → согласование → исполнители → физика) — в «Устройстве».\n\n";
   const seen = new Set();
   callOrder("stepTick").forEach(c => { const k = c.fn + c.c; if (seen.has(k)) return; seen.add(k);
-    const t = tops.find(x => x.name === c.fn); md += "  ".repeat(c.d) + "- `" + c.fn + "` (" + fileAt(t.s)[2].slice(0, 3) + ")" + (c.c ? " — " + c.c.replace(/\|/g, "/") : "") + "\n"; });
+    const t = tops.find(x => x.name === c.fn); md += "  ".repeat(c.d) + "- `" + c.fn + "` (" + GS.fileId(fileAt(t.s)[2]) + ")" + (c.c ? " — " + c.c.replace(/\|/g, "/") : "") + "\n"; });
   save(path.join(OUT, "tick.md"), md);
 }
 console.log("пометок", R.length, "| полей", FIELDS.map(f => f + ":" + Object.keys(W[f]).length).join(" "), "| функций", tops.length);
@@ -253,7 +245,7 @@ console.log("пометок", R.length, "| полей", FIELDS.map(f => f + ":" 
   if (iife) body = body.concat(iife.expression.callee.body.body);
   const V = {};
   const DECL = {};   // (Р3.1) реестр состояния: где объявлена (файл:строка)
-  body.forEach(st => { if (st.type === "VariableDeclaration") st.declarations.forEach(d => { if (d.id.type === "Identifier") { V[d.id.name] = { home: fileAt(st.start + main.off)[2].slice(0, 3), w: {}, r: {} }; DECL[d.id.name] = { at: where(d.start + main.off), init: d.init ? d.init.type : null, wf: {}, mf: {} }; } }); });
+  body.forEach(st => { if (st.type === "VariableDeclaration") st.declarations.forEach(d => { if (d.id.type === "Identifier") { V[d.id.name] = { home: GS.fileId(fileAt(st.start + main.off)[2]), w: {}, r: {} }; DECL[d.id.name] = { at: where(d.start + main.off), init: d.init ? d.init.type : null, wf: {}, mf: {} }; } }); });
   // (Р3.1) изменение содержимого: X.a = …, X.a++, delete X.a, X.push(…) / splice / set / add / … — запись в объект переменной, не в имя
   const MUT = /^(push|pop|shift|unshift|splice|sort|reverse|fill|copyWithin|set|add|delete|clear)$/;
   const memRoot = e => { while (e && e.type === "MemberExpression") e = e.object; return e && e.type === "Identifier" ? e.name : null; };
@@ -261,7 +253,7 @@ console.log("пометок", R.length, "| полей", FIELDS.map(f => f + ":" 
     if (n.type !== "Identifier" || !V[n.name]) return; const p = anc[anc.length - 2]; if (!p) return;
     if (p.type === "VariableDeclarator" && p.id === n) return;
     if ((p.type === "MemberExpression" && p.property === n && !p.computed) || (p.type === "Property" && p.key === n && !p.computed)) return;
-    const pos = n.start + main.off, f = fileAt(pos)[2].slice(0, 3);
+    const pos = n.start + main.off, f = GS.fileId(fileAt(pos)[2]);
     const isW = (p.type === "AssignmentExpression" && p.left === n) || (p.type === "UpdateExpression");
     const T = isW ? V[n.name].w : V[n.name].r; T[f] = (T[f] || 0) + 1;
     if (isW) { const k = fnAt(pos) + " · " + f; DECL[n.name].wf[k] = (DECL[n.name].wf[k] || 0) + 1; }
@@ -273,7 +265,7 @@ console.log("пометок", R.length, "| полей", FIELDS.map(f => f + ":" 
     else if (n.type === "CallExpression" && n.callee.type === "MemberExpression" && !n.callee.computed && MUT.test(n.callee.property.name)) tgt = n.callee.object;
     if (!tgt || (tgt.type !== "MemberExpression" && n.type !== "CallExpression")) return;
     const r = memRoot(tgt); if (!r || !DECL[r]) return;
-    const pos = n.start + main.off, k = fnAt(pos) + " · " + fileAt(pos)[2].slice(0, 3); DECL[r].mf[k] = (DECL[r].mf[k] || 0) + 1;
+    const pos = n.start + main.off, k = fnAt(pos) + " · " + GS.fileId(fileAt(pos)[2]); DECL[r].mf[k] = (DECL[r].mf[k] || 0) + 1;
   });
   // (Р3.1, 25.11) скрытое состояние на функциях: «функция.свойство = …» / «функция.свойство[…] = …» — у функции верхнего уровня
   // (nadeGuess.rt, simEvIn.h, zoneDijkstra.quiet…): снимок переменных его не видит; в реестр — строкой «h:функция.свойство»
@@ -331,7 +323,7 @@ if (CHECK) {
   files.filter(f => FL.indexOf(f) < 0).forEach(f => G.push("новый файл " + f + " — без согласия владельца нельзя (rebuild/files.json, ARCHITECTURE.md); код — в файл своей механики"));
   const LK = OWN._locks || {};
   spans.forEach(([a, b, f]) => { const t = all.slice(a, b); for (const m of t.matchAll(/\b\w+\.(_[A-Za-z]*Until)\s*=[^=]/g)) {
-    const n = m[1], ff = f.slice(0, 3); if (!LK[n]) G.push("новый замок " + n + " (" + f + ") — срок решения держит хозяин канала, а не свой таймер");
+    const n = m[1], ff = GS.fileId(f); if (!LK[n]) G.push("новый замок " + n + " (" + f + ") — срок решения держит хозяин канала, а не свой таймер");
     else if (LK[n].indexOf(ff) < 0) G.push("замок " + n + " пишет новый файл " + f + " — через интерфейс хозяина"); } });
   const seen = {}; tops.forEach(t => { const f = fileAt(t.s)[2]; if (seen[t.name] && seen[t.name] !== f) G.push("функция " + t.name + " — в двух файлах: " + seen[t.name] + " и " + f); else seen[t.name] = f; });
   VARS_CROSS.forEach(([k]) => { if (!(VARS_CATS[k] && VARS_CATS[k].cat)) G.push("общая переменная " + k + " пишется из чужого файла — сначала категория и хозяин (rebuild/var_cats.json) или интерфейс у хозяина"); });
@@ -344,7 +336,7 @@ if (CHECK) {
     for (let i = 0; i + 2 < toks.length; i++) {
       if (toks[i].type.label !== "name" || toks[i].value !== "Math" || toks[i + 1].type.label !== "." || !APPROX.test(String(toks[i + 2].value))) continue;
       const pos = b.off + toks[i].start, f = fileAt(pos)[2];
-      if (+f.slice(0, 3) < 550 && f !== "005_dmath.ts") G.push("Math." + toks[i + 2].value + " в коде расчёта (" + where(pos) + ") — только DM." + toks[i + 2].value + " (src/game/005_dmath.ts, Р2)");
+      if (GS.isCalc(f) && GS.filePart(f) !== "math") G.push("Math." + toks[i + 2].value + " в коде расчёта (" + where(pos) + ") — только DM." + toks[i + 2].value + " (src/game/005_dmath.ts, Р2)");
     }
   }
   if (G.length) { G.forEach(g => console.error("ОШИБКА устройства: " + g)); process.exit(1); }
