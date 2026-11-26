@@ -571,7 +571,7 @@
   {
    "file": "voice-console.js",
    "id": "voice-console",
-   "part": "decide",
+   "part": "show",
    "sys": "показ",
    "dir": "view/hud",
    "legacy": "440"
@@ -794,7 +794,7 @@
   {
    "file": "trace.js",
    "id": "trace",
-   "part": "show",
+   "part": "watch",
    "sys": "наблюдение",
    "dir": "engine/debug",
    "legacy": "645"

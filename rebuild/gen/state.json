@@ -444,9 +444,11 @@
    "snap": true
   },
   "BOT_INIT": {
-   "decl": "app.js:285",
-   "init": "CallExpression",
-   "w": {},
+   "decl": "round.js:247",
+   "init": "Literal",
+   "w": {
+    "coreLoadEnd · round": 1
+   },
    "m": {},
    "r": {
     "round": 1
@@ -9808,7 +9810,7 @@
     "makeTeam · weapons-bots": 2
    },
    "r": {
-    "app": 2,
+    "app": 1,
     "assist": 7,
     "belief": 4,
     "bomb": 14,
@@ -9854,7 +9856,7 @@
     "replay-play": 12,
     "roles": 9,
     "rosters": 3,
-    "round": 13,
+    "round": 14,
     "sandbox": 7,
     "save-retake": 11,
     "scoreboard": 6,
@@ -14806,7 +14808,7 @@
     "move.js:109 moveWalkTick"
    ],
    "lit": [],
-   "r": 1
+   "r": 3
   },
   "_safeRotK": {
    "w": [
@@ -15123,7 +15125,7 @@
     "tick.js:381 stepBot"
    ],
    "lit": [],
-   "r": 4
+   "r": 6
   },
   "_stuckResets": {
    "w": [
@@ -15345,7 +15347,7 @@
     "move.js:109 moveWalkTick"
    ],
    "lit": [],
-   "r": 2
+   "r": 3
   },
   "_wv": {
    "w": [
@@ -15376,7 +15378,7 @@
    "lit": [
     "weapons-bots.js:82"
    ],
-   "r": 129
+   "r": 130
   },
   "ammo": {
    "w": [
@@ -15892,7 +15894,7 @@
     "round.js:2",
     "weapons-bots.js:82"
    ],
-   "r": 623
+   "r": 626
   },
   "kills": {
    "w": [
@@ -16012,7 +16014,7 @@
     "look-arbiter.js:182 lookApply"
    ],
    "lit": [],
-   "r": 18
+   "r": 19
   },
   "lookTarget": {
    "w": [
@@ -16717,7 +16719,7 @@
    "lit": [
     "weapons-bots.js:82"
    ],
-   "r": 19
+   "r": 20
   },
   "weapon": {
    "w": [

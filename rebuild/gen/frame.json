@@ -1,194 +1,148 @@
 {
- "_": "генерируется tools/rebuild/frame_contract.js (Р5.1): reads — общие переменные симуляции, которые читает показ (состав Frame); bot — поля бота, которые читает показ (с запасом); calls / writes — команды показа к симуляции (вызов функции симуляции / запись её переменной); reads.frame — «загрузка» (неизменяемое / вход / кэш по реестру состояния) или «кадр»; calls.kind — пишет ли функция поле / переменную симуляции сама (rebuild/gen/state.json)",
+ "_": "генерируется tools/rebuild/frame_contract.js (Р5.1): reads — общие переменные симуляции, которые читает показ (состав Frame); bot — поля бота, которые читает показ (с запасом); calls / writes — команды показа к симуляции (вызов функции симуляции / запись её переменной)",
  "reads": {
   "ACCEL": {
    "from": "weapons-bots.js",
    "by": [
     "warmup"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "AIM_TURN_RATE": {
    "from": "weapons-bots.js",
    "by": [
     "warmup"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "ARMOR_PRICE": {
    "from": "economy.js",
    "by": [
     "scoreboard"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "BAL": {
    "from": "tuning.js",
    "by": [
     "replay"
-   ],
-   "class": "вход",
-   "frame": "загрузка"
+   ]
   },
   "BOMB_DMG": {
    "from": "bomb.js",
    "by": [
     "draw"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "BOMB_TICKS": {
    "from": "bomb.js",
    "by": [
     "demo",
     "replay-play"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "BUILTIN_OFF": {
    "from": "lineups.js",
    "by": [
     "app",
     "lineup-editor"
-   ],
-   "class": "вход",
-   "frame": "загрузка"
+   ]
   },
   "BUY_SHOW": {
    "from": "economy.js",
    "by": [
     "scoreboard"
-   ],
-   "class": "показ",
-   "frame": "кадр"
+   ]
   },
   "BUY_SHOW_FIRST": {
    "from": "economy.js",
    "by": [
     "scoreboard"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "BUY_SHOW_GAP": {
    "from": "economy.js",
    "by": [
     "scoreboard"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "BZ": {
    "from": "reach.js",
    "by": [
     "look-debug"
-   ],
-   "class": "кэш",
-   "frame": "загрузка"
+   ]
   },
   "CLEARZ": {
    "from": "lurker.js",
    "by": [
     "draw"
-   ],
-   "class": "раунд",
-   "frame": "кадр"
+   ]
   },
   "CONE_R": {
    "from": "fov.js",
    "by": [
     "draw"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "COV_C": {
    "from": "walls-heights-cover.js",
    "by": [
     "map-cover"
-   ],
-   "class": "кэш",
-   "frame": "загрузка"
+   ]
   },
   "COV_CAT": {
    "from": "walls-heights-cover.js",
    "by": [
     "map-cover",
     "map-heights"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "COV_OWN": {
    "from": "walls-heights-cover.js",
    "by": [
     "map-cover"
-   ],
-   "class": "вход",
-   "frame": "загрузка"
+   ]
   },
   "COV_OWN_CODE": {
    "from": "walls-heights-cover.js",
    "by": [
     "map-cover"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "CTSET_DBG": {
    "from": "ct-setup.js",
    "by": [
     "team"
-   ],
-   "class": "диагностика",
-   "frame": "кадр"
+   ]
   },
   "CT_SHARE": {
    "from": "ct-setup.js",
    "by": [
     "team"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "CT_SPAWN": {
    "from": "zone-danger.js",
    "by": [
     "warmup"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "DEFUSE_KIT_TICKS": {
    "from": "bomb.js",
    "by": [
     "draw",
     "replay"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "DEFUSE_TICKS": {
    "from": "bomb.js",
    "by": [
     "draw",
     "replay"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "FOV_DEG": {
    "from": "fov.js",
    "by": [
     "draw"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "FREEZE_FX": {
    "from": "economy.js",
@@ -196,179 +150,135 @@
     "draw",
     "replay-play",
     "scoreboard"
-   ],
-   "class": "раунд",
-   "frame": "кадр"
+   ]
   },
   "GEO": {
    "from": "sites-spots.js",
    "by": [
     "timeout"
-   ],
-   "class": "кэш",
-   "frame": "загрузка"
+   ]
   },
   "GOAL_NAME": {
    "from": "economy.js",
    "by": [
     "killfeed",
     "team"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "GUN_HEAR_OPEN": {
    "from": "weapons-bots.js",
    "by": [
     "demo"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "GUN_HEAR_WALL": {
    "from": "weapons-bots.js",
    "by": [
     "demo"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "HALF_ROUNDS": {
    "from": "economy.js",
    "by": [
     "killfeed"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "HEIGHTS": {
    "from": "walls-heights-cover.js",
    "by": [
     "map-heights"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "HELMET_UPGRADE": {
    "from": "economy.js",
    "by": [
     "scoreboard"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "HGT_AUTO": {
    "from": "walls-heights-cover.js",
    "by": [
     "map-heights"
-   ],
-   "class": "вход",
-   "frame": "загрузка"
+   ]
   },
   "HGT_OWN": {
    "from": "walls-heights-cover.js",
    "by": [
     "map-heights"
-   ],
-   "class": "вход",
-   "frame": "загрузка"
+   ]
   },
   "HGT_OWN_CODE": {
    "from": "walls-heights-cover.js",
    "by": [
     "map-heights"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "HL": {
    "from": "highlights.js",
    "by": [
     "app",
     "view3d-frame"
-   ],
-   "class": "вход",
-   "frame": "загрузка"
+   ]
   },
   "HL_KEY": {
    "from": "highlights.js",
    "by": [
     "app"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "JUMP_UP": {
    "from": "levels.js",
    "by": [
     "draw"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "KF_DIRTY": {
    "from": "journal.js",
    "by": [
     "app"
-   ],
-   "class": "показ",
-   "frame": "кадр"
+   ]
   },
   "KNOW_POSITIONS": {
    "from": "knowledge.js",
    "by": [
     "warmup"
-   ],
-   "class": "кэш",
-   "frame": "загрузка"
+   ]
   },
   "LOG_DIRTY": {
    "from": "journal.js",
    "by": [
     "app"
-   ],
-   "class": "показ",
-   "frame": "кадр"
+   ]
   },
   "LOOKDBG": {
    "from": "look-arbiter.js",
    "by": [
     "look-debug"
-   ],
-   "class": "диагностика",
-   "frame": "кадр"
+   ]
   },
   "LOSS_BONUS": {
    "from": "economy.js",
    "by": [
     "killfeed"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "LU_TRIG": {
    "from": "lineups.js",
    "by": [
     "lineup-editor"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "LU_TYPE": {
    "from": "lineups.js",
    "by": [
     "lineup-editor"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "MANUAL_WALLS": {
    "from": "walls-heights-cover.js",
    "by": [
     "draw"
-   ],
-   "class": "вход",
-   "frame": "загрузка"
+   ]
   },
   "MAP": {
    "from": "zones.js",
@@ -379,9 +289,7 @@
     "map-heights",
     "map-walls",
     "nav-zones"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "NADE": {
    "from": "smoke.js",
@@ -391,9 +299,7 @@
     "observer",
     "scoreboard",
     "view3d-frame"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "NAVAREAS": {
    "from": "zones.js",
@@ -403,9 +309,7 @@
     "observer",
     "sandbox",
     "view3d"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "NAV_BLOCKED": {
    "from": "paths.js",
@@ -413,51 +317,39 @@
     "draw",
     "sandbox",
     "view3d"
-   ],
-   "class": "кэш",
-   "frame": "загрузка"
+   ]
   },
   "NAV_BOUNDARY_SEGS_RAW": {
    "from": "zones.js",
    "by": [
     "draw",
     "nav-zones"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "NAV_GRID": {
    "from": "navmesh.js",
    "by": [
     "sandbox"
-   ],
-   "class": "кэш",
-   "frame": "загрузка"
+   ]
   },
   "NAV_GRID_C": {
    "from": "navmesh.js",
    "by": [
     "sandbox"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "NICKS": {
    "from": "tuning.js",
    "by": [
     "replay",
     "replay-play"
-   ],
-   "class": "матч",
-   "frame": "кадр"
+   ]
   },
   "OPP": {
    "from": "tactics.js",
    "by": [
     "app"
-   ],
-   "class": "постоянная память",
-   "frame": "кадр"
+   ]
   },
   "P": {
    "from": "flight.js",
@@ -473,75 +365,57 @@
     "timeout",
     "view3d",
     "warmup"
-   ],
-   "class": "?",
-   "frame": "кадр"
+   ]
   },
   "PLANT_TICKS": {
    "from": "bomb.js",
    "by": [
     "draw",
     "replay"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "PROB": {
    "from": "problem-watch.js",
    "by": [
     "draw"
-   ],
-   "class": "диагностика",
-   "frame": "кадр"
+   ]
   },
   "PROB_SHOW_SEC": {
    "from": "problem-watch.js",
    "by": [
     "draw"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "REACH": {
    "from": "reach.js",
    "by": [
     "look-debug"
-   ],
-   "class": "раунд",
-   "frame": "кадр"
+   ]
   },
   "ROAM_RECHECK_TICKS": {
    "from": "weapons-bots.js",
    "by": [
     "draw"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "ROAM_ROUTES": {
    "from": "weapons-bots.js",
    "by": [
     "draw"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "ROLE_LABEL": {
    "from": "tuning.js",
    "by": [
     "killfeed"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "ROUND_RESTART_DELAY_SEC": {
    "from": "economy.js",
    "by": [
     "replay",
     "scoreboard"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "ROUND_TIME_SEC": {
    "from": "economy.js",
@@ -549,34 +423,26 @@
     "draw",
     "scoreboard",
     "team"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "ROUND_TYPE_LABEL": {
    "from": "economy.js",
    "by": [
     "killfeed"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "SERIES": {
    "from": "journal.js",
    "by": [
     "app",
     "scoreboard"
-   ],
-   "class": "серия",
-   "frame": "кадр"
+   ]
   },
   "SHOW_Q": {
    "from": "journal.js",
    "by": [
     "app"
-   ],
-   "class": "показ",
-   "frame": "кадр"
+   ]
   },
   "SIDE_TEAM": {
    "from": "rosters.js",
@@ -584,9 +450,7 @@
     "replay",
     "replay-play",
     "scoreboard"
-   ],
-   "class": "матч",
-   "frame": "кадр"
+   ]
   },
   "SITES": {
    "from": "sites-spots.js",
@@ -595,65 +459,49 @@
     "nav-zones",
     "observer",
     "timeout"
-   ],
-   "class": "кэш",
-   "frame": "загрузка"
+   ]
   },
   "SMOKE_HOLE": {
    "from": "smoke.js",
    "by": [
     "draw"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "SPD_K": {
    "from": "tuning.js",
    "by": [
     "look-debug"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "SPEED": {
    "from": "weapons-bots.js",
    "by": [
     "warmup"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "TACT_DBG": {
    "from": "tactics.js",
    "by": [
     "team"
-   ],
-   "class": "диагностика",
-   "frame": "кадр"
+   ]
   },
   "TAC_TEMPO": {
    "from": "tactics.js",
    "by": [
     "killfeed"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "TAC_TEMPO_NAME": {
    "from": "tactics.js",
    "by": [
     "killfeed"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "TEAM_LOG": {
    "from": "journal.js",
    "by": [
     "team"
-   ],
-   "class": "диагностика",
-   "frame": "кадр"
+   ]
   },
   "TEAM_LOGO": {
    "from": "rosters.js",
@@ -661,9 +509,7 @@
     "replay",
     "scoreboard",
     "timeout"
-   ],
-   "class": "матч",
-   "frame": "кадр"
+   ]
   },
   "TEAM_NAME": {
    "from": "rosters.js",
@@ -673,9 +519,7 @@
     "replay",
     "scoreboard",
     "team"
-   ],
-   "class": "матч",
-   "frame": "кадр"
+   ]
   },
   "TICK_HZ": {
    "from": "tick.js",
@@ -694,9 +538,7 @@
     "view3d",
     "view3d-frame",
     "warmup"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "TICK_MS": {
    "from": "tick.js",
@@ -706,52 +548,40 @@
     "replay-play",
     "sandbox",
     "view3d-frame"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "TO_LAST": {
    "from": "tactics.js",
    "by": [
     "timeout"
-   ],
-   "class": "матч",
-   "frame": "кадр"
+   ]
   },
   "TO_NOW": {
    "from": "tactics.js",
    "by": [
     "timeout",
     "view3d"
-   ],
-   "class": "матч",
-   "frame": "кадр"
+   ]
   },
   "TRACER_STYLE": {
    "from": "items.js",
    "by": [
     "draw"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "T_SPAWN": {
    "from": "zone-danger.js",
    "by": [
     "timeout",
     "warmup"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "USER_LINEUPS": {
    "from": "lineups.js",
    "by": [
     "app",
     "lineup-editor"
-   ],
-   "class": "вход",
-   "frame": "загрузка"
+   ]
   },
   "USER_ZONES": {
    "from": "zone-danger.js",
@@ -760,107 +590,81 @@
     "draw",
     "lineup-editor",
     "nav-zones"
-   ],
-   "class": "вход",
-   "frame": "загрузка"
+   ]
   },
   "VIS": {
    "from": "vision.js",
    "by": [
     "look-debug"
-   ],
-   "class": "кэш",
-   "frame": "загрузка"
+   ]
   },
   "VIS_CELL": {
    "from": "vision.js",
    "by": [
     "look-debug"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "VIS_FLOOR_EPS": {
    "from": "vision.js",
    "by": [
     "look-debug"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "VIS_GEN": {
    "from": "vision.js",
    "by": [
     "look-debug"
-   ],
-   "class": "кэш",
-   "frame": "загрузка"
+   ]
   },
   "VOICE_DIRTY": {
    "from": "journal.js",
    "by": [
     "app"
-   ],
-   "class": "показ",
-   "frame": "кадр"
+   ]
   },
   "WALLS_SIG": {
    "from": "walls-heights-cover.js",
    "by": [
     "look-debug"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "WALL_POLYS": {
    "from": "walls-heights-cover.js",
    "by": [
     "app",
     "map-walls"
-   ],
-   "class": "вход",
-   "frame": "загрузка"
+   ]
   },
   "WALL_POLYS_CODE": {
    "from": "walls-heights-cover.js",
    "by": [
     "map-walls"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "WB_C": {
    "from": "walls-heights-cover.js",
    "by": [
     "map-wallbang"
-   ],
-   "class": "кэш",
-   "frame": "загрузка"
+   ]
   },
   "WB_MAT": {
    "from": "walls-heights-cover.js",
    "by": [
     "map-cover",
     "map-wallbang"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "WB_OWN": {
    "from": "walls-heights-cover.js",
    "by": [
     "map-wallbang"
-   ],
-   "class": "вход",
-   "frame": "загрузка"
+   ]
   },
   "WB_OWN_CODE": {
    "from": "walls-heights-cover.js",
    "by": [
     "map-wallbang"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "WEAPONS": {
    "from": "weapons-bots.js",
@@ -872,9 +676,7 @@
     "replay-play",
     "scoreboard",
     "warmup"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "ZONEMAP": {
    "from": "zones.js",
@@ -884,65 +686,49 @@
     "nav-zones",
     "timeout",
     "view3d"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "ZONE_CENTROIDS": {
    "from": "zone-danger.js",
    "by": [
     "lineup-editor"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "ZONE_DANGER": {
    "from": "zone-danger.js",
    "by": [
     "draw"
-   ],
-   "class": "кэш",
-   "frame": "загрузка"
+   ]
   },
   "ZONE_DANGER_LINE": {
    "from": "zone-danger.js",
    "by": [
     "draw"
-   ],
-   "class": "кэш",
-   "frame": "загрузка"
+   ]
   },
   "ZONE_DANGER_W": {
    "from": "zone-danger.js",
    "by": [
     "draw"
-   ],
-   "class": "кэш",
-   "frame": "загрузка"
+   ]
   },
   "ZONE_KIND_COLORS": {
    "from": "zone-danger.js",
    "by": [
     "draw"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "ZONE_KIND_LABELS": {
    "from": "zone-danger.js",
    "by": [
     "draw"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "ZONE_LAYER_BASELINE": {
    "from": "zones.js",
    "by": [
     "nav-zones"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "ZONE_NAMES": {
    "from": "intel.js",
@@ -950,34 +736,26 @@
     "app",
     "lineup-editor",
     "timeout"
-   ],
-   "class": "вход",
-   "frame": "загрузка"
+   ]
   },
   "ZONE_SAMPLES": {
    "from": "zone-danger.js",
    "by": [
     "draw"
-   ],
-   "class": "кэш",
-   "frame": "загрузка"
+   ]
   },
   "ZONE_SHAPES": {
    "from": "zones.js",
    "by": [
     "app",
     "lineup-editor"
-   ],
-   "class": "вход",
-   "frame": "загрузка"
+   ]
   },
   "ZONE_SHAPES_KEY": {
    "from": "zones.js",
    "by": [
     "lineup-editor"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   },
   "accumulator": {
    "from": "tick.js",
@@ -986,17 +764,13 @@
     "draw",
     "replay-play",
     "view3d-frame"
-   ],
-   "class": "показ",
-   "frame": "кадр"
+   ]
   },
   "beliefLast": {
    "from": "reach.js",
    "by": [
     "draw"
-   ],
-   "class": "раунд",
-   "frame": "кадр"
+   ]
   },
   "bomb": {
    "from": "bomb.js",
@@ -1011,9 +785,7 @@
     "scoreboard",
     "team",
     "view3d-frame"
-   ],
-   "class": "раунд",
-   "frame": "кадр"
+   ]
   },
   "bots": {
    "from": "weapons-bots.js",
@@ -1034,9 +806,7 @@
     "view3d",
     "view3d-frame",
     "warmup"
-   ],
-   "class": "матч",
-   "frame": "кадр"
+   ]
   },
   "clutchInfo": {
    "from": "journal.js",
@@ -1044,9 +814,7 @@
     "killfeed",
     "replay",
     "scoreboard"
-   ],
-   "class": "раунд",
-   "frame": "кадр"
+   ]
   },
   "fires": {
    "from": "smoke.js",
@@ -1057,9 +825,7 @@
     "replay",
     "replay-play",
     "view3d-frame"
-   ],
-   "class": "раунд",
-   "frame": "кадр"
+   ]
   },
   "groundItems": {
    "from": "items.js",
@@ -1067,9 +833,7 @@
     "draw",
     "replay",
     "replay-play"
-   ],
-   "class": "раунд",
-   "frame": "кадр"
+   ]
   },
   "groundWeapons": {
    "from": "items.js",
@@ -1077,18 +841,14 @@
     "draw",
     "replay",
     "replay-play"
-   ],
-   "class": "раунд",
-   "frame": "кадр"
+   ]
   },
   "killfeed": {
    "from": "ct-setup.js",
    "by": [
     "killfeed",
     "replay"
-   ],
-   "class": "раунд",
-   "frame": "кадр"
+   ]
   },
   "matchNum": {
    "from": "economy.js",
@@ -1098,9 +858,7 @@
     "replay",
     "replay-play",
     "scoreboard"
-   ],
-   "class": "матч",
-   "frame": "кадр"
+   ]
   },
   "nadeFx": {
    "from": "smoke.js",
@@ -1109,9 +867,7 @@
     "replay",
     "replay-play",
     "view3d-frame"
-   ],
-   "class": "показ",
-   "frame": "кадр"
+   ]
   },
   "nadesInAir": {
    "from": "smoke.js",
@@ -1122,9 +878,7 @@
     "replay-play",
     "view3d",
     "view3d-frame"
-   ],
-   "class": "раунд",
-   "frame": "кадр"
+   ]
   },
   "navAnchors": {
    "from": "zones.js",
@@ -1133,9 +887,7 @@
     "draw",
     "lineup-editor",
     "nav-zones"
-   ],
-   "class": "вход",
-   "frame": "загрузка"
+   ]
   },
   "navTransform": {
    "from": "zones.js",
@@ -1143,9 +895,7 @@
     "app",
     "lineup-editor",
     "nav-zones"
-   ],
-   "class": "вход",
-   "frame": "загрузка"
+   ]
   },
   "nowTs": {
    "from": "items.js",
@@ -1157,9 +907,7 @@
     "replay-play",
     "team",
     "view3d-frame"
-   ],
-   "class": "показ",
-   "frame": "кадр"
+   ]
   },
   "paused": {
    "from": "tick.js",
@@ -1168,9 +916,7 @@
     "replay",
     "scoreboard",
     "view3d"
-   ],
-   "class": "показ",
-   "frame": "кадр"
+   ]
   },
   "roundEndTime": {
    "from": "economy.js",
@@ -1178,9 +924,7 @@
     "draw",
     "replay",
     "scoreboard"
-   ],
-   "class": "матч",
-   "frame": "кадр"
+   ]
   },
   "roundNum": {
    "from": "economy.js",
@@ -1194,17 +938,13 @@
     "team",
     "timeout",
     "view3d"
-   ],
-   "class": "матч",
-   "frame": "кадр"
+   ]
   },
   "roundStartTick": {
    "from": "ct-setup.js",
    "by": [
     "team"
-   ],
-   "class": "раунд",
-   "frame": "кадр"
+   ]
   },
   "roundStartTime": {
    "from": "economy.js",
@@ -1214,9 +954,7 @@
     "scoreboard",
     "team",
     "timeout"
-   ],
-   "class": "раунд",
-   "frame": "кадр"
+   ]
   },
   "roundState": {
    "from": "economy.js",
@@ -1231,9 +969,7 @@
     "team",
     "timeout",
     "view3d"
-   ],
-   "class": "раунд",
-   "frame": "кадр"
+   ]
   },
   "score": {
    "from": "economy.js",
@@ -1242,9 +978,7 @@
     "killfeed",
     "replay",
     "scoreboard"
-   ],
-   "class": "матч",
-   "frame": "кадр"
+   ]
   },
   "simTime": {
    "from": "ct-setup.js",
@@ -1257,9 +991,7 @@
     "scoreboard",
     "team",
     "timeout"
-   ],
-   "class": "матч",
-   "frame": "кадр"
+   ]
   },
   "smokes": {
    "from": "smoke.js",
@@ -1271,35 +1003,27 @@
     "replay",
     "replay-play",
     "view3d-frame"
-   ],
-   "class": "раунд",
-   "frame": "кадр"
+   ]
   },
   "soundPings": {
    "from": "items.js",
    "by": [
     "draw",
     "replay-play"
-   ],
-   "class": "показ",
-   "frame": "кадр"
+   ]
   },
   "teamEco": {
    "from": "economy.js",
    "by": [
     "killfeed",
     "team"
-   ],
-   "class": "матч",
-   "frame": "кадр"
+   ]
   },
   "teamIntel": {
    "from": "intel.js",
    "by": [
     "draw"
-   ],
-   "class": "раунд",
-   "frame": "кадр"
+   ]
   },
   "teamTac": {
    "from": "tactics.js",
@@ -1310,9 +1034,7 @@
     "observer",
     "replay-play",
     "team"
-   ],
-   "class": "раунд",
-   "frame": "кадр"
+   ]
   },
   "tick": {
    "from": "tick.js",
@@ -1333,9 +1055,7 @@
     "view3d",
     "view3d-frame",
     "warmup"
-   ],
-   "class": "матч",
-   "frame": "кадр"
+   ]
   },
   "tracers": {
    "from": "items.js",
@@ -1344,25 +1064,19 @@
     "replay",
     "replay-play",
     "view3d-frame"
-   ],
-   "class": "показ",
-   "frame": "кадр"
+   ]
   },
   "voiceLines": {
    "from": "journal.js",
    "by": [
     "replay"
-   ],
-   "class": "раунд",
-   "frame": "кадр"
+   ]
   },
   "zoneGraph": {
    "from": "navmesh.js",
    "by": [
     "draw"
-   ],
-   "class": "кэш",
-   "frame": "загрузка"
+   ]
   },
   "zoneLayer": {
    "from": "zones.js",
@@ -1370,17 +1084,13 @@
     "app",
     "lineup-editor",
     "nav-zones"
-   ],
-   "class": "вход",
-   "frame": "загрузка"
+   ]
   },
   "zonesById": {
    "from": "navmesh.js",
    "by": [
     "draw"
-   ],
-   "class": "неизменяемое",
-   "frame": "загрузка"
+   ]
   }
  },
  "fnReads": {
@@ -1589,110 +1299,95 @@
    "from": "look-threat.js",
    "by": [
     "observer"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "aliveCount": {
    "from": "intel.js",
    "by": [
     "killfeed",
     "team"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "allLineups": {
    "from": "lineups.js",
    "by": [
     "lineup-editor"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "applyDamage": {
    "from": "damage.js",
    "by": [
     "demo"
-   ],
-   "kind": "меняет симуляцию"
+   ]
   },
   "applyNavTransform": {
    "from": "zones.js",
    "by": [
     "lineup-editor"
-   ],
-   "kind": "меняет симуляцию"
+   ]
   },
   "applyUserZones": {
    "from": "zone-danger.js",
    "by": [
     "lineup-editor",
     "nav-zones"
-   ],
-   "kind": "меняет симуляцию"
+   ]
   },
   "applyWalls": {
    "from": "walls-heights-cover.js",
    "by": [
     "map-walls"
-   ],
-   "kind": "меняет симуляцию"
+   ]
   },
   "applyZoneLayer": {
    "from": "zone-danger.js",
    "by": [
     "lineup-editor",
     "nav-zones"
-   ],
-   "kind": "меняет симуляцию"
+   ]
   },
   "applyZoneLayerToData": {
    "from": "zones.js",
    "by": [
     "lineup-editor"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "areaHas": {
    "from": "smoke.js",
    "by": [
     "draw"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "beliefZoneKnown": {
    "from": "look-threat.js",
    "by": [
     "look-debug"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "bombTimeLeftTicks": {
    "from": "bomb.js",
    "by": [
     "observer"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "buildWaypointPath": {
    "from": "path-search.js",
    "by": [
     "view3d",
     "warmup"
-   ],
-   "kind": "меняет симуляцию"
+   ]
   },
   "builtinAllowed": {
    "from": "lineups.js",
    "by": [
     "lineup-editor"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "builtinLineups": {
    "from": "lineups.js",
    "by": [
     "lineup-editor"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "calloutName": {
    "from": "intel.js",
@@ -1701,52 +1396,45 @@
     "map-wallbang",
     "nav-zones",
     "sandbox"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "centroidOf": {
    "from": "rosters.js",
    "by": [
     "draw",
     "timeout"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "cl0save": {
    "from": "save-retake.js",
    "by": [
     "killfeed"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "clearPost": {
    "from": "task.js",
    "by": [
     "sandbox"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "climbPhase": {
    "from": "levels.js",
    "by": [
     "draw"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "clockAcc": {
    "from": "tick.js",
    "by": [
     "app",
     "replay-play"
-   ],
-   "kind": "меняет симуляцию"
+   ]
   },
   "clockFrameDt": {
    "from": "tick.js",
    "by": [
     "app"
-   ],
-   "kind": "меняет симуляцию"
+   ]
   },
   "clockPause": {
    "from": "tick.js",
@@ -1755,54 +1443,47 @@
     "demo",
     "replay-play",
     "warmup"
-   ],
-   "kind": "меняет симуляцию"
+   ]
   },
   "clockSet": {
    "from": "tick.js",
    "by": [
     "replay-play",
     "warmup"
-   ],
-   "kind": "меняет симуляцию"
+   ]
   },
   "covAt": {
    "from": "walls-heights-cover.js",
    "by": [
     "map-cover",
     "map-heights"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "covHText": {
    "from": "walls-heights-cover.js",
    "by": [
     "map-cover",
     "map-heights"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "covList": {
    "from": "walls-heights-cover.js",
    "by": [
     "map-cover",
     "map-heights"
-   ],
-   "kind": "меняет симуляцию"
+   ]
   },
   "covOwnFromList": {
    "from": "walls-heights-cover.js",
    "by": [
     "map-cover"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "covOwnToList": {
    "from": "walls-heights-cover.js",
    "by": [
     "map-cover"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "covPolyArea": {
    "from": "walls-heights-cover.js",
@@ -1810,15 +1491,13 @@
     "map-cover",
     "map-heights",
     "map-walls"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "covWallAt": {
    "from": "walls-heights-cover.js",
    "by": [
     "map-wallbang"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "distToSeg": {
    "from": "path-search.js",
@@ -1827,15 +1506,13 @@
     "map-heights",
     "map-walls",
     "nav-zones"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "fightReset": {
    "from": "fight-state.js",
    "by": [
     "sandbox"
-   ],
-   "kind": "меняет симуляцию"
+   ]
   },
   "fireRadiusNow": {
    "from": "levels.js",
@@ -1843,22 +1520,19 @@
     "draw",
     "replay",
     "view3d-frame"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "floorViewTick": {
    "from": "levels.js",
    "by": [
     "sandbox"
-   ],
-   "kind": "меняет симуляцию"
+   ]
   },
   "freezePick": {
    "from": "turn.ts",
    "by": [
     "scoreboard"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "freshMatch": {
    "from": "round.js",
@@ -1867,8 +1541,7 @@
     "demo",
     "replay-play",
     "warmup"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "hasLOS": {
    "from": "path-search.js",
@@ -1876,66 +1549,57 @@
     "demo",
     "observer",
     "warmup"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "hashRand": {
    "from": "zone-danger.js",
    "by": [
     "scoreboard",
     "warmup"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "hearPos": {
    "from": "sound.js",
    "by": [
     "demo"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "hearReal": {
    "from": "knowledge.js",
    "by": [
     "demo"
-   ],
-   "kind": "меняет симуляцию"
+   ]
   },
   "hgtInfo": {
    "from": "walls-heights-cover.js",
    "by": [
     "map-heights"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "hgtOwnFromList": {
    "from": "walls-heights-cover.js",
    "by": [
     "map-heights"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "hgtOwnToList": {
    "from": "walls-heights-cover.js",
    "by": [
     "map-heights"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "kvLast": {
    "from": "belief.js",
    "by": [
     "look-debug"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "lkpWord": {
    "from": "intel.js",
    "by": [
     "draw",
     "look-debug"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "logEvent": {
    "from": "journal.js",
@@ -1947,37 +1611,32 @@
     "sandbox",
     "view3d",
     "warmup"
-   ],
-   "kind": "меняет симуляцию"
+   ]
   },
   "logRender": {
    "from": "voice-console.js",
    "by": [
     "app"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "lookDbgId": {
    "from": "look-arbiter.js",
    "by": [
     "look-debug"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "lookFace": {
    "from": "turn.ts",
    "by": [
     "demo",
     "warmup"
-   ],
-   "kind": "меняет симуляцию"
+   ]
   },
   "lookTurnBy": {
    "from": "turn.ts",
    "by": [
     "warmup"
-   ],
-   "kind": "меняет симуляцию"
+   ]
   },
   "m3": {
    "from": "geometry3d.js",
@@ -1985,52 +1644,45 @@
     "look-debug",
     "view3d",
     "view3d-frame"
-   ],
-   "kind": "меняет симуляцию"
+   ]
   },
   "m3Cell": {
    "from": "geometry3d.js",
    "by": [
     "view3d"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "m3FloorKinds": {
    "from": "geometry3d.js",
    "by": [
     "look-debug"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "m3Game": {
    "from": "geometry3d.js",
    "by": [
     "view3d"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "m3Line": {
    "from": "geometry3d.js",
    "by": [
     "view3d",
     "view3d-frame"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "m3Radar": {
    "from": "geometry3d.js",
    "by": [
     "view3d"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "movePath": {
    "from": "move.js",
    "by": [
     "replay-play",
     "sandbox"
-   ],
-   "kind": "меняет симуляцию"
+   ]
   },
   "moveSpeed": {
    "from": "move.js",
@@ -2038,22 +1690,19 @@
     "demo",
     "sandbox",
     "warmup"
-   ],
-   "kind": "меняет симуляцию"
+   ]
   },
   "nadePrice": {
    "from": "smoke.js",
    "by": [
     "scoreboard"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "nadeWorldSet": {
    "from": "smoke.js",
    "by": [
     "replay-play"
-   ],
-   "kind": "меняет симуляцию"
+   ]
   },
   "navAt": {
    "from": "navmesh.js",
@@ -2061,38 +1710,33 @@
     "sandbox",
     "view3d",
     "view3d-frame"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "navFloorNear": {
    "from": "levels.js",
    "by": [
     "sandbox"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "navFloorZ": {
    "from": "levels.js",
    "by": [
     "sandbox",
     "view3d"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "navGridBuild": {
    "from": "navmesh.js",
    "by": [
     "sandbox"
-   ],
-   "kind": "меняет симуляцию"
+   ]
   },
   "navMapPoint": {
    "from": "zones.js",
    "by": [
     "draw",
     "nav-zones"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "nick": {
    "from": "tuning.js",
@@ -2106,29 +1750,25 @@
     "team",
     "timeout",
     "view3d-frame"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "nickify": {
    "from": "tuning.js",
    "by": [
     "killfeed"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "pathPts": {
    "from": "sites-spots.js",
    "by": [
     "lineup-editor"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "plantBlock": {
    "from": "bomb.js",
    "by": [
     "nav-zones"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "pnum": {
    "from": "tuning.js",
@@ -2138,8 +1778,7 @@
     "look-debug",
     "observer",
     "scoreboard"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "pointInPoly": {
    "from": "navmesh.js",
@@ -2148,111 +1787,96 @@
     "map-walls",
     "nav-zones",
     "sandbox"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "polyLen": {
    "from": "sites-spots.js",
    "by": [
     "lineup-editor"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "rebuildNav": {
    "from": "paths.js",
    "by": [
     "lineup-editor",
     "nav-zones"
-   ],
-   "kind": "меняет симуляцию"
+   ]
   },
   "rebuildNavWarp": {
    "from": "zones.js",
    "by": [
     "nav-zones"
-   ],
-   "kind": "меняет симуляцию"
+   ]
   },
   "regRounds": {
    "from": "economy.js",
    "by": [
     "timeout"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "renderVoice": {
    "from": "voice-console.js",
    "by": [
     "app",
     "warmup"
-   ],
-   "kind": "меняет симуляцию"
+   ]
   },
   "resetRound": {
    "from": "round.js",
    "by": [
     "app",
     "sandbox"
-   ],
-   "kind": "меняет симуляцию"
+   ]
   },
   "roundGoal": {
    "from": "economy.js",
    "by": [
     "killfeed",
     "team"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "saveLineups": {
    "from": "lineups.js",
    "by": [
     "lineup-editor"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "saveNavAnchors": {
    "from": "zones.js",
    "by": [
     "nav-zones"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "saveUserZonesDebounced": {
    "from": "zone-danger.js",
    "by": [
     "lineup-editor",
     "nav-zones"
-   ],
-   "kind": "меняет симуляцию"
+   ]
   },
   "saveZoneNames": {
    "from": "intel.js",
    "by": [
     "lineup-editor"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "segPtDist": {
    "from": "endgame.js",
    "by": [
     "lineup-editor"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "setPost": {
    "from": "task.js",
    "by": [
     "sandbox"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "smokeBlocks": {
    "from": "smoke.js",
    "by": [
     "look-debug"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "smokeRadiusNow": {
    "from": "smoke.js",
@@ -2261,23 +1885,20 @@
     "observer",
     "replay",
     "view3d-frame"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "snapToWalkable": {
    "from": "paths.js",
    "by": [
     "look-debug",
     "sandbox"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "stepBlocked": {
    "from": "levels.js",
    "by": [
     "warmup"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "stepTick": {
    "from": "tick.js",
@@ -2285,15 +1906,13 @@
     "app",
     "demo",
     "replay-play"
-   ],
-   "kind": "меняет симуляцию"
+   ]
   },
   "tacTempoNow": {
    "from": "tactics.js",
    "by": [
     "killfeed"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "teamBot": {
    "from": "voice.js",
@@ -2303,176 +1922,152 @@
     "sandbox",
     "scoreboard",
     "timeout"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "tryShoot": {
    "from": "shoot.js",
    "by": [
     "warmup"
-   ],
-   "kind": "меняет симуляцию"
+   ]
   },
   "visFloorAt": {
    "from": "vision.js",
    "by": [
     "draw",
     "look-debug"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "visInvalidate": {
    "from": "vision.js",
    "by": [
     "map-cover",
     "map-heights"
-   ],
-   "kind": "меняет симуляцию"
+   ]
   },
   "visParts": {
    "from": "vision.js",
    "by": [
     "look-debug"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "visPartsText": {
    "from": "vision.js",
    "by": [
     "look-debug"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "visReady": {
    "from": "vision.js",
    "by": [
     "look-debug"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "walk": {
    "from": "sites-spots.js",
    "by": [
     "lineup-editor",
     "warmup"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "wallBoxes": {
    "from": "task.js",
    "by": [
     "draw"
-   ],
-   "kind": "меняет симуляцию"
+   ]
   },
   "wbAfter": {
    "from": "walls-heights-cover.js",
    "by": [
     "map-cover"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "wbAt": {
    "from": "walls-heights-cover.js",
    "by": [
     "map-cover",
     "map-wallbang"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "wbChest": {
    "from": "walls-heights-cover.js",
    "by": [
     "map-cover",
     "map-wallbang"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "wbList": {
    "from": "walls-heights-cover.js",
    "by": [
     "map-cover",
     "map-wallbang"
-   ],
-   "kind": "меняет симуляцию"
+   ]
   },
   "wbOwnFromList": {
    "from": "walls-heights-cover.js",
    "by": [
     "map-wallbang"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "wbOwnToList": {
    "from": "walls-heights-cover.js",
    "by": [
     "map-wallbang"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "zlInv": {
    "from": "zones.js",
    "by": [
     "lineup-editor"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "zoneBakeObjectTransform": {
    "from": "zone-danger.js",
    "by": [
     "lineup-editor"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "zoneById": {
    "from": "intel.js",
    "by": [
     "lineup-editor",
     "look-debug"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "zoneCentroid": {
    "from": "vision.js",
    "by": [
     "draw"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "zoneDangerSync": {
    "from": "vision.js",
    "by": [
     "app"
-   ],
-   "kind": "меняет симуляцию"
+   ]
   },
   "zoneIdAt": {
    "from": "intel.js",
    "by": [
     "lineup-editor"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "zoneIndexReset": {
    "from": "intel.js",
    "by": [
     "lineup-editor"
-   ],
-   "kind": "меняет симуляцию"
+   ]
   },
   "zoneMainName": {
    "from": "intel.js",
    "by": [
     "timeout"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "zoneNameCacheReset": {
    "from": "intel.js",
    "by": [
     "lineup-editor"
-   ],
-   "kind": "меняет симуляцию"
+   ]
   },
   "zoneObjAbsPoints": {
    "from": "zone-danger.js",
@@ -2481,23 +2076,20 @@
     "draw",
     "lineup-editor",
     "nav-zones"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "zoneObjCentroid": {
    "from": "zone-danger.js",
    "by": [
     "draw",
     "lineup-editor"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "zoneObjHandlePos": {
    "from": "zone-danger.js",
    "by": [
     "lineup-editor"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   },
   "zoneUserName": {
    "from": "intel.js",
@@ -2505,8 +2097,7 @@
     "draw",
     "lineup-editor",
     "look-debug"
-   ],
-   "kind": "расчёт / чтение (проверить: не пишет ли через вызовы)"
+   ]
   }
  },
  "writes": {
@@ -2621,6 +2212,136 @@
    "by": [
     "lineup-editor",
     "nav-zones"
+   ]
+  }
+ },
+ "simNeedsShow": {
+  "BOT_INIT": {
+   "from": "app.js",
+   "by": [
+    "round"
+   ],
+   "how": [
+    "чтение"
+   ]
+  },
+  "DEMOV": {
+   "from": "demo.js",
+   "by": [
+    "bomb",
+    "damage",
+    "round",
+    "shoot",
+    "tick"
+   ],
+   "how": [
+    "чтение"
+   ]
+  },
+  "RC_HALF": {
+   "from": "app.js",
+   "by": [
+    "round"
+   ],
+   "how": [
+    "запись"
+   ]
+  },
+  "SANDBOX": {
+   "from": "sandbox.js",
+   "by": [
+    "move",
+    "round",
+    "tick"
+   ],
+   "how": [
+    "чтение"
+   ]
+  },
+  "WARM": {
+   "from": "warmup.js",
+   "by": [
+    "round"
+   ],
+   "how": [
+    "чтение",
+    "запись"
+   ]
+  },
+  "dlog": {
+   "from": "trace.js",
+   "by": [
+    "assist",
+    "engagements",
+    "fight-state",
+    "task",
+    "throw"
+   ],
+   "how": [
+    "чтение"
+   ]
+  },
+  "dlogOf": {
+   "from": "trace.js",
+   "by": [
+    "problem-watch"
+   ],
+   "how": [
+    "чтение"
+   ]
+  },
+  "dlogTeam": {
+   "from": "trace.js",
+   "by": [
+    "igl"
+   ],
+   "how": [
+    "чтение"
+   ]
+  },
+  "dvTick": {
+   "from": "demo.js",
+   "by": [
+    "tick"
+   ],
+   "how": [
+    "чтение"
+   ]
+  },
+  "esc": {
+   "from": "killfeed.js",
+   "by": [
+    "voice-console"
+   ],
+   "how": [
+    "чтение"
+   ]
+  },
+  "hudC4": {
+   "from": "fx.js",
+   "by": [
+    "voice-console"
+   ],
+   "how": [
+    "чтение"
+   ]
+  },
+  "plSelected": {
+   "from": "scoreboard.js",
+   "by": [
+    "look-arbiter"
+   ],
+   "how": [
+    "чтение"
+   ]
+  },
+  "sbTick": {
+   "from": "sandbox.js",
+   "by": [
+    "tick"
+   ],
+   "how": [
+    "чтение"
    ]
   }
  }

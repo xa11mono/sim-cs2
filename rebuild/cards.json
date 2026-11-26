@@ -556,6 +556,7 @@
    "mech": "смена сторон и раунд: buyPhase, sideSwapNow, swapSides, freshMatch, endRound, resetRound",
    "owns": [
     "buyPhase",
+    "coreLoadEnd",
     "endRound",
     "freshMatch",
     "resetRound",

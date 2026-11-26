@@ -242,3 +242,11 @@ function roundSetState(s){ roundState = s; }
 function roundSetStart(time, tk){ roundStartTime = time; roundStartTick = tk; }
 function simTimeSet(v){ simTime = v; }
 function freezeFxReset(){ FREEZE_FX = []; }
+// (Р5, 26.11) конец загрузки ядра — одно место для страницы (view/app.js зовёт на прежнем месте) и для ядра без показа (tools/node):
+// начальные поля ботов (BOT_INIT — для freshMatch) и состояние после загрузки (MK_LOAD — для чистого старта следующих матчей, Т-2)
+var BOT_INIT = null;
+function coreLoadEnd(){
+  BOT_INIT = bots.map(function(b){ var o = {keys:{}, vals:{}}; for(var k in b){ o.keys[k] = 1; var v = b[k]; if(v === null || (typeof v !== "object" && typeof v !== "function")) o.vals[k] = v; } return o; });
+  // (Т-2) состояние после загрузки — для чистого старта следующих матчей в этой странице (530 matchBegin → mkMatchClean); до разминки
+  if(typeof mkSnapshot === "function") MK_LOAD = mkSnapshot();
+}
