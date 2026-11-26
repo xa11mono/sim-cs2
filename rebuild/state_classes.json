@@ -13459,5 +13459,23 @@
 "src": "правило",
 "why": "свойство функции; пишут только файлы показа (team)",
 "cmp": "да"
+},
+"g:RUN_MATCH": {
+"class": "внутри вызова",
+"owner": "runMatch (engine/match/round.js)",
+"life": "вызов",
+"snap": "нет: STATIC",
+"src": "ручная",
+"why": "(Р5.3, 26.11) идущий вызов runMatch (engine/match/round.js): куда складывать события; null вне вызова — не состояние матча",
+"cmp": "нет: вне игры"
+},
+"g:RUN_MATCH_SUB": {
+"class": "диагностика",
+"owner": "runMatch (engine/match/round.js)",
+"life": "загрузка",
+"snap": "нет: STATIC",
+"src": "ручная",
+"why": "(Р5.3, 26.11) подписки runMatch поставлены (один раз на загрузку ядра); игра его не читает",
+"cmp": "нет: вне игры"
 }
 }

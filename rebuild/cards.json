@@ -565,6 +565,7 @@
     "endRound",
     "freshMatch",
     "resetRound",
+    "runMatch",
     "sideSwapNow",
     "swapSides"
    ],
