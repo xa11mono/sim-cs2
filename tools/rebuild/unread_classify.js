@@ -45,31 +45,31 @@ for (const f of G.gameFiles().filter(f => /\.(js|ts)$/.test(f) && G.filePart(f) 
     sites.push({ key: G.fileId(f) + ' · ' + fn + ' · ' + owner, file: f, line: n.loc.start.line - pre, fn, owner, tag, who, after: [...new Set(after)].slice(0, 6), once });
   });
 }
-// (2) по ключу — данные прогонов и категория
-const out = {};
+// (2) по месту: данные прогона — по функции-вызывающему (стек), разбор и подтверждение — по месту
+const out = {}, perKey = {};
 for (const k of Object.keys(KNOWN)) {
   const S = sites.filter(s => s.key === k), [file, fn, owner] = k.split(' · '), d = DYN[owner + ' · ' + fn] || null;
-  const conf = S.map(s => CONFIRMED[s.tag.replace(/…$/, '')]).find(Boolean);
-  const anyAfter = S.some(s => s.after.length), anyOnce = S.some(s => s.once);
+  if (S.length !== KNOWN[k]) console.warn('мест ' + k + ': в коде ' + S.length + ', в списке ' + KNOWN[k]);
   const mech = owner === 'setPost' ? 'арбитр места (setPost): отказ, если у бота задача уровня не ниже (TASK_LEVEL) или отклонение / защита от дёрганья; бот продолжает прежнюю задачу'
                                    : 'хозяин гранат (assignNade): отказ — занят заданием, нет гранаты, план гранат, своя граната уже летит / дым стоит; задание не ставится';
-  let cat, why;
-  if (conf) { cat = 'подтверждённая ошибка'; why = conf; }
-  else if (!d || !d.calls) { cat = 'недостаточно данных'; why = 'место не вызывалось в прогонах (' + runs.length + ' матч.)'; }
-  else if (!d.refused) { cat = 'недостаточно данных'; why = 'отказов не было в ' + d.calls + ' вызовах — последствия отказа не наблюдались'; }
-  else {
-    const ag = d.again / d.refused, lt = d.later / d.refused;
-    if (ag >= 0.95 && !anyAfter && !anyOnce) { cat = 'намеренное'; why = 'заявка повторяется (за 1 с после отказа — ' + Math.round(ag * 100) + ' %), пока арбитр не пустит: отказ значит «не сейчас»; код после вызова от ответа не зависит'; }
-    else { cat = 'потенциально ошибочное'; why = [anyOnce ? 'заявка одноразовая (под флагом, который ставится рядом) — после отказа не повторяется' : '',
-      anyAfter ? 'после вызова исполнение идёт как при успехе: ' + [...new Set(S.flatMap(s => s.after))].slice(0, 4).join(', ') : '',
-      ag < 0.95 ? 'повтор заявки за 1 с — ' + Math.round(ag * 100) + ' % отказов' : ''].filter(Boolean).join('; ') + '; доказательства ошибки (эпизода с неверным поведением) нет'; }
+  const cons = d && d.refused ? 'у функции: отказов ' + d.refused + ' из ' + d.calls + '; получил задачу за 5 с после отказа — ' + Math.round(d.later / d.refused * 100) + ' %; повтор заявки за 1 с — ' + Math.round(d.again / d.refused * 100) + ' %; причины: ' + Object.entries(d.why).map(([w, n]) => w + ' ' + n).join(', ') : d ? 'у функции: ' + d.calls + ' вызовов, отказов нет' : 'функция не вызывалась';
+  for (const s of S) {
+    const conf = CONFIRMED[s.tag.replace(/…$/, '')];
+    let cat, why;
+    if (conf) { cat = 'подтверждённая ошибка'; why = conf; }
+    else if (!d || !d.calls) { cat = 'недостаточно данных'; why = 'функция не вызывалась в прогонах (' + runs.length + ' матч.)'; }
+    else if (!d.refused) { cat = 'недостаточно данных'; why = 'отказов не было в ' + d.calls + ' вызовах функции — последствия отказа не наблюдались'; }
+    else { const ag = d.again / d.refused;
+      if (ag >= 0.95 && !s.after.length && !s.once) { cat = 'намеренное'; why = 'заявка повторяется (за 1 с после отказа — ' + Math.round(ag * 100) + ' %), пока арбитр не пустит: отказ значит «не сейчас»; код после вызова от ответа не зависит'; }
+      else { cat = 'потенциально ошибочное'; why = [s.once ? 'заявка одноразовая (под флагом, который ставится рядом) — после отказа не повторяется' : '',
+        s.after.length ? 'после вызова исполнение идёт как при успехе: ' + s.after.slice(0, 4).join(', ') : '',
+        ag < 0.95 ? 'повтор заявки функцией за 1 с — ' + Math.round(ag * 100) + ' % отказов' : ''].filter(Boolean).join('; ') + '; доказательства ошибки (эпизода с неверным поведением) нет'; } }
+    out[s.file + ':' + s.line] = { key: k, tag: s.tag, category: cat, why, mechanism: mech, consequence: cons, once: s.once, after: s.after };
   }
-  out[k] = { category: cat, why, mechanism: mech, consequence: d && d.refused ? 'отказов ' + d.refused + ' из ' + d.calls + '; получил задачу за 5 с после отказа — ' + Math.round(d.later / d.refused * 100) + ' %; причины: ' + Object.entries(d.why).map(([w, n]) => w + ' ' + n).join(', ') : '—',
-    sites: S.map(s => ({ line: s.file + ':' + s.line, tag: s.tag, once: s.once, after: s.after })), places: KNOWN[k] };
 }
-fs.writeFileSync(path.join(ROOT, 'rebuild', 'unread_classified.json'), JSON.stringify({ _: 'вопрос 16: классификация мест с непрочитанным ответом хозяина (tools/rebuild/unread_classify.js); прогоны: ' + runs.map(r => path.basename(r)).join(', '), sites: out }, null, 1) + '\n');
-const by = {}; Object.values(out).forEach(o => { by[o.category] = (by[o.category] || 0) + o.places; });
-let md = '# Непрочитанный ответ хозяина: 124 места по категориям (вопрос 16, 26.11)\n\nМеханизм отказа, последствие (по прогонам `tools/rebuild/unread_dyn.js`), дальнейшее исполнение — у каждого ключа (файл · функция · хозяин); полные данные — `rebuild/unread_classified.json`. Поведение не менялось; исправление — отдельными задачами после Р8. Без доказательства ошибкой не считается.\n\nИтог (мест): ' + Object.entries(by).map(([c, n]) => c + ' — ' + n).join(', ') + '. Прогоны: ' + runs.map(r => '`' + path.basename(r) + '`').join(', ') + '.\n\n| место | мест | категория | почему | последствие отказа |\n|---|---|---|---|---|\n';
-for (const [k, o] of Object.entries(out).sort((a, b) => a[1].category.localeCompare(b[1].category))) md += '| `' + k + '` | ' + o.places + ' | ' + o.category + ' | ' + o.why.replace(/\|/g, '/') + ' | ' + o.consequence.replace(/\|/g, '/') + ' |\n';
+fs.writeFileSync(path.join(ROOT, 'rebuild', 'unread_classified.json'), JSON.stringify({ _: 'вопрос 16: классификация мест с непрочитанным ответом хозяина (tools/rebuild/unread_classify.js); прогоны: ' + runs.map(r => path.basename(r)).join(', '), places: out }, null, 1) + '\n');
+const by = {}; Object.values(out).forEach(o => { by[o.category] = (by[o.category] || 0) + 1; });
+let md = '# Непрочитанный ответ хозяина: 124 места по категориям (вопрос 16, 26.11)\n\nМеханизм отказа, последствие (по прогонам `tools/rebuild/unread_dyn.js` — по функции-вызывающему), дальнейшее исполнение — у каждого места; полные данные — `rebuild/unread_classified.json`. Поведение не менялось; исправление — отдельными задачами после Р8. Без доказательства ошибкой не считается.\n\nИтог (мест): ' + Object.entries(by).map(([c, n]) => c + ' — ' + n).join(', ') + '. Прогоны: ' + runs.map(r => '`' + path.basename(r) + '`').join(', ') + '.\n\n| место | функция · хозяин | тег | категория | почему | последствие отказа |\n|---|---|---|---|---|---|\n';
+for (const [k, o] of Object.entries(out).sort((a, b) => a[1].category.localeCompare(b[1].category) || a[0].localeCompare(b[0]))) md += '| `' + k + '` | ' + o.key.split(' · ').slice(1).join(' · ') + ' | `' + o.tag + '` | ' + o.category + ' | ' + o.why.replace(/\|/g, '/') + ' | ' + o.consequence.replace(/\|/g, '/') + ' |\n';
 fs.writeFileSync(path.join(ROOT, 'rebuild', 'UNREAD_CLASSIFIED.md'), md);
 console.log(Object.entries(by).map(([c, n]) => c + ': ' + n).join('; '));

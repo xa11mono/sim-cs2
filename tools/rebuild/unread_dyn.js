@@ -23,9 +23,9 @@ const res = JSON.parse(EV(`(function(){
     s.pend.forEach(function(p){ if(p.got || tick - p.t > 320) return; var b = bots.find(function(x){ return x.id === p.b; });
       var has = own === "setPost" ? b && b.post && String(b.post.tag) === p.tag : b && b.nadeTask && b.nadeTask.type === p.tag;
       if(has){ s.later++; p.got = true; } }); }); };
-  for(var t = 0; t < ${+(A.ticks || 400000)}; t++){ stepTick(); if(matchNum !== M0) break; if(tick % 16 === 0) later(); }
+  var T1 = tick; for(var t = 0; t < ${+(A.ticks || 400000)}; t++){ stepTick(); if(matchNum !== M0) break; T1 = tick; if(tick % 16 === 0) later(); }
   Object.keys(S).forEach(function(k){ delete S[k].pend; });
-  return JSON.stringify({match: M0, ticks: tick, sites: S});
+  return JSON.stringify({match: M0, ticks: matchNum !== M0 ? T1 : tick, sites: S});
 })()`));
 if (A.out) fs.writeFileSync(A.out, JSON.stringify(res, null, 1));
 console.log('матч ' + res.match + ', тиков ' + res.ticks + ', мест-вызывающих ' + Object.keys(res.sites).length);
