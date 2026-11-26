@@ -1,0 +1,18 @@
+{
+ "what": "Э1 прогон ПК 327 (measure/v614a-r3e3): v612a (Р3.4 mapBoot) и v614a (Р3.2 место ш.2а/2б, взгляд ш.1; Р3.3 why), обе карты 8+8 Chromium; Р3.4 под нагрузкой — Firefox и WebKit (м3 Ancient, м13 Mirage), запущены первыми, шли одновременно с Chromium (до 8 матчей, run.log: «идёт 5»)",
+ "results_branch": "pc-results/327",
+ "reference": "rebuild/evidence/R2/fp_cloud_chromium158",
+ "equal": {
+  "v612a_boot_anc": 8,
+  "v612a_boot_mir": 8,
+  "v614a_g2_anc": 8,
+  "v614a_g2_mir": 8,
+  "v614a_ff_anc": 1,
+  "v614a_ff_mir": 1,
+  "v614a_wk_anc": 1,
+  "v614a_wk_mir": 1
+ },
+ "total": 36,
+ "diff": 0,
+ "verdict": "группа 2 Р3.2 и Р3.4 mapBoot — Э1 бит в бит (все поля, включая ticks); Р3.4: отпечатки под нагрузкой тремя движками одинаковы"
+}
