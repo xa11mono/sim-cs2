@@ -153,6 +153,13 @@ function mkRestore(data){ var c = structuredClone(data); for(var f = c.__fmt || 
   if("NAV_UNLINKED" in c) mkGraphTo(Lp);
   if(c.__refs) mkRefsApply(c.__refs, function(n, v){ L.forEach(function(e){ if(e[0] === n) e[2](v); }); });
   mkExtRestore(c.__ext); mkRebaseShow(); }
+// (Р5.1, 26.11) кадр показа (frameMake): снимок только переменных, которые читает показ и меняет симуляция (FRAME_VARS — состав из rebuild/gen/frame.json,
+// вставляет src/marks_build.py), со ссылками на неизменяемые данные (__refs), как у снимка. frameApply — разложить кадр в переменные этой
+// страницы (frameApply — показ, у которого своя симуляция стоит: Worker / процесс Node, Р5.2 / Р5.4). Проверка — tools/page/frame_apply_check.js
+function frameList(){ return mkSnapList().filter(function(e){ return FRAME_VARS.indexOf(e[0]) >= 0; }); }
+function frameMake(){ var o = {__frame: 1}; frameList().forEach(function(e){ o[e[0]] = e[1](); }); o.__refs = mkSnapRefs(o); return structuredClone(o); }
+function frameApply(F){ var c = structuredClone(F), L = frameList(); L.forEach(function(e){ if(e[0] in c) e[2](c[e[0]]); });
+  if(c.__refs) mkRefsApply(c.__refs, function(n, v){ L.forEach(function(e){ if(e[0] === n) e[2](v); }); }); }
 // (18.11) показ (трассеры, круги звука) помнит время рождения по часам страницы (nowTs), а часы в снимок не входят: после открытия снимка
 // «возраст» выходил отрицательным — вспышка выстрела на весь экран (оранжевый кадр), круг звука с отрицательным радиусом ронял кадр.
 // Сдвиг: самое свежее из снимка — «сейчас» по часам этой страницы, остальные — на тот же сдвиг
