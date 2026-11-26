@@ -47,7 +47,7 @@ for(let i = 0; i + 1 < args.length; i += 2){
 }
 let md = "# Живая карта: кто пишет поля бота (генерируется — tools/rebuild/fw_map.js)\n\n" +
   "Источник — ловец `field_watch.js` на ПК (" + maps.join(", ") + "), 8 матчей каждой карты; доля — от всех записей поля (оценка: стек каждой 16-й записи).\n" +
-  "«писатель ← кто вызвал». Хозяин — по `rebuild/DEVICE.md`.\n";
+  "«писатель ← кто вызвал». Хозяин — по `docs/ARCHITECTURE.md`.\n";
 for(const field of Object.keys(W)){
   const L = Object.entries(W[field]).sort((a, b) => b[1] - a[1]), tot = L.reduce((s, x) => s + x[1], 0);
   md += "\n## `" + field + "` — записей ≈ " + tot.toLocaleString("ru") + ", смен значения " + (C[field] || 0).toLocaleString("ru") + "\n\n| писатель | доля |\n|---|---|\n";

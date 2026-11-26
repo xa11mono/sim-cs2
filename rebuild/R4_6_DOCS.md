@@ -16,7 +16,7 @@
 ## Не сделано (нужны решения владельца — слияние документов правил)
 - Опись Codex (`codex/preparation-r3-r4`: `DOCUMENTATION.md`, `documentation_inventory.csv` — 190 файлов, класс и действие) — принять как
   опись; дубли норм (семь требований — `AGENTS.md` §1 / `PRINCIPLES.md` / `PLAYER_MINDSET.md` / `RULES.md` п. 11; планы — `00_PLAN.md`
-  и `MASTER_PLAN.md`; устройство — `ARCHITECTURE.md` / `DEVICE.md` / `archive/TREE.md` / `archive/FACTS.md`) — свести в один источник на тему.
+  и `MASTER_PLAN.md`; устройство — `ARCHITECTURE.md` / `docs/ARCHITECTURE.md` («Устройство каналов») / `archive/TREE.md` / `archive/FACTS.md`) — свести в один источник на тему.
   Правило остановки Р4.6: уникальное содержание не удаётся сохранить — оставить оба и спросить. Вопрос 15.
 
 ## Шаг 2 (26.11, вариант (а) владельца)
@@ -34,5 +34,16 @@
 - Один источник на вид: планы — `rebuild/MASTER_PLAN.md` (перестройка) и `00_PLAN.md` (игра) — AGENTS §4 исправлен («один план» спорил с
   MASTER_PLAN); решения — журнал по версиям `docs/DECISIONS.md` и реестр архитектурных `docs/architecture/DECISIONS.md` — указано в AGENTS.
 - Не дубли (проверено): «семь требований» — AGENTS §1 (выжимка) → `docs/PRINCIPLES.md`, `docs/PLAYER_MINDSET.md` (подробно, ссылкой);
-  `rebuild/RULES.md` п. 11 — ссылка на `PLAYER_MINDSET.md` §17; `rebuild/DEVICE.md` — устройство каналов (действующие интерфейсы, Codex A),
+  `rebuild/RULES.md` п. 11 — ссылка на `PLAYER_MINDSET.md` §17; `docs/ARCHITECTURE.md` — устройство каналов (действующие интерфейсы, Codex A),
   `docs/ARCHITECTURE.md` — реализация и «Где что».
+
+## Шаг 4 (26.11) — по описи Codex (`documentation_inventory.csv`)
+- В архив: `docs/tasks/CLAUDE_AI_BEHAVIOR_ROOT_CAUSE_TASK.md`, `CLAUDE_GRENADE_TASK_PROMPT.md`, `HANDOFF_MOTION.md` → `docs/archive/tasks/`;
+  `rebuild/bal_removed.md`, `dead_removed.md` → `rebuild/archive/`.
+- Объединены дословно: `rebuild/DEVICE.md` → `docs/ARCHITECTURE.md` («Устройство каналов»), `rebuild/TOOLS.md` → `tools/README.md`;
+  оригиналы — `rebuild/archive/`. Полнота: из 98 предложений не найдены дословно 2 заголовка (заменены заголовками разделов).
+- Не объединены (с причиной): `rebuild/OPEN_QUESTIONS.md` → реестр решений — в вопросах ответ стоит рядом с вопросом и вариантами; реестр
+  `docs/architecture/DECISIONS.md` ссылается, а не копирует (иначе два источника); `docs/BRAIN.md` → `PLAYER_MINDSET.md` — нужна сверка
+  действующих контрактов знания и ролей по коду (Р5 / после Р8 вместе с правками знания), до неё — оба остаются, BRAIN — источник
+  происхождения данных Setup (`tools/map/positions_bake.py`).
+- Ссылки — 0 битых (68 действующих документов).

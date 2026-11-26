@@ -162,7 +162,7 @@
   подмена метки `StraightDist` → ошибка проверки (код 1). typecheck — 0 ошибок; сборка = база.
 - 25.11.2026 — Р1.3: `275_look_turn.js` → `.ts` — только аннотации (10 `!` — все нужны, 2 `as`); без типов — те же 2617 лексем и
   комментарии; что модуль берёт у игры — `src/types/core.d.ts`, `typecheck.js` проверяет, что имена есть в игре (подмена → код 1);
-  `modules.json`, `files.json`, ссылки в `owners.json`, `DEVICE.md`, `ARCHITECTURE.md`, комментарии 510 / 540 — на `.ts`; прежний `.js` —
+  `modules.json`, `files.json`, ссылки в `owners.json`, `docs/ARCHITECTURE.md` («Устройство каналов»), `ARCHITECTURE.md`, комментарии 510 / 540 — на `.ts`; прежний `.js` —
   `rebuild/evidence/R1/275_look_turn.orig.js`. `sim.html` Ancient и Mirage, публикуемая страница = база байт в байт; `rebuild/gen/`
   пересобран (Р1-4). Итог этапа — `rebuild/R1_REPORT.md`; Р2 не начат.
 - 25.11.2026 — перенос в `main` (d0fb254): `rebuild/`, `AGENTS.md`, `CHANGELOG.md`. Ошибка переноса: вместе с документами ушли списки сборки
