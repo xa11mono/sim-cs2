@@ -40,7 +40,7 @@
 | Claude, этап 2B | неизвестные дефекты, жизненные циклы, порядок исполнения | `docs/reports/audit_2026-11-24/stage2b/` |
 | Claude, этап 3 | стек, архитектура, матрица, скорость, регрессии, дорожная карта | `docs/reports/audit_2026-11-24/stage3/` |
 | Claude, этап 4 | проверка DeepSeek, дополнение, изменения дорожной карты, структура | `docs/reports/audit_2026-11-24/stage4/` |
-| DeepSeek, v598 (24.11) | сборка, ресурсы, загрузка, варианты развёртывания | `docs/audit/architecture/` — копия архива без изменений (без `__pycache__`); остальная часть ветки v598 (`bench/stage3`, `docs/reports/stage3_2026-11-24/`, `docs/audit/SYSTEM_DEPENDENCIES.md`, `docs/audit/parts/`) — в ветке v598, которую владелец хранит отдельно; ссылки на неё из отчётов DeepSeek ведут туда |
+| DeepSeek, v598 (24.11) | сборка, ресурсы, загрузка, варианты развёртывания | `docs/audit/architecture/` — копия архива без изменений (без `__pycache__`); остальная часть ветки v598 (`bench/stage3`, `docs/reports/audit_2026-11-24/stage3/`, `docs/reports/audit_2026-11-24/SYSTEM_DEPENDENCIES.md`, docs/audit/parts/ — нет в этой ветке) — в ветке v598, которую владелец хранит отдельно; ссылки на неё из отчётов DeepSeek ведут туда |
 | перестройка 15–17.11 | план фаз 0–4, правила, журнал фаз | `rebuild/PLAN.md`, `rebuild/RULES.md`, `rebuild/PROGRESS.md` |
 
 Когда ветка v598 будет выложена: её `docs/audit/architecture/` должен совпасть с копией здесь (проверка — `diff -r`); остальные её

@@ -24,7 +24,7 @@ function ownersAllow() {   // хозяева полей: имя функции �
   return A;
 }
 function table() {   // строки таблицы «Где что» из AGENTS.md §11: [что, файлы]
-  const t = fs.readFileSync(path.join(ROOT, 'AGENTS.md'), 'utf8'), i = t.indexOf('Где что'); if (i < 0) return [];
+  const t = fs.readFileSync(path.join(ROOT, 'docs', 'ARCHITECTURE.md'), 'utf8'), i = t.indexOf('## Где что');   // (Р4.6) таблица — в ARCHITECTURE if (i < 0) return [];
   return t.slice(i).split('\n').filter(l => /^\| /.test(l) && !/^\| что \|/.test(l) && !/^\|---/.test(l)).map(l => { const c = l.split('|').map(x => x.trim()); return [c[1] || '', c[2] || '']; });
 }
 function init() {

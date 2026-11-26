@@ -8,7 +8,7 @@
 
 - [`docs/reports/GRENADE_PHYSICS_ROOT_CAUSE_ANALYSIS.md`](../reports/GRENADE_PHYSICS_ROOT_CAUSE_ANALYSIS.md)
 - [`docs/tasks/TEAM_UTILITY_EXECUTION_AND_DROPS.md`](./TEAM_UTILITY_EXECUTION_AND_DROPS.md)
-- `docs/PROBLEMS.md`, `docs/PRINCIPLES.md`, `docs/tasks/nades_plan.md`, `docs/reports/G1.md`;
+- docs/PROBLEMS.md (удалён), `docs/PRINCIPLES.md`, `docs/tasks/nades_plan.md`, `docs/reports/G1.md`;
 - активные исходники, затрагивающие `380_nades_throw.js`, `400_nades_physics_damage.js`, `035_map3d.js`, `170_tbrain.js`, `340_ctbrain.js` и вызывающие их функции.
 
 Сначала зафиксируй актуальные branch/commit и состояние рабочего дерева. Установи, какой из старых планов/веток фактически активен и почему прошлые решения не были приняты или не дали изменения в матчах.

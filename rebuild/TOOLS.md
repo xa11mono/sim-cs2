@@ -6,10 +6,10 @@
 | собрать игру | `src/build.py` (тестовая `sim.html`), `src/mkpub.py` (страница) | `python3 src/build.py --map mirage <out.html>` |
 | мёртвый код | `tools/measure/code_cov.js` | `node tools/measure/code_cov.js sim.html out.json <раундов>` — функции и число вызовов (медленно: ~1 ч на 20 раундов) |
 | кто меняет поле | `tools/measure/engine/walk_watch.js` (сейчас — путь `path`) | расширить на остальные поля (фаза 2) |
-| проблемы в матче | `src/game/545_problem_watch.js` (`PROB`: застрял, перенос, перетягивание), сторож замера `rec2.js` | в каждой записи матча (`watch`) |
+| проблемы в матче | `engine/debug/problem-watch.js` (`PROB`: застрял, перенос, перетягивание), сторож замера `rec2.js` | в каждой записи матча (`watch`) |
 | сравнить прогон с базой | `tools/measure/check.py --base=…`, `tools/measure/noise.py`, `tools/measure/replay_cmp.py` | `CLAUDE.md` §8 |
 | разбор взгляда | `LOOKDBG`, `lookDbgPanel` (610), `_ldArb` | галочка «разбор взгляда» на странице |
-| журнал решений | `src/game/645_decision_log.js` (`dlog`) | последние 15 с решений бота |
+| журнал решений | `engine/debug/trace.js` (`dlog`) | последние 15 с решений бота |
 | отметки владельца | `tools/marks/mark_open.js`, `tools/marks/mark_story.js`, `tools/marks/mark_frames.js`, `tools/marks/replay_owner.js` | `docs/tasks/02-mark-moment.md` |
 | прогоны на ПК | `tools/measure/request.json` в ветке `measure/v580a` → `pc-results/<N>` | `CLAUDE.md` §8 |
 | форма движения / взгляда | `tools/motion/motion_shape.py`, `tools/measure/motion/` | В147 |
