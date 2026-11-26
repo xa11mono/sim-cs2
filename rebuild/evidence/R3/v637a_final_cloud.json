@@ -1,0 +1,10 @@
+{
+ "commit": "e574b6cc (игра = 06ef106 = fb79391: код игры с fb79391 не менялся)", "build": "неизменяемая: git worktree коммита, сборка там же (владелец 26.11)",
+ "checks": {
+  "build_both_maps": "ok", "gen_maps_check": "ok", "snap_vars_test": "ok (список снимка ⊇ переменные по разбору кода)",
+  "page_load": "Ancient, Mirage — ошибок нет",
+  "frame_hash_vs_v636a": "Ancient 3000 / 9000, Mirage 3000 / 9000 — попиксельно равны (слои включены)",
+  "diverge_vs_v636a": "Ancient м3, м13; Mirage м3, м13 — 0 расхождений до 15040 тиков (новые неизменяемые таблицы NADE_FAILS…, MOVE_STOP и диагностика PROB — вне сравнения; PROB без нового счётчика ep сверялся отдельно — 0)"
+ },
+ "pc": "Э1 / Э2 (16 + 16 матчей) — задание measure/v637a-final"
+}
