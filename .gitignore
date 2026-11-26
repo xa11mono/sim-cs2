@@ -28,3 +28,4 @@ dist/
 graphify-out/
 .tmp/
 *.pyc
+rebuild/unread_results.json.gen
