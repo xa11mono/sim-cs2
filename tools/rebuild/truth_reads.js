@@ -27,7 +27,7 @@ const PERCEPTION = {
   'economy': ['payRoundEconomy']                                // экономика: начисление по правилам
 };
 // хозяева решений и записи бота: элемент, переданный им первым аргументом, — действующий
-const ACTOR_FN = /^(setPost|setPostR|clearPost|assignNade|assignNadeR|nadeCancel|fightState|fightReset|fightHoldOff|movePath|moveWalk|moveSpeed|lookFace|lookTurnBy|placeStance|dlog|voiceLog|noteMistake|startRoute|fcEnd|knowCall|teamNotice|throwNade|selfNade|stagePost)$/;
+const ACTOR_FN = /^(setPost|clearPost|assignNade|nadeCancel|fightState|fightReset|fightHoldOff|movePath|moveWalk|moveSpeed|lookFace|lookTurnBy|placeStance|dlog|voiceLog|noteMistake|startRoute|fcEnd|knowCall|knowHear|knowSound|knowIntel|teamNotice|throwNade|selfNade|stagePost)$/;
 const ENEMY_X = /^(foe|foeT|enemy|enemyTeam|enT|eT|opp|oppT|other|otherT|ot|ft|eTeam)$|\bfoe|\benemy|\bopp/;
 function sideOf(src, node) {   // сторона, с которой сравнивают: own — своя действующего, enemy — враг, lit — литерал, ? — неясно
   const t = src.slice(node.start, node.end).trim();

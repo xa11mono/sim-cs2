@@ -1,4 +1,4 @@
-// ======================= РАЗДЕЛ 11: командная информация (коллы) =======================
+// [хозяева: calloutName, commSend, intelEstimate, intelPush, lkpNear, teamInfoTick] ======================= РАЗДЕЛ 11: командная информация (коллы) =======================
 // Любое событие восприятия одного бота становится общим сигналом команды:
 //   spotted  — вижу врага (точная позиция, уверенность 1.0)
 //   carrier  — вижу носителя бомбы (отдельный, более приоритетный тип)
@@ -303,10 +303,10 @@ function intelDeath(victim, killer, side){
       swC.forEach(function(q){ var da = Math.abs(((DM.atan2(q.y-kp.y, q.x-kp.x)-aV+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
         var sc = Math.min(da, 0.8) - DM.hypot(q.x-o.x, q.y-o.y)/1500; if(sc > sBest){ sBest = sc; sw = q; } });
       sw = sw || {x:victim.x, y:victim.y};
-      if(!setPost(o, sw, kp, true, "tradeR")) return;   // (v378) занят задачей важнее размена (бомба, сейв) — арбитр места
+      if(!setPost(o, sw, kp, true, "tradeR").ok) return;   // (v378) занят задачей важнее размена (бомба, сейв) — арбитр места
       o._probeLock = 0; taskKeep(o, 0, "call");
       tradeStart(o, {x:victim.x, y:victim.y}, kp);
-      o.heardSound = {x:kp.x, y:kp.y, tick:tick, team:killer.team, src:killer.id, kind:"call"};
+      knowSound(o, {x:kp.x, y:kp.y, tick:tick, team:killer.team, src:killer.id, kind:"call"});
       if(k === 0) voiceLog(o.team, "trade"+victim.id, o.id, "размен за "+victim.id+"!");
     });
   }
@@ -347,7 +347,7 @@ function intelDeath(victim, killer, side){
         .filter(function(q){ return DM.hypot(q.x-fc.x, q.y-fc.y) <= FILL_FUNC_R; })
         .sort(function(p, q){ return DM.hypot(p.x-fBest.x, p.y-fBest.y) - DM.hypot(q.x-fBest.x, q.y-fBest.y); }) : [];
       var fp = fpC[0] || (fl && pickSpots("fill"+tick+fBest.id, fc, 1, {team: side, rMax:170, minGap:30, see:[fl]})[0]) || fc;
-      if(setPost(fBest, fp, fl, true, "fill")){ fBest._fillLock = {until: tick + 15*TICK_HZ, team: victim.team, pt: fp, ph: victim.team === "T" ? teamTac.T.phase : null};
+      if(setPost(fBest, fp, fl, true, "fill").ok){ fBest._fillLock = {until: tick + 15*TICK_HZ, team: victim.team, pt: fp, ph: victim.team === "T" ? teamTac.T.phase : null};
       voiceLog(victim.team, "fill"+victim.id, fBest.id, "закрываю "+calloutName(fc.x, fc.y).replace(/^на /, "")+" за "+victim.id); }
     }
   }
@@ -360,7 +360,7 @@ function intelDeath(victim, killer, side){
       !(bomb.state === "carried" && bomb.carrier === o) && DM.hypot(o.x-victim.x, o.y-victim.y) < 750; })
       .sort(function(a, c){ var ta = traders.some(function(T){ return T.b === a; }) ? 200 : 0, tc = traders.some(function(T){ return T.b === c; }) ? 200 : 0;
         return (DM.hypot(a.x-victim.x, a.y-victim.y) + ta) - (DM.hypot(c.x-victim.x, c.y-victim.y) + tc); })[0];
-    if(flc && assignNade(flc, "flash", kpF, "поп на убийцу "+victim.id, {now:true, range:900})){
+    if(flc && assignNade(flc, "flash", kpF, "поп на убийцу "+victim.id, {now:true, range:900}).ok){
       teamTac.T._popDone = true;
       voiceLog("T", "pop"+victim.id, flc.id, "даю флешку на "+killer.id+" "+calloutName(kpF.x, kpF.y)+" — меняйте под неё!");
       // размен ждёт хлопка (не дольше ~1.2с): не выбегает раньше флешки
@@ -383,7 +383,7 @@ function intelDeath(victim, killer, side){
       return;
     }
     tradeAlertSet(b, 150);
-    if(killer){ b.heardSound = {x:killer.x, y:killer.y, tick:tick, team:killer.team, src:killer.id, kind:"call"}; }
+    if(killer){ knowSound(b, {x:killer.x, y:killer.y, tick:tick, team:killer.team, src:killer.id, kind:"call"}); }
   });
 }
 // лог коллов — не спамить: раз в 4с на команду+зону

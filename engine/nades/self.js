@@ -1,4 +1,4 @@
-// ---------- тактическое использование ----------
+// [хозяева: nadeReact, selfNadeTick] ---------- тактическое использование ----------
 var nadeFlags = {};
 var comboCd = {}; // раздел 11.1: кулдаун комбо-гранаты на конкретного замеченного врага
 function antiEco(team){
@@ -117,7 +117,7 @@ function selfPlantSmoke(b){
   // инфы нет — типичные места CT, которые бот ещё не видел пустыми (знание карты), откуда видно точку
   if(!seen && b.know) (b.know.spots || []).forEach(function(q){ if(!seen && q.open && knowSpotReach(q) && DM.hypot(q.x-p.x, q.y-p.y) <= SELF.sightR && hasVision(q.x, q.y, p.x, p.y)) seen = q; });
   if(!seen) return false;
-  if(!assignNade(b, "smoke", p, "смок под плант — точку видно с " + calloutName(seen.x, seen.y), {now:true})) return false;
+  if(!assignNade(b, "smoke", p, "смок под плант — точку видно с " + calloutName(seen.x, seen.y), {now:true}).ok) return false;
   nadeFlags["plantSmoke"+k] = true;
   if(b !== c) voiceLog("T", "psm"+k, b.id, "даю смок под плант " + k);
   return true;
@@ -153,7 +153,7 @@ function selfExitFlash(b){
   if(!best) return false;
   var c = best.c, ex = best.ex, dE = DM.hypot(c.x-ex.x, c.y-ex.y), kf = Math.min(1, 140/Math.max(1, dE));
   b._selfDone[c.key] = true;
-  return assignNade(b, "flash", {x: ex.x + (c.x-ex.x)*kf, y: ex.y + (c.y-ex.y)*kf}, "флешка под выход — " + (c.info ? "по знанию " : "типичное место ") + calloutName(c.x, c.y), {now:true, range:700});
+  return assignNade(b, "flash", {x: ex.x + (c.x-ex.x)*kf, y: ex.y + (c.y-ex.y)*kf}, "флешка под выход — " + (c.info ? "по знанию " : "типичное место ") + calloutName(c.x, c.y), {now:true, range:700}).ok;
 }
 function selfNadeTick(){
   if(roundState !== "live") return;
@@ -192,7 +192,7 @@ function heDodgeTick(){
       var sp = pickSpots("hed"+Math.round(b.x/30)+","+Math.round(b.y/30), {x:b.x, y:b.y}, 4, {rMax:Math.max(40, reach), minGap:20, hideFrom:[det]})
         .filter(function(q){ return DM.hypot(q.x-b.x, q.y-b.y) <= reach && (DM.hypot(q.x-det.x, q.y-det.y) > R || !hasLOS(q.x, q.y, det.x, det.y)); })
         .sort(function(p, q){ return DM.hypot(p.x-b.x, p.y-b.y) - DM.hypot(q.x-b.x, q.y-b.y); })[0];
-      if(sp && setPost(b, sp, det, true, "repos:he")){ taskKeep(b, tick + Math.round((eta + 0.5)*TICK_HZ), "he");
+      if(sp && setPost(b, sp, det, true, "repos:he").ok){ taskKeep(b, tick + Math.round((eta + 0.5)*TICK_HZ), "he");
         if(!b._heDodgeLog || tick - b._heDodgeLog > 3*TICK_HZ){ b._heDodgeLog = tick; logEvent(b.id+": HE рядом — ухожу ("+eta.toFixed(1)+" с до взрыва)"); } }
     });
   });
@@ -210,7 +210,7 @@ function nadeReact(){
     if(!tg) return;
     if(bots.some(function(o){ return o !== b && o.alive && o.team === b.team && DM.hypot(o.x-tg.x, o.y-tg.y) < 150; })) return;
     b._dumpCd = tick + 3*TICK_HZ;
-    if(assignNade(b, tp, {x:tg.x, y:tg.y}, "у меня "+b.hp+" — кидаю всё", {now:true}) && !b._dumpVoice){ b._dumpVoice = roundNum; voiceLog(b.team, "dump"+b.id, b.id, "у меня "+b.hp+" — выкидываю гранаты"); }
+    if(assignNade(b, tp, {x:tg.x, y:tg.y}, "у меня "+b.hp+" — кидаю всё", {now:true}).ok && !b._dumpVoice){ b._dumpVoice = roundNum; voiceLog(b.team, "dump"+b.id, b.id, "у меня "+b.hp+" — выкидываю гранаты"); }
   });
   // (16) HE по раненому за укрытием (HE до 57 урона, по броне вдвое меньше)
   ["CT","T"].forEach(function(team){
@@ -222,7 +222,7 @@ function nadeReact(){
       if(bots.some(function(o){ return o.alive && o.team === team && DM.hypot(o.x-lo.x, o.y-lo.y) < 170; })) continue;
       var th = bots.filter(function(b){ return b.alive && b.team === team && b.nades && b.nades.he > 0 && !b.nadeTask && !b._sawEnemy &&
         DM.hypot(b.x-lo.x, b.y-lo.y) > 150 && DM.hypot(b.x-lo.x, b.y-lo.y) < NADE_THROW_RANGE && !hasLOS(b.x, b.y, lo.x, lo.y, b.z); })[0];
-      if(th && assignNade(th, "he", {x:lo.x, y:lo.y}, "HE добить "+eH, {now:true, eid:eH})){ h._heDone = true;
+      if(th && assignNade(th, "he", {x:lo.x, y:lo.y}, "HE добить "+eH, {now:true, eid:eH}).ok){ h._heDone = true;
         voiceLog(team, "hefin"+eH, th.id, eH+" на "+h.hp+" за углом — HE"); }
     }
   });
@@ -241,7 +241,7 @@ function nadeReact(){
       var th = bots.filter(function(b){ return b.alive && b.team === team && b.nades && b.nades.he > 0 && !b.nadeTask && !b._sawEnemy && !b.planting && !b.defusing &&
         DM.hypot(b.x-tg.x, b.y-tg.y) > 250 && DM.hypot(b.x-tg.x, b.y-tg.y) < NADE_THROW_RANGE; })
         .sort(function(a, b2){ return DM.hypot(a.x-tg.x, a.y-tg.y) - DM.hypot(b2.x-tg.x, b2.y-tg.y); })[0];
-      if(th && assignNade(th, "he", tg, "HE в стак", {now:true})){ nadeReactCd[team] = tick + 10*TICK_HZ;
+      if(th && assignNade(th, "he", tg, "HE в стак", {now:true}).ok){ nadeReactCd[team] = tick + 10*TICK_HZ;
         voiceLog(team, "hestack"+tick, th.id, "их двое "+calloutName(tg.x, tg.y)+" — кидаю HE"); return; }
     }
   });

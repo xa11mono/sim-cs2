@@ -1,4 +1,4 @@
-// ---------- войс: что тиммейт договорил в канале (teamChannel) ----------
+// [хозяева: knowCall, knowClearZone, knowKill, knowTick] ---------- войс: что тиммейт договорил в канале (teamChannel) ----------
 // Фраза говорит «где (зона) и сколько»; «кто» — только во «меня убил …» (киллфид называет убийцу)
 function knowCall(b, msg){
   var K = b.know; if(!K) return;
@@ -249,8 +249,8 @@ function knowKill(att, vic){
       if(K.enemies[vic.id]){ delete K.enemies[vic.id]; K.alive--; }
       // (v273, владелец 14.10) киллфид + колл убившего «убил … на <место>»: свой звук и инфа рядом с местом фрага (≤300 px),
       // полученные до него, — это был он; забываем (иначе бот смотрел на трупы). В других местах помнит, как было. 300 px — проектное число
-      if(b.heardSound && b.heardSound.team === vic.team && b.heardSound.tick <= tick && DM.hypot(b.heardSound.x-vic.x, b.heardSound.y-vic.y) <= 300) b.heardSound = null;
-      if(b.lastIntel && b.lastIntel.tick <= tick && DM.hypot(b.lastIntel.x-vic.x, b.lastIntel.y-vic.y) <= 300) b.lastIntel = null;
+      if(b.heardSound && b.heardSound.team === vic.team && b.heardSound.tick <= tick && DM.hypot(b.heardSound.x-vic.x, b.heardSound.y-vic.y) <= 300) knowSound(b, null);
+      if(b.lastIntel && b.lastIntel.tick <= tick && DM.hypot(b.lastIntel.x-vic.x, b.lastIntel.y-vic.y) <= 300) knowIntel(b, null);
       return;
     }
     // (v583a, Д2.2, владелец 17.11: «опорника B убили — понятно, где остальные враги, и плант будет там же») свой CT погиб на сайте до планта

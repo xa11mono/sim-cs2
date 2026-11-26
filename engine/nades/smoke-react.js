@@ -1,4 +1,4 @@
-// =====================================================================
+// [хозяева: smokeEnemyPossible, smokeSpamTick] =====================================================================
 // (v150) РЕАКЦИЯ НА СМОКИ ПО ДЕМКАМ. По 12 про-матчам (1 884 смока):
 //  • в 20% смоков противник стреляет сквозь дым, ~3–4 очереди на такой смок;
 //  • 13% смоков разгоняют HE;
@@ -82,7 +82,7 @@ function blindBullet(b, pt){
   tracers.push({wc:tracerClass(b.weapon), wk:b.weapon && b.weapon.key, sil:!!(b.weapon && b.weapon.silenced), x1:b.x, y1:b.y, x2:cl.x, y2:cl.y, team:b.team, born:nowTs, hit:!!sv, miss:!sv}); if(tracers.length > 60) tracers.shift(); soundEv("sndShot", b.weapon, b.x, b.y);
   bots.forEach(function(o){ if(!o.alive || o.team === b.team) return;
     var hr = (hasLOS(o.x, o.y, b.x, b.y, o.z, b.z) ? GUN_HEAR_OPEN : GUN_HEAR_WALL) * (w.silenced ? 0.55 : 1);
-    if(DM.hypot(o.x-b.x, o.y-b.y) < hr) o.heardSound = hearReal(o, {x:b.x, y:b.y, tick:tick, team:b.team, src:b.id, kind:"shots"}); });
+    if(DM.hypot(o.x-b.x, o.y-b.y) < hr) knowHear(o, {x:b.x, y:b.y, tick:tick, team:b.team, src:b.id, kind:"shots"}); });
   return true;
 }
 function smokeSpamTick(){
@@ -192,7 +192,7 @@ function smokeHeTick(){
       var d = DM.hypot(s.x-b.x, s.y-b.y); if(d < 200 || d > NADE_THROW_RANGE || !hasLOS(b.x, b.y, s.x, s.y, b.z)) return;
       var ev = smkEvidence(b, s); if(!ev || ev.kind === "entry") return;
       if(b.nades && b.nades.he > 0){
-        if(assignNade(b, "he", {x:s.x, y:s.y}, "HE в смок — разогнать", {now:true})){ D[foe] = true; voiceLog(b.team, "hesmk"+k, b.id, "кидаю HE в смок "+calloutName(s.x, s.y)); }
+        if(assignNade(b, "he", {x:s.x, y:s.y}, "HE в смок — разогнать", {now:true}).ok){ D[foe] = true; voiceLog(b.team, "hesmk"+k, b.id, "кидаю HE в смок "+calloutName(s.x, s.y)); }
       } else if(!ask) ask = b;
     });
     if(!D[foe] && ask && nadeAskFlash(ask, {x:s.x, y:s.y}, "HE в смок "+calloutName(s.x, s.y)+" — разогнать", "he")) D[foe] = true;

@@ -1,4 +1,4 @@
-// ======================= ЗВУК: направление, стены, новые источники =======================
+// [хозяева: emitSound] ======================= ЗВУК: направление, стены, новые источники =======================
 // Как слышит человек в CS2: НАПРАВЛЕНИЕ понятно довольно точно (±5–7°), дистанция —
 // примерно (±15%). Через стену звук глуше: слышно ближе, направление расплывается
 // (±15–20°), дистанция гуляет сильнее (±30%). Раньше услышанная точка = реальная
@@ -25,7 +25,7 @@ function emitSound(src, x, y, rOpen, rWall, kind, seed){
     var d = DM.hypot(o.x-x, o.y-y); if(d > rOpen) return;
     var occl = !hasLOS(o.x, o.y, x, y, o.z); if(occl && d > rWall) return;
     var p = hearPos(o, x, y, seed + (o.id.charCodeAt(o.id.length-1)||0)*131, occl) || {x:x, y:y};
-    o.heardSound = hearReal(o, {x:p.x, y:p.y, tick:tick, team:src.team, src:src.id, kind:kind, occl:occl});
+    knowHear(o, {x:p.x, y:p.y, tick:tick, team:src.team, src:src.id, kind:kind, occl:occl});
     heard.push(o);
   });
   return heard;
@@ -115,7 +115,7 @@ function finishPush(b){
   taskKeep(b, 0, "sound"); b._probeLock = 0;
   setPost(b, sp, {x:tgt.x, y:tgt.y}, true, "repos:finish");
   if(!b.post || b.post.tag !== "repos:finish") return;
-  b._finId = tid; taskKeep(b, tick + 3*TICK_HZ, "sound"); b.lastIntel = {x:tgt.x, y:tgt.y, tick:tick, src:"call"};
+  b._finId = tid; taskKeep(b, tick + 3*TICK_HZ, "sound"); knowIntel(b, {x:tgt.x, y:tgt.y, tick:tick, src:"call"});
   voiceLog(b.team, "fin"+tid+b.id, b.id, tid+" лоу, "+HT[tid].hp+" — добиваю");
 }
 // ---- (S7) смок уходит — готовность к выходу из-за него ----
@@ -134,8 +134,8 @@ function smokeFadeTick(){
       if(!far) return;
       sm._fadeReady[b.id] = 1;
       var a = DM.atan2(sm.y-b.y, sm.x-b.x), ex = {x: sm.x + DM.cos(a)*NADE.smoke.radius, y: sm.y + DM.sin(a)*NADE.smoke.radius};
-      b.lastIntel = {x:ex.x, y:ex.y, tick:tick, src:"call"}; // прицел на выход из дыма — префайр, если выйдет
-      b.heardSound = {x:ex.x, y:ex.y, tick:tick, team:b.team === "CT" ? "T" : "CT", src:"?", kind:"call"};
+      knowIntel(b, {x:ex.x, y:ex.y, tick:tick, src:"call"}); // прицел на выход из дыма — префайр, если выйдет
+      knowSound(b, {x:ex.x, y:ex.y, tick:tick, team:b.team === "CT" ? "T" : "CT", src:"?", kind:"call"});
       if(!sm._fadeVoice){ sm._fadeVoice = 1; voiceLog(b.team, "fade"+Math.round(sm.x)+b.team, b.id, "смок спадает — готовьтесь"); }
     });
   });
@@ -156,7 +156,7 @@ function awpSmokeTick(){
       if(!th) continue;
       var sp = {x: ap.x + (th.post.x-ap.x)*0.35, y: ap.y + (th.post.y-ap.y)*0.35};
       if(DM.hypot(sp.x-th.x, sp.y-th.y) > NADE_THROW_RANGE*1.1 || smokeCovered(sp.x, sp.y)) continue;
-      if(assignNade(th, "smoke", sp, "смок на AWP "+eid, {now:true})){ awpSmokeCd[team] = tick + 15*TICK_HZ;
+      if(assignNade(th, "smoke", sp, "смок на AWP "+eid, {now:true}).ok){ awpSmokeCd[team] = tick + 15*TICK_HZ;
         voiceLog(team, "awps"+eid, th.id, "AWP "+calloutName(ap.x, ap.y)+" — даю смок на его линию"); return; }
     }
   });
@@ -185,7 +185,7 @@ function onBlind(b, threat){
   logEvent(b.id+": ослеплён — "+(back ? (wp && wp.length > 1 ? "уходит в укрытие по памяти" : "отходит за угол") : "присел, держит направление")+(fire ? ", стреляет вслепую туда, где видел врага" : ""));
   // (S2) тиммейт рядом закрывает угол ослеплённого: смотрит туда и готов стрелять
   var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === b.team && !o._sawEnemy && tick >= (o.blindUntil||0) && nearP(o.x, o.y, o.z, b.x, b.y, b.z, 260) && !o.planting && !o.defusing; });
-  mates.forEach(function(o){ o.heardSound = {x:threat.x, y:threat.y, tick:tick, team:b.team === "CT" ? "T" : "CT", src:"?", kind:"call"}; o.lastIntel = {x:threat.x, y:threat.y, tick:tick, src:"call"}; });
+  mates.forEach(function(o){ knowSound(o, {x:threat.x, y:threat.y, tick:tick, team:b.team === "CT" ? "T" : "CT", src:"?", kind:"call"}); knowIntel(o, {x:threat.x, y:threat.y, tick:tick, src:"call"}); });
   var cov = mates.filter(function(o){ return o.hp > 50 && !(o.post && taskProp(o.post.tag, "blindCoverBusy")); })
     .sort(function(a, c){ return DM.hypot(a.x-b.x, a.y-b.y) - DM.hypot(c.x-b.x, c.y-b.y); })[0];
   if(cov){

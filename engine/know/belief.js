@@ -1,4 +1,4 @@
-// вызывается из intelPush: последняя реальная инфа по врагу (когда, где) и тайминги REACH.
+// [хозяева: beliefTick, kvLast] вызывается из intelPush: последняя реальная инфа по врагу (когда, где) и тайминги REACH.
 // Саму карту belief больше не правит — она собирается из гипотез ботов (beliefTick)
 function beliefObserve(team, sg){
   if(!BZ.ids.length) return;

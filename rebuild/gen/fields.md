@@ -16,13 +16,15 @@
 | `_tradeUntil` | 2 | 2 | `tradeAlertSet · intel`, `tradeEnd · intel` |
 | `_tradeLock` | 1 | 1 | `tradeEnd · intel` |
 | `state` | 2 | 2 | `fightStateDo · fight-state`, `fightReset · fight-state` |
-| `nadeTask` | 30 | 10 | `(верх файла) · smoke`, `nadeAskFlash · plan`, `exuReassign · exec-sync`, `assignNadeDo · throw`, `nadeQueueNext · throw`, `runupTick · throw`, `updateNadeTask1 · throw`, `lineupTick · lineups`, `nadeCancel · decide`, `resetNades · decide` |
+| `nadeTask` | 12 | 8 | `(верх файла) · smoke`, `nadeAskFlash · plan`, `exuReassign · exec-sync`, `assignNadeDo · throw`, `nadeQueueNext · throw`, `lineupTick · lineups`, `nadeTaskEnd · decide`, `resetNades · decide` |
 | `holding` | 5 | 4 | `fightReset · fight-state`, `fightHoldOff · fight-state`, `leaveHold · fight-state`, `engDecide · engagements` |
 | `crouching` | 1 | 1 | `placeStance · task` |
 | `path` | 13 | 7 | `fireRepath · levels`, `ladderTick · levels`, `navFollowFloor · levels`, `movePath · move`, `moveSpeedTick · move`, `navSnap · tick`, `stepBot · tick` |
 | `phase` | 1 | 1 | `tPhaseSet · igl` |
 | `lookReason` | 2 | 2 | `lookReasonSet · look-arbiter`, `lookApply · look-arbiter` |
 | `_lookLvl` | 1 | 1 | `lookApply · look-arbiter` |
+| `heardSound` | 0 | 0 | — |
+| `lastIntel` | 0 | 0 | — |
 
 ## `facing`
 
@@ -52,15 +54,15 @@
 ## `post`
 
 - **хозяин** `setPostDo · task` — 1 (стр. 462)
-- **хозяин** `clearPostDo · task` — 1 (стр. 514)
-- **хозяин** `placeResetPost · task` — 1 (стр. 523)
+- **хозяин** `clearPostDo · task` — 1 (стр. 515)
+- **хозяин** `placeResetPost · task` — 1 (стр. 524)
 
 ## `_task`
 
 - **хозяин** `routeTick · task` — 1 (стр. 66)
 - **хозяин** `setPostDo · task` — 1 (стр. 417)
-- **хозяин** `clearPostDo · task` — 1 (стр. 514)
-- **хозяин** `placeResetTask · task` — 1 (стр. 524)
+- **хозяин** `clearPostDo · task` — 1 (стр. 515)
+- **хозяин** `placeResetTask · task` — 1 (стр. 525)
 
 ## `_reposUntil`
 
@@ -96,16 +98,14 @@
 
 ## `nadeTask`
 
-- **хозяин** `updateNadeTask1 · throw` — 14 (стр. 558, 565, 569, 570, 571, 575, 578, 603, …)
-- **хозяин** `runupTick · throw` — 4 (стр. 523, 538, 550, 552)
 - **хозяин** `exuReassign · exec-sync` — 3 (стр. 128, 131, 132)
-- **хозяин** `nadeQueueNext · throw` — 2 (стр. 441, 443)
+- **хозяин** `nadeQueueNext · throw` — 2 (стр. 456, 458)
 - **хозяин** `lineupTick · lineups` — 2 (стр. 202, 264)
 - **хозяин** `(верх файла) · smoke` — 1 (стр. 37)
 - **хозяин** `nadeAskFlash · plan` — 1 (стр. 235)
-- **хозяин** `assignNadeDo · throw` — 1 (стр. 399)
-- **хозяин** `nadeCancel · decide` — 1 (стр. 250)
-- **хозяин** `resetNades · decide` — 1 (стр. 254)
+- **хозяин** `assignNadeDo · throw` — 1 (стр. 414)
+- **хозяин** `nadeTaskEnd · decide` — 1 (стр. 253)
+- **хозяин** `resetNades · decide` — 1 (стр. 261)
 
 ## `holding`
 
@@ -118,7 +118,7 @@
 
 ## `crouching`
 
-- **хозяин** `placeStance · task` — 1 (стр. 522)
+- **хозяин** `placeStance · task` — 1 (стр. 523)
 
 ## `path`
 
@@ -144,3 +144,15 @@
 ## `_lookLvl`
 
 - **хозяин** `lookApply · look-arbiter` — 1 (стр. 182)
+
+## `heardSound`
+
+
+
+не бот (то же имя у другого объекта — в проверку владения не идёт): `knowSound · knowledge` (80 o)
+
+## `lastIntel`
+
+
+
+не бот (то же имя у другого объекта — в проверку владения не идёт): `knowIntel · knowledge` (82 o)

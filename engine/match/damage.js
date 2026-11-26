@@ -1,4 +1,4 @@
-// ---------- физика полёта и срабатывание ----------
+// [хозяева: applyDamage, detonate, nadesTick] ---------- физика полёта и срабатывание ----------
 // (физика гранат, 30.10.2026; так было в В3, ветка nades-v398) смок / молотов лёг на крышу — по настоящему касанию (точка покоя
 // физики), высоко над полом, куда можно дойти (выше NADE_ROOF_DZ над самым высоким таким полом под ним): разрыв виден и слышен,
 // но дым / огонь не действуют на тех, кто под крышей (дым и огонь у нас без этажа). На ящике, карнизе пониже — действует. Флешка
@@ -78,7 +78,7 @@ function detonate(n){ var _ev = simEvIn("detonate", arguments);
       if(secs > 0.35){
         var lkBefore = b.lastIntel || (b._nearestEnemyBot ? {x:b._nearestEnemyBot.x, y:b._nearestEnemyBot.y, tick:tick} : null);
         b.blindUntil = Math.max(b.blindUntil, tick + Math.round(secs*TICK_HZ)); if(n.thrower && n.thrower.team !== b.team) b._blindBy = n.thrower.id;
-        b.contactStreak = 0; b._ts = {}; b.lastIntel = null;
+        b.contactStreak = 0; b._ts = {}; knowIntel(b, null);
         if(secs > 1.2) logEvent(b.id+" ослеплён"+(b.team===n.team?" своей флешкой":"")+" ("+secs.toFixed(1)+"с)");
         if(b.team !== n.team && secs > 0.8) onBlind(b, lkBefore || {x:n.x, y:n.y});
       }

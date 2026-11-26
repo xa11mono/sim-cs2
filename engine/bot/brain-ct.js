@@ -1,4 +1,4 @@
-// (v469, п.18 владельца 29.10, р8 м1: в войсе «ПЕРЕКОЛЛ A → B: бомба замечена (~2)», а бомбу никто не видел) сайт планта выведен
+// [хозяева: ctBrain, ctBrainBombDown, ctBrainCall, ctBrainFlank, ctBrainRotate, ctBrainSave] (v469, п.18 владельца 29.10, р8 м1: в войсе «ПЕРЕКОЛЛ A → B: бомба замечена (~2)», а бомбу никто не видел) сайт планта выведен
 // исключением («никто у A не услышал писк — значит B», 220 knowPlant, plantGuess) — так и говорится, а не «замечена»
 function ctPlantGuessOnly(){
   if(!bomb || bomb.state !== "planted") return false;

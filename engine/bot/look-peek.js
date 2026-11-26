@@ -1,4 +1,4 @@
-// куда смотреть, стоя на посту без свежей инфы: зона, откуда меня могут
+// [хозяева: cornerLook, prePeekTick] куда смотреть, стоя на посту без свежей инфы: зона, откуда меня могут
 // простреливать, с наибольшей вероятностью врага (кэш на 0.25с)
 // куда смотреть на "невидимую" точку (звук, где только что был враг, вход
 // поста за углом): не сквозь стену прямо на неё, а на ближайший видимый угол,
@@ -164,7 +164,7 @@ function prePeekDecide(b, C, zB){
   if(second){
     var cm = mates[0];
     if(cm){ cm._coverDir = {pt:second.pt, until: tick + 4*TICK_HZ}; voiceLog(b.team, "cov"+b.id+key, b.id, "беру "+calloutName(dirs[0].pt.x, dirs[0].pt.y)+", "+cm.id+" — смотри "+calloutName(second.pt.x, second.pt.y)); }
-    else if(b.nades && b.nades.flash > 1 && !b.nadeTask && assignNade(b, "flash", second.pt, "закрыть второй угол", {now:true, range:700})) {}
+    else if(b.nades && b.nades.flash > 1 && !b.nadeTask && assignNade(b, "flash", second.pt, "закрыть второй угол", {now:true, range:700}).ok) {}
   }
   if(!info && !heardMe && !repeek) return;
   // (2) угол держат — прямо не выходим
@@ -184,7 +184,7 @@ function prePeekDecide(b, C, zB){
     if(fm){ b._ppMate = null;
       if(!b._ppV || tick - b._ppV > 6*TICK_HZ){ b._ppV = tick; logEvent(b.id+": угол держат — "+fm.id+" флешит мне, выхожу под хлопок"); }
       return; } }
-  if(b.nades && b.nades.flash > 0 && !b.nadeTask && b._ppFlashR !== roundNum && (holder) && assignNade(b, "flash", popPt, "флешу себе под пик", {now:true, range:700})){
+  if(b.nades && b.nades.flash > 0 && !b.nadeTask && b._ppFlashR !== roundNum && (holder) && assignNade(b, "flash", popPt, "флешу себе под пик", {now:true, range:700}).ok){
     b._ppFlashR = roundNum; b._ppWaitUntil = tick + 40; b._ppMate = null;
     if(!b._ppV || tick - b._ppV > 6*TICK_HZ){ b._ppV = tick; logEvent(b.id+": угол держат — флешу себе и выхожу"); }
     return;

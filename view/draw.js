@@ -1,4 +1,4 @@
-function draw(){
+/* [хозяева: draw, drawBots, drawDanger, drawLayers, drawNav, drawRays, drawSmokes, drawTracers, drawZones] */ function draw(){
   // (Р3.2 команда) контекст мозга: общие для частей переменные (S0, alpha, chkP, contacts, fxR, timeArc)
   var K = {};
   ctx.setTransform(1,0,0,1,0,0);

@@ -1,4 +1,4 @@
-
+/* [хозяева: ctBrainPlayers] */ 
 // часть ctBrain (Р3.2 команда, разрезание в прежнем порядке) — операторы строк 420–745 исходного ctBrain
 function ctBrainPlayers(K){
   K.cts.forEach(function(b){
@@ -147,7 +147,7 @@ function ctBrainPlayers(K){
       if(DM.hypot(bd.x-SITES[kBomb].x, bd.y-SITES[kBomb].y) + 250 < DM.hypot(bd.x-SITES[kMine].x, bd.y-SITES[kMine].y)){
         var bdp = pickSpots("bdrot"+kBomb, GEO[kBomb].anchor, 3, {team: "CT", rMax:260, minGap:60, see:[{x:bd.x, y:bd.y}], hideFrom:[GEO[kBomb].tStage]})[0] || GEO[kBomb].anchor;
         var wasBd = b.post && b.post.tag === "rotate:bomb";
-        if(setPost(b, bdp, {x:bd.x, y:bd.y}, true, "rotate:bomb") && !wasBd){ voiceLog("CT", "bdrot"+b.id+roundNum, b.id, "бомба "+kBomb+", иду с "+kMine); safeRotate(b, bdp, kBomb); }
+        if(setPost(b, bdp, {x:bd.x, y:bd.y}, true, "rotate:bomb").ok && !wasBd){ voiceLog("CT", "bdrot"+b.id+roundNum, b.id, "бомба "+kBomb+", иду с "+kMine); safeRotate(b, bdp, kBomb); }
         return;
       }
     }

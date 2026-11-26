@@ -1,4 +1,4 @@
-// (Р3.2, канал «ход») параметры поиска — явный контекст ctx {from, toPt, fire, nearest, quiet} (был: свойства функции zoneDijkstra.*,
+// [хозяева: buildWaypointPath, funnel, hasLOS, zoneDijkstra] (Р3.2, канал «ход») параметры поиска — явный контекст ctx {from, toPt, fire, nearest, quiet} (был: свойства функции zoneDijkstra.*,
 // их задавал и сбрасывал buildWaypointPath0); без ctx — как в покое (всё выключено)
 function zoneDijkstra(fromId, toId, team, ctx){
   ctx = ctx || {};

@@ -1,4 +1,4 @@
-// ======================= (v367) РЕАКЦИЯ НА КОНТАКТ — одно место для всех ботов и любых задач =======================
+// [хозяева: contactTick, ctDelayNade, teamBrains] ======================= (v367) РЕАКЦИЯ НА КОНТАКТ — одно место для всех ботов и любых задач =======================
 // Владелец: «зачем перескакивает, если он должен убить… не хочу миллиард правок под каждую ситуацию» (m0NESY в р3 метался
 // взглядом между Connector и выходом из Palms и шёл на дефуз; magixx после флешки уходил по пост-планту). Бот свежо узнал, что
 // враг рядом (≤ CONTACT_R ед., ≤ CONTACT_AGE с: видели, слышал сам — шаги, выстрел, откуда кинули гранату — или своя флешка
@@ -240,9 +240,9 @@ function contactTick(b){
   var sp = cand[0]; if(!sp) return;
   var tag = swing ? "contact:swing" : "contact:hold";
   // (v378) задача важнее контакта (бомба, сейв — арбитр места, setPost) — ноги остаются на ней, взгляд — на контакт
-  if(!setPost(b, sp, look, true, tag)){ b._contact = {x:C.x, y:C.y, id:C.id, until: tick + CONTACT_HOLD*TICK_HZ, lock:false}; b._contactT = tick; return; }
+  if(!setPost(b, sp, look, true, tag).ok){ b._contact = {x:C.x, y:C.y, id:C.id, until: tick + CONTACT_HOLD*TICK_HZ, lock:false}; b._contactT = tick; return; }
   b._contact = {x:C.x, y:C.y, id:C.id, until: taskDeadline(b, sp, CONTACT_HOLD, b.walking), lock:true, pt:sp, tag:tag}; b._contactT = tick;   // (18.11) срок — от прихода на точку выхода (task)
-  taskKeep(b, 0, "contact"); b._probeLock = 0; b.lastIntel = {x:look.x, y:look.y, tick:tick, src:"call"};
+  taskKeep(b, 0, "contact"); b._probeLock = 0; knowIntel(b, {x:look.x, y:look.y, tick:tick, src:"call"});
   if(swing && !C.own && b.nades && b.nades.flash > 0 && C.d > 150 && !hasLOS(b.x, b.y, look.x, look.y, b.z)) assignNade(b, "flash", look, "флешка под выход на врага рядом", {now:true, range:900, forC: nadeOwnerOf(b, C.id || null)});
   // (v443, док владельца 27.10: «войс раунда спамится») «держу X» — 23 строки за раунд, один бот повторял её ~3 раза: это пересказ своих
   // действий, а в войсе про — враг, где и сколько, свои гранаты (PRO_PLAY, «Войс»). «Держу» не говорится; «выхожу на него» — один раз
@@ -327,7 +327,7 @@ function ctDelayNade(b){
     for(var wi = 0; wi < wl.length && !type; wi++){ ru -= wl[wi][1]; if(ru <= 0) type = wl[wi][0]; }
     if(!type && wl.length) type = wl[wl.length-1][0];
   }
-  if(!type || !assignNade(b, type, t, "задержать: "+t.why, {now:true, here:true})) return;
+  if(!type || !assignNade(b, type, t, "задержать: "+t.why, {now:true, here:true}).ok) return;
   b._delayT = tick;
   voiceLog("CT", "dly"+b.id+Math.round(tick/64), b.id, ({molly:"молотов", smoke:"смок", he:"HE", flash:"флешка"})[type]+" — "+t.why);
 }
@@ -357,7 +357,7 @@ function hurtReactTick(b){
   if(kind === "smoke"){
     var tr = b._trail || [], back = null;
     for(var ti = tr.length-1; ti >= 0 && !back; ti--){ var q = tr[ti]; if(DM.hypot(q.x-SM.x, q.y-SM.y) > NADE.smoke.radius + 30) back = q; }
-    if(back && taskCanSet(b, "repos:back") && setPost(b, {x:back.x, y:back.y}, {x:SM.x, y:SM.y}, true, "repos:back")){ taskKeep(b, tick + 3*TICK_HZ, "contact");
+    if(back && taskCanSet(b, "repos:back") && setPost(b, {x:back.x, y:back.y}, {x:SM.x, y:SM.y}, true, "repos:back").ok){ taskKeep(b, tick + 3*TICK_HZ, "contact");
       logEvent(b.id+": смок соперника лёг на меня — назад из дыма"); }
     return;
   }
@@ -373,7 +373,7 @@ function hurtReactTick(b){
   var sec = pathLenTo(b, sp.x, sp.y)/SPEED;
   if(sec > DETOUR_MAX.hurt || (!taskCanSet(b, "repos:hurt") && !detourOk(b, "hurt", sec))) return;
   detourStart(b, "hurt", "repos:hurt", sec + 1.5);
-  if(!setPost(b, sp, {x:F.x, y:F.y}, true, "repos:hurt")){ b._detour = null; return; }
+  if(!setPost(b, sp, {x:F.x, y:F.y}, true, "repos:hurt").ok){ b._detour = null; return; }
   if(b.state === "hold") leaveHold(b);
   taskKeep(b, 0, "contact"); b._probeLock = 0;
   logEvent(b.id+": "+(miss ? "по мне стреляют" : "ранен ("+b._hurtSrc+")")+" — ухожу из-под линии "+calloutName(F.x, F.y)+" за укрытие");

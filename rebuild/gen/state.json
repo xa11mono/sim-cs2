@@ -1739,6 +1739,7 @@
     "dlogBot · trace": 1
    },
    "r": {
+    "knowledge": 2,
     "trace": 5
    },
    "snap": "нет: след решений — вне состояния игры (Р3.3)"
@@ -1809,7 +1810,7 @@
     "paths": 12,
     "plan": 5,
     "position": 38,
-    "problem-watch": 6,
+    "problem-watch": 7,
     "reach": 8,
     "roles": 34,
     "save-retake": 44,
@@ -2321,7 +2322,7 @@
    "r": {
     "decide": 1
    },
-   "snap": true
+   "snap": "?"
   },
   "FLASH_POP_DZ": {
    "decl": "throw.js:10",
@@ -3335,7 +3336,7 @@
    "snap": true
   },
   "KG": {
-   "decl": "knowledge.js:78",
+   "decl": "knowledge.js:86",
    "init": "Literal",
    "w": {
     "knowGraph · knowledge": 1
@@ -3600,7 +3601,7 @@
    "snap": true
   },
   "KNOW_SPOTS": {
-   "decl": "knowledge.js:253",
+   "decl": "knowledge.js:261",
    "init": "ObjectExpression",
    "w": {},
    "m": {
@@ -4091,7 +4092,7 @@
    "snap": true
   },
   "LU_AT": {
-   "decl": "throw.js:472",
+   "decl": "throw.js:487",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -4132,7 +4133,7 @@
    "snap": true
   },
   "LU_NEAR": {
-   "decl": "throw.js:473",
+   "decl": "throw.js:488",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -4646,20 +4647,61 @@
    "decl": "throw.js:210",
    "init": "Literal",
    "w": {
-    "assignNadeDo · throw": 3,
-    "throwNadeDo · throw": 2,
-    "throwNadeTry · throw": 13,
-    "updateNadeTasks · throw": 1
+    "nadeFail · throw": 1
    },
    "m": {},
    "r": {
     "exec-sync": 2,
-    "throw": 18
+    "throw": 4
+   },
+   "snap": "нет: STATIC"
+  },
+  "NADE_FAILS": {
+   "decl": "throw.js:215",
+   "init": "ObjectExpression",
+   "w": {},
+   "m": {},
+   "r": {
+    "throw": 3
+   },
+   "snap": true
+  },
+  "NADE_FAIL_CODE": {
+   "decl": "throw.js:219",
+   "init": "ObjectExpression",
+   "w": {},
+   "m": {
+    "(верх файла) · throw": 1
+   },
+   "r": {
+    "throw": 2
+   },
+   "snap": true
+  },
+  "NADE_FAIL_G": {
+   "decl": "throw.js:220",
+   "init": "ObjectExpression",
+   "w": {},
+   "m": {},
+   "r": {
+    "throw": 1
+   },
+   "snap": true
+  },
+  "NADE_FC": {
+   "decl": "throw.js:222",
+   "init": "Literal",
+   "w": {
+    "nadeFail · throw": 1
+   },
+   "m": {},
+   "r": {
+    "throw": 2
    },
    "snap": "нет: STATIC"
   },
   "NADE_FOE_P": {
-   "decl": "throw.js:364",
+   "decl": "throw.js:379",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -4669,7 +4711,7 @@
    "snap": true
   },
   "NADE_FOE_R": {
-   "decl": "throw.js:364",
+   "decl": "throw.js:379",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -4721,7 +4763,7 @@
    "snap": true
   },
   "NADE_HIT_GAP": {
-   "decl": "throw.js:364",
+   "decl": "throw.js:379",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -4816,7 +4858,7 @@
    "snap": true
   },
   "NADE_LOW_HP": {
-   "decl": "throw.js:364",
+   "decl": "throw.js:379",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -4826,7 +4868,7 @@
    "snap": true
   },
   "NADE_NO_FROM": {
-   "decl": "throw.js:350",
+   "decl": "throw.js:365",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -4836,7 +4878,7 @@
    "snap": true
   },
   "NADE_NO_TO": {
-   "decl": "throw.js:350",
+   "decl": "throw.js:365",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -4868,7 +4910,7 @@
    "snap": true
   },
   "NADE_RETRY_D": {
-   "decl": "throw.js:216",
+   "decl": "throw.js:231",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -4910,7 +4952,7 @@
    "snap": true
   },
   "NADE_SPOT_R": {
-   "decl": "throw.js:660",
+   "decl": "throw.js:674",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -4920,7 +4962,7 @@
    "snap": true
   },
   "NADE_STILL_V": {
-   "decl": "throw.js:458",
+   "decl": "throw.js:473",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -5057,7 +5099,7 @@
    "snap": "нет: STATIC"
   },
   "NAVZ_FLOOR": {
-   "decl": "knowledge.js:110",
+   "decl": "knowledge.js:118",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -5067,7 +5109,7 @@
    "snap": true
   },
   "NAVZ_NEAR": {
-   "decl": "knowledge.js:110",
+   "decl": "knowledge.js:118",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -5435,7 +5477,7 @@
    "snap": true
   },
   "NAV_ZONE": {
-   "decl": "knowledge.js:110",
+   "decl": "knowledge.js:118",
    "init": "Literal",
    "w": {
     "navZoneBuild · knowledge": 2,
@@ -6385,13 +6427,13 @@
    "init": "ObjectExpression",
    "w": {},
    "m": {
-    "probEvent · problem-watch": 6,
-    "probReset · problem-watch": 7,
+    "probEvent · problem-watch": 8,
+    "probReset · problem-watch": 8,
     "probTick · problem-watch": 5
    },
    "r": {
     "draw": 3,
-    "problem-watch": 29
+    "problem-watch": 35
    },
    "snap": true
   },
@@ -6421,7 +6463,7 @@
    "w": {},
    "m": {},
    "r": {
-    "problem-watch": 3
+    "problem-watch": 4
    },
    "snap": true
   },
@@ -7137,7 +7179,7 @@
    "snap": true
   },
   "RUN_COS": {
-   "decl": "throw.js:474",
+   "decl": "throw.js:489",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -7158,7 +7200,7 @@
    "snap": true
   },
   "RUN_MARGIN": {
-   "decl": "throw.js:475",
+   "decl": "throw.js:490",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -7168,7 +7210,7 @@
    "snap": true
   },
   "RUN_NEAR": {
-   "decl": "throw.js:475",
+   "decl": "throw.js:490",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -7179,7 +7221,7 @@
    "snap": true
   },
   "RUN_OWN_A": {
-   "decl": "throw.js:485",
+   "decl": "throw.js:500",
    "init": "ArrayExpression",
    "w": {},
    "m": {},
@@ -7189,7 +7231,7 @@
    "snap": true
   },
   "RUN_PAST": {
-   "decl": "throw.js:475",
+   "decl": "throw.js:490",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -7199,7 +7241,7 @@
    "snap": true
   },
   "RUN_SEC": {
-   "decl": "throw.js:475",
+   "decl": "throw.js:490",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -7209,7 +7251,7 @@
    "snap": true
   },
   "RUN_STRAIGHT": {
-   "decl": "throw.js:507",
+   "decl": "throw.js:522",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -7219,7 +7261,7 @@
    "snap": true
   },
   "RUN_V": {
-   "decl": "throw.js:474",
+   "decl": "throw.js:489",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -7265,7 +7307,7 @@
    "r": {
     "save-retake": 1
    },
-   "snap": true
+   "snap": "?"
   },
   "SB_PANEL_EL": {
    "decl": "sandbox.js:11",
@@ -11319,7 +11361,7 @@
     "plan": 6,
     "position": 14,
     "pro-positions": 3,
-    "problem-watch": 4,
+    "problem-watch": 6,
     "replay": 5,
     "replay-play": 6,
     "roles": 8,
@@ -12035,7 +12077,7 @@
     "team": 2,
     "throw": 43,
     "tick": 63,
-    "trace": 6,
+    "trace": 7,
     "turn": 23,
     "view3d": 22,
     "view3d-frame": 13,
@@ -12066,7 +12108,7 @@
     "smoke-react": 3,
     "view3d-frame": 1
    },
-   "snap": true
+   "snap": "?"
   },
   "userZonesSaveTimer": {
    "decl": "zone-danger.js:161",
@@ -12591,15 +12633,15 @@
   },
   "_aft": {
    "w": [
-    "task.js:504 afterTaskPick",
-    "task.js:509 afterTaskPick"
+    "task.js:505 afterTaskPick",
+    "task.js:510 afterTaskPick"
    ],
    "lit": [],
    "r": 3
   },
   "_aftSaid": {
    "w": [
-    "task.js:510 afterTaskPick"
+    "task.js:511 afterTaskPick"
    ],
    "lit": [],
    "r": 2
@@ -12659,23 +12701,23 @@
   },
   "_apBest": {
    "w": [
-    "task.js:545 updatePost",
-    "task.js:546 updatePost"
+    "task.js:546 updatePost",
+    "task.js:547 updatePost"
    ],
    "lit": [],
    "r": 3
   },
   "_apId": {
    "w": [
-    "task.js:545 updatePost"
+    "task.js:546 updatePost"
    ],
    "lit": [],
    "r": 2
   },
   "_apT": {
    "w": [
-    "task.js:545 updatePost",
-    "task.js:546 updatePost"
+    "task.js:546 updatePost",
+    "task.js:547 updatePost"
    ],
    "lit": [],
    "r": 3
@@ -12946,7 +12988,7 @@
     "contact.js:376 hurtReactTick",
     "task.js:284 taskCanSet",
     "task.js:339 detourStart",
-    "task.js:514 clearPostDo"
+    "task.js:515 clearPostDo"
    ],
    "lit": [],
    "r": 10
@@ -13329,7 +13371,7 @@
   },
   "_fireAcc": {
    "w": [
-    "decide.js:254 resetNades"
+    "decide.js:261 resetNades"
    ],
    "lit": [],
    "r": 1
@@ -13356,7 +13398,7 @@
    "w": [
     "damage.js:233 nadesTick",
     "damage.js:236 nadesTick",
-    "decide.js:254 resetNades"
+    "decide.js:261 resetNades"
    ],
    "lit": [],
    "r": 12
@@ -13837,7 +13879,7 @@
   },
   "_lastNade": {
    "w": [
-    "throw.js:295 throwNadeTry"
+    "throw.js:310 throwNadeTry"
    ],
    "lit": [],
    "r": 2
@@ -14096,7 +14138,7 @@
   "_nadeCd": {
    "w": [
     "decide.js:215 nadeBrains",
-    "decide.js:254 resetNades"
+    "decide.js:261 resetNades"
    ],
    "lit": [],
    "r": 3
@@ -14104,7 +14146,7 @@
   "_nadeNo": {
    "w": [
     "round.js:204 resetRound",
-    "throw.js:353 nadeNoteFail"
+    "throw.js:368 nadeNoteFail"
    ],
    "lit": [],
    "r": 6
@@ -14112,7 +14154,7 @@
   "_nadeT": {
    "w": [
     "round.js:204 resetRound",
-    "throw.js:295 throwNadeTry"
+    "throw.js:310 throwNadeTry"
    ],
    "lit": [],
    "r": 4
@@ -14127,7 +14169,7 @@
   },
   "_nadeWhy": {
    "w": [
-    "decide.js:250 nadeCancel"
+    "decide.js:257 nadeCancel"
    ],
    "lit": [],
    "r": 1
@@ -14230,14 +14272,14 @@
   },
   "_nv": {
    "w": [
-    "throw.js:453 nadeVelTrack"
+    "throw.js:468 nadeVelTrack"
    ],
    "lit": [],
    "r": 2
   },
   "_nvP": {
    "w": [
-    "throw.js:453 nadeVelTrack"
+    "throw.js:468 nadeVelTrack"
    ],
    "lit": [],
    "r": 2
@@ -14770,7 +14812,7 @@
    "w": [
     "brain-t-phases.js:104 tBrainSetup",
     "brain-t.js:296 tBrainMidTake",
-    "decide.js:254 resetNades",
+    "decide.js:261 resetNades",
     "igl.js:127 tIglReplan",
     "igl.js:218 tSetSite",
     "lurker.js:57 lurkerBrain",
@@ -15067,7 +15109,7 @@
   },
   "_stanceWhy": {
    "w": [
-    "task.js:522 placeStance"
+    "task.js:523 placeStance"
    ],
    "lit": [],
    "r": 1
@@ -15169,8 +15211,8 @@
   "_task": {
    "w": [
     "task.js:417 setPostDo",
-    "task.js:514 clearPostDo",
-    "task.js:524 placeResetTask",
+    "task.js:515 clearPostDo",
+    "task.js:525 placeResetTask",
     "task.js:66 routeTick"
    ],
    "lit": [],
@@ -15192,14 +15234,14 @@
   },
   "_thrownT": {
    "w": [
-    "throw.js:306 throwNadeTry"
+    "throw.js:321 throwNadeTry"
    ],
    "lit": [],
    "r": 2
   },
   "_tnMiss": {
    "w": [
-    "throw.js:223 throwNadeDo"
+    "throw.js:238 throwNadeDo"
    ],
    "lit": [],
    "r": 2
@@ -15359,7 +15401,7 @@
   },
   "_zoomTick": {
    "w": [
-    "task.js:555 updatePost"
+    "task.js:556 updatePost"
    ],
    "lit": [],
    "r": 2
@@ -15368,7 +15410,7 @@
    "w": [
     "damage.js:157 applyDamage",
     "events.js:249 knowKill",
-    "knowledge.js:274 knowRoundStart",
+    "knowledge.js:282 knowRoundStart",
     "round.js:212 resetRound",
     "sandbox.js:42 sbRevive",
     "sandbox.js:47 sbRemove",
@@ -15433,12 +15475,12 @@
     "move.js:142 moveSpeedTick",
     "round.js:233 resetRound",
     "task.js:464 setPostDo",
-    "task.js:514 clearPostDo",
-    "task.js:526 updatePost",
-    "task.js:528 updatePost",
-    "task.js:552 updatePost",
-    "task.js:561 updatePost",
-    "task.js:562 updatePost"
+    "task.js:515 clearPostDo",
+    "task.js:527 updatePost",
+    "task.js:529 updatePost",
+    "task.js:553 updatePost",
+    "task.js:562 updatePost",
+    "task.js:563 updatePost"
    ],
    "lit": [],
    "r": 67
@@ -15472,7 +15514,7 @@
    "lit": [
     "weapons-bots.js:82"
    ],
-   "r": 240
+   "r": 242
   },
   "baseY": {
    "w": [
@@ -15503,12 +15545,12 @@
    "lit": [
     "weapons-bots.js:82"
    ],
-   "r": 239
+   "r": 241
   },
   "blindUntil": {
    "w": [
     "damage.js:80 detonate",
-    "decide.js:254 resetNades",
+    "decide.js:261 resetNades",
     "sandbox.js:43 sbRevive",
     "smoke.js:37 (верх файла)",
     "warmup.js:14 warmSpawn"
@@ -15570,7 +15612,7 @@
   },
   "crouching": {
    "w": [
-    "task.js:522 placeStance"
+    "task.js:523 placeStance"
    ],
    "lit": [
     "weapons-bots.js:82"
@@ -15690,8 +15732,8 @@
   },
   "ears": {
    "w": [
-    "knowledge.js:270 knowRoundStart",
-    "knowledge.js:321 knowHearing"
+    "knowledge.js:278 knowRoundStart",
+    "knowledge.js:329 knowHearing"
    ],
    "lit": [],
    "r": 3
@@ -15712,7 +15754,7 @@
   },
   "exuThrown": {
    "w": [
-    "throw.js:310 throwNadeTry"
+    "throw.js:325 throwNadeTry"
    ],
    "lit": [],
    "r": 0
@@ -15804,29 +15846,11 @@
    "r": 22
   },
   "heardSound": {
-   "w": [
-    "assist.js:120 assistPeek",
-    "assist.js:340 ambushTick",
-    "bomb.js:128 defuseSound",
-    "bomb.js:138 defuseContTick",
-    "bomb.js:259 bombTick",
-    "demo.js:58 dvHearShot",
-    "events.js:252 knowKill",
-    "intel.js:309 intelDeath",
-    "intel.js:386 intelDeath",
-    "round.js:216 resetRound",
-    "shoot.js:368 tryShoot",
-    "shoot.js:375 tryShoot",
-    "smoke-react.js:85 blindBullet",
-    "sound.js:138 smokeFadeTick",
-    "sound.js:28 emitSound",
-    "throw.js:333 throwNadeTry",
-    "tick.js:36 moveSoundEmit"
-   ],
+   "w": [],
    "lit": [
     "weapons-bots.js:82"
    ],
-   "r": 38
+   "r": 33
   },
   "helmet": {
    "w": [
@@ -15894,7 +15918,7 @@
     "round.js:2",
     "weapons-bots.js:82"
    ],
-   "r": 626
+   "r": 628
   },
   "kills": {
    "w": [
@@ -15928,7 +15952,7 @@
   },
   "know": {
    "w": [
-    "knowledge.js:268 knowRoundStart"
+    "knowledge.js:276 knowRoundStart"
    ],
    "lit": [],
    "r": 32
@@ -15941,23 +15965,11 @@
    "r": 0
   },
   "lastIntel": {
-   "w": [
-    "assist.js:120 assistPeek",
-    "assist.js:134 assistPeek",
-    "assist.js:79 flankAssist",
-    "contact.js:245 contactTick",
-    "damage.js:81 detonate",
-    "engagements.js:99 engDecide",
-    "events.js:253 knowKill",
-    "round.js:216 resetRound",
-    "sound.js:118 finishPush",
-    "sound.js:137 smokeFadeTick",
-    "throw.js:331 throwNadeTry"
-   ],
+   "w": [],
    "lit": [
     "weapons-bots.js:82"
    ],
-   "r": 56
+   "r": 46
   },
   "lastShotTick": {
    "w": [
@@ -16063,23 +16075,20 @@
   },
   "nadeQueue": {
    "w": [
-    "decide.js:250 nadeCancel",
-    "decide.js:254 resetNades",
+    "decide.js:253 nadeTaskEnd",
+    "decide.js:261 resetNades",
     "exec-sync.js:127 exuReassign",
     "exec-sync.js:133 exuReassign",
     "lineups.js:205 lineupTick",
-    "smoke.js:37 (верх файла)",
-    "throw.js:569 updateNadeTask1",
-    "throw.js:575 updateNadeTask1",
-    "throw.js:621 updateNadeTask1"
+    "smoke.js:37 (верх файла)"
    ],
    "lit": [],
-   "r": 20
+   "r": 17
   },
   "nadeTask": {
    "w": [
-    "decide.js:250 nadeCancel",
-    "decide.js:254 resetNades",
+    "decide.js:253 nadeTaskEnd",
+    "decide.js:261 resetNades",
     "exec-sync.js:128 exuReassign",
     "exec-sync.js:131 exuReassign",
     "exec-sync.js:132 exuReassign",
@@ -16087,35 +16096,17 @@
     "lineups.js:264 lineupTick",
     "plan.js:235 nadeAskFlash",
     "smoke.js:37 (верх файла)",
-    "throw.js:399 assignNadeDo",
-    "throw.js:441 nadeQueueNext",
-    "throw.js:443 nadeQueueNext",
-    "throw.js:523 runupTick",
-    "throw.js:538 runupTick",
-    "throw.js:550 runupTick",
-    "throw.js:552 runupTick",
-    "throw.js:558 updateNadeTask1",
-    "throw.js:565 updateNadeTask1",
-    "throw.js:569 updateNadeTask1",
-    "throw.js:570 updateNadeTask1",
-    "throw.js:571 updateNadeTask1",
-    "throw.js:575 updateNadeTask1",
-    "throw.js:578 updateNadeTask1",
-    "throw.js:603 updateNadeTask1",
-    "throw.js:621 updateNadeTask1",
-    "throw.js:635 updateNadeTask1",
-    "throw.js:640 updateNadeTask1",
-    "throw.js:647 updateNadeTask1",
-    "throw.js:649 updateNadeTask1",
-    "throw.js:652 updateNadeTask1"
+    "throw.js:414 assignNadeDo",
+    "throw.js:456 nadeQueueNext",
+    "throw.js:458 nadeQueueNext"
    ],
    "lit": [],
-   "r": 106
+   "r": 88
   },
   "nades": {
    "w": [
     "damage.js:160 applyDamage",
-    "decide.js:254 resetNades",
+    "decide.js:261 resetNades",
     "economy.js:333 buyForPlayer",
     "economy.js:336 buyForPlayer",
     "economy.js:380 buyForPlayer",
@@ -16210,10 +16201,10 @@
     "sandbox.js:38 sbPlace",
     "sound.js:180 onBlind",
     "task.js:465 setPostDo",
-    "task.js:514 clearPostDo",
-    "task.js:528 updatePost",
-    "task.js:552 updatePost",
-    "task.js:561 updatePost",
+    "task.js:515 clearPostDo",
+    "task.js:529 updatePost",
+    "task.js:553 updatePost",
+    "task.js:562 updatePost",
     "tick.js:444 stepBot",
     "tick.js:519 stepBot",
     "tick.js:524 stepBot",
@@ -16284,11 +16275,11 @@
   "post": {
    "w": [
     "task.js:462 setPostDo",
-    "task.js:514 clearPostDo",
-    "task.js:523 placeResetPost"
+    "task.js:515 clearPostDo",
+    "task.js:524 placeResetPost"
    ],
    "lit": [],
-   "r": 516
+   "r": 504
   },
   "pp": {
    "w": [
@@ -16661,8 +16652,8 @@
   },
   "throwUntil": {
    "w": [
-    "decide.js:254 resetNades",
-    "throw.js:312 throwNadeTry"
+    "decide.js:261 resetNades",
+    "throw.js:327 throwNadeTry"
    ],
    "lit": [],
    "r": 11
@@ -16743,14 +16734,14 @@
   },
   "weight": {
    "w": [
-    "knowledge.js:212 knowBuild"
+    "knowledge.js:220 knowBuild"
    ],
    "lit": [],
    "r": 2
   },
   "windows": {
    "w": [
-    "knowledge.js:212 knowBuild"
+    "knowledge.js:220 knowBuild"
    ],
    "lit": [],
    "r": 1

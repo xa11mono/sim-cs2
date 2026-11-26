@@ -1,4 +1,4 @@
-// присед у про (12 демок Mirage): на приседе 11 % первых пуль винтовки, 37 % 2–3-х, 22 % дальше; сидят коротко (медиана 0,19 с)
+// [хозяева: assignNewDestination, engDecide, engRetreatCheck, engSee, engShoot, engTarget, resolveEngagements] присед у про (12 демок Mirage): на приседе 11 % первых пуль винтовки, 37 % 2–3-х, 22 % дальше; сидят коротко (медиана 0,19 с)
 // Доли решений больше долей пуль: присед срывает «не видно из приседа» (v521), уход за укрытие (fight) и конец очереди — подобраны так, чтобы
 // на приседе было столько же пуль, сколько у про (замер — бот: 1-я 6 %, 2–3 28 %, 4+ 14 % при решениях 0,11 / 0,37 / 0,22; 17 / 42 / 28 % при 0,2 / 0,49 / 0,35)
 var DUCK_PRO = {first: 0.13, burst: 0.46, spray: 0.27};
@@ -96,7 +96,7 @@ function engDecide(){
       if(!b.lastIntel || b.lastIntel.tick < tick - 1) b._intelPre = b.lastIntel;
       // память для префайра (план §3/§6): "видел врага тут только что" —
       // обновляется каждый тик реального контакта, не только на входе в бой
-      b.lastIntel = {x:b._nearestEnemyBot.x, y:b._nearestEnemyBot.y, tick:tick, id:b._nearestEnemyBot.id};   // (v435) id — кого видел (контакт кончается с его смертью)
+      knowIntel(b, {x:b._nearestEnemyBot.x, y:b._nearestEnemyBot.y, tick:tick, id:b._nearestEnemyBot.id});   // (v435) id — кого видел (контакт кончается с его смертью)
     } else {
       // раньше тут было contactStreak = 0 и nextShotTick = 0: один тик без LOS
       // (враг чуть сдвинулся за край угла, пик закончился) — и стрелок заново

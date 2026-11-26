@@ -1,4 +1,4 @@
-// ---------- бомба ----------
+// [хозяева: bombDamageAt, bombFleePoint, bombTick] ---------- бомба ----------
 var DEFUSE_JUDGE = 0.3;   // (v519) с — ошибка оценки таймера игроком, проектное число
 var PLANT_TICKS = Math.round(3.2*64), BOMB_TICKS = 40*64, DEFUSE_TICKS = 10*64, DEFUSE_KIT_TICKS = 5*64;
 // (v271) Урон взрыва — как в CS2 после июля 2025: волна расходится по карте от бомбы, углы и
@@ -125,7 +125,7 @@ function defuseSound(ct){
     if(!o.alive || o.team !== "T") return;
     // (v519, пак 09.11 п.19; А-36: «простреливают ровно в ту точку, где стоит бомба, а игрок может стоять чуть дальше») звук — от дефузера (там он
     // сидит; звук дефуза слышно рядом с бомбой — DEFUSE_HEAR), а не из точки бомбы
-    if(DM.hypot(o.x-bomb.x, o.y-bomb.y) < DEFUSE_HEAR){ o._defuseHeard = tick; o.heardSound = hearReal(o, {x:ct.x, y:ct.y, z:ct.z, tick:tick, team:"CT", kind:"defuse"}); }
+    if(DM.hypot(o.x-bomb.x, o.y-bomb.y) < DEFUSE_HEAR){ o._defuseHeard = tick; knowHear(o, {x:ct.x, y:ct.y, z:ct.z, tick:tick, team:"CT", kind:"defuse"}); }
   });
 }
 // (6) звук дефуза длится, пока дефузят: T рядом слышат, что он продолжается
@@ -135,7 +135,7 @@ function defuseContTick(){
   var dfz = bots.filter(function(o){ return o.alive && o.defusing; })[0];
   if(!dfz || tick % 8) return;
   bots.forEach(function(o){ if(o.alive && o.team === "T" && DM.hypot(o.x-bomb.x, o.y-bomb.y) < DEFUSE_HEAR){ o._defuseCont = tick;
-    o.heardSound = hearReal(o, {x:dfz.x, y:dfz.y, z:dfz.z, tick:tick, team:"CT", kind:"defuse"}); } });   // (v519) звук идёт — от дефузера
+    knowHear(o, {x:dfz.x, y:dfz.y, z:dfz.z, tick:tick, team:"CT", kind:"defuse"}); } });   // (v519) звук идёт — от дефузера
 }
 // T решают, бежать ли на звук дефуза сейчас: если время позволяет — ~0.8с
 // ждут, продолжается ли звук (настоящий дефуз) или стих (фейк — CT ждут пика).
@@ -256,7 +256,7 @@ function bombTick(){
         if(o.team !== "CT" || !o.alive) return;
         var dH = DM.hypot(o.x-c.x, o.y-c.y);
         if(dH < 520 || (dH < 850 && hasLOS(o.x, o.y, c.x, c.y, o.z)))
-          o.heardSound = hearReal(o, {x:c.x, y:c.y, tick:tick, team:"T", src:c.id, kind:"plant", occl:!hasLOS(o.x, o.y, c.x, c.y, o.z)});
+          knowHear(o, {x:c.x, y:c.y, tick:tick, team:"T", src:c.id, kind:"plant", occl:!hasLOS(o.x, o.y, c.x, c.y, o.z)});
       });
     }
   } else if(bomb.state === "dropped"){

@@ -1,4 +1,4 @@
-// ---------- посты: "куда встать и куда смотреть" ----------
+// [хозяева: clearPost, clearPostDo, detourOk, placeResetPost, placeStance, routeTick, setPost, setPostDo, startRoute, taskDetourKind, taskProp, updatePost] ---------- посты: "куда встать и куда смотреть" ----------
 // Когда у бота в патруле есть пост — он идёт к нему, а дойдя (hold) стоит и
 // смотрит в look. Бой (engage/hold/retreat) по-прежнему перебивает всё.
 // ---- маршруты по названиям зон ----
@@ -382,10 +382,10 @@ function setPostDo(b, pt, look, hold, tag, spreadIdx){
     else if(lv === 1 && R.idx < R.pts.length){
       R.want = [pt, look, hold, tag, spreadIdx];
       var cp = R.pts[R.idx], nx = R.pts[R.idx+1] || pt;
-      return {ok: setPost(b, cp, nx, true, "route:"+R.names[Math.min(R.idx, R.names.length-1)]), why: "маршрут раша: пост — точка маршрута", lv: lv};
+      return {ok: setPost(b, cp, nx, true, "route:"+R.names[Math.min(R.idx, R.names.length-1)]).ok, why: "маршрут раша: пост — точка маршрута", lv: lv};
     }
   }
-  if(lv === 1 && !/^after:/.test(String(tag))){ var AF = afterTaskPick(b, pt); if(AF) return {ok: setPost(b, AF.pt, AF.look, true, "after:hold"), why: "после задачи: держать место", lv: lv}; }
+  if(lv === 1 && !/^after:/.test(String(tag))){ var AF = afterTaskPick(b, pt); if(AF) return {ok: setPost(b, AF.pt, AF.look, true, "after:hold").ok, why: "после задачи: держать место", lv: lv}; }
   if(!taskCanSet(b, tag)){ var dk = taskDetourKind(b, tag);   // (v547) задача фазы — не отказ, а отклонение, если она терпит это время
     if(!dk || !pt || !detourOk(b, dk, pathLenTo(b, pt.x, pt.y)/SPEED)) return {ok: false, why: dk ? "отклонение не успевает" : "занято задачей уровня не ниже", lv: lv};
     detourStart(b, dk, tag, DETOUR_MAX[dk]); }
@@ -484,13 +484,14 @@ function taskDeadline(b, pt, holdSec, walking){
 }
 // (Р3.2, канал «место», шаг 1) хозяин места отвечает результатом: {ok, why — почему так (отказ арбитра, маршрут, тот же пост, поставлен),
 // lv — уровень задачи}; setPost — прежний ответ да / нет для всех старых вызовов (переходник до конца этапа); события setPost — как были
-function setPost(b, pt, look, hold, tag){ return setPostR.apply(this, arguments).ok; }
-function setPostR(b, pt, look, hold, tag){ var _ev = simEvIn("setPost", arguments);
+// (Р3.2 место ш.3, Р-7, 26.11) заявка на место — ответ хозяина целиком: {ok, why, lv} (было: да / нет, полный ответ — у setPostR)
+function setPost(b, pt, look, hold, tag){ var _ev = simEvIn("setPost", arguments);
   var was = b && b.post ? b.post.tag : null, R = b ? setPostDo.apply(this, arguments) : {ok: setPostDo.apply(this, arguments), why: "нет бота"}, r = R.ok;
   if(!b){ simEvOut(_ev, r); return R; }
   var cur = b._task ? " (уровень " + b._task.lv + ")" : "";
   if(r && tag !== was) dlog(b, "место", "задача «" + tag + "»" + cur + (was ? " вместо «" + was + "»" : "") + " — " + calloutName(pt.x, pt.y));
-  else if(!r) dlog(b, "место", "отказ «" + tag + "»: занят «" + (b._task ? b._task.tag : (b.post && b.post.tag)) + "»" + cur);
+  else if(!r){ var busy = String(b._task ? b._task.tag : (b.post && b.post.tag));
+    dlog(b, "место", "отказ «" + tag + "»: занят «" + busy + "»" + cur, undefined, /^[^»]+$/.test(String(tag)) && /^[^»]+$/.test(busy) ? {ask: String(tag), busy: busy} : null); }
   // (Р3.3) ответ арбитра на заявку — отдельный ключ следа (_dlogA): тексты _dlog читает счёт ошибок движения (problem-watch), их не трогать
   if(!r || tag !== was) dlog(b, "арбитр", "заявка «" + tag + "» ур. " + R.lv + ": " + (r ? "да" : "нет") + " — " + (R.why || "?"), "_dlogA");
   simEvOut(_ev, r); return R;

@@ -1,5 +1,5 @@
 {
-  "_": "Хозяева полей бота (rebuild/DEVICE.md §1, §3). allow — функции канала: хозяин и исполнитель внутри канала; остальные записи — мимо хозяина. enforce: false — предупреждение (канал ещё не перенесён), true — сборка падает (ставится, когда канал перенесён, фаза 3). Читают tools/rebuild/gen_maps.js и проверка сборки (src/build.py). Полей без хозяина (nadeTask, path, phase) здесь нет — назначит перенос.",
+  "_": "Хозяева полей бота (docs/ARCHITECTURE.md, «Устройство каналов»). allow — функции канала: хозяин и исполнитель внутри канала; остальные записи — мимо хозяина. enforce: false — предупреждение (канал ещё не перенесён), true — сборка падает (ставится, когда канал перенесён, фаза 3). Читают tools/rebuild/gen_maps.js и проверка сборки (src/build.py). Полей без хозяина (nadeTask, path, phase) здесь нет — назначит перенос.",
   "_show_ban": true,
   "_locks": {
     "_avoidPeekUntil": [
@@ -190,7 +190,16 @@
       "nadeCancel"
     ],
     "enforce": true,
-    "since": "фаза 3, 15.11: канал гранат — файлы 360–420; снаружи — nadeCancel"
+    "since": "фаза 3, 15.11: канал гранат — файлы 360–420; снаружи — nadeCancel",
+    "end": {
+      "allow": [
+        "nadeTaskEnd",
+        "resetNades",
+        "exuReassign",
+        "(верх файла) · smoke"
+      ],
+      "why": "(Р3.2 гранаты ш.2, Р-6, 26.11) снять задание (nadeTask = null) — только nadeTaskEnd (причина, связанный пост); исключения: сброс раунда (resetNades), начальное значение (smoke, верх файла), временная перестановка своей гранаты в очередь (exuReassign — задание не кончается, возвращается)"
+    }
   },
   "_reposUntil": {
     "channel": "место",
@@ -275,5 +284,27 @@
     ],
     "enforce": true,
     "since": "Р3.2 команда ш.2, 26.11: фаза плана T (tt.phase) — только хозяин tPhaseSet (engine/team/igl.js), причина — в след команды"
+  },
+  "heardSound": {
+    "channel": "знание",
+    "files": [],
+    "allow": [
+      "knowHear",
+      "knowSound",
+      "knowIntel"
+    ],
+    "enforce": true,
+    "since": "Р3.2 знание ш.3, 26.11: одна точка записи (engine/know/knowledge.js)"
+  },
+  "lastIntel": {
+    "channel": "знание",
+    "files": [],
+    "allow": [
+      "knowHear",
+      "knowSound",
+      "knowIntel"
+    ],
+    "enforce": true,
+    "since": "Р3.2 знание ш.3, 26.11: одна точка записи (engine/know/knowledge.js)"
   }
 }

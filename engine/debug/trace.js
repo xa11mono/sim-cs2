@@ -1,4 +1,4 @@
-// ---- (v384) журнал решений бота для отметок владельца: последние DLOG_SEC с — смена задачи места (и отказ), заказ / бросок гранаты (и
+// [хозяева: dlog, dlogBot, dlogOf, dlogTeam] ---- (v384) журнал решений бота для отметок владельца: последние DLOG_SEC с — смена задачи места (и отказ), заказ / бросок гранаты (и
 // почему нет), смена причины взгляда. Только запись — игру не меняет.
 // (Р3.3, 25.11) след решений — вне состояния игры: хранилище DLOG по номеру бота (было b._dlog / b._dlog2 / b._dlLook / b._dlMove — в
 // объектах ботов, в снимке). Читать — dlogOf(b[, ключ]). DLOG.on — выключатель (игра от него не зависит: Э1 вкл / выкл). При перемотке
@@ -11,13 +11,14 @@ function dlogOf(b, key){ var B = b && DLOG.by[b.id], L = (B && B[key || "_dlog"]
   return L.length && L[L.length-1][0] > tick ? L.filter(function(e){ return e[0] <= tick; }) : L; }
 // (Р3.2, канал «команда») след решений команды (фаза плана и т. п.) — вне состояния игры, как след бота: dlogTeam("T", вид, текст)
 function dlogTeam(side, kind, text){ if(!DLOG.on || !side) return; dlog({id: "team:" + side}, kind, text); }
-function dlog(b, kind, text, key){
+// data — поля записи для инструментов (сторож PROB читает их, а не текст; Р-9)
+function dlog(b, kind, text, key, data){
   if(!b || !DLOG.on) return;
   var B = dlogBot(b), k = key || "_dlog", L = B[k] || (B[k] = []);
   while(L.length && L[L.length-1][0] > tick) L.pop();   // время назад (перемотка, новый матч) — записи «из будущего» не нужны
   var last = L[L.length-1];
   if(last && last[1] === kind && last[2] === text && tick - last[0] < TICK_HZ) return;   // то же — не чаще раза в секунду
-  L.push([tick, kind, text]);
+  L.push(data ? [tick, kind, text, data] : [tick, kind, text]);
   while(L.length && (L.length > DLOG_MAX || tick - L[0][0] > DLOG_SEC*TICK_HZ)) L.shift();
 }
 (function(){

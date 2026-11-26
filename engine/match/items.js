@@ -1,4 +1,4 @@
-var tracers = [];
+/* [хозяева: bulletVictim, dropWeaponOnDeath, itemPickupTick, knifeTick] */ var tracers = [];
 // (v151) как выглядит выстрел у разного оружия: пистолет — тонкий короткий след и
 // маленькая вспышка; ПП — частые тонкие; винтовка — как было; AWP — толстый
 // мгновенный луч с ореолом, большая вспышка, след висит дольше
@@ -164,7 +164,7 @@ function knifeDefuseTick(b){
   b._stabT = tick + KNIFE_GAP;
   var back = D.facing !== undefined && _angOff(DM.atan2(b.y-D.y, b.x-D.x), D.facing) > 2*Math.PI/3;
   applyDamage(b, D, back ? KNIFE_BACK : KNIFE_STAB, "knife", {wkey:"KNIFE_T", reward:1500, note:" (нож"+(back ? ", в спину" : "")+")"});
-  D.heardSound = {x:b.x, y:b.y, z:b.z, tick:tick, team:b.team, src:b.id, kind:"hit"};
+  knowSound(D, {x:b.x, y:b.y, z:b.z, tick:tick, team:b.team, src:b.id, kind:"hit"});
   return true;
 }
 function knifeTick(b){
@@ -251,7 +251,7 @@ function weaponPickupTick(){
     else if(b._pickGo && b._pickGo.round === roundNum && !(b.post && b.post.tag === "pickup")){
       var PG = b._pickGo;
       if(!groundWeapons.some(function(G){ return DM.hypot(G.x-PG.x, G.y-PG.y) < 40; })) b._pickGo = null;
-      else if(b.state === "patrol" && !b._sawEnemy && !(bomb.state === "carried" && bomb.carrier === b) && pickDetour(b, PG) && setPost(b, {x:PG.x, y:PG.y}, null, true, "pickup")){
+      else if(b.state === "patrol" && !b._sawEnemy && !(bomb.state === "carried" && bomb.carrier === b) && pickDetour(b, PG) && setPost(b, {x:PG.x, y:PG.y}, null, true, "pickup").ok){
         logEvent(b.id+": возвращаюсь за оружием"); return; }
     }
     var cur = pickValue(b, b.primary);
@@ -286,7 +286,7 @@ function weaponPickupTick(){
       if(gBest && (b.state !== "patrol" || intelEstimate(b.team, gBest.x, gBest.y, 450, 3*TICK_HZ).n > 0) && pickDetour(b, gBest)){
         b._fpT = tick;
         if(b.state !== "patrol"){ fightState(b, "patrol", "нож"); fightHoldOff(b, "knife"); b.stateSince = tick; }
-        if(setPost(b, {x:gBest.x, y:gBest.y}, null, true, "pickup")) b._pickGo = {x:gBest.x, y:gBest.y, round:roundNum};
+        if(setPost(b, {x:gBest.x, y:gBest.y}, null, true, "pickup").ok) b._pickGo = {x:gBest.x, y:gBest.y, round:roundNum};
         if(!b._fpV || tick - b._fpV > 5*TICK_HZ){ b._fpV = tick; logEvent(b.id+": в бою — подбираю "+WEAPONS[gBest.key].name); }
         return;
       }
@@ -321,6 +321,6 @@ function weaponPickupTick(){
     if(danger) return;
     b._pdT = tick + 16;
     if(!pickDetour(b, best)) return;
-    if(setPost(b, {x:best.x, y:best.y}, null, true, "pickup")){ b._pickGo = {x:best.x, y:best.y, round:roundNum}; if(savingNow){ b._pickSave = roundNum; logEvent(b.id+": сейв — по пути подбираю "+WEAPONS[best.key].name); } }
+    if(setPost(b, {x:best.x, y:best.y}, null, true, "pickup").ok){ b._pickGo = {x:best.x, y:best.y, round:roundNum}; if(savingNow){ b._pickSave = roundNum; logEvent(b.id+": сейв — по пути подбираю "+WEAPONS[best.key].name); } }
   });
 }

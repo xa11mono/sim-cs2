@@ -1,4 +1,4 @@
-var FLASH_EXIT_MAX = 413;   // px: 90 % флешек «под свой выход» у про (pro_nades.csv, purpose flash_exit)
+/* [хозяева: nadeBrains, nadeTaskEnd, nadeCancel, nadeUseTick] */ var FLASH_EXIT_MAX = 413;   // px: 90 % флешек «под свой выход» у про (pro_nades.csv, purpose flash_exit)
 function nadeUsePick(b, pts, R){
   var I = nadeLaneIdx(), L = I.L, best = null, bd = Infinity;
   pts.forEach(function(p){
@@ -62,7 +62,7 @@ function nadeUseTick(b){
   // data/pro/pro_nades.csv) от бросающего до места флешки 175 / 304 / 413 px (10 / 50 / 90 %); дальше — не кидает, подойдёт ближе
   if(plan.t === "flash" && entering && DM.hypot(pt.x-b.x, pt.y-b.y) > FLASH_EXIT_MAX){ b._nadeUseT = 0; return; }
   if(plan.t === "smoke" && smokeCovered(pt.x, pt.y)) return;
-  if(assignNade(b, plan.t, pt, why, {now:true})) logEvent(b.id+": "+NADE[plan.t].name+" — "+why);
+  if(assignNade(b, plan.t, pt, why, {now:true}).ok) logEvent(b.id+": "+NADE[plan.t].name+" — "+why);
 }
 function nadeBrains(){
   bots.forEach(function(b){ if((tick + b.id.charCodeAt(b.id.length-1)*7) % 32 === 0) nadeUseTick(b); });   // (v374) граната — часть действия
@@ -83,7 +83,7 @@ function nadeBrains(){
         .sort(function(a, c){ return DM.hypot(a.x-A0.x, a.y-A0.y) - DM.hypot(c.x-A0.x, c.y-A0.y); })[0];
       if(smA){
         var spAw = {x: A0.x + (smA.x-A0.x)*0.3, y: A0.y + (smA.y-A0.y)*0.3};
-        if(assignNade(smA, "smoke", spAw, "смок на линию AWP", {now:true, range:1300})){ nadeFlags.antiAwp = true;
+        if(assignNade(smA, "smoke", spAw, "смок на линию AWP", {now:true, range:1300}).ok){ nadeFlags.antiAwp = true;
           voiceLog("T", "antiawp", smA.id, "их AWP в прошлых раундах бил "+calloutName(A0.x, A0.y)+" — смок на его линию"); }
       } else if(tick - roundStartTick > 25*TICK_HZ) nadeFlags.antiAwp = true;
     } else nadeFlags.antiAwp = true;
@@ -111,8 +111,8 @@ function nadeBrains(){
     // из них — почти все провалы критичных смоков: «не долетит», «стена на пути», «не дошёл за срок») — только запасом, если у карты
     // нет лайнапа про со смоком выхода на этот сайт
     if(npHasExecSmoke(tt.site)) smokers = [];
-    if(smokers[0] && assignNade(smokers[0], "smoke", g.ctEntry, "вход CT", Object.assign({bkey:"T.exec.ctEntry."+tt.site}, eo))) smokers[0].nadeTask.exec = true;
-    if(smokers[1] && assignNade(smokers[1], "smoke", cross, "кросс", Object.assign({bkey:"T.exec.cross."+tt.site}, eo))) smokers[1].nadeTask.exec = true;
+    if(smokers[0] && assignNade(smokers[0], "smoke", g.ctEntry, "вход CT", Object.assign({bkey:"T.exec.ctEntry."+tt.site}, eo)).ok) smokers[0].nadeTask.exec = true;
+    if(smokers[1] && assignNade(smokers[1], "smoke", cross, "кросс", Object.assign({bkey:"T.exec.cross."+tt.site}, eo)).ok) smokers[1].nadeTask.exec = true;
     if(preEx) logEvent("T: гранаты выхода на "+tt.site+" — заранее, до пика");
   }
   if(tt.phase === "execute" && !nadeFlags.tExec){
@@ -151,7 +151,7 @@ function nadeBrains(){
     if(mc && (molLeft >= 2 || aliveCount("CT") <= 1)){
       var cands = POS[tt.site].ctHold.map(function(n){ return zonePoint(n, site); }).filter(function(q){ return q && DM.hypot(q.x-mc.x, q.y-mc.y) < 650 && DM.hypot(q.x-mc.x, q.y-mc.y) > 160 && !hasLOS(mc.x, mc.y, q.x, q.y) && !fires.some(function(f){ return DM.hypot(f.x-q.x, f.y-q.y) < 120; }); })
         .sort(function(a, c){ return DM.hypot(a.x-mc.x, a.y-mc.y) - DM.hypot(c.x-mc.x, c.y-mc.y); });
-      if(cands[0] && assignNade(mc, "molly", cands[0], "выжечь угол «"+(zoneUserName(zoneIdAt(cands[0].x, cands[0].y)) || "угол")+"»", {now:true, range:700})){
+      if(cands[0] && assignNade(mc, "molly", cands[0], "выжечь угол «"+(zoneUserName(zoneIdAt(cands[0].x, cands[0].y)) || "угол")+"»", {now:true, range:700}).ok){
         nadeFlags.molClear = true; logEvent(mc.id+": не знаю, есть ли кто в «"+(zoneUserName(zoneIdAt(cands[0].x, cands[0].y)) || "углу")+"», — выжигаю перед заходом"); }
       else if(tick - (tt.execStart != null ? tt.execStart : tick) > 6*TICK_HZ) nadeFlags.molClear = true;
     } else if(!mc) {} else nadeFlags.molClear = true;
@@ -162,7 +162,7 @@ function nadeBrains(){
     var mt = nadeFlags.antiDef ? null : ts.filter(function(b){ return b.know && b.know.defuseT !== undefined && tick - b.know.defuseT <= TICK_HZ &&
       b.nades.molly > 0 && DM.hypot(b.x-bomb.x, b.y-bomb.y) < NADE_THROW_RANGE; })[0];
     if(mt){
-      nadeFlags.antiDef = true; if(assignNade(mt, "molly", {x:bomb.x, y:bomb.y}, "на дефуз — слышим дефуз", {bkey:"T.pp.molly."+bomb.site})) mt.nadeTask.until = tick + 4*64;
+      nadeFlags.antiDef = true; if(assignNade(mt, "molly", {x:bomb.x, y:bomb.y}, "на дефуз — слышим дефуз", {bkey:"T.pp.molly."+bomb.site}).ok) mt.nadeTask.until = tick + 4*64;
     }
   }
   // CT: T закрыли сайт смоком на выходе — не дать спокойно занять позиции за
@@ -247,7 +247,14 @@ function retakeCutUseful(){
 }
 // (15.11, перестройка, фаза 3 — канал гранат, шаг 1) задачу гранаты бота (nadeTask, очередь nadeQueue) пишут только файлы гранат 360–420;
 // остальные — через интерфейс nadeCancel(b, причина): смена сайта IGL (igl), смерть (applyDamage, damage). Причина — b._nadeWhy.
-function nadeCancel(b, why){ b.nadeTask = null; b.nadeQueue = null; b._nadeWhy = why; }
+// (Р3.2 гранаты ш.2, Р-6) конец задания гранаты — только здесь: причина (в след решений), связанный пост — post: 0 не трогать, 1 — снять
+// пост «лайнап», 2 — снять любой; queue — и очередь гранат. Порядок записей — прежний (задание, очередь, пост)
+function nadeTaskEnd(b, why, post, queue){
+  b.nadeTask = null; if(queue) b.nadeQueue = null;
+  dlog(b, "граната", "задание снято: " + why, "_dlogG");   // свой ключ следа: общий _dlog читает сторож PROB
+  if(post === 2 || (post === 1 && b.post && b.post.tag === "lineup")) clearPost(b);
+}
+function nadeCancel(b, why){ nadeTaskEnd(b, why, 0, true); b._nadeWhy = why; }
 function resetNades(){
   nadesInAir.length = 0; smokes.length = 0; fires.length = 0; nadeFx.length = 0; nadeFlagsReset(); groundWeapons.length = 0; groundItems.length = 0;
   comboCdReset();

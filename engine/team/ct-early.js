@@ -1,4 +1,4 @@
-// =====================================================================
+// [хозяева: —] =====================================================================
 // (v150) ПРО-ЛАЙНАПЫ ИЗ ДЕМОК: 12 матчей, повторяющиеся броски (одна точка
 // броска → одна точка падения, ≥3 раз, ≥2 матча). У каждого — доля раундов,
 // в которых про его кидают (prob), и среднее время броска (at, с от начала).
@@ -435,7 +435,7 @@ function ctInfoCheck(b, ct, cts){
   var myL = pathLenTo(b, best.c.x, best.c.y);
   if(cts.some(function(o){ return o !== b && o.alive && pathLenTo(o, best.c.x, best.c.y) < myL; })) return false;
   var pt = infoPoint(best.c); if(!pt) return false;
-  if(!setPost(b, pt, best.c, true, "probeInfo") || !(b.post && b.post.tag === "probeInfo")) return false;
+  if(!setPost(b, pt, best.c, true, "probeInfo").ok || !(b.post && b.post.tag === "probeInfo")) return false;
   // идти ли — решение игрока, а не правило: жребий на раунд (INFO_GO — проектное число), иначе каждый раунд одно и то же
   if(hashRand(roundNum*7919 + matchNum*131 + b.id.charCodeAt(b.id.length-1)*37) > INFO_GO){ R.P[b.id] = {on: false}; return false; }
   I = R.P[b.id] = {on: true, n: ++R.n, t0: tick}; infoGo(I, b, {c:best.c, j:best.j, pt:pt});

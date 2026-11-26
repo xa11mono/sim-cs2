@@ -1,4 +1,4 @@
-// ---------- render ----------
+// [хозяева: —] ---------- render ----------
 var cv = document.getElementById("cv"), ctx = cv.getContext("2d");
 var wrap = document.getElementById("main");
 var img = new Image(); var imgReady=false; var imgFailed=false;

@@ -139,8 +139,9 @@ var FIRE_LONG = 80, FIRE_STILL = 48;   // (v583a) тики: в огне доль
   W.report = function(){
     // (v407) застой / перетягивание / перенос — из PROB игры (один счёт со слоем «ошибки движения» на странице)
     if(typeof PROB !== "undefined" && PROB.sub) Object.keys(PROB.sub).forEach(function(k){ W.n[k] = PROB.sub[k]; });   // (Р3.6) stall по причинам — рядом
+    if(typeof PROB !== "undefined" && PROB.ep != null) W.n["stall.ep"] = PROB.ep;   // (Р3.6, P05) эпизоды стояния без двойного счёта — рядом со старым stall
     if(typeof PROB !== "undefined"){ ["stall", "tug", "nav"].forEach(function(k){ W.n[k] = PROB.n[k];
-      W.all[k] = (PROB.all || PROB.ev).filter(function(e){ return e.kind === k; }).map(function(e){ return [e.tick, e.id, e.text, e.x, e.y, e.round, e.sub || null, e.why || null]; });
+      W.all[k] = (PROB.all || PROB.ev).filter(function(e){ return e.kind === k; }).map(function(e){ return [e.tick, e.id, e.text, e.x, e.y, e.round, e.sub || null, e.why || null, e.ep || null]; });
       W.ev[k] = PROB.ev.filter(function(e){ return e.kind === k; }).slice(0, EVMAX).map(function(e){ return [e.tick, e.id, e.text, e.x, e.y, e.round]; }); }); }
     return {n:W.n, ev:W.ev, all:W.all, emptyBy:W.emptyBy, dangerBy:W.dangerBy, nade:W.nade}; };
   (typeof window !== "undefined" ? window : globalThis).WATCH = W;

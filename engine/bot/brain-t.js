@@ -1,4 +1,4 @@
-// (v510) быстрый выход (сняли CT на сайте / их ≤ 2 / там соло): критичный смок выхода уже брошен — заходим, как раскроется
+// [хозяева: tBrain, tBrainBomb, tBrainExecGo, tBrainMidTake, tBrainSiteSwitch, tBrainTeam] (v510) быстрый выход (сняли CT на сайте / их ≤ 2 / там соло): критичный смок выхода уже брошен — заходим, как раскроется
 // (не дольше EXU_FAST_MAX), ещё не брошен — сразу. Ожидание — exuHoldEta (exec-sync)
 var EXU_FAST_MAX = 4;   // с (проектное число)
 function tFastGo(tt, go){

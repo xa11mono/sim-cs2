@@ -1,1 +1,1 @@
-/*@@BUILD: здесь build.py вставляет __SNAP и marks.js@@*/
+/* [хозяева: —] */ /*@@BUILD: здесь build.py вставляет __SNAP и marks.js@@*/

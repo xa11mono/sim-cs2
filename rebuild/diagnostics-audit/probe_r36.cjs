@@ -16,16 +16,21 @@ run('R36_free', () => { const f = motion(); f.advance(6 * 64, t => { f.a.baseX =
   assert.equal(sub(f)['stall.free'], 1); assert(!sub(f)['stall.geom']);
   return { observed: sub(f), detail: 'шаг свободен, а стоит → stall.free, не geom' }; });
 run('R36_block', () => { const f = fixture(); f.a.atPost = true; f.a.holding = true;
-  f.advance(10 * 64, t => { if (t % 64 === 0) f.a._dlog.push([t, 'место', 'отказ «route:site»: занят «contact:hold»']); });
+  f.advance(10 * 64, t => { if (t % 64 === 0) f.a._dlog.push([t, 'место', 'отказ «route:site»: занят «contact:hold»', { ask: 'route:site', busy: 'contact:hold' }]); });
   assert.equal(sub(f)['stall.block'], 1); assert(!sub(f)['stall.geom'] && !sub(f)['stall.free']);
   return { observed: sub(f), detail: 'задача выше не пускает (отказы арбитра) → stall.block' }; });
 run('R36_hold_none', () => { const f = motion(); f.a.atPost = true; f.a.holding = true; f.a.curSpeed = 0; f.advance(6 * 64);
   assert.equal(Object.keys(sub(f)).length, 0);
   return { observed: sub(f), detail: 'держит пост по плану — ни одного stall.*' }; });
 run('R36_overlap_split', () => { const f = motion();
-  f.advance(10 * 64, t => { if (t % 64 === 0) f.a._dlog.push([t, 'место', 'отказ «route:site»: занят «contact:hold»']); });
+  f.advance(10 * 64, t => { if (t % 64 === 0) f.a._dlog.push([t, 'место', 'отказ «route:site»: занят «contact:hold»', { ask: 'route:site', busy: 'contact:hold' }]); });
   assert.equal(f.c.PROB.n.stall, 2); assert.equal(sub(f)['stall.block'], 1); assert.equal(Object.values(sub(f)).reduce((a, b) => a + b, 0), 2);
-  return { observed: sub(f), detail: 'одно стояние даёт два старых stall (известный двойной счёт, P05) — по причинам видно: block + второе' }; });
+  assert.equal(f.c.PROB.ep, 1); assert.equal(f.c.PROB.ev[0].ep, f.c.PROB.ev[1].ep);   // (26.11) эпизод — один
+  return { observed: Object.assign({ ep: f.c.PROB.ep }, sub(f)), detail: 'одно стояние даёт два старых stall (известный двойной счёт, P05) — по причинам видно: block + второе; эпизод стояния (PROB.ep) — один' }; });
+// (26.11) бот отошёл и встал снова — второй эпизод
+run('R36_ep_two', () => { const f = motion(); f.c.crossed = true; f.advance(6 * 64); f.a.baseX = f.a.x = 200; f.c.PROB.s[f.a.id].stallAt = null; f.advance(6 * 64);
+  assert.equal(f.c.PROB.n.stall, 2); assert.equal(f.c.PROB.ep, 2);
+  return { observed: { stall: 2, ep: f.c.PROB.ep }, detail: 'отошёл на 200 и снова стоит → эпизодов 2' }; });
 // флешка без реакции по знанию (watch.js): W03 Codex — источник неизвестен → старый счёт 1, новый 0; знал (видел бросавшего) → новый 1;
 // знал, но ослеплён → новый 0; знал, но в бою → новый 0
 const flash = (setup) => { const f = fixture(true); f.a.facing = Math.PI; f.advance(1); setup && setup(f);
@@ -41,7 +46,7 @@ run('R36_flash_known_fight', () => { const s = f => { f.a._visible = [f.b]; f.a.
   const w = flash(s); assert(!w.n['danger.flashKnown']);
   return { observed: { old: w.dangerBy['флешка без реакции'], known: 0 }, detail: 'знал, но в бою (видит врага) → новый 0' }; });
 // полнота: у каждого увеличения счётчика — событие с причиной (PROB.all, W.all), а не выборка
-run('R36_all_complete', () => { const f = motion(); f.advance(10 * 64, t => { if (t % 64 === 0) f.a._dlog.push([t, 'место', 'отказ «route:site»: занят «contact:hold»']); });
+run('R36_all_complete', () => { const f = motion(); f.advance(10 * 64, t => { if (t % 64 === 0) f.a._dlog.push([t, 'место', 'отказ «route:site»: занят «contact:hold»', { ask: 'route:site', busy: 'contact:hold' }]); });
   const P = f.c.PROB; assert.equal(P.all.length, P.n.stall + P.n.nav + P.n.tug); assert(P.all.every(e => e.why && e.text));
   const w = flash(s0 => { s0.a._visible = [s0.b]; }); const nD = w.n.danger, nA = (w.all.danger || []).length; assert.equal(nA, nD);
   return { observed: { prob: P.all.length, danger: nA }, detail: 'PROB.all = сумма счётчиков, у каждого события причина; W.all.danger = W.n.danger' }; });

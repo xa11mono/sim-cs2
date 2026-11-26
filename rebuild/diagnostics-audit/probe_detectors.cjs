@@ -87,7 +87,7 @@ run('P04_intentional_hold', () => {
 run('P05_refusal_overlaps_stall', () => {
   const f = motion();
   f.advance(10 * 64, t => {
-    if (t % 64 === 0) f.a._dlog.push([t, 'место', 'отказ «route:site»: занят «contact:hold»']);
+    if (t % 64 === 0) f.a._dlog.push([t, 'место', 'отказ «route:site»: занят «contact:hold»', { ask: 'route:site', busy: 'contact:hold' }]);
   });
   const labels = f.c.PROB.ev.filter(e => e.kind === 'stall').map(e => e.text);
   assert.equal(labels.length, 2);
@@ -98,7 +98,7 @@ run('P06_valid_refusal_still_counted', () => {
   const f = fixture();
   f.a.atPost = true; f.a.holding = true;
   f.advance(10 * 64, t => {
-    if (t % 64 === 0) f.a._dlog.push([t, 'место', 'отказ «route:site»: занят «contact:hold»']);
+    if (t % 64 === 0) f.a._dlog.push([t, 'место', 'отказ «route:site»: занят «contact:hold»', { ask: 'route:site', busy: 'contact:hold' }]);
   });
   assert.equal(f.c.PROB.n.stall, 1);
   return {observed: 1, detail: 'active hold and refusals counted even with hold deliberately marked as valid in fixture'};

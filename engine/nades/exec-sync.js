@@ -1,4 +1,4 @@
-// ======================= СИНХРОНИЗАЦИЯ ВЫХОДА T С ГРАНАТАМИ (одно место; тактика, 30.10) =======================
+// [хозяева: exuBackup, exuGate, exuLanded, exuReassign, exuThrown, exuTick] ======================= СИНХРОНИЗАЦИЯ ВЫХОДА T С ГРАНАТАМИ (одно место; тактика, 30.10) =======================
 // Одно место на вопрос «можно ли команде T выходить на сайт, или ждём гранаты выхода»: раньше этот вопрос решали три
 // несвязанных таймера — команда ждала смоки «пока летят», но не дольше 5 с от первого броска и 5 с от тайминга (brain-t); боец у выхода
 // ждал гранаты в воздухе ≤ 7 с (brain-t, utilWait); никто не ждал, пока дым раскроется, и никто не проверял, лёг ли смок туда, куда надо.
@@ -129,7 +129,7 @@ function exuReassign(it, tt){
                   lob:true, range:4000, now:true, lineup:true, exec:true, npm:"exec", exu:it.id};
   } else {
     var own = b.nadeTask; b.nadeTask = null;   // своя граната — в очередь, смок выхода вперёд; не вышло назначить — вернуть как было
-    if(!assignNade(b, "smoke", {x:it.x, y:it.y}, why, {now:true, range:1300, bkey:"T.exec.re."+it.id})){ b.nadeTask = own; return false; }
+    if(!assignNade(b, "smoke", {x:it.x, y:it.y}, why, {now:true, range:1300, bkey:"T.exec.re."+it.id}).ok){ b.nadeTask = own; return false; }
     if(own) (b.nadeQueue = b.nadeQueue || []).unshift(own);
     b.nadeTask.exec = true; b.nadeTask.exu = it.id;
   }
@@ -230,7 +230,7 @@ function smokeLineTick(){
     var w = on && W.s ? (S.some(function(q){ return DM.hypot(q.x-W.s.x, q.y-W.s.y) < NADE.smoke.radius; }) ? {s:W.s, q:W.q} : null) : smokeLineWait(b, P, S);
     if(!w){ if(on) logEvent(b.id+": смок встал / его не будет — идёт дальше"); stop(); return; }
     if(!on){
-      if(!setPost(b, {x:b.x, y:b.y}, {x:w.q.x, y:w.q.y}, true, "smokeLine")){ b._slw = {round:roundNum, t:tick, on:false}; return; }   // держит задача важнее
+      if(!setPost(b, {x:b.x, y:b.y}, {x:w.q.x, y:w.q.y}, true, "smokeLine").ok){ b._slw = {round:roundNum, t:tick, on:false}; return; }   // держит задача важнее
       logEvent(b.id+": ждёт смок у "+calloutName(w.s.x, w.s.y).replace(/^на /, "")+" — не выходит на линию с "+calloutName(w.q.x, w.q.y).replace(/^на /, "")); }
     else postKeep(b);
     b._slw = {round:roundNum, t:tick, on:true, dest:on ? W.dest : {x:P.x, y:P.y}, s:{x:w.s.x, y:w.s.y}, q:{x:w.q.x, y:w.q.y}};
@@ -255,7 +255,7 @@ function fireSmokeTick(){
     if(tt.phase === "setup" && !(tt.execTick && f.until > tt.execTick)) return;
     var c = ts.filter(function(b){ return b.nades && b.nades.smoke > 0 && !b.nadeTask && !b._sawEnemy && !b.planting && DM.hypot(b.x-f.x, b.y-f.y) <= NADE_THROW_RANGE &&
       npCanUse(b, "smoke", npMomentNow(b), null); }).sort(function(a, d){ return DM.hypot(a.x-f.x, a.y-f.y) - DM.hypot(d.x-f.x, d.y-f.y); })[0];
-    if(!c || !assignNade(c, "smoke", {x:f.x, y:f.y}, "потушить молотов на пути выхода", {now:true})) return;
+    if(!c || !assignNade(c, "smoke", {x:f.x, y:f.y}, "потушить молотов на пути выхода", {now:true}).ok) return;
     f._smk = tick;
     voiceLog("T", "fsmk"+c.id+tick, c.id, "тушу молотов "+calloutName(f.x, f.y).replace(/^на /, "")+" — проходим");
   });

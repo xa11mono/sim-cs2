@@ -1,4 +1,4 @@
-// ---------- (re)build everything derived from NAVAREAS: called once at load,
+// [хозяева: navCutTall, navEdgeDz, navGapsAdd, navJumpCost, rebuildNav] ---------- (re)build everything derived from NAVAREAS: called once at load,
 // and again whenever the align-mode UI (further down, near the canvas setup)
 // moves/scales the whole navmesh to line it up with the radar image. Cheap
 // per-point transform (applyNavTransform) runs on every drag/wheel tick for

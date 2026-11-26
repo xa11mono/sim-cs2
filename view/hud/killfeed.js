@@ -1,4 +1,4 @@
-// ======================= РАЗДЕЛ 9: подача матча =======================
+// [хозяева: kfExpireTick, nadeImg, renderFeed] ======================= РАЗДЕЛ 9: подача матча =======================
 
 function esc(t){ return String(t).replace(/[&<>]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c]; }); }
 // иконки киллфида — SVG владельца (ветка rebuild-v238, src/data/killfeed): ключ → {vb, w, h, svg}

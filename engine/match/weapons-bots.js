@@ -1,4 +1,4 @@
-// ---------- weapons ----------
+// [хозяева: makeTeam] ---------- weapons ----------
 // weapon defines what combat is physically capable of; skill (below) decides how a
 // given bot *uses* that capability (plan §13: "ошибки исполнения через
 // seed-детерминированный навык"). No abstract morale/aggression stat — plan §13

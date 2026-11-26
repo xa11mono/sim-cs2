@@ -80,7 +80,7 @@ save(path.join(OUT, "registry.json"), JSON.stringify(R, null, 0));
 }
 
 // ---- 2) кто пишет поля бота
-const FIELDS = ["facing", "walking", "curSpeed", "post", "_task", "_reposUntil", "_waitPopUntil", "_avoidPeekUntil", "_tradeUntil", "_tradeLock", "state", "nadeTask", "holding", "crouching", "path", "phase", "lookReason", "_lookLvl"];   // (Р3.2 взгляд ш.2) + причина и уровень взгляда
+const FIELDS = ["facing", "walking", "curSpeed", "post", "_task", "_reposUntil", "_waitPopUntil", "_avoidPeekUntil", "_tradeUntil", "_tradeLock", "state", "nadeTask", "holding", "crouching", "path", "phase", "lookReason", "_lookLvl", "heardSound", "lastIntel"];   // (Р3.2 взгляд ш.2) + причина и уровень взгляда
 // хозяева — rebuild/owners.json (одно место; его же читает проверка сборки); поля без хозяина — пусто
 const OWN = JSON.parse(fs.readFileSync(path.join(ROOT, "rebuild", "owners.json"), "utf8"));
 const OWNER = {}; FIELDS.forEach(f => { OWNER[f] = OWN[f] ? new RegExp("^(" + OWN[f].allow.join("|") + ")$") : /^$/; });
@@ -88,6 +88,7 @@ const OWNER = {}; FIELDS.forEach(f => { OWNER[f] = OWN[f] ? new RegExp("^(" + OW
 // функция из чужого файла, но в allow (интерфейс канала) — тоже своя
 const OWNF = {}; FIELDS.forEach(f => { OWNF[f] = new Set((OWN[f] && OWN[f].files) || []); });
 const isOwn = (fl, k) => { const [fn, ff] = k.split(" · "); return OWNER[fl].test(fn) || OWNF[fl].has(ff); };
+const WEND = {};   // (Р-6) записи «конец задачи» (= null) по полям
 const W = {}, WO = {}; FIELDS.forEach(f => { W[f] = {}; WO[f] = {}; });
 // (15.11, замечание владельца) одно имя поля у разных объектов: bot.state ≠ bomb.state ≠ редактор.state. Объект — бот, если в той же
 // функции у этого имени читают поля, какие есть только у бота (BOTP); `bots[i].x` — бот; остальное — «другой объект» (чей — по имени).
@@ -121,6 +122,8 @@ for (const { ast, off } of asts) walk.fullAncestor(ast, (n, _st, anc) => {
   if (!FLD) return;
   const T = isBot ? W : WO;
   (T[fld][k] = T[fld][k] || []).push(lineAt(pos) + (isBot ? "" : " " + objTxt.slice(0, 24)));
+  // (Р3.2 гранаты ш.2, Р-6) конец задачи (поле = null) — только у функций owners.json → <поле>.end.allow
+  if (isBot && OWN[fld] && OWN[fld].end && n.type === "AssignmentExpression" && n.right.type === "Literal" && n.right.value === null) (WEND[fld] = WEND[fld] || []).push([k, fn, lineAt(pos)]);
 });
 // (Р3.1) поля, которые читают у объекта, который точно бот (имя из BOTN, bots[i]): пишут их и через другие имена (cm, best, o) —
 // эвристика записи их теряет; для реестра поле бота = записано у бота, или задано при создании, или читается у бота
@@ -367,6 +370,26 @@ if (CHECK) {
   const TR = require("./truth_reads.js").check(); TR.lines.forEach(l => (TR.bad ? console.error : console.log)(l));
   if (TR.bad) { console.error("ОШИБКА: решение читает истину врага — брать из знания бота (KNOW / belief / _visible / heardSound); известное — rebuild/truth_known.json"); process.exit(1); }
 }
+// ---- (Р-7, 26.11) ответ хозяина не прочитан: вызов setPost / assignNade из решений (часть decide) как отдельная инструкция — отказ
+// хозяина вызывающий не видит. Известные места — rebuild/unread_results.json (файл · функция → число; читать ответ = менять поведение, после
+// Р8); новое место или больше прежнего — ошибка; стало меньше — подсказка обновить список
+{ const MUST = new Set(["setPost", "assignNade"]), U = {};
+  for (const { ast, off } of asts) walk.fullAncestor(ast, (n, _s, anc) => {
+    if (n.type !== "CallExpression" || n.callee.type !== "Identifier" || !MUST.has(n.callee.name)) return;
+    const par = anc[anc.length - 2], g = anc[anc.length - 3];
+    if (!(par.type === "ExpressionStatement" || (par.type === "SequenceExpression" && g && g.type === "ExpressionStatement"))) return;
+    const pos = n.start + off, f = fileAt(pos)[2]; if (GS.filePart(f) !== "decide") return;
+    const k = GS.fileId(f) + " · " + fnAt(pos) + " · " + n.callee.name; U[k] = (U[k] || 0) + 1; });
+  const UF = path.join(ROOT, "rebuild", "unread_results.json");
+  if (!CHECK) fs.writeFileSync(UF + ".gen", JSON.stringify(U, null, 1));
+  if (CHECK) { const K = JSON.parse(fs.readFileSync(UF, "utf8")).known, more = Object.entries(U).filter(([k, n]) => n > (K[k] || 0)),
+      less = Object.entries(K).filter(([k, n]) => (U[k] || 0) < n), tot = Object.values(U).reduce((a, b) => a + b, 0);
+    console.log("ответ хозяина не прочитан (Р-7): мест " + tot + (less.length ? "; стало меньше — обновить rebuild/unread_results.json: " + less.map(([k]) => k).join(", ") : ""));
+    if (more.length) { console.error("ОШИБКА (Р-7): ответ хозяина (setPost / assignNade → {ok, why}) не прочитан — " + more.map(([k, n]) => k + " ×" + n).join(", ") + "; прочитать .ok / .why"); process.exit(1); } }
+}
+// ---- (Р-9, 26.11) текст как интерфейс: регулярка по тексту причины отказа броска — ошибка (решения читают код: nadeFailIs)
+if (CHECK) { const R9 = [...all.matchAll(/\.test\(\s*\(?\s*NADE_FAIL\b|NADE_FAIL[^;\n]{0,12}\.(match|search)\(/g)].map(m => { const f = fileAt(m.index); return f[2] + ":" + lineAt(m.index); });
+  if (R9.length) { console.error("ОШИБКА (Р-9): регулярка по тексту NADE_FAIL — " + R9.join(", ") + "; код отказа — nadeFailIs(группа), engine/nades/throw.js"); process.exit(1); } }
 // ---- проверка владения: запись поля из функции не из канала (owners.json → allow) — предупреждение, при enforce — ошибка
 if (CHECK) {
   let bad = 0, warn = [];
@@ -376,6 +399,8 @@ if (CHECK) {
     const n = E.reduce((a, [, L]) => a + L.length, 0), txt = "`" + fl + "` (" + OWN[fl].channel + "): " + n + " мест мимо хозяина — " + E.map(([k, L]) => k + "×" + L.length).join(", ");
     if (OWN[fl].enforce) { bad++; console.error("ОШИБКА владения " + txt); } else warn.push(txt);
   }
+  for (const fl of Object.keys(WEND)) { const ok = new Set(OWN[fl].end.allow), B = WEND[fl].filter(([k, fn]) => !ok.has(fn) && !ok.has(k));
+    if (B.length) { bad++; console.error("ОШИБКА: `" + fl + " = null` мимо " + OWN[fl].end.allow[0] + " — " + B.map(([k, , l]) => k + ":" + l).join(", ")); } }
   if (warn.length) console.log("владение полей — предупреждения (" + warn.length + " полей, каналы ещё не перенесены):\n  " + warn.join("\n  "));
   process.exit(bad ? 1 : 0);
 }

@@ -1,4 +1,4 @@
-// ---- эндгейм: у врага 1–2 живых, и известно, где он ----
+// [хозяева: —] ---- эндгейм: у врага 1–2 живых, и известно, где он ----
 // Раньше каждый продолжал стоять на своей точке по роли и чекать углы, где
 // врага уже быть не может. Теперь: кто рядом (≤650) — держит угол на него,
 // кто далеко — подтягивается к нему, на линию, откуда его видно. Носитель
@@ -117,13 +117,13 @@ function endgameBrain(){
         var oi = TT0._egRoles.ord.indexOf(b.id);
         if(oi === 0){
           if(!b._egF || b._egF.gk !== gk || b._egF.round !== roundNum){ b._egF = {gk:gk, round:roundNum, spot: flankSpot(b, hunter, kp)}; }
-          if(b._egF.spot){ if(setPost(b, b._egF.spot, {x:kp.x, y:kp.y}, true, "endhunt") && b._egFv !== roundNum){ b._egFv = roundNum;
+          if(b._egF.spot){ if(setPost(b, b._egF.spot, {x:kp.x, y:kp.y}, true, "endhunt").ok && b._egFv !== roundNum){ b._egFv = roundNum;
             voiceLog(team, "egfl"+b.id+roundNum, b.id, "захожу на него с другой стороны — "+hunter.id+" держит"); } return; }
         }
         var sitesO = ["A","B"].sort(function(p, q){ return DM.hypot(SITES[q].x-hunter.x, SITES[q].y-hunter.y) - DM.hypot(SITES[p].x-hunter.x, SITES[p].y-hunter.y); });
         var kL = bSite || ERl[b.id] || (ERl[b.id] = sitesO[Math.max(0, oi - 1) % 2]);
         var gL = GEO[kL], lp = (gL && gL.anchor) || SITES[kL];
-        if(setPost(b, lp, {x:kp.x, y:kp.y}, true, "endhunt") && !(b._egL && b._egL.round === roundNum && b._egL.k === kL)){ b._egL = {round:roundNum, k:kL};
+        if(setPost(b, lp, {x:kp.x, y:kp.y}, true, "endhunt").ok && !(b._egL && b._egL.round === roundNum && b._egL.k === kL)){ b._egL = {round:roundNum, k:kL};
           voiceLog(team, "egline"+b.id+roundNum, b.id, "держу "+kL+" — "+hunter.id+" на нём, не дадим поставить"); }
         return;
       }
@@ -147,12 +147,12 @@ function endgameBrain(){
         var bi = !hunter ? BS.ord.indexOf(b.id) : -1, lead = bi > 0 ? mine.filter(function(m){ return m.id === BS.ord[0]; })[0] : null;
         if(bi === 0) kAge = 0;   // ведущий — на них, без предела свежести (как охотник)
         else if(bi === 1 && lead){ if(BS.fl[b.id] === undefined) BS.fl[b.id] = flankSpot(b, lead, kp) || egCutPoint(b, lead, kp);
-          if(BS.fl[b.id] && setPost(b, BS.fl[b.id], {x:kp.x, y:kp.y}, true, "endhunt")){ if(!(b._egL && b._egL.round === roundNum && b._egL.k === "fl")){ b._egL = {round:roundNum, k:"fl"};
+          if(BS.fl[b.id] && setPost(b, BS.fl[b.id], {x:kp.x, y:kp.y}, true, "endhunt").ok){ if(!(b._egL && b._egL.round === roundNum && b._egL.k === "fl")){ b._egL = {round:roundNum, k:"fl"};
             voiceLog(team, "egbf"+b.id+roundNum, b.id, "захожу на них с другой стороны"); } return; } }
       }
       if(bSite && b !== hunter && !(BS && BS.ord.indexOf(b.id) === 0) && (kAge > (hunting ? 6 : 3)*TICK_HZ || d > 700)){
         var gS = GEO[bSite], sp = (gS && gS.anchor) || SITES[bSite];
-        if(setPost(b, sp, {x:kp.x, y:kp.y}, true, "endhunt") && !(b._egL && b._egL.round === roundNum && b._egL.k === bSite)){ b._egL = {round:roundNum, k:bSite};
+        if(setPost(b, sp, {x:kp.x, y:kp.y}, true, "endhunt").ok && !(b._egL && b._egL.round === roundNum && b._egL.k === bSite)){ b._egL = {round:roundNum, k:bSite};
           voiceLog(team, "egbs"+b.id+roundNum, b.id, "бомба "+bSite+", иду"); }
         return;
       }
@@ -265,7 +265,7 @@ function smokeEdgeTick(){
         voiceLog(b.team, "hesm"+b.id, b.id, "кидаю HE в смок — разгоню и посмотрю");
       }
       // (v378) задача важнее ожидания (арбитр места) — ожидание снимается: бот идёт по той задаче, а не «пушит срочно»
-      if(!setPost(b, W.edge, {x:W.S.x, y:W.S.y}, true, "smokeWait")){ b._smokeWait = null; logEvent(b.id+": ожидание у смока снято — задача важнее"); }
+      if(!setPost(b, W.edge, {x:W.S.x, y:W.S.y}, true, "smokeWait").ok){ b._smokeWait = null; logEvent(b.id+": ожидание у смока снято — задача важнее"); }
       return;
     }
     if(b.state !== "patrol" || !b.post || b.atPost || b.planting || b.defusing || b._sawEnemy) return;
@@ -290,7 +290,7 @@ function smokeEdgeTick(){
       var edge = walk({x: S.x + ux*(r+45), y: S.y + uy*(r+45)});
       b._smokeWait = {S:S, start:tick, edge:edge, want:[{x:px, y:py}, b.post.look, b.post.hold, b.post.tag]};
       if(b._smokeLog !== -S.born){ b._smokeLog = -S.born; logEvent(b.id+": ждёт у смока — за ним враг, причины лезть нет"); }
-      if(!setPost(b, edge, {x:S.x, y:S.y}, true, "smokeWait")) b._smokeWait = null;
+      if(!setPost(b, edge, {x:S.x, y:S.y}, true, "smokeWait").ok) b._smokeWait = null;
       return;
     }
   });
@@ -303,7 +303,7 @@ var LAND_PUNISH_R = 250, LAND_PUNISH_FRESH = 1.5, LAND_PUNISH_SEC = 4;
 function ctLandPunish(b){
   var P = b._lp;
   if(P && (P.round !== roundNum || tick > P.until || b._sawEnemy)){ b._lp = null; P = null; }
-  if(P){ if(setPost(b, P.pt, P.pt, true, "repos:land")) return true; b._lp = null; return false; }   // (v547) отказали (задача важнее) — не «сделал»: мозг идёт дальше
+  if(P){ if(setPost(b, P.pt, P.pt, true, "repos:land").ok) return true; b._lp = null; return false; }   // (v547) отказали (задача важнее) — не «сделал»: мозг идёт дальше
   var h = b.heardSound;
   if(!h || !h.land || h.team === b.team || tick - h.tick > LAND_PUNISH_FRESH*TICK_HZ || b._lpDone === h.tick) return false;
   b._lpDone = h.tick;
@@ -314,7 +314,7 @@ function ctLandPunish(b){
   var go = hashRand(h.tick*13 + b.id.charCodeAt(b.id.length-1)*7 + roundNum) < (b.prof ? prof(b, "aggr") : 0.5);
   if(!go) return false;
   b._lp = {round: roundNum, pt: {x:h.x, y:h.y}, until: tick + LAND_PUNISH_SEC*TICK_HZ};
-  if(!setPost(b, b._lp.pt, b._lp.pt, true, "repos:land")){ b._lp = null; return false; }
+  if(!setPost(b, b._lp.pt, b._lp.pt, true, "repos:land").ok){ b._lp = null; return false; }
   voiceLog("CT", "lp"+b.id+h.tick, b.id, "спрыгнул один — "+calloutName(h.x, h.y)+", выхожу на него");
   return true;
 }

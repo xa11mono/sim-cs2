@@ -1,4 +1,4 @@
-// ======================= (v571) РАУНД ИЗ ДЕМКИ («режим тени», В136) — одно место =======================
+// [хозяева: —] ======================= (v571) РАУНД ИЗ ДЕМКИ («режим тени», В136) — одно место =======================
 // Владелец 13.11: «перенести раунд из демки полностью и посмотреть, какая механика переключает решение бота»; «чтобы использовалась графика
 // нашего радара». Раунд демки про (MAP.demorounds, tools/shadow/bake_demorounds.py) играется нашей страницей: игроки идут и смотрят ровно как
 // в демке (каждый тик), выстрелы / попадания / смерти / смоки / плант — из демки; наши боты в их телах видят и слышат по нашей видимости и
@@ -40,7 +40,7 @@ function dvTick(){
   if(t >= R.len){ DEMOV.on = false; clockPause(true); logEvent("раунд из демки кончился"); dvRender(true); return; }
   while(DEMOV.ei < R.ev.length && R.ev[DEMOV.ei][1] <= t){ var e = R.ev[DEMOV.ei++], A = B[e[2]];
     if(e[0] === "shot" && A && A.alive){ A.lastShotTick = tick; dvHearShot(A); }
-    else if(e[0] === "hurt" && A && B[e[3]] && B[e[3]].alive){ var V = B[e[3]]; V.heardSound = hearReal(V, {x: A.x, y: A.y, tick: tick, team: A.team, src: A.id, kind: "hit"}); V._shotAtT = tick; V._shotAtBy = A; }
+    else if(e[0] === "hurt" && A && B[e[3]] && B[e[3]].alive){ var V = B[e[3]]; knowHear(V, {x: A.x, y: A.y, tick: tick, team: A.team, src: A.id, kind: "hit"}); V._shotAtT = tick; V._shotAtBy = A; }
     else if(e[0] === "death" && B[e[3]] && B[e[3]].alive){ DEMOV.allow = true; applyDamage(A || B[e[3]], B[e[3]], 999, "bullet", {}); DEMOV.allow = false; }
     else if(e[0] === "nade" && e[3] === "smoke") smokes.push({x: e[4], y: e[5], born: tick, until: tick + NADE.smoke.life, team: A ? A.team : "T"});
     else if(e[0] === "plant"){ bomb.state = "planted"; bomb.x = e[3]; bomb.y = e[4]; bomb.carrier = null; bomb.plantTick = tick; bomb.explodeTick = tick + BOMB_TICKS; bomb.site = R.site; }
@@ -55,7 +55,7 @@ function dvPlace(){ var t = tick - DEMOV.t0;
 function dvHearShot(sh){ bots.forEach(function(o){ if(!o.alive || o.team === sh.team) return; var dG = Math.hypot(o.x-sh.x, o.y-sh.y);
   var hearR = hasLOS(o.x, o.y, sh.x, sh.y, o.z, sh.z) ? GUN_HEAR_OPEN : GUN_HEAR_WALL; if(dG >= hearR) return;
   var hp = hearPos(o, sh.x, sh.y, tick*17 + o.id.charCodeAt(0)*7, hearR === GUN_HEAR_WALL);
-  o.heardSound = hearReal(o, {x: hp ? hp.x : sh.x, y: hp ? hp.y : sh.y, tick: tick, team: sh.team, src: sh.id, kind: "shots"}); }); }
+  knowHear(o, {x: hp ? hp.x : sh.x, y: hp ? hp.y : sh.y, tick: tick, team: sh.team, src: sh.id, kind: "shots"}); }); }
 // расхождение с про: ходьба (про стоит — бот ушёл бы; про идёт — бот стоял бы; в разные стороны > 75°), взгляд (> 60°) — то же, что tools/shadow/compare.py
 function dvDiff(s, x){ var t = tick - DEMOV.t0, q = dvAt(s, t), q3 = dvAt(s, t + 192), pm = Math.hypot(q3[1]-q[1], q3[2]-q[2]), mv = null, lk = null;
   var P = x.post, bd = P ? Math.hypot(P.x-q[1], P.y-q[2]) : 0, an = function(a, b){ return Math.abs(((a-b+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI); };

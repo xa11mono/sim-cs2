@@ -1,4 +1,4 @@
-// ---- дабл-пик: помочь тиммейту в перестрелке ----
+// [хозяева: updateReload] ---- дабл-пик: помочь тиммейту в перестрелке ----
 // Раньше, если тиммейт в упор рядом перестреливался, а самому врага не видно
 // (стоял за углом/смотрел свой угол), бот так и стоял: реакции на "рядом идёт
 // бой" не было — только размен ПОСЛЕ смерти. Теперь: тиммейт ≤160px уже ~0.3с
@@ -76,7 +76,7 @@ function flankAssist(b){
   if(!b.post || b.post.tag !== "repos:flank") return false;
   if(b.state === "hold") leaveHold(b);
   taskKeep(b, tick + 6*TICK_HZ, "assist");
-  b.lastIntel = {x:ep.x, y:ep.y, tick:tick, src:"call"};
+  knowIntel(b, {x:ep.x, y:ep.y, tick:tick, src:"call"});
   flankClaim(b, E.id, true); b._flankE = E.id; b._flankT = tick;
   voiceLog(b.team, "flank"+b.id, b.id, "захожу с фланга на "+E.id);
   return true;
@@ -117,7 +117,7 @@ function assistPeek(b){
   // (hasVision без высоты): T4 в 20–70 ед. от T3 на верхнем ярусе «видел» CT внизу, только поворачивался — а из-за уступа врага не видно,
   // и на помощь не выходил 6 с. Теперь — видно ли хоть часть врага с моей высоты (visParts, как в бою)
   var vpE = visParts(b.x, b.y, b.crouching, E.x, E.y, E.crouching, undefined, b.z, E.z);
-  if((vpE.head || vpE.body) && !smokeBlocks(b.x, b.y, E.x, E.y)){ b.heardSound = {x:E.x, y:E.y, tick:tick, team:E.team, src:E.id, kind:"call"}; b.lastIntel = {x:E.x, y:E.y, tick:tick, src:"call"}; return false; }
+  if((vpE.head || vpE.body) && !smokeBlocks(b.x, b.y, E.x, E.y)){ knowSound(b, {x:E.x, y:E.y, tick:tick, team:E.team, src:E.id, kind:"call"}); knowIntel(b, {x:E.x, y:E.y, tick:tick, src:"call"}); return false; }
   var ep = {x:E.x, y:E.y};
   var sp = pickSpots("assist"+tick+b.id, {x:mate.x, y:mate.y}, 3, {rMax: 140, minGap:24, must:[ep]})
     .filter(function(q){ return !spotTaken(b, q) && hasLOS(q.x, q.y, ep.x, ep.y, q.z, E.z); })[0];   // (v370) рядом, но не плечом к плечу; (v570) с высотой врага
@@ -131,7 +131,7 @@ function assistPeek(b){
   if(!b.post || b.post.tag !== "repos:assist") return false;
   if(b.state === "hold") leaveHold(b);
   taskKeep(b, tick + 2*TICK_HZ, "assist");
-  b.lastIntel = {x:ep.x, y:ep.y, tick:tick, src:"call"}; // знает, куда выходит — прицел на враге (префайр по коллу)
+  knowIntel(b, {x:ep.x, y:ep.y, tick:tick, src:"call"}); // знает, куда выходит — прицел на враге (префайр по коллу)
   if(!b._assistVoice || tick - b._assistVoice > 4*TICK_HZ){ b._assistVoice = tick; voiceLog(b.team, "assist"+b.id, b.id, "дабл с "+mate.id+"!"); }
   return true;
 }
@@ -337,7 +337,7 @@ function ambushTick(b, side){
     if(DM.hypot(tg.x-b.x, tg.y-b.y) <= KNIFE_REACH && tick >= (b._stabT || 0)){
       b._stabT = tick + KNIFE_GAP;
       applyDamage(b, tg, KNIFE_BACK, "knife", {side: side, wkey: "KNIFE_T", reward: 1500, note: " (нож, в спину)"});
-      tg.heardSound = {x: b.x, y: b.y, z: b.z, tick: tick, team: b.team, src: b.id, kind: "hit"};
+      knowSound(tg, {x: b.x, y: b.y, z: b.z, tick: tick, team: b.team, src: b.id, kind: "hit"});
     }
   }
   setPost(b, A.last, A.goal && SITES[A.goal] ? SITES[A.goal] : A.last, true, "backstab");   // доигрываю у сайта — взгляд на сайт

@@ -1,4 +1,4 @@
-var SAVE_TOPN = 12;
+/* [хозяева: pickSaveSpot, updateRetake] */ var SAVE_TOPN = 12;
 function pickSaveSpot(b){
   // только то, что команда знает (радар/слышали за 15с), а не настоящие позиции T
   var ts = [], BLs = kvLast("CT");
@@ -321,7 +321,7 @@ function updateRetake(cts){
     var bpS = ctBombPos(), dDef = DM.hypot(def.x-bpS.x, def.y-bpS.y);
     if(dDef < 420 && !smokeCovered(bpS.x, bpS.y)){
       var smk = [def].concat(alive.filter(function(b){ return b !== def; })).filter(function(b){ return b.nades && b.nades.smoke > 0 && !b.nadeTask && DM.hypot(b.x-bpS.x, b.y-bpS.y) < NADE_THROW_RANGE; })[0];
-      if(smk && assignNade(smk, "smoke", bpS, "смок на бомбу — дефуз под ним", {now:true})){ nadeFlags.defSmoke = tick;
+      if(smk && assignNade(smk, "smoke", bpS, "смок на бомбу — дефуз под ним", {now:true}).ok){ nadeFlags.defSmoke = tick;
         voiceLog("CT", "defsmk", smk.id, smk === def ? "кидаю смок на бомбу, дефужу под ним" : "смок на бомбу — "+def.id+", дефузь под ним"); }
     }
   }
@@ -348,7 +348,7 @@ function retakeUtil(R, alive){
   var tgt = bp, L = kvLast("CT"), bestA = Infinity;
   for(var id in L){ var e = L[id]; if(tick - e.tick > 10*TICK_HZ) continue; if(DM.hypot(e.x-bp.x, e.y-bp.y) > 650) continue;
     var dd = DM.hypot(e.x-fl.x, e.y-fl.y); if(dd < bestA){ bestA = dd; tgt = {x:e.x, y:e.y}; } }
-  if(!assignNade(fl, "flash", tgt, "ретейк", {bkey:"CT.retake.flash."+bomb.site, now:true, range:900})) return null;
+  if(!assignNade(fl, "flash", tgt, "ретейк", {bkey:"CT.retake.flash."+bomb.site, now:true, range:900}).ok) return null;
   nadeFlags.retakeFlash = true;
   var gs = GEO[bomb.site];
   var smr = alive.filter(function(b){ return b !== fl && b.nades && b.nades.smoke > 0; })[0];
@@ -361,7 +361,7 @@ function retakeUtil(R, alive){
       var ap0 = R.approaches[0] || bp;
       var smA = alive.filter(function(b){ return b !== fl && b.nades && b.nades.smoke > 0 && !b.nadeTask; })[0];
       var spA = {x: awpT.x + (ap0.x-awpT.x)*0.4, y: awpT.y + (ap0.y-awpT.y)*0.4};
-      if(smA && assignNade(smA, "smoke", spA, "ретейк: смок на AWP", {now:true})){ nadeFlags.retakeAwpSmoke = true;
+      if(smA && assignNade(smA, "smoke", spA, "ретейк: смок на AWP", {now:true}).ok){ nadeFlags.retakeAwpSmoke = true;
         voiceLog("CT", "rtawp", smA.id, "у них AWP "+calloutName(awpT.x, awpT.y)+" — смок на его линию"); }
     }
   }

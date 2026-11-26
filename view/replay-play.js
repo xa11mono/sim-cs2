@@ -1,4 +1,4 @@
-// замедление вокруг фрагов клатча (плавно)
+// [хозяева: rpEmotions, rpGoto] замедление вокруг фрагов клатча (плавно)
 function rpSpeed(P){
   var sg = P.segs[P.si], best = 1; if(!sg) return 1;
   sg.m.forEach(function(m){ if(m.kind !== "kill" && m.kind !== "defuse") return; var d = Math.abs(P.rt - m.t)/TICK_HZ;

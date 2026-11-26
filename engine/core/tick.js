@@ -1,4 +1,4 @@
-// ---------- fixed-tick sim ----------
+// [хозяева: landSound, stepBot, stepTick] ---------- fixed-tick sim ----------
 var TICK_HZ = 64;
 var TICK_MS = 1000/TICK_HZ;
 var tick = 0;
@@ -33,7 +33,7 @@ function moveSoundEmit(bot, soundRadius, kind, label){
     var seed = tick*331 + bot.id.charCodeAt(0)*17 + listener.id.charCodeAt(0)*11 + bot.lastStepTick;
     var jitterMag = 20 + dHear*0.12, jang = hashRand(seed) * Math.PI*2;
     var hpF = hearPos(listener, bot.x, bot.y, seed, occS);
-    listener.heardSound = hearReal(listener, hpF ? {x:hpF.x, y:hpF.y, tick:tick, team:bot.team, src:bot.id, kind:kind, occl:occS}
+    knowHear(listener, hpF ? {x:hpF.x, y:hpF.y, tick:tick, team:bot.team, src:bot.id, kind:kind, occl:occS}
                               : {x:bot.x+DM.cos(jang)*jitterMag, y:bot.y+DM.sin(jang)*jitterMag, tick:tick, team:bot.team, src:bot.id, kind:"steps", occl:occS});
     if(listener.heardSound && /^приземление/.test(label || "")) listener.heardSound.land = true;   // (v343) звук приземления — для ctLandPunish
     if(wasStale) logEvent(listener.id+" услышал "+label+" ("+bot.team+")"+(occS ? " за стеной" : ""));

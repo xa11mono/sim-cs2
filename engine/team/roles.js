@@ -1,4 +1,4 @@
-// =====================================================================
+// [хозяева: pRole, tFallbackTick] =====================================================================
 // (v151) РОЛИ КАК У ПРО (12 матчей). У каждого бота — роль игрока:
 //   энтри — первая дуэль в 39% раундов за T; второй (размен) — сразу за энтри;
 //   саппорт — больше всех гранат (2.3 за раунд), часто IGL; лёркер — дальше всех
@@ -126,7 +126,7 @@ function siteRebalanceTick(){
       if(sp) why = "беру "+calloutName(sp.t.x, sp.t.y).replace(/^на /, "");   // (v565, В81) без пересказа «кто что держит»
       else if(fwd){ sp = rebalSpot(o, k, [], [], {see:{x:by.x, y:by.y}}); if(sp){ sp.look = {x:by.x, y:by.y}; why = "стою под размен "+by.id; } }
       if(!sp) return;
-      if(!setPost(o, sp.pt, sp.look, true, "rebal"+k)) return;
+      if(!setPost(o, sp.pt, sp.look, true, "rebal"+k).ok) return;
       o._rebal = {round:roundNum, t:tick, by:by.id, fwd:fwd, fx:by.x, fy:by.y, pt:sp.pt, look:sp.look, tag:"rebal"+k};
       voiceLog("CT", "rebal"+o.id+tick, o.id, why);
     });

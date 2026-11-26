@@ -1,4 +1,4 @@
-// (v525, «одно решение — одно место», №4 шаг 1) режим боя бота (state: patrol / hold / engage / retreat) пишется только здесь; причина —
+// [хозяева: afterKillMove, decideAction, decideActionR, fightHoldOff, fightReset, fightState, findCover] (v525, «одно решение — одно место», №4 шаг 1) режим боя бота (state: patrol / hold / engage / retreat) пишется только здесь; причина —
 // b._stateWhy (подпись на экране, запись матча). Решают по-прежнему разные механики (оценка decideAction, «врага не видно», после фрага,
 // нож) — они зовут эту функцию, а не пишут поле сами. Перестрелку (_fc) снаружи снимает только fcEnd (fight)
 function fightStateDo(b, next, why){ b.state = next; b._stateWhy = why; b._stateWhyT = tick; }

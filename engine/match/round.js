@@ -1,4 +1,4 @@
-function buyPhase(){
+/* [хозяева: buyPhase, coreLoadEnd, endRound, freshMatch, resetRound, sideSwapNow, swapSides] */ function buyPhase(){
   showEv("buyShow", tick, bots.map(function(b){ return {id: b.id, team: b.team, _knife: b._knife, weapon: b.weapon, helmet: b.helmet, armor: b.armor, kit: b.kit, nades: Object.assign({}, b.nades), primary: b.primary, secondary: b.secondary}; }));   // (17.11) снаряжение до закупа — для показа закупки по одной (scoreboard)
   ["CT","T"].forEach(function(team){
     teamEco[team].antiEcoSmg = false;
@@ -213,7 +213,7 @@ function resetRound(){
     b.pickTick = -999; b.contactStreak = 0; b._ts = {}; b.nextShotTick = 0;
     fightReset(b); b.decisionTick = -999; b.forcedRetreat = false;
     lookReset(b); b.heading = undefined; moveSpeed(b, 0, "reset"); placeStance(b, false, "reset"); b.holdSinceTick = -999; b.onStairs = false;
-    b.lastIntel = null; moveWalk(b, false, "reset"); b.lastStepTick = -999; b.heardSound = null;
+    knowIntel(b, null); moveWalk(b, false, "reset"); b.lastStepTick = -999; knowSound(b, null);
     b.burstCount = 0; b.lastShotTick = -999; b._ammoFor = null; b._reloading = false; b._onPistol = null; b._secAmmo = null; b._blind = null; b._fc = null; b._trail = []; b._tagUntil = 0; b._knife = false; b._drawUntil = 0; b.stuckTicks = 0;
     b._prevOffX = 0; b._prevOffY = 0; b.lookTarget = null; lookReasonSet(b, null);
     initRoam(b);

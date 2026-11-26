@@ -221,7 +221,7 @@
    "why": "обход: видно ли врага с точки обхода — по истинному месту врага (FL.x / y / z), а не по знанию — Р3-К4",
    "n": 1
   },
-  "assist:ambushTick:teamBot.x,y,→ambPassing,→applyDamage": {
+  "assist:ambushTick:teamBot.x,y,→ambPassing,→applyDamage,→knowSound": {
    "class": "восприятие",
    "why": "засада: цель — среди увиденных / услышанных (seenNow ⊂ ambFoes); нож — движок",
    "n": 1

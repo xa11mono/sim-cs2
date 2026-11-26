@@ -1,4 +1,4 @@
-// ---------- rounds ----------
+// [хозяева: buyForPlayer, decideRoundType0, smgFor] ---------- rounds ----------
 var roundNum = 1, score = {CT:0, T:0};
 var roundState = "live";
 var roundEndTime = -1;

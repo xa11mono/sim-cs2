@@ -106,7 +106,6 @@
     "routeTick",
     "setPost",
     "setPostDo",
-    "setPostR",
     "startRoute",
     "taskDetourKind",
     "taskProp",
@@ -201,9 +200,12 @@
    "src": "таблица «Где что»"
   },
   "knowledge.js": {
-   "mech": "знание бота о врагах (одно место): KNOW, hearReal, гипотезы know*; позиции про KNOW_POSITIONS",
+   "mech": "знание бота о врагах (одно место): KNOW, hearReal; запись «что слышал» / «где последний раз враг» — knowHear / knowSound / knowIntel (одна точка, Р3.2 знание ш.3); гипотезы know*; позиции про KNOW_POSITIONS",
    "owns": [
-    "hearReal"
+    "hearReal",
+    "knowHear",
+    "knowSound",
+    "knowIntel"
    ],
    "src": "таблица «Где что»"
   },
@@ -389,7 +391,6 @@
   "throw.js": {
    "mech": "гранаты: закуп buyNades, дым и видимость smokeBlocks; бросок throwNade (подбор физикой nadeSolve); полёт — физика 3D (30.10): 385_nades_flight (nadeLaunch / nadeStep / nadeAim), луч кубиком m3NadeTrace (035), отчёт docs/reports/GRENADE_PHYSICS_IMPLEMENTATION.md; бросок смока с разбега runupTick (эта",
    "owns": [
-    "assignNadeR",
     "nadeSolve",
     "runupTick",
     "throwNade"
@@ -433,6 +434,7 @@
    "mech": "гранаты: закуп buyNades, дым и видимость smokeBlocks; бросок throwNade (подбор физикой nadeSolve); полёт — физика 3D (30.10): 385_nades_flight (nadeLaunch / nadeStep / nadeAim), луч кубиком m3NadeTrace (035), отчёт docs/reports/GRENADE_PHYSICS_IMPLEMENTATION.md; бросок смока с разбега runupTick (эта",
    "owns": [
     "nadeBrains",
+    "nadeTaskEnd",
     "nadeCancel",
     "nadeUseTick"
    ],

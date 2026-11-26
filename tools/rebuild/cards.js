@@ -24,7 +24,7 @@ function ownersAllow() {   // хозяева полей: имя функции �
   return A;
 }
 function table() {   // строки таблицы «Где что» из AGENTS.md §11: [что, файлы]
-  const t = fs.readFileSync(path.join(ROOT, 'docs', 'ARCHITECTURE.md'), 'utf8'), i = t.indexOf('## Где что');   // (Р4.6) таблица — в ARCHITECTURE if (i < 0) return [];
+  const t = fs.readFileSync(path.join(ROOT, 'docs', 'ARCHITECTURE.md'), 'utf8'), i = t.indexOf('## Где что'); if (i < 0) return [];   // (Р4.6) таблица — в ARCHITECTURE
   return t.slice(i).split('\n').filter(l => /^\| /.test(l) && !/^\| что \|/.test(l) && !/^\|---/.test(l)).map(l => { const c = l.split('|').map(x => x.trim()); return [c[1] || '', c[2] || '']; });
 }
 function init() {
@@ -40,6 +40,18 @@ function init() {
   fs.writeFileSync(CARDS, JSON.stringify({ _: 'Карточки механик (Р3.5): файл → механика, функции-хозяева (owns). Проверка — tools/rebuild/cards.js из gen_maps --check: правится вместе с кодом.', cards: C }, null, 1) + '\n');
   return C;
 }
+// (Р3.5, 26.11) шапка файла — часть карточки: первая строка файла несёт «[хозяева: a, b]» (или «[хозяева: —]») — те же функции, что owns
+// карточки; строка не добавляется (тег — в начале первой строки: «// [хозяева: …] прежний текст» или «/* [хозяева: …] */ код»), номера
+// строк файла не сдвигаются. --headers — записать теги по карточкам
+const HEAD_RE = /\[хозяева: ([^\]]*)\]/;
+const headTag = owns => '[хозяева: ' + (owns.length ? owns.join(', ') : '—') + ']';
+function headers(C) {
+  let n = 0;
+  for (const [f, c] of Object.entries(C)) { const p = SRC.gamePath(f), s = fs.readFileSync(p, 'utf8'), i = s.indexOf('\n'), l1 = i < 0 ? s : s.slice(0, i), tag = headTag(c.owns || []);
+    let nl = HEAD_RE.test(l1) ? l1.replace(HEAD_RE, tag) : /^\/\/ ?/.test(l1) ? l1.replace(/^\/\/ ?/, '// ' + tag + ' ') : '/* ' + tag + ' */ ' + l1;
+    if (nl !== l1) { fs.writeFileSync(p, nl + (i < 0 ? '' : s.slice(i))); n++; } }
+  return n;
+}
 function check() {
   const D = decls(), A = ownersAllow(), lines = []; let bad = 0;
   let C; try { C = JSON.parse(fs.readFileSync(CARDS, 'utf8')).cards; } catch (e) { return { bad: 1, lines: ['  ✗ нет rebuild/cards.json — node tools/rebuild/cards.js --init'] }; }
@@ -51,11 +63,16 @@ function check() {
   }
   for (const [fn, fl] of Object.entries(A)) { const f = Object.keys(D).find(x => D[x].has(fn)); if (!f) continue;
     if (!(C[f] && (C[f].owns || []).includes(fn))) { bad++; lines.push('  ✗ хозяин поля ' + fl.join(', ') + ' — ' + fn + ' (' + f + ') не записан в карточку файла'); } }
+  for (const [f, c] of Object.entries(C)) { if (!D[f]) continue; const l1 = fs.readFileSync(SRC.gamePath(f), 'utf8').split('\n')[0], m = HEAD_RE.exec(l1);
+    const got = m ? (m[1] === '—' ? [] : m[1].split(', ')) : null, want = (c.owns || []).slice();
+    if (!got) { bad++; lines.push('  ✗ шапка ' + f + ': в первой строке нет «[хозяева: …]» (node tools/rebuild/cards.js --headers)'); }
+    else if (got.slice().sort().join() !== want.slice().sort().join()) { bad++; lines.push('  ✗ шапка ' + f + ': хозяева в шапке «' + got.join(', ') + '» ≠ карточка «' + want.join(', ') + '»'); } }
   lines.unshift('карточки механик: файлов ' + Object.keys(D).length + ', расхождений ' + bad);
   return { bad, lines };
 }
 if (require.main === module) {
   if (process.argv.includes('--init')) { const C = init(); console.log('карточек ' + Object.keys(C).length + ', из таблицы ' + Object.values(C).filter(c => c.src !== 'шапка файла').length); }
+  if (process.argv.includes('--headers')) console.log('шапок записано ' + headers(JSON.parse(fs.readFileSync(CARDS, 'utf8')).cards));
   const r = check(); r.lines.forEach(l => console.log(l)); process.exit(r.bad ? 1 : 0);
 }
 module.exports = { check, init };

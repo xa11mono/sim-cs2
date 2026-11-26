@@ -1,4 +1,4 @@
-// (Б4) стрелять на ходу или сначала остановиться: выстрел, если попасть в корпус на текущей скорости не меньше FIRE_K от
+// [хозяева: aimSigma, fireVAcc, shotSpread, tryShoot] (Б4) стрелять на ходу или сначала остановиться: выстрел, если попасть в корпус на текущей скорости не меньше FIRE_K от
 // «стоя». Проектное число, подобрано по демкам (b4_shots.py: первый выстрел очереди у про — 60–65 % на точной скорости ≤ 34 %
 // максимальной, 20–25 % до 60 %, остальное быстрее; медиана скорости 52–62 ед./с)
 var FIRE_K = 0.7;
@@ -365,14 +365,14 @@ function tryShoot(shooter, target, dist){ var _ev = simEvIn("tryShoot", argument
   bots.forEach(function(o){
     if(!o.alive || o.team === shooter.team) return;
     var dG = DM.hypot(o.x-shooter.x, o.y-shooter.y);
-    if(o === target){ o.heardSound = hearReal(o, {x:shooter.x, y:shooter.y, tick:tick, team:shooter.team, src:shooter.id, kind:"hit"}); return; }
+    if(o === target){ knowHear(o, {x:shooter.x, y:shooter.y, tick:tick, team:shooter.team, src:shooter.id, kind:"hit"}); return; }
     // слышимость выстрела: на прямой видимости дальше, через стены глуше
     // (раньше было 900px во все стороны — слышали полкарты)
     var hearR = (hasLOS(o.x, o.y, shooter.x, shooter.y, o.z, shooter.z) ? GUN_HEAR_OPEN : GUN_HEAR_WALL) * (w.silenced ? 0.55 : 1); // глушитель — слышно ближе
     if(dG < hearR){
       var jg = 15 + dG*0.06, ja = hashRand(tick*17 + o.id.charCodeAt(0)*7 + shooter.nextShotTick)*Math.PI*2;
       var hpS = hearPos(o, shooter.x, shooter.y, tick*17 + o.id.charCodeAt(0)*7 + (shooter.nextShotTick|0), hearR === GUN_HEAR_WALL);
-      o.heardSound = hearReal(o, hpS ? {x:hpS.x, y:hpS.y, tick:tick, team:shooter.team, src:shooter.id, kind:"shots", occl:hearR === GUN_HEAR_WALL}
+      knowHear(o, hpS ? {x:hpS.x, y:hpS.y, tick:tick, team:shooter.team, src:shooter.id, kind:"shots", occl:hearR === GUN_HEAR_WALL}
                          : {x:shooter.x+DM.cos(ja)*jg, y:shooter.y+DM.sin(ja)*jg, tick:tick, team:shooter.team, src:shooter.id, kind:"shots"});
     }
   });

@@ -1,4 +1,4 @@
-// ======================= ЗНАНИЕ БОТА О ВРАГАХ (v240, из переделки v197–v238) =======================
+// [хозяева: hearReal, knowHear, knowSound, knowIntel] ======================= ЗНАНИЕ БОТА О ВРАГАХ (v240, из переделки v197–v238) =======================
 // Одно место на «что бот знает о врагах». У каждого бота — своё b.know; правда о мире сюда
 // попадает только так, как её мог узнать игрок:
 //   • свои глаза (b._visible из resolveEngagements) и радар — враг, которого сейчас видит любой
@@ -73,6 +73,14 @@ function hearReal(o, s){
      DM.hypot(cur.x-o.x, cur.y-o.y) < 0.5*DM.hypot(s.x-o.x, s.y-o.y)) return cur;
   return s;
 }
+// (Р3.2 знание ш.3, 26.11) знание бота «что слышал» (heardSound) и «где последний раз враг» (lastIntel) — одна точка записи (сборка:
+// owners.json, enforce); запись — в след решений (канал «знание», ключ _dlogK: общий журнал _dlog читает сторож PROB — его не трогать). knowHear — звук, дошедший сам (ears + приоритет ближнего, hearReal);
+// knowSound — звук / колл из чужого знания (тиммейт сказал, попадание) и сброс; knowIntel — последнее место врага (колл, контакт) и сброс
+function knowHear(o, s){ knowSound(o, hearReal(o, s)); }
+function knowSound(o, s){ var was = o.heardSound; o.heardSound = s;
+  if(DLOG.on && s && s !== was) dlog(o, "знание", "звук «" + (s.kind || "?") + "»" + (s.src ? " от " + s.src : ""), "_dlogK"); }
+function knowIntel(o, I){ o.lastIntel = I;
+  if(DLOG.on && I) dlog(o, "знание", "последнее место врага" + (I.src ? " (" + I.src + ")" : I.id ? " (видел " + I.id + ")" : ""), "_dlogK"); }
 
 // ---------- граф зон-коллаутов ----------
 var KG = null;

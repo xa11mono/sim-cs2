@@ -1,4 +1,4 @@
-// ---- редактор лайнапов ----
+// [хозяева: —] ---- редактор лайнапов ----
 var chkLineups = document.getElementById("chkLineups"), lineupPanel = document.getElementById("lineupPanel");
 var luPending = null, luHover = null;
 var LU_COL = {smoke:"rgba(200,205,210,0.95)", flash:"rgba(255,240,150,0.95)", molly:"rgba(255,140,60,0.95)", he:"rgba(150,230,120,0.95)"};

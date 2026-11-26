@@ -28,7 +28,9 @@ const COLLECT = `(function(id){
     'гранаты': nt ? {заказ: nt.type, куда: pt(nt), зачем: nt.why || null, с_тика: nt.start, до_тика: nt.until} : {заказ: null},
     'бой': {режим: b.state, перестрелка: !!b._fc, видит_врага: !!b._sawEnemy},
     'взгляд': {причина: b.lookReason || null},
-    'ход': {шагом: b.walking ? (b._walkWhy || '?') : null, отмена_шага: b._runWhy || null, стоп: b._stopWhy || null}
+    'ход': {шагом: b.walking ? (b._walkWhy || '?') : null, отмена_шага: b._runWhy || null, стоп: b._stopWhy || null},
+    'знание': {звук: b.heardSound ? b.heardSound.kind + ' ' + Math.round((tick - b.heardSound.tick)/TICK_HZ*10)/10 + ' с назад' : null,   // (Р3.2 знание ш.3) knowHear / knowSound
+      место_врага: b.lastIntel ? pt(b.lastIntel) + ' ' + Math.round((tick - b.lastIntel.tick)/TICK_HZ*10)/10 + ' с назад' : null}
   };
   var B = DLOG.by[b.id] || {}, L = [];
   Object.keys(B).forEach(function(k){ if(Array.isArray(B[k])) B[k].forEach(function(e){ if(e[0] <= tick) L.push([e[0], e[1], e[2]]); }); });
