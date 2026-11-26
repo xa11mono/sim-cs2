@@ -172,6 +172,7 @@ def main():
     # (26.11) запись матча со сторожами (как engine/walk_run.py: audit/watch.js + ходьба, знание, стрельба) — через сторож памяти procguard:
     # {"rec": [{"label", "ref", "map", "matches"?, "ticks"?}]} → runs/<label>/rec_<m>.json (счётчики W.n, в т. ч. stall.*, stall.ep, danger.flashKnown)
     if req.get('rec'):
+        if PH: pool.wait_all()   # запись — после последней фазы замера скорости (не мешать её времени)
         tpl = open(os.path.join(HERE, 'rec2.js'), encoding='utf-8').read(); E = os.path.join(HERE, 'engine')
         watch = '\n'.join(open(f, encoding='utf-8').read() for f in (os.path.join(HERE, 'audit', 'watch.js'), os.path.join(E, 'walk_watch.js'), os.path.join(E, 'know_watch.js'), os.path.join(E, 'g_watch.js')))
         A = "if(typeof WATCH!=='undefined') WATCH.tick();"; B = "if(typeof WATCH!=='undefined') REC.watch=WATCH.report();"
