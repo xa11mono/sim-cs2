@@ -1,0 +1,61 @@
+{
+ "branch": "v638a",
+ "note": "Р5.10 сценарии Codex (tools/browser-acceptance) на сборках v638a, облако, Chromium; single-map-worker — страница со встроенным ядром (--worker) в обычном режиме (без ?worker=1)",
+ "playwright": "1.63.0",
+ "results": [
+  {
+   "engine": "chromium",
+   "version": "158.0.8127.36",
+   "build": "single-map",
+   "map": "ancient",
+   "checks": {
+    "interface": "passed",
+    "hud": "passed",
+    "radar2d": "passed",
+    "view3d": "passed",
+    "sound": "passed",
+    "marks": "fallback",
+    "markSnapshot": "passed",
+    "editors": "passed",
+    "sandbox": "passed",
+    "replay": "passed"
+   }
+  },
+  {
+   "engine": "chromium",
+   "version": "158.0.8127.36",
+   "build": "single-map",
+   "map": "mirage",
+   "checks": {
+    "interface": "passed",
+    "hud": "passed",
+    "radar2d": "passed",
+    "view3d": "passed",
+    "sound": "passed",
+    "marks": "fallback",
+    "markSnapshot": "passed",
+    "editors": "passed",
+    "sandbox": "passed",
+    "replay": "passed"
+   }
+  },
+  {
+   "engine": "chromium",
+   "version": "158.0.8127.36",
+   "build": "single-map-worker",
+   "map": "mirage",
+   "checks": {
+    "interface": "passed",
+    "hud": "passed",
+    "radar2d": "passed",
+    "view3d": "passed",
+    "sound": "passed",
+    "marks": "fallback",
+    "markSnapshot": "passed",
+    "editors": "passed",
+    "sandbox": "passed",
+    "replay": "passed"
+   }
+  }
+ ]
+}

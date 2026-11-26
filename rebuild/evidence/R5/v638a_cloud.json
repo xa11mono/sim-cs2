@@ -1,0 +1,8 @@
+{
+ "branch": "v638a", "build": "неизменяемая (git worktree 68bca4fe)",
+ "diverge_vs_v637a": "Ancient м3, Mirage м3 — 0 расхождений до 15040 тиков (SIM_SHOW вместо typeof document — игра та же)",
+ "frame_apply_check": "Mirage м3, тики 3000 / 9000 / 20000 / 40000, все слои — попиксельно равно (кадр полон)",
+ "worker_check": "Mirage м3, тики 3000 / 9000 / 20000, без слоёв и со слоями — режим Worker попиксельно равен обычной странице",
+ "map_pack": "ядро без карты (core_build.py --pack) + mirage.simmap — отпечаток Mirage м3, 6000 тиков = ядро со встроенной картой",
+ "browser_acceptance": "rebuild/evidence/R5/browser_acceptance_v638a.json — Chromium, Ancient / Mirage / Mirage со встроенным ядром: все сценарии passed (отметки — fallback автономной страницы)"
+}
