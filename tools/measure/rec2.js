@@ -8,7 +8,7 @@
 var SNAP_ON = 0, SNAP_S0 = {}, SNAP_SKIP = /^(WPM|ZDJ|KPC|MK.*)$/, SNAP_NEXT = 0;
 /*@@SNAPS@@*/
 if(SNAP_ON) mkSnapList().forEach(function(e){ if(SNAP_SKIP.test(e[0])) return; try{ SNAP_S0[e[0]] = mkPack(e[1]()); }catch(x){} });
-// (Т-1, 25.11) состояние вне переменных (подсказки броска, их цена, живой кэш путей — src/marks.js mkSnapExt): в снимок раунда, если
+// (Т-1, 25.11) состояние вне переменных (подсказки броска, их цена, живой кэш путей — src/snapshot.js mkSnapExt): в снимок раунда, если
 // отличается от начала; старые сборки (нет mkSnapExt) — как раньше
 var SNAP_EXT0 = (SNAP_ON && typeof mkSnapExt === 'function') ? mkPack(mkSnapExt()) : null;
 function snapTake(){ var o = {}; mkSnapList().forEach(function(e){ if(SNAP_SKIP.test(e[0])) return; var v = e[1](), s; try{ s = mkPack(v); }catch(x){ return; } if(s !== SNAP_S0[e[0]]) o[e[0]] = v; });

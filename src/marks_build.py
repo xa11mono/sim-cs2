@@ -57,6 +57,10 @@ def snap_vars(s):
     return [v for v in top_vars(s) + [x for x in top_vars(module_source()) if x not in top_vars(s)] if not P.get(v, 'да').startswith('нет') and not v.startswith('__') and not v.startswith('MK') and not v.startswith('mk')]
 
 
+def snapshot_src():
+    return open(os.path.join(HERE, 'snapshot.js'), encoding='utf-8').read()
+
+
 def inject(s):
     assert s.count(MARK) == 1, "нет метки @@BUILD@@ в игре"
     # (17.11, перестройка — модули) переменные каналов-модулей (rebuild/modules.json) — тоже в снимок: их нет в склейке; запись — через
@@ -66,7 +70,9 @@ def inject(s):
     for must in ['tick', 'bots', 'bomb', 'roundNum', 'matchNum', 'smokes', 'score', 'roundState']:
         assert must in V, must
     snap = "var __SNAP = [\n" + ",\n".join('["%s", function(){ return %s; }, function(v){ try{ %s = v; }catch(e){} }]' % (v, v, v) for v in V) + "\n];\n"
-    mod = open(os.path.join(HERE, 'marks.js'), encoding='utf-8').read()
+    # (Р5, 26.11) снимок / восстановление / перемотка — src/snapshot.js (часть ядра: Т-2, отметки), интерфейс отметок — src/marks.js (показ);
+    # в странице — подряд, как был один файл
+    mod = snapshot_src() + open(os.path.join(HERE, 'marks.js'), encoding='utf-8').read()
     # (Р2.1, 25.11) отпечаток исходника игры (склейка + модули; .ts — без типов) — отметка записывает его (mkEnv), инструмент
     # tools/marks/mark_build.js по нему находит коммит и собирает ту самую сборку: старая отметка открывается своей сборкой
     import hashlib
