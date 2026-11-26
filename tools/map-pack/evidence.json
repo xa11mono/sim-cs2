@@ -1,0 +1,256 @@
+{
+  "ancient": {
+    "packageBytes": 8973121,
+    "packageSHA256": "e5b5bb3ecc5804722fd518b98c25fdc998624cde0fa726b93e50e112ce6b1a49",
+    "legacyJSONBytes": 11426818,
+    "blocks": 23,
+    "inflatedBlockBytes": 39454426,
+    "sharedTriangleBytes": 42070468,
+    "localRayScratchBytes": 262144,
+    "rays": 62,
+    "grenadeTraces": 32,
+    "sharedTriangleWorkerBytes": 34421292,
+    "workers": 2,
+    "fields": {
+      "pxUnits": {
+        "count": 1,
+        "sha256Float64LE": "5caaabe50da77f59f448b3edf650d68fbca7b858390664c251c52b3f458a881c"
+      },
+      "zoneLayer": {
+        "count": 3,
+        "sha256Float64LE": "202a89873678359f74ddf0c766baf2c814ecc2c13ccf2eeb645b6ac706a6265d"
+      },
+      "spawnFix": {
+        "count": 2,
+        "sha256Float64LE": "4b7372129c60e45a0a5d9a8cd43baec2792094bddd9859f9d89e4aae158ccf8a"
+      },
+      "siteAFix": {
+        "count": 1,
+        "sha256Float64LE": "139107fd63d004e94cb64abb75361dd8490810c6709a9311896ca17496f5ecde"
+      },
+      "spawnSpots": {
+        "count": 30,
+        "sha256Float64LE": "8e9812c9ae31f290b734d55274309a76ea1d86dab6d91d8bf9b973cd17a5732e"
+      },
+      "climbs": {
+        "count": 116,
+        "sha256Float64LE": "399c58ec7e854a35cbd6ba191058e83745f3051209c16ff55e6f186ffe3d9e12"
+      },
+      "cover": {
+        "count": 174,
+        "sha256Float64LE": "4e5612eaa3cbb991bfbd3e13bd801001605aef6f66a6efbbedb32670974cef9f"
+      },
+      "ctshare": {
+        "count": 230,
+        "sha256Float64LE": "2fae484ac0a2a7d6fcd185236ba077b31452bbada648e2aa0fcd9c007db5dd3d"
+      },
+      "ctspots": {
+        "count": 5432,
+        "sha256Float64LE": "60ec831f137176c86d3563d061a3deb398b7a6a2e0aa00a85e9fc34e33a80481"
+      },
+      "defaultpos": {
+        "count": 41,
+        "sha256Float64LE": "8e388b8d5990bbf158227ccf15d5591b1778d5553f7ebc6aaa8e4606806130c8"
+      },
+      "heights": {
+        "count": 12489,
+        "sha256Float64LE": "4a0f1e0c0b10d921c5dfad18f9d14cb5cc3dfb5b4066ea3e31b68d89a72f9178"
+      },
+      "lineups": {
+        "count": 1555,
+        "sha256Float64LE": "17f6d6ee9124d748bfc28b7d938d738d920e91ff0b1b40abc96cee2f40fc77dc"
+      },
+      "luaim": {
+        "count": 678,
+        "sha256Float64LE": "cbada6b036f79b04401522e53f6e76be43b63d0367cc84ac8231edf8bd38affb"
+      },
+      "map3d": {
+        "count": 10,
+        "sha256Float64LE": "a8137c3b07246eb0d34bf8f1a5be146f5384388869b2cea59cbec7b05b237a87"
+      },
+      "nadeguess": {
+        "count": 2560,
+        "sha256Float64LE": "c9f67ad58f3b94c72ae880b6d77fd9fda4611e8e43510d1c7abbd040cf3d37cf"
+      },
+      "nadelanes": {
+        "count": 132012,
+        "sha256Float64LE": "7d7a9d15d7fb5ad1919d2c5de03aa31f87975bb5a433d0dfd37cbd678497d059"
+      },
+      "nadeplan": {
+        "count": 76,
+        "sha256Float64LE": "52d8437cf61240ef53479beb36e2dd4335dc983125a8e5a7243e7a8e4997d586"
+      },
+      "navmesh": {
+        "count": 22267,
+        "sha256Float64LE": "e21fb1f54ecd00e0d46071855940d8432ad2532151f85f42886477ac6213d44b"
+      },
+      "postplant": {
+        "count": 3858,
+        "sha256Float64LE": "52d35af3b850e92dc2b5890a995f65e01ba96991b3c1fc82ff958bd7472cdf6b"
+      },
+      "pro": {
+        "count": 44456,
+        "sha256Float64LE": "2f602a9fffa82661a0377b77b130b1e701f5f24a14457be374d056bc12bf0a79"
+      },
+      "runups": {
+        "count": 740,
+        "sha256Float64LE": "2a10a368f43426fbd79689d0dc73966826ebe47ae73a7a7fd5a228a2299407f2"
+      },
+      "spawnearly": {
+        "count": 374,
+        "sha256Float64LE": "1adc355479fabcc83f3d50e80d0dcbbc616ac7ce048622c2ad36649347893dce"
+      },
+      "tactics": {
+        "count": 60,
+        "sha256Float64LE": "f2e8e79e78726960c74749240ca3259a26e69ac3086e0cd0e05c03be3d74c0ec"
+      },
+      "turnmodel": {
+        "count": 476,
+        "sha256Float64LE": "f292360e62a39b2702c3c5e1ad34a86e4eba09d8a7bad05768e9d608cc8c6a75"
+      },
+      "wallbang": {
+        "count": 141,
+        "sha256Float64LE": "43b40fa5fe422a815e620a226b33fc7b7277ab19a1fce4a969285ef47d2f9bde"
+      },
+      "walls": {
+        "count": 1178,
+        "sha256Float64LE": "8b0e761159728a903d83505253d5cbffae7eb8075d81a8d222f138f9ae309e63"
+      },
+      "zoneprops": {
+        "count": 579,
+        "sha256Float64LE": "2240dbedd44d92ab27329da45e8870014622ab6c5696f199c7e0ced459c18fef"
+      },
+      "zones": {
+        "count": 2578,
+        "sha256Float64LE": "dc7add707b9e3d253376b4c1d7f474ea942dc6ee454d7a16d49514635c24dbb3"
+      }
+    }
+  },
+  "mirage": {
+    "packageBytes": 4518167,
+    "packageSHA256": "5103e0646506e4438ad48c55a0f82321f3d108e6973a2e2e085bce7d51d44ca1",
+    "legacyJSONBytes": 5040305,
+    "blocks": 23,
+    "inflatedBlockBytes": 29319916,
+    "sharedTriangleBytes": 3862804,
+    "localRayScratchBytes": 262144,
+    "rays": 62,
+    "grenadeTraces": 32,
+    "sharedTriangleWorkerBytes": 3160476,
+    "workers": 2,
+    "fields": {
+      "pxUnits": {
+        "count": 1,
+        "sha256Float64LE": "5caaabe50da77f59f448b3edf650d68fbca7b858390664c251c52b3f458a881c"
+      },
+      "zoneLayer": {
+        "count": 3,
+        "sha256Float64LE": "04ae04134c8318578c932394683055fea108f3f586ff5b055613752c5f03e6f5"
+      },
+      "spawnFix": {
+        "count": 2,
+        "sha256Float64LE": "67c73eea1c88ede6e0b070a564e660ad17236d14a998395387dcc783ea0ae67c"
+      },
+      "spawnSpots": {
+        "count": 38,
+        "sha256Float64LE": "95271358cefa12cd6f8087b3cdbc19f6b5383daa089c9db837b9df690317ff92"
+      },
+      "climbs": {
+        "count": 2404,
+        "sha256Float64LE": "9217da5f8f01345d108482cc7dccfce779604894313e5e851988ee60cf579a40"
+      },
+      "cover": {
+        "count": 722,
+        "sha256Float64LE": "78da87fe8ce7a758944f04b0e4d56d8f00e3ca5b610dfc5871ace5ab0ed77165"
+      },
+      "ctshare": {
+        "count": 143,
+        "sha256Float64LE": "1eea126a9b71b92e9eaedf7eabd668e526ac9185d93fead878351b0168613d2b"
+      },
+      "ctspots": {
+        "count": 4864,
+        "sha256Float64LE": "6e9cdf13fdcd9ce34ca3c42e9e8b4e9db2748156e658acfc5a0377f9118737d7"
+      },
+      "defaultpos": {
+        "count": 47,
+        "sha256Float64LE": "63f5c9194f45e1c55d6b4d5727854705a932a99ca4c7aee51fab4601946598c1"
+      },
+      "demorounds": {
+        "count": 108591,
+        "sha256Float64LE": "0d72017ade455ea67773b2e938570f81742eb01591a8a822cf059432af95e5a8"
+      },
+      "heights": {
+        "count": 22294,
+        "sha256Float64LE": "c224cbff1238f0e818da7141844acb704629aa01d2a6767e47e4bb07f7841ef2"
+      },
+      "lineups": {
+        "count": 2940,
+        "sha256Float64LE": "0c410c6e9026bf25428826c6d36fa309019cd685417a6c166e3f38654c69af42"
+      },
+      "luaim": {
+        "count": 1038,
+        "sha256Float64LE": "57ea55c3cb9807c47cbd3500fa46ddc469f35700b53481cba9042fb63a0a2bb6"
+      },
+      "map3d": {
+        "count": 8,
+        "sha256Float64LE": "8d02a720a6c849193bbac11af0176124dc755b421e67692301c84bb4735b247f"
+      },
+      "nadeguess": {
+        "count": 4992,
+        "sha256Float64LE": "9be5046438d897d3701f51bb8dc8a0b63f5788d5de8ddbf952ade27f5d1ceedc"
+      },
+      "nadelanes": {
+        "count": 115188,
+        "sha256Float64LE": "229bd9d5c6ec6e6264a3ae24a611f4f2bbbb77368ea437249d78d70d1fee7774"
+      },
+      "nadeplan": {
+        "count": 76,
+        "sha256Float64LE": "b7125969a0be5efbf0facf18ceb63c680a6612479180780b3b1c2ea6ae9f972c"
+      },
+      "navmesh": {
+        "count": 37390,
+        "sha256Float64LE": "8328a27d98fcfcb8ebffdce7c3336ac84e884cbdb6e971b94aa4cb9587d37f04"
+      },
+      "postplant": {
+        "count": 3405,
+        "sha256Float64LE": "1b9460522178adcf740834966bb5fec46afa25f686bc001e574f196754c8e514"
+      },
+      "pro": {
+        "count": 57314,
+        "sha256Float64LE": "9ad620071fbb3fe6d5c7ed80c235d5f2cf0890562f84cf2ed71b22ab29f35844"
+      },
+      "runups": {
+        "count": 1750,
+        "sha256Float64LE": "9158899c28a1388998b932ee985564a5c3042b55c9daaf0746628e1d2e970c51"
+      },
+      "spawnearly": {
+        "count": 440,
+        "sha256Float64LE": "c03844d468be742d1fa721e56f3826e412e676b9dd9a3915e5046f971f216eab"
+      },
+      "tactics": {
+        "count": 218,
+        "sha256Float64LE": "3adfaf00184de1b0dda860bd794191afae3a4a1f6c94163f381eb1e54777b2db"
+      },
+      "turnmodel": {
+        "count": 476,
+        "sha256Float64LE": "f292360e62a39b2702c3c5e1ad34a86e4eba09d8a7bad05768e9d608cc8c6a75"
+      },
+      "wallbang": {
+        "count": 197,
+        "sha256Float64LE": "c5817b7166ea72284adeabf4ec89ae95b366a15d122a3c9faa19897f688f3d33"
+      },
+      "walls": {
+        "count": 1692,
+        "sha256Float64LE": "96586c07ffe40d0e0b20fdf434db1dc0fbcb1810946ab946494f419817a2c199"
+      },
+      "zoneprops": {
+        "count": 702,
+        "sha256Float64LE": "7de769c7f59eb0ca773474af7a820f6e007f0b7197b45d2fa7d94a10a6b40c81"
+      },
+      "zones": {
+        "count": 4815,
+        "sha256Float64LE": "ec74fc1c1d9c73e88239ddd87ee1deefdebbf5d3dbfc994c4de46ac0f9cc0fcc"
+      }
+    }
+  }
+}
