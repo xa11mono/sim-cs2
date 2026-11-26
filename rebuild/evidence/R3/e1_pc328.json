@@ -1,0 +1,9 @@
+{
+ "what": "Э1 прогон ПК 328 (measure/v618a-r3e4): группа 3 Р3 — v618a (бой ш.1, знание ш.1–2, Р3.5, Р3.6, команда ш.1 — разрезание мозгов), обе карты 8+8 Chromium",
+ "results_branch": "pc-results/328",
+ "reference": "rebuild/evidence/R2/fp_cloud_chromium158",
+ "equal": 16,
+ "total": 16,
+ "diff": 0,
+ "verdict": "группа 3 — Э1 бит в бит, все поля"
+}
