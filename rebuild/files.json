@@ -73,6 +73,7 @@
   "round.js",
   "move.js",
   "tick.js",
+  "modes.js",
   "problem-watch.js",
   "nav-zones.js",
   "lineup-editor.js",
@@ -671,6 +672,13 @@
    "sys": "ход",
    "dir": "engine/core",
    "legacy": "540"
+  },
+  {
+   "file": "modes.js",
+   "id": "modes",
+   "part": "engine",
+   "sys": "режимы страницы",
+   "dir": "engine/core"
   },
   {
    "file": "problem-watch.js",

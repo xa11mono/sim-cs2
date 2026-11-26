@@ -82,9 +82,9 @@ def map_js(name):
     return js.replace('</', '<\\/'), meta
 
 
-def inject_map(html, name):
+def inject_map(html, name, need=('@@MAP@@', '@@MAP_NAME@@')):
     js, meta = map_js(name)
-    for mark in ('@@MAP@@', '@@MAP_NAME@@'):
+    for mark in need:   # (Р5) ядро без показа — только @@MAP@@ (имя карты и подсказки — в файлах показа)
         assert mark in html, mark
     ui = meta.get('ui', {})
     html = html.replace('@@MAP_NAME@@', meta['name'])

@@ -1701,7 +1701,7 @@
    "snap": true
   },
   "DEMOV": {
-   "decl": "demo.js:9",
+   "decl": "modes.js:5",
    "init": "ObjectExpression",
    "w": {},
    "m": {
@@ -6649,7 +6649,7 @@
    "snap": true
   },
   "RC_HALF": {
-   "decl": "app.js:223",
+   "decl": "modes.js:8",
    "init": "Literal",
    "w": {
     "endRound · round": 1,
@@ -7229,7 +7229,7 @@
    "snap": true
   },
   "SANDBOX": {
-   "decl": "sandbox.js:8",
+   "decl": "modes.js:6",
    "init": "ObjectExpression",
    "w": {},
    "m": {
@@ -8942,7 +8942,7 @@
    "snap": "нет: STATIC"
   },
   "WARM": {
-   "decl": "warmup.js:6",
+   "decl": "modes.js:7",
    "init": "ObjectExpression",
    "w": {
     "dvStart · demo": 1,

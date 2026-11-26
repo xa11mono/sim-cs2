@@ -6,7 +6,7 @@
 // куда про придёт за 3 с; расхождение с про — красным. Панели «Разбор взгляда» / «Разбор команды» работают как в матче.
 // Игру вне режима не меняет: все проверки — DEMOV.on (490 не стреляет, 400 урон — только смерти демки, 530 раунд не кончается сам,
 // 120 плант / дефуз — только по демке, 540 — dvTick).
-var DEMOV = {on: false, i: 0, R: null, t0: 0, BOT: {}, ei: 0, allow: false};
+// DEMOV (состояние режима, которое читает ядро) — engine/core/modes.js (Р5)
 var DV_PANEL_EL = null;
 function dvRounds(){ return (MAP.demorounds && MAP.demorounds.rounds) || []; }
 function dvAt(s, t){ var T = DEMOV.R.players[s].track, lo = 0, hi = T.length - 1; if(t <= T[0][0]) return T[0]; if(t >= T[hi][0]) return T[hi];

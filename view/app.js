@@ -220,7 +220,7 @@ function showFatal(e){
 }
 window.addEventListener("error", function(ev){ showFatal(ev.error || ev.message); });
 // (15.11, перестройка: показ отдельно от симуляции) симуляция ставит отметки, кадр рисует
-var RC_HALF = null, WSK_EL = null;
+var WSK_EL = null;   // RC_HALF (надпись смены сторон — пишет ядро) — engine/core/modes.js (Р5)
 function showSync(){
   // (17.11, перестройка) события игры для показа (journal: showEv / soundEv) — разбор раз в кадр; киллфид — по KF_DIRTY; писк бомбы — здесь
   if(KF_DIRTY){ KF_DIRTY = false; renderFeed(); }
