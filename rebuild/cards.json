@@ -635,9 +635,17 @@
    "src": "шапка файла"
   },
   "draw.js": {
-   "mech": "рисование кадра draw",
+   "mech": "рисование кадра draw — части в прежнем порядке (Р4.4): drawZones → drawDanger → drawNav → drawRays → drawSmokes → drawTracers → drawLayers → drawBots → HUD (в draw); общее — контекст K",
    "owns": [
-    "draw"
+    "draw",
+    "drawBots",
+    "drawDanger",
+    "drawLayers",
+    "drawNav",
+    "drawRays",
+    "drawSmokes",
+    "drawTracers",
+    "drawZones"
    ],
    "src": "таблица «Где что»"
   },

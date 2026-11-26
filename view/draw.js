@@ -1,4 +1,6 @@
 function draw(){
+  // (Р3.2 команда) контекст мозга: общие для частей переменные (S0, alpha, chkP, contacts, fxR, timeArc)
+  var K = {};
   ctx.setTransform(1,0,0,1,0,0);
   ctx.fillStyle = "#060806"; ctx.fillRect(0,0,cv.width,cv.height);
   ctx.save();
@@ -54,6 +56,64 @@ function draw(){
   if(typeof dvDraw === "function") dvDraw();   // (v571) раунд из демки — что решил бы бот (678)
   if(typeof teamDbgPanel === "function") teamDbgPanel(false);   // (v566) разбор команды (612)
   if(showZones.checked) drawZoneShapeHandles();
+  drawZones(K);
+  drawDanger(K);
+  drawNav(K);
+
+  // ---------- конусы обзора (вместо линий) ----------
+  // Конус — реальное поле зрения бота (FOV_DEG), обрезанное стенами и дымом:
+  // лучи от бота до первой стены/облака. Ярче — если прямо сейчас видит врага.
+  drawRays(K);
+  drawSmokes(K);
+  drawTracers(K);
+  drawLayers(K);
+  drawBots(K);
+  if(draw.noHud) return;   // (v463) кадр повтора клатча (675): только мир, без табло и панелей
+  domText(document.getElementById("hContacts"), K.contacts/1);   // (v397, М146) только изменившееся — см. domText
+  var ctEl = document.getElementById("contact"), ctD = K.contacts>0 ? "block" : "none"; if(ctEl.style.display !== ctD) ctEl.style.display = ctD;
+  domText(document.getElementById("hTick"), tick);
+  domText(document.getElementById("hTime"), simTime.toFixed(1)+"s");
+  var rtLeft = roundState === "live" ? Math.max(0, ROUND_TIME_SEC - (simTime - roundStartTime)) : (roundState === "freeze" ? ROUND_TIME_SEC : 0);
+  if(bomb && bomb.state === "planted") rtLeft = Math.max(0, (bomb.explodeTick - tick)/TICK_HZ);
+  var bst = "—";
+  if(bomb){
+    if(bomb.state === "carried") bst = "у "+(bomb.carrier?bomb.carrier.id:"?") + (bomb.carrier && bomb.carrier.planting ? " · закладывает" : "");
+    else if(bomb.state === "dropped") bst = "на земле";
+    else if(bomb.state === "planted"){
+      var dfz = bots.filter(function(b){ return b.defusing; })[0];
+      bst = "заложена на "+bomb.site+(dfz ? " · дефуз "+dfz.id+" "+Math.max(0,(dfz.defuseUntil-tick)/TICK_HZ).toFixed(1)+"с" : "");
+    } else if(bomb.state === "defused") bst = "обезврежена";
+    else if(bomb.state === "exploded") bst = "взорвалась";
+  }
+  domText(document.getElementById("hBomb"), bst);
+  scoreboardUpdate(rtLeft);
+  if(!draw._plN || ++draw._plN > 6){ draw._plN = 1; playersUpdate(); }
+  if(!draw._econN || ++draw._econN > 8){ draw._econN = 1; renderEcon(); }
+  kfExpireTick();   // (v437) затухание строк киллфида
+
+  // (v437, владелец 27.10) плашки «ЗАКУПКА · раунд N» больше нет — время закупа на табло, типы закупа и тактика — в «Экономике»
+  if(roundState === "matchover"){
+    ctx.save();
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.fillStyle = "rgba(6,8,6,0.65)"; ctx.fillRect(0,0,cv.width,cv.height);
+    ctx.fillStyle = "#e8ecdd"; ctx.textAlign = "center"; ctx.font = "600 26px 'IBM Plex Sans',sans-serif";
+    var mwn = score.CT > score.T ? "ПОБЕДА "+TEAM_NAME.CT : (score.T > score.CT ? "ПОБЕДА "+TEAM_NAME.T : "НИЧЬЯ");
+    ctx.fillText("МАТЧ ОКОНЧЕН — "+mwn+"  "+Math.max(score.CT, score.T)+":"+Math.min(score.CT, score.T), cv.width/2, cv.height/2 - 10);
+    ctx.font = "13px 'IBM Plex Mono',monospace"; ctx.fillStyle = "#8b9a80";
+    ctx.fillText("новый матч через "+Math.max(0, 7-(simTime-roundEndTime)).toFixed(1)+"с", cv.width/2, cv.height/2 + 18);
+    ctx.restore();
+  }
+  if(roundState === "ending"){
+    ctx.save();
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.fillStyle = "rgba(6,8,6,0.55)"; ctx.fillRect(0,0,cv.width,cv.height);
+    // (карточка итога раунда — HTML-оверлей #roundCard; отсчёт до следующего раунда — полоса внизу карточки, 640)
+    ctx.restore();
+  }
+}
+
+// часть draw (Р3.2 команда, разрезание в прежнем порядке) — операторы строк 57–125 исходного draw
+function drawZones(K){
   if(USER_ZONES.length || zoneDrawing){
     // user-drawn spawn/site zones (see zone editor above) — always shown
     // when any exist, or while actively drawing one, regardless of the
@@ -123,6 +183,10 @@ function draw(){
       ctx.fillText(p.name, p.x+9/view.scale, p.y-9/view.scale);
     });
   }
+}
+
+// часть draw (Р3.2 команда, разрезание в прежнем порядке) — операторы строк 126–191 исходного draw
+function drawDanger(K){
   if(showDanger.checked && hoverZoneId){
     // предрасчитанная таблица опасности (план §2): зоны, откуда простреливается
     // наведённая — красным; сама наведённая зона — жёлтым контуром
@@ -189,6 +253,10 @@ function draw(){
     ctx.lineCap = "butt"; ctx.lineJoin = "miter";
   }
   if(mapEdOn()) mapEdDraw();
+}
+
+// часть draw (Р3.2 команда, разрезание в прежнем порядке) — операторы строк 192–273 исходного draw
+function drawNav(K){
   if(chkNavWarp.checked){
     // real navmesh perimeter (edges with no neighbor on the other side —
     // by the game's own construction this is what should sit flush against
@@ -243,14 +311,14 @@ function draw(){
     });
   }
 
-  var contacts = 0;
+  K.contacts = 0;
   // контакты для HUD — считаем всегда, независимо от отрисовки
   bots.forEach(function(ct){
     // (v560, В83: «плашка контакта остаётся после раунда») после конца раунда шаг игры стоит — `_visible` с последнего тика; контакта нет
     if(ct.team!=="CT"||!ct.alive||roundState!=="live") return;
     // (v545, отметка владельца 10.11: T в Dark под этажом, CT над ним — «ОБНАРУЖЕН КОНТАКТ», хотя друг друга не видят) табличка считала прямую
     // по радару без высот (hasVision — 2D). Контакт — когда кто-то из пары правда видит другого (видимость ботов, 3D, _visible)
-    bots.forEach(function(t){ if(t.team==="T" && t.alive && ((ct._visible||[]).indexOf(t) >= 0 || (t._visible||[]).indexOf(ct) >= 0)) contacts++; });
+    bots.forEach(function(t){ if(t.team==="T" && t.alive && ((ct._visible||[]).indexOf(t) >= 0 || (t._visible||[]).indexOf(ct) >= 0)) K.contacts++; });
   });
 
   // ---------- анимация ожидания (только визуал, на симуляцию не влияет) ----------
@@ -271,10 +339,10 @@ function draw(){
     b._visFacing = fI === undefined ? undefined : fI + sway;
     b._idlePhase = ph;
   });
+}
 
-  // ---------- конусы обзора (вместо линий) ----------
-  // Конус — реальное поле зрения бота (FOV_DEG), обрезанное стенами и дымом:
-  // лучи от бота до первой стены/облака. Ярче — если прямо сейчас видит врага.
+// часть draw (Р3.2 команда, разрезание в прежнем порядке) — операторы строк 278–337 исходного draw
+function drawRays(K){
   if(showLos.checked){
     var RAYS = 34, halfF = FOV_DEG*Math.PI/360;
     bots.forEach(function(b){
@@ -326,15 +394,19 @@ function draw(){
   }
 
   // ---------- гранаты (v258: только вид эффектов — данные, радиусы и игра прежние) ----------
-  var S0 = view.scale;
-  var fxR = function(n){ var v = Math.sin(n)*43758.5453; return v - Math.floor(v); };   // своя раскладка клубов на эффект, без Math.random
+  K.S0 = view.scale;
+  K.fxR = function(n){ var v = Math.sin(n)*43758.5453; return v - Math.floor(v); };   // своя раскладка клубов на эффект, без Math.random
   var teamRGB = function(t){ return t === "CT" ? "120,182,238" : "238,184,92"; };
   // сколько эффекту осталось — дуга цветом команды сверху по часовой (чей и надолго ли)
-  var timeArc = function(x, y, r, frac, team, al){
+  K.timeArc = function(x, y, r, frac, team, al){
     if(!(frac > 0)) return;
-    ctx.strokeStyle = "rgba("+teamRGB(team)+","+(0.9*al)+")"; ctx.lineWidth = 2.2/S0; ctx.lineCap = "round";
+    ctx.strokeStyle = "rgba("+teamRGB(team)+","+(0.9*al)+")"; ctx.lineWidth = 2.2/K.S0; ctx.lineCap = "round";
     ctx.beginPath(); ctx.arc(x, y, r, -Math.PI/2, -Math.PI/2 + Math.PI*2*Math.min(1, frac)); ctx.stroke(); ctx.lineCap = "butt";
   };
+}
+
+// часть draw (Р3.2 команда, разрезание в прежнем порядке) — операторы строк 338–449 исходного draw
+function drawSmokes(K){
   smokes.forEach(function(sm){
     var rr = smokeRadiusNow(sm); if(rr < 2) return;
     var left = sm.until - sm.born > 0 ? (sm.until - tick)/(sm.until - sm.born) : 0, fade = Math.min(1, (sm.until - tick)/64), age = tick - sm.born;
@@ -348,7 +420,7 @@ function draw(){
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sm.x, sm.y, rr, 0, Math.PI*2); ctx.fill();
     // клубы внутри радиуса — медленный дрейф, без пульса
     for(var q=0;q<6;q++){
-      var qa = fxR(seed+q*1.7)*Math.PI*2 + age*0.0016*(q%2 ? 1 : -1), qd = rr*(0.2+0.4*fxR(seed+q*3.1)), qr = rr*(0.3+0.16*fxR(seed+q*5.3));
+      var qa = K.fxR(seed+q*1.7)*Math.PI*2 + age*0.0016*(q%2 ? 1 : -1), qd = rr*(0.2+0.4*K.fxR(seed+q*3.1)), qr = rr*(0.3+0.16*K.fxR(seed+q*5.3));
       var cx = sm.x + Math.cos(qa)*qd, cy = sm.y + Math.sin(qa)*qd;
       var pg = ctx.createRadialGradient(cx, cy, 0, cx, cy, qr);
       pg.addColorStop(0, "rgba(238,240,234,"+(0.34*fade)+")"); pg.addColorStop(1, "rgba(238,240,234,0)");
@@ -356,7 +428,7 @@ function draw(){
     }
     // край — где дым кончается
     ctx.restore();
-    ctx.strokeStyle = "rgba(242,244,238,"+(0.5*fade)+")"; ctx.lineWidth = 1.1/S0;
+    ctx.strokeStyle = "rgba(242,244,238,"+(0.5*fade)+")"; ctx.lineWidth = 1.1/K.S0;
     areaPath(sm, rr); ctx.stroke();
     // (v271) дыры от пуль — тёмный коридор внутри облака, затягивается за SMOKE_HOLE.life
     (sm.bholes || []).forEach(function(h){
@@ -365,7 +437,7 @@ function draw(){
       ctx.strokeStyle = "rgba(20,24,18,"+(0.55*(h.until - tick)/SMOKE_HOLE.life)+")"; ctx.lineWidth = SMOKE_HOLE.w*2; ctx.lineCap = "round";
       ctx.beginPath(); ctx.moveTo(h.x1, h.y1); ctx.lineTo(h.x2, h.y2); ctx.stroke(); ctx.restore();
     });
-    timeArc(sm.x, sm.y, rr + 3.5/S0, left, sm.team, fade);
+    K.timeArc(sm.x, sm.y, rr + 3.5/K.S0, left, sm.team, fade);
   });
   fires.forEach(function(fr){
     var R = NADE.molly.radius, life = fr.until - tick, fade = Math.min(1, life/40), age = tick - fr.born, r0 = fireRadiusNow(fr);
@@ -378,21 +450,21 @@ function draw(){
     ctx.fillStyle = fg; ctx.beginPath(); ctx.arc(fr.x, fr.y, r0, 0, Math.PI*2); ctx.fill();
     // языки пламени: место своё у каждого огня, мерцает яркость, а не размер
     for(var e=0;e<9;e++){
-      var ea = fxR(seed+e*2.3)*Math.PI*2, ed = r0*(0.15+0.72*fxR(seed+e*4.1)), fl = 0.55 + 0.45*Math.sin(tick*0.35 + e*1.9);
+      var ea = K.fxR(seed+e*2.3)*Math.PI*2, ed = r0*(0.15+0.72*K.fxR(seed+e*4.1)), fl = 0.55 + 0.45*Math.sin(tick*0.35 + e*1.9);
       ctx.fillStyle = "rgba(255,228,146,"+(0.6*fade*fl)+")";
-      ctx.beginPath(); ctx.arc(fr.x + Math.cos(ea)*ed, fr.y + Math.sin(ea)*ed, (2.6+2.4*fxR(seed+e*7.7))/S0, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(fr.x + Math.cos(ea)*ed, fr.y + Math.sin(ea)*ed, (2.6+2.4*K.fxR(seed+e*7.7))/K.S0, 0, Math.PI*2); ctx.fill();
     }
     // край — где жжёт
     ctx.restore();
-    ctx.strokeStyle = "rgba(255,124,62,"+(0.75*fade)+")"; ctx.lineWidth = 1.2/S0;
+    ctx.strokeStyle = "rgba(255,124,62,"+(0.75*fade)+")"; ctx.lineWidth = 1.2/K.S0;
     areaPath(fr, r0); ctx.stroke();
-    timeArc(fr.x, fr.y, r0 + 3.5/S0, life/NADE.molly.life, fr.team, fade);
+    K.timeArc(fr.x, fr.y, r0 + 3.5/K.S0, life/NADE.molly.life, fr.team, fade);
   });
   // граната в полёте: форма по типу (не только цвет) — дым кружок, флешка ромб, HE кружок с точкой, молотов треугольник
   // (v437) летящая граната — силуэт гранаты (NADE_ICON, 630) вместо фигур; тёмная тень — чтобы читался на светлом полу
   var nadeIcon = function(n, x, y, px){
     var im = nadeImg(n.type, n.team); if(!im || !im.complete || !im.naturalWidth) return;
-    var h = px*3.2/S0, w = h*im._ar;
+    var h = px*3.2/K.S0, w = h*im._ar;
     ctx.save(); ctx.shadowColor = "rgba(0,0,0,0.85)"; ctx.shadowBlur = 3;
     ctx.drawImage(im, x - w/2, y - h/2, w, h); ctx.restore();
   };
@@ -406,29 +478,29 @@ function draw(){
     if(n.trail.length){
       var p0 = n.trail[0], tg = ctx.createLinearGradient(p0[0], p0[1], n.x, n.y);
       tg.addColorStop(0, "rgba("+rgb+",0)"); tg.addColorStop(1, "rgba("+rgb+",0.6)");
-      ctx.strokeStyle = tg; ctx.lineWidth = 1.4/S0;
+      ctx.strokeStyle = tg; ctx.lineWidth = 1.4/K.S0;
       ctx.beginPath(); n.trail.forEach(function(p,i){ if(i===0) ctx.moveTo(p[0],p[1]); else ctx.lineTo(p[0],p[1]); }); ctx.lineTo(n.x,n.y); ctx.stroke();
     }
     if(n.lob && n.tx != null){
-      ctx.strokeStyle = "rgba("+rgb+",0.6)"; ctx.lineWidth = 1.1/S0;
-      ctx.beginPath(); ctx.arc(n.tx, n.ty, 5/S0, 0, Math.PI*2); ctx.moveTo(n.tx-8/S0, n.ty); ctx.lineTo(n.tx-3/S0, n.ty); ctx.moveTo(n.tx+3/S0, n.ty); ctx.lineTo(n.tx+8/S0, n.ty); ctx.stroke();
+      ctx.strokeStyle = "rgba("+rgb+",0.6)"; ctx.lineWidth = 1.1/K.S0;
+      ctx.beginPath(); ctx.arc(n.tx, n.ty, 5/K.S0, 0, Math.PI*2); ctx.moveTo(n.tx-8/K.S0, n.ty); ctx.lineTo(n.tx-3/K.S0, n.ty); ctx.moveTo(n.tx+3/K.S0, n.ty); ctx.lineTo(n.tx+8/K.S0, n.ty); ctx.stroke();
     }
-    if(hz > 8){ ctx.fillStyle = "rgba(0,0,0,0.38)"; ctx.beginPath(); ctx.ellipse(n.x, n.y, 3.2/S0, 2/S0, 0, 0, Math.PI*2); ctx.fill(); }
+    if(hz > 8){ ctx.fillStyle = "rgba(0,0,0,0.38)"; ctx.beginPath(); ctx.ellipse(n.x, n.y, 3.2/K.S0, 2/K.S0, 0, 0, Math.PI*2); ctx.fill(); }
     nadeIcon(n, n.x, n.y, 4.2 + 2.6*hk);
   });
   nadeFx.forEach(function(fx){
     var age = tick - fx.born;
     if(fx.type === "flash"){
       // хлопок: короткая вспышка в точке и тонкое кольцо — видно где, и не слепит смотрящего
-      if(age < 10){ var c = 1 - age/10; ctx.fillStyle = "rgba(255,255,250,"+(0.85*c)+")"; ctx.beginPath(); ctx.arc(fx.x, fx.y, (6 + 10*(1-c))/S0 + 6, 0, Math.PI*2); ctx.fill(); }
+      if(age < 10){ var c = 1 - age/10; ctx.fillStyle = "rgba(255,255,250,"+(0.85*c)+")"; ctx.beginPath(); ctx.arc(fx.x, fx.y, (6 + 10*(1-c))/K.S0 + 6, 0, Math.PI*2); ctx.fill(); }
       if(age < 26){ var k = age/26, e2 = 1 - (1-k)*(1-k);
-        ctx.strokeStyle = "rgba(255,255,245,"+(0.7*(1-k))+")"; ctx.lineWidth = 1.6/S0; ctx.beginPath(); ctx.arc(fx.x, fx.y, 14 + 96*e2, 0, Math.PI*2); ctx.stroke(); }
+        ctx.strokeStyle = "rgba(255,255,245,"+(0.7*(1-k))+")"; ctx.lineWidth = 1.6/K.S0; ctx.beginPath(); ctx.arc(fx.x, fx.y, 14 + 96*e2, 0, Math.PI*2); ctx.stroke(); }
     } else if(fx.type === "he"){
       // ударная волна до настоящего радиуса HE + жар в центре
       var k2 = Math.min(1, age/20), e3 = 1 - (1-k2)*(1-k2)*(1-k2), a2 = 1 - age/40;
-      ctx.strokeStyle = "rgba(255,150,72,"+(0.9*a2)+")"; ctx.lineWidth = 2.4/S0;
+      ctx.strokeStyle = "rgba(255,150,72,"+(0.9*a2)+")"; ctx.lineWidth = 2.4/K.S0;
       ctx.beginPath(); ctx.arc(fx.x, fx.y, NADE.he.radius*e3, 0, Math.PI*2); ctx.stroke();
-      if(age < 14){ var c2 = 1 - age/14; ctx.fillStyle = "rgba(255,214,140,"+(0.8*c2)+")"; ctx.beginPath(); ctx.arc(fx.x, fx.y, (5 + 14*c2)/S0 + 4, 0, Math.PI*2); ctx.fill(); }
+      if(age < 14){ var c2 = 1 - age/14; ctx.fillStyle = "rgba(255,214,140,"+(0.8*c2)+")"; ctx.beginPath(); ctx.arc(fx.x, fx.y, (5 + 14*c2)/K.S0 + 4, 0, Math.PI*2); ctx.fill(); }
     }
   });
 
@@ -447,6 +519,10 @@ function draw(){
       ctx.stroke();
     }
   }
+}
+
+// часть draw (Р3.2 команда, разрезание в прежнем порядке) — операторы строк 450–629 исходного draw
+function drawTracers(K){
   if(tracers.length){
     // раздел 14: визуал выстрела — вспышка у ствола, пуля бежит от стрелка к
     // точке (~70мс), след гаснет; попадание — красный всплеск (в голову —
@@ -557,7 +633,7 @@ function draw(){
     });
   }
 
-  var alpha = Math.max(0, Math.min(1, accumulator / TICK_MS));
+  K.alpha = Math.max(0, Math.min(1, accumulator / TICK_MS));
   // сайты и бомба (шаг 4)
   ["A","B"].forEach(function(k){
     var st = SITES[k]; if(!st) return;
@@ -626,8 +702,12 @@ function draw(){
   }
   // (v404, владелец 22.10: «видеть пути игроков по кнопке») путь каждого живого игрока: от него по точкам пути (b.path с pathIdx)
   // до точки задачи; подъём / спуск на другой этаж (разница высоты точек > JUMP_UP) — треугольник; пройденное (b._trail) — пунктир
-  var chkP = document.getElementById("chkPaths");
-  if(chkP && chkP.checked){
+  K.chkP = document.getElementById("chkPaths");
+}
+
+// часть draw (Р3.2 команда, разрезание в прежнем порядке) — операторы строк 630–722 исходного draw
+function drawLayers(K){
+  if(K.chkP && K.chkP.checked){
     var s1 = 1/view.scale;
     bots.forEach(function(b){ if(!b.alive) return;
       var col = b.team === "CT" ? "90,155,217" : "217,162,74";
@@ -720,10 +800,14 @@ function draw(){
       else if(F.kind === "sell"){ ctx.fillStyle = "rgba(150,220,140,0.9)"; ctx.fillText("продал "+nm, a.x, a.y + 18/view.scale); }   // (v334, М59)
     });
   }
+}
+
+// часть draw (Р3.2 команда, разрезание в прежнем порядке) — операторы строк 723–845 исходного draw
+function drawBots(K){
   bots.forEach(function(bot){
     if(!bot.alive) return;
-    var rx = bot.px + (bot.x-bot.px)*alpha;
-    var ry = bot.py + (bot.y-bot.py)*alpha;
+    var rx = bot.px + (bot.x-bot.px)*K.alpha;
+    var ry = bot.py + (bot.y-bot.py)*K.alpha;
     var r = (bot.crouching ? 6.2 : 7)/view.scale; // сидя — чуть меньше (v161: кружки меньше, не закрывают мелкие укрытия)
     if(bot._idle && false){
       var br = r;
@@ -843,48 +927,6 @@ function draw(){
   });
 
   ctx.restore();
-  if(draw.noHud) return;   // (v463) кадр повтора клатча (675): только мир, без табло и панелей
-  domText(document.getElementById("hContacts"), contacts/1);   // (v397, М146) только изменившееся — см. domText
-  var ctEl = document.getElementById("contact"), ctD = contacts>0 ? "block" : "none"; if(ctEl.style.display !== ctD) ctEl.style.display = ctD;
-  domText(document.getElementById("hTick"), tick);
-  domText(document.getElementById("hTime"), simTime.toFixed(1)+"s");
-  var rtLeft = roundState === "live" ? Math.max(0, ROUND_TIME_SEC - (simTime - roundStartTime)) : (roundState === "freeze" ? ROUND_TIME_SEC : 0);
-  if(bomb && bomb.state === "planted") rtLeft = Math.max(0, (bomb.explodeTick - tick)/TICK_HZ);
-  var bst = "—";
-  if(bomb){
-    if(bomb.state === "carried") bst = "у "+(bomb.carrier?bomb.carrier.id:"?") + (bomb.carrier && bomb.carrier.planting ? " · закладывает" : "");
-    else if(bomb.state === "dropped") bst = "на земле";
-    else if(bomb.state === "planted"){
-      var dfz = bots.filter(function(b){ return b.defusing; })[0];
-      bst = "заложена на "+bomb.site+(dfz ? " · дефуз "+dfz.id+" "+Math.max(0,(dfz.defuseUntil-tick)/TICK_HZ).toFixed(1)+"с" : "");
-    } else if(bomb.state === "defused") bst = "обезврежена";
-    else if(bomb.state === "exploded") bst = "взорвалась";
-  }
-  domText(document.getElementById("hBomb"), bst);
-  scoreboardUpdate(rtLeft);
-  if(!draw._plN || ++draw._plN > 6){ draw._plN = 1; playersUpdate(); }
-  if(!draw._econN || ++draw._econN > 8){ draw._econN = 1; renderEcon(); }
-  kfExpireTick();   // (v437) затухание строк киллфида
-
-  // (v437, владелец 27.10) плашки «ЗАКУПКА · раунд N» больше нет — время закупа на табло, типы закупа и тактика — в «Экономике»
-  if(roundState === "matchover"){
-    ctx.save();
-    ctx.setTransform(1,0,0,1,0,0);
-    ctx.fillStyle = "rgba(6,8,6,0.65)"; ctx.fillRect(0,0,cv.width,cv.height);
-    ctx.fillStyle = "#e8ecdd"; ctx.textAlign = "center"; ctx.font = "600 26px 'IBM Plex Sans',sans-serif";
-    var mwn = score.CT > score.T ? "ПОБЕДА "+TEAM_NAME.CT : (score.T > score.CT ? "ПОБЕДА "+TEAM_NAME.T : "НИЧЬЯ");
-    ctx.fillText("МАТЧ ОКОНЧЕН — "+mwn+"  "+Math.max(score.CT, score.T)+":"+Math.min(score.CT, score.T), cv.width/2, cv.height/2 - 10);
-    ctx.font = "13px 'IBM Plex Mono',monospace"; ctx.fillStyle = "#8b9a80";
-    ctx.fillText("новый матч через "+Math.max(0, 7-(simTime-roundEndTime)).toFixed(1)+"с", cv.width/2, cv.height/2 + 18);
-    ctx.restore();
-  }
-  if(roundState === "ending"){
-    ctx.save();
-    ctx.setTransform(1,0,0,1,0,0);
-    ctx.fillStyle = "rgba(6,8,6,0.55)"; ctx.fillRect(0,0,cv.width,cv.height);
-    // (карточка итога раунда — HTML-оверлей #roundCard; отсчёт до следующего раунда — полоса внизу карточки, 640)
-    ctx.restore();
-  }
 }
 // (17.11) контур круга дыма / огня — рисование (перенесено из 360)
 function areaPath(o, r){ ctx.beginPath(); ctx.arc(o.x, o.y, r, 0, Math.PI*2); ctx.closePath(); }   // контур области для рисования

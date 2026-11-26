@@ -10268,9 +10268,17 @@
     "(верх файла) · map-walls": 18,
     "covDraw · map-heights": 6,
     "covLegend · map-heights": 16,
-    "draw · draw": 288,
+    "draw · draw": 26,
+    "drawBots · draw": 46,
+    "drawDanger · draw": 27,
+    "drawLayers · draw": 50,
     "drawLineups · lineup-editor": 16,
+    "drawNav · draw": 16,
+    "drawRays · draw": 8,
+    "drawSmokes · draw": 33,
+    "drawTracers · draw": 55,
     "drawZoneShapeHandles · lineup-editor": 3,
+    "drawZones · draw": 27,
     "dvDraw · demo": 10,
     "hgtDraw · map-heights": 23,
     "hgtLegend · map-heights": 32,
@@ -11723,7 +11731,7 @@
     "rpWorldDraw · replay-play": 2
    },
    "m": {
-    "draw · draw": 1,
+    "drawSmokes · draw": 1,
     "landSound · tick": 1,
     "matchBegin · round": 1,
     "stepBot · tick": 2
@@ -12042,7 +12050,7 @@
    },
    "m": {
     "blindBullet · smoke-react": 2,
-    "draw · draw": 1,
+    "drawTracers · draw": 1,
     "matchBegin · round": 1,
     "resetRound · round": 1,
     "tryShoot · shoot": 2
@@ -13663,14 +13671,14 @@
   },
   "_idle": {
    "w": [
-    "draw.js:262 draw"
+    "draw.js:330 drawNav"
    ],
    "lit": [],
    "r": 0
   },
   "_idlePhase": {
    "w": [
-    "draw.js:272 draw"
+    "draw.js:340 drawNav"
    ],
    "lit": [],
    "r": 0
@@ -15271,8 +15279,8 @@
   },
   "_visFacing": {
    "w": [
-    "draw.js:260 draw",
-    "draw.js:271 draw",
+    "draw.js:328 drawNav",
+    "draw.js:339 drawNav",
     "warmup.js:17 warmTurn",
     "warmup.js:19 warmTurn"
    ],
@@ -16821,12 +16829,12 @@
  "hidden": {
   "draw._econN": {
    "w": [
-    "draw.js:866 draw"
+    "draw.js:91 draw"
    ]
   },
   "draw._plN": {
    "w": [
-    "draw.js:865 draw"
+    "draw.js:90 draw"
    ]
   },
   "draw.noHud": {
