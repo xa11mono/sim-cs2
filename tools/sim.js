@@ -128,6 +128,7 @@ const CMDS = {
   check: a => run('node', [path.join(ROOT, 'tools', 'rebuild', 'gen_maps.js'), '--check']) || run('node', [path.join(ROOT, 'tools', 'rebuild', 'doc_links.js')]) || run('node', [path.join(ROOT, 'tools', 'rebuild', 'snap_vars_test.js')]) || run('node', [path.join(ROOT, 'tools', 'rebuild', 'typecheck.js')]) || run(PY, [path.join(ROOT, 'tools', 'map', 'map_check.py'), '--known=rebuild/known_map_gaps.json'].concat(pos(a))),
   scen: a => run('node', [path.join(ROOT, 'tools', 'marks', 'scenarios.js')].concat(a)),
   why: a => run('node', [path.join(ROOT, 'tools', 'marks', 'why.js')].concat(a)),
+  mark: a => run('node', [path.join(ROOT, 'tools', 'marks', 'prototype', 'cli.cjs')].concat(a)),   // (Р5.7) отметки v2: convert / open / check / unpack (прототип Codex)
   marks: a => MARKS[a[0]] ? run('node', [path.join(ROOT, 'tools', 'marks', MARKS[a[0]] + '.js')].concat(a.slice(1))) : (console.error('marks: ' + Object.keys(MARKS).join(' | ')), 2),
   measure: a => a[0] === 'check' ? measureCheck(a.slice(1)) : (console.error('measure check [request.json] — проверить задание; запуск — пуш ветки measure/<имя> (CLAUDE.md §8)'), 2),
   context, graph,
@@ -145,6 +146,7 @@ const HELP = `node tools/sim.js <команда> — единая точка в�
   check [карта…]                          проверка устройства (gen_maps --check), типов .ts (typecheck) и данных карт (map_check.py)
   scen [--map=…] [--only=…]               проверки по отметкам (tools/marks/scenarios.js)
   why <отметка> <бот> [тик] [--sim=…]     почему бот так сделал: каналы у хозяев + след решений (tools/marks/why.js, Р3.3)
+  mark <convert|open|check|unpack|help> …   отметки v2 (Р5.7): пакет mark.json + вложения с SHA-256, переходник старых (tools/marks/prototype)
   marks <open|story|frames|video|scenarios|replay> …   инструменты отметок (tools/marks/*)
   measure check [request.json]            проверить задание прогона на ПК
   env [файл]                              среда: Playwright, Chromium, Node, ОС
