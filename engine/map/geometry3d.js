@@ -122,6 +122,7 @@ function m3Load(J, inflate){
   function arr(b64, T){
     // (Р5.5, 26.11) блок — строка base64 (набор карты в странице) или сами байты zlib (пакет карты .simmap, tools/map-pack) — дальше одинаково
     var u;
+    if(b64 && b64.sab) return new T(b64.sab);   // (Р5.8) уже распакованный общий буфер (массовая симуляция, tools/node/mass_run.js --pack): только чтение
     if(b64 instanceof Uint8Array) u = b64;
     else { var bin = typeof atob === "function" ? atob(b64) : Buffer.from(b64, "base64").toString("binary");
       u = new Uint8Array(bin.length); for(var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); }
