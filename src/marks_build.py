@@ -11,7 +11,9 @@ MARK = "/*@@BUILD: здесь build.py вставляет __SNAP и marks.js@@*/
 # ---------- перечень переменных симулятора для снимков ----------
 def top_vars(src):
     names = []
-    for mm in re.finditer(r'(?m)^var ', src):
+    # (26.11) и `var` после комментария в той же строке («/* … */ var X = 1;») — раньше регулярка видела только `var` в начале строки,
+    # такая переменная выпадала из снимка и из сравнения локатора (регрессионный тест — tools/rebuild/snap_vars_test.js)
+    for mm in re.finditer(r'(?m)^(?:/\*[^\n]*?\*/[ \t]*)*var ', src):
         i = mm.end(); depth = 0; q = None; n = len(src); start = True
         while i < n:
             c = src[i]
