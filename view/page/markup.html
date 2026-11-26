@@ -254,3 +254,6 @@
 </div>
 
 <script>
+// (Р5.2, 26.11) перехват управления в режиме Worker — первым на странице: для события с целью window браузер зовёт обработчики в порядке
+// регистрации, и обработчик отметок (src/marks.js, клавиша M) успевал раньше перехода симуляции на страницу (снимок отметки — из кадра)
+["click", "change", "input", "keydown"].forEach(function(n){ window.addEventListener(n, function(e){ if(window.__wkCatch) window.__wkCatch(e); }, true); });

@@ -333,7 +333,7 @@ function wkCatch(e){
     else again = function(){ var c = new Event(typ, {bubbles: true}); c.wkAgain = true; tgt.dispatchEvent(c); }; }
   e.preventDefault(); e.stopImmediatePropagation(); wkToPage(again);
 }
-if(typeof window !== "undefined") ["click", "change", "input", "keydown"].forEach(function(n){ window.addEventListener(n, wkCatch, true); });
+if(typeof window !== "undefined") window.__wkCatch = wkCatch;   // слушатели — первыми на странице (view/page/markup.html)
 function frame(ts){
   try{ frameBody(ts); }catch(e){ showFatal(e); }
   requestAnimationFrame(frame);

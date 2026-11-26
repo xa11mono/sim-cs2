@@ -79,8 +79,11 @@ async function measure() {
     // снимки сравниваются как у локатора (tools/measure/dv_state.js: состояние игры без кэшей и показа — кэши страницы и Worker'а наполняет
     // разный рисунок): снимок кладётся в страницу (mkRestore) и снимается DV.state
     // и без кэшей (класс «кэш» реестра): их наполняет и показ страницы (путь для рисунка — CLIMB_AT), у Worker'а показа нет — общие записи равны
-    const CACHE = Object.keys(require('../../rebuild/state_classes.json')).filter(k => k.startsWith('g:') && (require('../../rebuild/state_classes.json')[k] || {}).class === 'кэш').map(k => k.slice(2));
-    const DVS = require('../measure/dv_state.js'), SET = DVS.setupCode(DVS.skipDefault().replace(/\)\$$/, '|' + CACHE.join('|') + ')$'), DVS.SKIPF_DEFAULT) + '\n1';
+    const REG = require('../../rebuild/state_classes.json'), CACHE = Object.keys(REG).filter(k => k.startsWith('g:') && (REG[k] || {}).class === 'кэш').map(k => k.slice(2));
+    // и без полей ботов класса «показ» (_idle, _idlePhase — пишет рисунок draw-map, симуляция не читает): A рисует на своих тиках, B — из кадра
+    const SHOWF = Object.keys(REG).filter(k => k.startsWith('b:') && REG[k].class === 'показ').map(k => k.slice(2).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    const DVS = require('../measure/dv_state.js'), SET = DVS.setupCode(DVS.skipDefault().replace(/\)\$$/, '|' + CACHE.join('|') + ')$'),
+      DVS.SKIPF_DEFAULT.replace(/\)\$$/, '|' + SHOWF.join('|') + ')$')) + '\n1';
     await a.evaluate(c => __ev(c), SET); await b.evaluate(c => __ev(c), SET);
     const MKS = `var c = MK.cur, st = function(S){ mkRestore(S); return DV.state(); };
       JSON.stringify(c ? {tick: c.tick, snap: st(c.snap), preTick: c.pre && c.pre.tick, pre: c.pre ? st(c.pre.data) : null} : null)`;
