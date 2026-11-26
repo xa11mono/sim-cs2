@@ -15,6 +15,7 @@ const HELP = `node tools/marks/prototype/cli.cjs <команда>
   open <папка|mark.json>
   check <папка|mark.json> [--expect=target.json] [--require-compatible]
   unpack <папка|mark.json> <новая папка>
+  import <выгрузка.json> <новая папка>            отметка из страницы одним файлом (кнопка «В файл»)
   convert <старый JSON|JSON.gz> <новая папка> [--snapshot=файл] [--pre=файл] [--image=файл]
           [--scenario=id]                         выбрать запись из rebuild/scenarios.json
           [--role=moment|before]                  указать роль отдельного mkPack
@@ -24,7 +25,7 @@ open печатает Markdown, check печатает JSON. Подробнос�
 
 const string = { type: 'string' };
 const optionSets = {
-  open: {}, unpack: {},
+  open: {}, unpack: {}, import: {},
   check: { expect: string, 'require-compatible': { type: 'boolean' } },
   convert: { snapshot: string, pre: string, image: string, scenario: string, role: string },
   events: { metric: string, episode: string, round: string }
@@ -42,11 +43,25 @@ async function main(command, args) {
   if (command == null || command === 'help' || command === '--help' || args.includes('--help')) return stdout(HELP + '\n');
   need(Object.hasOwn(optionSets, command), 'Неизвестная команда. Используйте help.');
   const { values, positionals } = parseArgs({ args, options: optionSets[command], allowPositionals: true });
-  const twoPaths = command === 'convert' || command === 'unpack';
+  const twoPaths = command === 'convert' || command === 'unpack' || command === 'import';
   need(positionals.length === (twoPaths ? 2 : 1), 'Неверное число аргументов. Используйте help.');
   const [input, output] = positionals;
   if (command === 'convert') {
     const result = await convert(input, output, values);
+    return stdout(stringify(inspections(result)));
+  }
+  // (Р5.7, 26.11) выгрузка отметки из страницы одним файлом (кнопка «В файл», src/marks.js mkExportFile: sim-cs2/mark-export v1) — разложить
+  // на запись и вложения и перевести тем же convert
+  if (command === 'import') {
+    const ex = json(read(input));
+    need(ex && ex.format === 'sim-cs2/mark-export' && ex.version === 1 && ex.doc && typeof ex.snapshot === 'string', 'Не выгрузка отметки (sim-cs2/mark-export v1)');
+    const fsx = require('node:fs'), os = require('node:os'), px = require('node:path'), tmp = fsx.mkdtempSync(px.join(os.tmpdir(), 'mark-import-'));
+    const put = (name, data) => { const f = px.join(tmp, name); fsx.writeFileSync(f, data); return f; };
+    const opt = { snapshot: put('snapshot.json', ex.snapshot) };
+    if (typeof ex.pre === 'string') opt.pre = put('pre.json', ex.pre);
+    const im = typeof ex.image === 'string' && /^data:image\/(png|jpeg);base64,(.+)$/.exec(ex.image);
+    if (im) opt.image = put(im[1] === 'png' ? 'mark.png' : 'mark.jpg', Buffer.from(im[2], 'base64'));
+    const result = await convert(put('mark-doc.json', JSON.stringify(ex.doc)), output, opt);
     return stdout(stringify(inspections(result)));
   }
 

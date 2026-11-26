@@ -168,6 +168,20 @@ async function mkSave(m, status){
   catch(e){ mkToast("Не удалось сохранить отметку: " + (e && (e.code || e.message))); return false; }
 }
 
+// (Р5.7, 26.11) отметка одним файлом (формат выгрузки sim-cs2/mark-export v1): запись как в базе (mkSave), снимки момента и «до» (mkPack),
+// кадр экрана; в пакет отметки v2 (mark.json + вложения с SHA-256) её переводит node tools/sim.js mark import <файл> <папка> (tools/marks/prototype)
+async function mkExportFile(){
+  var m = MK.cur; if(!m) return; m.text = mkEl("mkText").value.trim(); m.want = mkEl("mkWant").value.trim();
+  if(!m.text){ mkEl("mkErr").textContent = "Напиши, что не так"; return; }
+  var img = null; try{ img = m.screenP ? await m.screenP : null; }catch(e){}
+  var doc = { match: m.match, tick: m.tick, round: m.round, roundTime: m.roundTime, category: mkEl("mkCat").value, priority: mkEl("mkPrioU").checked ? "urgent" : "normal",
+    text: m.text, want: m.want, bot: m.bot || null, principle: null, status: "new", version: null, fp: m.fp, state: m.state, created: Date.now(), updated: Date.now(),
+    env: mkEnv(), preTick: m.pre ? m.pre.tick : null };
+  var out = JSON.stringify({format: "sim-cs2/mark-export", version: 1, doc: doc, snapshot: mkPack(m.snap), pre: m.pre ? mkPack(m.pre.data) : null, image: img || null});
+  var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([out], {type: "application/json"}));
+  a.download = "mark-m" + m.match + "-t" + m.tick + ".json"; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  mkToast("Отметка выгружена файлом (" + Math.round(out.length / 1024) + " КБ)");
+}
 // ---------- список отметок ----------
 var MK_ST = {new: "новое", unparsed: "не разобрано", added: "добавлено", fixed: "исправлено", confirmed: "подтверждено"};
 function mkStatusText(d){
@@ -240,7 +254,7 @@ function mkShowCopy(t){ var a = mkEl("mkCopyBox"); a.value = t; a.style.display 
         '<label><input type="radio" name="mkPrio" id="mkPrioN" checked> обычно</label><label><input type="radio" name="mkPrio" id="mkPrioU"> срочно</label></div>' +
         '<div class="mk-q">О ком: <span id="mkBot"></span></div>' +
         '<div class="mk-err" id="mkErr"></div>' +
-        '<div class="mk-row2"><button id="mkGo" class="active">Сохранить</button><button id="mkCancel">Отмена</button></div>' +
+        '<div class="mk-row2"><button id="mkGo" class="active">Сохранить</button><button id="mkFile" title="Отметка одним файлом: текст, снимки момента и «до», кадр экрана — для node tools/sim.js mark import">В файл</button><button id="mkCancel">Отмена</button></div>' +
       '</div>' +
     '</div>' +
     '<div id="mkList" class="mk-panel" style="display:none"><div class="mk-head"><b>Отметки</b><span><button id="mkCopy">Скопировать все</button> <button id="mkLX">✕</button></span></div>' +
@@ -254,6 +268,7 @@ function mkShowCopy(t){ var a = mkEl("mkCopyBox"); a.value = t; a.style.display 
   mkEl("mkLX").addEventListener("click", function(){ mkEl("mkList").style.display = "none"; });
   mkEl("mkX").addEventListener("click", mkClose); mkEl("mkCancel").addEventListener("click", mkClose);
   mkEl("mkGo").addEventListener("click", mkSubmit);
+  mkEl("mkFile").addEventListener("click", mkExportFile);
   mkEl("mkText").addEventListener("input", function(){ mkEl("mkErr").textContent = ""; });
   ["mkText", "mkWant"].forEach(function(id){ mkEl(id).addEventListener("keydown", function(e){ if(e.key === "Enter" && (e.ctrlKey || e.metaKey)){ e.preventDefault(); mkSubmit(); } }); });
   mkEl("mkCopy").addEventListener("click", mkCopyAll);
