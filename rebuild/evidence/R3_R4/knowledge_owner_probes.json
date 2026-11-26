@@ -1,0 +1,20 @@
+{
+  "alias": [
+    "ОШИБКА владения `heardSound` (знание): 1 мест мимо хозяина — r3OwnerProbe · task×1"
+  ],
+  "computed": [
+    "ОШИБКА владения `lastIntel` (знание): 1 мест мимо хозяина — r3OwnerProbe · task×1"
+  ],
+  "nested": [
+    "ОШИБКА владения `heardSound` (знание): 1 мест мимо хозяина — r3OwnerProbe · task×1"
+  ],
+  "reflect": [
+    "ОШИБКА владения `heardSound` (знание): 1 мест мимо хозяина — r3OwnerProbe · task×1"
+  ],
+  "assign": [
+    "ОШИБКА владения `lastIntel` (знание): 1 мест мимо хозяина — r3OwnerProbe · task×1"
+  ],
+  "delete": [
+    "ОШИБКА владения `lastIntel` (знание): 1 мест мимо хозяина — r3OwnerProbe · task×1"
+  ]
+}

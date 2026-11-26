@@ -76,7 +76,10 @@ function hearReal(o, s){
 // (Р3.2 знание ш.3, 26.11) знание бота «что слышал» (heardSound) и «где последний раз враг» (lastIntel) — одна точка записи (сборка:
 // owners.json, enforce); запись — в след решений (канал «знание», ключ _dlogK: общий журнал _dlog читает сторож PROB — его не трогать). knowHear — звук, дошедший сам (ears + приоритет ближнего, hearReal);
 // knowSound — звук / колл из чужого знания (тиммейт сказал, попадание) и сброс; knowIntel — последнее место врага (колл, контакт) и сброс
-function knowHear(o, s){ knowSound(o, hearReal(o, s)); }
+function knowHear(o, s, label){
+  knowSound(o, hearReal(o, s));
+  if(o.heardSound && /^приземление/.test(label || "")) o.heardSound.land = true;   // (v343) метка звука для ctLandPunish
+}
 function knowSound(o, s){ var was = o.heardSound; o.heardSound = s;
   if(DLOG.on && s && s !== was) dlog(o, "знание", "звук «" + (s.kind || "?") + "»" + (s.src ? " от " + s.src : ""), "_dlogK"); }
 function knowIntel(o, I){ o.lastIntel = I;

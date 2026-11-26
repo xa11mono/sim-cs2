@@ -34,7 +34,7 @@ def completed(guard):
             and not guard.get('stopped'))
 
 
-def recover(runs, homes, request, archive):
+def recover(runs, homes, request, archive, r34_only=False):
     files = {}
     status = []
 
@@ -44,6 +44,8 @@ def recover(runs, homes, request, archive):
     for kind in ('fp', 'rec', 'rust'):
         for job in request.get(kind, []):
             label = job['label']
+            if r34_only and label not in {'v637a_chr_anc', 'v637a_chr_mir', 'v637a_rec_anc', 'v637a_rec_mir'}:
+                continue
             folder = runs / label
             for name in ('versions.json', 'env.json', 'phase.json'):
                 path = folder / name
@@ -78,7 +80,7 @@ def recover(runs, homes, request, archive):
                         if type(row.get('hash')) is not int or not 0 < row.get('ticks', 0) < 400000:
                             continue
                     elif (not isinstance(row.get('watch'), dict) or not isinstance(row['watch'].get('n'), dict)
-                          or not isinstance(row.get('prob'), list) or row.get('ticks') != 0):
+                          or row.get('ticks') != 0):
                         # This exact request uses rec2 without a round limit. A
                         # completed match resets tick on the next match.
                         continue
@@ -115,9 +117,10 @@ def main():
     args.add_argument('--runner-root', type=Path, required=True)
     args.add_argument('--runner-home', type=Path, action='append', default=[])
     args.add_argument('--out', type=Path, required=True)
+    args.add_argument('--r34-only', action='store_true')
     options = args.parse_args()
     request = read(HERE / 'request_334.json')
-    recover(options.runner_root / 'tools/measure/runs', options.runner_home, request, options.out)
+    recover(options.runner_root / 'tools/measure/runs', options.runner_home, request, options.out, options.r34_only)
 
 
 if __name__ == '__main__':

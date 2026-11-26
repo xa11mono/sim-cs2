@@ -35,8 +35,7 @@ function moveSoundEmit(bot, soundRadius, kind, label){
     var jitterMag = 20 + dHear*0.12, jang = hashRand(seed) * Math.PI*2;
     var hpF = hearPos(listener, bot.x, bot.y, seed, occS);
     knowHear(listener, hpF ? {x:hpF.x, y:hpF.y, tick:tick, team:bot.team, src:bot.id, kind:kind, occl:occS}
-                              : {x:bot.x+DM.cos(jang)*jitterMag, y:bot.y+DM.sin(jang)*jitterMag, tick:tick, team:bot.team, src:bot.id, kind:"steps", occl:occS});
-    if(listener.heardSound && /^приземление/.test(label || "")) listener.heardSound.land = true;   // (v343) звук приземления — для ctLandPunish
+                              : {x:bot.x+DM.cos(jang)*jitterMag, y:bot.y+DM.sin(jang)*jitterMag, tick:tick, team:bot.team, src:bot.id, kind:"steps", occl:occS}, label);
     if(wasStale) logEvent(listener.id+" услышал "+label+" ("+bot.team+")"+(occS ? " за стеной" : ""));
   });
 }

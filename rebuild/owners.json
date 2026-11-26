@@ -297,10 +297,11 @@
   "heardSound": {
     "channel": "знание",
     "files": [],
+    "exactProperty": true,
+    "ownerFile": "knowledge",
     "allow": [
       "knowHear",
-      "knowSound",
-      "knowIntel"
+      "knowSound"
     ],
     "enforce": true,
     "since": "Р3.2 знание ш.3, 26.11: одна точка записи (engine/know/knowledge.js)"
@@ -308,9 +309,9 @@
   "lastIntel": {
     "channel": "знание",
     "files": [],
+    "exactProperty": true,
+    "ownerFile": "knowledge",
     "allow": [
-      "knowHear",
-      "knowSound",
       "knowIntel"
     ],
     "enforce": true,

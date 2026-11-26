@@ -87,7 +87,11 @@ const OWNER = {}; FIELDS.forEach(f => { OWNER[f] = OWN[f] ? new RegExp("^(" + OW
 // канал может быть набором файлов (гранаты — 360–420): files — номера файлов канала, запись из любой их функции — своя;
 // функция из чужого файла, но в allow (интерфейс канала) — тоже своя
 const OWNF = {}; FIELDS.forEach(f => { OWNF[f] = new Set((OWN[f] && OWN[f].files) || []); });
-const isOwn = (fl, k) => { const [fn, ff] = k.split(" · "); return OWNER[fl].test(fn) || OWNF[fl].has(ff); };
+const isOwn = (fl, k) => {
+  const [fn, ff] = k.split(" · "), ownerFile = OWN[fl]?.ownerFile;
+  if (ownerFile) return ff === ownerFile && OWNER[fl].test(fn);
+  return OWNER[fl].test(fn) || OWNF[fl].has(ff);
+};
 const WEND = {};   // (Р-6) записи «конец задачи» (= null) по полям
 const W = {}, WO = {}; FIELDS.forEach(f => { W[f] = {}; WO[f] = {}; });
 // (15.11, замечание владельца) одно имя поля у разных объектов: bot.state ≠ bomb.state ≠ редактор.state. Объект — бот, если в той же
@@ -95,11 +99,56 @@ const W = {}, WO = {}; FIELDS.forEach(f => { W[f] = {}; WO[f] = {}; });
 const BOTP = new Set(["alive", "hp", "tRole", "team", "weapon", "baseX", "baseY", "nades", "primary", "money", "reactionTicks", "skill"]);
 const BOTW = {}, BOTL = {}, BOTR = {}, PROPS = new Map();   // (Р3.1) все поля бота: записи (файл:строка функция) и литералы создания — для реестра состояния
 const rootOf = e => { while (e && e.type === "MemberExpression") { if (e.object.type === "Identifier" && e.object.name === "bots" && e.computed) return "#bot"; e = e.object; } return e && e.type === "Identifier" ? e.name : e && e.type === "ThisExpression" ? "this" : null; };
+// Имена полей знания зарезервированы за этим каналом: тип объекта и имя переменной не меняют владельца.
+const EXACT = new Set(FIELDS.filter(f => OWN[f]?.exactProperty));
+const memberName = m => m.computed ? m.property.value : m.property.name;
+function exactTargets(tgt, fields) {
+  if (!tgt) return;
+  if (tgt.type === "MemberExpression") {
+    for (let m = tgt; m.type === "MemberExpression"; m = m.object) {
+      const key = memberName(m);
+      if (EXACT.has(key)) fields.add(key);
+    }
+  } else if (tgt.type === "ObjectPattern") {
+    tgt.properties.forEach(p => exactTargets(p.value || p.argument, fields));
+  } else if (tgt.type === "ArrayPattern") {
+    tgt.elements.forEach(p => exactTargets(p, fields));
+  } else if (tgt.type === "AssignmentPattern" || tgt.type === "RestElement") {
+    exactTargets(tgt.left || tgt.argument, fields);
+  }
+}
+
 for (const { ast, off } of asts) walk.fullAncestor(ast, (n, _st, anc) => {
   let tgt = null;
   if (n.type === "AssignmentExpression") tgt = n.left; else if (n.type === "UpdateExpression") tgt = n.argument;
+  else if (n.type === "UnaryExpression" && n.operator === "delete") tgt = n.argument;
+  const exact = new Set();
+  exactTargets(tgt, exact);
+  if (n.type === "CallExpression" && n.callee.type === "MemberExpression") {
+    const api = n.callee.object.name, method = memberName(n.callee), [object, source, ...sources] = n.arguments;
+    if (api === "Object" && (method === "assign" || method === "defineProperties")) {
+      exactTargets(object, exact);
+      for (const arg of [source, ...sources]) if (arg?.type === "ObjectExpression") {
+        for (const p of arg.properties) {
+          const key = p.key?.value ?? (!p.computed ? p.key?.name : undefined);
+          if (EXACT.has(key)) exact.add(key);
+        }
+      }
+    } else if ((api === "Object" && method === "defineProperty")
+      || (api === "Reflect" && ["set", "deleteProperty", "defineProperty"].includes(method))) {
+      exactTargets(object, exact);
+      if (EXACT.has(source?.value)) exact.add(source.value);
+    }
+  }
+  for (const field of exact) {
+    const pos = n.start + off, fn = fnAt(pos), f = fileAt(pos)[2], line = lineAt(pos);
+    const key = fn + " · " + GS.fileId(f);
+    (W[field][key] = W[field][key] || []).push(line);
+    (BOTW[field] = BOTW[field] || []).push(f + ":" + line + " " + fn);
+  }
   if (!tgt || tgt.type !== "MemberExpression" || tgt.computed) return;
   const fld = tgt.property.name, pos = n.start + off, fn = fnAt(pos), f = fileAt(pos)[2];
+  if (exact.has(fld) || n.type === "UnaryExpression") return;
   const objTxt = all.slice(tgt.object.start + off, tgt.object.end + off);
   const FLD = FIELDS.includes(fld);   // (Р3.1) остальные поля — только в реестр состояния (BOTW), в fields.md и проверку владения не идут
   if (FLD && fld === "phase") { if (!/tt|tac|teamTac|T0|TT/.test(objTxt)) return; (W[fld][fn + " · " + GS.fileId(f)] = W[fld][fn + " · " + GS.fileId(f)] || []).push(lineAt(pos)); return; }   // фаза плана T

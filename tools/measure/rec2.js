@@ -68,7 +68,9 @@ if(typeof logEvent==='function'){ evOn('logEvent', function(ph,A){ if(ph!=='in')
 evOn('detonate', function(ph,A){ if(ph!=='in') return; var n=A[0]; if(roundState==='live'&&n&&n.type==='he'&&typeof visLine==='function'){ bots.forEach(function(b){ if(!b.alive||Math.hypot(b.x-n.x,b.y-n.y)>NADE.he.radius) return; if(!hasLOS(n.x,n.y,b.x,b.y,null,b.z)) return;
   var l3=visLine(n.x,n.y,n.z,b.x,b.y,visFloorAt(b.x,b.y,b.z)+VIS_EYE.crouch,false)?1:0; REC.he.push([tick, b.id, l3]); }); } });
 REC.rotx={n:0, rev:0, back:0, drop:0, ev:[]}; REC.bd=[]; var RX={}, BD=null, BS0=null;
-for(var t=0;t<__T__;t++){ var _t0=performance.now(); stepTick(); var _dt=performance.now()-_t0; if(_dt>25 && roundState==='live'){ var _nt=bots.filter(function(b){return b.alive&&b.nadeTask;}); REC.slow.push([tick, Math.round(_dt), (typeof nadesInAir!=='undefined'&&nadesInAir.length)||0, _nt.length, _nt.map(function(b){return b.id+':'+b.nadeTask.type;}).join(' ')]); } if(typeof WATCH!=='undefined') WATCH.tick();
+// При автоматическом переходе matchBegin восстанавливает состояние загрузки,
+// включая PROB. Снять отчёт нужно на конце текущего матча, до перехода.
+for(var t=0;t<__T__ && roundState!=='matchover';t++){ var _t0=performance.now(); stepTick(); var _dt=performance.now()-_t0; if(_dt>25 && roundState==='live'){ var _nt=bots.filter(function(b){return b.alive&&b.nadeTask;}); REC.slow.push([tick, Math.round(_dt), (typeof nadesInAir!=='undefined'&&nadesInAir.length)||0, _nt.length, _nt.map(function(b){return b.id+':'+b.nadeTask.type;}).join(' ')]); } if(typeof WATCH!=='undefined') WATCH.tick();
  if(SNAP_NEXT && matchNum===M0){ REC.snaps[SNAP_NEXT] = {t:tick, s:snapTake()}; SNAP_NEXT = 0; }
  if(R_END && roundNum > R_END) break;
  if(matchNum!==M0) break;
@@ -120,5 +122,5 @@ for(var t=0;t<__T__;t++){ var _t0=performance.now(); stepTick(); var _dt=perform
 if(typeof WATCH!=='undefined') REC.watch=WATCH.report();
 // (Р3.6, владелец 26.11) причины всех увеличений счётчиков ошибок движения — полный журнал матча (событие, причина stall.*, след решения)
 if(typeof PROB!=='undefined' && PROB.all) REC.prob=PROB.all.map(function(e){ return [e.tick, e.id, e.kind, e.sub||null, e.text, e.x, e.y, e.round, e.why||null]; });
-REC.match=M0; REC.ticks=tick; if(typeof VOICE_STATS!=='undefined') REC.voice=VOICE_STATS;
+REC.match=M0; REC.ticks=tick; REC.finished=matchNum===M0 && roundState==='matchover'; if(typeof VOICE_STATS!=='undefined') REC.voice=VOICE_STATS;
 JSON.stringify(REC)

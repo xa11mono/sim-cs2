@@ -159,6 +159,13 @@ def main():
         npx = os.path.join(home, 'node_modules', '.bin', 'playwright.cmd' if os.name == 'nt' else 'playwright')
         sh([npx, 'install'] + need, cwd=home)
     actual = versions(engines) if fp else None
+    if req.get('require_runtime'):
+        if 'chromium' not in engines:
+            raise ValueError('require_runtime needs a Chromium fingerprint phase')
+        for key, expected in req['require_runtime'].items():
+            if not expected or actual.get(key) != expected:
+                raise RuntimeError('Несовместимая среда: %s, ожидалось %r, получено %r'
+                                   % (key, expected, actual.get(key)))
     archive = None
     if fp and req.get('resume') and req.get('resume_from'):
         archive = fingerprint_jobs.PublishedRun(req['resume_from'], resolve_ref, ROOT)
@@ -173,9 +180,14 @@ def main():
         watch = '\n'.join(open(f, encoding='utf-8').read() for f in (os.path.join(HERE, 'audit', 'watch.js'), os.path.join(E, 'walk_watch.js'), os.path.join(E, 'know_watch.js'), os.path.join(E, 'g_watch.js')))
         A = "if(typeof WATCH!=='undefined') WATCH.tick();"; B = "if(typeof WATCH!=='undefined') REC.watch=WATCH.report();"
         tpl = tpl.replace(A, A + " WALK.tick(); KNOWW.tick(); GWATCH.tick();").replace(B, B + " REC.walk=WALK.report(); REC.know=KNOWW.report(); REC.gw=GWATCH.report();")
-        def rec_ok(path):
-            try: return 'watch' in json.load(open(path, encoding='utf-8'))
-            except Exception: return False
+        def rec_ok(path, complete=False):
+            try:
+                with open(path, encoding='utf-8') as f:
+                    row = json.load(f)
+                return 'watch' in row and (not complete or
+                        (row.get('finished') is True and isinstance(row.get('prob'), list)))
+            except (OSError, ValueError, TypeError):
+                return False
         for j in req['rec']:
             sim = os.path.join(sims, j['label'] + '.html'); build(j['ref'], j.get('map', 'ancient'), sim)
             out = os.path.join(ROOT, 'tools', 'measure', 'runs', j['label']); os.makedirs(out, exist_ok=True)
@@ -183,7 +195,8 @@ def main():
                 js = os.path.join(out, '_rec_%d.js' % m); open(js, 'w', encoding='utf-8').write(tpl.replace('__M__', str(m)).replace('__T__', str(j.get('ticks', 200000))).replace('/*@@WATCH@@*/', watch))
                 pool.add({'name': 'rec %s m%d' % (j['label'], m), 'cmd': ['node', os.path.join(ROOT, 'src', 'q.js'), sim, '@' + js], 'cwd': ROOT, 'engine': 'chromium',
                           'est_key': 'chromium:' + j.get('map', 'ancient'), 'out': os.path.join(out, 'rec_%d.json' % m), 'err': os.path.join(out, 'err_%d.txt' % m),
-                          'guard': os.path.join(out, 'guard_%d.json' % m), 'valid': rec_ok})
+                          'guard': os.path.join(out, 'guard_%d.json' % m),
+                          'valid': lambda path, complete=j.get('complete', False): rec_ok(path, complete)})
     if pool.q or pool.run or pool.retry: pool.wait_all()
     # ---- (Р0.6, Р0.11, Р0.13, Р0.14, 24.11) задания перестройки: каждое пишет в runs/<label>/; ошибка задания не валит остальные ----
     R0 = os.path.join(ROOT, 'tools', 'measure')

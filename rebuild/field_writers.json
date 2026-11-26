@@ -1409,6 +1409,10 @@
    "engagements · engDecide",
    "round · resetRound"
   ],
+  "heardSound": [
+   "knowledge · knowHear",
+   "knowledge · knowSound"
+  ],
   "holding": [
    "engagements · engDecide",
    "fight-state · fightHoldOff",
@@ -1437,8 +1441,8 @@
   "know": [
    "knowledge · knowRoundStart"
   ],
-  "land": [
-   "tick · moveSoundEmit"
+  "lastIntel": [
+   "knowledge · knowIntel"
   ],
   "lastShotTick": [
    "demo · dvTick",
