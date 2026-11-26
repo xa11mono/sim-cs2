@@ -168,6 +168,7 @@ WASM → TS-эталон, общая память → `postMessage`). Прове
 > - **Р5.5 пакеты карт** — ветка `codex/r5-map-packs`, коммит `0c6b911`, инструкция `codex/r5-map-packs:tools/map-pack/HANDOFF.md`. Ограничение: полный Э1 не выполнен.
 > - **Р5.10 браузерная приёмка** — ветка `codex/r5-browser-acceptance`, коммит `04827a2`, инструкция `codex/r5-browser-acceptance:tools/browser-acceptance/HANDOFF.md`.
 >   Найдено: Firefox — проблема `AudioContext` после клика; причину установить при браузерной приёмке.
+> - Своё по Р5.1 (опись Frame, ядро без показа, замеры): `rebuild/R5_1_FRAME.md`.
 > - **Р7 корпуса запросов** — ветка `codex/r7-kernel-corpus`, коммит `0e87c98`, инструкция `codex/r7-kernel-corpus:tools/r7-corpus/HANDOFF.md`. Ограничение:
 >   проверены отдельные вычислительные операции, а не полноценные ядра.
 

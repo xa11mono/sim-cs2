@@ -1,0 +1,228 @@
+path,class,lines,links_in,links_out,codex_class,codex_action,status
+.claude/agents/adversarial-qa.md,агент,17,0,0,действующий,оставить,на месте
+.claude/agents/cs2-tactical-analyst.md,агент,18,0,5,действующий,оставить,на месте
+.claude/agents/logic-auditor.md,агент,18,0,2,действующий,оставить,на месте
+.claude/agents/numeric-auditor.md,агент,16,0,0,действующий,оставить,на месте
+.claude/skills/better-design/SKILL.md,агент,470,0,1,сторонний навык,оставить,на месте
+.claude/skills/better-design/assets/DESIGN.house-style.md,агент,216,0,1,сторонний навык,оставить,на месте
+.claude/skills/better-design/assets/DESIGN.template.md,агент,177,0,1,сторонний навык,оставить,на месте
+.claude/skills/better-design/assets/motion/README.md,агент,63,1,1,сторонний навык,оставить,на месте
+.claude/skills/better-design/references/ai-slop.md,агент,197,0,1,сторонний навык,оставить,на месте
+.claude/skills/better-design/references/art-direction.md,агент,149,0,1,сторонний навык,оставить,на месте
+.claude/skills/better-design/references/behavior-and-content.md,агент,200,0,1,сторонний навык,оставить,на месте
+.claude/skills/better-design/references/design-contract.md,агент,123,0,1,сторонний навык,оставить,на месте
+.claude/skills/better-design/references/design-md.md,агент,100,0,3,сторонний навык,оставить,на месте
+.claude/skills/better-design/references/direction-deal.md,агент,175,0,1,сторонний навык,оставить,на месте
+.claude/skills/better-design/references/effects-library.md,агент,428,0,1,сторонний навык,оставить,на месте
+.claude/skills/better-design/references/evaluations.md,агент,152,0,1,сторонний навык,оставить,на месте
+.claude/skills/better-design/references/fonts.md,агент,77,0,1,сторонний навык,оставить,на месте
+.claude/skills/better-design/references/house-style.md,агент,300,0,1,сторонний навык,оставить,на месте
+.claude/skills/better-design/references/layout-geometry.md,агент,193,0,1,сторонний навык,оставить,на месте
+.claude/skills/better-design/references/materials.md,агент,77,0,0,сторонний навык,оставить,на месте
+.claude/skills/better-design/references/motion.md,агент,254,0,0,сторонний навык,оставить,на месте
+.claude/skills/better-design/references/page-anatomy.md,агент,83,0,0,сторонний навык,оставить,на месте
+.claude/skills/better-design/references/platform-adapters.md,агент,86,0,0,сторонний навык,оставить,на месте
+.claude/skills/better-design/references/sources.md,агент,132,0,1,сторонний навык,оставить,на месте
+.claude/skills/better-design/references/validation.md,агент,191,0,1,сторонний навык,оставить,на месте
+.claude/skills/better-design/references/web-quality.md,агент,89,0,0,сторонний навык,оставить,на месте
+00_PLAN.md,план / журнал,1000,21,51,действующий,сократить,на месте — сократить
+AGENTS.md,правила,179,21,26,действующий,сократить,на месте — сократить
+CHANGELOG.md,действующий,213,13,21,исторический / журнал,оставить,на месте
+CLAUDE.md,правила,15,61,1,действующий,оставить,на месте
+DESIGN.md,действующий,152,25,1,действующий,оставить,на месте
+README.md,действующий,12,17,7,действующий,оставить,на месте
+data/maps/mirage/README.md,данные карты,12,7,0,справочник,оставить,на месте
+data/sounds/README.md,данные карты,17,7,0,справочник,оставить,на месте
+docs/ARCHITECTURE.md,действующий,661,30,15,действующий,оставить,на месте
+docs/BRAIN.md,действующий,330,7,5,исторический / действующие фрагменты,объединить,на месте — объединить
+docs/DECISIONS.md,действующий,31,19,0,действующий,оставить,на месте
+docs/DESIGN_SOURCES.md,действующий,28,6,0,справочник,оставить,на месте
+docs/ECONOMY.md,действующий,237,2,0,справочник,оставить,на месте
+docs/PLAYER_MINDSET.md,действующий,423,11,0,действующий,оставить,на месте
+docs/PRINCIPLES.md,действующий,41,20,3,действующий,оставить,на месте
+docs/PRO_DECISIONS.md,действующий,140,3,1,справочник,оставить,на месте
+docs/PRO_PLAY.md,действующий,509,22,3,справочник,оставить,на месте
+docs/architecture/DECISIONS.md,действующий,48,19,6,действующий,оставить,на месте
+docs/architecture/README.md,действующий,48,14,35,действующий,оставить,на месте
+docs/archive/00_PLAN-to-2026-11-09.md,архив,501,1,6,исторический / доказательства,оставить,на месте
+docs/archive/00_PLAN_done_до_15.11.md,архив,602,4,8,исторический / доказательства,оставить,на месте
+docs/archive/ARCHITECTURE-history.md,архив,14,1,0,исторический / доказательства,оставить,на месте
+docs/archive/ARCHITECTURE-v196.md,архив,407,2,4,исторический / доказательства,оставить,на месте
+docs/archive/ARCHITECTURE-v204.md,архив,131,1,7,исторический / доказательства,оставить,на месте
+docs/archive/ARCHITECTURE_versions_до_15.11.md,архив,90,2,4,исторический / доказательства,оставить,на месте
+docs/archive/AUDIT.md,архив,190,18,4,исторический / доказательства,оставить,на месте
+docs/archive/AUDIT_v211.md,архив,107,0,1,исторический / доказательства,оставить,на месте
+docs/archive/DECISIONS-stage2.md,архив,123,0,1,исторический / доказательства,оставить,на месте
+docs/archive/DECISIONS-v152-v173.md,архив,251,0,7,исторический / доказательства,оставить,на месте
+docs/archive/DECISIONS-v174-v193.md,архив,615,0,7,исторический / доказательства,оставить,на месте
+docs/archive/DECISIONS-v194-.md,архив,563,0,17,исторический / доказательства,оставить,на месте
+docs/archive/DETECTORS.md,архив,41,3,0,исторический / доказательства,оставить,на месте
+docs/archive/OVERNIGHT_BACKLOG-to-2026-11-04.md,архив,126,2,7,исторический / доказательства,оставить,на месте
+docs/archive/OVERNIGHT_BACKLOG.md,архив,13,1,3,исторический / доказательства,оставить,на месте
+docs/archive/OVERNIGHT_PROGRESS.md,архив,356,4,14,исторический / доказательства,оставить,на месте
+docs/archive/OVERNIGHT_TEST_MATRIX.md,архив,53,2,0,исторический / доказательства,оставить,на месте
+docs/archive/OVERNIGHT_WORKFLOW.md,архив,19,2,4,исторический / доказательства,оставить,на месте
+docs/archive/PLAN-04.11-to-2026-11-09.md,архив,57,1,6,исторический / доказательства,оставить,на месте
+docs/archive/PLAN-to-2026-11-04.md,архив,155,1,9,исторический / доказательства,оставить,на месте
+docs/archive/PLAN.md,архив,174,42,3,исторический / доказательства,оставить,на месте
+docs/archive/PRINCIPLES-to-2026-11-04.md,архив,500,2,5,исторический / доказательства,оставить,на месте
+docs/archive/PROBLEMS-2026-10-17.md,архив,78,1,1,исторический / доказательства,оставить,на месте
+docs/archive/PROMPTS.md,архив,279,1,3,исторический / доказательства,оставить,на месте
+docs/archive/ROADMAP-2026-10-20.md,архив,41,1,3,исторический / доказательства,оставить,на месте
+docs/archive/ROADMAP-to-2026-11-09.md,архив,93,1,5,исторический / доказательства,оставить,на месте
+docs/archive/V166_CHANGES.md,архив,131,2,2,исторический / доказательства,оставить,на месте
+docs/archive/marks-2026-11-04/README.md,архив,2,14,0,исторический / доказательства,оставить,на месте
+docs/archive/reports/BOT_BEHAVIOR_AUDIT_PHASE2.md,архив,237,2,21,исторический / доказательства,оставить,на месте
+docs/archive/reports/BOT_BEHAVIOR_AUDIT_PHASE3.md,архив,281,2,2,исторический / доказательства,оставить,на месте
+docs/archive/reports/BOT_BEHAVIOR_AUDIT_PHASE4.md,архив,276,0,1,исторический / доказательства,оставить,на месте
+docs/archive/reports/TEAMPLAY_AUDIT.md,архив,211,0,0,исторический / доказательства,оставить,на месте
+docs/archive/tasks-MARKS_0411_PLAN.md,архив,54,0,2,исторический / доказательства,оставить,на месте
+docs/archive/tasks-next_prompts.md,архив,186,0,7,исторический / доказательства,оставить,на месте
+docs/archive/tasks-unmarked_watch.md,архив,25,0,0,исторический / доказательства,оставить,на месте
+docs/archive/tasks/CLAUDE_AI_BEHAVIOR_ROOT_CAUSE_TASK.md,архив,59,2,4,,,новый (после описи Codex)
+docs/archive/tasks/CLAUDE_GRENADE_TASK_PROMPT.md,архив,33,2,5,,,новый (после описи Codex)
+docs/archive/tasks/HANDOFF_MOTION.md,архив,50,2,3,,,новый (после описи Codex)
+docs/archive/tasks/active_play.md,архив,57,2,0,исторический / доказательства,оставить,на месте
+docs/archive/tasks/active_play_prompt.md,архив,76,0,6,исторический / доказательства,оставить,на месте
+docs/archive/tasks/restart.md,архив,146,2,1,исторический / доказательства,оставить,на месте
+docs/archive/tasks/rework.md,архив,186,2,2,исторический / доказательства,оставить,на месте
+docs/archive/work_rules_до_26.11.md,архив,103,0,2,,,новый (после описи Codex)
+docs/audit/architecture/BUILD_PIPELINE.md,действующий,182,3,4,исторический / доказательства,оставить,на месте
+docs/audit/architecture/DEPLOYMENT_OPTIONS.md,действующий,131,3,0,исторический / доказательства,оставить,на месте
+docs/audit/architecture/HTML_SIZE_AUDIT.md,действующий,182,3,0,исторический / доказательства,оставить,на месте
+docs/audit/architecture/LOADING_PERFORMANCE.md,действующий,179,4,0,исторический / доказательства,оставить,на месте
+docs/audit/architecture/README.md,действующий,109,13,28,исторический / доказательства,оставить,на месте
+docs/audit/architecture/RECOMMENDATIONS.md,действующий,192,3,15,исторический / доказательства,оставить,на месте
+docs/audit/architecture/RESOURCE_ARCHITECTURE.md,действующий,144,3,0,исторический / доказательства,оставить,на месте
+docs/reports/AI_BEHAVIOR_ROOT_CAUSE_AUDIT_34_ISSUES.md,отчёт,570,4,0,исторический / доказательства,оставить,на месте
+docs/reports/ARCH_ROOT_CAUSES_2026-11-09.md,отчёт,363,2,2,исторический / доказательства,оставить,на месте
+docs/reports/AUDIT_REGISTER_v583a.md,отчёт,441,8,0,исторический / доказательства,оставить,на месте
+docs/reports/BOT_BEHAVIOR_AUDIT_REPORT.md,отчёт,338,8,20,исторический / доказательства,оставить,на месте
+docs/reports/G1.md,отчёт,271,5,0,исторический / доказательства,оставить,на месте
+docs/reports/GRENADE_PHYSICS_IMPLEMENTATION.md,отчёт,472,5,3,исторический / доказательства,оставить,на месте
+docs/reports/GRENADE_PHYSICS_ROOT_CAUSE_ANALYSIS.md,отчёт,171,5,1,исторический / доказательства,оставить,на месте
+docs/reports/MAP3D.md,отчёт,222,5,3,исторический / доказательства,оставить,на месте
+docs/reports/MAP_ZONE_PROPS.md,отчёт,31,3,2,исторический / доказательства,оставить,на месте
+docs/reports/MARKS_ARCHIVE_2026-10-17.md,отчёт,62,1,0,исторический / доказательства,оставить,на месте
+docs/reports/MARKS_MIRAGE_2026-11-04.md,отчёт,99,2,0,исторический / доказательства,оставить,на месте
+docs/reports/NADES.md,отчёт,402,4,0,исторический / доказательства,оставить,на месте
+docs/reports/OBSERVER_PRO.md,отчёт,38,1,1,исторический / доказательства,оставить,на месте
+docs/reports/PRO_TACTICS_DEMOS.md,отчёт,235,3,1,исторический / доказательства,оставить,на месте
+docs/reports/audit_2026-11-24/FREEZE_AUDIT.md,отчёт,213,5,1,исторический / доказательства,оставить,на месте
+docs/reports/audit_2026-11-24/MECHANICS_INVENTORY.md,отчёт,1567,4,11,исторический / доказательства,оставить,на месте
+docs/reports/audit_2026-11-24/README.md,отчёт,52,13,23,исторический / доказательства,оставить,на месте
+docs/reports/audit_2026-11-24/REFACTORING_PLAN.md,отчёт,114,2,5,исторический / доказательства,оставить,на месте
+docs/reports/audit_2026-11-24/SYSTEMIC_ERRORS_AUDIT.md,отчёт,351,7,10,исторический / доказательства,оставить,на месте
+docs/reports/audit_2026-11-24/SYSTEM_DEPENDENCIES.md,отчёт,237,7,3,исторический / доказательства,оставить,на месте
+docs/reports/audit_2026-11-24/TEST_COVERAGE_PLAN.md,отчёт,293,4,2,исторический / доказательства,оставить,на месте
+docs/reports/audit_2026-11-24/gen/FIELDS_ALL.md,отчёт,433,1,0,генерируемый (снимок),оставить,на месте
+docs/reports/audit_2026-11-24/gen/GLOBALS_CROSS.md,отчёт,180,1,0,генерируемый (снимок),оставить,на месте
+docs/reports/audit_2026-11-24/gen/STAGES.md,отчёт,1016,2,0,генерируемый (снимок),оставить,на месте
+docs/reports/audit_2026-11-24/stage2b/AUDIT_COVERAGE.md,отчёт,176,0,1,исторический / доказательства,оставить,на месте
+docs/reports/audit_2026-11-24/stage2b/DATAFLOW_AUDIT.md,отчёт,83,0,0,исторический / доказательства,оставить,на месте
+docs/reports/audit_2026-11-24/stage2b/DUPLICATE_LOGIC_AUDIT.md,отчёт,57,0,2,исторический / доказательства,оставить,на месте
+docs/reports/audit_2026-11-24/stage2b/EXECUTION_ORDER_AUDIT.md,отчёт,89,0,0,исторический / доказательства,оставить,на месте
+docs/reports/audit_2026-11-24/stage2b/PRIOR_FIXES_RECONCILIATION.md,отчёт,163,0,14,исторический / доказательства,оставить,на месте
+docs/reports/audit_2026-11-24/stage2b/README.md,отчёт,19,14,0,исторический / доказательства,оставить,на месте
+docs/reports/audit_2026-11-24/stage2b/SEMANTIC_AUDIT.md,отчёт,175,0,1,исторический / доказательства,оставить,на месте
+docs/reports/audit_2026-11-24/stage2b/STATE_LIFECYCLE_AUDIT.md,отчёт,98,1,1,исторический / доказательства,оставить,на месте
+docs/reports/audit_2026-11-24/stage2b/UNKNOWN_DEFECTS.md,отчёт,102,2,1,исторический / доказательства,оставить,на месте
+docs/reports/audit_2026-11-24/stage2b/evidence/inline_results.md,доказательство,26,0,0,исторический / доказательства,оставить,на месте
+docs/reports/audit_2026-11-24/stage3/FINAL_ARCHITECTURE.md,отчёт,122,2,6,исторический / доказательства,оставить,на месте
+docs/reports/audit_2026-11-24/stage3/MIGRATION_MATRIX.md,отчёт,159,5,2,исторический / доказательства,оставить,на месте
+docs/reports/audit_2026-11-24/stage3/MIGRATION_ROADMAP.md,отчёт,146,4,2,исторический / доказательства,оставить,на месте
+docs/reports/audit_2026-11-24/stage3/PERFORMANCE_PLAN.md,отчёт,155,2,1,исторический / доказательства,оставить,на месте
+docs/reports/audit_2026-11-24/stage3/README.md,отчёт,54,14,4,исторический / доказательства,оставить,на месте
+docs/reports/audit_2026-11-24/stage3/REGRESSION_PROTECTION.md,отчёт,101,7,2,исторический / доказательства,оставить,на месте
+docs/reports/audit_2026-11-24/stage3/TECHNOLOGY_DECISION.md,отчёт,86,1,2,исторический / доказательства,оставить,на месте
+docs/reports/audit_2026-11-24/stage3/evidence/bench_results.md,доказательство,40,2,0,исторический / доказательства,оставить,на месте
+docs/reports/audit_2026-11-24/stage4/ARCHITECTURE_ADDENDUM.md,отчёт,251,6,6,исторический / доказательства,оставить,на месте
+docs/reports/audit_2026-11-24/stage4/DEEPSEEK_REVIEW.md,отчёт,99,3,3,исторический / доказательства,оставить,на месте
+docs/reports/audit_2026-11-24/stage4/README.md,отчёт,52,13,18,исторический / доказательства,оставить,на месте
+docs/reports/audit_2026-11-24/stage4/ROADMAP_CHANGES.md,отчёт,128,5,5,исторический / доказательства,оставить,на месте
+docs/reports/audit_2026-11-24/stage4/STRUCTURE_MAP.md,отчёт,106,6,4,исторический / доказательства,оставить,на месте
+docs/reports/audit_2026-11-24/stage4/bench/README.md,отчёт,14,14,0,исторический / доказательства,оставить,на месте
+docs/reports/audit_2026-11-24/tools_audit/tests_head.md,отчёт,84,0,2,генерируемый (снимок),оставить,на месте
+docs/reports/audit_2026-11-24/tools_audit/tests_tail.md,отчёт,94,0,1,генерируемый (снимок),оставить,на месте
+docs/reports/evidence/2026-10-29_ai_behavior_observations.md,доказательство,45,3,0,исторический / доказательства,оставить,на месте
+docs/rules/code.md,правила,46,2,3,,,новый (после описи Codex)
+docs/rules/fixing.md,правила,87,3,4,,,новый (после описи Codex)
+docs/rules/runs.md,правила,122,5,7,,,новый (после описи Codex)
+docs/tasks/02-mark-moment.md,действующий,79,5,1,действующий,оставить,на месте
+docs/tasks/CLAUDE_AI_BEHAVIOR_ROOT_CAUSE_TASK.md,—,0,0,0,исторический / доказательства,архивировать,в архиве: docs/archive/tasks/CLAUDE_AI_BEHAVIOR_ROOT_CAUSE_TASK.md
+docs/tasks/CLAUDE_GRENADE_TASK_PROMPT.md,—,0,0,0,исторический / доказательства,архивировать,в архиве: docs/archive/tasks/CLAUDE_GRENADE_TASK_PROMPT.md
+docs/tasks/HANDOFF_MOTION.md,—,0,0,0,исторический / доказательства,архивировать,в архиве: docs/archive/tasks/HANDOFF_MOTION.md
+docs/tasks/OWNER_ANSWERS_2026-11-04.md,действующий,30,4,0,справочник / источники решений,оставить,на месте
+docs/tasks/OWNER_ECO_TACTICS_2026-11-05.md,действующий,84,1,0,справочник / источники решений,оставить,на месте
+docs/tasks/OWNER_PERF_DUELS_2026-11-05.md,действующий,54,2,0,справочник / источники решений,оставить,на месте
+docs/tasks/PLAN_TACTICS_V2.md,действующий,74,4,4,справочник / источники решений,оставить,на месте
+docs/tasks/QUESTIONS_BUY_ROUNDS.md,действующий,54,3,1,справочник / источники решений,оставить,на месте
+docs/tasks/QUESTIONS_CT_SETUPS_CLUTCH.md,действующий,162,3,2,справочник / источники решений,оставить,на месте
+docs/tasks/QUESTIONS_OBSERVER.md,действующий,85,1,0,справочник / источники решений,оставить,на месте
+docs/tasks/QUESTIONS_T_TACTICS.md,действующий,128,1,2,справочник / источники решений,оставить,на месте
+docs/tasks/RUNUP_THROW_PLAN.md,действующий,337,5,0,справочник / источники решений,оставить,на месте
+docs/tasks/TEAM_UTILITY_EXECUTION_AND_DROPS.md,действующий,242,3,3,справочник / источники решений,оставить,на месте
+docs/tasks/future_mechanics.md,действующий,115,3,4,справочник / источники решений,оставить,на месте
+docs/tasks/map3d_plan.md,действующий,36,5,2,справочник / источники решений,оставить,на месте
+docs/tasks/nades_plan.md,действующий,62,10,2,справочник / источники решений,оставить,на месте
+docs/tasks/work_rules.md,—,0,0,0,действующий,оставить,слит / удалён
+rebuild/BEHAVIOR_BACKLOG.md,действующий,103,10,13,действующий,оставить,на месте
+rebuild/DECISIONS.md,—,0,0,0,исторический / доказательства,архивировать,в архиве: rebuild/archive/DECISIONS.md
+rebuild/DEVICE.md,—,0,0,0,исторический / действующие фрагменты,объединить,в архиве: rebuild/archive/DEVICE.md
+rebuild/DUPES.md,—,0,0,0,исторический / доказательства,архивировать,в архиве: rebuild/archive/DUPES.md
+rebuild/ENVIRONMENT.md,действующий,106,8,4,действующий,оставить,на месте
+rebuild/FACTS.md,—,0,0,0,исторический / доказательства,архивировать,в архиве: rebuild/archive/FACTS.md
+rebuild/JOURNAL.md,план / журнал,235,12,48,действующий,сократить,на месте — сократить
+rebuild/MASTER_PLAN.md,план / журнал,286,19,44,действующий,оставить,на месте
+rebuild/OPEN_QUESTIONS.md,действующий,69,4,15,исторический / действующие фрагменты,объединить,на месте — объединить
+rebuild/PLAN.md,—,0,0,0,исторический / доказательства,архивировать,в архиве: docs/archive/PLAN.md
+rebuild/PROGRESS.md,—,0,0,0,исторический / доказательства,архивировать,в архиве: rebuild/archive/PROGRESS.md
+rebuild/R0_REPORT.md,действующий,103,2,7,исторический / доказательства,оставить,на месте
+rebuild/R1_REPORT.md,действующий,37,3,4,исторический / доказательства,оставить,на месте
+rebuild/R2_REPORT.md,действующий,176,2,5,исторический / доказательства,оставить,на месте
+rebuild/R3_2_CHANNELS.md,действующий,42,1,2,,,новый (после описи Codex)
+rebuild/R3_6_METRICS.md,действующий,38,1,1,,,новый (после описи Codex)
+rebuild/R3_6_REVIEW.md,действующий,29,2,5,,,новый (после описи Codex)
+rebuild/R3_ORDER.md,действующий,73,4,6,,,новый (после описи Codex)
+rebuild/R3_R4_COMPLETENESS.md,действующий,75,5,26,,,новый (после описи Codex)
+rebuild/R3_REPORT.md,действующий,86,1,7,,,новый (после описи Codex)
+rebuild/R4_6_DOCS.md,действующий,65,3,47,,,новый (после описи Codex)
+rebuild/R4_RENAME.md,действующий,102,5,0,,,новый (после описи Codex)
+rebuild/R4_REPORT.md,действующий,20,1,4,,,новый (после описи Codex)
+rebuild/R5_1_FRAME.md,действующий,30,2,0,,,новый (после описи Codex)
+rebuild/README.md,действующий,28,12,17,действующий,сократить,на месте — сократить
+rebuild/RULES.md,правила,32,10,3,действующий,оставить,на месте
+rebuild/TOOLS.md,—,0,0,0,исторический / действующие фрагменты,объединить,в архиве: rebuild/archive/TOOLS.md
+rebuild/TREE.md,—,0,0,0,исторический / доказательства,архивировать,в архиве: rebuild/archive/TREE.md
+rebuild/TRUTH_EXCEPTIONS.md,действующий,28,6,3,,,новый (после описи Codex)
+rebuild/archive/DECISIONS.md,архив,30,8,0,,,новый (после описи Codex)
+rebuild/archive/DEVICE.md,архив,120,5,6,,,новый (после описи Codex)
+rebuild/archive/DUPES.md,архив,34,4,1,,,новый (после описи Codex)
+rebuild/archive/FACTS.md,архив,33,4,2,,,новый (после описи Codex)
+rebuild/archive/JOURNAL_R0_R2.md,архив,41,2,11,,,новый (после описи Codex)
+rebuild/archive/PLAN.md,архив,56,35,12,,,новый (после описи Codex)
+rebuild/archive/PROGRESS.md,архив,234,10,37,,,новый (после описи Codex)
+rebuild/archive/TOOLS.md,архив,25,1,4,,,новый (после описи Codex)
+rebuild/archive/TREE.md,архив,47,4,36,,,новый (после описи Codex)
+rebuild/archive/bal_removed.md,архив,1056,4,0,,,новый (после описи Codex)
+rebuild/archive/dead_removed.md,архив,344,2,0,,,новый (после описи Codex)
+rebuild/bal_removed.md,—,0,0,0,исторический / доказательства,архивировать,в архиве: rebuild/archive/bal_removed.md
+rebuild/dead_removed.md,—,0,0,0,исторический / доказательства,архивировать,в архиве: rebuild/archive/dead_removed.md
+rebuild/diagnostics-audit/AUDIT.md,действующий,46,19,7,,,новый (после описи Codex)
+rebuild/diagnostics-audit/HANDOFF.md,действующий,47,2,10,,,новый (после описи Codex)
+rebuild/diagnostics-audit/HISTORY.md,действующий,22,2,7,,,новый (после описи Codex)
+rebuild/diagnostics-audit/STORAGE.md,действующий,34,2,0,,,новый (после описи Codex)
+rebuild/gen/deps.md,действующий,45,6,1,генерируемый,генерировать автоматически,на месте — генерировать автоматически
+rebuild/gen/fields.md,действующий,229,6,1,генерируемый,генерировать автоматически,на месте — генерировать автоматически
+rebuild/gen/fields_live.md,действующий,109,8,1,генерируемый,генерировать автоматически,на месте — генерировать автоматически
+rebuild/gen/registry.md,действующий,116,5,0,генерируемый,генерировать автоматически,на месте — генерировать автоматически
+rebuild/gen/tick.md,действующий,39,4,0,генерируемый,генерировать автоматически,на месте — генерировать автоматически
+rebuild/gen/vars.md,действующий,93,4,0,генерируемый,генерировать автоматически,на месте — генерировать автоматически
+rebuild/preparation/MATCH_ISOLATION.md,действующий,38,4,3,,,новый (после описи Codex)
+rebuild/preparation/R3_PREPARATION.md,действующий,29,4,7,,,новый (после описи Codex)
+rebuild/preparation/README.md,действующий,10,12,4,,,новый (после описи Codex)
+rebuild/preparation/STATE_REGISTRY.md,действующий,30,4,8,,,новый (после описи Codex)
+tools/README.md,действующий,181,14,24,справочник,оставить,на месте
+tools/dmath/README.md,действующий,41,15,2,справочник,оставить,на месте
+tools/measure/audit/README.md,действующий,14,15,1,справочник,оставить,на месте
+tools/measure/motion/README.md,действующий,10,15,0,справочник,оставить,на месте
