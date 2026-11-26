@@ -268,7 +268,8 @@
    "w": {},
    "m": {},
    "r": {
-    "look": 2
+    "look": 1,
+    "look-arbiter": 1
    },
    "snap": true
   },
@@ -559,7 +560,8 @@
     "intel": 8,
     "items": 3,
     "lineups": 1,
-    "look": 27,
+    "look": 22,
+    "look-arbiter": 5,
     "look-debug": 16,
     "look-peek": 17,
     "look-threat": 29,
@@ -625,7 +627,7 @@
    "m": {},
    "r": {
     "engagements": 1,
-    "look": 1,
+    "look-arbiter": 1,
     "move": 1
    },
    "snap": true
@@ -670,12 +672,12 @@
     "laddersBuild · levels": 1
    },
    "m": {
-    "buildWaypointPath0 · paths": 1
+    "buildWaypointPath0 · path-search": 1
    },
    "r": {
     "levels": 1,
-    "look": 1,
-    "paths": 2
+    "look-arbiter": 1,
+    "path-search": 2
    },
    "snap": true
   },
@@ -690,7 +692,7 @@
    },
    "r": {
     "levels": 3,
-    "paths": 3
+    "path-search": 3
    },
    "snap": true
   },
@@ -862,7 +864,7 @@
    "w": {},
    "m": {},
    "r": {
-    "look": 1,
+    "look-arbiter": 1,
     "look-peek": 1
    },
    "snap": true
@@ -1791,13 +1793,15 @@
     "knowledge": 13,
     "levels": 39,
     "lineups": 14,
-    "look": 81,
+    "look": 53,
+    "look-arbiter": 28,
     "look-peek": 50,
     "look-threat": 15,
     "lurker": 21,
     "move": 23,
     "navmesh": 4,
-    "paths": 24,
+    "path-search": 12,
+    "paths": 12,
     "plan": 5,
     "position": 38,
     "problem-watch": 6,
@@ -2044,7 +2048,7 @@
    "w": {},
    "m": {},
    "r": {
-    "look": 2,
+    "look-arbiter": 2,
     "plan": 1,
     "roles": 18
    },
@@ -2166,7 +2170,7 @@
    "w": {},
    "m": {},
    "r": {
-    "paths": 2
+    "path-search": 2
    },
    "snap": true
   },
@@ -2562,7 +2566,7 @@
     "igl": 2,
     "intel": 11,
     "lineups": 3,
-    "look": 1,
+    "look-arbiter": 1,
     "lurker": 18,
     "plan": 2,
     "position": 8,
@@ -3198,13 +3202,13 @@
    "snap": true
   },
   "JUMP_TURN_R": {
-   "decl": "look.js:657",
+   "decl": "look-arbiter.js:201",
    "init": "Literal",
    "w": {},
    "m": {},
    "r": {
     "levels": 1,
-    "look": 2
+    "look-arbiter": 2
    },
    "snap": true
   },
@@ -3220,8 +3224,9 @@
     "fight": 1,
     "knowledge": 1,
     "levels": 14,
-    "look": 2,
-    "paths": 5,
+    "look": 1,
+    "look-arbiter": 1,
+    "path-search": 5,
     "shoot": 2,
     "task": 2,
     "tick": 1,
@@ -3498,7 +3503,8 @@
    "w": {},
    "m": {},
    "r": {
-    "paths": 3
+    "path-search": 2,
+    "paths": 1
    },
    "snap": true
   },
@@ -3555,12 +3561,12 @@
    "snap": true
   },
   "KNOW_NEAR_SLACK": {
-   "decl": "look.js:479",
+   "decl": "look-arbiter.js:23",
    "init": "Literal",
    "w": {},
    "m": {},
    "r": {
-    "look": 1
+    "look-arbiter": 1
    },
    "snap": true
   },
@@ -3711,12 +3717,12 @@
    "snap": true
   },
   "LAND_HOLD": {
-   "decl": "look.js:658",
+   "decl": "look-arbiter.js:202",
    "init": "ArrayExpression",
    "w": {},
    "m": {},
    "r": {
-    "look": 1
+    "look-arbiter": 1
    },
    "snap": true
   },
@@ -3762,12 +3768,12 @@
    "snap": true
   },
   "LANE_W": {
-   "decl": "paths.js:573",
+   "decl": "path-search.js:156",
    "init": "Literal",
    "w": {},
    "m": {},
    "r": {
-    "paths": 1
+    "path-search": 1
    },
    "snap": true
   },
@@ -3839,24 +3845,24 @@
    "snap": true
   },
   "LKP_PATH": {
-   "decl": "look.js:492",
+   "decl": "look-arbiter.js:36",
    "init": "ObjectExpression",
    "w": {},
    "m": {
-    "lookKnowPath · look": 5
+    "lookKnowPath · look-arbiter": 5
    },
    "r": {
-    "look": 9
+    "look-arbiter": 9
    },
    "snap": true
   },
   "LKP_PATH_TTL": {
-   "decl": "look.js:492",
+   "decl": "look-arbiter.js:36",
    "init": "Literal",
    "w": {},
    "m": {},
    "r": {
-    "look": 1
+    "look-arbiter": 1
    },
    "snap": true
   },
@@ -3880,20 +3886,22 @@
    "m": {},
    "r": {
     "fight": 1,
-    "look": 114,
+    "look": 107,
+    "look-arbiter": 7,
     "look-threat": 9
    },
    "snap": "нет: STATIC"
   },
   "LOOKDBG": {
-   "decl": "look.js:460",
+   "decl": "look-arbiter.js:4",
    "init": "ObjectExpression",
    "w": {},
    "m": {
     "(верх файла) · look-debug": 1
    },
    "r": {
-    "look": 4,
+    "look": 2,
+    "look-arbiter": 2,
     "look-debug": 4,
     "turn": 1
    },
@@ -3912,33 +3920,35 @@
    "snap": true
   },
   "LOOK_FRESH": {
-   "decl": "look.js:480",
+   "decl": "look-arbiter.js:24",
    "init": "Literal",
    "w": {},
    "m": {},
    "r": {
-    "look": 6
+    "look": 2,
+    "look-arbiter": 4
    },
    "snap": true
   },
   "LOOK_LEVEL": {
-   "decl": "look.js:468",
+   "decl": "look-arbiter.js:12",
    "init": "ObjectExpression",
    "w": {},
    "m": {},
    "r": {
-    "look": 18,
+    "look": 2,
+    "look-arbiter": 16,
     "turn": 1
    },
    "snap": true
   },
   "LOOK_PRO_YIELD": {
-   "decl": "look.js:479",
+   "decl": "look-arbiter.js:23",
    "init": "Literal",
    "w": {},
    "m": {},
    "r": {
-    "look": 1
+    "look-arbiter": 1
    },
    "snap": true
   },
@@ -3967,12 +3977,12 @@
    "snap": true
   },
   "LOOK_WALL_CLOSE": {
-   "decl": "look.js:695",
+   "decl": "look-arbiter.js:239",
    "init": "Literal",
    "w": {},
    "m": {},
    "r": {
-    "look": 2
+    "look-arbiter": 2
    },
    "snap": true
   },
@@ -4510,12 +4520,12 @@
    "snap": true
   },
   "MOVE_FAR": {
-   "decl": "look.js:502",
+   "decl": "look-arbiter.js:46",
    "init": "Literal",
    "w": {},
    "m": {},
    "r": {
-    "look": 1
+    "look-arbiter": 1
    },
    "snap": true
   },
@@ -4530,22 +4540,22 @@
    "snap": true
   },
   "MOVE_MIN": {
-   "decl": "look.js:502",
+   "decl": "look-arbiter.js:46",
    "init": "Literal",
    "w": {},
    "m": {},
    "r": {
-    "look": 1
+    "look-arbiter": 1
    },
    "snap": true
   },
   "MOVE_SEEN": {
-   "decl": "look.js:502",
+   "decl": "look-arbiter.js:46",
    "init": "Literal",
    "w": {},
    "m": {},
    "r": {
-    "look": 1
+    "look-arbiter": 1
    },
    "snap": true
   },
@@ -5016,7 +5026,8 @@
     "map-heights": 3,
     "navmesh": 4,
     "observer": 1,
-    "paths": 13,
+    "path-search": 2,
+    "paths": 11,
     "position": 1,
     "sandbox": 1,
     "save-retake": 3,
@@ -5085,7 +5096,8 @@
     "fight-state": 1,
     "levels": 4,
     "navmesh": 3,
-    "paths": 14,
+    "path-search": 2,
+    "paths": 12,
     "position": 1,
     "sandbox": 1,
     "save-retake": 3,
@@ -5127,7 +5139,8 @@
    },
    "r": {
     "levels": 1,
-    "paths": 5,
+    "path-search": 3,
+    "paths": 2,
     "zones": 1
    },
    "snap": true
@@ -5173,12 +5186,12 @@
    "snap": true
   },
   "NAV_DROP_STEP": {
-   "decl": "paths.js:584",
+   "decl": "path-search.js:167",
    "init": "Literal",
    "w": {},
    "m": {},
    "r": {
-    "paths": 1
+    "path-search": 1
    },
    "snap": true
   },
@@ -5217,8 +5230,9 @@
    },
    "r": {
     "levels": 1,
-    "look": 1,
-    "paths": 2
+    "look-arbiter": 1,
+    "path-search": 1,
+    "paths": 1
    },
    "snap": true
   },
@@ -5229,7 +5243,7 @@
    "m": {},
    "r": {
     "levels": 3,
-    "paths": 2
+    "path-search": 2
    },
    "snap": true
   },
@@ -5248,7 +5262,8 @@
     "knowledge": 2,
     "levels": 8,
     "navmesh": 6,
-    "paths": 6,
+    "path-search": 4,
+    "paths": 2,
     "sandbox": 2,
     "throw": 2,
     "vision": 6
@@ -5264,7 +5279,8 @@
     "knowledge": 2,
     "levels": 8,
     "navmesh": 8,
-    "paths": 6,
+    "path-search": 4,
+    "paths": 2,
     "sandbox": 2,
     "throw": 2,
     "vision": 2
@@ -6941,7 +6957,7 @@
    "w": {},
    "m": {},
    "r": {
-    "paths": 1
+    "path-search": 1
    },
    "snap": true
   },
@@ -6951,7 +6967,7 @@
    "w": {},
    "m": {},
    "r": {
-    "paths": 1
+    "path-search": 1
    },
    "snap": true
   },
@@ -6961,7 +6977,7 @@
    "w": {},
    "m": {},
    "r": {
-    "paths": 1
+    "path-search": 1
    },
    "snap": true
   },
@@ -7454,7 +7470,8 @@
    "w": {},
    "m": {},
    "r": {
-    "look": 15
+    "look": 14,
+    "look-arbiter": 1
    },
    "snap": "нет: STATIC"
   },
@@ -7672,7 +7689,8 @@
     "assist": 2,
     "items": 2,
     "knowledge": 2,
-    "look": 7,
+    "look": 3,
+    "look-arbiter": 4,
     "look-debug": 2,
     "look-peek": 3,
     "roles": 1,
@@ -8185,7 +8203,8 @@
     "knowledge": 8,
     "levels": 7,
     "lineups": 18,
-    "look": 11,
+    "look": 8,
+    "look-arbiter": 3,
     "look-debug": 17,
     "look-peek": 12,
     "look-threat": 5,
@@ -8668,7 +8687,7 @@
     "fight": 1,
     "items": 4,
     "look": 1,
-    "paths": 2,
+    "path-search": 2,
     "shoot": 2,
     "smoke": 2,
     "smoke-react": 1,
@@ -9078,14 +9097,14 @@
    "snap": true
   },
   "WPM": {
-   "decl": "paths.js:612",
+   "decl": "path-search.js:195",
    "init": "ObjectExpression",
    "w": {},
    "m": {
-    "buildWaypointPath · paths": 6
+    "buildWaypointPath · path-search": 6
    },
    "r": {
-    "paths": 10
+    "path-search": 10
    },
    "snap": true
   },
@@ -9136,10 +9155,10 @@
    "init": "ObjectExpression",
    "w": {},
    "m": {
-    "zoneDijkstra · paths": 4
+    "zoneDijkstra · path-search": 4
    },
    "r": {
-    "paths": 8
+    "path-search": 8
    },
    "snap": "нет: EXTRA_STATIC"
   },
@@ -9737,7 +9756,7 @@
     "killfeed": 19,
     "levels": 2,
     "lineups": 11,
-    "look": 5,
+    "look-arbiter": 5,
     "look-peek": 5,
     "lurker": 12,
     "move": 14,
@@ -9801,7 +9820,8 @@
     "knowledge": 2,
     "levels": 2,
     "lineups": 11,
-    "look": 10,
+    "look": 8,
+    "look-arbiter": 2,
     "look-debug": 5,
     "look-peek": 3,
     "look-threat": 3,
@@ -10220,7 +10240,7 @@
     "d3Draw2D · view3d": 2,
     "rpWorldDraw · replay": 2,
     "strafeKeysTick · tick": 1,
-    "zoneDijkstra · paths": 1
+    "zoneDijkstra · path-search": 1
    },
    "m": {
     "(верх файла) · map-cover": 8,
@@ -10251,7 +10271,7 @@
     "map-wallbang": 15,
     "map-walls": 37,
     "observer": 24,
-    "paths": 13,
+    "path-search": 13,
     "replay": 3,
     "tick": 10,
     "turn": 5,
@@ -10338,9 +10358,9 @@
     "draw": 1,
     "exec-sync": 2,
     "levels": 3,
-    "look": 1,
+    "look-arbiter": 1,
     "observer": 1,
-    "paths": 5,
+    "path-search": 5,
     "replay": 3,
     "round": 1,
     "self": 1,
@@ -10718,10 +10738,11 @@
     "igl": 2,
     "knowledge": 2,
     "lineups": 1,
-    "look": 1,
+    "look-arbiter": 1,
     "lurker": 7,
     "observer": 6,
-    "paths": 6,
+    "path-search": 4,
+    "paths": 2,
     "plan": 4,
     "position": 3,
     "pro-positions": 3,
@@ -11008,7 +11029,8 @@
    },
    "m": {},
    "r": {
-    "paths": 3
+    "path-search": 1,
+    "paths": 2
    },
    "snap": true
   },
@@ -11142,7 +11164,7 @@
    },
    "m": {},
    "r": {
-    "look": 2,
+    "look-arbiter": 2,
     "observer": 4,
     "scoreboard": 4,
     "view3d": 5
@@ -11251,7 +11273,7 @@
     "killfeed": 3,
     "knowledge": 2,
     "lineups": 2,
-    "look": 1,
+    "look-arbiter": 1,
     "look-peek": 6,
     "lurker": 26,
     "move": 2,
@@ -11818,7 +11840,7 @@
     "fov": 2,
     "igl": 2,
     "intel": 13,
-    "look": 4,
+    "look-arbiter": 4,
     "lurker": 1,
     "roles": 1,
     "self": 6,
@@ -11936,7 +11958,8 @@
     "knowledge": 14,
     "levels": 30,
     "lineups": 14,
-    "look": 71,
+    "look": 48,
+    "look-arbiter": 23,
     "look-debug": 22,
     "look-peek": 26,
     "look-threat": 6,
@@ -11944,7 +11967,8 @@
     "move": 20,
     "nav-zones": 4,
     "observer": 31,
-    "paths": 5,
+    "path-search": 3,
+    "paths": 2,
     "plan": 6,
     "position": 14,
     "pro-positions": 1,
@@ -12237,7 +12261,8 @@
     "fight-state": 1,
     "levels": 6,
     "navmesh": 1,
-    "paths": 26,
+    "path-search": 9,
+    "paths": 17,
     "position": 1,
     "save-retake": 3,
     "sites-spots": 4,
@@ -12448,7 +12473,8 @@
    },
    "r": {
     "draw": 2,
-    "paths": 16,
+    "path-search": 7,
+    "paths": 9,
     "vision": 2,
     "walls-heights-cover": 2
    },
@@ -13749,7 +13775,7 @@
   },
   "_land": {
    "w": [
-    "look.js:659 landLook"
+    "look-arbiter.js:203 landLook"
    ],
    "lit": [],
    "r": 2
@@ -13786,7 +13812,7 @@
   },
   "_ldArb": {
    "w": [
-    "look.js:636 lookApply"
+    "look-arbiter.js:180 lookApply"
    ],
    "lit": [],
    "r": 1
@@ -13807,9 +13833,9 @@
   },
   "_lkAltPt": {
    "w": [
-    "look.js:601 lookAssigned",
-    "look.js:602 lookAssigned",
-    "look.js:611 lookAngleCand"
+    "look-arbiter.js:145 lookAssigned",
+    "look-arbiter.js:146 lookAssigned",
+    "look-arbiter.js:155 lookAngleCand"
    ],
    "lit": [],
    "r": 7
@@ -13863,7 +13889,7 @@
   },
   "_lookLvl": {
    "w": [
-    "look.js:635 lookApply"
+    "look-arbiter.js:179 lookApply"
    ],
    "lit": [],
    "r": 6
@@ -13946,7 +13972,7 @@
   },
   "_lvc": {
    "w": [
-    "look.js:691 lookVisible"
+    "look-arbiter.js:235 lookVisible"
    ],
    "lit": [],
    "r": 2
@@ -15937,14 +15963,14 @@
   },
   "lookReason": {
    "w": [
+    "look-arbiter.js:179 lookApply",
+    "look-arbiter.js:254 lookFilter",
+    "look-arbiter.js:256 lookFilter",
+    "look-arbiter.js:263 lookFilter",
     "look.js:373 smoothLookFilter",
     "look.js:375 smoothLookFilter",
     "look.js:383 smoothLookFilter",
     "look.js:399 smoothLookFilter",
-    "look.js:635 lookApply",
-    "look.js:710 lookFilter",
-    "look.js:712 lookFilter",
-    "look.js:719 lookFilter",
     "round.js:218 resetRound"
    ],
    "lit": [],

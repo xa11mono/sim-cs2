@@ -50,7 +50,7 @@
       - `fireOnSeg` (levels) — иначе (bot.path.length === 0 // bot.pathIdx >= bot.path.length)
           - `stepBlocked` (levels) — если folK < 1
           - `navSegOnLevel` (levels) — если folK < 1
-          - `navSegNoDrop` (paths) — если folK < 1
+          - `navSegNoDrop` (path-search) — если folK < 1
         - `lookFace` (turn) — если bot.facing === undefined
       - `inFire` (levels) — иначе (bot.path.length === 0 // bot.pathIdx >= bot.path.length)
       - `fireCommit` (levels) — иначе (bot.path.length === 0 // bot.pathIdx >= bot.path.length)
@@ -69,8 +69,8 @@
               - `escapeWallLine` (engagements) — если bot._stuckResets >= 2
             - `navOnFloor` (levels) — если bot.stuckTicks > 40
               - `navSnap` (tick) — если bot._stuckResets >= 2 // !navOnFloor(bot.baseX, bot.baseY, bot)
-          - `buildWaypointPath` (paths) — если TRl.length >= 8 && tick - (bot._unstickT//-1e9) > 2*TICK_HZ && tick - 
-          - `botLane` (paths) — если TRl.length >= 8 && tick - (bot._unstickT//-1e9) > 2*TICK_HZ && tick - 
+          - `buildWaypointPath` (path-search) — если TRl.length >= 8 && tick - (bot._unstickT//-1e9) > 2*TICK_HZ && tick - 
+          - `botLane` (path-search) — если TRl.length >= 8 && tick - (bot._unstickT//-1e9) > 2*TICK_HZ && tick - 
           - `crossesWall` (zone-danger) — если TRl.length >= 8 && tick - (bot._unstickT//-1e9) > 2*TICK_HZ && tick - 
             - `navAt` (navmesh) — если p0 && p0[2] != null && p0[2] <= bot.z + 18 && DM.hypot(p0[0]-bot.baseX
             - `logEvent` (journal) — если p0 && p0[2] != null && p0[2] <= bot.z + 18 && DM.hypot(p0[0]-bot.baseX

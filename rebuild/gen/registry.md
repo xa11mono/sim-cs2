@@ -34,7 +34,7 @@
 | показ | 3 | 2 | 2 |
 | боты, оружие | 2 | 1 | 1 |
 | числа BAL | 1 | 0 | 1 |
-| **всего** | **1734** | **864** | **526** |
+| **всего** | **1734** | **864** | **529** |
 
 ## Одна версия — в трёх и более системах (кандидаты: одно решение, размазанное по каналам)
 
@@ -96,7 +96,6 @@
 - `obsFrame (observer)` — 19
 - `setPostDo (task)` — 18
 - `fightCycleTick (fight)` — 18
-- `(верх файла) (paths)` — 16
 - `ctSetupRole (ct-setup)` — 16
 - `(верх файла) (levels)` — 16
 - `chooseTactic (tactics)` — 15
@@ -106,10 +105,11 @@
 - `intelDeath (intel)` — 14
 - `smoothLookFilter (look)` — 14
 - `endgameBrain (endgame)` — 14
-- `buildWaypointPath0 (paths)` — 13
+- `buildWaypointPath0 (path-search)` — 13
 - `tBrainPostplant (brain-t-postplant)` — 13
 - `ctBrainPlayers (brain-ct-players)` — 13
 - `throwNadeTry (throw)` — 13
 - `(верх файла) (observer)` — 13
 - `contactInfo (contact)` — 12
 - `navFollowFloor (levels)` — 12
+- `(верх файла) (paths)` — 11

@@ -12,6 +12,7 @@
   "geometry3d.js",
   "vision.js",
   "paths.js",
+  "path-search.js",
   "zone-danger.js",
   "weapons-bots.js",
   "tuning.js",
@@ -36,6 +37,7 @@
   "look-peek.js",
   "look-threat.js",
   "look.js",
+  "look-arbiter.js",
   "turn.ts",
   "position.js",
   "smoke-react.js",
@@ -184,6 +186,13 @@
    "sys": "карта и видимость",
    "dir": "engine/nav",
    "legacy": "050"
+  },
+  {
+   "file": "path-search.js",
+   "id": "path-search",
+   "part": "infra",
+   "sys": "карта и видимость",
+   "dir": "engine/nav"
   },
   {
    "file": "zone-danger.js",
@@ -374,6 +383,13 @@
    "sys": "взгляд",
    "dir": "engine/bot",
    "legacy": "270"
+  },
+  {
+   "file": "look-arbiter.js",
+   "id": "look-arbiter",
+   "part": "decide",
+   "sys": "взгляд",
+   "dir": "engine/bot"
   },
   {
    "file": "turn.ts",

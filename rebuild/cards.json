@@ -52,15 +52,11 @@
   "paths.js": {
    "mech": "кто кого видит (одно место, 3D): VIS_*, visLine, visParts, visFloorAt, visInvalidate; через неё hasLOS и таблица «откуда простреливается» computeZoneDanger; навмеш и пути: rebuildNav, zoneDijkstra, funnel, buildWaypointPath; связи выше прыжка navCutTall / перепад navEdgeDz (v533); уровни/лестницы/по",
    "owns": [
-    "buildWaypointPath",
-    "funnel",
-    "hasLOS",
     "navCutTall",
     "navEdgeDz",
     "navGapsAdd",
     "navJumpCost",
-    "rebuildNav",
-    "zoneDijkstra"
+    "rebuildNav"
    ],
    "src": "таблица «Где что»"
   },
@@ -257,15 +253,9 @@
   "look.js": {
    "mech": "взгляд (одно место, v381): арбитр lookArbiter / LOOK_LEVEL, общий фильтр lookFilter; делёж углов lookCands, lookPlan, smoothLookFilter; пики до контакта prePeekTick, углы cornerLook; взгляд в прыжке jumpLook (v548; доворот у края — jumpFaceWait, 370); числа LOOK, threatEntrances; поворот (одно место",
    "owns": [
-    "jumpLook",
-    "lookApply",
-    "lookArbiter",
-    "lookArbiterR",
     "lookCands",
-    "lookFilter",
     "lookPlan",
-    "smoothLookFilter",
-    "threatEntrances"
+    "smoothLookFilter"
    ],
    "src": "таблица «Где что»"
   },
@@ -763,6 +753,28 @@
    "mech": "мозг CT по игроку: ctBrainPlayers — часть ctBrain (Р3.2), контекст K",
    "owns": [
     "ctBrainPlayers"
+   ],
+   "src": "Р4.4 (деление крупного файла)"
+  },
+  "look-arbiter.js": {
+   "mech": "взгляд: арбитр (LOOK_LEVEL, lookArbiterR / lookApply), заявки знания (lookKnowCands), поручённый угол, взгляд в прыжке jumpLook, общий фильтр lookFilter, threatEntrances; разбор взгляда LOOKDBG",
+   "owns": [
+    "jumpLook",
+    "lookApply",
+    "lookArbiter",
+    "lookArbiterR",
+    "lookFilter",
+    "threatEntrances"
+   ],
+   "src": "Р4.4 (деление крупного файла)"
+  },
+  "path-search.js": {
+   "mech": "поиск пути: zoneDijkstra (контекст ctx), воронка funnel, полосы botLane, путь buildWaypointPath, линия видимости hasLOS",
+   "owns": [
+    "buildWaypointPath",
+    "funnel",
+    "hasLOS",
+    "zoneDijkstra"
    ],
    "src": "Р4.4 (деление крупного файла)"
   }

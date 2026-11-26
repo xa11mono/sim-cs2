@@ -462,3 +462,4 @@ CT идёт через зону с ролью `CTspawn`.
 - (v566) `team.js` — «разбор команды»: только показ, читает решения механик (`teamEco[*].buyWhy` / `ecoWhy` — 520; `TACT_DBG` — 130; `CTSET_DBG` — 140; журнал `TEAMDBG.log` — из `logEvent`, 440).
 
 - **Р4.4 (26.11): деление крупных файлов.** `engine/bot/brain-t.js` → + `brain-t-phases.js` (`tBrainSetup`, `tBrainExecute`), `brain-t-postplant.js` (`tBrainPostplant`); `engine/bot/brain-ct.js` → + `brain-ct-players.js` (`ctBrainPlayers`). Склейка по списку `rebuild/files.json` даёт прежний текст байт в байт (новые файлы — сразу за исходным).
+- Р4.4 (26.11), продолжение: `engine/bot/look.js` → + `look-arbiter.js` (арбитр взгляда, фильтр, взгляд в прыжке); `engine/nav/paths.js` → + `path-search.js` (`zoneDijkstra`, `funnel`, `buildWaypointPath`, `hasLOS`). Инструмент — `tools/rebuild/split_file.py` (граница верхнего оператора, склейка проверяется байт в байт).
