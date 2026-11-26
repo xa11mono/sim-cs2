@@ -203,7 +203,7 @@ function tSiteTaking(tt){
 }
 function tSetSite(tt, site){ var _ev = simEvIn("tSetSite", arguments);
   var old = tt.site;
-  // (v450, владелец 28.10: «в экономике после главной тактики писать перекол») — для показа (630): откуда и куда перекол
+  // (v450, владелец 28.10: «в экономике после главной тактики писать перекол») — для показа (killfeed): откуда и куда перекол
   if(old && site && old !== site) (tt.recalls || (tt.recalls = [])).push({from: old, to: site, sec: Math.round((tick - roundStartTick)/TICK_HZ)});
   tt.site = site; tt.execStart = null; tt.plantPick = null;
   // (п.4 владельца 29.10, м1 р2 т11617: после перекола B→A T1 остался на «siteholdA: B Boost») места на сайте (takeAssign) — под

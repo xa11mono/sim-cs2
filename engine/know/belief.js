@@ -76,7 +76,7 @@ function beliefTick(){
     });
     // (владелец 18.11: «что ещё должно идти в угрозу, кроме войса?» — своя голова) у каждого бота — своё знание (что сам слышал / видел / откуда
     // по нему попали): по врагу, о котором его инфа свежее, чем у команды (не сказал / ещё не дошло), — его раскладка по зонам (b._belOwn), для
-    // его взгляда (260: beliefZoneKnown при LOOK_BEL_BOT). Стареет по той же кривой про (knowAge), что и знание команды
+    // его взгляда (look-threat: beliefZoneKnown при LOOK_BEL_BOT). Стареет по той же кривой про (knowAge), что и знание команды
     var TA = mates[0];
     bots.forEach(function(b){ if(b.team !== team) return; b._belOwn = null; if(!b.alive || !b.know || b.know.key !== key) return;
       for(var eid in B){ var Ho = b.know.enemies[eid], Ht = TA.know.enemies[eid]; if(!Ho || !Ho.last || Ho.visible) continue;
@@ -122,7 +122,7 @@ function beliefCount(team, zoneList){
   });
   return tot;
 }
-// (Г2, 04.11) beliefZone / beliefZoneFresh (×0,3 «чистому прогнозу») убраны — одно чтение карты команды: beliefZoneKnown (260)
+// (Г2, 04.11) beliefZone / beliefZoneFresh (×0,3 «чистому прогнозу») убраны — одно чтение карты команды: beliefZoneKnown (look-threat)
 // ---- (Р3.2, канал «знание», шаг 2) KnowledgeView: чтение знания команды — только через хозяина. kvLast(team) — последнее известное место
 // каждого врага для команды team ({id: {x, y, z?, tick, src}}; пишут только хозяева: intelPush 190, сброс 200, beliefTick 240). Значение то же,
 // что прежнее чтение beliefLast[team] || {} (Э1); только чтение — решения не пишут в него (проверка сборки)

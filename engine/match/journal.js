@@ -8,7 +8,7 @@ var SHOW_Q = [], SHOW_Q_MAX = 256, KF_DIRTY = false;
 function showEv(){ SHOW_Q.push(Array.prototype.slice.call(arguments)); if(SHOW_Q.length > SHOW_Q_MAX) SHOW_Q.shift(); }
 function soundEv(){ showEv.apply(null, ["snd"].concat(Array.prototype.slice.call(arguments))); }
 var SERIES = {bo:3, maps:{}};
-var TEAM_LOG = {round: -1, log: []};   // (v566) решения команд за раунд — журнал; рисует «Разбор команды» (612)
+var TEAM_LOG = {round: -1, log: []};   // (v566) решения команд за раунд — журнал; рисует «Разбор команды» (team)
 var VOICE_DIRTY = false, LOG_DIRTY = false;
 
 var voiceLines = [];
@@ -41,17 +41,17 @@ function voiceFeed(team, who, text, kind){ var _ev = simEvIn("voiceFeed", argume
   voiceLines.unshift({t: planted ? "💣" : Math.floor(sec/60)+":"+("0"+Math.floor(sec%60)).slice(-2), team: team,
                       who: who && who !== team ? nick(who) : "колл", text: nickify(text), kind: kind});
   if(voiceLines.length > 60) voiceLines.length = 60;
-  VOICE_DIRTY = true;   // (15.11, перестройка: показ отдельно от симуляции) рисует кадр (680), не симуляция
+  VOICE_DIRTY = true;   // (15.11, перестройка: показ отдельно от симуляции) рисует кадр (app), не симуляция
  simEvOut(_ev);}
 
 function logEvent(text, isKill){ var _ev = simEvIn("logEvent", arguments);
   text = nickify(text);
   events.unshift({t: simTime.toFixed(1), text: text, kill: !!isKill});
-  // (v566) решения команд за раунд — для «Разбора команды» (612)
+  // (v566) решения команд за раунд — для «Разбора команды» (team)
   if(/^(IGL|T:|CT:|CT |T )/.test(text)){ if(TEAM_LOG.round !== roundNum){ TEAM_LOG.round = roundNum; TEAM_LOG.log = []; }
     TEAM_LOG.log.push({s: roundState === "live" ? Math.round(simTime - roundStartTime) : 0, text: text}); if(TEAM_LOG.log.length > 40) TEAM_LOG.log.shift(); }
   if(events.length > 40) events.length = 40;
-  LOG_DIRTY = true;   // (15.11, перестройка) консоль рисует кадр (680): logRender
+  LOG_DIRTY = true;   // (15.11, перестройка) консоль рисует кадр (app): logRender
  simEvOut(_ev);}
 
 var clutchShown = null, clutchInfo = null;
@@ -60,7 +60,7 @@ var clutchShown = null, clutchInfo = null;
 // «в голову», «убийца ослеплён». wkey — ключ WEAPONS, "HE", "MOLOTOV" или "KNIFE"
 // (v518d, владелец 09.11) ассист — тот, кто нанёс убитому ≥ ASSIST_DMG (как в CS2 — от 26) или ослепил его своей флешкой, кроме самого убийцы.
 // Урон по убитому в _dmgBy — только от его врагов, поэтому при убийстве своего («враг ранил на 30, karrigan случайно добил TeSeS») ассист — враг,
-// и в киллфиде он цветом своей команды: «karrigan (CT) + donk (T) → TeSeS». Убийце фраг за своего не идёт (400), ассист идёт в счёт ассистенту
+// и в киллфиде он цветом своей команды: «karrigan (CT) + donk (T) → TeSeS». Убийце фраг за своего не идёт (damage), ассист идёт в счёт ассистенту
 var ASSIST_DMG = 26;
 function killAssist(att, vic){
   var best = null, bd = ASSIST_DMG - 1, D = vic._dmgBy || {};
@@ -71,8 +71,8 @@ function killAssist(att, vic){
   return {id:best, flash:fb, team:o.team};
 }
 // ---- (Р0.4, 24.11) события симуляции ТОЛЬКО НА ЧТЕНИЕ: инструменты (отпечаток, запись матча, инварианты, след) подписываются здесь,
-// а не подменяют функции игры (с модулями и TS подмена перестаёт работать). Точки: feedKill, logEvent, voiceFeed (435), endRound (530),
-// throwNade (380), tryShoot (490), detonate, applyDamage (400), exuEv (366), setPost (110), tSetSite (160) — вход ('in', аргументы) и выход
+// а не подменяют функции игры (с модулями и TS подмена перестаёт работать). Точки: feedKill, logEvent, voiceFeed (journal), endRound (round),
+// throwNade (throw), tryShoot (shoot), detonate, applyDamage (damage), exuEv (exec-sync), setPost (task), tSetSite (igl) — вход ('in', аргументы) и выход
 // ('out', аргументы, результат, то, что подписчик вернул на входе). Результат функции не меняется; ошибка подписчика игру не трогает
 // (копится в simEvIn.errs). Нет подписчиков — один пустой вызов. Подписчик не пишет в состояние игры (правило: rebuild/MASTER_PLAN.md, Р0.4).
 function simEvOn(name, fn){ var H = simEvIn.h || (simEvIn.h = {}); (H[name] = H[name] || []).push(fn); return fn; }
@@ -94,7 +94,7 @@ function feedKill(att, vic, wkey, hs, mods){ var _ev = simEvIn("feedKill", argum
   killfeed.unshift({kind:"kill", att:att?nick(att.id):"?", attTeam:att?att.team:"", as:as?nick(as.id):null, asFlash:as&&as.flash, asTeam:as?as.team:"",
     vic:nick(vic.id), vicTeam:vic.team, w:wkey, hs:hs, smoke:!!mods.smoke, wall:!!mods.wall, noscope:!!mods.noscope, blind:!!mods.blind, tk:!!mods.tk, t:nowTs, at:simTime});
   if(killfeed.length > 8) killfeed.length = 8;
-  KF_DIRTY = true;   // (17.11) киллфид рисует кадр (680)
+  KF_DIRTY = true;   // (17.11) киллфид рисует кадр (app)
   // мультикилл-баннер
   if(att && att.team !== vic.team && att.roundKills >= 2){
     var lbl = ["", "", "2K", "3K", "4K", "ACE"][Math.min(5, att.roundKills)];
@@ -141,7 +141,7 @@ function roundClutchResult(winner){
     feedEvent("clutch", "Клатч 1 на "+clutchInfo.n+" — "+clutchInfo.id);
   }
 }
-// (17.11) расписание писка бомбы — в тике (540), как было; звук и вспышка кромки — события показа (перенесено из 680)
+// (17.11) расписание писка бомбы — в тике (tick), как было; звук и вспышка кромки — события показа (перенесено из 680)
 var BEEP_NEXT = 0;
 // (v553, владелец 11.11, запись «звук, когда бомба вот-вот взорвётся») последние C4_FINAL_SEC до взрыва — эта запись (её длина — 1,28 с: кончается
 // со взрывом), обычный писк в это время молчит

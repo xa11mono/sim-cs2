@@ -43,7 +43,7 @@ var D3_VS = "#version 300 es\nin vec3 aP; in vec3 aN; in vec4 aC; uniform mat4 u
   "out vec3 vN, vV; out vec4 vC; out float vD; void main(){ vec4 w = uM*vec4(aP,1.0); vN = mat3(uM)*aN; vC = aC*uTint; vV = uEye - w.xyz; vD = length(vV); gl_Position = uVP*w; }";
 var D3_FS = "#version 300 es\nprecision highp float; in vec3 vN, vV; in vec4 vC; in float vD; uniform vec3 uL, uBg, uEye; uniform vec2 uFog; uniform float uLit, uSoft, uHr; uniform int uHn; uniform vec3 uHa[8], uHb[8]; out vec4 o;\n" +
   "void main(){ vec3 n = normalize(vN); if(!gl_FrontFacing) n = -n; float d = max(dot(n, uL), 0.0), h = 0.5 + 0.5*n.y;\n" +
-  " vec3 c = vC.rgb*mix(1.0, 0.34 + 0.40*h + 0.46*d, uLit); c = mix(c, uBg, smoothstep(uFog.x, uFog.y, vD));\n float a = vC.a*mix(1.0, pow(abs(dot(n, normalize(vV))), 1.6), uSoft);\n vec3 w = uEye - vV; for(int i = 0; i < 8; i++){ if(i >= uHn) break; vec3 ab = uHb[i] - uHa[i]; float t = clamp(dot(w - uHa[i], ab)/max(1e-3, dot(ab, ab)), 0.0, 1.0);\n  a *= smoothstep(uHr*0.45, uHr, distance(w, uHa[i] + ab*t)); }\n o = vec4(c, a); }";   // дыры от пуль в дыму (smokeBulletHole, 360) — у линии пули облако прозрачное
+  " vec3 c = vC.rgb*mix(1.0, 0.34 + 0.40*h + 0.46*d, uLit); c = mix(c, uBg, smoothstep(uFog.x, uFog.y, vD));\n float a = vC.a*mix(1.0, pow(abs(dot(n, normalize(vV))), 1.6), uSoft);\n vec3 w = uEye - vV; for(int i = 0; i < 8; i++){ if(i >= uHn) break; vec3 ab = uHb[i] - uHa[i]; float t = clamp(dot(w - uHa[i], ab)/max(1e-3, dot(ab, ab)), 0.0, 1.0);\n  a *= smoothstep(uHr*0.45, uHr, distance(w, uHa[i] + ab*t)); }\n o = vec4(c, a); }";   // дыры от пуль в дыму (smokeBulletHole, smoke) — у линии пули облако прозрачное
 var D3_LVS = "#version 300 es\nin vec3 aP; in vec4 aC; uniform mat4 uVP; uniform vec3 uEye; out vec4 vC; out float vD;\n" +
   "void main(){ vC = aC; vD = distance(aP, uEye); gl_Position = uVP*vec4(aP,1.0); gl_Position.z -= 0.0006*gl_Position.w; }";
 var D3_LFS = "#version 300 es\nprecision mediump float; in vec4 vC; in float vD; uniform vec2 uFog; out vec4 o;\n" +
@@ -214,7 +214,7 @@ function d3NadeCam(){
 var D3_FP_HOLD = 1.5, D3_SPAWN_SEC = 8, D3_OVER_EVERY = 25, D3_OVER_SEC = 5;   // проектные числа, с
 function d3Fighting(b){ return b && b.alive && (b._visible || []).some(function(o){ return o.alive && o.team !== b.team; }); }
 function d3AutoCam(){
-  // (v583a, Д24, владелец 18.11: «включается пролёт — летает по карте бесконечно») TO_NOW держится до конца следующего раунда (130), пролёт —
+  // (v583a, Д24, владелец 18.11: «включается пролёт — летает по карте бесконечно») TO_NOW держится до конца следующего раунда (tactics), пролёт —
   // только пока идёт пауза (закупка этого раунда); было: весь раунд после паузы
   if(typeof TO_NOW !== "undefined" && TO_NOW && roundState === "freeze" && TO_NOW.round === roundNum) return "flythru";
   if(roundState === "freeze" || roundState === "ending"){ D3.autoFp = null; D3.overT = tick; return "spawn"; }
@@ -225,7 +225,7 @@ function d3AutoCam(){
   if(!anyFight && obsPickBest(null).s >= OBS_K.soon) anyFight = true;   // (Д24) бой вот-вот — общий вид не включать
   if(!anyFight && tick - D3.overT > D3_OVER_EVERY*TICK_HZ){ if(tick - D3.overT < (D3_OVER_EVERY + D3_OVER_SEC)*TICK_HZ) return "view"; D3.overT = tick; }
   // (v583a, Д24, владелец 18.11: «поздно переключается, непонятно, кто кого убивает — переключать заранее») от первого лица — тот же игрок, что
-  // выбрал обсервер (670: счёт obsScore — «скоро бой»: враг рядом смотрит на него, сближаются, выход на сайт), а не первый, кто уже увидел врага;
+  // выбрал обсервер (observer: счёт obsScore — «скоро бой»: враг рядом смотрит на него, сближаются, выход на сайт), а не первый, кто уже увидел врага;
   // обсервер выключен — лучший по тому же счёту. Держать не меньше D3_FP_HOLD с, если игрок жив (было: 4 с — бой в другом месте пропускали)
   var A = D3.autoFp, cur = A && bots.filter(function(o){ return o.id === A.id; })[0];
   var nb = OBS.on && ob && ob.alive ? ob : obsPickBest(null).b;

@@ -90,7 +90,7 @@ function smokeSpamTick(){
   bots.forEach(function(b){
     if(!b.alive) return;
     var P = b._spam;
-    // (v554) P.blind — очередь вслепую после флешки (onBlind, 460): дыма нет, слепота её не отменяет
+    // (v554) P.blind — очередь вслепую после флешки (onBlind, sound): дыма нет, слепота её не отменяет
     // (v556) нож в руках (идёт резать дефузящего, knifeDefuseTick 450) — очередь кончается здесь, у хозяина, а не там
     if(P && (tick > P.until || b._sawEnemy || b.planting || b.defusing || b._reloading || b.ammo <= 0 || b._knife || (tick < b.blindUntil) !== !!P.blind ||
              (!P.blind && (smokes.indexOf(P.s) < 0 || (tick % 16 === 0 && !smokeEnemyPossible(b, P.s, P.pt, P.seen)))))){ b._spam = null; P = null; }

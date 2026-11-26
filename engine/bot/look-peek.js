@@ -27,7 +27,7 @@ function lookOnMate(b, p){
   var dp = DM.hypot(p.x-b.x, p.y-b.y), ap = DM.atan2(p.y-b.y, p.x-b.x);
   var run = b.curSpeed > 60*SPD_K && b.heading !== undefined, zf;
   return bots.some(function(o){ if(o === b || !o.alive || o.team !== b.team) return false;
-    // (отметка владельца 18.11, м1 р2: «игрок 5 не учитывает андер») свой у точки — только на её этаже; на линии — на её или моём (mateOnLevel, 270) (mateOnLevel, 270)
+    // (отметка владельца 18.11, м1 р2: «игрок 5 не учитывает андер») свой у точки — только на её этаже; на линии — на её или моём (mateOnLevel, look) (mateOnLevel, look)
     if(zf === undefined) zf = lookPtFloor(b, p); var atP = mateOnLevel(o, zf), onL = atP || mateOnLevel(o, b.z);
     if(run && o.curSpeed > 60*SPD_K && o.heading !== undefined && DM.cos(o.heading - b.heading) > 0.5) return false;
     var dm = DM.hypot(o.x-b.x, o.y-b.y); if(dm < 20) return false;
@@ -46,7 +46,7 @@ function lookOnMate(b, p){
 function openDirLook(b){
   var moving = b.curSpeed > 60*SPD_K && b.heading !== undefined;
   var postA = b.post && b.post.look ? DM.atan2(b.post.look.y-b.y, b.post.look.x-b.x) : null;
-  var refA = moving ? lookHeading(b) : postA;   // (18.11) отходит от врагов — «впереди» — к ним (270)
+  var refA = moving ? lookHeading(b) : postA;   // (18.11) отходит от врагов — «впереди» — к ним (look)
   // (v448, док владельца 28.10 №4: «перебивает взгляд у игрока 1» — м1 т1768: на развороте взял «открытое» на T Spawn в 1,27 рад от бега,
   // через 0,1 с бег выпрямился, а взгляд остался за спиной сбоку) на бегу «впереди» — в 0,9 рад от направления бега (как у взгляда про
   // на ходу, 270), стоя — в 1,5 рад от угла поста, как было
@@ -178,7 +178,7 @@ function prePeekDecide(b, C, zB){
     for(var fi=0; fi<fr.length; fi++){ var P = {x: C.pt.x + (hPos.x-C.pt.x)*fr[fi], y: C.pt.y + (hPos.y-C.pt.y)*fr[fi]};
       if(!insideSolidWall(P.x, P.y) && hasLOS(hPos.x, hPos.y, P.x, P.y) && DM.hypot(P.x-hPos.x, P.y-hPos.y) > 90){ popPt = P; break; } } }
   // (v506, владелец 04.11: «флешка тиммейту под пик — очень часто так выбивают позиции: один флешит, второй выходит») — просьба «накиньте
-  // флешку» (365: nadeAskFlash — ближайший свой, с лайнапа рядом или с места; 05.11 — не только в TRADE_R); пикер ждёт хлопка и выходит.
+  // флешку» (plan: nadeAskFlash — ближайший свой, с лайнапа рядом или с места; 05.11 — не только в TRADE_R); пикер ждёт хлопка и выходит.
   // Нет такого — флешка себе, как было
   if(holder){ var whyM = "флешу под пик "+b.id+" ("+calloutName(C.beyond.x, C.beyond.y)+")", fm = nadeAskFlash(b, popPt, whyM);
     if(fm){ b._ppMate = null;
@@ -205,7 +205,7 @@ function prePeekDecide(b, C, zB){
 function exposedShiftTick(b){
   if(!b.alive || b._sawEnemy || !b.atPost || !b.post || !b.post.hold) return;
   var li = b.lastIntel; if(!li || li.src || tick - li.tick < 24 || tick - li.tick > 90) return;
-  // (v518a) ранен — одна реакция на урон, hurtReactTick (350); здесь — только «стреляли, но не попали» (позиция известна)
+  // (v518a) ранен — одна реакция на урон, hurtReactTick (contact); здесь — только «стреляли, но не попали» (позиция известна)
   var hurt = false, shot = b._shotAtT && tick - b._shotAtT < 3*TICK_HZ && !(b._hurtT && tick - b._hurtT < 4*TICK_HZ);
   if(!shot) return;
   if(b._esT && tick - b._esT < 6*TICK_HZ) return; b._esT = tick;

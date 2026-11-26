@@ -3,9 +3,9 @@
 // взгляд во фризе (freezeLookTick). Остальные системы не пишут b.facing, а зовут интерфейс канала (rebuild/DEVICE.md §3а):
 //   lookFace(b, угол, причина)   — повернуть сразу к углу (бросок гранаты, первый тик, разминка, демо-вид)
 //   lookTurnBy(b, угол, причина) — довернуть на угол (взгляд по ходу на бегу, 540)
-//   lookReset(b)                 — сброс к новому раунду (530)
-// Причина последней записи извне — b._faceWhy. Код ниже перенесён дословно из 510_engagements.js (resolveEngagements, lookTrack, handTurn)
-// и 540_step_tick.js (фриз); порядок вызовов в тике тот же (lookTick — из resolveEngagements, freezeLookTick — из stepTick).
+//   lookReset(b)                 — сброс к новому раунду (round)
+// Причина последней записи извне — b._faceWhy. Код ниже перенесён дословно из engagements.js (resolveEngagements, lookTrack, handTurn)
+// и tick.js (фриз); порядок вызовов в тике тот же (lookTick — из resolveEngagements, freezeLookTick — из stepTick).
 function lookFace(b: Bot, a: Angle, why: string): void{ b.facing = a; b._faceWhy = why; }
 function lookTurnBy(b: Bot, d: Angle, why: string): void{ b.facing! += d; b._faceWhy = why; }   // тип: доворот — после первой записи взгляда (lookTick, freezeLookTick), как в .js
 function lookReset(b: Bot): void{ b.facing = undefined; b._faceWhy = "reset"; }
@@ -27,9 +27,9 @@ function lookTick(): void{
   }
   bots.forEach(function(b){
     if(!b.alive) return;
-    // (v381, М126 шаг 4) куда смотреть — одно место: арбитр взгляда (270_look_plan_smooth.js, LOOK_LEVEL); враг виден — верхний уровень
+    // (v381, М126 шаг 4) куда смотреть — одно место: арбитр взгляда (look.js, LOOK_LEVEL); враг виден — верхний уровень
     var look: P2 | null;
-    if(b._sawEnemy && b._nearestEnemyBot) look = lookApply(b, {pt: b._nearestEnemyBot, lvl: LOOK_LEVEL.enemy, kind: "enemy", C: null});   // враг виден — верхний уровень, запись — у исполнения арбитра (270)
+    if(b._sawEnemy && b._nearestEnemyBot) look = lookApply(b, {pt: b._nearestEnemyBot, lvl: LOOK_LEVEL.enemy, kind: "enemy", C: null});   // враг виден — верхний уровень, запись — у исполнения арбитра (look)
     else look = lookArbiter(b);
     var LD: LookDebug | null = LOOKDBG.on ? {tick: tick, reason: b.lookReason || null, raw: look ? {x: look.x, y: look.y} : null, steps: []} : null;
     var LF = lookFilter(b, look, LD), slUrg = LF.urgent; look = LF.look;
@@ -56,7 +56,7 @@ function lookTick(): void{
         // (В147) поворот к врагу — рукой (handTurn, модель «перестрелка» из демок): рывок с колоколом скорости, промах, пауза, доводка.
         // Прицел, ушедший меньше AIM_TRACK_BAND, стоит (в бою прицел про неподвижен ~50 % времени). Было: рывок FLICK (> 45°, проектные
         // числа) и ведение цели с запаздыванием AIM_LAG (доворот 12 % остатка за тик) — длинный хвост поворота (мерка формы: время поворота
-        // в перестрелке — разница 45–81 %). AIM_LAG остаётся в расчёте попадания (490)
+        // в перестрелке — разница 45–81 %). AIM_LAG остаётся в расчёте попадания (shoot)
         // большой поворот к врагу (≥ HAND_FIGHT, 45°) — рукой с промахом и паузой; меньше — ведение цели (ниже). Рука на каждый уход ≥ 1,7°
         // давала прицел неподвижен 70 % против 50 % у про и первую пулю с места 75 % против 33 % (run.sh 14.11)
         // (отметка владельца 18.11, м5 р2 т8883, CT3) рывок, начатый к другой точке, — враг появился в стороне больше HAND_FIGHT от того, куда
@@ -159,7 +159,7 @@ function freezeLookTick(): void{
     if(!b.alive) return;
     if(!isFinite(b.facing as number)) b.facing = DM.atan2(1024-b.y, 1024-b.x);   // ещё не смотрел никуда — к середине карты (тип: isFinite(undefined) = false — это и есть проверка «взгляда ещё нет»)
     // (v430, М167, владелец: «на закупке крутятся, троятся; на мини-карте нормально») взгляд на начало тика — для сглаживания
-    // рисования (620_draw), как в живом раунде (строка «bot.pfacing» ниже): на закупке не запоминался, и большой радар каждый
+    // рисования (draw), как в живом раунде (строка «bot.pfacing» ниже): на закупке не запоминался, и большой радар каждый
     // тик заново проводил взгляд от угла прошлого раунда до нынешнего
     b.pfacing = b.facing;
     var F = b._fz;

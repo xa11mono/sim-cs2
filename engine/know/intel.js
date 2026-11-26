@@ -233,7 +233,7 @@ function intelDeath(victim, killer, side){
   var saw = killer && hasVision(victim.x, victim.y, killer.x, killer.y);
   intelPush(victim.team, {type:"died", x:victim.x, y:victim.y, id:victim.id, conf:1, kid: killer ? killer.id : null, kx: saw ? killer.x : null, ky: saw ? killer.y : null});   // кто убил — видно в киллфиде
   if(saw) intelPush(victim.team, {type:"spotted", x:killer.x, y:killer.y, id:killer.id, by:victim.id, conf:1});
-  // (00_PLAN, аудит 2.2, 05.11) не видел, кто убил, — «убили откуда-то с …» говорит в войс сам погибший (230: teamDeath, с задержкой фразы),
+  // (00_PLAN, аудит 2.2, 05.11) не видел, кто убил, — «убили откуда-то с …» говорит в войс сам погибший (voice: teamDeath, с задержкой фразы),
   // а не мгновенно в память команды (было: intelPush «sound» ±90 px в тик смерти — раньше, чем это можно сказать)
   var place = calloutName(victim.x, victim.y);
   var mine = aliveCount(victim.team), theirs = aliveCount(victim.team === "CT" ? "T" : "CT");
@@ -401,7 +401,7 @@ function tradeGoing(b){ return !!(b._tradeLock && b._tradeLock.until > tick); }
 function tradeAlert(b){ return tick < (b._tradeUntil || 0); }
 function tradeEnd(b, all){ b._tradeLock = null; if(all) b._tradeUntil = 0; }
 // (17.11, перестройка — модули) хранилища знания команды сбрасывают / подменяют только через свой файл: индекс зон (редактор зон 560),
-// кэш «зоны по названию» (200, 560), память раунда RMEM (память матча 130). Импорт модуля — только для чтения
+// кэш «зоны по названию» (reach, lineup-editor), память раунда RMEM (память матча 130). Импорт модуля — только для чтения
 function zoneIndexReset(){ ZIDX = null; }
 function zoneNameCacheReset(){ _zbnCache = {}; }
 function rmemSet(v){ RMEM = v; }

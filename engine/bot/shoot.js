@@ -64,8 +64,8 @@ function saveShootOk(b, t){
 var TAP_PAUSE = 0.5;   // с — пауза между очередями у про (медиана, все дистанции)
 var TAP_P1 = 0.20, TAP_P23 = 0.33, TAP_SPRAY = 10;   // (Д29) доли очередей в дуэли у про; зажим — до 10 пуль (проектное)
 function tryShoot(shooter, target, dist){ var _ev = simEvIn("tryShoot", arguments);
-  if(shooter._sbOff) return simEvOut(_ev);   // (v536) песочница: ИИ выключен — не стреляет (677)
-  if(DEMOV.on) return simEvOut(_ev);   // (v571) раунд из демки: стреляют только игроки демки (678)
+  if(shooter._sbOff) return simEvOut(_ev);   // (v536) песочница: ИИ выключен — не стреляет (sandbox)
+  if(DEMOV.on) return simEvOut(_ev);   // (v571) раунд из демки: стреляют только игроки демки (demo)
   // (этап 2, P0-2) реакция и доводка — по ЭТОЙ цели (shooter._ts[id] — сколько тиков подряд её видно, гаснет как contactStreak),
   // а не по контакту бота с кем угодно: раньше вторая цель в живой перестрелке шла без реакции (34 % выстрелов раньше 150 мс)
   var cs = (shooter._ts && shooter._ts[target.id]) || 0;
@@ -76,7 +76,7 @@ function tryShoot(shooter, target, dist){ var _ev = simEvIn("tryShoot", argument
   if(shooter.planting || shooter.defusing) return simEvOut(_ev); // руки заняты
   if(tick < shooter.blindUntil || tick < (shooter.throwUntil||0)) return simEvOut(_ev); // ослеплён / бросает гранату
   if(!saveShootOk(shooter, target)) return simEvOut(_ev);   // (v547) сейв — проходит мимо
-  if(ambushHoldFire(shooter, target)) return simEvOut(_ev);   // (К1, 18.11) засада: пропускаю / подхожу в спину, пока он меня не видит (480)
+  if(ambushHoldFire(shooter, target)) return simEvOut(_ev);   // (К1, 18.11) засада: пропускаю / подхожу в спину, пока он меня не видит (assist)
   // план §3: "бот, держащий угол, может выстрелить до того как истечёт обычная
   // реакция на новый визуальный контакт, если есть свежая информация 'враг там',
   // и шанс зависит от точности этой информации" — префайр обходит обычный gate
@@ -203,7 +203,7 @@ function tryShoot(shooter, target, dist){ var _ev = simEvIn("tryShoot", argument
   // в голову попадают редко — как в CS, а не одинаковые 50% на любой дистанции.
   var sk = shooter.skill;
   var noscope = awpNoscope(shooter, target, dist), nsS = noscope ? AWP_NOSCOPE/1000 : 0;   // без прицела — разброс оружия без прицела (данные игры)
-  var wSpread = DM.hypot(shotSpread(shooter, (shooter._jc && shooter._jc.run ? SPEED*weaponSpeedMul(shooter) : Math.max(shooter.curSpeed || 0, Math.abs((shooter._keys || {}).v || 0)))), nsS);   // (v575) и качание A / D (540); в прыжке на бегу — как на полном ходу
+  var wSpread = DM.hypot(shotSpread(shooter, (shooter._jc && shooter._jc.run ? SPEED*weaponSpeedMul(shooter) : Math.max(shooter.curSpeed || 0, Math.abs((shooter._keys || {}).v || 0)))), nsS);   // (v575) и качание A / D (tick); в прыжке на бегу — как на полном ходу
   var comp = 0.55 + 0.35*Math.max(0, Math.min(1, (sk-0.8)/0.4));
   var recoilErr = w.recoil/1000 * Math.max(0, burstIdx-1) * (1-comp) * 1.6;
   var spamErr = (w.spam||0)/1000 * heat;
@@ -287,7 +287,7 @@ function tryShoot(shooter, target, dist){ var _ev = simEvIn("tryShoot", argument
     var bL = DM.hypot(target.x - shooter.x, target.y - shooter.y) || 1, bk = ux / PX_UNITS / bL;
     var bx = target.x - (target.y - shooter.y)*bk, by = target.y + (target.x - shooter.x)*bk;
     if(!visMarch(shooter.x, shooter.y, vz0, bx, by, fz1 + Math.max(4, uy))){ hbZone = null; shooter._covShot = tick; } }
-  // (v570) счёт своих пуль, ушедших в край / укрытие (видно по попаданиям в стену — как живому игроку): читает перестрелка (470, место пика)
+  // (v570) счёт своих пуль, ушедших в край / укрытие (видно по попаданиям в стену — как живому игроку): читает перестрелка (fight, место пика)
   var CS = shooter._covLog || (shooter._covLog = []); CS.push(shooter._covShot === tick ? 1 : 0); if(CS.length > 8) CS.shift(); (shooter._covT || (shooter._covT = [])).push(tick); if(shooter._covT.length > 8) shooter._covT.shift();
   headshot = hbZone === "head"; hit = !!hbZone;
   var endX = target.x, endY = target.y, hitZone = null;

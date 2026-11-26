@@ -117,7 +117,7 @@ function defuseSees(b){
   var fb = visFloorAt(bomb.x, bomb.y, bomb.z), az = b._area && navArea(b._area); if(bomb.z != null && Math.abs(fb - bomb.z) > JUMP_UP) fb = bomb.z;
   return !visWallHit(b.baseX, b.baseY, bomb.x, bomb.y) && visMarch(b.baseX, b.baseY, fv + VIS_EYE.crouch, bomb.x, bomb.y, fb + 8);
 }
-var ESC_MAX_SEC = 8;   // (05.11) ESC_WAIT_SEC (8 с всем) убран — сколько ждать сопровождающего, по ситуации (170, ответ владельца 10)
+var ESC_MAX_SEC = 8;   // (05.11) ESC_WAIT_SEC (8 с всем) убран — сколько ждать сопровождающего, по ситуации (brain-t, ответ владельца 10)
 var DEFUSE_KEEP = 2, DEFUSE_NEAR = 200;   // (v555) с — слова владельца; ед. — проектное число
 var UTIL_WAIT = 7, UTIL_WAIT_RUSH = 2.5, UTIL_AT_ENTRY = 140, UTIL_MIN_LEFT = 25;   // (v363) 7 с — между медианой 2,7 и 75 % 6,6 с у про (последняя граната → заход первого), 25 с до конца — уже не ждут   // (v346) ждать свои гранаты на выходе — проектные числа   // (v342) сопровождение носителя — проектные числа
 function defuseSound(ct){
@@ -183,7 +183,7 @@ function tDefuseBaiter(ts){
 }
 function bombTimeLeftTicks(){ return bomb && bomb.state==="planted" ? bomb.explodeTick - tick : Infinity; }
 
-// (v414, М155) почему носитель сейчас не начинает плант — одно место: читает bombTick (null — начинает) и подпись «почему» (550).
+// (v414, М155) почему носитель сейчас не начинает плант — одно место: читает bombTick (null — начинает) и подпись «почему» (nav-zones).
 // Порядок проверок и условия — прежние (v263, Б2: в огне не начинают)
 function plantBlock(c, tac, site){
   if(!site) return "нет сайта у тактики";
@@ -236,7 +236,7 @@ function bombTick(){
     // Плант: на сайте, в патруле; видимый враг мешает только если он близко
     // (раньше любой видимый CT через полкарты — и носитель стоял на точке
     // планта до конца раунда: это и были почти все проигрыши T по времени)
-    if(!plantBlock(c, tac, site) && !DEMOV.on){   // (v571) раунд из демки: плант — по демке (678)
+    if(!plantBlock(c, tac, site) && !DEMOV.on){   // (v571) раунд из демки: плант — по демке (demo)
       c.planting = true; c.plantUntil = tick + PLANT_TICKS; movePath(c, [], "bomb"); c.pathIdx = 0; soundEv("sndBomb", "plant", c.baseX, c.baseY);
       // фейк-плант (раз за раунд): свои рядом держат углы, CT по инфе рядом —
       // начать и через ~1с бросить: CT на звук выйдут под прицел
@@ -321,7 +321,7 @@ function bombTick(){
           movePath(cand, [], "bomb"); cand.pathIdx = 0;
           defuseSound(cand);
           logEvent(cand.id+" фейк-дефуз — ловит пик на звук");
-        } else if(!DEMOV.on){   // (v571) раунд из демки: дефуз — по демке (678)
+        } else if(!DEMOV.on){   // (v571) раунд из демки: дефуз — по демке (demo)
           cand.defusing = true; cand.defuseUntil = tick + dTicks; soundEv("sndBomb", "defuse", cand.baseX, cand.baseY);
           movePath(cand, [], "bomb"); cand.pathIdx = 0;
           defuseSound(cand);

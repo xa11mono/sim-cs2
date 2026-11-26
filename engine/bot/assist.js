@@ -69,7 +69,7 @@ function flankAssist(b){
   var ep = {x:E.x, y:E.y};
   var sp = flankSpot(b, mate, ep);
   if(!sp) return false;
-  // (v518a) идёт по задаче важнее захода — заход как отклонение (detourOk, 110): цена — время дойти до точки захода
+  // (v518a) идёт по задаче важнее захода — заход как отклонение (detourOk, task): цена — время дойти до точки захода
   if(!taskCanSet(b, "repos:flank")){ var fsec = pathLenTo(b, sp.x, sp.y)/SPEED; if(!detourOk(b, "help", fsec)) return false; detourStart(b, "help", "repos:flank", fsec + 2); }
   taskKeep(b, 0, "assist"); b._probeLock = 0;
   setPost(b, sp, ep, true, "repos:flank");
@@ -96,7 +96,7 @@ function assistEdgeSpot(b, E){
 function assistPeek(b){
   if(b._sawEnemy || b.planting || b.defusing || b.hp <= LOW_HP) return false;
   if(tick < (b._assistNext||0)) return false;
-  // (v378) идёт по задаче не ниже — арбитр места; (v518a) главная задача терпит отклонение — помогает и с неё (detourOk, 110)
+  // (v378) идёт по задаче не ниже — арбитр места; (v518a) главная задача терпит отклонение — помогает и с неё (detourOk, task)
   var detour = !taskCanSet(b, "repos:assist");
   if(detour && !detourOk(b, "help")) return false;
   // (v368) носитель выходит вдвоём с тиммейтом, как все (раньше «в дуэли не лезет» — на раше magixx шёл в 400 ед. позади боя)
@@ -109,7 +109,7 @@ function assistPeek(b){
   });
   if(!mate) return flankAssist(b);
   // (v570, прогон 214: «помощь ↔ контакт» — tug repos:assist → contact → repos:assist, Ancient 1 → 9, Mirage 1 → 11) идёт реакция на контакт
-  // по этому врагу — решает она (350: свой рядом в бою с этой группой — выходит, contactMateFight); помощь не ставит свою точку поверх
+  // по этому врагу — решает она (contact: свой рядом в бою с этой группой — выходит, contactMateFight); помощь не ставит свою точку поверх
   var KC = b._contact; if(KC && tick < KC.until && DM.hypot(KC.x-E.x, KC.y-E.y) < 200) return false;
   b._assistNext = tick + 24;
   // линия есть, но смотрит в другую сторону — разворот на врага по коллу тиммейта

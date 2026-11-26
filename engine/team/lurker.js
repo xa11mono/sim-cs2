@@ -52,7 +52,7 @@ function lurkerBrain(b, tt, other){
       }
     }
     if(SO){
-      if(b._sawEnemy || ROUND_TIME_SEC - (simTime - roundStartTime) <= EXU_LATE){ b._lurkSolo = null; }   // бой — свой контакт (350); мало времени — к своим
+      if(b._sawEnemy || ROUND_TIME_SEC - (simTime - roundStartTime) <= EXU_LATE){ b._lurkSolo = null; }   // бой — свой контакт (contact); мало времени — к своим
       else { var si = Math.min(SO.i, SO.route.length-1), lk = si < SO.route.length-1 ? SO.route[si+1] : GEO[tt.site].ctEntry;
         b._route = null; setPost(b, SO.route[si], lk, true, si === SO.route.length-1 ? "lurkRot" : "lurk"+si);
         if(b.atPost){ if(!SO.t) SO.t = tick; if(tick - SO.t > LURK_CHECK*TICK_HZ && si < SO.route.length-1){ SO.i = si+1; SO.t = 0; } }
@@ -253,7 +253,7 @@ function tProbes(tt, ts){
       }
     }
     // (v519, пак 09.11 п.13; Р-30: «почти дошёл — пусть идёт дальше») (владелец 18.11: «пробы не надо отменять за какое-то время») проба
-    // снимается не по сроку, а когда бот не идёт к точке (застрял / стоит) — общее «идёт ли» taskWalkOn (110)
+    // снимается не по сроку, а когда бот не идёт к точке (застрял / стоит) — общее «идёт ли» taskWalkOn (task)
     if((pb.atPost && tick - (P.at || (P.at = tick)) > stay) || (!pb.atPost && !taskWalkOn(pb, P.pt, P))){
       P.prD = null; P.prT = 0; P.prBest = 0;
       P.ph = 0; P.cleared = false; P.at = 0; P.saw = 0; P.until = tick + (6 + 3*hashRand(tick + pb.id.charCodeAt(1)))*TICK_HZ;

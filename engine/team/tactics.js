@@ -88,7 +88,7 @@ function readCT(){
 // соперник близко к победе; последнюю паузу держат на конец половины (правила и доли — проектные, timeoutWant).
 // Пауза = закупка дольше на TO_SEC и план тренера (coachPlan) на TO_PLAN_ROUNDS раунда — только из того, что видела команда:
 // где CT стакают / куда ходят T, какие тактики и расстановки провалились, где мы умираем; заготовка — тактика, которую в этом
-// матче ещё не играли, на первый раунд после паузы. Показ паузы — 676_timeout_show.js (только показ).
+// матче ещё не играли, на первый раунд после паузы. Показ паузы — timeout.js (только показ).
 var TO_SEC = 30, TO_PLAN_ROUNDS = 3;
 var TOUT = {CT:{left:3, streak:0, until:0, avoid:[], plan:null}, T:{left:3, streak:0, until:0, avoid:[], plan:null}};
 var TO_NOW = null, TO_LAST = null, TO_FORCE = false, TO_DEATHS = {CT:[], T:[]};
@@ -135,7 +135,7 @@ function tacUsesZone(t, z){ return (t.groups || []).some(function(g){ return g.s
 function setupUsesZone(S, z){ return !!S.roles && Object.keys(S.roles).some(function(r){ return (S.roles[r].pos || []).indexOf(z) >= 0; }); }
 function tacById(id){ return T_TACTICS.filter(function(x){ return x.id === id; })[0] || null; }
 function setupById(id){ return CT_SETUPS.filter(function(x){ return x.id === id; })[0] || null; }
-// план тренера: факты (что видела команда) → что делаем. Каждый факт — с числами, из них же строится речь на паузе (676)
+// план тренера: факты (что видела команда) → что делаем. Каждый факт — с числами, из них же строится речь на паузе (timeout)
 function coachPlan(side){
   var P = {side: side, avoid: [], site: null, stack: null, retake: null, excl: null, facts: []};
   var D = TO_DEATHS[side].slice(-4), cnt = {};
@@ -271,7 +271,7 @@ function chooseTactic(){
   pool.forEach(function(t){ gW[t.style === "rush" ? "fast" : "rest"] += t.weight || 1; });
   pool.forEach(function(t, i){ var g = t.style === "rush" ? "fast" : "rest", sh = g === "fast" ? TM.fast : 1 - TM.fast; if(gW[g] > 0) weights[i] *= sh/gW[g]; });
   var tac = pool[weightedChoice(pool, weights, roundNum*7919 + matchNum*104729 + 17)];
-  // (v566) для «Разбора команды» (612): варианты тактики с весами, доля раша по закупу, план паузы — игру не меняет
+  // (v566) для «Разбора команды» (team): варианты тактики с весами, доля раша по закупу, план паузы — игру не меняет
   TACT_DBG = {round: roundNum, type: type, fast: (TAC_TEMPO[type] || TAC_TEMPO.full).fast, read: readTxt, tempoRead: tempoRead,
     plan: roundNum <= TOUT.T.until ? TOUT.T.plan : null, pick: tac.id,
     list: pool.map(function(t, i){ var M = tacMem[t.id]; return {id: t.id, name: t.name, style: t.style, site: t.site, w: weights[i], mem: M ? Math.round(M.w*10)/10+" из "+M.n : ""}; })};
@@ -318,7 +318,7 @@ function chooseTactic(){
     var need = tac.style === "default" ? DEF_STAGE_SEC : Math.max(14, tac.setupEnd - 6);
     if(setupSec - need >= 12) defUntil = roundStartTick + (setupSec - need)*64;
   }
-  teamTac.T = {tac:tac, site:tac.site, phase: tac.setupEnd > 0 ? "setup" : "execute", execTick: roundStartTick + setupSec*64, defUntil: defUntil, minExec: (tac.setupEnd > 0) ? Math.min(setupSec, 30) : 0, needT: (tac.setupEnd > 0) ? (tac.style === "default" ? DEF_STAGE_SEC : Math.max(14, tac.setupEnd - 6)) : 0,   // (v443) у дефолта — как need выше: иначе фаза дефолта (170, inDef) не включалась вовсе
+  teamTac.T = {tac:tac, site:tac.site, phase: tac.setupEnd > 0 ? "setup" : "execute", execTick: roundStartTick + setupSec*64, defUntil: defUntil, minExec: (tac.setupEnd > 0) ? Math.min(setupSec, 30) : 0, needT: (tac.setupEnd > 0) ? (tac.style === "default" ? DEF_STAGE_SEC : Math.max(14, tac.setupEnd - 6)) : 0,   // (v443) у дефолта — как need выше: иначе фаза дефолта (brain-t, inDef) не включалась вовсе
                execStart: tac.setupEnd > 0 ? null : tick, // раш: выход сразу — отсчёт задержек ролей с начала раунда
                read: readTxt, seenCT:{A:0, B:0}, setupSec:setupSec};
   var M = tacMem[tac.id];

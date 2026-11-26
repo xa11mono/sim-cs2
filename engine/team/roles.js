@@ -39,7 +39,7 @@ function tFallbackTick(){
     var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === "T" && DM.hypot(o.x-b.x, o.y-b.y) <= 350; }).length;
     var died = intelDeathsNear("T", b.x, b.y, FB.deathR, FB.window*TICK_HZ) > 0;
     // повод: их больше, чем нас тут; погиб свой рядом без размена. (v518a, пак 09.11 п.6) «ранен» — не здесь: одна реакция на урон в любом
-    // состоянии — hurtReactTick (350); было три частных правила (тут только фаза setup до планта, у CT — только впереди сайтов, 250 — только на посту)
+    // состоянии — hurtReactTick (contact); было три частных правила (тут только фаза setup до планта, у CT — только впереди сайтов, 250 — только на посту)
     var solo = b.tRole === "lurker" && mates === 0;
     var why = ((ids >= 2 && ids > mates + 1) || (solo && ids >= 1)) ? "их "+ids+" — отхожу" : (died && mates === 0) ? "минус рядом — отхожу" : null;
     if(!why) return;
@@ -47,7 +47,7 @@ function tFallbackTick(){
     var dx = th ? b.x-th.x : 0, dy = th ? b.y-th.y : 0, dl = DM.hypot(dx, dy);
     var center = dl > 1 ? walk({x:b.x+dx/dl*FB.back, y:b.y+dy/dl*FB.back}) : null;
     var cand = center ? pickSpots("tfb"+tick+b.id, center, 4, {rMax:FB.rMax, minGap:40, hideFrom: th ? [th] : []}) : [];
-    var sp = coverPick(cand.filter(function(q){ var zq = bzOf(q.x, q.y); return zq >= 0 && ED[zq] >= ED[zb] + FB.gainED; }), coverZ(b), coverThreats(b, th ? [th] : []));   // (18.11) общий выбор укрытия (470)
+    var sp = coverPick(cand.filter(function(q){ var zq = bzOf(q.x, q.y); return zq >= 0 && ED[zq] >= ED[zb] + FB.gainED; }), coverZ(b), coverThreats(b, th ? [th] : []));   // (18.11) общий выбор укрытия (fight)
     if(!sp) return;
     b._fbRound = roundNum; taskKeep(b, 0, "fallback"); b._probeLock = 0;
     setPost(b, sp, th || null, true, "repos:fallback");
@@ -154,7 +154,7 @@ function infoFallbackTick(){
     // 1150 пешком, другой конец карты) смерть рядом — по длине пути, а не по прямой
     var died = teamIntel.CT.sig.some(function(sg){ return sg.type === "died" && tick - sg.tick <= FB.window*TICK_HZ && DM.hypot(sg.x-b.x, sg.y-b.y) < FB.deathR &&
       polyLen(pathPts(b.x, b.y, sg.x, sg.y, b.z)) < FB.deathR; });
-    var why = ids >= FB.enemies ? "их "+ids+" — откатываюсь" : died ? "минус рядом — откатываюсь" : null;   // (v518a) «ранен» — hurtReactTick (350)
+    var why = ids >= FB.enemies ? "их "+ids+" — откатываюсь" : died ? "минус рядом — откатываюсь" : null;   // (v518a) «ранен» — hurtReactTick (contact)
     if(!why) return;
     var th = ids ? {x:cx/ids, y:cy/ids} : (b.lastIntel ? {x:b.lastIntel.x, y:b.lastIntel.y} : null);
     // назад = от угрозы, дальше от вражеского спавна
@@ -168,7 +168,7 @@ function infoFallbackTick(){
     var mateD = function(q){ var m = Infinity; mates.forEach(function(o){ m = Math.min(m, DM.hypot(o.x-q.x, o.y-q.y)); }); return m; };
     var myMate = mateD(b);
     var sp = coverPick(cand.filter(function(q){ var zq = bzOf(q.x, q.y); return zq >= 0 && ED[zq] >= ED[zb] + FB.gainED &&
-      mateD(q) < myMate && beliefCount("CT", [zq]) < 0.5; }), coverZ(b), coverThreats(b, th ? [th] : []));   // (18.11) общий выбор укрытия (470)
+      mateD(q) < myMate && beliefCount("CT", [zq]) < 0.5; }), coverZ(b), coverThreats(b, th ? [th] : []));   // (18.11) общий выбор укрытия (fight)
     if(!sp && mates.length){ var nm = mates.slice().sort(function(a, c){ return DM.hypot(a.x-b.x, a.y-b.y) - DM.hypot(c.x-b.x, c.y-b.y); })[0];
       var nz = bzOf(nm.x, nm.y); if(!(nz >= 0 && beliefCount("CT", [nz]) >= 0.5)) sp = walk({x: nm.x, y: nm.y}); }
     if(!sp) return;

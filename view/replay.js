@@ -39,7 +39,7 @@ function rpMode(R, B){
   return m;
 }
 // (v462, владелец 29.10: «нет анимаций, звуков… звуки главное») звук и голос показа (повтор, пауза) — одно место. Только если включён
-// «Звук» (кнопка, 680): звук чата (chat_talk — присланный владельцем 15.10) на каждую реплику, свист на смену кадра, удар на фраг;
+// «Звук» (кнопка, app): звук чата (chat_talk — присланный владельцем 15.10) на каждую реплику, свист на смену кадра, удар на фраг;
 // голоса нет (п.18 владельца 29.10: «убрать озвучку игроков в клатчах»; на паузе убран в v469) — реплики только текстом
 function showSnd(kind, g){
   if(typeof SND === "undefined" || !SND.on || !SND.ctx) return;
@@ -78,7 +78,7 @@ function rpSample(R){
   var bs = bomb ? bomb.state : null, ci = bomb && bomb.carrier ? bots.indexOf(bomb.carrier) : -1;
   return {t: tick, b: B, sm: sm, fi: fi, nd: nd, bomb: bs ? {st: bs, x: bomb.x, y: bomb.y, c: ci} : null, w: rpWorld()};
 }
-// (v463) мир тика для кадра повтора: то, что читает draw (620) — поля игроков, дым, огонь, гранаты, эффекты, бомба, вещи на земле
+// (v463) мир тика для кадра повтора: то, что читает draw (draw) — поля игроков, дым, огонь, гранаты, эффекты, бомба, вещи на земле
 var RP_BF = ["x","y","z","alive","hp","crouching","facing","_visFacing","_reloading","reloadUntil","weapon","_underV","_overV","_jump","blindUntil","state","tRole",
   "_knife","planting","defusing","plantUntil","defuseUntil","kit","onStairs","walking","_killHow","_sawEnemy","curSpeed","_idle","_idlePhase","holding","atPost"];
 function rpCl(o){ var c = {}; for(var k in o){ var v = o[k]; c[k] = Array.isArray(v) ? v.slice() : v; } return c; }
@@ -90,7 +90,7 @@ function rpWorld(){
   return W;
 }
 function rpIdByNick(nm){ for(var id in NICKS) if(NICKS[id] === nm) return id; return null; }
-// после тиков кадра (680): записать, что изменилось; конец раунда — проверить клатч
+// после тиков кадра (app): записать, что изменилось; конец раунда — проверить клатч
 function rpRecord(){
   var rs = roundState;
   if(WARM.on){ RP.rec = null; RP.prevRs = rs; return; }
@@ -267,7 +267,7 @@ function rpEnd(){
   var E = rpEls(); if(E){ E.root.className = ""; E.emo.innerHTML = ""; if(E.vox){ E.vox.innerHTML = ""; E.vox._k = ""; } }
   if(typeof OBS !== "undefined") OBS.sc = 0;   // обсервер заново берёт камеру
 }
-// игра ждёт конца повтора: закупка кончается, а повтор ещё идёт (680: тики не считаются)
+// игра ждёт конца повтора: закупка кончается, а повтор ещё идёт (app: тики не считаются)
 function rpHold(){
   var h = RP.on && ((roundState === "live" && simTime >= roundStartTime + RP_K.live - 0.6) || (roundState === "matchover" && simTime - roundEndTime >= 6.5));
   RP.holding = h; return h;

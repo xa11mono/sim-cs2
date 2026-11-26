@@ -1,7 +1,7 @@
 // ======================= СИНХРОНИЗАЦИЯ ВЫХОДА T С ГРАНАТАМИ (одно место; тактика, 30.10) =======================
 // Одно место на вопрос «можно ли команде T выходить на сайт, или ждём гранаты выхода»: раньше этот вопрос решали три
-// несвязанных таймера — команда ждала смоки «пока летят», но не дольше 5 с от первого броска и 5 с от тайминга (170); боец у выхода
-// ждал гранаты в воздухе ≤ 7 с (170, utilWait); никто не ждал, пока дым раскроется, и никто не проверял, лёг ли смок туда, куда надо.
+// несвязанных таймера — команда ждала смоки «пока летят», но не дольше 5 с от первого броска и 5 с от тайминга (brain-t); боец у выхода
+// ждал гранаты в воздухе ≤ 7 с (brain-t, utilWait); никто не ждал, пока дым раскроется, и никто не проверял, лёг ли смок туда, куда надо.
 // Смок, летящий 5–10 с (лайнапы, тактика 30.10: медиана 5,05 с, до 10,5 с у ботов), выход не дожидался.
 //
 // Здесь у каждой гранаты выхода (смок с меткой exec: 420 — «вход CT», «кросс»; 390 — лайнапы «(выход, сайт)») — жизненный цикл:
@@ -51,26 +51,26 @@ function exuScan(tt){
         it.backup = bk ? bk.id : null;
         exuEv("assign", it, {why:t.why, backup:it.backup});
       }
-      it.owner = b.id; it.x = t.x; it.y = t.y; if(t.from) it.from = {x:t.from.x, y:t.from.y};   // цель лайнапа могла смениться (380: luSpotFor)
+      it.owner = b.id; it.x = t.x; it.y = t.y; if(t.from) it.from = {x:t.from.x, y:t.from.y};   // цель лайнапа могла смениться (throw: luSpotFor)
       seen[it.id] = 1;
     });
   });
   return seen;
 }
-// задание гранаты выхода снято без броска (380: updateNadeTasks) — причина: последняя неудачная попытка броска или срок / смерть / нет гранаты
+// задание гранаты выхода снято без броска (throw: updateNadeTasks) — причина: последняя неудачная попытка броска или срок / смерть / нет гранаты
 function exuTaskGone(t, b){
   var it = exuCur().items[t.exu]; if(!it || it.state !== "assigned") return;
   it.goneWhy = !b.alive ? "исполнитель погиб" : !b.nades || b.nades[t.type] <= 0 ? "нет гранаты" : NADE_FAIL ? "не кинуть: "+NADE_FAIL :
     tick > t.until ? "не дошёл до точки броска за срок" : "задание снято (точка позади / сайт взят / перебито)";
 }
-// граната вышла из рук (380: throwNade) — запись знает, когда она сработает (полёт той же физикой, что летит)
+// граната вышла из рук (throw: throwNade) — запись знает, когда она сработает (полёт той же физикой, что летит)
 function exuThrown(b, nd){
   var t = b.nadeTask; if(!exuIsExec(t) || t.exu == null || t.type !== nd.type) return;
   var it = exuCur().items[t.exu]; if(!it) return;
   nd.exu = it.id; it.state = "flying"; it.thrownAt = tick; it.eta = nd.etaDet; it.owner = b.id;
   exuEv("throw", it, {eta:nd.etaDet});
 }
-// граната сработала (400: detonate) или легла на крышу (400: nadesTick, дыма нет)
+// граната сработала (damage: detonate) или легла на крышу (damage: nadesTick, дыма нет)
 function exuLanded(n, roof){
   if(n.exu == null || !EXU) return;
   var it = EXU.items[n.exu]; if(!it || it.state !== "flying") return;
@@ -95,7 +95,7 @@ function exuBackup(it, tt, excl){
     if(o === excl || o.team !== "T" || !o.alive || o.planting || !o.nades || o.nades.smoke - busy(o) <= 0) return false;
     if(o.tRole === "lurker" || (bomb.state === "carried" && bomb.carrier === o)) return false;
     if(o.nadeTask && !exuIsExec(o.nadeTask) && o.nadeTask.lineup) return false;   // свой лайнап не перебиваем
-    if(it.from && luBehind(o, it.from)) return false;   // точка броска позади по ходу — назад за гранатой не идут (380)
+    if(it.from && luBehind(o, it.from)) return false;   // точка броска позади по ходу — назад за гранатой не идут (throw)
     return true;
   }).map(function(o){
     // путь до точки броска: лайнап — до его точки, своя граната — докуда долетит (NADE_THROW_RANGE)
@@ -123,7 +123,7 @@ function exuReassign(it, tt){
   var why = it.why+" (вместо "+it.owner+")";
   if(it.from){
     var sec = Math.ceil(pathLenTo(b, it.from.x, it.from.y)/(SPEED*weaponSpeedMul(b)) + LU_REACH_PAD);
-    // своя граната резервного — в очередь (380: nadeQueueNext вернёт её после смока выхода — и с точкой броска, и с места)
+    // своя граната резервного — в очередь (throw: nadeQueueNext вернёт её после смока выхода — и с точкой броска, и с места)
     if(b.nadeTask) (b.nadeQueue = b.nadeQueue || []).unshift(b.nadeTask);
     b.nadeTask = {type:"smoke", x:it.x, y:it.y, from:{x:it.from.x, y:it.from.y}, until:tick + Math.max(7, sec)*TICK_HZ, why:why, start:tick,
                   lob:true, range:4000, now:true, lineup:true, exec:true, npm:"exec", exu:it.id};
@@ -148,7 +148,7 @@ function exuTick(tt){
     var it = E.items[k];
     if(it.site !== tt.site){ if(it.state !== "void"){ it.state = "void"; exuEv("void", it, {why:"перекол"}); } return; }   // сайт сменили (tSetSite) — граната о другом
     if(it.state === "assigned" && !seen[it.id]){
-      if(smokeCovered(it.x, it.y)){ it.state = "ready"; exuEv("covered", it); return; }   // место уже закрыл другой дым (380: задание снято поэтому)
+      if(smokeCovered(it.x, it.y)){ it.state = "ready"; exuEv("covered", it); return; }   // место уже закрыл другой дым (throw: задание снято поэтому)
       var o = bots.filter(function(q){ return q.id === it.owner; })[0];
       exuFail(it, !o || !o.alive ? "исполнитель погиб" : !o.nades || o.nades.smoke <= 0 ? "нет гранаты" : it.goneWhy || "задание снято");
     }
@@ -239,7 +239,7 @@ function smokeLineTick(){
 // (00_PLAN, владелец 05.11: «тушат смоком, когда готовится выход: в коридоре — банан на Inferno, Ramp на Mirage — кинули молотов; T не бегут
 // через разгоревшийся молотов и не отдают позицию — тушат лишним смоком») готовится выход (сетап / выход до планта) и путь кого-то из T
 // проходит через огонь соперника — смок на этот огонь кидает ближайший T с лишним смоком (не отложенным на выход планом гранат — npCanUse),
-// один на огонь. Огонь гаснет по физике (400). У про — 3,6 % смоков на огне соперника (tools/nades/smoke_on_fire_pro.py), у ботов было 0
+// один на огонь. Огонь гаснет по физике (damage). У про — 3,6 % смоков на огне соперника (tools/nades/smoke_on_fire_pro.py), у ботов было 0
 function fireSmokeTick(){
   var tt = teamTac.T; if(!tt || !fires.length || bomb.state === "planted" || (tt.phase !== "setup" && tt.phase !== "execute")) return;
   if(tick % 16) return;   // раз в 0,25 с (BELIEF_STEP)

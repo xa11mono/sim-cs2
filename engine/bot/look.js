@@ -23,7 +23,7 @@ function lookCands0(b, W){
   // пятится лицом к ним, как живой игрок: «по ходу» и «за спиной» считаются от направления на врагов, а не от хода
   var hdA = moving ? lookHeading(b) : 0;
   // (v583a, Д1, владелец 17.11: «пока бежит, враг всё время смотрел на него справа — не повернулся»; м302 р2, CT2: Tetris за спиной ×0,15
-  // «прикрыт», а свой рядом смотрел в другую сторону) спину прикрывает свой рядом (500 px), только если он смотрит туда (mateWatches, 260)
+  // «прикрыт», а свой рядом смотрел в другую сторону) спину прикрывает свой рядом (500 px), только если он смотрит туда (mateWatches, look-threat)
   var rearCov = function(pt){ return moving && mates.some(function(o){ return DM.hypot(o.x-b.x, o.y-b.y) < 500 && mateWatches(o, pt); }); };
   var habZ = {};
   bots.forEach(function(o){ if(!o.alive || o.team === team) return; var h = habitTop(o.id, 2); if(h){ var zh = bzOf(h.x, h.y); if(zh >= 0) habZ[zh] = 1; } });

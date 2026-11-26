@@ -231,7 +231,7 @@ function buildWaypointPath0(fromX, fromY, fromZ, toX, toY, toZ, team, lane, quie
   var route = zoneDijkstra(fz.id, tz.id, team, ctx);
   // (v450, м19 р1: путь T0 к Tetris из-за молотова на T Ramp ушёл через спавн и Палас — ~1500 ед. обхода) цена огня копится по каждому
   // переходу внутри него, и обход через пол-карты выходил «дешевле». Обход берётся, только если он не длиннее пути через огонь больше чем
-  // на FIRE_DETOUR (как и задумано в v438); иначе — путь через огонь: у края огня бот ждёт, пока погаснет (fireSafe, 540)
+  // на FIRE_DETOUR (как и задумано в v438); иначе — путь через огонь: у края огня бот ждёт, пока погаснет (fireSafe, tick)
   if(route && fires.length){ var r0 = zoneDijkstra(fz.id, tz.id, team, Object.assign({}, ctx, {fire: false}));
     var rLen = function(R){ var L = 0, px = fromX, py = fromY; for(var ri = 0; ri < R.length-1; ri++){ var e = (zoneGraph[R[ri]]||[]).find(function(x){ return x.to === R[ri+1]; }); if(e && e.mid){ L += DM.hypot(e.mid.x-px, e.mid.y-py); px = e.mid.x; py = e.mid.y; } } return L + DM.hypot(toX-px, toY-py); };
     if(r0 && rLen(route) > rLen(r0) + FIRE_DETOUR) route = r0; }
@@ -258,7 +258,7 @@ function buildWaypointPath0(fromX, fromY, fromZ, toX, toY, toZ, team, lane, quie
   var start0 = {x:fromX,y:fromY,z:fromZ||0}, end0 = {x:toX,y:toY,z:toZ||0}, cuts = [], gapFix = [];
   for(var ci=0;ci<corridor.length;ci++){ var cA = zonesById[cPair[ci][0]], cB = zonesById[cPair[ci][1]], ce = corridor[ci];
     if(ce.gap){ cuts.push(ci); gapFix.push(ce.gap.a, ce.gap.b); continue; }   // (v546) прыжок через щель: путь — через точку отталкивания и приземления
-    // (v551) подъём из демок по этой связи (CLIMB_BY_EDGE, 370) — то же: путь через его точку отталкивания и верх, прыгает ladderTick именно по нему
+    // (v551) подъём из демок по этой связи (CLIMB_BY_EDGE, levels) — то же: путь через его точку отталкивания и верх, прыгает ladderTick именно по нему
     var CLc = NAV_CLIMB_UP[cPair[ci][0]+">"+cPair[ci][1]] && CLIMB_BY_EDGE[cPair[ci][0]+">"+cPair[ci][1]];
     if(CLc){ cuts.push(ci); gapFix.push(CLc.lo, CLc.hi); CLIMB_AT[navGapKey(CLc.hi.x, CLc.hi.y)] = CLc; continue; }
     if(cA && cB && ce.mid && !navPlane(cA).flat && !navPlane(cB).flat && navStepDz(cA, cB, ce.mid.x, ce.mid.y) > 18) cuts.push(ci); }
@@ -313,7 +313,7 @@ function segIntersect(ax,ay,bx,by,cx,cy,dx,dy){
 function hasLOS(x1,y1,x2,y2,z1,z2){
   return visLine(x1, y1, visFloorAt(x1, y1, z1) + VIS_EYE.stand, x2, y2, visFloorAt(x2, y2, z2) + VIS_EYE.stand, false);
 }
-// (17.11, перестройка) расстояние от точки до отрезка — перенесено из 550 (файл показа): им пользуются бомба (120) и места (140)
+// (17.11, перестройка) расстояние от точки до отрезка — перенесено из 550 (файл показа): им пользуются бомба (bomb) и места (ct-setup)
 function distToSeg(px,py, s){
   var x1=s[0],y1=s[1],x2=s[2],y2=s[3];
   var dx=x2-x1, dy=y2-y1;

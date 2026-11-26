@@ -1,5 +1,5 @@
 // присед у про (12 демок Mirage): на приседе 11 % первых пуль винтовки, 37 % 2–3-х, 22 % дальше; сидят коротко (медиана 0,19 с)
-// Доли решений больше долей пуль: присед срывает «не видно из приседа» (v521), уход за укрытие (470) и конец очереди — подобраны так, чтобы
+// Доли решений больше долей пуль: присед срывает «не видно из приседа» (v521), уход за укрытие (fight) и конец очереди — подобраны так, чтобы
 // на приседе было столько же пуль, сколько у про (замер — бот: 1-я 6 %, 2–3 28 %, 4+ 14 % при решениях 0,11 / 0,37 / 0,22; 17 / 42 / 28 % при 0,2 / 0,49 / 0,35)
 var DUCK_PRO = {first: 0.13, burst: 0.46, spray: 0.27};
 function duckDecide(b, p, salt){   // присед на ближайшее решение (12 тиков); не сяду, если из приседа врага не видно (v521)
@@ -9,14 +9,14 @@ function duckDecide(b, p, salt){   // присед на ближайшее ре�
 }
 var FIGHT_MOVE_NEAR = 10;
 // (Р3.2, канал «бой», шаг 1) перестрелки — этапами в прежнем порядке (I-30: порядок обхода ботов не менять): кто кого видит (engSee,
-// пары CT × T) → цель (engTarget) → контакт и решение режима боя (engDecide) → отход не на врага (engRetreatCheck) → взгляд (275) →
+// пары CT × T) → цель (engTarget) → контакт и решение режима боя (engDecide) → отход не на врага (engRetreatCheck) → взгляд (turn) →
 // выстрелы по парам (engShoot). Код этапов перенесён дословно; общее между этапами — только список пар видимости
 function resolveEngagements(){
   var pairs = engSee();
   engTarget();
   engDecide();
   engRetreatCheck();
-  // ---------- куда смотрит бот ---------- — канал взгляда (275_look_turn.ts, lookTick)
+  // ---------- куда смотрит бот ---------- — канал взгляда (turn.ts, lookTick)
   lookTick();
   engShoot(pairs);
 }
@@ -39,7 +39,7 @@ function engSee(){
       if(!(ctP.head || ctP.body) && !(tP.head || tP.body)) return;
       // ван-вей: стоящий в самом краю дыма видит наружу, а его снаружи — нет
       var smk = smokeBlocks(ct.x,ct.y,t.x,t.y), ctOW = false, tOW = false;
-      // (v548) сквозь дым по дырам от пуль видна только часть тела, которая попала в окошко (smokeHoleParts, 360) — и цель — только она
+      // (v548) сквозь дым по дырам от пуль видна только часть тела, которая попала в окошко (smokeHoleParts, smoke) — и цель — только она
       if(smk){ ctOW = oneWaySees(ct, t); tOW = oneWaySees(t, ct);   // кромка дыма (ван-вей) — как раньше, целиком
         if(!ctOW){ var ctH = smokeHoleParts(ct, t); ctP = {head: ctP.head && ctH.head, body: ctP.body && ctH.body}; if(ctP.head || ctP.body){ ctOW = true; ct._smkParts = {id: t.id, t: tick, head: ctP.head, body: ctP.body}; } }
         if(!tOW){ var tH = smokeHoleParts(t, ct); tP = {head: tP.head && tH.head, body: tP.body && tH.body}; if(tP.head || tP.body){ tOW = true; t._smkParts = {id: ct.id, t: tick, head: tP.head, body: tP.body}; } }
@@ -104,7 +104,7 @@ function engDecide(){
       // стрелять. Теперь "реакция" остывает постепенно: короткая потеря
       // контакта почти не сбрасывает её, долгая — сбрасывает полностью.
       b.contactStreak = Math.max(0, b.contactStreak - 3);
-      // (v575, В140) врага не видно — присед кончается вместе с очередью (у про — 0,19 с); ослеплён — сидит (535)
+      // (v575, В140) врага не видно — присед кончается вместе с очередью (у про — 0,19 с); ослеплён — сидит (move)
       if(b.crouching && tick >= (b.blindUntil || 0) && tick - (b.lastShotTick || -1e9) >= DECISION_INTERVAL_TICKS) placeStance(b, false, "burst-end");
       if(b._ts) for(var tsId2 in b._ts) b._ts[tsId2] = Math.max(0, b._ts[tsId2] - 3);   // (этап 2, P0-2) по целям — так же
       // holding on stale-but-recent intel = "ещё смотрю на угол, где только что

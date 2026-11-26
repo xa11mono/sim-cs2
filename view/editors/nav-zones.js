@@ -51,7 +51,7 @@ function whyText(b){
   else if(b.state === "hold") pt = "бой · держит угол";
   else if(b.state === "retreat") pt = "бой · отходит";
   if(tick - (b._fcSnap||-999) < TICK_HZ) pt += " · у укрытия видит врага — снова на линии";
-  // (v523) почему перестрелка так решила (fcWhy, 470) и почему стоит / идёт шагом (535) — причина рядом с подписью
+  // (v523) почему перестрелка так решила (fcWhy, fight) и почему стоит / идёт шагом (move) — причина рядом с подписью
   if(b._fcWhy && tick - (b._fcWhyT||-999) < 3*TICK_HZ && (b._fc || /^конец/.test(b._fcWhy))) pt += " · " + b._fcWhy;
   else if(!b._fc && b.state !== "patrol" && b._stateWhy && tick - (b._stateWhyT||-999) < 3*TICK_HZ) pt += " · " + b._stateWhy;
   else if(!b._fc && b._stopWhy && b.curSpeed < 1) pt += " · стоит: " + b._stopWhy;

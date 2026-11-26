@@ -114,11 +114,11 @@ function lookKnowCands(b){
   if(lookContactFresh(b) && !ignoredShooter(b, b._contact.id)) add(LOOK_LEVEL.fight, "contact", {x: b._contact.x, y: b._contact.y, id: b._contact.id, age: 0, commit: true}, 3);
   // свои уши ≤ 1 с; бросок гранаты рядом — враг точно там (v359)
   var hs = b.heardSound;
-  // (v570, В135) выстрел / попадание от невидимого стрелка — взгляд, только если бот обратил на него внимание (noticeShooter, 210)
+  // (v570, В135) выстрел / попадание от невидимого стрелка — взгляд, только если бот обратил на него внимание (noticeShooter, knowledge)
   if(hs && tick - hs.tick <= LOOK_FRESH && !((hs.kind === "shots" || hs.kind === "hit") && !noticeShooter(b, hs.src))) add(LOOK_LEVEL.sound, "sound", {x: hs.x, y: hs.y, z: hs.z, age: tick - hs.tick}, hs.kind === "nade" ? LOOK.freshK : 1);
   // убили тиммейта рядом ≤ 3 с: туда, откуда убили (убийцу видел он — точка на радаре), иначе место смерти.
   // (п.26 владельца 29.10, м1 р7: CT на B смотрели в Kitchen по смерти kyousuke на Ramp — проверки «рядом» в коде не было, срабатывала
-  // любая смерть на карте) «рядом» — то же, что у отхода CT «свой убит рядом» (300: FB.deathR по прямой и по пути)
+  // любая смерть на карте) «рядом» — то же, что у отхода CT «свой убит рядом» (roles: FB.deathR по прямой и по пути)
   var sg = teamIntel[b.team] && teamIntel[b.team].sig;
   // (отметка владельца 18.11, м33 р1 т2629, kyousuke: «смотрит Jungle, т. к. убили на миду, но забывает про врага на A») было ≤ 3 с на уровне
   // «свои уши» — вес 0,11 перебивал угрозу 9,4 (арбитр по уровням); теперь, как свой звук и инфа команды, ≤ LOOK_FRESH: дальше убийца уже в
@@ -198,7 +198,7 @@ function lookArbiterR(b){
   return {pt: best ? best.pt : null, lvl: best ? best.lvl : 0, kind: best ? best.kind : null, C: C};
 }
 // (v548, владелец 10.11, скрины прыжка с фургона на B Apps: «разбег — смотрит на машину; запрыгивает — по дуге поворачивает к приземлению»)
-// взгляд у прыжка через щель (NAV_GAPS, 050) — как у про (gaps_bake: yaw0 — при отталкивании, yaw1 — при приземлении, к направлению прыжка):
+// взгляд у прыжка через щель (NAV_GAPS, paths) — как у про (gaps_bake: yaw0 — при отталкивании, yaw1 — при приземлении, к направлению прыжка):
 // у края (≤ JUMP_TURN_R до точки отталкивания, следующий шаг пути — прыжок) — доворот к yaw0; в полёте — плавно от yaw0 к yaw1.
 // Про к отталкиванию уже смотрят почти по прыжку (фургон → B Apps: +5° → +11°). JUMP_TURN_R — проектное число
 var JUMP_TURN_R = 40;
@@ -215,13 +215,13 @@ function jumpLook(b){
   // (В147) угол на промежуточной стоянке (yawM) не используется: он снят одним кадром выгрузки 4 Гц в миг ухода с ящика — у 37 % подъёмов
   // Mirage он в стороне > 45° от углов отталкивания и приземления (их разница — медиана 5°), а по выгрузке 64 Гц про между прыжками
   // поворачивают на 4,7° (медиана; мерка формы air_between). Было: a0 → yawM → yaw1 — у Window боты разворачивались на 100–145° и обратно
-  if(Y){ var ph = climbPhase(C), a0 = C.a0 != null ? C.a0 : Y.yaw0*R;   // (v550) по фазам подъёма (370)
+  if(Y){ var ph = climbPhase(C), a0 = C.a0 != null ? C.a0 : Y.yaw0*R;   // (v550) по фазам подъёма (levels)
     var q = C.mid ? (ph.seg === 1 ? ph.q*0.5 : ph.seg === 0 ? 0.5 : 0.5 + ph.q*0.5) : ph.q;
     return cand(lerp(a0, Y.yaw1*R, q)); }
   // (В147) после приземления взгляд держится: у про до поворота > 10° проходит q25 / медиана / q75 = 16 / 42 / 90 тиков (выгрузка 64 Гц,
   // 2555 прыжков) — LAND_HOLD; было: сразу осмотр углов / по ходу (между прыжками цепочки поворот 27–31° против 4,7° у про)
   var Ld = b._land; if(Ld && tick - Ld.t <= Ld.h && !b._sawEnemy) return cand(Ld.a);
-  var P = b._jumpPrep; if(P && tick - P.t <= 2) return cand(P.a);   // у края — доворот к прыжку (370: jumpFaceWait, подход к подъёму)
+  var P = b._jumpPrep; if(P && tick - P.t <= 2) return cand(P.a);   // у края — доворот к прыжку (levels: jumpFaceWait, подход к подъёму)
   if(b.path && b.pathIdx < b.path.length){
     for(var i = b.pathIdx; i < Math.min(b.path.length, b.pathIdx + 3); i++){ var kk = navGapKey(b.path[i][0], b.path[i][1]), g = NAV_GAP_AT[kk];
       if(g && DM.hypot(g.a.x - b.x, g.a.y - b.y) <= JUMP_TURN_R) return cand(g.yaw0*R);

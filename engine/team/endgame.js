@@ -47,7 +47,7 @@ function endgameBrain(){
     var nFoe = aliveCount(foe), mine = bots.filter(function(b){ return b.team === team && b.alive; });
     if(nFoe === 0 || nFoe > 2 || mine.length < nFoe) return;
     // (v561, этап 7 docs/tasks/PLAN_TACTICS_V2.md; В99 «в клатчах спешат»; PRO_PLAY §6з: «главное — кому выгодно время») до планта время на
-    // стороне CT: без перевеса (1 на 1, 2 на 2) CT не ищут последних по карте, а держат подходы к сайтам — роль / клатч CT (ctClutch, 320);
+    // стороне CT: без перевеса (1 на 1, 2 на 2) CT не ищут последних по карте, а держат подходы к сайтам — роль / клатч CT (ctClutch, ct-early);
     // охота — только большинством. T время против них — им идти, как было
     // охоту, начатую с перевесом, снимает тот же хозяин, когда перевеса нет (прогон 208, Ancient: «охота не пускает» другие задачи CT 8–15 с)
     if(team === "CT" && mine.length <= nFoe){ mine.forEach(function(o){ if(o.post && o.post.tag === "endhunt"){ o._egC = null; clearPost(o); } }); return; }
@@ -105,7 +105,7 @@ function endgameBrain(){
     mine.forEach(function(b){
       if(b.planting || b.defusing || b._sawEnemy || b._stopPlantUntil > tick) return;
       if(team === "T" && bomb && bomb.state === "carried" && bomb.carrier === b) return; // носитель ставит
-      // (v521, отметка владельца 10.11) бомбу ставят — остальные прикрывают плант (170, coverplant: держат входы вокруг точки планта), не охотятся
+      // (v521, отметка владельца 10.11) бомбу ставят — остальные прикрывают плант (brain-t, coverplant: держат входы вокруг точки планта), не охотятся
       var BC = team === "T" && bomb && bomb.state === "carried" ? bomb.carrier : null;
       if(BC && BC.alive && (BC.planting || (BC.post && taskProp(BC.post.tag, "plantSpot") && DM.hypot(BC.x-BC.post.x, BC.y-BC.post.y) < 90)) && DM.hypot(b.x-BC.x, b.y-BC.y) < 550) return;
       if(hunter && b !== hunter){

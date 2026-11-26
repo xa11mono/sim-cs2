@@ -1,5 +1,5 @@
 function buyPhase(){
-  showEv("buyShow", tick, bots.map(function(b){ return {id: b.id, team: b.team, _knife: b._knife, weapon: b.weapon, helmet: b.helmet, armor: b.armor, kit: b.kit, nades: Object.assign({}, b.nades), primary: b.primary, secondary: b.secondary}; }));   // (17.11) снаряжение до закупа — для показа закупки по одной (640)
+  showEv("buyShow", tick, bots.map(function(b){ return {id: b.id, team: b.team, _knife: b._knife, weapon: b.weapon, helmet: b.helmet, armor: b.armor, kit: b.kit, nades: Object.assign({}, b.nades), primary: b.primary, secondary: b.secondary}; }));   // (17.11) снаряжение до закупа — для показа закупки по одной (scoreboard)
   ["CT","T"].forEach(function(team){
     teamEco[team].antiEcoSmg = false;
     var type = decideRoundType(team);
@@ -7,7 +7,7 @@ function buyPhase(){
     if(teamEco[team].ecoWhy) logEvent(team+": "+teamEco[team].ecoWhy);
   });
   // (v428, PRINCIPLES М160) план раунда — до закупа, как у живой команды (IGL называет план, потом закуп): тактика T и расстановка CT
-  // зависят только от типа раунда; закуп гранат — под план (365_nade_plan: гранаты своей зоны на нужный момент). Раньше — после закупа
+  // зависят только от типа раунда; закуп гранат — под план (plan: гранаты своей зоны на нужный момент). Раньше — после закупа
   chooseTactic();
   ["CT","T"].forEach(function(team){
     var type = teamEco[team].roundType;
@@ -81,7 +81,7 @@ function swapSides(){
 // памятью (I-22). Страница, где матч уже был: сначала всё состояние — как после загрузки (снимок загрузки MK_LOAD, src/marks.js
 // mkMatchClean), кроме памяти между матчами (реестр: классы «постоянная память» — OPP, «серия» — SERIES); дальше — как в новой странице.
 // Новая страница (первый матч) — без восстановления: путь freshMatch тот же, что до Т-2. pause — пауза страницы (кнопка, инструменты);
-// штатный переход к следующему матчу (540) — без паузы
+// штатный переход к следующему матчу (tick) — без паузы
 var MATCH_DIRTY = false;
 function freshMatch(n, keepProfile){ matchBegin(n, keepProfile, true); }
 function matchBegin(n, keepProfile, pause){
@@ -89,7 +89,7 @@ function matchBegin(n, keepProfile, pause){
   // предрасчёт подсказок броска и др.) — состояние перед матчем не должно зависеть от часов страницы и нагрузки браузера
   if((MATCH_DIRTY || tick > 0) && typeof mkMatchClean === "function") mkMatchClean();
   MATCH_DIRTY = true;
-  if(typeof WARM !== "undefined" && WARM.on){ WARM = {on:false}; }   // кнопку «пропустить разминку» прячет кадр (680, warmSkipSync)   // (v306) новый матч / перемотка — разминка кончилась
+  if(typeof WARM !== "undefined" && WARM.on){ WARM = {on:false}; }   // кнопку «пропустить разминку» прячет кадр (app, warmSkipSync)   // (v306) новый матч / перемотка — разминка кончилась
   if(pause) clockPause(true);
   clockSet(0); simTime = 0; roundStartTick = 0;
   if(!keepProfile) OPP = null;
@@ -150,8 +150,8 @@ function checkRoundEnd(){
   endRound(ctAlive ? "CT" : (tAlive ? "T" : null), "elim");
 }
 function endRound(winner, reason){ var _ev = simEvIn("endRound", arguments);
-  if(SANDBOX.on) return simEvOut(_ev);   // (v536) песочница: раунд не кончается (677)
-  if(DEMOV.on) return simEvOut(_ev);     // (v571) раунд из демки: кончается по демке (678)
+  if(SANDBOX.on) return simEvOut(_ev);   // (v536) песочница: раунд не кончается (sandbox)
+  if(DEMOV.on) return simEvOut(_ev);     // (v571) раунд из демки: кончается по демке (demo)
   for(var shk in siteHeatPending){ siteHeat[shk] = (siteHeat[shk]||0) + 1; } siteHeatPending = {};
   if(winner){ score[winner]++; }
   if(teamTac.T && teamTac.T.tac && teamTac.T.tac.style === "rush"){ RMEM.rush.push({site:teamTac.T.site, round:roundNum}); if(RMEM.rush.length > 6) RMEM.rush.shift(); }
@@ -168,7 +168,7 @@ function endRound(winner, reason){ var _ev = simEvIn("endRound", arguments);
   if(!over && roundNum >= regRounds() && (roundNum - regRounds()) % (OT_HALF*2) === 0)
     logEvent((roundNum === regRounds() ? "" : "ещё ")+"ОВЕРТАЙМ при "+score.CT+":"+score.T+" — MR3, по $"+OT_MONEY+", до "+(MATCH_WIN + OT_HALF*(otIndex(roundNum+1)+1))+" побед", true);
   if(!over && sideSwapNow(roundNum+1) && typeof document !== "undefined"){
-    RC_HALF = "Смена сторон: "+TEAM_NAME.T+" — CT, "+TEAM_NAME.CT+" — T";   // (15.11, перестройка) надпись на карточке ставит кадр (680)
+    RC_HALF = "Смена сторон: "+TEAM_NAME.T+" — CT, "+TEAM_NAME.CT+" — T";   // (15.11, перестройка) надпись на карточке ставит кадр (app)
   }
   if(over){
     roundState = "matchover";
@@ -237,7 +237,7 @@ function resetRound(){
   resetBomb();
   logEvent("Раунд "+roundNum+" начался");
 }
-// (17.11, перестройка — модули) время и состояние раунда двигает главный цикл (540, модуль) — через хозяина раунда
+// (17.11, перестройка — модули) время и состояние раунда двигает главный цикл (tick, модуль) — через хозяина раунда
 function roundSetState(s){ roundState = s; }
 function roundSetStart(time, tk){ roundStartTime = time; roundStartTick = tk; }
 function simTimeSet(v){ simTime = v; }

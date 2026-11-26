@@ -29,7 +29,7 @@ function nadeOrigin(n){
   if(!saw) return;
   var j = hashRand(tick*31 + n.ox*7), ja = hashRand(tick*17 + n.oy*3)*Math.PI*2, ex = n.ox + DM.cos(ja)*120*j, ey = n.oy + DM.sin(ja)*120*j;
   if(insideSolidWall(ex, ey)){ ex = n.ox; ey = n.oy; }
-  // (00_PLAN, аудит 2.2, 05.11) видевший бросок говорит в войс (230: «слышу» — с задержкой фразы), а не мгновенно в память команды
+  // (00_PLAN, аудит 2.2, 05.11) видевший бросок говорит в войс (voice: «слышу» — с задержкой фразы), а не мгновенно в память команды
   var zN = knowZoneAt(ex, ey); if(zN && saw.voice) teamPropose(saw, {kind: "hear", zone: zN, sound: "nade", count: 1});
   (saw.ears || (saw.ears = [])).push({x:ex, y:ey, tick:tick, team:n.team, kind:"nade", occl:true});
   // (док 6) в войс — через знание и канал команды (teamNotice: «гранату кинули из X»), а не отдельной надписью
@@ -45,7 +45,7 @@ function detonate(n){ var _ev = simEvIn("detonate", arguments);
     // молотов, упавший в дым или рядом так, что огонь касается дыма, гаснет (как в CS2 — наоборот тоже: дым тушит огонь;
     // v321, М12: «чуть касается смока — тушится»)
     if(!smokes.some(function(s){ return DM.hypot(s.x-n.x, s.y-n.y) < smokeRadiusNow(s) + NADE.molly.radius*MOLLY_SMOKE_TOUCH; }))
-    { fires.push({x:n.x, y:n.y, z:n.z != null ? visFloorAt(n.x, n.y, n.z) : null, born:tick, until:tick+NADE.molly.life, team:n.team, thrower:n.thrower}); fireRepath(n.x, n.y);   // (v555) z — пол, где горит (fireTouches, 370)
+    { fires.push({x:n.x, y:n.y, z:n.z != null ? visFloorAt(n.x, n.y, n.z) : null, born:tick, until:tick+NADE.molly.life, team:n.team, thrower:n.thrower}); fireRepath(n.x, n.y);   // (v555) z — пол, где горит (fireTouches, levels)
       // (v506, владелец 04.11: «инфа про молотов — просто знали, что кинули молотов, но чтобы это никуда не уводило») враг, который видит
       // огонь, говорит в войс «молотов на …» — только колл в панель войса: знание о врагах и решения не меняются (где разорвалась граната
       // врага, команда и так помнит — nadeSeen выше)
@@ -132,7 +132,7 @@ function armorSoak(b, raw, ratio, src){
 }
 var HURT_SND_GAP = 32;   // (v546) тиков (0,5 с) — проектное число
 function applyDamage(att, b, dmg, src, o){ var _ev = simEvIn("applyDamage", arguments);
-  if(DEMOV.on && !DEMOV.allow) return simEvOut(_ev, false);   // (v571) раунд из демки: урон — только смерти демки (678)
+  if(DEMOV.on && !DEMOV.allow) return simEvOut(_ev, false);   // (v571) раунд из демки: урон — только смерти демки (demo)
   o = o || {};
   if(!b.alive || dmg <= 0) return simEvOut(_ev, false);
   var foe = att && att.team !== b.team ? att : null, mate = att && att !== b && att.team === b.team;
@@ -145,7 +145,7 @@ function applyDamage(att, b, dmg, src, o){ var _ev = simEvIn("applyDamage", argu
     var HL = b._hitIn || (b._hitIn = []); HL.push([tick, foe.id, dl0]); if(HL.length > 16) HL.shift();
     var HO = foe._hitOut || (foe._hitOut = []); HO.push([tick, b.id, dl0]); if(HO.length > 16) HO.shift(); }
   // (v518a, пак 09.11 п.6) «ранен» — одно место для пули, HE и огня (раньше ставили только пули, 490 / 450): откуда — то, что знает живой игрок:
-  // пуля — откуда стреляли (звук выстрела + сторона попадания), HE / огонь — где разорвалось / горит. Реакция — hurtReactTick (350)
+  // пуля — откуда стреляли (звук выстрела + сторона попадания), HE / огонь — где разорвалось / горит. Реакция — hurtReactTick (contact)
   if(foe){ b._hurtT = tick; b._hurtSrc = src; b._hurtFrom = o.from || {x:foe.x, y:foe.y, z:foe.z}; }
   b.hp -= dmg;
   // (v546, владелец 10.11: «боты слышат, как кто-то подгорает в молотове или получил урон от пули, от гранаты» — это инфа) звук попадания
@@ -177,7 +177,7 @@ function applyDamage(att, b, dmg, src, o){ var _ev = simEvIn("applyDamage", argu
 // стены у нас без высоты, поэтому видно вспышку над крышей — если виден край рядом с ней: точка в 30 или 60 ед. карты от
 // разрыва вне стены, до которой у бота есть линия (проектные числа)
 // (v419) насколько флешка в точке n слепит b по направлению взгляда: 0 — не видит / дальше 1000, иначе 1 / 0,5 / 0,12 (прямо /
-// краем глаза / спиной). Одно место: хлопок (выше) и проверка перед броском «не слепит своих» (flashSafeFor, 350)
+// краем глаза / спиной). Одно место: хлопок (выше) и проверка перед броском «не слепит своих» (flashSafeFor, contact)
 function flashDirK(b, n){
   var d = n.z != null ? DM.hypot3(b.x-n.x, b.y-n.y, (n.z - visFloorAt(b.x, b.y, b.z) - VIS_EYE.stand)/(MAP.pxUnits || 2.5)) : DM.hypot(b.x-n.x, b.y-n.y);
   if(d > 1000 || !flashSeen(b, n)) return 0;
@@ -207,8 +207,8 @@ function nadesTick(){
   for(var i=nadesInAir.length-1;i>=0;i--){
     var n = nadesInAir[i];
     if(!n.p){ nadesInAir.splice(i,1); continue; }   // граната из снимка до физики (без состояния)
-    // (физика гранат) полёт — один тик физики (385: nadeStep — тяжесть, касания кубиком по геометрии игры, отскок по нормали, покой,
-    // запал); x, y, z и след — те же точки, что рисуются (620). Прежние навес по прямой к цели, «телепорт» от стены и отскок от
+    // (физика гранат) полёт — один тик физики (flight: nadeStep — тяжесть, касания кубиком по геометрии игры, отскок по нормали, покой,
+    // запал); x, y, z и след — те же точки, что рисуются (draw). Прежние навес по прямой к цели, «телепорт» от стены и отскок от
     // клеток 2D-сетки удалены
     var nb0 = n.bounces.length, how = nadeStep(n, nTr);
     var R = m3Radar(m3(), n.p[0], n.p[1]); n.x = R[0]; n.y = R[1]; n.z = n.p[2];

@@ -43,7 +43,7 @@ function kfIn(k){ if(!HUD_KF_SHOWN || HUD_KF_SHOWN.has(k)) return ""; HUD_KF_SHO
 // Только показ: массив killfeed и знание ботов не трогаются. 8 с — проектное число
 var KF_LIFE = 8, KF_FADE = 0.6;
 function kfStage(k){ var a = simTime - (k.at != null ? k.at : simTime); return a >= KF_LIFE ? 2 : a >= KF_LIFE - KF_FADE ? 1 : 0; }
-// раз в кадр (620): у какой-то строки сменилась стадия — перерисовать
+// раз в кадр (draw): у какой-то строки сменилась стадия — перерисовать
 function kfExpireTick(){
   var sig = killfeed.map(kfStage).join("");
   if(sig !== kfExpireTick._s){ kfExpireTick._s = sig; renderFeed(); }
@@ -96,7 +96,7 @@ function showRoundCard(winner, reason, t){   // t — тик конца раун
     '<div class="rc-s"><span class="ct">'+esc(TEAM_NAME.CT)+'</span> '+score.CT+'<i>:</i>'+score.T+' <span class="t">'+esc(TEAM_NAME.T)+'</span></div><div class="rc-h" id="rcHalf"></div></div><div class="rc-next" title="до следующего раунда"><b id="rcNext"></b></div>';
   el.className = ""; void el.offsetWidth;   // (v430) показ заново — анимации с начала
   el.className = "show "+(winner||"").toLowerCase();
-  // (DESIGN.md «Карточка конца раунда») карточка живёт, пока раунд в «ending» (640: scoreboardUpdate снимает её с концом состояния игры);
+  // (DESIGN.md «Карточка конца раунда») карточка живёт, пока раунд в «ending» (scoreboard: scoreboardUpdate снимает её с концом состояния игры);
   // был таймер реального времени — при ускоренной игре / перемотке карточка висела на закупке следующего раунда
   if(cardTimer){ clearTimeout(cardTimer); cardTimer = null; }
 }

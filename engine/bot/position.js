@@ -259,7 +259,7 @@ function holdSpot(b, T){
     // которое в этой группе уже занял свой (ближе «личного места» SPOT_PERSONAL — граница из демок), — не вариант: двое в одной точке не стоят.
     // Раньше это был только штраф (HOLD.stack), и когда точек с видом на бомбу мало, лучшая всё равно побеждала у всех
     // (v570, владелец 12.11: «на пост-планте до сих пор стоят кучно» — точки 81 ед. друг от друга, обе на бомбу) сначала — не ближе «своей
-    // линии» OWN_LINE_GAP (110): одно место можно держать вдвоём, но с разных позиций, а не плечом к плечу; нет таких — личное место, как было
+    // линии» OWN_LINE_GAP (task): одно место можно держать вдвоём, но с разных позиций, а не плечом к плечу; нет таких — личное место, как было
     if((T.mates||[]).some(function(m){ return DM.hypot(m.pt.x-c.x, m.pt.y-c.y) < (T.gap || SPOT_PERSONAL); })) return null;
     if(useMust && !mustPts.every(function(m){ return hasLOS(c.x, c.y, m.x, m.y); })) return null;
     var main = 0, mainE = null, open = 0;
@@ -374,7 +374,7 @@ function ppProGroup(members, bp, site, tag){
     var C = b._ppChk; if(C && tick - C.t0 < PP_CHK_DUR*TICK_HZ){ setPost(b, C.pt, C.look, true, tag); if(b.post){ b.post.ppAlt = 1; b.post.setupLook = 1; b.post.lookMoving = 1; } return; }
     var s = Z.spots[A.i], a = s.look && s.look[0] ? s.look[0][0] : DM.atan2(bp.y-s.y, bp.x-s.x);
     setPost(b, {x: s.x, y: s.y, pro: 1}, {x: s.x + DM.cos(a)*PP_LOOK_D, y: s.y + DM.sin(a)*PP_LOOK_D}, true, tag);
-    if(b.post) b.post.ppAlt = 1;   // место пост-планта: угол про не навязывается — взгляд по дележу команды (270, владелец 17.11: «живее»)
+    if(b.post) b.post.ppAlt = 1;   // место пост-планта: угол про не навязывается — взгляд по дележу команды (look, владелец 17.11: «живее»)
   });
   return members.filter(function(b){ return !(b._ppPro && b._ppPro.key === key); });   // кому места не досталось
 }

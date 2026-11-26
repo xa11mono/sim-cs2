@@ -10,8 +10,8 @@ function nadeUseTick(b){
   if(!b.alive || !b.nades || b.nadeTask || b.planting || b.defusing || !nadeReady(b) || roundState !== "live") return;
   if(tick - (b._nadeUseT || -1e9) < NADE_USE_GAP || teamSaving(b.team)) return;
   // (v519, пак 09.11 п.14; А-30: «некоторые боты во время стрельбы кидают гранаты, вместо того чтобы стреляться») видит врага / на линии перестрелки —
-  // своя граната не берётся: пока летит рука с гранатой, он не стреляет (490). Срочные гранаты боя (флешка под выход, смок на врага у бомбы) —
-  // в своих местах (350), не здесь
+  // своя граната не берётся: пока летит рука с гранатой, он не стреляет (shoot). Срочные гранаты боя (флешка под выход, смок на врага у бомбы) —
+  // в своих местах (contact), не здесь
   if(b._sawEnemy || (b._fc && b._fc.ph === "line")) return;
   var have = function(t){ return b.nades[t] > 0; };
   if(!have("smoke") && !have("flash") && !have("he") && !have("molly")) return;
@@ -107,7 +107,7 @@ function nadeBrains(){
     var smokers = ts.filter(function(b){ return b.nades.smoke > 0 && b.tRole !== "lurker"; });
     var cross = {x:(g.anchor.x+g.ctEntry.x)/2, y:(g.anchor.y+g.ctEntry.y)/2};
     var eo = {now:true, range:1300};
-    // (v511) смоки выхода — из лайнапов про (390, план команды 365). «Вход CT» / «кросс» (точки геометрии v166, не из демок; прогон 157:
+    // (v511) смоки выхода — из лайнапов про (lineups, план команды 365). «Вход CT» / «кросс» (точки геометрии v166, не из демок; прогон 157:
     // из них — почти все провалы критичных смоков: «не долетит», «стена на пути», «не дошёл за срок») — только запасом, если у карты
     // нет лайнапа про со смоком выхода на этот сайт
     if(npHasExecSmoke(tt.site)) smokers = [];
@@ -127,7 +127,7 @@ function nadeBrains(){
       assignNade(ent, "flash", {x:fx, y:fy}, "под заход", {bkey:"T.exec.flash."+tt.site}); // некому — сам себе
     }
     var mollies = ts.filter(function(b){ return b.nades.molly > 0; });
-    // (v428) молотов выхода — у того, чей молотов по плану команды не отложен на после планта (365: npCanUse); было отдельное правило
+    // (v428) молотов выхода — у того, чей молотов по плану команды не отложен на после планта (plan: npCanUse); было отдельное правило
     // «единственный молотов команды берегут на пост-плант» (keepMol)
     var mol = mollies.filter(function(b){ return !(bomb.state === "carried" && bomb.carrier === b) && npCanUse(b, "molly", "exec", null); })[0] ||
               mollies.filter(function(b){ return npCanUse(b, "molly", "exec", null); })[0];
@@ -183,7 +183,7 @@ function nadeBrains(){
     }
   }
   // CT: колл по сайту — ротатор перекрывает вход смоком. (v419) молотов / HE опорника «задержать выход» отсюда убраны — задержка
-  // гранатой одна, ctDelayNade (350): опорник кидает, когда сам знает, что группа идёт на него, и только с места
+  // гранатой одна, ctDelayNade (contact): опорник кидает, когда сам знает, что группа идёт на него, и только с места
   var call = teamTac.CT && teamTac.CT.call;
   if(call && !nadeFlags["ct"+call.site]){
     nadeFlags["ct"+call.site] = true;
@@ -211,7 +211,7 @@ function nadeBrains(){
     if(dd > NADE_THROW_RANGE || dd < 120) return;
     if(fires.some(function(f){ return DM.hypot(f.x-L.x, f.y-L.y) < 100; })) return;
     if(bots.some(function(o){ return o.alive && o.team === b.team && DM.hypot(o.x-L.x, o.y-L.y) < 130; })) return;
-    if(!nadeRevealOk(b)) return;   // (22.11, Ж23-П4) не нашли — себя гранатой не выдаёт без толку (380)
+    if(!nadeRevealOk(b)) return;   // (22.11, Ж23-П4) не нашли — себя гранатой не выдаёт без толку (throw)
     b._nadeCd = tick + 8*TICK_HZ;
     assignNade(b, type, {x:L.x, y:L.y}, "по инфе — выкурить", {now:true, eid:L.id || null});
   });
@@ -246,7 +246,7 @@ function retakeCutUseful(){
   return outside > 0;
 }
 // (15.11, перестройка, фаза 3 — канал гранат, шаг 1) задачу гранаты бота (nadeTask, очередь nadeQueue) пишут только файлы гранат 360–420;
-// остальные — через интерфейс nadeCancel(b, причина): смена сайта IGL (160), смерть (applyDamage, 400). Причина — b._nadeWhy.
+// остальные — через интерфейс nadeCancel(b, причина): смена сайта IGL (igl), смерть (applyDamage, damage). Причина — b._nadeWhy.
 function nadeCancel(b, why){ b.nadeTask = null; b.nadeQueue = null; b._nadeWhy = why; }
 function resetNades(){
   nadesInAir.length = 0; smokes.length = 0; fires.length = 0; nadeFx.length = 0; nadeFlagsReset(); groundWeapons.length = 0; groundItems.length = 0;

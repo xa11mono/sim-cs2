@@ -17,7 +17,7 @@ function dvAt(s, t){ var T = DEMOV.R.players[s].track, lo = 0, hi = T.length - 1
 function dvStart(i){
   var R = dvRounds()[i]; if(!R) return;
   DEMOV.on = false;
-  if(WARM.on){ WARM = {on:false}; }   // кнопку прячет кадр (680, warmSkipSync)   // из разминки — сразу в раунд демки
+  if(WARM.on){ WARM = {on:false}; }   // кнопку прячет кадр (app, warmSkipSync)   // из разминки — сразу в раунд демки
   freshMatch(1); var guard = 0; while(roundState !== "live" && guard++ < 20000) stepTick();
   DEMOV.R = R; DEMOV.i = i; DEMOV.t0 = tick; DEMOV.ei = 0; DEMOV.BOT = {};
   var P = R.players, ids = Object.keys(P), used = {};
@@ -34,7 +34,7 @@ function dvStart(i){
   dvRender(true);
 }
 function dvStop(){ DEMOV.on = false; bots.forEach(function(x){ x._dvName = null; }); logEvent("раунд из демки — выключен"); dvRender(true); }
-// каждый тик (stepTick, 540): события демки до этого момента, игроки — на места демки
+// каждый тик (stepTick, tick): события демки до этого момента, игроки — на места демки
 function dvTick(){
   var R = DEMOV.R, t = tick - DEMOV.t0, B = DEMOV.BOT;
   if(t >= R.len){ DEMOV.on = false; clockPause(true); logEvent("раунд из демки кончился"); dvRender(true); return; }
@@ -51,7 +51,7 @@ function dvTick(){
 function dvPlace(){ var t = tick - DEMOV.t0;
   Object.keys(DEMOV.BOT).forEach(function(s){ var x = DEMOV.BOT[s]; if(!x.alive) return; var q = dvAt(s, t), q1 = dvAt(s, t - 8);
     x.x = x.baseX = x.px = q[1]; x.y = x.baseY = x.py = q[2]; lookFace(x, q[4], "demo"); moveSpeed(x, Math.hypot(q[1]-q1[1], q[2]-q1[2]) / (8/TICK_HZ), "demo"); if(q[6] > 0) x.hp = q[6]; }); }
-// выстрел демки слышат враги — как в игре (490: слышимость по прямой / сквозь стены, место — с ошибкой hearPos)
+// выстрел демки слышат враги — как в игре (shoot: слышимость по прямой / сквозь стены, место — с ошибкой hearPos)
 function dvHearShot(sh){ bots.forEach(function(o){ if(!o.alive || o.team === sh.team) return; var dG = Math.hypot(o.x-sh.x, o.y-sh.y);
   var hearR = hasLOS(o.x, o.y, sh.x, sh.y, o.z, sh.z) ? GUN_HEAR_OPEN : GUN_HEAR_WALL; if(dG >= hearR) return;
   var hp = hearPos(o, sh.x, sh.y, tick*17 + o.id.charCodeAt(0)*7, hearR === GUN_HEAR_WALL);
@@ -63,7 +63,7 @@ function dvDiff(s, x){ var t = tick - DEMOV.t0, q = dvAt(s, t), q3 = dvAt(s, t +
   else if(pm > 150 && bd > 150 && an(Math.atan2(q3[2]-q[2], q3[1]-q[1]), Math.atan2(P.y-q[2], P.x-q[1])) > 75*Math.PI/180) mv = "идут в разные стороны";
   var L = x.lookTarget; if(L && Math.hypot(L.x-q[1], L.y-q[2]) > 20 && an(Math.atan2(L.y-q[2], L.x-q[1]), q[4]) > Math.PI/3) lk = x.lookReason || "—";
   return {q: q, q3: q3, mv: mv, lk: lk}; }
-// поверх радара (620): куда про придёт за 3 с (точки), куда пошёл бы бот (пунктир с задачей), куда смотрел бы (пунктир); расхождение — красным
+// поверх радара (draw): куда про придёт за 3 с (точки), куда пошёл бы бот (пунктир с задачей), куда смотрел бы (пунктир); расхождение — красным
 function dvDraw(){
   if(!DEMOV.on) return; var s1 = 1/view.scale, t = tick - DEMOV.t0; ctx.save();
   Object.keys(DEMOV.BOT).forEach(function(s){ var x = DEMOV.BOT[s]; if(!x.alive) return; var D = dvDiff(s, x), q = D.q;

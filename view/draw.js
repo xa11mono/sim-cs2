@@ -53,8 +53,8 @@ function draw(){
   }
   drawLineups();
   lookDbgDraw();
-  if(typeof dvDraw === "function") dvDraw();   // (v571) раунд из демки — что решил бы бот (678)
-  if(typeof teamDbgPanel === "function") teamDbgPanel(false);   // (v566) разбор команды (612)
+  if(typeof dvDraw === "function") dvDraw();   // (v571) раунд из демки — что решил бы бот (demo)
+  if(typeof teamDbgPanel === "function") teamDbgPanel(false);   // (v566) разбор команды (team)
   if(showZones.checked) drawZoneShapeHandles();
   drawZones(K);
   drawDanger(K);
@@ -68,7 +68,7 @@ function draw(){
   drawTracers(K);
   drawLayers(K);
   drawBots(K);
-  if(draw.noHud) return;   // (v463) кадр повтора клатча (675): только мир, без табло и панелей
+  if(draw.noHud) return;   // (v463) кадр повтора клатча (replay): только мир, без табло и панелей
   domText(document.getElementById("hContacts"), K.contacts/1);   // (v397, М146) только изменившееся — см. domText
   var ctEl = document.getElementById("contact"), ctD = K.contacts>0 ? "block" : "none"; if(ctEl.style.display !== ctD) ctEl.style.display = ctD;
   domText(document.getElementById("hTick"), tick);
@@ -461,7 +461,7 @@ function drawSmokes(K){
     K.timeArc(fr.x, fr.y, r0 + 3.5/K.S0, life/NADE.molly.life, fr.team, fade);
   });
   // граната в полёте: форма по типу (не только цвет) — дым кружок, флешка ромб, HE кружок с точкой, молотов треугольник
-  // (v437) летящая граната — силуэт гранаты (NADE_ICON, 630) вместо фигур; тёмная тень — чтобы читался на светлом полу
+  // (v437) летящая граната — силуэт гранаты (NADE_ICON, killfeed) вместо фигур; тёмная тень — чтобы читался на светлом полу
   var nadeIcon = function(n, x, y, px){
     var im = nadeImg(n.type, n.team); if(!im || !im.complete || !im.naturalWidth) return;
     var h = px*3.2/K.S0, w = h*im._ar;
@@ -471,7 +471,7 @@ function drawSmokes(K){
   var nadeRGB = function(t){ return t === "smoke" ? "214,217,209" : t === "flash" ? "255,255,255" : t === "he" ? "232,88,76" : "255,154,60"; };
   nadesInAir.forEach(function(n){
     var rgb = nadeRGB(n.type);
-    // (физика гранат, 30.10) всё — из состояния физики (400: n.x, n.y, n.z, след n.trail — точки полёта по тикам): прежняя
+    // (физика гранат, 30.10) всё — из состояния физики (damage: n.x, n.y, n.z, след n.trail — точки полёта по тикам): прежняя
     // нарисованная дуга к цели (подъём по синусу) удалена — рисунок и полёт были разными дугами. Высота над полом под гранатой —
     // размер значка и тень; лайнап — ещё и где сработает (n.tx, n.ty — расчёт той же физикой)
     var hz = n.z != null ? Math.max(0, n.z - visFloorAt(n.x, n.y, n.z)) : 0, hk = Math.min(1, hz/300);
@@ -662,7 +662,7 @@ function drawTracers(K){
   if(bomb && bomb.state === "exploded" && bomb.explodeTick != null){
     var ba = (tick - bomb.explodeTick)/TICK_HZ;
     if(ba >= 0 && ba < 2.2){
-      var rKill = BOMB_DMG.sigma*Math.sqrt(2*Math.log(BOMB_DMG.max/100));   // урон = max·exp(−L²/2σ²) (120)
+      var rKill = BOMB_DMG.sigma*Math.sqrt(2*Math.log(BOMB_DMG.max/100));   // урон = max·exp(−L²/2σ²) (bomb)
       var eo = function(p){ p = Math.max(0, Math.min(1, p)); return 1 - Math.pow(1 - p, 3); };
       var ca = Math.max(0, 1 - ba/1.6), rc = Math.max(1, rKill*eo(ba/0.35));
       if(ca > 0){
@@ -733,7 +733,7 @@ function drawLayers(K){
         ctx.fillText(pnum(b.id) + " · " + String(b.post.tag).replace(/[|].*$/, ""), b.post.x + 7*s1, b.post.y + 3*s1); }
     });
   }
-  // (v407, владелец 22.10: «галочку, чтобы я видел, когда счётчик у этих трёх повышается») ошибки движения (PROB, 545): кольцо и
+  // (v407, владелец 22.10: «галочку, чтобы я видел, когда счётчик у этих трёх повышается») ошибки движения (PROB, problem-watch): кольцо и
   // подпись на PROB_SHOW_SEC с там, где случилось; счёт за матч — плашкой в левом верхнем углу радара
   var chkPr = document.getElementById("chkProb");
   if(chkPr && chkPr.checked && typeof PROB !== "undefined"){
@@ -839,7 +839,7 @@ function drawBots(K){
       ctx.beginPath(); ctx.ellipse(rx + sOff*0.4, ry + sOff, r*(1 - 0.2*airH), r*0.55, 0, 0, Math.PI*2); ctx.fillStyle = "rgba(0,0,0,"+(0.55*Math.min(1, airH*2)).toFixed(3)+")"; ctx.fill();   // тень на земле
       r = r*(1 + 0.12*airH);   // (v551, владелец 11.11: «слишком сильно масштаб увеличивается») до +12 % (было +35 %; DESIGN.md, «Маркер игрока»)
       ctx.beginPath(); ctx.arc(rx, ry, r + 3.5/view.scale, 0, Math.PI*2); ctx.setLineDash([3/view.scale, 2.5/view.scale]);
-      ctx.strokeStyle = "rgba(255,255,255,"+(0.85*Math.min(1, airH*2)).toFixed(3)+")"; ctx.lineWidth = 1.4/view.scale; ctx.stroke(); ctx.setLineDash([]); }   // пунктирный ободок — «в воздухе»   // (v535) под / над другим этажом — доля 0..1, плавно (floorViewTick, 370)
+      ctx.strokeStyle = "rgba(255,255,255,"+(0.85*Math.min(1, airH*2)).toFixed(3)+")"; ctx.lineWidth = 1.4/view.scale; ctx.stroke(); ctx.setLineDash([]); }   // пунктирный ободок — «в воздухе»   // (v535) под / над другим этажом — доля 0..1, плавно (floorViewTick, levels)
     // прыжок / спрыгнул — стрелка у игрока на 0,6 с
     if(bot._jump && tick - bot._jump.t < 0.6*TICK_HZ){
       var jk = 1 - (tick - bot._jump.t)/(0.6*TICK_HZ), jy = bot._jump.up ? -1 : 1, jr = r + 7/view.scale;

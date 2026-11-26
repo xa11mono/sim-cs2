@@ -3,7 +3,7 @@
 function ctBrainPlayers(K){
   K.cts.forEach(function(b){
     if(b.defusing) return;
-    var role = ctRoleNow(b);   // (18.11) роль погибшего берёт живой ниже по важности (140)
+    var role = ctRoleNow(b);   // (18.11) роль погибшего берёт живой ниже по важности (ct-setup)
     if((K.planted || K.ct.preSave) && K.ct.saving){
       // сейв не на CT-спавне (там T как раз и будут искать), а в месте подальше от
       // бомбы и от живых T, откуда их не видно; каждый — своё ближайшее такое место

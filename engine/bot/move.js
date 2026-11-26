@@ -7,15 +7,15 @@
 // на своё место по порядку, а не отдельной проверкой в другом файле. Порядок причин — пока как сложился исторически
 // (первая подходящая); замена на таблицу важности — следующий шаг (00_PLAN.md), он уже меняет игру.
 // Вне этого файла скорость ещё задают: перестрелка (fightCycleTick / fightStrafe, 470 — после неё stepTick ставит скорость
-// фазы _fc), лестница (ladderTick, 370), стрейф на посту, торможение в повороте (cornerSlow) и «жду у огня» (fireWait) — в
+// фазы _fc), лестница (ladderTick, levels), стрейф на посту, торможение в повороте (cornerSlow) и «жду у огня» (fireWait) — в
 // ветке движения stepTick. Они — физика шага, а не решение «как идти»; сюда переносить вместе с таблицей важности.
 var MOVE = {run: 0, burn: null};   // выход moveSpeedTick: скорость бега после поправок и огонь под ботом (нужны stepTick дальше)
 
 // почему бот идёт шагом (первая подходящая причина; null — не шагом)
 // (15.11, перестройка, фаза 3 — канал хода, шаг 1) ход бота — шагом / бегом walking, скорость curSpeed, путь path — пишут только файлы
 // хода 535, 540, 370 (уровни, лестницы, огонь); остальные — через интерфейс: movePath(b, путь, причина), moveSpeed(b, скорость, причина),
-// moveWalk(b, шагом?, причина) — место (110), бомба (120), роумер (430, 070), ослеплён (460), бой (470 стрейф, 510), сброс (530, 050),
-// разминка (660), повтор (675), песочница (677), демо (678). Причина — b._moveWhy.
+// moveWalk(b, шагом?, причина) — место (task), бомба (bomb), роумер (fov, weapons-bots), ослеплён (sound), бой (470 стрейф, 510), сброс (round, paths),
+// разминка (warmup), повтор (replay), песочница (sandbox), демо (demo). Причина — b._moveWhy.
 // (17.11, перестройка, фаза 3 шаг 3) «подождать флешку перед выходом» — причина стоять у хода; механики (размен 190, ранний выход CT 320,
 // просьба о флешке 365, флешка под пик 380, своя флешка 410, сейв 180) не пишут _waitPopUntil / _waitPopKey, а просят moveWaitPop
 function moveWaitPop(b, until, key, why){ b._waitPopUntil = until; if(key !== undefined) b._waitPopKey = key; b._moveWhy = why; }
@@ -100,7 +100,7 @@ function moveRunWhy(bot){
 // шагом или бегом — одно место записи bot.walking
 function moveWalkTick(bot){
   var w = moveWalkWhy(bot), r = null;
-  if(bot.nadeTask && bot.nadeTask.runPh === "go"){   // (разбег гранаты) шаг или бег — как у эталона про (380)
+  if(bot.nadeTask && bot.nadeTask.runPh === "go"){   // (разбег гранаты) шаг или бег — как у эталона про (throw)
     if(bot.nadeTask.runWalk) w = "разбег гранаты на шифте"; else { w = null; r = "разбег гранаты бегом"; } }
   if(w){ var rr = moveRunWhy(bot); if(rr){ r = rr; w = null; } }
   // (v544, владелец 10.11: «в песочнице указывать, как идти — на шифте или нет») ход, заданный владельцем в песочнице, — главнее всех причин
@@ -170,7 +170,7 @@ function moveSpeedTick(bot, runSpeed, BRAKE_RADIUS, maxDelta){
   }
   // (v263, Б2) в огне — без торможения у конца пути: точка выхода всего в 28 px за краем, и бот, тормозя к ней, полз по
   // огню в 3–5 раз медленнее бега (на 3 матчах v262 почти все случаи «в огне > 1 с» — это он)
-  // (физика гранат: разбег) бросок с разбега — без торможения: в точке броска скорость полная, как у про (380: runupTick)
+  // (физика гранат: разбег) бросок с разбега — без торможения: в точке броска скорость полная, как у про (throw: runupTick)
   if(!bot.holding && bot.path.length && !burn && !(bot.nadeTask && bot.nadeTask.runPh === "go")){
     var finalWp = bot.path[bot.path.length-1];
     var dFinal = DM.hypot(finalWp[0]-bot.baseX, finalWp[1]-bot.baseY);
@@ -181,7 +181,7 @@ function moveSpeedTick(bot, runSpeed, BRAKE_RADIUS, maxDelta){
     targetSpeed = bot._blind.back ? runSpeed*0.55 : 0; why = bot._blind.back ? "ослеплён — шаг назад" : "ослеплён — стоит";
     if(!bot._blind.back) placeStance(bot, true, "blind");
   } else if(bot._blind && tick >= bot._blind.until){ bot._blind = null; }
-  if(bot._boost){ targetSpeed = 0; bot.curSpeed = 0; why = "подсадка"; }   // (v575, В144) подсадка — оба стоят (540, jumpCheckTick)
+  if(bot._boost){ targetSpeed = 0; bot.curSpeed = 0; why = "подсадка"; }   // (v575, В144) подсадка — оба стоят (tick, jumpCheckTick)
   // (v575, В144) в воздухе — не разгоняется; ход гаснет к доле про к приземлению (поворот A / D в воздухе у про стоит скорости, RUN_JUMP.keep, 540)
   if(bot._jc && bot._jc.run){ var jq = Math.min(1, (tick - bot._jc.t)/(RUN_JUMP.air*TICK_HZ)); bot.curSpeed = bot._jc.v0*(1 - (1 - bot._jc.kt)*jq); targetSpeed = bot.curSpeed; why = "в прыжке"; }
   if(bot.curSpeed < targetSpeed) bot.curSpeed = Math.min(targetSpeed, bot.curSpeed+maxDelta);

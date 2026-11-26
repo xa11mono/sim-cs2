@@ -6,8 +6,8 @@
 //   сколько каких гранат на раунд — MAP.pro.nadesBy (tools/pro/nades_pro.py: брошено за раунд на команду по типу раунда);
 //   на какой момент и в какую зону — MAP.nadeplan (tools/map/nadeplan_bake.py: доли бросков про «момент|зона» для каждого типа).
 //   момент: CT — now (до контакта) → call (увидели T) → retake;  T — now (сетап) → exec (выход) → postplant.
-//   зона: A / B / mid — сторона карты (posSideOf, 280): у CT — сторона его места в расстановке, у T — сайт его группы в тактике.
-// План строится в закупе — после выбора тактики и расстановки (buyPhase, 530): команда знает план раунда и покупает под него.
+//   зона: A / B / mid — сторона карты (posSideOf, position): у CT — сторона его места в расстановке, у T — сайт его группы в тактике.
+// План строится в закупе — после выбора тактики и расстановки (buyPhase, round): команда знает план раунда и покупает под него.
 // Гранату на поздний момент раньше не кидают (её берегут) — кроме последнего живого; на свой момент и позже — можно.
 // (v429) у T — ещё «фейк»: гранаты на другой сайт до настоящего выхода (тактика-фейк), тратятся там специально
 var NP_ORDER = {CT: {now: 0, call: 1, retake: 2}, T: {now: 0, fake: 1, exec: 2, postplant: 3}};
@@ -34,7 +34,7 @@ function npZoneOf(b){
   if(b.tRole === "lurker") return tac.style === "fake" ? tac.fake : other;
   if(tac.style === "rush") return tac.site;
   var G = (tac.groups || []).filter(function(g){ return (g.roles || []).indexOf(b.tRole) >= 0; })[0];
-  if(tac.style === "fake" && b.tRole === "support") return tac.fake;   // фейкеры (420: поддержка и лёркер) — на фейковом сайте
+  if(tac.style === "fake" && b.tRole === "support") return tac.fake;   // фейкеры (decide: поддержка и лёркер) — на фейковом сайте
   if(G) return G.stage === "TMID" ? "mid" : tac.site;
   if(tac.groups && tac.style !== "fake") return "mid";
   if(tac.style === "default") return (b.tRole === "entry" || b.tRole === "support") ? other : b.tRole === "awp" ? "mid" : tac.site;
@@ -105,7 +105,7 @@ function teamNadePlan(team, rt){
     cost[o.id] = (cost[o.id]||0) + pr;
   });
   // (v429) у гранаты «сейчас» и «выход» — конкретная цель из демок: лайнап про этой зоны на этот момент (группа одной цели, 320),
-  // по долям про; одна цель — одна граната. Хозяин кинет её, когда придёт время лайнапа (390: розыгрыш лайнапа — по плану)
+  // по долям про; одна цель — одна граната. Хозяин кинет её, когда придёт время лайнапа (lineups: розыгрыш лайнапа — по плану)
   var taken = {}, gi = 0;
   Object.keys(items).forEach(function(id){ var ob = bots.filter(function(o){ return o.id === id; })[0], RZ = team === "CT" && ob ? npRoleZones(ob) : null;
     items[id].forEach(function(it){
@@ -135,7 +135,7 @@ function npHasExecSmoke(site){ return proLineups().some(function(L){ return L.te
 function npPlanned(L){ return bots.some(function(o){ return o.alive && o.team === L.team && (o._nplan || []).some(function(it){ return it.lu === L.grp; }); }); }
 function npOwner(b, L){ return (b._nplan || []).some(function(it){ return it.lu === L.grp; }); }
 // (v429) может ли враг быть у точки — по тому, что команда знает: все живые враги недавно (≤ 4 с) замечены далеко (> 900) — нет.
-// Граната на тайминг «на всякий случай» в место, где врага точно нет, не летит (остаётся на потом). Как smokeEnemyPossible (290)
+// Граната на тайминг «на всякий случай» в место, где врага точно нет, не летит (остаётся на потом). Как smokeEnemyPossible (smoke-react)
 function npFoeMaybe(team, pt){
   var foe = team === "CT" ? "T" : "CT", BL = kvLast(team), alive = 0, away = 0;
   bots.forEach(function(e){ if(e.team !== foe || !e.alive) return; alive++; var L = BL[e.id]; if(L && tick - L.tick < 4*TICK_HZ && DM.hypot(L.x-pt.x, L.y-pt.y) > 900) away++; });
@@ -145,7 +145,7 @@ function npFoeMaybe(team, pt){
 // (00_PLAN п.14, ответ 7А, 05.11) флешка под пик — под конкретного выглядывающего, не того, кто кидает: свой, кто уже выглядывает (ранний
 // пик, проба) в ЗОНУ хлопка (куда смотрит его пик — post.look). Раньше — любой пик в 700 ед. от точки: флешку «на мид» оправдывал пик CT4
 // в сторону A (разбор отметок п.14), и под неё никто не выходил. Кто выходит под флешку, если в эту зону никто не выглядывает, и откуда —
-// вопрос владельцу (ранний пик мидера ведёт на Top Mid — так не надо). Ответ — выглядывающий или null; он ждёт хлопка (380: _waitPopKey)
+// вопрос владельцу (ранний пик мидера ведёт на Top Mid — так не надо). Ответ — выглядывающий или null; он ждёт хлопка (throw: _waitPopKey)
 function npPeekReady(team, pt, thrower){
   var Z = npZoneAt(pt.x, pt.y), best = null, bd = Infinity;
   bots.forEach(function(o){ if(o === thrower || !o.alive || o.team !== team || !o.post || !/^(earlyPeek|probe)/.test(o.post.tag)) return;
@@ -172,7 +172,7 @@ function npCanUse(b, t, m, z){
   // за 1300 ед.) граната, закреплённая за целью лайнапа (lu), до конца своего момента — только для этой цели (её кидает лайнап, 390)
   return L.some(function(it){ return O[it.m] <= O[m] && (!z || !it.z || it.z === z) && !(it.lu && O[it.m] === O[m] && npLuOpen(it.lu)); });
 }
-// (В142, v580) закреплённая за целью лайнапа граната держится за ней, пока окно этой цели открыто: CT по времени — до at + 12 с (390:
+// (В142, v580) закреплённая за целью лайнапа граната держится за ней, пока окно этой цели открыто: CT по времени — до at + 12 с (lineups:
 // окно броска), T «сейчас» (инста / сетап) — пока идёт сетап. Окно прошло, лайнап не полетел — граната свободна (задержать, своя).
 // Было: закреплена до конца момента «сейчас» — у CT весь раунд до колла; облако v579a2 м7 + м13: 60 из 154 гранат с лайнапом не брошены,
 // прогон 240: CT погибают с 5,2 гранатами за раунд
@@ -204,12 +204,12 @@ function npUse(b, t, m, lu){
 // Как: (1) лайнап флешки про своей стороны, хлопок которого — у точки (≤ порога «долетит» флешки, nadeAimLimit), точка броска по пути
 // (luBehind) и не видна тем, кого команда видела / слышала за SITE_SEEN_SEC; (2) с места — точка в FLASH_ASK_R. Из возможных — кто раньше
 // хлопнет (дорога + запал); позже FLASH_ASK_WAIT — никто (выглядывающий не ждёт дольше). Ответ — помощник или null; выглядывающий ждёт хлопка
-var FLASH_ASK_WAIT = 3.5, FLASH_ASK_R = 700;   // с, ед. — те же проектные числа, что в «флешу под пик» v506 (250)
+var FLASH_ASK_WAIT = 3.5, FLASH_ASK_R = 700;   // с, ед. — те же проектные числа, что в «флешу под пик» v506 (look-peek)
 // (владелец 05.11: «за шесть раундов хотя бы в трёх-четырёх, не при каждом случае») — одна просьба на команду за раунд: проектное число из
 // слов владельца (замер облака до предела: м7 — 10 просьб в 6 раундах из 10, м11 — 18 в 8 из 8; из 28 хлопнули 9)
 var FLASH_ASK_PER_ROUND = 1, FLASH_ASK_N = {};
 function nadeAskFlash(b, pt, why, type, forC){   // (22.11, Ж23) forC — заказ под задачу просящего (380 nadeOwnerOk): умерла задача — флешку не кидают
-  // (v554) type — «he»: HE в смок (smokeHeTick, 290) просит того, у кого она есть; лимит на раунд — свой у каждого типа
+  // (v554) type — «he»: HE в смок (smokeHeTick, smoke-react) просит того, у кого она есть; лимит на раунд — свой у каждого типа
   type = type || "flash"; var fl = type === "flash";
   var nk = matchNum+":"+roundNum+":"+b.team+(fl ? "" : ":"+type); if((FLASH_ASK_N[nk]||0) >= FLASH_ASK_PER_ROUND) return null;
   var foe = b.team === "CT" ? "T" : "CT", BL = kvLast(b.team), fuse = (NADE[type].fuse || NADE.flash.fuse)/TICK_HZ, lim = nadeAimLimit(type, false);

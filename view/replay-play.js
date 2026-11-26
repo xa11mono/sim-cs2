@@ -30,7 +30,7 @@ function rpDraw(E, x, P, dt, W, H, dpr){
   var k = 1 - Math.exp(-dt*3.5), ks = 1 - Math.exp(-dt*2.2);
   P.cam.x += (tx - P.cam.x)*k; P.cam.y += (ty - P.cam.y)*k; P.cam.s += (sc - P.cam.s)*ks;
   var S = P.cam.s, ox0 = W/2 - P.cam.x*S, oy0 = top + avH/2 - P.cam.y*S;
-  // (v463, владелец: «повтор без деталей, не тот дизайн, нет анимации стрельбы, взрыва») кадр повтора рисует сама игра (draw, 620) —
+  // (v463, владелец: «повтор без деталей, не тот дизайн, нет анимации стрельбы, взрыва») кадр повтора рисует сама игра (draw, draw) —
   // по записанному миру этого тика (rpWorldPut), со всеми эффектами; поверх — только подсветка клатчера и вспышка фрага
   rpWorldDraw(E, P, I, S, ox0, oy0, W, H);
   x = E.ctx; dpr = 1;
@@ -50,7 +50,7 @@ function rpDraw(E, x, P, dt, W, H, dpr){
   x.setTransform(1,0,0,1,0,0);
   RP.sndOwn = true; try{ rpSound(P, R, ci); } finally { RP.sndOwn = false; }
 }
-// (v461) звук повтора: выстрелы и дефуз в свой момент клипа, громкость — по камере повтора. Звуковой движок (680) меряет расстояние от
+// (v461) звук повтора: выстрелы и дефуз в свой момент клипа, громкость — по камере повтора. Звуковой движок (app) меряет расстояние от
 // центра живого радара — поэтому точка звука переносится: живой центр + (точка − центр камеры повтора). Заплатка (одно место звука)
 function rpSound(P, R, ci){
   if(!SND || !SND.on || !SND.ctx || !P.cam) return;
@@ -63,7 +63,7 @@ function rpSound(P, R, ci){
   var I = rpAt(R, P.rt), J = rpAt(R, from), a1 = I.A.b[ci*RP_NB+7], a0 = J.A.b[ci*RP_NB+7];
   if(a1 < 0 && !(a0 < 0)){ var q2 = mv(I.A.b[ci*RP_NB], I.A.b[ci*RP_NB+1]); sndBomb("defuse", q2.x, q2.y); }
   R.kills.forEach(function(k){ if(k.att === R.clutch.id && k.t > from && k.t <= P.rt) showSnd("hit", 0.25); });
-  // (v518d, владелец А-35: «в повторах нет пиканья бомбы») писк — по тому же расписанию, что в игре (bombBeepTick, 680), по времени повтора
+  // (v518d, владелец А-35: «в повторах нет пиканья бомбы») писк — по тому же расписанию, что в игре (bombBeepTick, app), по времени повтора
   var PL = R.ev.filter(function(e){ return e.kind === "plant"; })[0];
   if(PL){ var eT = PL.t + BOMB_TICKS, stopT = R.ev.filter(function(e){ return e.kind === "defuse" || e.kind === "boom"; }).reduce(function(m, e){ return Math.min(m, e.t); }, eT);
     if(!R._bp){ var pi = rpBotIdx(PL.id), IP = rpAt(R, PL.t); R._bp = pi >= 0 ? {x: IP.A.b[pi*RP_NB], y: IP.A.b[pi*RP_NB+1]} : null; }

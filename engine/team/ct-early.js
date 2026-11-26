@@ -20,7 +20,7 @@ function proLineups(){
   PRO_LINEUPS.forEach(function(L){
     var zt = zoneIdAt(L.to.x, L.to.y) || (Math.round(L.to.x/150)+","+Math.round(L.to.y/150));
     // (v430, М167, м1 Mirage р4: смок Catwalk «инста» (donk) и «сетап» (TN1R) — два дыма в одно место) группа — по моменту плана гранат
-    // (365: CT по времени, T инста и сетап — «сейчас»), а не по триггеру; у «сейчас» — без сайта (та же цель в тактике на A и на B)
+    // (plan: CT по времени, T инста и сетап — «сейчас»), а не по триггеру; у «сейчас» — без сайта (та же цель в тактике на A и на B)
     var mo = npMomentOfLineup(L);
     L.grp = [L.team, mo, mo === "now" ? "" : L.site, L.type, zt].join("|");
     (PRO_GROUPS[L.grp] = PRO_GROUPS[L.grp] || []).push(L);
@@ -33,7 +33,7 @@ function proLineups(){
 // где первым нашёлся бросающий, остальные места группы гасятся (proGroupDone)
 function proRollGroup(L){
   var G = PRO_GROUPS[L.grp] || [L], hid = 0, i;
-  // (v429) гранаты на тайминг (CT по времени) и сетапа / выхода T — по плану гранат команды (365): цель летит, если её запланировали
+  // (v429) гранаты на тайминг (CT по времени) и сетапа / выхода T — по плану гранат команды (plan): цель летит, если её запланировали
   // (у кого-то из живых граната с этой целью), а не по своему кубику; колл, ретейк, после планта — кубиком, как было
   if((L.team === "CT" && L.trigger === "timed") || (L.team === "T" && (L.trigger === "insta" || L.trigger === "setup" || L.trigger === "exec"))){
     var win0 = npPlanned(L); G.forEach(function(x){ nadeFlags["pr"+x.id] = win0; }); return;
@@ -173,7 +173,7 @@ function ctEarlyPeek(b, ct){
     if(!E.pt){ E.st = 2; return false; }
     E.st = 1;
     voiceLog("CT", "early"+b.id, b.id, "выгляну за инфой "+calloutName(E.pt.x, E.pt.y));
-    // (00_PLAN п.14, владелец 05.11) под ранний пик — сначала «накиньте флешку» (365: nadeAskFlash); некому — флешка себе (если есть и не эко у соперника)
+    // (00_PLAN п.14, владелец 05.11) под ранний пик — сначала «накиньте флешку» (plan: nadeAskFlash); некому — флешка себе (если есть и не эко у соперника)
     if(roundGoal("CT") !== "keepGuns" && nadeAskFlash(b, stg, "флешу под ранний пик "+b.id)){}
     else if(b.nades && b.nades.flash > 0 && roundGoal("CT") !== "keepGuns" && hashRand(roundNum*97 + b.id.charCodeAt(2)*5) < 0.6){
       var whyF = "себе под ранний пик "+b.id;
@@ -235,7 +235,7 @@ function ctClutch(b, ct){
       if(DM.hypot(sq.x-SITES.A.x, sq.y-SITES.A.y) < DM.hypot(sq.x-SITES.B.x, sq.y-SITES.B.y)) nA++; else nB++; }
     if(nA !== nB) seenSite = nA > nB ? "A" : "B"; }
   // (v583a, Д2.2) свой погиб на сайте ≤ 3 с назад (киллфид + радар) — факт, как «видели бомбу»: у про после смерти CT на сайте до планта
-  // плант на этом сайте в 90–93 % (220, knowSiteShift); клатч берёт его сразу (знание обновится только в конце тика — без этого брал старый сайт
+  // плант на этом сайте в 90–93 % (events, knowSiteShift); клатч берёт его сразу (знание обновится только в конце тика — без этого брал старый сайт
   // и ждал 8 с выдержки, р2 м302: «играю B» через 20 с)
   var deathSite = null, sgD = teamIntel.CT && teamIntel.CT.sig;
   if(sgD) for(var iD = sgD.length-1; iD >= 0; iD--){ var sD = sgD[iD]; if(tick - sD.tick > 3*TICK_HZ) break; if(sD.type !== "died" || sD.id === b.id) continue;
@@ -387,7 +387,7 @@ function ctInfoCheck(b, ct, cts){
     var stop = b._sawEnemy || fresh || (!b.atPost && !taskWalkOn(b, I.pt, I));
     // (К1/К2, владелец 18.11: «прошёл, никого не увидел и встал — подождать, может кто-то придёт; никто не пришёл — пошёл дальше») глянул, пусто —
     // встаёт рядом укрыто от того, откуда они придут (следующая зона вглубь), и слушает случайно INFO_WAIT с (проектный разброс); кто-то идёт мимо — засада
-    // (480); тишина — сама по себе инфа (markClear уже сказал «пусто») — дальше вглубь
+    // (assist); тишина — сама по себе инфа (markClear уже сказал «пусто») — дальше вглубь
     if(looked && !stop && !I.waitT){ var nw = infoNext(b, I.j, cts), from = nw ? nw.c : {x:I.x, y:I.y}, TC = coverThreats(b, [from]);
       I.waitT = tick + Math.round((INFO_WAIT[0] + (INFO_WAIT[1]-INFO_WAIT[0])*hashRand(tick*17 + b.id.charCodeAt(b.id.length-1)*7))*TICK_HZ);   // (владелец 19.11: «сколько сидеть — рандомно»)
       I.hide = coverPick(pickSpots("infow"+tick+b.id, {x:b.x, y:b.y}, COVER_CANDS, {team: "CT", rMin:0, rMax:120, minGap:20, hideFrom:TC.concat(TC.exp)}), coverZ(b), TC) || {x:b.x, y:b.y};
@@ -395,7 +395,7 @@ function ctInfoCheck(b, ct, cts){
     if(I.waitT && tick < I.waitT && !stop){ setPost(b, I.hide, I.hideLook, true, "probeHide"); return b.post && b.post.tag === "probeHide"; }
     if(looked && !stop){ I.waitT = 0; var nx = infoNext(b, I.j, cts); if(nx){ infoGo(I, b, nx); voiceLog("CT", "info"+b.id+roundNum+I.n+"_"+nx.j, b.id, "пусто, иду дальше — "+calloutName(nx.c.x, nx.c.y).replace(/^на /, "")); } else stop = true; }
     // (К2, владелец 18.11: «даже если уже начался выход, он продолжает идти — это второй фланг») команда узнала о T, а я у них в тылу (моя зона
-    // ближе к их спавну, чем зона, где их знают): не бросаю — иду в спину (заход, 480)
+    // ближе к их спавну, чем зона, где их знают): не бросаю — иду в спину (заход, assist)
     if(fresh && !b._sawEnemy && infoBehind(b)){ var ids = bots.filter(function(t){ var q = BLi[t.id]; return t.team === "T" && t.alive && q && q.tick > I.t0; }).map(function(t){ return t.id; });
       // их дорогой: через их спавн, если до него мне ближе, чем до них (я на их половине)
       var sp = infoPoint(T_SPAWN), BLs = kvLast("CT"), myS = sp ? pathLenTo(b, sp.x, sp.y) : Infinity;
@@ -425,7 +425,7 @@ function ctInfoCheck(b, ct, cts){
     if(cts.some(function(o){ return hasVision(o.x, o.y, c.x, c.y); })) continue;
     var w = beliefZoneKnown("CT", j); if(!(w > INFO_W)) continue;
     // (владелец 19.11: «где угрозы меньше — туда проба вглубь, понять, что точно никого, и перестроиться») зона на стороне, где команда ждёт
-    // меньше T, — важнее: проверка ради перестройки (ctRoleShift, 140)
+    // меньше T, — важнее: проверка ради перестройки (ctRoleShift, ct-setup)
     var sdT = ctSideThreat(), sd = ctSideOf(c.x, c.y), kS = sd && sdT[sd] != null ? 1/(1 + sdT[sd]) : 1;
     var sc = w*kS/(1 + d/400); if(!best || sc > best.sc) best = {sc:sc, c:c, j:j};   // ближе — лучше (400 ед. — вдвое хуже; проектное число)
   }

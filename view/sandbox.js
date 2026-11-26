@@ -137,7 +137,7 @@ window.addEventListener("mousemove", function(e){
   if(typeof draw === "function") draw();
 });
 // (v540, скрин владельца 10.11: «Ошибка игры… Cannot read properties of null (reading 'tag')» в ctBrain) отпущенный бот терял пост, а «дошёл до
-// поста» (atPost) оставался — мозг CT читал задачу поста, которого нет. Пост снимает только clearPost (110): и пост, и «дошёл», и задачу
+// поста» (atPost) оставался — мозг CT читал задачу поста, которого нет. Пост снимает только clearPost (task): и пост, и «дошёл», и задачу
 window.addEventListener("mouseup", function(){ if(SANDBOX.drag){ clearPost(SANDBOX.drag); SANDBOX.drag = null; } });
 (function(){ var bt = document.getElementById("btnSandbox"); if(bt) bt.addEventListener("click", sbToggle); })();
 setInterval(function(){ if(SANDBOX.on || (SB_PANEL_EL && SB_PANEL_EL.style.display !== "none")) sbRender(false); }, 200);   // (v537) панель следует за SANDBOX.on и после перемотки

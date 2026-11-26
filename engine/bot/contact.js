@@ -64,7 +64,7 @@ function contactInfo(b){
     if(saving){ if(mateFight0(id) && hasLOS(b.x, b.y, e.x, e.y, b.z, e.z)) take(e.x, e.y, e.src === "spotted", id, e.z); continue; }
     if(trade || retakeHunt || myZ[zoneIdAt3(e.x, e.y, e.z)] || (mateFights(id) && (phase || calm()))) take(e.x, e.y, e.src === "spotted", id, e.z); }
   // (v469) бросок гранаты (слышно чеку / бросок) — не контакт (ответ про-аналитика: на гранату вдали не реагировать); её место знание получает
-  // (v570, В135) выстрел / попадание от невидимого стрелка — контакт, только если бот обратил на него внимание (noticeShooter, 210)
+  // (v570, В135) выстрел / попадание от невидимого стрелка — контакт, только если бот обратил на него внимание (noticeShooter, knowledge)
   var hs = b.heardSound; if(hs && !((hs.kind === "shots" || hs.kind === "hit") && !noticeShooter(b, hs.src)) && hs.team && hs.team !== b.team && hs.kind !== "nade" && tick - hs.tick <= CONTACT_AGE*TICK_HZ && !deadSrc(hs.src) && (hs.kind !== "call" || trade || myZ[zoneIdAt3(hs.x, hs.y, hs.z)])) take(hs.x, hs.y, hs.kind === "hit", hs.src, hs.z);   // (v560, В101: «по нему стреляли, не попали — не отреагировал») по нему стреляют — откуда, он знает (пули рядом): как увиденный — по прямой, без проверки сектора
   // (v448, док владельца 28.10 №4: у игрока 1 «якорь контакт холд, когда он далеко, не стрелялся и никого не видел») своя флешка —
   // контакт только если кинута себе под пик («флешу себе и выхожу»); раньше любая своя флешка (на сайт за 700 ед.) давала «держу свой контакт»
@@ -87,7 +87,7 @@ var SPOT_PERSONAL = 70, FOLLOW_GAP = 70;   // проектные числа: «�
 // (v570) «место занято своим» — одна функция на три мерки (было три: spotTaken здесь, spotTakenPost и lineTaken в 110):
 //   how не задан — «личное место» SPOT_PERSONAL: свой стоит / идёт туда (позиция или пост) — как было;
 //   "post" — то же расстояние, но только места своих (пост), без тех, кто проходит мимо;
-//   "line" — «своя линия» OWN_LINE_GAP (110): пост своего, который тоже держит угол (свойство задачи ownLine)
+//   "line" — «своя линия» OWN_LINE_GAP (task): пост своего, который тоже держит угол (свойство задачи ownLine)
 function spotTaken(b, q, how){ return bots.some(function(o){
   if(o === b || !o.alive || o.team !== b.team) return false;
   if(how === "line"){ var oh = o.post && o.post.hold && taskProp(String(o.post.tag), "ownLine");
@@ -112,7 +112,7 @@ function contactTick(b){
     // на контакт кончилась — её точка снимается, бот возвращается к своей задаче (раньше пост «контакт» оставался до конца раунда)
     if(b.post && /^contact/.test(b.post.tag)) clearPost(b); }
   else if(!K && b.post && /^contact/.test(b.post.tag)) clearPost(b);   // точка контакта без самого контакта — тоже снять
-  if(ambushTick(b)) return;   // (К1/К2, 18.11) враг меня не видит и проходит мимо — засада / заход в спину (480)
+  if(ambushTick(b)) return;   // (К1/К2, 18.11) враг меня не видит и проходит мимо — засада / заход в спину (assist)
   if(b._sawEnemy) return;   // видит врага — это уже бой
   var C = contactInfo(b); if(!C) return;
   // (00_PLAN, аудит 3.4, 05.11: «контакт (ур. 9) держится, когда команде уже критически мало времени на ретейк») начатый контакт пересматривается
@@ -165,7 +165,7 @@ function contactTick(b){
   // (00_PLAN, ответ владельца 05.11 — схема «после перестрелки»: «противник может повторно выйти — удерживает угол из укрытия; повторный выход —
   // только при преимуществе: союзник готов к размену, флешка, противник перезаряжается, надо сорвать плант; не обязательное желание повторить
   // перестрелку») после СВОЕЙ перестрелки с этим врагом (сам видел его и стрелял за CONTACT_AGE) выход — только с преимуществом; численность
-  // (nE ≤ nM + 1) и «в ударе» — не повод. Нет преимущества — «накиньте флешку» (365); некому — держит угол
+  // (nE ≤ nM + 1) и «в ударе» — не повод. Нет преимущества — «накиньте флешку» (plan); некому — держит угол
   var fought = C.seen && C.id && tick - (b.lastShotTick || -1e9) <= CONTACT_AGE*TICK_HZ;
   // (В142, v580) до выхода T (сетап, бомба не стоит) на врага выходят тоже только с преимуществом — как после своей перестрелки. PRO_PLAY §2.2 [1]:
   // «агрессия — только с поддержкой (флешка, позиция для размена)», «не умирать — потерянный игрок открывает место». Демки Mirage: контакт до 25 с
@@ -229,7 +229,7 @@ function contactTick(b){
   // (v558, В76 ч.3) выход — на дистанцию своего оружия (медиана убийств им у про, wpnKillDist 280): с Five-SeveN / ПП — ближе, с Deagle /
   // AWP — не лезть вплотную; было — всегда ближайшая к врагу точка
   var wD = wpnKillDist(b)[0];
-  // (v583a, Д30, владелец 18.11: «в перестрелке — разные пики») выход на врага — жребий вида пика с весами про (PEEK_KIND, 470): короткий — ближайшая
+  // (v583a, Д30, владелец 18.11: «в перестрелке — разные пики») выход на врага — жребий вида пика с весами про (PEEK_KIND, fight): короткий — ближайшая
   // к себе точка, откуда видно врага (чуть выглянуть); средний — на дистанции своего оружия (как было); широкий — самая дальняя от себя (выйти широко)
   var pkU = swing ? hashRand(tick*43 + b.id.charCodeAt(b.id.length-1)*19 + roundNum*7) : 0, PKW = PEEK_KIND[b.team] || PEEK_KIND.T;
   var pkK = !swing ? null : pkU < PKW[0] ? "short" : pkU < PKW[0] + PKW[1] ? "mid" : "wide";
@@ -241,7 +241,7 @@ function contactTick(b){
   var tag = swing ? "contact:swing" : "contact:hold";
   // (v378) задача важнее контакта (бомба, сейв — арбитр места, setPost) — ноги остаются на ней, взгляд — на контакт
   if(!setPost(b, sp, look, true, tag)){ b._contact = {x:C.x, y:C.y, id:C.id, until: tick + CONTACT_HOLD*TICK_HZ, lock:false}; b._contactT = tick; return; }
-  b._contact = {x:C.x, y:C.y, id:C.id, until: taskDeadline(b, sp, CONTACT_HOLD, b.walking), lock:true, pt:sp, tag:tag}; b._contactT = tick;   // (18.11) срок — от прихода на точку выхода (110)
+  b._contact = {x:C.x, y:C.y, id:C.id, until: taskDeadline(b, sp, CONTACT_HOLD, b.walking), lock:true, pt:sp, tag:tag}; b._contactT = tick;   // (18.11) срок — от прихода на точку выхода (task)
   taskKeep(b, 0, "contact"); b._probeLock = 0; b.lastIntel = {x:look.x, y:look.y, tick:tick, src:"call"};
   if(swing && !C.own && b.nades && b.nades.flash > 0 && C.d > 150 && !hasLOS(b.x, b.y, look.x, look.y, b.z)) assignNade(b, "flash", look, "флешка под выход на врага рядом", {now:true, range:900, forC: nadeOwnerOf(b, C.id || null)});
   // (v443, док владельца 27.10: «войс раунда спамится») «держу X» — 23 строки за раунд, один бот повторял её ~3 раза: это пересказ своих
@@ -250,7 +250,7 @@ function contactTick(b){
   if(swing){ var sk = C.id || calloutName(look.x, look.y), SS = b._swSaid && b._swSaid.r === roundNum ? b._swSaid : (b._swSaid = {r:roundNum});
     if(!SS[sk]){ SS[sk] = 1; voiceLog(b.team, "ct"+b.id+Math.round(tick/64), b.id, "пикаю "+calloutName(look.x, look.y).replace(/^на /, "")); } }
 }
-// ======================= (v419, хвост 350:70, владелец 25.10) ЗАДЕРЖАТЬ ГРАНАТОЙ — одно место для CT =======================
+// ======================= (v419, хвост contact:70, владелец 25.10) ЗАДЕРЖАТЬ ГРАНАТОЙ — одно место для CT =======================
 // PRO_PLAY.md (CT): «отказать и потянуть — утилитой задерживать», «тиммейт держит утилиту и кидает при контакте», «молотов
 // останавливает подход». CT знает, что группа T идёт на него: держит угол от контакта (contact:hold) или команда видела / слышала T
 // у входа на сайт (в первые 25 с хватает одного, дальше — двое; на сайте уже больше одного — поздно; кидает ближайший к входу CT —
@@ -259,7 +259,7 @@ function contactTick(b){
 //  · проход открыт — молотов, нет — смок (не туда, где уже горит);
 //  · между ним и группой дым, а свой рядом стреляется с ней (contactMateFight) — HE (не в сам дым: HE его разрывает), нет —
 //    флешка, если её хлопок по формуле ослепления (flashDirK) не слепит ни одного своего; свой не в бою — дым держит проход сам.
-// Потом — снова угол с оружием. Заменяет «молотов на раш» (410) и молотов / HE опорника «задержать выход» по коллу (420).
+// Потом — снова угол с оружием. Заменяет «молотов на раш» (self) и молотов / HE опорника «задержать выход» по коллу (decide).
 var DELAY_SAFE = 350, DELAY_GAP = 6, DELAY_GROUP_R = 175;   // DELAY_GROUP_R (Д30) — px ≈ 350 ед.: «T рядом с местом гранаты» как в замере про   // проектные числа: 350 — из ТЗ владельца (300–400, не из демок), 6 с — пауза между бросками
 function delaySafe(b){
   if(b._sawEnemy) return false;
@@ -270,7 +270,7 @@ function delaySafe(b){
 }
 function flashSafeFor(b, t){
   return !bots.some(function(o){ if(o === b || !o.alive || o.team !== b.team) return false;
-    var k = flashDirK(o, t); return k && BAL.flashMax*k*Math.max(0, 1 - DM.hypot(o.x-t.x, o.y-t.y)/1100) > 0.35; });   // как хлопок (400), без увёртки и колла
+    var k = flashDirK(o, t); return k && BAL.flashMax*k*Math.max(0, 1 - DM.hypot(o.x-t.x, o.y-t.y)/1100) > 0.35; });   // как хлопок (damage), без увёртки и колла
 }
 function delayCanThrow(o){ return o.alive && o.team === "CT" && o.nades && (o.nades.molly > 0 || o.nades.smoke > 0 || o.nades.he > 0) && !o.nadeTask && !o._sawEnemy; }
 function delayTarget(b){
@@ -309,7 +309,7 @@ function delayTarget(b){
 function ctDelayNade(b){
   if(b.team !== "CT" || !b.alive || !b.nades || b.nadeTask || b.planting || b.defusing || (bomb && bomb.state === "planted")) return;
   if(tick - (b._delayT == null ? -1e9 : b._delayT) < DELAY_GAP*TICK_HZ || !delaySafe(b)) return;
-  if(!nadeRevealOk(b)) return;   // (22.11, Ж23-П4) не нашли — задержка гранатой только с толком: свои идут, срываю плант (380)
+  if(!nadeRevealOk(b)) return;   // (22.11, Ж23-П4) не нашли — задержка гранатой только с толком: свои идут, срываю плант (throw)
   var t = delayTarget(b); if(!t) return;
   var type = null, inSmoke = smokeCovered(t.x, t.y);
   if(inSmoke || smokeBlocks(b.x, b.y, t.x, t.y)){
@@ -346,7 +346,7 @@ function hurtReactTick(b){
   var hs = b.heardSound, shotT = hs && hs.kind === "hit" && hs.team && hs.team !== b.team ? hs.tick : 0;
   // (v560, В78, разбор владельца 11.11: «реакция на смоки» — CT кинули смок по времени прямо на лёркера на T Ramp, он остался в нём и
   // перестреливался с края; v561 — перенесено сюда из 290, хозяин «опасно — уйти») смок соперника раскрылся на нём, а он не на посту (идёт по
-  // маршруту, проба): тут его ждут или сейчас выйдут — назад по своему следу из дыма. На посту — смена позиции поста (290, smokeShiftOnDetonate)
+  // маршруту, проба): тут его ждут или сейчас выйдут — назад по своему следу из дыма. На посту — смена позиции поста (smoke-react, smokeShiftOnDetonate)
   var SM = null; if(b.alive && !(b.atPost && b.post && b.post.hold)) smokes.forEach(function(s){
     if(s.team !== b.team && tick - s.born <= HURT_REACT && DM.hypot(s.x-b.x, s.y-b.y) < NADE.smoke.radius && (!SM || s.born > SM.born)) SM = s; });
   var smT = SM ? SM.born : 0;
@@ -369,7 +369,7 @@ function hurtReactTick(b){
     .filter(function(q){ var a = b.z == null ? null : navAtLevel(q.x, q.y, b.z); if(b.z != null && !a) return false; q.z = a ? a.z : b.z;
       return !spotTaken(b, q); })
     .sort(function(p, q){ return DM.hypot(p.x-b.x, p.y-b.y) - DM.hypot(q.x-b.x, q.y-b.y); });
-  var sp = coverPick(cand, coverZ(b), hurtT); if(!sp) return;   // (18.11) общий выбор укрытия (470): стрелок + известные + входы, где ждут; 3D, с шагом
+  var sp = coverPick(cand, coverZ(b), hurtT); if(!sp) return;   // (18.11) общий выбор укрытия (fight): стрелок + известные + входы, где ждут; 3D, с шагом
   var sec = pathLenTo(b, sp.x, sp.y)/SPEED;
   if(sec > DETOUR_MAX.hurt || (!taskCanSet(b, "repos:hurt") && !detourOk(b, "hurt", sec))) return;
   detourStart(b, "hurt", "repos:hurt", sec + 1.5);

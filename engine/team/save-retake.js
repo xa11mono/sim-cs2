@@ -50,7 +50,7 @@ function tSaveRoll(aT, aC, secLeft){
   var k = TSAVE_K[key];
   return hashRand(roundNum*911 + matchNum*37 + aT*101 + aC*13 + k*7) < P[k];
 }
-// (v434) сейвить ли T сейчас — одно решение для начала сейва и для пересмотра (170): раунд безнадёжен по доле про для этого расклада
+// (v434) сейвить ли T сейчас — одно решение для начала сейва и для пересмотра (brain-t): раунд безнадёжен по доле про для этого расклада
 // (tSaveRoll), есть что сохранять (оружие ≥ 1500 в среднем и перейдёт в следующий раунд — saveWorth, 530), носитель не на сайте
 function tSaveWant(ts, aT, aC, secLeft, site){
   if(!ts.length) return false;

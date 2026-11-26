@@ -1,14 +1,14 @@
 // (v525, «одно решение — одно место», №4 шаг 1) режим боя бота (state: patrol / hold / engage / retreat) пишется только здесь; причина —
 // b._stateWhy (подпись на экране, запись матча). Решают по-прежнему разные механики (оценка decideAction, «врага не видно», после фрага,
-// нож) — они зовут эту функцию, а не пишут поле сами. Перестрелку (_fc) снаружи снимает только fcEnd (470)
+// нож) — они зовут эту функцию, а не пишут поле сами. Перестрелку (_fc) снаружи снимает только fcEnd (fight)
 function fightStateDo(b, next, why){ b.state = next; b._stateWhy = why; b._stateWhyT = tick; }
-// (17.11, перестройка — модули) запись в журнал решений (645) — здесь, у хозяина (было: 645 подменял функцию обёрткой)
+// (17.11, перестройка — модули) запись в журнал решений (trace) — здесь, у хозяина (было: 645 подменял функцию обёрткой)
 function fightState(b, next, why){
   var was = b && b.state; var r = fightStateDo.apply(this, arguments);
   if(b && next !== was) dlog(b, "бой", (was || "-") + " → " + next + (why ? " — " + why : ""), "_dlog2"); return r;
 }
 // (15.11, перестройка, фаза 3 — канал боя, шаг 1) режим боя state и «держит угол» holding (владелец 15.11: держит угол — бой) пишут только
-// файлы боя 470–510; остальные — через интерфейс: fightReset(b) — сброс к новому раунду / песочница (530, 677), fightHoldOff(b, причина) —
+// файлы боя 470–510; остальные — через интерфейс: fightReset(b) — сброс к новому раунду / песочница (round, sandbox), fightHoldOff(b, причина) —
 // снять удержание (нож — 450, огонь — 535). Причина снятия — b._holdWhy.
 function fightReset(b){ b.state = "patrol"; b.holding = false; }
 function fightHoldOff(b, why){ b.holding = false; b._holdWhy = why; }
@@ -138,7 +138,7 @@ function decideActionR(bot, nearestDist, alliesNear, enemiesSeen){ var RS = [];
 
   // раздел 12: анти-эко — у нас закуп, у них эко: не лезть в упор (там пистолет
   // опасен), держать дистанцию, где винтовка сильнее; не давать "геройский" пик
-  // (v559, В76 ч.5) — цель раунда команды «выиграть, не отдав винтовок» (roundGoal, 520), одно место вместо своей проверки закупов
+  // (v559, В76 ч.5) — цель раунда команды «выиграть, не отдав винтовок» (roundGoal, economy), одно место вместо своей проверки закупов
   if(roundGoal(bot.team) === "keepGuns"){
     if(nearestDist < 220){ RS.push("nearestDist < 220"); retreatScore += 0.12; engageScore -= 0.08; }
     else { RS.push("иначе: nearestDist < 220"); holdScore += 0.08; engageScore -= 0.04; }
@@ -206,7 +206,7 @@ function postKillDecide(sh, tg, vp, here){
     var back = walk({x: here.x + dvx/dvl*170, y: here.y + dvy/dvl*170});
     var hide = [vp].concat(known.map(function(k){ return {x:k.x, y:k.y}; })), akT = coverThreats(sh, hide);
     var np = pickSpots("pkb"+tick+sh.id, back, 4, {rMin:0, rMax:200, minGap:50, see: sh.post && sh.post.look ? [sh.post.look] : [], hideFrom:hide})
-      .filter(function(p){ return DM.hypot(p.x-here.x, p.y-here.y) > 70; }); np = coverPick(np, coverZ(sh), akT);   // (18.11) общая проверка укрытия (470)
+      .filter(function(p){ return DM.hypot(p.x-here.x, p.y-here.y) > 70; }); np = coverPick(np, coverZ(sh), akT);   // (18.11) общая проверка укрытия (fight)
     if(np){
       taskKeep(sh, 0, "afterkill"); sh._probeLock = 0;
       setPost(sh, np, vp, true, "repos:back");
@@ -357,7 +357,7 @@ function findCover(b, foe){
     if(dA < 1.3) return;
     C.push({x:c.x, y:c.y, z:z.z, d:d});
   });
-  // (18.11) общий выбор укрытия (470): от этого врага + известных + входов, где ждут; 3D, с шагом. Ближайшие 12 — проектное число (цена проверки)
+  // (18.11) общий выбор укрытия (fight): от этого врага + известных + входов, где ждут; 3D, с шагом. Ближайшие 12 — проектное число (цена проверки)
   C.sort(function(p, q){ return p.d - q.d; });
   var best = coverPick(C.slice(0, 12), coverZ(b), coverThreats(b, [foe]));
   return best ? {x:best.x, y:best.y} : null;

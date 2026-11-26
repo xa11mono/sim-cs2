@@ -22,7 +22,7 @@ function sndLoad(){
 }
 // запись с громкостью g; вдали глуше (фильтр по расстоянию: far 0..1)
 function sndPlay(key, g, far, delay){
-  // (v518d) повтор идёт и в начале нового раунда (675, RP_K.live): звуки живой игры под ним молчат, звучит только повтор
+  // (v518d) повтор идёт и в начале нового раунда (replay, RP_K.live): звуки живой игры под ним молчат, звучит только повтор
   if(typeof RP !== "undefined" && RP.on && !RP.sndOwn) return false;
   var B = SND.buf[key]; if(!B) return false;
   var c = SND.ctx, t0 = c.currentTime + (delay||0), src = c.createBufferSource(); src.buffer = B;
@@ -222,7 +222,7 @@ window.addEventListener("error", function(ev){ showFatal(ev.error || ev.message)
 // (15.11, перестройка: показ отдельно от симуляции) симуляция ставит отметки, кадр рисует
 var RC_HALF = null, WSK_EL = null;
 function showSync(){
-  // (17.11, перестройка) события игры для показа (435: showEv / soundEv) — разбор раз в кадр; киллфид — по KF_DIRTY; писк бомбы — здесь
+  // (17.11, перестройка) события игры для показа (journal: showEv / soundEv) — разбор раз в кадр; киллфид — по KF_DIRTY; писк бомбы — здесь
   if(KF_DIRTY){ KF_DIRTY = false; renderFeed(); }
   for(var qi = 0; qi < SHOW_Q.length; qi++){ var E = SHOW_Q[qi];
     try{
@@ -273,7 +273,7 @@ function frameBody(ts){
   showSync();   // (15.11, перестройка) показ того, что симуляция отметила: войс, консоль, карточка, кнопка разминки
   frameWrapR = null;   // вне кадра (клики, перемотка) — читать заново
 }
-// (15.11, перестройка: показ отдельно) перенесено из 495_highlights — кнопки и ползунки живут в показе
+// (15.11, перестройка: показ отдельно) перенесено из highlights — кнопки и ползунки живут в показе
 // ползунок «хайлайты» (меню «Инструменты»): шанс в процентах на дуэль; сразу в игре, хранится в браузере
 (function(){ if(typeof document === "undefined") return; var r = document.getElementById("hlP"), v = document.getElementById("hlPv"); if(!r) return;
   var show = function(){ v.textContent = Math.round(HL.p*100) + "%"; };

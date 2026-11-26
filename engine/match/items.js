@@ -88,7 +88,7 @@ var groundWeapons = [];
 var groundItems = [];
 var NADE_DROP_ORDER = ["molly","smoke","he","flash"];
 function dropWeaponOnDeath(b){
-  var j = function(){ return dropOnFloor(b.x + (hashRand(tick*7 + groundItems.length)*16 - 8), b.y + (hashRand(tick*13 + groundItems.length)*16 - 8), b.z); };   // (00_PLAN) на пол (120)
+  var j = function(){ return dropOnFloor(b.x + (hashRand(tick*7 + groundItems.length)*16 - 8), b.y + (hashRand(tick*13 + groundItems.length)*16 - 8), b.z); };   // (00_PLAN) на пол (bomb)
   var w0 = dropOnFloor(b.x, b.y, b.z);
   if(b.primary && WEAPONS[b.primary]) groundWeapons.push({key:b.primary, x:w0.x, y:w0.y, t:tick, from:b.id});
   else if(b.secondary && WEAPONS[b.secondary]){ var p0 = j(); groundItems.push({kind:"pistol", key:b.secondary, x:p0.x, y:p0.y, t:tick, from:b.id}); }
@@ -158,7 +158,7 @@ function knifeDefuseTick(b){
   var D = bots.filter(function(o){ return o.alive && o.defusing; })[0]; if(!D) return false;
   var d = DM.hypot(D.x-b.x, D.y-b.y); if(d > KNIFE_GO) return false;
   if(!(b.ammo <= 0 || b._reloading || !b._spam || d <= 3*KNIFE_REACH)) return false;
-  b._knife = true; b._knDef = D.id;   // точку «к нему» даёт задача «сбить дефуз» (tBrain, 170); очередь в дым снимает её хозяин (290)
+  b._knife = true; b._knDef = D.id;   // точку «к нему» даёт задача «сбить дефуз» (tBrain, brain-t); очередь в дым снимает её хозяин (smoke-react)
   if(d > KNIFE_REACH) return true;
   if(tick < (b._stabT || 0)) return true;
   b._stabT = tick + KNIFE_GAP;
@@ -212,7 +212,7 @@ function awpAllowed(b){
 }
 // (v518a, пак 09.11 п.1; владелец: «оружие заметно лучше — взять без опасного отклонения от позиции», «бомба взорвётся через 6 с …
 // у него есть время подобрать», «по пути пропустил калаш, который мог безопасно подобрать») задача ниже подбора — можно сразу; выше —
-// отклонение (detourOk, 110): цена — сколько крюк до оружия добавит к пути до своей точки задачи
+// отклонение (detourOk, task): цена — сколько крюк до оружия добавит к пути до своей точки задачи
 var PICK_ECO_K = 2;   // (v559) проектное число
 function pickDetour(b, G){
   if(taskCanSet(b, "pickup")) return true;
@@ -241,7 +241,7 @@ function weaponPickupTick(){
       // на "хожу за оружием" — 7с, потом 8с не отвлекается на ганы
       if(!b._pickSince || tick - b._pickSeen > 4) b._pickSince = tick; b._pickSeen = tick;
       // (п.10 владельца 29.10, м1 р4 т24280: m0NESY 3,3 с стоял у края молотова на Mid, и «идёт дольше 6 с» сняло затею за 215 ед. до
-      // оружия) ждёт, пока погаснет огонь на пути (540: fireWait), — это не «иду слишком долго»: сроки на это время стоят
+      // оружия) ждёт, пока погаснет огонь на пути (tick: fireWait), — это не «иду слишком долго»: сроки на это время стоят
       if(b._fireWaitT != null && tick - b._fireWaitT <= 1){ b._pickT.t++; b._pickSince++; }
       var pickTooLong = tick - b._pickSince > (b._pickSave === roundNum ? 12 : 7)*TICK_HZ;   // (v334) на сейве идёт шагом — дольше
       if((b.atPost && tick - b._pickT.t > TICK_HZ) || tick - b._pickT.t > (b._pickSave === roundNum ? 12 : 6)*TICK_HZ || pickTooLong){ b._pickIgnore = {x:b.post.x, y:b.post.y, round:roundNum}; if(pickTooLong) b._pickBan = tick + 8*TICK_HZ; clearPost(b); b._pickGo = null; b._pickSince = 0; }

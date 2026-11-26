@@ -1,5 +1,5 @@
 // (v510) быстрый выход (сняли CT на сайте / их ≤ 2 / там соло): критичный смок выхода уже брошен — заходим, как раскроется
-// (не дольше EXU_FAST_MAX), ещё не брошен — сразу. Ожидание — exuHoldEta (366)
+// (не дольше EXU_FAST_MAX), ещё не брошен — сразу. Ожидание — exuHoldEta (exec-sync)
 var EXU_FAST_MAX = 4;   // с (проектное число)
 function tFastGo(tt, go){
   var eta = ROUND_TIME_SEC - (simTime - roundStartTime) >= EXU_LATE ? exuHoldEta(tt) : 0;
@@ -12,7 +12,7 @@ function tBrain(){
   // (Р3.2 команда) контекст мозга: общие для частей переменные (aT, fetchOk, fetcher, g, isMF, lurker, midOpt, other, pick, plantGo, plantPt, roleT, secLeft, sitS, site, tac, ts, tsS, tt, used)
   var K = {}; K.pick = pick;
   K.tt = teamTac.T; if(!K.tt) return;
-  exuTick(K.tt);   // (тактика 30.10) гранаты выхода: жизненный цикл, провал, резервный исполнитель (366)
+  exuTick(K.tt);   // (тактика 30.10) гранаты выхода: жизненный цикл, провал, резервный исполнитель (exec-sync)
   if(K.tt.phase === "setup" && K.tt.minExec && K.tt.execTick < roundStartTick + K.tt.minExec*TICK_HZ) K.tt.execTick = roundStartTick + K.tt.minExec*TICK_HZ;
   bStageFix();
   if(K.tt.seenCT && tick % 16 === 0 && (K.tt.phase === "setup" || (K.tt.execStart != null && tick - K.tt.execStart < 8*TICK_HZ))){
@@ -102,7 +102,7 @@ function tBrain(){
 function tBrainExecGo(K){
   if(K.tt.saving && bomb.state !== "planted"){
     K.tsS = bots.filter(function(b){ return b.team === "T" && b.alive; }), K.sitS = K.tsS.length+"v"+aliveCount("CT");
-    // (00_PLAN п.10, ответ 6А) и когда появился реальный плант (tPlantChance, 180): сейв снят, при том же раскладе в этом раунде не включается
+    // (00_PLAN п.10, ответ 6А) и когда появился реальный плант (tPlantChance, save-retake): сейв снят, при том же раскладе в этом раунде не включается
     K.plantGo = tPlantChance(K.tsS, K.secLeft);
     if(!K.plantGo && (K.sitS === K.tt.saveSit || tSaveWant(K.tsS, K.tsS.length, aliveCount("CT"), K.secLeft, K.site))){ K.tt.saveSit = K.sitS; tSaveHold(); return true; }
     if(K.plantGo){ K.tt.plantGo = roundNum+":"+K.sitS; if(K.plantGo !== K.tt.site) tSetSite(K.tt, K.plantGo); voiceLog("T", "tplgo"+roundNum, K.tsS[0].id, K.plantGo+" пустой — успеваем поставить, идём"); }
@@ -127,7 +127,7 @@ function tBrainExecGo(K){
       if(!goNow && !K.tt._waitLog){ K.tt._waitLog = true; logEvent("T: ждём — не все на точках выхода"); }
     }
     // (тактика 30.10) критичные смоки выхода ещё не закрыли вход (идут кидать / летят / раскрываются / ищем замену) — ждём их, а не
-    // «пока летят, но не дольше 5 с»: одно решение — exuGate (366). Поздно (< EXU_LATE с) — выходим и без них
+    // «пока летят, но не дольше 5 с»: одно решение — exuGate (exec-sync). Поздно (< EXU_LATE с) — выходим и без них
     if(goNow && K.secLeft >= EXU_LATE){
       var XG = exuGate(K.tt);
       if(!XG.go){ goNow = false; if(K.tt._smWaitLog !== XG.why){ K.tt._smWaitLog = XG.why; logEvent("T: ждём — "+XG.why); exuEv("wait", null, {why:XG.why}); } }
@@ -363,7 +363,7 @@ function tBrainTeam(K){
   // 2 на 2, а сейв продолжался) расклад живых сменился — то же решение заново (tSaveWant): у про при новом раскладе не сейвят — сейв снят
   if(K.tt.saving && bomb.state !== "planted"){
     K.tsS = bots.filter(function(b){ return b.team === "T" && b.alive; }), K.sitS = K.tsS.length+"v"+aliveCount("CT");
-    // (00_PLAN п.10, ответ 6А) и когда появился реальный плант (tPlantChance, 180): сейв снят, при том же раскладе в этом раунде не включается
+    // (00_PLAN п.10, ответ 6А) и когда появился реальный плант (tPlantChance, save-retake): сейв снят, при том же раскладе в этом раунде не включается
     K.plantGo = tPlantChance(K.tsS, K.secLeft);
     if(!K.plantGo && (K.sitS === K.tt.saveSit || tSaveWant(K.tsS, K.tsS.length, aliveCount("CT"), K.secLeft, K.site))){ K.tt.saveSit = K.sitS; tSaveHold(); return true; }
     if(K.plantGo){ K.tt.plantGo = roundNum+":"+K.sitS; if(K.plantGo !== K.tt.site) tSetSite(K.tt, K.plantGo); voiceLog("T", "tplgo"+roundNum, K.tsS[0].id, K.plantGo+" пустой — успеваем поставить, идём"); }

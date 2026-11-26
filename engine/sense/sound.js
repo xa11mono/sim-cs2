@@ -179,9 +179,9 @@ function onBlind(b, threat){
   b._blind = {until:b.blindUntil, back:back, face:{x:threat.x, y:threat.y}};
   if(wp){ movePath(b, wp, "blind"); b.pathIdx = 0; }
   // стрелять вслепую — только с настоящей причиной: видел врага перед самой вспышкой (≤ 1 с) и он рядом — он пойдёт на флешку.
-  // Очередь в точку, где видел, заводит smokeSpamTick (290, хозяин огня по памяти); попадёт, если враг на линии
+  // Очередь в точку, где видел, заводит smokeSpamTick (smoke-react, хозяин огня по памяти); попадёт, если враг на линии
   var fire = threat.tick != null && threat.src !== "call" && tick - threat.tick <= TICK_HZ && DM.hypot(threat.x-b.x, threat.y-b.y) < BLIND_FIRE_R && b.ammo > 0 && b.weapon && !b.weapon.scopeTicks;
-  if(fire) b._blind.fire = {x:threat.x, y:threat.y, z:threat.z};   // (v556) очередь заводит хозяин огня по памяти — smokeSpamTick (290)
+  if(fire) b._blind.fire = {x:threat.x, y:threat.y, z:threat.z};   // (v556) очередь заводит хозяин огня по памяти — smokeSpamTick (smoke-react)
   logEvent(b.id+": ослеплён — "+(back ? (wp && wp.length > 1 ? "уходит в укрытие по памяти" : "отходит за угол") : "присел, держит направление")+(fire ? ", стреляет вслепую туда, где видел врага" : ""));
   // (S2) тиммейт рядом закрывает угол ослеплённого: смотрит туда и готов стрелять
   var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === b.team && !o._sawEnemy && tick >= (o.blindUntil||0) && nearP(o.x, o.y, o.z, b.x, b.y, b.z, 260) && !o.planting && !o.defusing; });

@@ -8,7 +8,7 @@ var NAV_DROP_MAX = 200, NAV_DROP_OUT = 6, NAV_DROP_EDGE_STEP = 8, navDropLinks =
 var NAV_FLOOR_TOL = 24, NAV_RIDGE_W = 6, NAV_RIDGE_SIDE = 4, NAV_LINK_MIN = 6, NAV_LINK_KNEE = 16, navAutoLinks = 0;   // ед. игры / ед. карты — проектные числа (v405)
 var NAV_BLOCKED = {}, navBlockedCount = 0, navCutPortals = 0, navNarrowPortals = 0;
 // WALL_SOLID_POLYS — см. applyWalls выше
-// (А5) у карты есть 3D-геометрия игры — «в стене» и «шаг сквозь стену» по ней (035_map3d: клетка без этажа и без навмеша);
+// (А5) у карты есть 3D-геометрия игры — «в стене» и «шаг сквозь стену» по ней (geometry3d: клетка без этажа и без навмеша);
 // стены радара тогда — только рисование
 function insideSolidWall(x, y){
   if(MAP3D) return m3Solid(x, y);
@@ -38,7 +38,7 @@ function snapToWalkable(x, y){
   });
   return best ? {x:best.x, y:best.y} : {x:x, y:y};
 }
-var NAV_JUMP_UP = 64;   // (v533) ед. игры: выше без помощи не запрыгнуть — одно число для графа (нужно уже при загрузке) и движения (JUMP_UP, 370)
+var NAV_JUMP_UP = 64;   // (v533) ед. игры: выше без помощи не запрыгнуть — одно число для графа (нужно уже при загрузке) и движения (JUMP_UP, levels)
 function rebuildNav(){
   applyNavTransform();
   // rescale edge-matching tolerances to the current navmesh scale (see the
@@ -250,13 +250,13 @@ function rebuildNav(){
   if(typeof bots !== "undefined"){
     bots.forEach(function(b){ movePath(b, [], "nav-rebuild"); b.pathIdx = 0; });
     // (Т-4, 25.11, У-14) перестройка во время игры (редактор карты): связи выше прыжка снимаются сразу, а не при первом поиске пути —
-    // иначе до него граф читали с несрезанными связями. При загрузке (ботов ещё нет, 050:254) — как было: срез при первом поиске пути
+    // иначе до него граф читали с несрезанными связями. При загрузке (ботов ещё нет, paths:254) — как было: срез при первом поиске пути
     // (laddersBuild нужен файл 370, он ещё не загружен); единственный читатель до среза при загрузке — snapToWalkable (только «есть ли
     // связи у участка»), срез ни один участок связей не лишает (Ancient −11 из 5967, Mirage −22 из 7884) — rebuild/evidence/R3/t4.json
     if(!navTallDone) navCutTall();
   }
 }
-// при загрузке rebuildNav вызывает mapBoot (060) — после стен, до таблицы «откуда простреливается» (Р3.4)
+// при загрузке rebuildNav вызывает mapBoot (zone-danger) — после стен, до таблицы «откуда простреливается» (Р3.4)
 
 // Binary min-heap priority queue — with ~2000 nav-area nodes (vs. ~60 hand
 // zones before), the old "sort the whole array every pop" approach gets
@@ -302,7 +302,7 @@ function zoneSideMap(){
 // прыжок ≈ 1,2 с бега в обход, спрыгнуть ≈ 0,6 с
 var NAV_JUMP_COST = 120, NAV_DROP_COST = 60;
 // LAND_DELAY — время полёта при запрыгивании (CS2: прыжок ~0,6 с вверх-вниз; вверх на уступ — короче) — проектное число. Звук приземления
-// через столько после прыжка (540); с v546 — и цена прыжка в пути (navJumpCost; здесь, потому что путь ищут уже при загрузке)
+// через столько после прыжка (tick); с v546 — и цена прыжка в пути (navJumpCost; здесь, потому что путь ищут уже при загрузке)
 var LAND_DELAY = 0.35;
 // (v469, п.5 владельца 29.10: «спрыгивают со звуком с любого уступа») UNVERIFIED: project heuristic, not confirmed CS2 threshold — проектное
 // число. Ответ про-аналитика 29.10: маленькое падение события приземления не даёт (спецификация CS2-демок), порога в единицах Valve не
@@ -321,7 +321,7 @@ function navCutTall(){ navTallDone = true; navTallCut = 0;
 }
 // (v546, владелец 10.11, Mirage A: «залезает на ящик, на второй и прыгает на верхний этаж — так быстрее») прыжки через щель из демок
 // (MAP.climbs.gaps, tools/map/gaps_bake.py): в .nav между участками за щелью связи нет. Связь A → B — в граф пути (edge.gap); путь идёт через
-// точку отталкивания и точку приземления, сам прыжок — ladderTick (370), как подъём из демок. Между точками по 3D-геометрии должен быть
+// точку отталкивания и точку приземления, сам прыжок — ladderTick (levels), как подъём из демок. Между точками по 3D-геометрии должен быть
 // воздух: над сплошным полом (меньше GAP_AIR_MIN отсчётов из 9 без пола на высоте прыжка) это дыра навмеша, а не щель — связи нет.
 // GAP_AIR_MIN — проектное число
 var NAV_GAPS = [], NAV_GAP_AT = {}, GAP_AIR_MIN = 3, GAP_WALK_N = 3;   // GAP_WALK_N — сколько прыжков с шага в демках, чтобы считать «можно на шифте» (проектное)

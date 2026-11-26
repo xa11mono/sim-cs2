@@ -126,7 +126,7 @@ function fightStrafe(b, F, dtSec){
   if(F.sv === undefined){   // скорость, с которой вошёл в перестрелку, — дальше она (её гасит или продолжает стрейфом)
     var TR = b._trail || [], tp = TR.length >= 2 ? TR[TR.length-2] : {x:b.baseX, y:b.baseY};   // куда шёл последние ~0,25–0,5 с
     var pr = (b.baseX - tp.x)*ax + (b.baseY - tp.y)*ay;
-    F.sdir = pr >= 0 ? 1 : -1; F.sv = F.sdir*Math.min(vmax, Math.max(b.curSpeed || 0, Math.abs((b._keys || {}).v || 0))); F.legT = 0;   // (v575) и ход качания A / D (540) — дальше он у перestrелки
+    F.sdir = pr >= 0 ? 1 : -1; F.sv = F.sdir*Math.min(vmax, Math.max(b.curSpeed || 0, Math.abs((b._keys || {}).v || 0))); F.legT = 0;   // (v575) и ход качания A / D (tick) — дальше он у перestrелки
     if(b._keys) b._keys.v = 0;
   }
   if(b.lastShotTick >= F.t) F.started = true;
@@ -360,7 +360,7 @@ function fightCycleTick(b, dtSec, busy){
     // (ответ 4) против AWP (оружие врага видно) — сначала плечо: выстрелил — выглядывает целиком, пока он перезаряжается; нет — через паузу про
     if(F.e && F.e.primary === "AWP"){ var shp = fightShoulderPt(b, F.e, F.cx, F.cy, F.ax, F.ay); if(shp) F.sh = {x:shp.x, y:shp.y, t0:0, shot:F.e.lastShotTick || -1, done:false}; }
   }
-  // (отметка владельца 18.11 №7) уходит из-под линии по задаче (escape: укрытие на перезарядку, отход раненого) — ноги ведёт путь задачи (540,
+  // (отметка владельца 18.11 №7) уходит из-под линии по задаче (escape: укрытие на перезарядку, отход раненого) — ноги ведёт путь задачи (tick,
   // fcSwingGo), цикл свою точку укрытия не тянет: было — путь к укрытию и цикл к своему гасили друг друга, бот стоял на открытом
   // дошёл — его укрытие и есть место задачи (у цикла было своё — то, откуда ушёл, на открытом)
   if(b.post && taskProp(b.post.tag, "escape")){ if(F.ph === "off"){ F.cx = b.post.x; F.cy = b.post.y; } if(!b.atPost){ F.mv = 0; return; } }
@@ -506,10 +506,10 @@ function lowHpBack(b){
   var low = b.hp <= LOW_HP;
   // (v531, владелец 10.11: «тиммейтов убили далеко, а игрок в Jungle, ещё не дошедший и не видевший врага, получил „рядом погиб свой“») «рядом» —
   // по пути, а не по прямой сквозь стены: 900 px по прямой через стену — это другая часть карты. Сначала прямая (путь не короче), потом путь
-  var nearPath = function(x, y, R){ return nearP(b.x, b.y, b.z, x, y, null, R); };   // (v532) общее «рядом по пути» (100)
+  var nearPath = function(x, y, R){ return nearP(b.x, b.y, b.z, x, y, null, R); };   // (v532) общее «рядом по пути» (sites-spots)
   var lostNear = !low && ((teamIntel[b.team] && teamIntel[b.team].sig) || []).some(function(sg){ return sg.type === "died" && sg.id !== b.id && tick - sg.tick < 8*TICK_HZ && nearPath(sg.x, sg.y, 900); });
   if(!low && !lostNear) return;
-  // (v547) было «бомба стоит — не отходит» (ретейк / пост-плант важнее): терпит ли задача фазы отход — отклонение (taskCanTry, 110)
+  // (v547) было «бомба стоит — не отходит» (ретейк / пост-плант важнее): терпит ли задача фазы отход — отклонение (taskCanTry, task)
   var defending = b.team === "CT" && b.post && taskProp(b.post.tag, "holdsGround");
   if(bomb && bomb.state === "carried" && bomb.carrier === b) return;
   if(!taskCanTry(b, "repos:lowhp")) return;   // (v378) идёт по задаче не ниже — арбитр места; (v547) задача фазы — отклонением
@@ -591,7 +591,7 @@ function lowHpBack(b){
 // вероятностей кто-то вероятно есть и по таймингу он уже мог туда добежать,
 // идём тихо. Бегом — где пусто/враг ещё не успел, и когда надо спешить:
 // выход T, время раунда, размен, бомба, ротация на подтверждённый выход.
-// (v438) слышимость бега: тот же радиус, что у звука шагов (540: SOUND_RADIUS_RUN × BAL.stepHearMul)
+// (v438) слышимость бега: тот же радиус, что у звука шагов (tick: SOUND_RADIUS_RUN × BAL.stepHearMul)
 function STEP_HEAR_R(){ return SOUND_RADIUS_RUN * (BAL.stepHearMul || 1); }
 function dangerWalk(b){
   if(!b.post || b.state !== "patrol" || !BZ.ids.length) return false;

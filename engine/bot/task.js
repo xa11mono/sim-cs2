@@ -168,7 +168,7 @@ var ENTRY_WAIT = 128;   // (v375) 2 с: напарник на размен у в
 // сверенные. Теперь списки — здесь, под именем свойства; механика спрашивает taskProp(tag, "свойство"). Перенесены БЕЗ изменений (отпечаток
 // бит в бит). ПРАВИЛО: новая задача — пройти по этой таблице и вписать её в нужные свойства; новый список имён в коде механики — нельзя.
 // Проверка «это моя собственная задача» по одному имени (post.tag === "lineup" в коде лайнапа) — можно: таких ≈ 70, они остаются в своих файлах. Остался на месте один список —
-// /^(earlyPeek|probe)/ в 365_nade_plan (файл входит в отпечаток предрасчёта гранат: перенести вместе со следующим пересчётом nadeguess).
+// /^(earlyPeek|probe)/ в plan (файл входит в отпечаток предрасчёта гранат: перенести вместе со следующим пересчётом nadeguess).
 // Следующий шаг (меняет игру): свести похожие свойства (holdsGround / holdsSite / siteDefender / reangleHolder; pieBusy / dangerWalkSkip /
 // shiftHoldBusy / holdStrafeSkip / blindCoverBusy) и перенести в строки TASK_LEVEL
 var TASK_PROP = {
@@ -177,54 +177,54 @@ var TASK_PROP = {
   detourSelf:       /^repos:(hurt|rlcover|lowhp|back)$/,
   detourHelp:       /^repos:(assist|flank|coverblind)$/,
   detourSeek:       /^repos:(push|swing|land|reload)$/,
-  rushFollowable:   /^(rushFollow|utilWait|utilHold|route:|plantspot|bombWait)/,   // раш: задачи, с которых бота можно позвать следом за энтри (170)
-  pieCareful:       /^(endhunt|hunt|probe|earlyPeek|flank|lurk|midcover|clear|roam|shift|clutch)/,   // срез угла: задачи, на которых угол режут (250)
-  pieBusy:          /^(defuse|plantspot|flee|save|antidefuse|stopplant|retake|tradeR|repos|fetch|pickup|lineup)/,   // срез угла: задачи, на которых углы не режут (некогда) (250)
-  lookAlongRetreat: /^(repos|flee|save)/,   // взгляд после планта: отход — исключение из «смотрит, куда идёт» (270)
-  planStage:        /^(exec|stage)/,   // откат T: на стадии / выходе по плану не откатывается (300)
-  siteDefender:     /^(anchor|rotator|set:|stack|cts:|rebal|rotateHold|sitehold)/,   // ребаланс: кто считается защитником сайта (300)
-  reangleHolder:    /^(anchor|stack|set:)/,   // CT: кто меняет угол, слыша врагов вне вида (340)
+  rushFollowable:   /^(rushFollow|utilWait|utilHold|route:|plantspot|bombWait)/,   // раш: задачи, с которых бота можно позвать следом за энтри (brain-t)
+  pieCareful:       /^(endhunt|hunt|probe|earlyPeek|flank|lurk|midcover|clear|roam|shift|clutch)/,   // срез угла: задачи, на которых угол режут (look-peek)
+  pieBusy:          /^(defuse|plantspot|flee|save|antidefuse|stopplant|retake|tradeR|repos|fetch|pickup|lineup)/,   // срез угла: задачи, на которых углы не режут (некогда) (look-peek)
+  lookAlongRetreat: /^(repos|flee|save)/,   // взгляд после планта: отход — исключение из «смотрит, куда идёт» (look)
+  planStage:        /^(exec|stage)/,   // откат T: на стадии / выходе по плану не откатывается (roles)
+  siteDefender:     /^(anchor|rotator|set:|stack|cts:|rebal|rotateHold|sitehold)/,   // ребаланс: кто считается защитником сайта (roles)
+  reangleHolder:    /^(anchor|stack|set:)/,   // CT: кто меняет угол, слыша врагов вне вида (brain-ct)
   teamMove:         /^(rotate|gather|retake)/,
-  fightMove:        /^contact:swing/,   // (v560, В82) задача «выйти на врага»: идёт к точке выхода и во время перестрелки, когда врага не видно (510)   // контакт: идёт по задаче команды — на одиночного врага не отвлекается (350)
-  fireCommit:       /^(plantspot|defuse|antidefuse|stopplant|retake|gather|flee|fetch)/,   // огонь: задачи бомбы, ради которых идут через огонь (370)
+  fightMove:        /^contact:swing/,   // (v560, В82) задача «выйти на врага»: идёт к точке выхода и во время перестрелки, когда врага не видно (engagements)   // контакт: идёт по задаче команды — на одиночного врага не отвлекается (contact)
+  fireCommit:       /^(plantspot|defuse|antidefuse|stopplant|retake|gather|flee|fetch)/,   // огонь: задачи бомбы, ради которых идут через огонь (levels)
   fireIfLate:       /^(gather|retake)/,   // (v583a) из них — только когда времени мало: сбор под ретейк и заход на ретейк (370 fireCommit)
-  nadeFight:        /^(contact:swing|tradeR|retakeEntry|retake|clear)/,   // гранаты себе: идёт в бой (420)
-  blindCoverBusy:   /^(defuse|plantspot|lineup|flee|save|tradeR)/,   // ослеплён: кого из своих не зовут прикрыть (460)
-  holdsGround:      /^(anchor|stack|set:|cts:|clutch|midcover)/,   // мало HP: CT держит позицию (470)
-  escape:           /^repos:(hurt|back|rlcover)/,   // (v583a, Д26) уход из-под линии: «держит угол» не останавливает, пока не дошёл (535)
-  dangerWalkSkip:   /^(tradeR|flee|fetch|stopplant|antidefuse|repos|plantspot|lineup|defuse|smokeWait|pickup|retake|save|trade)/,   // опасное место: задачи, на которых не идут шагом (470)
-  holdsSite:        /^(anchor|stack|set:|cts:|clutch|retake)/,   // дабл-пик: держит сайт — не бросает (480)
+  nadeFight:        /^(contact:swing|tradeR|retakeEntry|retake|clear)/,   // гранаты себе: идёт в бой (decide)
+  blindCoverBusy:   /^(defuse|plantspot|lineup|flee|save|tradeR)/,   // ослеплён: кого из своих не зовут прикрыть (sound)
+  holdsGround:      /^(anchor|stack|set:|cts:|clutch|midcover)/,   // мало HP: CT держит позицию (fight)
+  escape:           /^repos:(hurt|back|rlcover)/,   // (v583a, Д26) уход из-под линии: «держит угол» не останавливает, пока не дошёл (move)
+  dangerWalkSkip:   /^(tradeR|flee|fetch|stopplant|antidefuse|repos|plantspot|lineup|defuse|smokeWait|pickup|retake|save|trade)/,   // опасное место: задачи, на которых не идут шагом (fight)
+  holdsSite:        /^(anchor|stack|set:|cts:|clutch|retake)/,   // дабл-пик: держит сайт — не бросает (assist)
   earAmbush:        /^(probeHide|probeInfo|lurk|flank)/,   // (22.11, Ж23-П4) засел нарочно: засада по одному звуку (480 ambushTick; было — регулярка там)
-  tradeUrgent:      /^(retake|defuse|plantspot|antidefuse|endhunt|tradeR)/,   // размен: задачи, где «есть кому разменять» не проверяется (490)
-  shiftHoldBusy:    /^(save|repos|defuse|plantspot|lineup|pickup|endhunt|retake|gather|stopplant|antidefuse)/,   // смена угла на посту: задачи, которые не трогают (500)
-  cautiousEnd:      /^(retake|rotate|defuse)$/,   // шаг: последние метры ретейка / ротации / дефуза (535)
-  bombSpot:         /^(defuse|plantspot)/,   // бег к бою: задача у бомбы — исключение (535)
-  retakeMove:       /^(gather|retake|defuse|rotate)/,   // шаг на ретейке: проверка «успею ли шагом» (535)
-  holdStrafeSkip:   /^(gather|retake|defuse|save|stopplant|antidefuse|lineup|pickup)/,   // стрейф на посту: задачи, на которых не стрейфят (540)
+  tradeUrgent:      /^(retake|defuse|plantspot|antidefuse|endhunt|tradeR)/,   // размен: задачи, где «есть кому разменять» не проверяется (shoot)
+  shiftHoldBusy:    /^(save|repos|defuse|plantspot|lineup|pickup|endhunt|retake|gather|stopplant|antidefuse)/,   // смена угла на посту: задачи, которые не трогают (fight-state)
+  cautiousEnd:      /^(retake|rotate|defuse)$/,   // шаг: последние метры ретейка / ротации / дефуза (move)
+  bombSpot:         /^(defuse|plantspot)/,   // бег к бою: задача у бомбы — исключение (move)
+  retakeMove:       /^(gather|retake|defuse|rotate)/,   // шаг на ретейке: проверка «успею ли шагом» (move)
+  holdStrafeSkip:   /^(gather|retake|defuse|save|stopplant|antidefuse|lineup|pickup)/,   // стрейф на посту: задачи, на которых не стрейфят (tick)
   // (v570, владелец 12.11: «и когда переставляет другая механика, и на пост-планте — тоже кроссфайером, а не кучно; маленький сайт — места
-  // рядом») стоит и держит угол: место — на своей линии, не ближе OWN_LINE_GAP к месту / посту своего, кто тоже держит (setPost, 110)
+  // рядом») стоит и держит угол: место — на своей линии, не ближе OWN_LINE_GAP к месту / посту своего, кто тоже держит (setPost, task)
   ownLine:          /^(anchor|stack|set:|cts:|mid$|mid:back|rotator|rotateHold|rebal|sitehold|default:|postplant|coverplant|clutch|midcover|retakeCover|endhunt|after:hold|bombwatch|fill|hold)/,
   // (17.11, владелец к видео CT4: «бежит, не добегая разворачивается — туда-сюда»; дубль №5) короткая остановка своего — бросок с лайнапа,
   // подбор, точка маршрута — не занимает чужое место (spotTaken «post» и личное место по посту, 350); сам свой, стоящий там, — занимает
   briefStop:        /^(lineup|pickup|fetch|route)/,
-  exactSpot:        /^(plantspot|defuse|lineup|pickup|fetch|stopplant|antidefuse|ladder|smokeWait|route|sbGo|ambush$|probeHide$)/,   // (19.11, К1) засада / засел — точка укрытия как есть (сдвиг уводил на балкон к врагу, м3 р4)   // (v552) приказ песочницы — точно   // точное место: точку не сдвигают от своего (110)
+  exactSpot:        /^(plantspot|defuse|lineup|pickup|fetch|stopplant|antidefuse|ladder|smokeWait|route|sbGo|ambush$|probeHide$)/,   // (19.11, К1) засада / засел — точка укрытия как есть (сдвиг уводил на балкон к врагу, м3 р4)   // (v552) приказ песочницы — точно   // точное место: точку не сдвигают от своего (task)
   // (v529) проверки чужой задачи по ОДНОМУ имени (механика смотрит на задачу, которую ставит не она) — 19 мест в 10 файлах, без изменений:
-  midTask:          /^tmid$/,        // пробы / «проверено — пусто»: задача мида T (150)
-  waitsAhead:       /:ahead$/,       // IGL: стадия «жду впереди» (160)
-  lineupTask:       /^lineup$/,      // IGL: смена плана снимает точку лайнапа (160)
-  onRoute:          /^route:/,       // раш: идёт по маршруту (170)
-  saveTask:         /^save$/,        // взгляд на посту; смена места после фрага: сейв (270, 500)
-  plantSpot:        /^plantspot$/,   // эндгейм: носитель у точки планта (330)
-  plantGo:          /^plantspot/,    // бой: носитель идёт ставить — перестрелка по памяти кончилась (510)
-  pickupTask:       /^pickup$/,      // CT: идёт подбирать — не переставлять (340)
-  reposMove:        /^repos/,        // шаг: перестановка в бою — бегом, угол не режет (535)
-  flankTask:        /^(flank1|flank2|ambush|backstab)$/,   // шаг: фланг; засада / заход в спину — тихо (535, К1)
-  gatherTask:       /^gather/,       // шаг: сбор на ретейк — последние метры (535)
-  probeTask:        /^probe/,        // шаг: проба — последние метры (535)
-  shiftTask:        /^shift$/,       // шаг: перестановка — последние метры (535)
-  lurkTask:         /^lurk/,         // шаг: лёркер (535)
-  endhuntTask:      /^endhunt$/,     // шаг: охота на последнего — последние метры (535)
-  defuseTask:       /^defuse$/       // шаг: подход к дефузу (540, defuseWalk)
+  midTask:          /^tmid$/,        // пробы / «проверено — пусто»: задача мида T (lurker)
+  waitsAhead:       /:ahead$/,       // IGL: стадия «жду впереди» (igl)
+  lineupTask:       /^lineup$/,      // IGL: смена плана снимает точку лайнапа (igl)
+  onRoute:          /^route:/,       // раш: идёт по маршруту (brain-t)
+  saveTask:         /^save$/,        // взгляд на посту; смена места после фрага: сейв (look, fight-state)
+  plantSpot:        /^plantspot$/,   // эндгейм: носитель у точки планта (endgame)
+  plantGo:          /^plantspot/,    // бой: носитель идёт ставить — перестрелка по памяти кончилась (engagements)
+  pickupTask:       /^pickup$/,      // CT: идёт подбирать — не переставлять (brain-ct)
+  reposMove:        /^repos/,        // шаг: перестановка в бою — бегом, угол не режет (move)
+  flankTask:        /^(flank1|flank2|ambush|backstab)$/,   // шаг: фланг; засада / заход в спину — тихо (move, К1)
+  gatherTask:       /^gather/,       // шаг: сбор на ретейк — последние метры (move)
+  probeTask:        /^probe/,        // шаг: проба — последние метры (move)
+  shiftTask:        /^shift$/,       // шаг: перестановка — последние метры (move)
+  lurkTask:         /^lurk/,         // шаг: лёркер (move)
+  endhuntTask:      /^endhunt$/,     // шаг: охота на последнего — последние метры (move)
+  defuseTask:       /^defuse$/       // шаг: подход к дефузу (tick, defuseWalk)
 };
 // (v560) снимок «Отметить момент» восстанавливает и TASK_PROP: в снимке старой версии нового свойства нет — тогда «нет»
 function taskProp(tag, prop){ var R = TASK_PROP[prop]; return !!R && R.test(String(tag == null ? "" : tag)); }
@@ -240,13 +240,13 @@ function taskProp(tag, prop){ var R = TASK_PROP[prop]; return !!R && R.test(Stri
 //    снимается, подбор — помнит предмет и вернётся). Роль и ситуация в таблицу не входят — они только порождают задачи.
 // Порядок и числа — ПРОЕКТНЫЕ (проектное число / порядок; проверка — situations.py: момент и доля переключения у про и у ботов).
 var TASK_LEVEL = [   // сверху — важнее; первая подходящая строка
-  {lv:12, kind:"приказ песочницы",   re:/^sbGo$/},   // (v536) только в песочнице (677): владелец сказал боту «иди сюда»
+  {lv:12, kind:"приказ песочницы",   re:/^sbGo$/},   // (v536) только в песочнице (sandbox): владелец сказал боту «иди сюда»
   {lv:11, kind:"бомба",              re:/^(flee|defuse|stopplant|antidefuse|plantspot)$/},
   {lv:10, kind:"выжить",             re:/^save/},
-  {lv:9,  kind:"бой",                re:/^(contact|tradeR$|repos:killmove|repos:finish|ambush$|backstab$)/},   // (К1/К2, 18.11) засада / заход в спину — ход боя: в тылу у врага ротация сквозь него хуже (480)   // (v469, п.25) добить раненого — тоже бой, контакт его не перебивает
+  {lv:9,  kind:"бой",                re:/^(contact|tradeR$|repos:killmove|repos:finish|ambush$|backstab$)/},   // (К1/К2, 18.11) засада / заход в спину — ход боя: в тылу у врага ротация сквозь него хуже (assist)   // (v469, п.25) добить раненого — тоже бой, контакт его не перебивает
   {lv:8,  kind:"ретейк/сбор/ротация",re:/^(retake|gather|rotate$|rotate:|bombwatch|postplant|fetch$)/},
   {lv:7,  kind:"эндгейм/клатч",      re:/^(endhunt|hunt$|clutch)/},   // охота на последних — общий план команды, как и было (замок эндгейма)
-  {lv:6,  kind:"перестановка в бою", re:/^(repos|probeHide$)/},   // (К1/К2, 18.11) засел на пробе и слушает (320)
+  {lv:6,  kind:"перестановка в бою", re:/^(repos|probeHide$)/},   // (К1/К2, 18.11) засел на пробе и слушает (ct-early)
   {lv:5,  kind:"команда",            re:/^(fill$|rotateHold|fetchCover|bombEscort|bombWait|coverplant|flank\d$|probeInfo$)/},   // (19.11) проба вглубь CT — её перебивала перестановка на сайте (rebal, 3) через 1,5 с (м3 р7)   // (п.20 владельца 29.10: фланг CT
   // «из-за частого перебивания путей… нет захода в спину» — был уровнем 1, его перебивало и ожидание у дыма) фланг — задача команды
   {lv:4,  kind:"гранаты/ожидания",   re:/^(lineup|smokeWait|smokeLine|utilWait|utilHold)$/},
@@ -465,7 +465,7 @@ function setPostDo(b, pt, look, hold, tag, spreadIdx){
   if(b.state === "patrol"){ movePath(b, [], "post"); b.pathIdx = 0; }
   return {ok: true, why: "поставлен", lv: lv};
 }
-// (17.11, перестройка — модули) запись в журнал решений (645) — здесь, у хозяина (было: 645 подменял функцию обёрткой)
+// (17.11, перестройка — модули) запись в журнал решений (trace) — здесь, у хозяина (было: 645 подменял функцию обёрткой)
 // (владелец 18.11 м1 р2: «опять не дошёл до пробы»; «чинить механику целиком») срок задачи «дойти и сделать» — одно место: от расчётного прихода
 // (путь по навмешу / скорость по режиму: шагом — WALK_SPEED_FRAC), а не от выдачи. Было: у пробы T — так (Г3, 04.11), у пробы CT (8 с от выдачи)
 // и выхода на контакт — нет: на полпути задача истекала
@@ -491,7 +491,7 @@ function setPostR(b, pt, look, hold, tag){ var _ev = simEvIn("setPost", argument
   var cur = b._task ? " (уровень " + b._task.lv + ")" : "";
   if(r && tag !== was) dlog(b, "место", "задача «" + tag + "»" + cur + (was ? " вместо «" + was + "»" : "") + " — " + calloutName(pt.x, pt.y));
   else if(!r) dlog(b, "место", "отказ «" + tag + "»: занят «" + (b._task ? b._task.tag : (b.post && b.post.tag)) + "»" + cur);
-  // (Р3.3) ответ арбитра на заявку — отдельный ключ следа (_dlogA): тексты _dlog читает счёт ошибок движения (545), их не трогать
+  // (Р3.3) ответ арбитра на заявку — отдельный ключ следа (_dlogA): тексты _dlog читает счёт ошибок движения (problem-watch), их не трогать
   if(!r || tag !== was) dlog(b, "арбитр", "заявка «" + tag + "» ур. " + R.lv + ": " + (r ? "да" : "нет") + " — " + (R.why || "?"), "_dlogA");
   simEvOut(_ev, r); return R;
 }
@@ -512,13 +512,13 @@ function afterTaskPick(b, pt){
 }
 // механика сама сняла свою точку — её задача кончилась (следующая ставится без ожидания)
 function clearPostDo(b){ b._task = null; if(b._detour && b.post && taskTagB(b.post.tag) === b._detour.tb) b._detour = null; if(b.post){ b.post = null; b.atPost = false; if(b.state==="patrol"){ movePath(b, [], "post"); b.pathIdx = 0; } } }
-// (17.11, перестройка — модули) запись в журнал решений (645) — здесь, у хозяина (было: 645 подменял функцию обёрткой)
+// (17.11, перестройка — модули) запись в журнал решений (trace) — здесь, у хозяина (было: 645 подменял функцию обёрткой)
 function clearPost(b){
   if(b && b.post) dlog(b, "место", "снята задача «" + b.post.tag + "»"); return clearPostDo.apply(this, arguments);
 }
 // (15.11, перестройка, фаза 3 — канал места, шаг 1) поля места — post, _task и стойка crouching (владелец 15.11: присед — место) — пишет
 // только этот файл; остальные — через интерфейс: стойка placeStance(b, сидеть?, причина) (бой — присед в очереди, ход — встать из огня,
-// ослеплён — присесть), сброс раунда placeResetPost / placeResetTask (530). Причина стойки — b._stanceWhy.
+// ослеплён — присесть), сброс раунда placeResetPost / placeResetTask (round). Причина стойки — b._stanceWhy.
 function placeStance(b, c, why){ b.crouching = c; b._stanceWhy = why; }
 function placeResetPost(b){ b.post = null; }
 function placeResetTask(b){ b._task = null; }

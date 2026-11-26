@@ -1,7 +1,7 @@
 // ---------- (v566, владелец 12.11: «как разбор взгляда — для закупов, расстановок, клатчей: почему так играют, зачем») разбор команды ----------
 // Только показ: читает, что уже решили механики (закуп 520 — buyWhy / ecoWhy / roundGoal; тактика T 130 — TACT_DBG; продолжение / переколы
-// IGL 160 / 170 — tt.open / tt.recalls / журнал TEAM_LOG (435); расстановка CT 140 — CTSET_DBG; колл CT 340 — ct.call; концовка 330 / 320). Игру не меняет.
-var TEAMDBG = {on: false};   // (17.11) журнал решений команд — TEAM_LOG (435, данные игры); здесь — только показ
+// IGL 160 / 170 — tt.open / tt.recalls / журнал TEAM_LOG (journal); расстановка CT 140 — CTSET_DBG; колл CT 340 — ct.call; концовка 330 / 320). Игру не меняет.
+var TEAMDBG = {on: false};   // (17.11) журнал решений команд — TEAM_LOG (journal, данные игры); здесь — только показ
 var chkTeamDbg = typeof document !== "undefined" ? document.getElementById("chkTeamDbg") : null;
 var teamDbgEl = null;
 if(typeof document !== "undefined"){ teamDbgEl = document.createElement("div"); teamDbgEl.id = "teamDbg"; document.body.appendChild(teamDbgEl); }

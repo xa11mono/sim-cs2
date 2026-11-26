@@ -18,7 +18,7 @@ buyPhase(); // закуп первого (пистолетного) раунда
 resetBomb();
 beliefBuild(); beliefReset(); // раздел 13: карта вероятностей врага
 
-// (v322, М14) свободный обзор в закупку — канал взгляда (275_look_turn.ts, freezeLookTick)
+// (v322, М14) свободный обзор в закупку — канал взгляда (turn.ts, freezeLookTick)
 
 // (v322) звук движения — шаги, вода, прыжок (одно место «кто из врагов услышал»): через стену слышно ближе (~75 % радиуса),
 // место — пятно, а не точка (hearPos), в уши — hearReal
@@ -287,7 +287,7 @@ function stepTick(){
     postRun = true;
   }
   if(roundState === "matchover"){
-    if(simTime - roundEndTime >= 7) matchBegin(matchNum + 1, true, false);   // (Т-2) следующий матч — как в новой странице, с памятью OPP / SERIES (530)
+    if(simTime - roundEndTime >= 7) matchBegin(matchNum + 1, true, false);   // (Т-2) следующий матч — как в новой странице, с памятью OPP / SERIES (round)
     return;
   }
   if(roundState === "freeze"){
@@ -296,8 +296,8 @@ function stepTick(){
     return;
   }
   // ── этап 2. особые режимы: песочница, раунд из демки
-  if(SANDBOX.on) sbTick();   // (v536) песочница: часы раунда и бомбы стоят (677)
-  if(DEMOV.on) dvTick();     // (v571) раунд из демки: события и места игроков — из демки (678)
+  if(SANDBOX.on) sbTick();   // (v536) песочница: часы раунда и бомбы стоят (sandbox)
+  if(DEMOV.on) dvTick();     // (v571) раунд из демки: события и места игроков — из демки (demo)
   // ── этап 3. после конца раунда — только подбор оружия и предметов (и шаги ниже)
   if(postRun){ weaponPickupTick(); itemPickupTick(); }   // (v564, В89) после раунда — подбирают оружие и предметы (как в CS2 до рестарта)
   // ── этап 4. решения команд и гранат: тактика T / расстановка CT / бомба, мозги гранат, задачи гранат, полёт гранат
@@ -344,14 +344,14 @@ function stepTick(){
   beliefTick();   // раздел 13: карта вероятностей врага
   // ── этап 8. конец раунда и наблюдение (счёт ошибок движения)
   checkRoundEnd();
-  probTick();     // (v407) счёт ошибок движения — только наблюдает (545)
+  probTick();     // (v407) счёт ошибок движения — только наблюдает (problem-watch)
 }
 // (Р4.4, 26.11) шаг одного бота в тике — тело обхода bots.forEach из stepTick, перенесено дословно (return — к следующему боту, как было);
 // числа тика (dtSec, maxDelta, радиусы, поворот, порог ступенек) — параметрами с теми же именами, тело их только читает
 function stepBot(bot, dtSec, maxDelta, ARRIVE_RADIUS, BRAKE_RADIUS, TURN_RATE, STAIRS_SLOPE_THRESHOLD){
     if(!bot.alive) return;
     bot.px = bot.x; bot.py = bot.y; bot.pfacing = bot.facing;
-    if(bot._sbOff && !bot._sbGo && !bot._climb){ bot.curSpeed = 0; return; }   // (v543) начатый подъём / прыжок доводится до конца   // (v536) песочница: ИИ выключен — стоит; (v538) но идёт по приказу владельца, ИИ при этом не включается (677)   // (v414, М154) взгляд на начало тика — только для рисования (сглаживание, 620_draw)
+    if(bot._sbOff && !bot._sbGo && !bot._climb){ bot.curSpeed = 0; return; }   // (v543) начатый подъём / прыжок доводится до конца   // (v536) песочница: ИИ выключен — стоит; (v538) но идёт по приказу владельца, ИИ при этом не включается (sandbox)   // (v414, М154) взгляд на начало тика — только для рисования (сглаживание, draw)
     updatePost(bot);
     updateReload(bot);
     if(!bot.post) updateRoamer(bot);
@@ -359,21 +359,21 @@ function stepBot(bot, dtSec, maxDelta, ARRIVE_RADIUS, BRAKE_RADIUS, TURN_RATE, S
     // а он не зовётся, пока у бота есть задача; скорость при этом 0) получил задачу — чек роумера кончился
     else if(bot.roamChecking) bot.roamChecking = false;
     // этаж под ботом (раздел 9: метка уровня на радаре) — раз в 16 тиков хватает
-    floorViewTick(bot);   // (v535) под / над другим этажом — по 3D-геометрии, каждый тик (370)
+    floorViewTick(bot);   // (v535) под / над другим этажом — по 3D-геометрии, каждый тик (levels)
     // "на лестнице" пересчитывается только в ветке движения — если бот
     // остановился (держит угол, стоит на посту), флаг раньше оставался от
     // последнего отрезка пути навсегда: бот, дошедший до поста по лестнице,
     // весь раунд стрелял со штрафом лестницы 0.35 и не мог выбрать "держать
     // угол". Сбрасываем каждый тик; движение ниже выставит заново, если надо.
     bot.onStairs = false;
-    moveWalkTick(bot);   // шагом / бегом — одно место (535_move_mode)
+    moveWalkTick(bot);   // шагом / бегом — одно место (move)
     knifeTick(bot); prePeekTick(bot); exposedShiftTick(bot); jumpCheckTick(bot);
     var runSpeed = (bot.walking ? SPEED*WALK_SPEED_FRAC : SPEED) * weaponSpeedMul(bot);
     // атакующий, который прямо сейчас видит врага, останавливается и
     // стреляет (контр-страф), а не продолжает бежать по патрульному пути —
     // иначе он сам уходил из линии огня посреди перестрелки. Уйти с линии
     // за укрытие и выглянуть снова — fightCycleTick (по данным про).
-    moveSpeedTick(bot, runSpeed, BRAKE_RADIUS, maxDelta); runSpeed = MOVE.run;   // стоять / идти / огонь / торможение — одно место (535_move_mode)
+    moveSpeedTick(bot, runSpeed, BRAKE_RADIUS, maxDelta); runSpeed = MOVE.run;   // стоять / идти / огонь / торможение — одно место (move)
     var burn = MOVE.burn;
     if(tick % 16 === 0){ var TR = bot._trail || (bot._trail = []); TR.push({x:bot.baseX, y:bot.baseY}); if(TR.length > 8) TR.shift(); }
     // перестрелка по данным: уйти с линии за укрытие и выглянуть снова
@@ -417,9 +417,9 @@ function stepBot(bot, dtSec, maxDelta, ARRIVE_RADIUS, BRAKE_RADIUS, TURN_RATE, S
 
     // (v415, Б5к шаг 3, М154) в живой перестрелке (_fc) по маршруту не идёт. Раньше на линии шёл, когда «не держит» врага (_fc.own гаснет
     // ≈ 0,25 с после контакта): при мигающей видимости бот чередовал стрейф и шаг по маршруту (подпись v414 на м3: 116 снимков за 45 с).
-    // Перестрелка кончается как раньше — врага не видно дольше паузы про (470, PEEK_PRO.pause)
+    // Перестрелка кончается как раньше — врага не видно дольше паузы про (fight, PEEK_PRO.pause)
     // (отметка владельца 18.11, м5 р2 т6916, CT1 в 33 ед. от точки выхода на бортике) задача «выйти на врага», врага не видно — по пути до точки
-    // и в перестрелке (fcSwingGo, 470): иначе бот стоял, не дойдя, и задача «встала» через 1,5 с
+    // и в перестрелке (fcSwingGo, fight): иначе бот стоял, не дойдя, и задача «встала» через 1,5 с
     if(!ladderTick(bot) && !((bot.holding && !bot._burning) || bot.curSpeed <= 0.5 || (bot._fc && !fcSwingGo(bot)))){
       if(bot.path.length === 0 || bot.pathIdx >= bot.path.length){
         if(bot.forcedRetreat) bot.forcedRetreat = false;
@@ -511,7 +511,7 @@ function stepBot(bot, dtSec, maxDelta, ARRIVE_RADIUS, BRAKE_RADIUS, TURN_RATE, S
         // straight zone-to-portal-to-zone line can still clip a wall corner
         // on a hand-drawn map, so check before committing the step.
         // (v450г) путь идёт сквозь огонь (обход длиннее, 050), а заходить в огонь боту не по делу (fireCommit) — ждёт у края, пока не
-        // погаснет (fireGoneRepath, 370). Раньше упирался в край: веер проб, «застрял» → отталкивание, сброс пути, тот же путь заново —
+        // погаснет (fireGoneRepath, levels). Раньше упирался в край: веер проб, «застрял» → отталкивание, сброс пути, тот же путь заново —
         // переносы у огня на Ancient 58 → 128 на 100 раундов (замер 28.10)
         var fireWait = !inFire(bot.baseX, bot.baseY, bot.z) && inFire(nx, ny, bot.z) && !fireCommit(bot) && fireOnSeg(bot.baseX, bot.baseY, target[0], target[1], bot.z);
         // (v555) упёрся в огонь, путь которого строился без него, — один раз на этот огонь путь заново (обход, если он не длиннее FIRE_DETOUR, 050)
@@ -565,7 +565,7 @@ function stepBot(bot, dtSec, maxDelta, ARRIVE_RADIUS, BRAKE_RADIUS, TURN_RATE, S
         // otherwise the bot "moves" by fractions of a pixel forever instead
         // of ever giving up on a bad straight-line path.
         var actuallyMoved = DM.hypot(bot.baseX-startX, bot.baseY-startY);
-        // (v403) высота бота — одно место navFollowFloor (370): после шага здесь и после любого другого движения за тик (конец цикла)
+        // (v403) высота бота — одно место navFollowFloor (levels): после шага здесь и после любого другого движения за тик (конец цикла)
         if(actuallyMoved > 0) navFollowFloor(bot);
         if(fireWait){ bot.stuckTicks = 0; bot._np = null; bot._netStuck = 0; bot._progTick = tick; bot._progBest = Infinity; bot._idleT = tick; bot._trail = []; }
         else {

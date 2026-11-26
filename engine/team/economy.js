@@ -151,7 +151,7 @@ function decideRoundType(team){
 }
 var FORCE_SHARE = {CT: 0.46, T: 0.39}, FORCE_MIN = 2000;   // доля форса / хафа, когда можно копить; $ на игрока — ниже не форсят (демки, В94)
 function decideRoundType0(team){
-  // (v566) причина решения — для «Разбора команды» (612), игру не меняет
+  // (v566) причина решения — для «Разбора команды» (team), игру не меняет
   var BW = function(r, why){ teamEco[team].buyWhy = why; return r; };
   var mates = bots.filter(function(b){ return b.team === team; });
   if(roundNum === 1 || roundNum === HALF_ROUNDS+1) return BW("pistol", "пистолетка");
@@ -228,7 +228,7 @@ function buyItem(b, key){
 }
 // (v357) броня с прочностью: выжил — броня и каска остаются с тем, что осталось. Докупка — всегда $650 до 100 (частичной нет),
 // если прочность ниже порога ARMOR_REBUY (оценка аналитики: фулл 90, тесный фулл 60, форс/хаф 40; на эко не докупают).
-// Каска $350 — только к целой (100) броне, иначе сначала докупка (источники расходятся; так в вики CS)
+// Каска $350 — только к целой (sites-spots) броне, иначе сначала докупка (источники расходятся; так в вики CS)
 var ARMOR_REBUY = {full:90, tight:60, force:40, half:40, eco:0, pistol:1};
 function armorHpOf(b){ if(b.armorHp == null) b.armorHp = b.armor ? 100 : 0; return b.armorHp; }
 function buyArmor(b, withHelmet, below){
@@ -262,7 +262,7 @@ function buyFullKit(b, idx){
   // третий — ротатор или мидер (без AWP); кит — на сдачу, после оружия, брони и гранат (срезается первым); у остальных — нет
   P.kit = !T && !b.kit && b.primary !== "AWP" && (b.tRole === "anchorA" || b.tRole === "anchorB" || ((b.tRole === "rotator" || b.tRole === "mid") && !mates.some(function(m){ return m !== b && (m.tRole === "rotator" || m.tRole === "mid") && m.kit; })));
   var have = {smoke:b.nades.smoke, flash:b.nades.flash, molly:b.nades.molly, he:b.nades.he}, fN = 0;
-  // (v428) гранаты фулла — из плана команды (365_nade_plan: гранаты своей зоны на нужный момент), а не набор роли (NADE_WISH_PRO)
+  // (v428) гранаты фулла — из плана команды (plan: гранаты своей зоны на нужный момент), а не набор роли (NADE_WISH_PRO)
   var NPL = teamNadePlan(b.team, "full")[b.id] || [];
   NPL.forEach(function(t){
     var tag = t === "flash" ? (++fN === 1 ? "flash1" : "flash2") : t;
@@ -319,7 +319,7 @@ function bestPrimary(b, maxPrice, keep){
   return best;
 }
 
-// (v428) план гранат команды (teamNadePlan) — в 365_nade_plan.js: какие гранаты, у кого, на какой момент и для какой зоны
+// (v428) план гранат команды (teamNadePlan) — в plan.js: какие гранаты, у кого, на какой момент и для какой зоны
 function buyForPlayer(b, type, idx){
   var before = b.money;
   if(type === "pistol"){
