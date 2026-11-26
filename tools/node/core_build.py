@@ -25,7 +25,18 @@ i = page_src.index(mark); head = snap_block[i:]   # всё, что inject вст
 cut = head.index(marks_build.snapshot_src()) + len(marks_build.snapshot_src())
 snap = head[:cut]   # без интерфейса отметок
 glue = ('\n// (Р5) конец загрузки ядра без показа: то же, что view/app.js на своём месте (coreLoadEnd), и вход для инструментов\n'
-        'coreLoadEnd();\nglobalThis.__ev = function(src){ return eval(src); };\n})();\n')
+        'coreLoadEnd();\nglobalThis.__ev = function(src){ return eval(src); };\n'
+        # (Р5.2, 26.11) ядро в Worker страницы: команды страницы → симуляция, ответ — кадр (frameMake). Только в области Worker
+        '// (Р5.2) Worker страницы: match — новый матч; adv — прошло ms (часы те же, что у страницы: clockAcc / stepTick); to — до тика;\n'
+        '// set — переменные страницы, которые читает симуляция (настройки); now — часы показа страницы (nowTs: время рождения трассеров,\n'
+        '// вспышек и т. п. — как в странице, где nowTs ставится раз в кадр перед тиками); ответ на каждую команду — кадр\n'
+        'if(typeof document === "undefined" && typeof importScripts === "function"){ SIM_SHOW = true; self.onmessage = function(e){ var m = e.data; if(m.now != null) nowTs = m.now;\n'
+        '  if(m.cmd === "match") freshMatch(m.n, m.keep);\n'
+        '  else if(m.cmd === "adv"){ clockAcc(accumulator + m.ms); while(accumulator >= TICK_MS){ stepTick(); clockAcc(accumulator - TICK_MS); } }\n'
+        '  else if(m.cmd === "to"){ while(tick < m.t) stepTick(); }\n'
+        '  else if(m.cmd === "set"){ Object.keys(m.v).forEach(function(k){ eval(k + " = m.v[k]"); }); }\n'
+        '  postMessage({tick: tick, F: frameMake()}); }; }\n'
+        '})();\n')
 core = src + snap + glue
 core = inject_map('<script>' + core + '</script>', name, need=('@@MAP@@',))
 tmp = os.path.join(tempfile.mkdtemp(), 'core.html'); open(tmp, 'w', encoding='utf-8').write(core)

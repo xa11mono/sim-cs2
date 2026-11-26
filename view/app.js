@@ -242,6 +242,22 @@ function showSync(){
   var sk = WSK_EL || (WSK_EL = document.getElementById("btnWarmSkip"));
   if(sk && !WARM.on && sk.style.display !== "none") sk.style.display = "none";
 }
+// (Р5.2, 26.11) режим Worker (страница с ?worker=1, сборка src/build.py --worker): симуляция — ядро в Worker из Blob-URL (текст ядра — в
+// странице, #simCore; data: на страницах-артефактах запрещён, Р0.2), показ — тот же код по кадру (frameApply, src/snapshot.js). Время копится,
+// пока Worker занят (одна команда в пути). Разминка, песочница, повтор, редакторы — пока на странице (режим Worker их не включает)
+var WK = {on: false, w: null, F: null, busy: false, pend: 0};
+function wkStart(){
+  var el = document.getElementById("simCore"); if(!el || typeof Worker === "undefined") return false;
+  WK.w = new Worker(URL.createObjectURL(new Blob([el.textContent], {type: "text/javascript"})));
+  WK.w.onmessage = function(e){ WK.F = e.data.F; WK.busy = false; };
+  WK.w.onerror = function(e){ showFatal(new Error("Worker: " + (e.message || e))); };
+  WK.on = true; return true;
+}
+function wkSend(m){ WK.busy = true; WK.w.postMessage(m); }
+function wkFrame(ms){
+  if(WK.F){ frameApply(WK.F); WK.F = null; }
+  WK.pend += ms; if(!WK.busy && WK.pend > 0){ wkSend({cmd: "adv", ms: WK.pend, now: nowTs}); WK.pend = 0; }
+}
 function frame(ts){
   try{ frameBody(ts); }catch(e){ showFatal(e); }
   requestAnimationFrame(frame);
@@ -251,7 +267,8 @@ function frameBody(ts){
   if(typeof zoneDangerSync === "function") zoneDangerSync();   // (Р3.4) правка карты при остановленной игре — таблица для рисования
   if(SND && SND.ctx) sndFireTick();   // (v333) треск огня — и останавливается, когда огонь погас / раунд кончился / звук выключен
   var dt = clockFrameDt(ts);
-  if(!paused && WARM.on){ var wdt = Math.min(0.1, dt/1000); warmTick(wdt); clockAcc(0); }
+  if(WK.on){ wkFrame(paused ? 0 : Math.min(dt, FRAME_CATCHUP_MS)); }   // (Р5.2) симуляция в Worker: время — туда, кадр — оттуда
+  else if(!paused && WARM.on){ var wdt = Math.min(0.1, dt/1000); warmTick(wdt); clockAcc(0); }
   else if(!paused){
     // (v397, М146) догонять не больше FRAME_CATCHUP_MS за кадр: после скрытой вкладки или долгого кадра цикл раньше считал все
     // пропущенные тики разом (минута вкладки в фоне = ~3800 тиков в одном кадре — страница вставала на секунды, а следующий кадр
@@ -280,8 +297,9 @@ function frameBody(ts){
   r.value = Math.round(HL.p*100); show();
   r.addEventListener("input", function(){ HL.p = (+r.value || 0)/100; show(); try{ localStorage.setItem(HL_KEY, JSON.stringify({p: HL.p})); }catch(e){} });
 })();
-document.getElementById("btnFreshMatch").addEventListener("click", function(){ var n = Math.max(1, parseInt(document.getElementById("inpMatchNum").value, 10) || 1); var sel = document.getElementById("selSeries"), bo = sel ? +sel.value : 3; if(bo !== SERIES.bo || seriesDone()) SERIES = {bo:bo, maps:{}}; var cw = document.getElementById("chkWarm"); if(cw && !cw.checked) freshMatch(n); else warmStart(n); clockPause(false); var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); } logEvent("Матч №"+n+" с чистого листа (воспроизводимый)", true); });
+document.getElementById("btnFreshMatch").addEventListener("click", function(){ var n = Math.max(1, parseInt(document.getElementById("inpMatchNum").value, 10) || 1); if(WK.on){ wkSend({cmd: "match", n: n}); return; }   /* (Р5.2) режим Worker: новый матч — в Worker (серия, профили — пока на странице) */ var sel = document.getElementById("selSeries"), bo = sel ? +sel.value : 3; if(bo !== SERIES.bo || seriesDone()) SERIES = {bo:bo, maps:{}}; var cw = document.getElementById("chkWarm"); if(cw && !cw.checked) freshMatch(n); else warmStart(n); clockPause(false); var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); } logEvent("Матч №"+n+" с чистого листа (воспроизводимый)", true); });
 setInterval(function(){ var el = document.getElementById("matchTick"); if(el) el.textContent = "матч "+matchNum+" · тик "+tick; }, 250);
+if(/[?&]worker=1/.test(location.search)) wkStart();   // (Р5.2) режим Worker — по адресу страницы
 coreLoadEnd();   // (Р5, 26.11) конец загрузки ядра — на прежнем месте (после настроек страницы, до разминки): BOT_INIT, MK_LOAD (engine/match/round.js)
 window.__ev=function(src){return eval(src);};
 /*@@WARM_AUTO@@*/

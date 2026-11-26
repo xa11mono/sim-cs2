@@ -35,7 +35,7 @@ function voiceKind(key, text){
 }
 
 function voiceFeed(team, who, text, kind){ var _ev = simEvIn("voiceFeed", arguments);
-  if(typeof document === "undefined") return simEvOut(_ev);
+  if(!SIM_SHOW) return simEvOut(_ev);   // (Р5.2) строки войса — только если их кто-то показывает (страница, Worker страницы); в Node — нет
   var sec = roundState === "live" ? Math.max(0, ROUND_TIME_SEC - (simTime - roundStartTime)) : ROUND_TIME_SEC;   // как таймер табло
   var planted = typeof bomb !== "undefined" && bomb && bomb.state === "planted";
   voiceLines.unshift({t: planted ? "💣" : Math.floor(sec/60)+":"+("0"+Math.floor(sec%60)).slice(-2), team: team,

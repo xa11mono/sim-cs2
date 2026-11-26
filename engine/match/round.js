@@ -168,7 +168,7 @@ function endRound(winner, reason){ var _ev = simEvIn("endRound", arguments);
   var over = matchOverWith(roundNum, score.CT, score.T);
   if(!over && roundNum >= regRounds() && (roundNum - regRounds()) % (OT_HALF*2) === 0)
     logEvent((roundNum === regRounds() ? "" : "ещё ")+"ОВЕРТАЙМ при "+score.CT+":"+score.T+" — MR3, по $"+OT_MONEY+", до "+(MATCH_WIN + OT_HALF*(otIndex(roundNum+1)+1))+" побед", true);
-  if(!over && sideSwapNow(roundNum+1) && typeof document !== "undefined"){
+  if(!over && sideSwapNow(roundNum+1) && SIM_SHOW){
     RC_HALF = "Смена сторон: "+TEAM_NAME.T+" — CT, "+TEAM_NAME.CT+" — T";   // (15.11, перестройка) надпись на карточке ставит кадр (app)
   }
   if(over){

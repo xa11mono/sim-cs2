@@ -2468,7 +2468,7 @@
    "w": {},
    "m": {},
    "r": {
-    "app": 1
+    "app": 2
    },
    "snap": "нет: UI"
   },
@@ -7492,6 +7492,17 @@
    },
    "snap": true
   },
+  "SIM_SHOW": {
+   "decl": "modes.js:11",
+   "init": "BinaryExpression",
+   "w": {},
+   "m": {},
+   "r": {
+    "journal": 1,
+    "round": 1
+   },
+   "snap": "нет: STATIC"
+  },
   "SITES": {
    "decl": "sites-spots.js:2",
    "init": "ObjectExpression",
@@ -9212,6 +9223,20 @@
     "economy": 1
    },
    "snap": true
+  },
+  "WK": {
+   "decl": "app.js:248",
+   "init": "ObjectExpression",
+   "w": {},
+   "m": {
+    "wkFrame · app": 3,
+    "wkSend · app": 1,
+    "wkStart · app": 6
+   },
+   "r": {
+    "app": 18
+   },
+   "snap": "нет: UI"
   },
   "WPM": {
    "decl": "path-search.js:195",
@@ -11297,7 +11322,7 @@
    },
    "m": {},
    "r": {
-    "app": 7,
+    "app": 8,
     "replay": 1,
     "scoreboard": 2,
     "view3d": 1

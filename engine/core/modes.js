@@ -6,3 +6,6 @@ var DEMOV = {on: false, i: 0, R: null, t0: 0, BOT: {}, ei: 0, allow: false};
 var SANDBOX = {on: false, sel: null, drag: null, place: null, last: 0};
 var WARM = {on:false};
 var RC_HALF = null;
+// (Р5.2, 26.11) показ нужен: строки войса, надпись смены сторон — то, что только показывают. Страница — да, Node — нет (как было: проверка
+// `typeof document`); ядро в Worker страницы включает его само (tools/node/core_build.py, обработчик команд)
+var SIM_SHOW = typeof document !== "undefined";
