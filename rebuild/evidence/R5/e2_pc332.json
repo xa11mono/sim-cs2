@@ -1,0 +1,11 @@
+{
+ "run": 332, "branch": "measure/v636a-r5core", "ref": "7aba8b8faaff4254cf6598ee4d11ee6f21677079", "cancelled": "26.11 14:09 по решению владельца (par упал до 1); готовые матчи опубликованы и сохранены для resume",
+ "reference": "rebuild/evidence/R2/fp_cloud_chromium158",
+ "fingerprints": {
+  "v636a_chr_anc": "8/8 = эталон", "v636a_node_anc": "8/8 = эталон (Э2: ядро без показа в Node = страница в Chromium)",
+  "v636a_chr_mir": "7/7 = эталон; м29 прерван отменой", "v636a_node_mir": "не сыграны (8)",
+  "v636a_single_chr": "м3 = эталон", "v636a_single_node": "м3 = эталон"
+ },
+ "parallelism": "фаза Chromium Ancient: нехватка памяти снизила cap 8 → 3, повтор 5 снятых поставил cap = 1 (сторож до v637a); фазы Node Ancient и Chromium Mirage шли по одному матчу — замер параллельной производительности 332 некорректен для par 8; повторяется новым сторожем (v637a)",
+ "missing_next_job": ["v636a_chr_mir m29", "v636a_node_mir m3..m29"]
+}
