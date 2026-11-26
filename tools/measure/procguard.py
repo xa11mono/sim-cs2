@@ -322,18 +322,34 @@ class Pool:
         self.cap = v; self.t_cap = time.monotonic()
 
     def _can_start(self, t, available):
+        return self._admit(t, available)[0]
+    def _admit(self, t, available):
+        # (26.11, владелец: «в журнал — причину недопуска») то же решение, что было, плюс числа для журнала
         key = self._key(t)
-        estimate = self._est(key)
+        estimate = self._est(key); need = self._need()
+        info = {'key': key, 'est': estimate, 'need': need, 'avail': available, 'reserve': self.reserve, 'after_peak': available - need - estimate}
         if self.run and (t.get('retried') or any(r['t'].get('retried') for r in self.run)):
-            return False
+            return False, dict(info, why='повтор снятого — идёт один')
         # Без законченного измерения одной пары разрешён один калибровочный матч этой пары.
         if key not in self.calibrated and any(self._key(r['t']) == key for r in self.run):
-            return False
-        if available - self._need() - estimate < self.reserve:
-            return False
+            return False, dict(info, why='калибровка: у пары %s нет законченного замера пика — один матч' % key)
+        if available - need - estimate < self.reserve:
+            return False, dict(info, why='память: свободно − рост идущих − пик нового < запас')
         if self.group:
-            return sum(self._est(self._key(r['t'])) for r in self.run) + estimate <= self.group_limit
-        return True
+            peaks = sum(self._est(self._key(r['t'])) for r in self.run)
+            info.update(commit_peaks=peaks, commit_limit=self.group_limit, commit_peak_used=self.group.peak_mb())
+            if peaks + estimate > self.group_limit:
+                return False, dict(info, why='общий лимит commit: пики идущих + пик нового > лимит')
+        return True, dict(info, why='')
+    def _log_block(self, t, info, now):
+        k = (t['name'], info['why'])
+        if k == getattr(self, '_blk', None) and now - getattr(self, '_blk_t', 0) < self.c['log_s']: return
+        self._blk, self._blk_t = k, now
+        s = ('guard: недопуск %s — %s; прогноз пика нового %d МБ (%s), рост идущих до пика +%d МБ, свободно %d МБ, запас %d МБ → после пиков свободно %d МБ'
+             % (t['name'], info['why'], info['est'], info['key'], info['need'], info['avail'], info['reserve'], info['after_peak']))
+        if 'commit_limit' in info:
+            s += '; commit: пики идущих %d + новый %d = %d из лимита %d МБ (наибольший занятый %s МБ)' % (info['commit_peaks'], info['est'], info['commit_peaks'] + info['est'], info['commit_limit'], info['commit_peak_used'])
+        self.log(s)
 
     def _increase_group_if_possible(self, available):
         if self.group and available - self.reserve > self.group_limit:
@@ -529,8 +545,10 @@ class Pool:
                     self._cap_set(self.cap + 1, 'память позволяет: свободно %d МБ, прогноз идущих +%d' % (av, self._need()))
                 while self.q and len(self.run) < self.cap:
                     next_task = self.q[0]
-                    if not self._can_start(next_task, av) or not self._ensure_group(av, next_task):
-                        break
+                    ok, info = self._admit(next_task, av)
+                    if not ok: self._log_block(next_task, info, now); break
+                    if not self._ensure_group(av, next_task):
+                        self._log_block(next_task, dict(info, why='общий лимит commit не создан: свободно − запас < пик нового'), now); break
                     self._start(self.q.pop(0))
                     av = mem_mb()[1]
                 if self.q and not self.run:
