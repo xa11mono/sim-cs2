@@ -4,7 +4,7 @@
 приёмки предыдущего. Прогресс — `rebuild/JOURNAL.md`; среда — `rebuild/ENVIRONMENT.md`; отложенные игровые недостатки —
 `rebuild/BEHAVIOR_BACKLOG.md`; архитектурные документы — `docs/architecture/README.md`.
 
-Заменяет: фазы 0–4 `rebuild/PLAN.md` (15.11; фазы 0–2 и часть 3 выполнены — `rebuild/PROGRESS.md`), последовательности R0–R6
+Заменяет: фазы 0–4 `rebuild/archive/PLAN.md` (15.11; фазы 0–2 и часть 3 выполнены — `rebuild/archive/PROGRESS.md`), последовательности R0–R6
 (`docs/reports/audit_2026-11-24/stage3/MIGRATION_ROADMAP.md`) и Р0–Р8 (`…/stage4/ROADMAP_CHANGES.md`). Эти документы остаются
 источниками; при расхождении действует этот план.
 

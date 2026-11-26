@@ -40,7 +40,7 @@
     «0 новых» проверяется сборкой, известные не растут. Работа продолжается по (а); принятие Р3 по этому пункту — после ответа.
 15. **Р4.6: слияние дублей документов правил и планов.** Опись Codex (190 .md) показывает дубли: семь требований и картина мира — в
     `AGENTS.md` §1, `docs/PRINCIPLES.md`, `docs/PLAYER_MINDSET.md`, `rebuild/RULES.md` п. 11; планы — `00_PLAN.md` (ПЛАН / ДОРОЖНАЯ КАРТА)
-    и `rebuild/MASTER_PLAN.md`; устройство — `docs/ARCHITECTURE.md`, `rebuild/DEVICE.md`, `TREE.md`, `FACTS.md`. Сделано без вопроса:
+    и `rebuild/MASTER_PLAN.md`; устройство — `docs/ARCHITECTURE.md`, `rebuild/DEVICE.md`, `archive/TREE.md`, `archive/FACTS.md`. Сделано без вопроса:
     таблица «Где что» перенесена дословно в ARCHITECTURE (AGENTS −14,5 КБ), ссылки — 0 битых. Варианты для остального: (а) один источник
     на тему (AGENTS — правила, PRINCIPLES / PLAYER_MINDSET — подробности, ссылками; MASTER_PLAN — перестройка, 00_PLAN — игра;
     ARCHITECTURE — устройство, DEVICE / TREE / FACTS — в архив с указателем), уникальные абзацы — переносом, без сокращения смысла; (б) только

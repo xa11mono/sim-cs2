@@ -41,7 +41,7 @@
 | Claude, этап 3 | стек, архитектура, матрица, скорость, регрессии, дорожная карта | `docs/reports/audit_2026-11-24/stage3/` |
 | Claude, этап 4 | проверка DeepSeek, дополнение, изменения дорожной карты, структура | `docs/reports/audit_2026-11-24/stage4/` |
 | DeepSeek, v598 (24.11) | сборка, ресурсы, загрузка, варианты развёртывания | `docs/audit/architecture/` — копия архива без изменений (без `__pycache__`); остальная часть ветки v598 (`bench/stage3`, `docs/reports/audit_2026-11-24/stage3/`, `docs/reports/audit_2026-11-24/SYSTEM_DEPENDENCIES.md`, docs/audit/parts/ — нет в этой ветке) — в ветке v598, которую владелец хранит отдельно; ссылки на неё из отчётов DeepSeek ведут туда |
-| перестройка 15–17.11 | план фаз 0–4, правила, журнал фаз | `rebuild/PLAN.md`, `rebuild/RULES.md`, `rebuild/PROGRESS.md` |
+| перестройка 15–17.11 | план фаз 0–4, правила, журнал фаз | `rebuild/archive/PLAN.md`, `rebuild/RULES.md`, `rebuild/archive/PROGRESS.md` |
 
 Когда ветка v598 будет выложена: её `docs/audit/architecture/` должен совпасть с копией здесь (проверка — `diff -r`); остальные её
 документы добавляются в таблицу выше как исходные, их выводы — в реестр решений после проверки.

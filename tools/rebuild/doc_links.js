@@ -8,7 +8,7 @@ const fs = require('fs'), path = require('path'), cp = require('child_process');
 const ROOT = path.resolve(__dirname, '..', '..');
 const MAP = {}; try { JSON.parse(fs.readFileSync(path.join(ROOT, 'rebuild', 'r4_map.json'), 'utf8')).map.forEach(m => { MAP[m.old] = m.dir + '/' + m.new; MAP[m.old.replace(/\.(js|ts|html)$/, '')] = m.dir + '/' + m.id; }); } catch (e) {}
 const files = cp.execSync('git -c core.quotepath=off ls-files -z "*.md"', { cwd: ROOT, encoding: 'utf8' }).split('\0').filter(Boolean)
-  .filter(f => process.argv.includes('--all') || !/^(docs\/(archive|reports|audit)\/|rebuild\/evidence\/|rebuild\/(R\d_REPORT|PROGRESS|DUPES|bal_removed|dead_removed)\.md|\.claude\/)/.test(f));
+  .filter(f => process.argv.includes('--all') || !/^(docs\/(archive|reports|audit)\/|rebuild\/evidence\/|rebuild\/archive\/|rebuild\/(R\d_REPORT|bal_removed|dead_removed)\.md|\.claude\/)/.test(f));
 const bad = [];
 const exists = p => { const c = p.replace(/[#?].*$/, '').replace(/\/$/, ''); if (!c) return true; if (/[*{}<>…]/.test(c)) return true; return ['', '.js', '.ts', '.html'].some(e => fs.existsSync(path.join(ROOT, c + e))); };   // путь файла игры без расширения (таблица «Где что») — допустим
 for (const f of files) {

@@ -2,7 +2,7 @@
 
 Постоянный журнал для любого агента (Claude Code, Codex, DeepSeek, ChatGPT с репозиторием). Цель — продолжать работу без повторного
 исследования проекта. План — `rebuild/MASTER_PLAN.md`; среда — `rebuild/ENVIRONMENT.md`; отложенные игровые недостатки —
-`rebuild/BEHAVIOR_BACKLOG.md`; архитектура — `docs/architecture/README.md`. Журнал фаз 0–3 до 24.11 — `rebuild/PROGRESS.md` (история).
+`rebuild/BEHAVIOR_BACKLOG.md`; архитектура — `docs/architecture/README.md`. Журнал фаз 0–3 до 24.11 — `rebuild/archive/PROGRESS.md` (история).
 
 ## 1. Как начать сессию (любой агент)
 
