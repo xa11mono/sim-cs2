@@ -40,4 +40,9 @@ run('R36_flash_known_blind', () => { const s = f => { f.a._visible = [f.b]; }; s
 run('R36_flash_known_fight', () => { const s = f => { f.a._visible = [f.b]; f.a._sawEnemy = true; };
   const w = flash(s); assert(!w.n['danger.flashKnown']);
   return { observed: { old: w.dangerBy['флешка без реакции'], known: 0 }, detail: 'знал, но в бою (видит врага) → новый 0' }; });
+// полнота: у каждого увеличения счётчика — событие с причиной (PROB.all, W.all), а не выборка
+run('R36_all_complete', () => { const f = motion(); f.advance(10 * 64, t => { if (t % 64 === 0) f.a._dlog.push([t, 'место', 'отказ «route:site»: занят «contact:hold»']); });
+  const P = f.c.PROB; assert.equal(P.all.length, P.n.stall + P.n.nav + P.n.tug); assert(P.all.every(e => e.why && e.text));
+  const w = flash(s0 => { s0.a._visible = [s0.b]; }); const nD = w.n.danger, nA = (w.all.danger || []).length; assert.equal(nA, nD);
+  return { observed: { prob: P.all.length, danger: nA }, detail: 'PROB.all = сумма счётчиков, у каждого события причина; W.all.danger = W.n.danger' }; });
 console.log(JSON.stringify({ type: 'Р3.6: новые счётчики stall.* рядом со старым', cases: cases }, null, 2));

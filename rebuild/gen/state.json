@@ -16,7 +16,7 @@
    "snap": true
   },
   "AHEAD_GAP": {
-   "decl": "igl.js:156",
+   "decl": "igl.js:159",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -444,9 +444,11 @@
    "snap": true
   },
   "BOT_INIT": {
-   "decl": "app.js:285",
-   "init": "CallExpression",
-   "w": {},
+   "decl": "round.js:247",
+   "init": "Literal",
+   "w": {
+    "coreLoadEnd · round": 1
+   },
    "m": {},
    "r": {
     "round": 1
@@ -1699,7 +1701,7 @@
    "snap": true
   },
   "DEMOV": {
-   "decl": "demo.js:9",
+   "decl": "modes.js:5",
    "init": "ObjectExpression",
    "w": {},
    "m": {
@@ -1737,7 +1739,7 @@
     "dlogBot · trace": 1
    },
    "r": {
-    "trace": 4
+    "trace": 5
    },
    "snap": "нет: след решений — вне состояния игры (Р3.3)"
   },
@@ -3205,7 +3207,7 @@
    "snap": true
   },
   "JUMP_TURN_R": {
-   "decl": "look-arbiter.js:201",
+   "decl": "look-arbiter.js:204",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -3720,7 +3722,7 @@
    "snap": true
   },
   "LAND_HOLD": {
-   "decl": "look-arbiter.js:202",
+   "decl": "look-arbiter.js:205",
    "init": "ArrayExpression",
    "w": {},
    "m": {},
@@ -3980,7 +3982,7 @@
    "snap": true
   },
   "LOOK_WALL_CLOSE": {
-   "decl": "look-arbiter.js:239",
+   "decl": "look-arbiter.js:242",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -6309,7 +6311,7 @@
    "snap": true
   },
   "PP_SHIFT": {
-   "decl": "igl.js:230",
+   "decl": "igl.js:233",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -6319,7 +6321,7 @@
    "snap": true
   },
   "PP_SHIFT_R": {
-   "decl": "igl.js:230",
+   "decl": "igl.js:233",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -6383,13 +6385,13 @@
    "init": "ObjectExpression",
    "w": {},
    "m": {
-    "probEvent · problem-watch": 5,
-    "probReset · problem-watch": 6,
+    "probEvent · problem-watch": 6,
+    "probReset · problem-watch": 7,
     "probTick · problem-watch": 5
    },
    "r": {
     "draw": 3,
-    "problem-watch": 24
+    "problem-watch": 29
    },
    "snap": true
   },
@@ -6647,7 +6649,7 @@
    "snap": true
   },
   "RC_HALF": {
-   "decl": "app.js:223",
+   "decl": "modes.js:8",
    "init": "Literal",
    "w": {
     "endRound · round": 1,
@@ -7227,7 +7229,7 @@
    "snap": true
   },
   "SANDBOX": {
-   "decl": "sandbox.js:8",
+   "decl": "modes.js:6",
    "init": "ObjectExpression",
    "w": {},
    "m": {
@@ -8940,7 +8942,7 @@
    "snap": "нет: STATIC"
   },
   "WARM": {
-   "decl": "warmup.js:6",
+   "decl": "modes.js:7",
    "init": "ObjectExpression",
    "w": {
     "dvStart · demo": 1,
@@ -9808,7 +9810,7 @@
     "makeTeam · weapons-bots": 2
    },
    "r": {
-    "app": 2,
+    "app": 1,
     "assist": 7,
     "belief": 4,
     "bomb": 14,
@@ -9854,7 +9856,7 @@
     "replay-play": 12,
     "roles": 9,
     "rosters": 3,
-    "round": 13,
+    "round": 14,
     "sandbox": 7,
     "save-retake": 11,
     "scoreboard": 6,
@@ -12568,7 +12570,7 @@
   },
   "_actS": {
    "w": [
-    "fight-state.js:170 decideAction"
+    "fight-state.js:173 decideActionR"
    ],
    "lit": [],
    "r": 2
@@ -12857,7 +12859,7 @@
     "contact.js:207 contactTick",
     "contact.js:243 contactTick",
     "contact.js:244 contactTick",
-    "fight-state.js:242 killMoveCover",
+    "fight-state.js:245 killMoveCover",
     "sandbox.js:42 sbRevive"
    ],
    "lit": [],
@@ -13601,7 +13603,7 @@
   },
   "_hs": {
    "w": [
-    "fight-state.js:331 shiftHold"
+    "fight-state.js:334 shiftHold"
    ],
    "lit": [],
    "r": 10
@@ -13820,7 +13822,7 @@
   },
   "_land": {
    "w": [
-    "look-arbiter.js:203 landLook"
+    "look-arbiter.js:206 landLook"
    ],
    "lit": [],
    "r": 2
@@ -13857,7 +13859,7 @@
   },
   "_ldArb": {
    "w": [
-    "look-arbiter.js:180 lookApply"
+    "look-arbiter.js:183 lookApply"
    ],
    "lit": [],
    "r": 1
@@ -13934,7 +13936,7 @@
   },
   "_lookLvl": {
    "w": [
-    "look-arbiter.js:179 lookApply"
+    "look-arbiter.js:182 lookApply"
    ],
    "lit": [],
    "r": 6
@@ -14017,7 +14019,7 @@
   },
   "_lvc": {
    "w": [
-    "look-arbiter.js:235 lookVisible"
+    "look-arbiter.js:238 lookVisible"
    ],
    "lit": [],
    "r": 2
@@ -14069,7 +14071,7 @@
   },
   "_moV": {
    "w": [
-    "fight-state.js:52 decideAction"
+    "fight-state.js:55 decideActionR"
    ],
    "lit": [],
    "r": 2
@@ -14440,7 +14442,7 @@
   },
   "_ppAlt": {
    "w": [
-    "igl.js:242 ppTimeNamed"
+    "igl.js:245 ppTimeNamed"
    ],
    "lit": [],
    "r": 2
@@ -14494,7 +14496,7 @@
   },
   "_ppTN": {
    "w": [
-    "igl.js:260 ppTimeNamed"
+    "igl.js:263 ppTimeNamed"
    ],
    "lit": [],
    "r": 4
@@ -14566,7 +14568,7 @@
   },
   "_probe": {
    "w": [
-    "igl.js:220 tSetSite",
+    "igl.js:223 tSetSite",
     "lurker.js:141 tProbes"
    ],
    "lit": [],
@@ -14578,10 +14580,10 @@
     "assist.js:74 flankAssist",
     "contact.js:245 contactTick",
     "contact.js:378 hurtReactTick",
-    "fight-state.js:208 postKillDecide",
-    "fight-state.js:247 killMoveCover",
-    "fight-state.js:287 afterKillReact",
-    "fight-state.js:333 shiftHold",
+    "fight-state.js:211 postKillDecide",
+    "fight-state.js:250 killMoveCover",
+    "fight-state.js:290 afterKillReact",
+    "fight-state.js:336 shiftHold",
     "fight.js:539 lowHpBack",
     "fight.js:558 lowHpBack",
     "fight.js:579 lowHpBack",
@@ -14700,7 +14702,7 @@
   },
   "_repeeked": {
    "w": [
-    "fight-state.js:274 afterKillReact"
+    "fight-state.js:277 afterKillReact"
    ],
    "lit": [],
    "r": 2
@@ -14769,8 +14771,8 @@
     "brain-t-phases.js:104 tBrainSetup",
     "brain-t.js:296 tBrainMidTake",
     "decide.js:254 resetNades",
-    "igl.js:124 tIglReplan",
-    "igl.js:215 tSetSite",
+    "igl.js:127 tIglReplan",
+    "igl.js:218 tSetSite",
     "lurker.js:57 lurkerBrain",
     "lurker.js:85 lurkerBrain",
     "task.js:381 setPostDo",
@@ -14784,8 +14786,8 @@
   "_routeDone": {
    "w": [
     "brain-t.js:296 tBrainMidTake",
-    "igl.js:124 tIglReplan",
-    "igl.js:214 tSetSite",
+    "igl.js:127 tIglReplan",
+    "igl.js:217 tSetSite",
     "lurker.js:85 lurkerBrain",
     "task.js:65 routeTick"
    ],
@@ -14794,9 +14796,9 @@
   },
   "_rtChk": {
    "w": [
-    "engagements.js:195 engRetreatCheck",
-    "engagements.js:199 engRetreatCheck",
-    "engagements.js:205 engRetreatCheck"
+    "engagements.js:196 engRetreatCheck",
+    "engagements.js:200 engRetreatCheck",
+    "engagements.js:206 engRetreatCheck"
    ],
    "lit": [],
    "r": 6
@@ -14806,7 +14808,7 @@
     "move.js:109 moveWalkTick"
    ],
    "lit": [],
-   "r": 1
+   "r": 3
   },
   "_safeRotK": {
    "w": [
@@ -14825,7 +14827,7 @@
     "brain-t-postplant.js:73 tBrainPostplant",
     "brain-t.js:110 tBrainExecGo",
     "brain-t.js:371 tBrainTeam",
-    "fight-state.js:260 afterKillReact",
+    "fight-state.js:263 afterKillReact",
     "round.js:233 resetRound",
     "save-retake.js:86 tSaveHold"
    ],
@@ -15056,9 +15058,9 @@
     "brain-t-phases.js:110 tBrainSetup",
     "brain-t-phases.js:114 tBrainSetup",
     "brain-t-phases.js:84 tBrainSetup",
-    "igl.js:124 tIglReplan",
-    "igl.js:180 stagePost",
-    "igl.js:215 tSetSite"
+    "igl.js:127 tIglReplan",
+    "igl.js:183 stagePost",
+    "igl.js:218 tSetSite"
    ],
    "lit": [],
    "r": 12
@@ -15123,7 +15125,7 @@
     "tick.js:381 stepBot"
    ],
    "lit": [],
-   "r": 4
+   "r": 6
   },
   "_stuckResets": {
    "w": [
@@ -15176,7 +15178,7 @@
   },
   "_tcV": {
    "w": [
-    "fight-state.js:40 decideAction"
+    "fight-state.js:43 decideActionR"
    ],
    "lit": [],
    "r": 2
@@ -15345,7 +15347,7 @@
     "move.js:109 moveWalkTick"
    ],
    "lit": [],
-   "r": 2
+   "r": 3
   },
   "_wv": {
    "w": [
@@ -15376,7 +15378,7 @@
    "lit": [
     "weapons-bots.js:82"
    ],
-   "r": 129
+   "r": 130
   },
   "ammo": {
    "w": [
@@ -15444,7 +15446,7 @@
   "baseX": {
    "w": [
     "demo.js:53 dvPlace",
-    "engagements.js:228 escapeWallLine",
+    "engagements.js:229 escapeWallLine",
     "fight.js:157 fightStrafe",
     "fight.js:381 fightCycleTick",
     "levels.js:207 ladderTick",
@@ -15475,7 +15477,7 @@
   "baseY": {
    "w": [
     "demo.js:53 dvPlace",
-    "engagements.js:228 escapeWallLine",
+    "engagements.js:229 escapeWallLine",
     "fight.js:157 fightStrafe",
     "fight.js:381 fightCycleTick",
     "levels.js:207 ladderTick",
@@ -15619,7 +15621,7 @@
   "decisionTick": {
    "w": [
     "engagements.js:138 engDecide",
-    "fight-state.js:185 leaveHold",
+    "fight-state.js:188 leaveHold",
     "round.js:214 resetRound"
    ],
    "lit": [
@@ -15767,8 +15769,8 @@
   "forcedRetreat": {
    "w": [
     "engagements.js:133 engDecide",
-    "engagements.js:185 engDecide",
-    "engagements.js:187 engDecide",
+    "engagements.js:186 engDecide",
+    "engagements.js:188 engDecide",
     "round.js:214 resetRound",
     "tick.js:425 stepBot"
    ],
@@ -15851,7 +15853,7 @@
   },
   "holdSinceTick": {
    "w": [
-    "engagements.js:153 engDecide",
+    "engagements.js:154 engDecide",
     "round.js:215 resetRound"
    ],
    "lit": [
@@ -15862,10 +15864,10 @@
   "holding": {
    "w": [
     "engagements.js:133 engDecide",
-    "engagements.js:152 engDecide",
+    "engagements.js:153 engDecide",
     "fight-state.js:13 fightReset",
     "fight-state.js:14 fightHoldOff",
-    "fight-state.js:185 leaveHold"
+    "fight-state.js:188 leaveHold"
    ],
    "lit": [
     "weapons-bots.js:82"
@@ -15892,7 +15894,7 @@
     "round.js:2",
     "weapons-bots.js:82"
    ],
-   "r": 623
+   "r": 626
   },
   "kills": {
    "w": [
@@ -16008,18 +16010,11 @@
   },
   "lookReason": {
    "w": [
-    "look-arbiter.js:179 lookApply",
-    "look-arbiter.js:254 lookFilter",
-    "look-arbiter.js:256 lookFilter",
-    "look-arbiter.js:263 lookFilter",
-    "look.js:373 smoothLookFilter",
-    "look.js:375 smoothLookFilter",
-    "look.js:383 smoothLookFilter",
-    "look.js:399 smoothLookFilter",
-    "round.js:218 resetRound"
+    "look-arbiter.js:180 lookReasonSet",
+    "look-arbiter.js:182 lookApply"
    ],
    "lit": [],
-   "r": 25
+   "r": 19
   },
   "lookTarget": {
    "w": [
@@ -16190,13 +16185,13 @@
     "bomb.js:240 bombTick",
     "bomb.js:321 bombTick",
     "bomb.js:326 bombTick",
-    "engagements.js:184 engDecide",
-    "engagements.js:203 engRetreatCheck",
-    "engagements.js:228 escapeWallLine",
-    "engagements.js:241 assignNewDestination",
-    "engagements.js:248 assignNewDestination",
-    "engagements.js:257 assignNewDestination",
-    "engagements.js:265 assignNewDestination",
+    "engagements.js:185 engDecide",
+    "engagements.js:204 engRetreatCheck",
+    "engagements.js:229 escapeWallLine",
+    "engagements.js:242 assignNewDestination",
+    "engagements.js:249 assignNewDestination",
+    "engagements.js:258 assignNewDestination",
+    "engagements.js:266 assignNewDestination",
     "fov.js:30 updateRoamer",
     "fov.js:59 updateRoamer",
     "fov.js:68 updateRoamer",
@@ -16254,9 +16249,9 @@
   },
   "pickTick": {
    "w": [
-    "engagements.js:241 assignNewDestination",
-    "engagements.js:248 assignNewDestination",
-    "engagements.js:257 assignNewDestination",
+    "engagements.js:242 assignNewDestination",
+    "engagements.js:249 assignNewDestination",
+    "engagements.js:258 assignNewDestination",
     "round.js:213 resetRound"
    ],
    "lit": [
@@ -16439,7 +16434,7 @@
   },
   "roamChecking": {
    "w": [
-    "engagements.js:151 engDecide",
+    "engagements.js:152 engDecide",
     "fov.js:28 updateRoamer",
     "fov.js:66 updateRoamer",
     "tick.js:360 stepBot",
@@ -16477,7 +16472,7 @@
   },
   "roamTarget": {
    "w": [
-    "engagements.js:257 assignNewDestination",
+    "engagements.js:258 assignNewDestination",
     "weapons-bots.js:160 buildRoamRoutes",
     "weapons-bots.js:164 initRoam"
    ],
@@ -16596,7 +16591,7 @@
   },
   "stateSince": {
    "w": [
-    "engagements.js:145 engDecide",
+    "engagements.js:146 engDecide",
     "items.js:288 weaponPickupTick"
    ],
    "lit": [],
@@ -16724,7 +16719,7 @@
    "lit": [
     "weapons-bots.js:82"
    ],
-   "r": 19
+   "r": 20
   },
   "weapon": {
    "w": [
@@ -16763,7 +16758,7 @@
   "x": {
    "w": [
     "demo.js:53 dvPlace",
-    "engagements.js:228 escapeWallLine",
+    "engagements.js:229 escapeWallLine",
     "levels.js:207 ladderTick",
     "levels.js:211 ladderTick",
     "levels.js:215 ladderTick",
@@ -16786,7 +16781,7 @@
   "y": {
    "w": [
     "demo.js:53 dvPlace",
-    "engagements.js:228 escapeWallLine",
+    "engagements.js:229 escapeWallLine",
     "levels.js:207 ladderTick",
     "levels.js:211 ladderTick",
     "levels.js:215 ladderTick",

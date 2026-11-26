@@ -1,0 +1,2348 @@
+{
+ "_": "генерируется tools/rebuild/frame_contract.js (Р5.1): reads — общие переменные симуляции, которые читает показ (состав Frame); bot — поля бота, которые читает показ (с запасом); calls / writes — команды показа к симуляции (вызов функции симуляции / запись её переменной)",
+ "reads": {
+  "ACCEL": {
+   "from": "weapons-bots.js",
+   "by": [
+    "warmup"
+   ]
+  },
+  "AIM_TURN_RATE": {
+   "from": "weapons-bots.js",
+   "by": [
+    "warmup"
+   ]
+  },
+  "ARMOR_PRICE": {
+   "from": "economy.js",
+   "by": [
+    "scoreboard"
+   ]
+  },
+  "BAL": {
+   "from": "tuning.js",
+   "by": [
+    "replay"
+   ]
+  },
+  "BOMB_DMG": {
+   "from": "bomb.js",
+   "by": [
+    "draw"
+   ]
+  },
+  "BOMB_TICKS": {
+   "from": "bomb.js",
+   "by": [
+    "demo",
+    "replay-play"
+   ]
+  },
+  "BUILTIN_OFF": {
+   "from": "lineups.js",
+   "by": [
+    "app",
+    "lineup-editor"
+   ]
+  },
+  "BUY_SHOW": {
+   "from": "economy.js",
+   "by": [
+    "scoreboard"
+   ]
+  },
+  "BUY_SHOW_FIRST": {
+   "from": "economy.js",
+   "by": [
+    "scoreboard"
+   ]
+  },
+  "BUY_SHOW_GAP": {
+   "from": "economy.js",
+   "by": [
+    "scoreboard"
+   ]
+  },
+  "BZ": {
+   "from": "reach.js",
+   "by": [
+    "look-debug"
+   ]
+  },
+  "CLEARZ": {
+   "from": "lurker.js",
+   "by": [
+    "draw"
+   ]
+  },
+  "CONE_R": {
+   "from": "fov.js",
+   "by": [
+    "draw"
+   ]
+  },
+  "COV_C": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "map-cover"
+   ]
+  },
+  "COV_CAT": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "map-cover",
+    "map-heights"
+   ]
+  },
+  "COV_OWN": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "map-cover"
+   ]
+  },
+  "COV_OWN_CODE": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "map-cover"
+   ]
+  },
+  "CTSET_DBG": {
+   "from": "ct-setup.js",
+   "by": [
+    "team"
+   ]
+  },
+  "CT_SHARE": {
+   "from": "ct-setup.js",
+   "by": [
+    "team"
+   ]
+  },
+  "CT_SPAWN": {
+   "from": "zone-danger.js",
+   "by": [
+    "warmup"
+   ]
+  },
+  "DEFUSE_KIT_TICKS": {
+   "from": "bomb.js",
+   "by": [
+    "draw",
+    "replay"
+   ]
+  },
+  "DEFUSE_TICKS": {
+   "from": "bomb.js",
+   "by": [
+    "draw",
+    "replay"
+   ]
+  },
+  "FOV_DEG": {
+   "from": "fov.js",
+   "by": [
+    "draw"
+   ]
+  },
+  "FREEZE_FX": {
+   "from": "economy.js",
+   "by": [
+    "draw",
+    "replay-play",
+    "scoreboard"
+   ]
+  },
+  "GEO": {
+   "from": "sites-spots.js",
+   "by": [
+    "timeout"
+   ]
+  },
+  "GOAL_NAME": {
+   "from": "economy.js",
+   "by": [
+    "killfeed",
+    "team"
+   ]
+  },
+  "GUN_HEAR_OPEN": {
+   "from": "weapons-bots.js",
+   "by": [
+    "demo"
+   ]
+  },
+  "GUN_HEAR_WALL": {
+   "from": "weapons-bots.js",
+   "by": [
+    "demo"
+   ]
+  },
+  "HALF_ROUNDS": {
+   "from": "economy.js",
+   "by": [
+    "killfeed"
+   ]
+  },
+  "HEIGHTS": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "map-heights"
+   ]
+  },
+  "HELMET_UPGRADE": {
+   "from": "economy.js",
+   "by": [
+    "scoreboard"
+   ]
+  },
+  "HGT_AUTO": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "map-heights"
+   ]
+  },
+  "HGT_OWN": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "map-heights"
+   ]
+  },
+  "HGT_OWN_CODE": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "map-heights"
+   ]
+  },
+  "HL": {
+   "from": "highlights.js",
+   "by": [
+    "app",
+    "view3d-frame"
+   ]
+  },
+  "HL_KEY": {
+   "from": "highlights.js",
+   "by": [
+    "app"
+   ]
+  },
+  "JUMP_UP": {
+   "from": "levels.js",
+   "by": [
+    "draw"
+   ]
+  },
+  "KF_DIRTY": {
+   "from": "journal.js",
+   "by": [
+    "app"
+   ]
+  },
+  "KNOW_POSITIONS": {
+   "from": "knowledge.js",
+   "by": [
+    "warmup"
+   ]
+  },
+  "LOG_DIRTY": {
+   "from": "journal.js",
+   "by": [
+    "app"
+   ]
+  },
+  "LOOKDBG": {
+   "from": "look-arbiter.js",
+   "by": [
+    "look-debug"
+   ]
+  },
+  "LOSS_BONUS": {
+   "from": "economy.js",
+   "by": [
+    "killfeed"
+   ]
+  },
+  "LU_TRIG": {
+   "from": "lineups.js",
+   "by": [
+    "lineup-editor"
+   ]
+  },
+  "LU_TYPE": {
+   "from": "lineups.js",
+   "by": [
+    "lineup-editor"
+   ]
+  },
+  "MANUAL_WALLS": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "draw"
+   ]
+  },
+  "MAP": {
+   "from": "zones.js",
+   "by": [
+    "demo",
+    "draw",
+    "lineup-editor",
+    "map-heights",
+    "map-walls",
+    "nav-zones"
+   ]
+  },
+  "NADE": {
+   "from": "smoke.js",
+   "by": [
+    "demo",
+    "draw",
+    "observer",
+    "scoreboard",
+    "view3d-frame"
+   ]
+  },
+  "NAVAREAS": {
+   "from": "zones.js",
+   "by": [
+    "draw",
+    "map-heights",
+    "observer",
+    "sandbox",
+    "view3d"
+   ]
+  },
+  "NAV_BLOCKED": {
+   "from": "paths.js",
+   "by": [
+    "draw",
+    "sandbox",
+    "view3d"
+   ]
+  },
+  "NAV_BOUNDARY_SEGS_RAW": {
+   "from": "zones.js",
+   "by": [
+    "draw",
+    "nav-zones"
+   ]
+  },
+  "NAV_GRID": {
+   "from": "navmesh.js",
+   "by": [
+    "sandbox"
+   ]
+  },
+  "NAV_GRID_C": {
+   "from": "navmesh.js",
+   "by": [
+    "sandbox"
+   ]
+  },
+  "NICKS": {
+   "from": "tuning.js",
+   "by": [
+    "replay",
+    "replay-play"
+   ]
+  },
+  "OPP": {
+   "from": "tactics.js",
+   "by": [
+    "app"
+   ]
+  },
+  "P": {
+   "from": "flight.js",
+   "by": [
+    "app",
+    "demo",
+    "draw",
+    "look-debug",
+    "map-walls",
+    "observer",
+    "replay",
+    "replay-play",
+    "timeout",
+    "view3d",
+    "warmup"
+   ]
+  },
+  "PLANT_TICKS": {
+   "from": "bomb.js",
+   "by": [
+    "draw",
+    "replay"
+   ]
+  },
+  "PROB": {
+   "from": "problem-watch.js",
+   "by": [
+    "draw"
+   ]
+  },
+  "PROB_SHOW_SEC": {
+   "from": "problem-watch.js",
+   "by": [
+    "draw"
+   ]
+  },
+  "REACH": {
+   "from": "reach.js",
+   "by": [
+    "look-debug"
+   ]
+  },
+  "ROAM_RECHECK_TICKS": {
+   "from": "weapons-bots.js",
+   "by": [
+    "draw"
+   ]
+  },
+  "ROAM_ROUTES": {
+   "from": "weapons-bots.js",
+   "by": [
+    "draw"
+   ]
+  },
+  "ROLE_LABEL": {
+   "from": "tuning.js",
+   "by": [
+    "killfeed"
+   ]
+  },
+  "ROUND_RESTART_DELAY_SEC": {
+   "from": "economy.js",
+   "by": [
+    "replay",
+    "scoreboard"
+   ]
+  },
+  "ROUND_TIME_SEC": {
+   "from": "economy.js",
+   "by": [
+    "draw",
+    "scoreboard",
+    "team"
+   ]
+  },
+  "ROUND_TYPE_LABEL": {
+   "from": "economy.js",
+   "by": [
+    "killfeed"
+   ]
+  },
+  "SERIES": {
+   "from": "journal.js",
+   "by": [
+    "app",
+    "scoreboard"
+   ]
+  },
+  "SHOW_Q": {
+   "from": "journal.js",
+   "by": [
+    "app"
+   ]
+  },
+  "SIDE_TEAM": {
+   "from": "rosters.js",
+   "by": [
+    "replay",
+    "replay-play",
+    "scoreboard"
+   ]
+  },
+  "SITES": {
+   "from": "sites-spots.js",
+   "by": [
+    "draw",
+    "nav-zones",
+    "observer",
+    "timeout"
+   ]
+  },
+  "SMOKE_HOLE": {
+   "from": "smoke.js",
+   "by": [
+    "draw"
+   ]
+  },
+  "SPD_K": {
+   "from": "tuning.js",
+   "by": [
+    "look-debug"
+   ]
+  },
+  "SPEED": {
+   "from": "weapons-bots.js",
+   "by": [
+    "warmup"
+   ]
+  },
+  "TACT_DBG": {
+   "from": "tactics.js",
+   "by": [
+    "team"
+   ]
+  },
+  "TAC_TEMPO": {
+   "from": "tactics.js",
+   "by": [
+    "killfeed"
+   ]
+  },
+  "TAC_TEMPO_NAME": {
+   "from": "tactics.js",
+   "by": [
+    "killfeed"
+   ]
+  },
+  "TEAM_LOG": {
+   "from": "journal.js",
+   "by": [
+    "team"
+   ]
+  },
+  "TEAM_LOGO": {
+   "from": "rosters.js",
+   "by": [
+    "replay",
+    "scoreboard",
+    "timeout"
+   ]
+  },
+  "TEAM_NAME": {
+   "from": "rosters.js",
+   "by": [
+    "draw",
+    "killfeed",
+    "replay",
+    "scoreboard",
+    "team"
+   ]
+  },
+  "TICK_HZ": {
+   "from": "tick.js",
+   "by": [
+    "demo",
+    "draw",
+    "look-debug",
+    "nav-zones",
+    "observer",
+    "replay",
+    "replay-play",
+    "sandbox",
+    "scoreboard",
+    "team",
+    "trace",
+    "view3d",
+    "view3d-frame",
+    "warmup"
+   ]
+  },
+  "TICK_MS": {
+   "from": "tick.js",
+   "by": [
+    "app",
+    "draw",
+    "replay-play",
+    "sandbox",
+    "view3d-frame"
+   ]
+  },
+  "TO_LAST": {
+   "from": "tactics.js",
+   "by": [
+    "timeout"
+   ]
+  },
+  "TO_NOW": {
+   "from": "tactics.js",
+   "by": [
+    "timeout",
+    "view3d"
+   ]
+  },
+  "TRACER_STYLE": {
+   "from": "items.js",
+   "by": [
+    "draw"
+   ]
+  },
+  "T_SPAWN": {
+   "from": "zone-danger.js",
+   "by": [
+    "timeout",
+    "warmup"
+   ]
+  },
+  "USER_LINEUPS": {
+   "from": "lineups.js",
+   "by": [
+    "app",
+    "lineup-editor"
+   ]
+  },
+  "USER_ZONES": {
+   "from": "zone-danger.js",
+   "by": [
+    "app",
+    "draw",
+    "lineup-editor",
+    "nav-zones"
+   ]
+  },
+  "VIS": {
+   "from": "vision.js",
+   "by": [
+    "look-debug"
+   ]
+  },
+  "VIS_CELL": {
+   "from": "vision.js",
+   "by": [
+    "look-debug"
+   ]
+  },
+  "VIS_FLOOR_EPS": {
+   "from": "vision.js",
+   "by": [
+    "look-debug"
+   ]
+  },
+  "VIS_GEN": {
+   "from": "vision.js",
+   "by": [
+    "look-debug"
+   ]
+  },
+  "VOICE_DIRTY": {
+   "from": "journal.js",
+   "by": [
+    "app"
+   ]
+  },
+  "WALLS_SIG": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "look-debug"
+   ]
+  },
+  "WALL_POLYS": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "app",
+    "map-walls"
+   ]
+  },
+  "WALL_POLYS_CODE": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "map-walls"
+   ]
+  },
+  "WB_C": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "map-wallbang"
+   ]
+  },
+  "WB_MAT": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "map-cover",
+    "map-wallbang"
+   ]
+  },
+  "WB_OWN": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "map-wallbang"
+   ]
+  },
+  "WB_OWN_CODE": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "map-wallbang"
+   ]
+  },
+  "WEAPONS": {
+   "from": "weapons-bots.js",
+   "by": [
+    "demo",
+    "draw",
+    "killfeed",
+    "map-cover",
+    "replay-play",
+    "scoreboard",
+    "warmup"
+   ]
+  },
+  "ZONEMAP": {
+   "from": "zones.js",
+   "by": [
+    "draw",
+    "lineup-editor",
+    "nav-zones",
+    "timeout",
+    "view3d"
+   ]
+  },
+  "ZONE_CENTROIDS": {
+   "from": "zone-danger.js",
+   "by": [
+    "lineup-editor"
+   ]
+  },
+  "ZONE_DANGER": {
+   "from": "zone-danger.js",
+   "by": [
+    "draw"
+   ]
+  },
+  "ZONE_DANGER_LINE": {
+   "from": "zone-danger.js",
+   "by": [
+    "draw"
+   ]
+  },
+  "ZONE_DANGER_W": {
+   "from": "zone-danger.js",
+   "by": [
+    "draw"
+   ]
+  },
+  "ZONE_KIND_COLORS": {
+   "from": "zone-danger.js",
+   "by": [
+    "draw"
+   ]
+  },
+  "ZONE_KIND_LABELS": {
+   "from": "zone-danger.js",
+   "by": [
+    "draw"
+   ]
+  },
+  "ZONE_LAYER_BASELINE": {
+   "from": "zones.js",
+   "by": [
+    "nav-zones"
+   ]
+  },
+  "ZONE_NAMES": {
+   "from": "intel.js",
+   "by": [
+    "app",
+    "lineup-editor",
+    "timeout"
+   ]
+  },
+  "ZONE_SAMPLES": {
+   "from": "zone-danger.js",
+   "by": [
+    "draw"
+   ]
+  },
+  "ZONE_SHAPES": {
+   "from": "zones.js",
+   "by": [
+    "app",
+    "lineup-editor"
+   ]
+  },
+  "ZONE_SHAPES_KEY": {
+   "from": "zones.js",
+   "by": [
+    "lineup-editor"
+   ]
+  },
+  "accumulator": {
+   "from": "tick.js",
+   "by": [
+    "app",
+    "draw",
+    "replay-play",
+    "view3d-frame"
+   ]
+  },
+  "beliefLast": {
+   "from": "reach.js",
+   "by": [
+    "draw"
+   ]
+  },
+  "bomb": {
+   "from": "bomb.js",
+   "by": [
+    "draw",
+    "killfeed",
+    "nav-zones",
+    "observer",
+    "replay",
+    "replay-play",
+    "sandbox",
+    "scoreboard",
+    "team",
+    "view3d-frame"
+   ]
+  },
+  "bots": {
+   "from": "weapons-bots.js",
+   "by": [
+    "app",
+    "demo",
+    "draw",
+    "killfeed",
+    "look-debug",
+    "observer",
+    "replay",
+    "replay-play",
+    "sandbox",
+    "scoreboard",
+    "team",
+    "timeout",
+    "trace",
+    "view3d",
+    "view3d-frame",
+    "warmup"
+   ]
+  },
+  "clutchInfo": {
+   "from": "journal.js",
+   "by": [
+    "killfeed",
+    "replay",
+    "scoreboard"
+   ]
+  },
+  "fires": {
+   "from": "smoke.js",
+   "by": [
+    "app",
+    "draw",
+    "observer",
+    "replay",
+    "replay-play",
+    "view3d-frame"
+   ]
+  },
+  "groundItems": {
+   "from": "items.js",
+   "by": [
+    "draw",
+    "replay",
+    "replay-play"
+   ]
+  },
+  "groundWeapons": {
+   "from": "items.js",
+   "by": [
+    "draw",
+    "replay",
+    "replay-play"
+   ]
+  },
+  "killfeed": {
+   "from": "ct-setup.js",
+   "by": [
+    "killfeed",
+    "replay"
+   ]
+  },
+  "matchNum": {
+   "from": "economy.js",
+   "by": [
+    "app",
+    "observer",
+    "replay",
+    "replay-play",
+    "scoreboard"
+   ]
+  },
+  "nadeFx": {
+   "from": "smoke.js",
+   "by": [
+    "draw",
+    "replay",
+    "replay-play",
+    "view3d-frame"
+   ]
+  },
+  "nadesInAir": {
+   "from": "smoke.js",
+   "by": [
+    "draw",
+    "observer",
+    "replay",
+    "replay-play",
+    "view3d",
+    "view3d-frame"
+   ]
+  },
+  "navAnchors": {
+   "from": "zones.js",
+   "by": [
+    "app",
+    "draw",
+    "lineup-editor",
+    "nav-zones"
+   ]
+  },
+  "navTransform": {
+   "from": "zones.js",
+   "by": [
+    "app",
+    "lineup-editor",
+    "nav-zones"
+   ]
+  },
+  "nowTs": {
+   "from": "items.js",
+   "by": [
+    "demo",
+    "draw",
+    "look-debug",
+    "replay",
+    "replay-play",
+    "team",
+    "view3d-frame"
+   ]
+  },
+  "paused": {
+   "from": "tick.js",
+   "by": [
+    "app",
+    "replay",
+    "scoreboard",
+    "view3d"
+   ]
+  },
+  "roundEndTime": {
+   "from": "economy.js",
+   "by": [
+    "draw",
+    "replay",
+    "scoreboard"
+   ]
+  },
+  "roundNum": {
+   "from": "economy.js",
+   "by": [
+    "app",
+    "draw",
+    "killfeed",
+    "replay",
+    "replay-play",
+    "scoreboard",
+    "team",
+    "timeout",
+    "view3d"
+   ]
+  },
+  "roundStartTick": {
+   "from": "ct-setup.js",
+   "by": [
+    "team"
+   ]
+  },
+  "roundStartTime": {
+   "from": "economy.js",
+   "by": [
+    "draw",
+    "replay",
+    "scoreboard",
+    "team",
+    "timeout"
+   ]
+  },
+  "roundState": {
+   "from": "economy.js",
+   "by": [
+    "demo",
+    "draw",
+    "observer",
+    "replay",
+    "replay-play",
+    "sandbox",
+    "scoreboard",
+    "team",
+    "timeout",
+    "view3d"
+   ]
+  },
+  "score": {
+   "from": "economy.js",
+   "by": [
+    "draw",
+    "killfeed",
+    "replay",
+    "scoreboard"
+   ]
+  },
+  "simTime": {
+   "from": "ct-setup.js",
+   "by": [
+    "draw",
+    "killfeed",
+    "replay",
+    "replay-play",
+    "sandbox",
+    "scoreboard",
+    "team",
+    "timeout"
+   ]
+  },
+  "smokes": {
+   "from": "smoke.js",
+   "by": [
+    "demo",
+    "draw",
+    "look-debug",
+    "observer",
+    "replay",
+    "replay-play",
+    "view3d-frame"
+   ]
+  },
+  "soundPings": {
+   "from": "items.js",
+   "by": [
+    "draw",
+    "replay-play"
+   ]
+  },
+  "teamEco": {
+   "from": "economy.js",
+   "by": [
+    "killfeed",
+    "team"
+   ]
+  },
+  "teamIntel": {
+   "from": "intel.js",
+   "by": [
+    "draw"
+   ]
+  },
+  "teamTac": {
+   "from": "tactics.js",
+   "by": [
+    "draw",
+    "killfeed",
+    "nav-zones",
+    "observer",
+    "replay-play",
+    "team"
+   ]
+  },
+  "tick": {
+   "from": "tick.js",
+   "by": [
+    "app",
+    "demo",
+    "draw",
+    "killfeed",
+    "look-debug",
+    "nav-zones",
+    "observer",
+    "replay",
+    "replay-play",
+    "sandbox",
+    "scoreboard",
+    "team",
+    "trace",
+    "view3d",
+    "view3d-frame",
+    "warmup"
+   ]
+  },
+  "tracers": {
+   "from": "items.js",
+   "by": [
+    "draw",
+    "replay",
+    "replay-play",
+    "view3d-frame"
+   ]
+  },
+  "voiceLines": {
+   "from": "journal.js",
+   "by": [
+    "replay"
+   ]
+  },
+  "zoneGraph": {
+   "from": "navmesh.js",
+   "by": [
+    "draw"
+   ]
+  },
+  "zoneLayer": {
+   "from": "zones.js",
+   "by": [
+    "app",
+    "lineup-editor",
+    "nav-zones"
+   ]
+  },
+  "zonesById": {
+   "from": "navmesh.js",
+   "by": [
+    "draw"
+   ]
+  }
+ },
+ "fnReads": {
+  "hgtInfo": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "map-heights"
+   ]
+  },
+  "logEvent": {
+   "from": "journal.js",
+   "by": [
+    "replay-play",
+    "view3d"
+   ]
+  },
+  "navAt": {
+   "from": "navmesh.js",
+   "by": [
+    "view3d",
+    "view3d-frame"
+   ]
+  },
+  "navFloorZ": {
+   "from": "levels.js",
+   "by": [
+    "view3d"
+   ]
+  },
+  "nick": {
+   "from": "tuning.js",
+   "by": [
+    "sandbox"
+   ]
+  },
+  "renderVoice": {
+   "from": "voice-console.js",
+   "by": [
+    "warmup"
+   ]
+  },
+  "roundGoal": {
+   "from": "economy.js",
+   "by": [
+    "team"
+   ]
+  },
+  "teamBrains": {
+   "from": "contact.js",
+   "by": [
+    "trace"
+   ]
+  },
+  "zoneDangerSync": {
+   "from": "vision.js",
+   "by": [
+    "app"
+   ]
+  }
+ },
+ "bot": [
+  "F",
+  "_ammoFor",
+  "_area",
+  "_blind",
+  "_bomb",
+  "_climb",
+  "_clutch",
+  "_contact",
+  "_coverDir",
+  "_dvName",
+  "_fall",
+  "_fc",
+  "_fcSnap",
+  "_fcWhy",
+  "_fcWhyT",
+  "_hold",
+  "_idle",
+  "_idlePhase",
+  "_jump",
+  "_killHow",
+  "_killHowT",
+  "_killer",
+  "_knife",
+  "_ld",
+  "_ldArb",
+  "_ldPlan",
+  "_ldZones",
+  "_lkTop",
+  "_mistakes",
+  "_nearestEnemyBot",
+  "_nv",
+  "_overV",
+  "_paused",
+  "_plantAbort",
+  "_reloading",
+  "_runWhy",
+  "_sawEnemy",
+  "_sbGo",
+  "_sbOff",
+  "_sbWalk",
+  "_shotAtBy",
+  "_shotAtT",
+  "_spam",
+  "_stateWhy",
+  "_stateWhyT",
+  "_stopWhy",
+  "_task",
+  "_trail",
+  "_ts",
+  "_underV",
+  "_visFacing",
+  "_visible",
+  "_wIdx",
+  "_wPath",
+  "_wRespawn",
+  "_walkWhy",
+  "_wv",
+  "alive",
+  "ammo",
+  "armor",
+  "armorHp",
+  "atPost",
+  "baseX",
+  "baseY",
+  "blindUntil",
+  "className",
+  "contactStreak",
+  "crouching",
+  "curSpeed",
+  "d",
+  "deaths",
+  "defuseUntil",
+  "defusing",
+  "disabled",
+  "display",
+  "exec",
+  "f",
+  "facing",
+  "fresh",
+  "heading",
+  "heardSound",
+  "helmet",
+  "holding",
+  "hp",
+  "id",
+  "kills",
+  "kind",
+  "kit",
+  "lastIntel",
+  "lastShotTick",
+  "log",
+  "look",
+  "lookReason",
+  "lookTarget",
+  "money",
+  "n",
+  "nadeTask",
+  "nades",
+  "nextShotTick",
+  "onStairs",
+  "path",
+  "pathIdx",
+  "pending",
+  "pfacing",
+  "plantUntil",
+  "planting",
+  "post",
+  "pp",
+  "ppT",
+  "primary",
+  "pro",
+  "prof",
+  "px",
+  "py",
+  "ready",
+  "reloadUntil",
+  "retakeRole",
+  "roamChecking",
+  "role",
+  "roundDmg",
+  "roundKills",
+  "sc",
+  "score",
+  "secondary",
+  "state",
+  "t",
+  "tRole",
+  "tag",
+  "team",
+  "textContent",
+  "title",
+  "top",
+  "until",
+  "v",
+  "voice",
+  "w",
+  "walking",
+  "weapon",
+  "x",
+  "y",
+  "z"
+ ],
+ "calls": {
+  "_angOff": {
+   "from": "look-threat.js",
+   "by": [
+    "observer"
+   ]
+  },
+  "aliveCount": {
+   "from": "intel.js",
+   "by": [
+    "killfeed",
+    "team"
+   ]
+  },
+  "allLineups": {
+   "from": "lineups.js",
+   "by": [
+    "lineup-editor"
+   ]
+  },
+  "applyDamage": {
+   "from": "damage.js",
+   "by": [
+    "demo"
+   ]
+  },
+  "applyNavTransform": {
+   "from": "zones.js",
+   "by": [
+    "lineup-editor"
+   ]
+  },
+  "applyUserZones": {
+   "from": "zone-danger.js",
+   "by": [
+    "lineup-editor",
+    "nav-zones"
+   ]
+  },
+  "applyWalls": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "map-walls"
+   ]
+  },
+  "applyZoneLayer": {
+   "from": "zone-danger.js",
+   "by": [
+    "lineup-editor",
+    "nav-zones"
+   ]
+  },
+  "applyZoneLayerToData": {
+   "from": "zones.js",
+   "by": [
+    "lineup-editor"
+   ]
+  },
+  "areaHas": {
+   "from": "smoke.js",
+   "by": [
+    "draw"
+   ]
+  },
+  "beliefZoneKnown": {
+   "from": "look-threat.js",
+   "by": [
+    "look-debug"
+   ]
+  },
+  "bombTimeLeftTicks": {
+   "from": "bomb.js",
+   "by": [
+    "observer"
+   ]
+  },
+  "buildWaypointPath": {
+   "from": "path-search.js",
+   "by": [
+    "view3d",
+    "warmup"
+   ]
+  },
+  "builtinAllowed": {
+   "from": "lineups.js",
+   "by": [
+    "lineup-editor"
+   ]
+  },
+  "builtinLineups": {
+   "from": "lineups.js",
+   "by": [
+    "lineup-editor"
+   ]
+  },
+  "calloutName": {
+   "from": "intel.js",
+   "by": [
+    "look-debug",
+    "map-wallbang",
+    "nav-zones",
+    "sandbox"
+   ]
+  },
+  "centroidOf": {
+   "from": "rosters.js",
+   "by": [
+    "draw",
+    "timeout"
+   ]
+  },
+  "cl0save": {
+   "from": "save-retake.js",
+   "by": [
+    "killfeed"
+   ]
+  },
+  "clearPost": {
+   "from": "task.js",
+   "by": [
+    "sandbox"
+   ]
+  },
+  "climbPhase": {
+   "from": "levels.js",
+   "by": [
+    "draw"
+   ]
+  },
+  "clockAcc": {
+   "from": "tick.js",
+   "by": [
+    "app",
+    "replay-play"
+   ]
+  },
+  "clockFrameDt": {
+   "from": "tick.js",
+   "by": [
+    "app"
+   ]
+  },
+  "clockPause": {
+   "from": "tick.js",
+   "by": [
+    "app",
+    "demo",
+    "replay-play",
+    "warmup"
+   ]
+  },
+  "clockSet": {
+   "from": "tick.js",
+   "by": [
+    "replay-play",
+    "warmup"
+   ]
+  },
+  "covAt": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "map-cover",
+    "map-heights"
+   ]
+  },
+  "covHText": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "map-cover",
+    "map-heights"
+   ]
+  },
+  "covList": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "map-cover",
+    "map-heights"
+   ]
+  },
+  "covOwnFromList": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "map-cover"
+   ]
+  },
+  "covOwnToList": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "map-cover"
+   ]
+  },
+  "covPolyArea": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "map-cover",
+    "map-heights",
+    "map-walls"
+   ]
+  },
+  "covWallAt": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "map-wallbang"
+   ]
+  },
+  "distToSeg": {
+   "from": "path-search.js",
+   "by": [
+    "lineup-editor",
+    "map-heights",
+    "map-walls",
+    "nav-zones"
+   ]
+  },
+  "fightReset": {
+   "from": "fight-state.js",
+   "by": [
+    "sandbox"
+   ]
+  },
+  "fireRadiusNow": {
+   "from": "levels.js",
+   "by": [
+    "draw",
+    "replay",
+    "view3d-frame"
+   ]
+  },
+  "floorViewTick": {
+   "from": "levels.js",
+   "by": [
+    "sandbox"
+   ]
+  },
+  "freezePick": {
+   "from": "turn.ts",
+   "by": [
+    "scoreboard"
+   ]
+  },
+  "freshMatch": {
+   "from": "round.js",
+   "by": [
+    "app",
+    "demo",
+    "replay-play",
+    "warmup"
+   ]
+  },
+  "hasLOS": {
+   "from": "path-search.js",
+   "by": [
+    "demo",
+    "observer",
+    "warmup"
+   ]
+  },
+  "hashRand": {
+   "from": "zone-danger.js",
+   "by": [
+    "scoreboard",
+    "warmup"
+   ]
+  },
+  "hearPos": {
+   "from": "sound.js",
+   "by": [
+    "demo"
+   ]
+  },
+  "hearReal": {
+   "from": "knowledge.js",
+   "by": [
+    "demo"
+   ]
+  },
+  "hgtInfo": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "map-heights"
+   ]
+  },
+  "hgtOwnFromList": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "map-heights"
+   ]
+  },
+  "hgtOwnToList": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "map-heights"
+   ]
+  },
+  "kvLast": {
+   "from": "belief.js",
+   "by": [
+    "look-debug"
+   ]
+  },
+  "lkpWord": {
+   "from": "intel.js",
+   "by": [
+    "draw",
+    "look-debug"
+   ]
+  },
+  "logEvent": {
+   "from": "journal.js",
+   "by": [
+    "app",
+    "demo",
+    "map-walls",
+    "replay-play",
+    "sandbox",
+    "view3d",
+    "warmup"
+   ]
+  },
+  "logRender": {
+   "from": "voice-console.js",
+   "by": [
+    "app"
+   ]
+  },
+  "lookDbgId": {
+   "from": "look-arbiter.js",
+   "by": [
+    "look-debug"
+   ]
+  },
+  "lookFace": {
+   "from": "turn.ts",
+   "by": [
+    "demo",
+    "warmup"
+   ]
+  },
+  "lookTurnBy": {
+   "from": "turn.ts",
+   "by": [
+    "warmup"
+   ]
+  },
+  "m3": {
+   "from": "geometry3d.js",
+   "by": [
+    "look-debug",
+    "view3d",
+    "view3d-frame"
+   ]
+  },
+  "m3Cell": {
+   "from": "geometry3d.js",
+   "by": [
+    "view3d"
+   ]
+  },
+  "m3FloorKinds": {
+   "from": "geometry3d.js",
+   "by": [
+    "look-debug"
+   ]
+  },
+  "m3Game": {
+   "from": "geometry3d.js",
+   "by": [
+    "view3d"
+   ]
+  },
+  "m3Line": {
+   "from": "geometry3d.js",
+   "by": [
+    "view3d",
+    "view3d-frame"
+   ]
+  },
+  "m3Radar": {
+   "from": "geometry3d.js",
+   "by": [
+    "view3d"
+   ]
+  },
+  "movePath": {
+   "from": "move.js",
+   "by": [
+    "replay-play",
+    "sandbox"
+   ]
+  },
+  "moveSpeed": {
+   "from": "move.js",
+   "by": [
+    "demo",
+    "sandbox",
+    "warmup"
+   ]
+  },
+  "nadePrice": {
+   "from": "smoke.js",
+   "by": [
+    "scoreboard"
+   ]
+  },
+  "nadeWorldSet": {
+   "from": "smoke.js",
+   "by": [
+    "replay-play"
+   ]
+  },
+  "navAt": {
+   "from": "navmesh.js",
+   "by": [
+    "sandbox",
+    "view3d",
+    "view3d-frame"
+   ]
+  },
+  "navFloorNear": {
+   "from": "levels.js",
+   "by": [
+    "sandbox"
+   ]
+  },
+  "navFloorZ": {
+   "from": "levels.js",
+   "by": [
+    "sandbox",
+    "view3d"
+   ]
+  },
+  "navGridBuild": {
+   "from": "navmesh.js",
+   "by": [
+    "sandbox"
+   ]
+  },
+  "navMapPoint": {
+   "from": "zones.js",
+   "by": [
+    "draw",
+    "nav-zones"
+   ]
+  },
+  "nick": {
+   "from": "tuning.js",
+   "by": [
+    "demo",
+    "killfeed",
+    "look-debug",
+    "replay",
+    "sandbox",
+    "scoreboard",
+    "team",
+    "timeout",
+    "view3d-frame"
+   ]
+  },
+  "nickify": {
+   "from": "tuning.js",
+   "by": [
+    "killfeed"
+   ]
+  },
+  "pathPts": {
+   "from": "sites-spots.js",
+   "by": [
+    "lineup-editor"
+   ]
+  },
+  "plantBlock": {
+   "from": "bomb.js",
+   "by": [
+    "nav-zones"
+   ]
+  },
+  "pnum": {
+   "from": "tuning.js",
+   "by": [
+    "draw",
+    "killfeed",
+    "look-debug",
+    "observer",
+    "scoreboard"
+   ]
+  },
+  "pointInPoly": {
+   "from": "navmesh.js",
+   "by": [
+    "map-heights",
+    "map-walls",
+    "nav-zones",
+    "sandbox"
+   ]
+  },
+  "polyLen": {
+   "from": "sites-spots.js",
+   "by": [
+    "lineup-editor"
+   ]
+  },
+  "rebuildNav": {
+   "from": "paths.js",
+   "by": [
+    "lineup-editor",
+    "nav-zones"
+   ]
+  },
+  "rebuildNavWarp": {
+   "from": "zones.js",
+   "by": [
+    "nav-zones"
+   ]
+  },
+  "regRounds": {
+   "from": "economy.js",
+   "by": [
+    "timeout"
+   ]
+  },
+  "renderVoice": {
+   "from": "voice-console.js",
+   "by": [
+    "app",
+    "warmup"
+   ]
+  },
+  "resetRound": {
+   "from": "round.js",
+   "by": [
+    "app",
+    "sandbox"
+   ]
+  },
+  "roundGoal": {
+   "from": "economy.js",
+   "by": [
+    "killfeed",
+    "team"
+   ]
+  },
+  "saveLineups": {
+   "from": "lineups.js",
+   "by": [
+    "lineup-editor"
+   ]
+  },
+  "saveNavAnchors": {
+   "from": "zones.js",
+   "by": [
+    "nav-zones"
+   ]
+  },
+  "saveUserZonesDebounced": {
+   "from": "zone-danger.js",
+   "by": [
+    "lineup-editor",
+    "nav-zones"
+   ]
+  },
+  "saveZoneNames": {
+   "from": "intel.js",
+   "by": [
+    "lineup-editor"
+   ]
+  },
+  "segPtDist": {
+   "from": "endgame.js",
+   "by": [
+    "lineup-editor"
+   ]
+  },
+  "setPost": {
+   "from": "task.js",
+   "by": [
+    "sandbox"
+   ]
+  },
+  "smokeBlocks": {
+   "from": "smoke.js",
+   "by": [
+    "look-debug"
+   ]
+  },
+  "smokeRadiusNow": {
+   "from": "smoke.js",
+   "by": [
+    "draw",
+    "observer",
+    "replay",
+    "view3d-frame"
+   ]
+  },
+  "snapToWalkable": {
+   "from": "paths.js",
+   "by": [
+    "look-debug",
+    "sandbox"
+   ]
+  },
+  "stepBlocked": {
+   "from": "levels.js",
+   "by": [
+    "warmup"
+   ]
+  },
+  "stepTick": {
+   "from": "tick.js",
+   "by": [
+    "app",
+    "demo",
+    "replay-play"
+   ]
+  },
+  "tacTempoNow": {
+   "from": "tactics.js",
+   "by": [
+    "killfeed"
+   ]
+  },
+  "teamBot": {
+   "from": "voice.js",
+   "by": [
+    "observer",
+    "replay",
+    "sandbox",
+    "scoreboard",
+    "timeout"
+   ]
+  },
+  "tryShoot": {
+   "from": "shoot.js",
+   "by": [
+    "warmup"
+   ]
+  },
+  "visFloorAt": {
+   "from": "vision.js",
+   "by": [
+    "draw",
+    "look-debug"
+   ]
+  },
+  "visInvalidate": {
+   "from": "vision.js",
+   "by": [
+    "map-cover",
+    "map-heights"
+   ]
+  },
+  "visParts": {
+   "from": "vision.js",
+   "by": [
+    "look-debug"
+   ]
+  },
+  "visPartsText": {
+   "from": "vision.js",
+   "by": [
+    "look-debug"
+   ]
+  },
+  "visReady": {
+   "from": "vision.js",
+   "by": [
+    "look-debug"
+   ]
+  },
+  "walk": {
+   "from": "sites-spots.js",
+   "by": [
+    "lineup-editor",
+    "warmup"
+   ]
+  },
+  "wallBoxes": {
+   "from": "task.js",
+   "by": [
+    "draw"
+   ]
+  },
+  "wbAfter": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "map-cover"
+   ]
+  },
+  "wbAt": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "map-cover",
+    "map-wallbang"
+   ]
+  },
+  "wbChest": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "map-cover",
+    "map-wallbang"
+   ]
+  },
+  "wbList": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "map-cover",
+    "map-wallbang"
+   ]
+  },
+  "wbOwnFromList": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "map-wallbang"
+   ]
+  },
+  "wbOwnToList": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "map-wallbang"
+   ]
+  },
+  "zlInv": {
+   "from": "zones.js",
+   "by": [
+    "lineup-editor"
+   ]
+  },
+  "zoneBakeObjectTransform": {
+   "from": "zone-danger.js",
+   "by": [
+    "lineup-editor"
+   ]
+  },
+  "zoneById": {
+   "from": "intel.js",
+   "by": [
+    "lineup-editor",
+    "look-debug"
+   ]
+  },
+  "zoneCentroid": {
+   "from": "vision.js",
+   "by": [
+    "draw"
+   ]
+  },
+  "zoneDangerSync": {
+   "from": "vision.js",
+   "by": [
+    "app"
+   ]
+  },
+  "zoneIdAt": {
+   "from": "intel.js",
+   "by": [
+    "lineup-editor"
+   ]
+  },
+  "zoneIndexReset": {
+   "from": "intel.js",
+   "by": [
+    "lineup-editor"
+   ]
+  },
+  "zoneMainName": {
+   "from": "intel.js",
+   "by": [
+    "timeout"
+   ]
+  },
+  "zoneNameCacheReset": {
+   "from": "intel.js",
+   "by": [
+    "lineup-editor"
+   ]
+  },
+  "zoneObjAbsPoints": {
+   "from": "zone-danger.js",
+   "by": [
+    "app",
+    "draw",
+    "lineup-editor",
+    "nav-zones"
+   ]
+  },
+  "zoneObjCentroid": {
+   "from": "zone-danger.js",
+   "by": [
+    "draw",
+    "lineup-editor"
+   ]
+  },
+  "zoneObjHandlePos": {
+   "from": "zone-danger.js",
+   "by": [
+    "lineup-editor"
+   ]
+  },
+  "zoneUserName": {
+   "from": "intel.js",
+   "by": [
+    "draw",
+    "lineup-editor",
+    "look-debug"
+   ]
+  }
+ },
+ "writes": {
+  "BUILTIN_OFF": {
+   "from": "lineups.js",
+   "by": [
+    "lineup-editor"
+   ]
+  },
+  "BUY_SHOW": {
+   "from": "economy.js",
+   "by": [
+    "scoreboard"
+   ]
+  },
+  "COV_OWN": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "map-cover"
+   ]
+  },
+  "HGT_OWN": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "map-heights"
+   ]
+  },
+  "HL": {
+   "from": "highlights.js",
+   "by": [
+    "app"
+   ]
+  },
+  "LOOKDBG": {
+   "from": "look-arbiter.js",
+   "by": [
+    "look-debug"
+   ]
+  },
+  "P": {
+   "from": "flight.js",
+   "by": [
+    "replay",
+    "replay-play",
+    "timeout"
+   ]
+  },
+  "SHOW_Q": {
+   "from": "journal.js",
+   "by": [
+    "app"
+   ]
+  },
+  "USER_LINEUPS": {
+   "from": "lineups.js",
+   "by": [
+    "lineup-editor"
+   ]
+  },
+  "USER_ZONES": {
+   "from": "zone-danger.js",
+   "by": [
+    "lineup-editor"
+   ]
+  },
+  "WALL_POLYS": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "map-walls"
+   ]
+  },
+  "WB_OWN": {
+   "from": "walls-heights-cover.js",
+   "by": [
+    "map-wallbang"
+   ]
+  },
+  "ZONE_NAMES": {
+   "from": "intel.js",
+   "by": [
+    "lineup-editor"
+   ]
+  },
+  "ZONE_SHAPES": {
+   "from": "zones.js",
+   "by": [
+    "lineup-editor"
+   ]
+  },
+  "bomb": {
+   "from": "bomb.js",
+   "by": [
+    "demo",
+    "replay-play",
+    "sandbox"
+   ]
+  },
+  "navAnchors": {
+   "from": "zones.js",
+   "by": [
+    "nav-zones"
+   ]
+  },
+  "navTransform": {
+   "from": "zones.js",
+   "by": [
+    "lineup-editor"
+   ]
+  },
+  "zoneLayer": {
+   "from": "zones.js",
+   "by": [
+    "lineup-editor",
+    "nav-zones"
+   ]
+  }
+ },
+ "simNeedsShow": {
+  "BOT_INIT": {
+   "from": "app.js",
+   "by": [
+    "round"
+   ],
+   "how": [
+    "чтение"
+   ]
+  },
+  "DEMOV": {
+   "from": "demo.js",
+   "by": [
+    "bomb",
+    "damage",
+    "round",
+    "shoot",
+    "tick"
+   ],
+   "how": [
+    "чтение"
+   ]
+  },
+  "RC_HALF": {
+   "from": "app.js",
+   "by": [
+    "round"
+   ],
+   "how": [
+    "запись"
+   ]
+  },
+  "SANDBOX": {
+   "from": "sandbox.js",
+   "by": [
+    "move",
+    "round",
+    "tick"
+   ],
+   "how": [
+    "чтение"
+   ]
+  },
+  "WARM": {
+   "from": "warmup.js",
+   "by": [
+    "round"
+   ],
+   "how": [
+    "чтение",
+    "запись"
+   ]
+  },
+  "dlog": {
+   "from": "trace.js",
+   "by": [
+    "assist",
+    "engagements",
+    "fight-state",
+    "task",
+    "throw"
+   ],
+   "how": [
+    "чтение"
+   ]
+  },
+  "dlogOf": {
+   "from": "trace.js",
+   "by": [
+    "problem-watch"
+   ],
+   "how": [
+    "чтение"
+   ]
+  },
+  "dlogTeam": {
+   "from": "trace.js",
+   "by": [
+    "igl"
+   ],
+   "how": [
+    "чтение"
+   ]
+  },
+  "dvTick": {
+   "from": "demo.js",
+   "by": [
+    "tick"
+   ],
+   "how": [
+    "чтение"
+   ]
+  },
+  "esc": {
+   "from": "killfeed.js",
+   "by": [
+    "voice-console"
+   ],
+   "how": [
+    "чтение"
+   ]
+  },
+  "hudC4": {
+   "from": "fx.js",
+   "by": [
+    "voice-console"
+   ],
+   "how": [
+    "чтение"
+   ]
+  },
+  "plSelected": {
+   "from": "scoreboard.js",
+   "by": [
+    "look-arbiter"
+   ],
+   "how": [
+    "чтение"
+   ]
+  },
+  "sbTick": {
+   "from": "sandbox.js",
+   "by": [
+    "tick"
+   ],
+   "how": [
+    "чтение"
+   ]
+  }
+ }
+}

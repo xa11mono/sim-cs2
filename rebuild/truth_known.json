@@ -81,11 +81,6 @@
    "why": "враги только увиденные (_visible) или услышанные (heardSound — по месту звука)",
    "n": 1
   },
-  "fight-state:decideAction:x,y,z": {
-   "class": "свои",
-   "why": "носитель бомбы T: тиммейт T рядом для размена",
-   "n": 1
-  },
   "engagements:engDecide:x,y": {
    "class": "восприятие",
    "why": "сколько врагов видит: hasVision (модель зрения; без конуса — как есть)",
@@ -249,6 +244,11 @@
   "brain-ct-players:ctBrainPlayers:bomb.x,y": {
    "class": "истина",
    "why": "ctBrainPlayers (часть ctBrain): взгляд сейва и держащего бомбу — на точное место бомбы (сейв — после планта / выбитая бомба) — Р3-К3; до разрезания входило в ключ ctBrain",
+   "n": 1
+  },
+  "fight-state:decideActionR:x,y,z": {
+   "class": "свои",
+   "why": "носитель бомбы T: тиммейт T рядом для размена",
    "n": 1
   }
  }

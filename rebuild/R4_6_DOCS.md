@@ -3,10 +3,10 @@
 ## Объём обязательного стартового контекста (байты)
 | файл | 25.11 (до Р3–Р4) | 26.11 перед Р4.6 | после шага 1 |
 |---|---:|---:|---:|
-| `AGENTS.md` | 57 444 | 63 151 | **48 689** (таблица «Где что» 15 КБ — дословно в `docs/ARCHITECTURE.md`, в §11 — ссылка и `grep`) |
+| `AGENTS.md` | 57 444 | 63 151 | шаг 1: 48 689 (таблица «Где что» — дословно в `docs/ARCHITECTURE.md`); **шаг 2: 27 100** (§5, §7, §8 — дословно в `docs/rules/fixing.md`, `code.md`, `runs.md`, в AGENTS — обязательная выжимка и указатель) |
 | `CLAUDE.md` | 1 437 | 1 437 | 1 437 |
 | `rebuild/JOURNAL.md` §2 «Сейчас» | — | 10 755 | 10 755 |
-| пакет `sim.js context` | — | — | 69 684 (весь AGENTS + журнал §2 + этап) |
+| пакет `sim.js context` | — | — | шаг 1: 69 684 Б; шаг 2: ≈ 31 700 символов без темы (подробные правила — по теме: `context код` + `docs/rules/code.md`) |
 
 ## Ссылки и пути
 `tools/rebuild/doc_links.js` (входит в `sim.js check`): действующие документы (72; исторические — архив, отчёты, доказательства, записи
@@ -16,5 +16,34 @@
 ## Не сделано (нужны решения владельца — слияние документов правил)
 - Опись Codex (`codex/preparation-r3-r4`: `DOCUMENTATION.md`, `documentation_inventory.csv` — 190 файлов, класс и действие) — принять как
   опись; дубли норм (семь требований — `AGENTS.md` §1 / `PRINCIPLES.md` / `PLAYER_MINDSET.md` / `RULES.md` п. 11; планы — `00_PLAN.md`
-  и `MASTER_PLAN.md`; устройство — `ARCHITECTURE.md` / `DEVICE.md` / `TREE.md` / `FACTS.md`) — свести в один источник на тему.
+  и `MASTER_PLAN.md`; устройство — `ARCHITECTURE.md` / `docs/ARCHITECTURE.md` («Устройство каналов») / `archive/TREE.md` / `archive/FACTS.md`) — свести в один источник на тему.
   Правило остановки Р4.6: уникальное содержание не удаётся сохранить — оставить оба и спросить. Вопрос 15.
+
+## Шаг 2 (26.11, вариант (а) владельца)
+- `docs/rules/fixing.md` = прежний AGENTS §5 + «Исправление игровой логики» из `work_rules.md`; `docs/rules/code.md` = прежний §7;
+  `docs/rules/runs.md` = прежний §8 + правила цифр и прогонов из `work_rules.md`. docs/tasks/work_rules.md (с 26.11 — в `docs/archive/`) → `docs/archive/` (содержание —
+  в `docs/rules/`, ссылки переведены).
+- Полнота: `tools/rebuild/doc_coverage.py HEAD AGENTS.md docs/tasks/work_rules.md -- AGENTS.md docs/rules` — из 308 предложений не найден
+  дословно 1 (переименованный заголовок раздела).
+
+## Шаг 3 (26.11)
+- В архив `rebuild/archive/` (дословно, `git mv`; незавершённых задач нет — проверено поиском «не сделано / осталось / ждёт / открыто»):
+  `PLAN.md` (заменён `MASTER_PLAN.md` 24.11), `TREE.md` (дерево на 15.11 — устарело после Р4), `FACTS.md` (снимок «было» 15.11),
+  `PROGRESS.md` (журнал фаз 0–3), `DUPES.md` (дубли фазы 3 — все разобраны), `DECISIONS.md` (решения по разборам других нейросетей 15.11).
+  Ссылки в действующих документах переведены (9 документов); проверка ссылок — 0 битых.
+- Один источник на вид: планы — `rebuild/MASTER_PLAN.md` (перестройка) и `00_PLAN.md` (игра) — AGENTS §4 исправлен («один план» спорил с
+  MASTER_PLAN); решения — журнал по версиям `docs/DECISIONS.md` и реестр архитектурных `docs/architecture/DECISIONS.md` — указано в AGENTS.
+- Не дубли (проверено): «семь требований» — AGENTS §1 (выжимка) → `docs/PRINCIPLES.md`, `docs/PLAYER_MINDSET.md` (подробно, ссылкой);
+  `rebuild/RULES.md` п. 11 — ссылка на `PLAYER_MINDSET.md` §17; `docs/ARCHITECTURE.md` — устройство каналов (действующие интерфейсы, Codex A),
+  `docs/ARCHITECTURE.md` — реализация и «Где что».
+
+## Шаг 4 (26.11) — по описи Codex (`documentation_inventory.csv`)
+- В архив: docs/tasks/CLAUDE_AI_BEHAVIOR_ROOT_CAUSE_TASK.md, `CLAUDE_GRENADE_TASK_PROMPT.md`, `HANDOFF_MOTION.md` → `docs/archive/tasks/`;
+  rebuild/bal_removed.md, `dead_removed.md` → `rebuild/archive/`.
+- Объединены дословно: rebuild/DEVICE.md → `docs/ARCHITECTURE.md` («Устройство каналов»), rebuild/TOOLS.md → `tools/README.md`;
+  оригиналы — `rebuild/archive/`. Полнота: из 98 предложений не найдены дословно 2 заголовка (заменены заголовками разделов).
+- Не объединены (с причиной): rebuild/OPEN_QUESTIONS.md → реестр решений — в вопросах ответ стоит рядом с вопросом и вариантами; реестр
+  `docs/architecture/DECISIONS.md` ссылается, а не копирует (иначе два источника); `docs/BRAIN.md` → `PLAYER_MINDSET.md` — нужна сверка
+  действующих контрактов знания и ролей по коду (Р5 / после Р8 вместе с правками знания), до неё — оба остаются, BRAIN — источник
+  происхождения данных Setup (`tools/map/positions_bake.py`).
+- Ссылки — 0 битых (68 действующих документов).

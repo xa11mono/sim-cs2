@@ -156,6 +156,7 @@
    "owns": [
     "stagePost",
     "tIglReplan",
+    "tPhaseSet",
     "tSetSite"
    ],
    "src": "таблица «Где что»"
@@ -521,6 +522,7 @@
    "owns": [
     "afterKillMove",
     "decideAction",
+    "decideActionR",
     "fightHoldOff",
     "fightReset",
     "fightState",
@@ -554,6 +556,7 @@
    "mech": "смена сторон и раунд: buyPhase, sideSwapNow, swapSides, freshMatch, endRound, resetRound",
    "owns": [
     "buyPhase",
+    "coreLoadEnd",
     "endRound",
     "freshMatch",
     "resetRound",
@@ -683,7 +686,8 @@
    "owns": [
     "dlog",
     "dlogBot",
-    "dlogOf"
+    "dlogOf",
+    "dlogTeam"
    ],
    "src": "шапка файла"
   },
@@ -769,6 +773,7 @@
     "lookArbiter",
     "lookArbiterR",
     "lookFilter",
+    "lookReasonSet",
     "threatEntrances"
    ],
    "src": "Р4.4 (деление крупного файла)"
@@ -798,6 +803,11 @@
     "rpGoto"
    ],
    "src": "Р4.4 (деление крупного файла)"
+  },
+  "modes.js": {
+   "mech": "состояние режимов страницы (демо, песочница, разминка) и надпись смены сторон, которые читает / пишет ядро (Р5)",
+   "owns": [],
+   "src": "Р5"
   }
  }
 }
