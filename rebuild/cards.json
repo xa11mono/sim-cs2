@@ -156,6 +156,7 @@
    "owns": [
     "stagePost",
     "tIglReplan",
+    "tPhaseSet",
     "tSetSite"
    ],
    "src": "таблица «Где что»"
@@ -684,7 +685,8 @@
    "owns": [
     "dlog",
     "dlogBot",
-    "dlogOf"
+    "dlogOf",
+    "dlogTeam"
    ],
    "src": "шапка файла"
   },

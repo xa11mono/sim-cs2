@@ -22,6 +22,9 @@ function carrierAtSite(tt){
   var S = SITES[tt.site]; return DM.hypot(bomb.carrier.x-S.x, bomb.carrier.y-S.y) < 330 || onSite(S, bomb.carrier.x, bomb.carrier.y);
 }
 var CONT_SEC = 6, CONT_REGROUP = 6;   // с: решение о продолжении дефолта — за столько до выхода; перестроиться — столько (проектные числа)
+// (Р3.2, канал «команда», шаг 2) хозяин фазы плана T: фаза (setup / execute / postplant) пишется только здесь; причина — в след команды
+// (dlogTeam, вне состояния игры). Запись tt.phase в обход — ошибка сборки (rebuild/owners.json «phase»)
+function tPhaseSet(tt, ph, why){ var was = tt.phase; tt.phase = ph; if(was !== ph) dlogTeam("T", "фаза", (was || "-") + " → " + ph + (why ? " — " + why : "")); }
 function tIglReplan(tt, site, other, secLeft){
   var DL = tt._dl || [], aliveT = aliveCount("T"), aliveCT = aliveCount("CT");
   if(bomb.state === "planted" || aliveT <= 1) return false;
@@ -102,7 +105,7 @@ function tIglReplan(tt, site, other, secLeft){
           var trvR = DM.hypot(ctrR.x-SITES[other].x, ctrR.y-SITES[other].y)*1.4/SPEED;
           voiceLog("T", "rotread", "IGL", toward.length+" CT ротируют на "+tt.site+" — идём на "+other+", но углы чекаем, там может кто-то остаться");
           logEvent("IGL: слышим ротацию CT на "+tt.site+" → перекол на "+other+" (не значит, что там пусто)");
-          tSetSite(tt, other); tt.phase = "setup";
+          tSetSite(tt, other); tPhaseSet(tt, "setup", "tIglReplan");
           tt.execTick = tick + Math.round(Math.min(Math.max(4, trvR*0.7), 12)*TICK_HZ);
           return true;
         } else logEvent("IGL: слышим ротацию CT на "+tt.site+", но это может быть фейк — играем по плану");
@@ -125,11 +128,11 @@ function tIglReplan(tt, site, other, secLeft){
       tt.takeAssign = null; tt.plantPick = null; tt.wave2 = null; tt.w1Contact = null; tt._popDone = false; tt._waitLog = false;
       nadeFlags.tExec = false; nadeFlags.tExecSm = false; nadeFlags.peekFlashPlanned = false;
       if(goOther){
-        tSetSite(tt, other); tt.phase = "setup"; tt.execTick = tick + Math.round(Math.min(travel*0.8, 14)*TICK_HZ);
+        tSetSite(tt, other); tPhaseSet(tt, "setup", "tIglReplan"); tt.execTick = tick + Math.round(Math.min(travel*0.8, 14)*TICK_HZ);
         voiceLog("T", "abort", "IGL", "выход не прошёл — отходим, все на "+other+"!");
         logEvent("IGL: выход провалился ("+tD+" наших против "+cD+") — отход, перекол на "+other);
       } else {
-        tt.phase = "setup"; tt.execStart = null; tt.execTick = tick + 6*TICK_HZ;
+        tPhaseSet(tt, "setup", "tIglReplan"); tt.execStart = null; tt.execTick = tick + 6*TICK_HZ;
         voiceLog("T", "abort", "IGL", "стоп, отходим — перегруппируемся и заходим вместе");
         logEvent("IGL: выход провалился ("+tD+" наших против "+cD+") — отход и повторный заход на "+tt.site);
       }

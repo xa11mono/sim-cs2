@@ -267,5 +267,13 @@
     ],
     "enforce": true,
     "since": "Р3.2 взгляд ш.2, 26.11: причина и уровень взгляда — только ответ арбитра (lookApply) и интерфейс lookReasonSet (фильтры, сброс раунда)"
+  },
+  "phase": {
+    "channel": "команда",
+    "allow": [
+      "tPhaseSet"
+    ],
+    "enforce": true,
+    "since": "Р3.2 команда ш.2, 26.11: фаза плана T (tt.phase) — только хозяин tPhaseSet (engine/team/igl.js), причина — в след команды"
   }
 }

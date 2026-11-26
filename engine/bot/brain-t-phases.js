@@ -176,7 +176,7 @@ function tBrainSetup(K){
             var hereN = siteAssess("T", K.tt.site).near, fkN = siteAssess("T", fk).near;
             if(hereN >= 2 && fkN <= 1 && K.secLeft > 35 && !(bomb.state === "dropped" && DM.hypot(bomb.x-SITES[K.tt.site].x, bomb.y-SITES[K.tt.site].y) < BOMB_HERE_R)){
               var trvF = DM.hypot(SITES[fk].x - SITES[K.tt.site].x, SITES[fk].y - SITES[K.tt.site].y)*1.2/SPEED;
-              tSetSite(K.tt, fk); K.tt.phase = "setup"; K.tt.execTick = tick + Math.round(Math.min(trvF*0.8, 12)*TICK_HZ);
+              tSetSite(K.tt, fk); tPhaseSet(K.tt, "setup", "tBrainSetup"); K.tt.execTick = tick + Math.round(Math.min(trvF*0.8, 12)*TICK_HZ);
               logEvent("IGL: на "+fk+" не купились, но там один, а у нас их "+hereN+" — фейк становится выходом на "+fk);
               voiceLog("T", "fakereal", "IGL", "на "+fk+" один и не уходит, у нас их "+hereN+" — заходим на "+fk);
             } else logEvent("IGL: на "+fk+" не купились — держит место, играем по плану");

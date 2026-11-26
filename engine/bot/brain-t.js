@@ -75,7 +75,7 @@ function tBrain(){
       var ks2 = K.tt.site && (canK(K.tt.site) || bomb.state !== "carried") ? K.tt.site : (K.tt.site === "A" ? "B" : "A");
       K.tt.soloPlan = ks2;
       if(ks2 !== K.tt.site){ var exS = K.tt.execStart; tSetSite(K.tt, ks2); K.tt.execStart = exS; K.site = SITES[ks2]; K.g = GEO[ks2]; K.other = ks2 === "A" ? "B" : "A"; K.plantPt = K.site.plant || K.site; }
-      if(K.tt.phase === "setup"){ K.tt.phase = "execute"; K.tt.execStart = tick; }
+      if(K.tt.phase === "setup"){ tPhaseSet(K.tt, "execute", "tBrain"); K.tt.execStart = tick; }
       K.tt.wave2 = K.tt.wave2 || tick;
       voiceLog("T", "solo", solo.id, "один, иду ставить "+ks2);
     }
@@ -133,7 +133,7 @@ function tBrainExecGo(K){
       if(!XG.go){ goNow = false; if(K.tt._smWaitLog !== XG.why){ K.tt._smWaitLog = XG.why; logEvent("T: ждём — "+XG.why); exuEv("wait", null, {why:XG.why}); } }
     }
     if(goNow){
-      K.tt.phase = "execute"; K.tt.execStart = tick; siteHeatPending[K.tt.site] = 1;
+      tPhaseSet(K.tt, "execute", "tBrainExecGo"); K.tt.execStart = tick; siteHeatPending[K.tt.site] = 1;
       exuEv("exec", null, {site:K.tt.site, late:K.secLeft < EXU_LATE});
       logEvent("T: выход на "+K.tt.site+"!"+(K.tt._waitLog ? " (все собрались)" : ""));
     }
@@ -150,12 +150,12 @@ function tBrainExecGo(K){
     // Connector) раннее «не спешим» (proTempo, до 22 с) — не когда наш уже стоит на сайте: сайт взят, заходим
     var ourOnSite = bots.some(function(o){ return o.team === "T" && o.alive && (onSite(K.site, o.x, o.y) || DM.hypot(o.x-K.site.x, o.y-K.site.y) < 450); });
     if(!K.tt._fastGo && pickSig && aliveCount("T") >= 4 && (tick - roundStartTick > 22*TICK_HZ || ourOnSite) && iglTake(K.tt, pickSig.tick)){
-      tFastGo(K.tt, function(){ K.tt.phase = "execute"; K.tt.execStart = tick; siteHeatPending[K.tt.site] = 1;
+      tFastGo(K.tt, function(){ tPhaseSet(K.tt, "execute", "tBrainExecGo"); K.tt.execStart = tick; siteHeatPending[K.tt.site] = 1;
         voiceLog("T", "pick"+K.tt.site, "IGL", "минус на "+K.tt.site+", заходим сразу!");
         logEvent("T: выход на "+K.tt.site+"! (сняли CT на сайте)"); });
     }
   }
-  if(bomb.state === "planted" && K.tt.phase !== "postplant"){ K.tt.phase = "postplant";
+  if(bomb.state === "planted" && K.tt.phase !== "postplant"){ tPhaseSet(K.tt, "postplant", "tBrainExecGo");
     // (v144) фланг через мид и охота имели смысл до планта. После планта у них
     // не было исполнителя — стояли, где оставили. Теперь все в пост-плант
     if(BAL.ppFix === true) bots.forEach(function(o){ if(o.team !== "T") return; o._midFlank = null; o._shift = null; o._egC = null;
@@ -214,7 +214,7 @@ function tBrainSiteSwitch(K){
       K.tt.rebound = true;
       voiceLog("T", "reb"+K.other, "IGL", lateOK ? "ПЕРЕКОЛЛ "+K.tt.site+" → "+K.other+": на "+K.tt.site+" их больше, на "+K.other+" сняли опорника — бомба на "+K.other+"!" : "минус на "+K.other+", там пусто — все на "+K.other+"!");
       logEvent("IGL: перекол → "+K.other+" (сняли CT, сайт пустой)");
-      tSetSite(K.tt, K.other); K.tt.phase = "setup"; K.tt.execTick = tick + 3*TICK_HZ;
+      tSetSite(K.tt, K.other); tPhaseSet(K.tt, "setup", "tBrainSiteSwitch"); K.tt.execTick = tick + 3*TICK_HZ;
       return true;
     }
     // смерть своего у сайта в сетапе уже повод передумать, если там же видели 2+
@@ -229,7 +229,7 @@ function tBrainSiteSwitch(K){
       voiceLog("T", "reb"+K.other+"st", "IGL", "ПЕРЕКОЛЛ "+K.tt.site+" → "+K.other+": на "+K.tt.site+" стак (~"+Math.round(here)+(deathsHere ? ", минус там" : "")+") — все на "+K.other+"!");
       // перекол не значит "сразу выход": группа переходит и выходит примерно по
       // исходному таймингу (минимум через 8с, чтобы успеть дойти)
-      var exT = K.tt.execTick; tSetSite(K.tt, K.other); K.tt.phase = "setup"; K.tt.execTick = Math.max(tick + 8*TICK_HZ, exT - 8*TICK_HZ);
+      var exT = K.tt.execTick; tSetSite(K.tt, K.other); tPhaseSet(K.tt, "setup", "tBrainSiteSwitch"); K.tt.execTick = Math.max(tick + 8*TICK_HZ, exT - 8*TICK_HZ);
       return true; // со следующего тика мозг работает уже по новому сайту
     }
   }
@@ -273,8 +273,8 @@ function tBrainSiteSwitch(K){
         voiceLog("T", "clrreb"+K.other, "IGL", "ПЕРЕКОЛЛ "+K.tt.site+" → "+K.other+": "+(conf ? K.other+" прочекали — пусто, все на "+K.other+", ставим там!" : K.other+" вероятно пустой — идём, заходим аккуратно, чекаем"));
         logEvent("IGL: "+K.other+(conf ? " прочекан и пуст" : " вероятно пуст")+" — перекол → "+K.other);
         tSetSite(K.tt, K.other); K.site = SITES[K.tt.site];
-        if(conf){ K.tt.phase = "execute"; K.tt.execStart = tick; K.tt.fewGo = true; }
-        else { K.tt.phase = "setup"; K.tt.execTick = tick + 4*TICK_HZ; }
+        if(conf){ tPhaseSet(K.tt, "execute", "tBrainSiteSwitch"); K.tt.execStart = tick; K.tt.fewGo = true; }
+        else { tPhaseSet(K.tt, "setup", "tBrainSiteSwitch"); K.tt.execTick = tick + 4*TICK_HZ; }
         return true;
       }
     }
@@ -311,7 +311,7 @@ function tBrainMidTake(K){
       var was = K.tt.site;
       if(seenHere > 0 && seenOther === 0 && !tSiteTaking(K.tt)){ tSetSite(K.tt, K.other);   // (22.11, Ж16) последних видели у нас, но сайт берётся — добиваем здесь
         K.site = SITES[K.tt.site]; K.g = GEO[K.tt.site]; K.other = K.tt.site === "A" ? "B" : "A"; }
-      K.tt.fewGo = true; K.tt.phase = "execute"; K.tt.execStart = tick; siteHeatPending[K.tt.site] = 1;
+      K.tt.fewGo = true; tPhaseSet(K.tt, "execute", "tBrainMidTake"); K.tt.execStart = tick; siteHeatPending[K.tt.site] = 1;
       voiceLog("T", "few"+roundNum, "IGL", was !== K.tt.site ? "ПЕРЕКОЛЛ "+was+" → "+K.tt.site+": их осталось "+aCT+", на "+was+" видели — заходим сейчас!"
                                                            : "их осталось "+aCT+" — заходим сейчас, бомба на "+K.tt.site+"!");
       logEvent("T: выход на "+K.tt.site+"! (CT осталось "+aCT+")"); });
@@ -330,7 +330,7 @@ function tBrainMidTake(K){
     // (v381, М132) или по расстановке: на нашем сайте видели одного, и по увиденному в других районах там больше одного не ждут
     var srS = K.tt.setupRead && tick - roundStartTick <= 40*TICK_HZ ? K.tt.setupRead.E[K.tt.site] : null;
     if(eS.seen === 1 && (beliefCount("T", BZ.siteNear[K.tt.site]||[]) < 1.4 || srS != null && srS <= 1.2) && aliveT2 >= 4 && iglReads(K.tt, "so")){
-      K.tt.soloGo = true; tFastGo(K.tt, function(){ K.tt.phase = "execute"; K.tt.execStart = tick; siteHeatPending[K.tt.site] = 1;
+      K.tt.soloGo = true; tFastGo(K.tt, function(){ tPhaseSet(K.tt, "execute", "tBrainMidTake"); K.tt.execStart = tick; siteHeatPending[K.tt.site] = 1;
         voiceLog("T", "solo"+K.tt.site, "IGL", "на "+K.tt.site+" один — заходим сейчас!");
         logEvent("T: выход на "+K.tt.site+"! (по инфе там соло)"); });
     }

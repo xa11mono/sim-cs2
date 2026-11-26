@@ -20,7 +20,7 @@
 | `holding` | 5 | 4 | `fightReset · fight-state`, `fightHoldOff · fight-state`, `leaveHold · fight-state`, `engDecide · engagements` |
 | `crouching` | 1 | 1 | `placeStance · task` |
 | `path` | 13 | 7 | `fireRepath · levels`, `ladderTick · levels`, `navFollowFloor · levels`, `movePath · move`, `moveSpeedTick · move`, `navSnap · tick`, `stepBot · tick` |
-| `phase` | 14 | 6 | — |
+| `phase` | 1 | 1 | `tPhaseSet · igl` |
 | `lookReason` | 2 | 2 | `lookReasonSet · look-arbiter`, `lookApply · look-arbiter` |
 | `_lookLvl` | 1 | 1 | `lookApply · look-arbiter` |
 
@@ -134,12 +134,7 @@
 
 ## `phase`
 
-- `tBrainSiteSwitch · brain-t` — 4 (стр. 217, 232, 276, 277)
-- `tIglReplan · igl` — 3 (стр. 105, 128, 132)
-- `tBrainExecGo · brain-t` — 3 (стр. 136, 153, 158)
-- `tBrainMidTake · brain-t` — 2 (стр. 314, 333)
-- `tBrain · brain-t` — 1 (стр. 78)
-- `tBrainSetup · brain-t-phases` — 1 (стр. 179)
+- **хозяин** `tPhaseSet · igl` — 1 (стр. 27)
 
 ## `lookReason`
 

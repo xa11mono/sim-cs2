@@ -9,6 +9,8 @@ var DLOG_SEC = 15, DLOG_MAX = 60, DLOG = {on: true, by: {}};
 function dlogBot(b){ return DLOG.by[b.id] || (DLOG.by[b.id] = {}); }
 function dlogOf(b, key){ var B = b && DLOG.by[b.id], L = (B && B[key || "_dlog"]) || [];
   return L.length && L[L.length-1][0] > tick ? L.filter(function(e){ return e[0] <= tick; }) : L; }
+// (Р3.2, канал «команда») след решений команды (фаза плана и т. п.) — вне состояния игры, как след бота: dlogTeam("T", вид, текст)
+function dlogTeam(side, kind, text){ if(!DLOG.on || !side) return; dlog({id: "team:" + side}, kind, text); }
 function dlog(b, kind, text, key){
   if(!b || !DLOG.on) return;
   var B = dlogBot(b), k = key || "_dlog", L = B[k] || (B[k] = []);

@@ -16,7 +16,7 @@
    "snap": true
   },
   "AHEAD_GAP": {
-   "decl": "igl.js:156",
+   "decl": "igl.js:159",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -1737,7 +1737,7 @@
     "dlogBot · trace": 1
    },
    "r": {
-    "trace": 4
+    "trace": 5
    },
    "snap": "нет: след решений — вне состояния игры (Р3.3)"
   },
@@ -6309,7 +6309,7 @@
    "snap": true
   },
   "PP_SHIFT": {
-   "decl": "igl.js:230",
+   "decl": "igl.js:233",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -6319,7 +6319,7 @@
    "snap": true
   },
   "PP_SHIFT_R": {
-   "decl": "igl.js:230",
+   "decl": "igl.js:233",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -14440,7 +14440,7 @@
   },
   "_ppAlt": {
    "w": [
-    "igl.js:242 ppTimeNamed"
+    "igl.js:245 ppTimeNamed"
    ],
    "lit": [],
    "r": 2
@@ -14494,7 +14494,7 @@
   },
   "_ppTN": {
    "w": [
-    "igl.js:260 ppTimeNamed"
+    "igl.js:263 ppTimeNamed"
    ],
    "lit": [],
    "r": 4
@@ -14566,7 +14566,7 @@
   },
   "_probe": {
    "w": [
-    "igl.js:220 tSetSite",
+    "igl.js:223 tSetSite",
     "lurker.js:141 tProbes"
    ],
    "lit": [],
@@ -14769,8 +14769,8 @@
     "brain-t-phases.js:104 tBrainSetup",
     "brain-t.js:296 tBrainMidTake",
     "decide.js:254 resetNades",
-    "igl.js:124 tIglReplan",
-    "igl.js:215 tSetSite",
+    "igl.js:127 tIglReplan",
+    "igl.js:218 tSetSite",
     "lurker.js:57 lurkerBrain",
     "lurker.js:85 lurkerBrain",
     "task.js:381 setPostDo",
@@ -14784,8 +14784,8 @@
   "_routeDone": {
    "w": [
     "brain-t.js:296 tBrainMidTake",
-    "igl.js:124 tIglReplan",
-    "igl.js:214 tSetSite",
+    "igl.js:127 tIglReplan",
+    "igl.js:217 tSetSite",
     "lurker.js:85 lurkerBrain",
     "task.js:65 routeTick"
    ],
@@ -15056,9 +15056,9 @@
     "brain-t-phases.js:110 tBrainSetup",
     "brain-t-phases.js:114 tBrainSetup",
     "brain-t-phases.js:84 tBrainSetup",
-    "igl.js:124 tIglReplan",
-    "igl.js:180 stagePost",
-    "igl.js:215 tSetSite"
+    "igl.js:127 tIglReplan",
+    "igl.js:183 stagePost",
+    "igl.js:218 tSetSite"
    ],
    "lit": [],
    "r": 12
