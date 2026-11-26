@@ -1,4 +1,4 @@
-// [хозяева: lurkerBrain, markClear] ---------- лёркер (план §5: "держит фланг") ----------
+// [хозяева: lurkSetLurkArr, lurkSetLurkIdx, lurkSetLurkPh, lurkSetProbe, lurkerBrain, markClear] ---------- лёркер (план §5: "держит фланг") ----------
 // Раньше: в setup ходил маршрутом роумера, а с выхода и до конца раунда стоял
 // на одной точке на миде. Теперь это отдельная линия поведения, всё — тихим
 // шагом:
@@ -62,14 +62,14 @@ function lurkerBrain(b, tt, other){
     // проход сайта ("есть ли кто?") — ~5с в укрытии, ~2.5с на выгляде
     var hide = pickSpots("lurkStage"+other+LP.name, LP.stage, 1, {team: "T", rMax:200, minGap:40, hideFrom:[SITES[other], go.anchor], see:[LP.entry]})[0];
     var peek = walk({x: LP.stage.x + (LP.entry.x-LP.stage.x)*0.6, y: LP.stage.y + (LP.entry.y-LP.stage.y)*0.6});
-    if(b._lurkPh === undefined){ b._lurkPh = 0; b._lurkArr = 0; }
+    if(b._lurkPh === undefined){ lurkSetLurkPh(b, 0); lurkSetLurkArr(b, 0); }
     var atPeek = b._lurkPh === 1;
     setPost(b, atPeek ? peek : hide, LP.entry, true, atPeek ? "lurkPeek" : "lurkStage"+other);
     if(b.atPost){
-      if(!b._lurkArr) b._lurkArr = tick;
-      if(tick - b._lurkArr > (atPeek ? 160 : 320)){ b._lurkPh = 1 - b._lurkPh; b._lurkArr = 0; }
+      if(!b._lurkArr) lurkSetLurkArr(b, tick);
+      if(tick - b._lurkArr > (atPeek ? 160 : 320)){ lurkSetLurkPh(b, 1 - b._lurkPh); lurkSetLurkArr(b, 0); }
     }
-    b._lurkIdx = 0;
+    lurkSetLurkIdx(b, 0);
     return;
   }
   if(tt.phase === "execute" || lurkGoNow(tt)){
@@ -138,7 +138,7 @@ function tProbes(tt, ts){
     // проба этого раунда держит свою группу, пока бот на пробе / в бою (тег поста не стадия); (v423, владелец 25.10, Mirage м1 р2: донк после
     // перевода IGL на A трижды уходил пробой B в B Apartments) — встал на стадию другой группы: старая проба забыта, группа — по стадии
     if(b._probe && b._probe.key && b._probe.round === roundNum){
-      if(key && key !== b._probe.key && (/^stage/.test(b.post.tag) || taskProp(b.post.tag, "midTask"))) b._probe = null;
+      if(key && key !== b._probe.key && (/^stage/.test(b.post.tag) || taskProp(b.post.tag, "midTask"))) lurkSetProbe(b, null);
       else key = b._probe.key;
     }
     if(!key) return;
@@ -160,7 +160,7 @@ function tProbes(tt, ts){
     else { var kk = key.charAt(0); from = GEO[kk].tStage; to = GEO[kk].tEntry; look = GEO[kk].anchor; }
     var P = pb._probe;
     if(!P || P.key !== key || P.round !== roundNum){
-      P = pb._probe = {key:key, round:roundNum, ph:0, n:0, until: tick + (4 + 5*hashRand(roundNum*31 + pb.id.charCodeAt(1)))*TICK_HZ, home:{x:pb.post.x, y:pb.post.y}};
+      P = lurkSetProbe(pb, {key:key, round:roundNum, ph:0, n:0, until: tick + (4 + 5*hashRand(roundNum*31 + pb.id.charCodeAt(1)))*TICK_HZ, home:{x:pb.post.x, y:pb.post.y}});
     }
     if(P.ph === 0){ // ждёт в укрытии (пост группы уже стоит)
       // на этом выходе только что убили своего — не пикать туда же ещё раз
@@ -213,7 +213,7 @@ function tProbes(tt, ts){
     // (v521, отметка владельца 10.11: у TN1R «перебивают путь shift и probeA» — личная перестановка и проба одного уровня сменяли друг друга
     // каждые 1,5 с) проба по решению IGL заменяет личную перестановку этого бота в этом раунде: одна задача, а не две
     if(pb.post && /^probe/.test(pb.post.tag)) pb._shift = null;
-    pb._probeLock = tick;
+    taskSetProbeLock(pb, tick);
     // напарник — ~150px позади пробы по той же линии, смотрит туда же
     if(P.buddy){
       var bu = ts.filter(function(o){ return o.id === P.buddy; })[0];
@@ -224,7 +224,7 @@ function tProbes(tt, ts){
       if(bu && !bu._sawEnemy && !tradeGoing(bu)){
         var ln = DM.hypot(P.pt.x-from.x, P.pt.y-from.y) || 1, back = Math.min(150, ln*0.6);
         var bp = walk({x: P.pt.x + (from.x-P.pt.x)/ln*back, y: P.pt.y + (from.y-P.pt.y)/ln*back});
-        setPost(bu, bp, look, true, "probePair"+key); bu._probeLock = tick;
+        setPost(bu, bp, look, true, "probePair"+key); taskSetProbeLock(bu, tick);
       }
     }
     // выглянул — и назад: проба не стоит в открытую (джиггл, а не холд)
@@ -257,7 +257,7 @@ function tProbes(tt, ts){
     if((pb.atPost && tick - (P.at || (P.at = tick)) > stay) || (!pb.atPost && !taskWalkOn(pb, P.pt, P))){
       P.prD = null; P.prT = 0; P.prBest = 0;
       P.ph = 0; P.cleared = false; P.at = 0; P.saw = 0; P.until = tick + (6 + 3*hashRand(tick + pb.id.charCodeAt(1)))*TICK_HZ;
-      pb._probeLock = 0; clearPost(pb); // вернётся на пост группы со следующего тика
+      taskSetProbeLock(pb, 0); clearPost(pb); // вернётся на пост группы со следующего тика
     }
     if(!pb.atPost) P.at = 0;
   });
@@ -410,3 +410,9 @@ function soloMayWalk(b){
   var allKnownFar = cts.every(function(o){ var e = kvLast("T")[o.id]; return e && tick - e.tick < 5*TICK_HZ && DM.hypot(e.x-site.x, e.y-site.y) > 1100; });
   return !allKnownFar;
 }
+
+// Запись состояния канала. Вызовы выполняются в исходной точке тика.
+function lurkSetLurkArr(bot, value){ return bot._lurkArr = value; }
+function lurkSetLurkIdx(bot, value){ return bot._lurkIdx = value; }
+function lurkSetLurkPh(bot, value){ return bot._lurkPh = value; }
+function lurkSetProbe(bot, value){ return bot._probe = value; }

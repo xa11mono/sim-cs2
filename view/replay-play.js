@@ -72,6 +72,29 @@ function rpSound(P, R, ci){
       bt += Math.round(Math.max(0.1, Math.min(1, 0.1 + 0.9*((eT - bt)/TICK_HZ)/40))*TICK_HZ); } }
   R.ev.forEach(function(e){ if(e.kind === "defuse" && e.t > from && e.t <= P.rt){ var q3 = mv(I.A.b[ci*RP_NB], I.A.b[ci*RP_NB+1]); sndBomb("defused", q3.x, q3.y); } });
 }
+function rpSetBotField(bot, field, value){
+  switch(field){
+    case "x": return moveSetX(bot, value);
+    case "y": return moveSetY(bot, value);
+    case "z": return navSetZ(bot, value);
+    case "alive": return damageSetAlive(bot, value);
+    case "hp": return damageSetHp(bot, value);
+    case "_reloading": return reloadSetReloading(bot, value);
+    case "reloadUntil": return reloadSetReloadUntil(bot, value);
+    case "weapon": return equipmentSetWeapon(bot, value);
+    case "_jump": return jumpSetJump(bot, value);
+    case "blindUntil": return damageSetBlindUntil(bot, value);
+    case "_knife": return equipmentSetKnife(bot, value);
+    case "kit": return equipmentSetKit(bot, value);
+    case "onStairs": return moveSetOnStairs(bot, value);
+    case "_sawEnemy": return engagementSetSawEnemy(bot, value);
+    case "atPost": return taskSetAtPost(bot, value);
+    case "crouching": case "facing": case "_visFacing": case "_underV": case "_overV": case "state": case "tRole":
+    case "planting": case "defusing": case "plantUntil": case "defuseUntil": case "walking": case "_killHow":
+    case "curSpeed": case "_idle": case "_idlePhase": case "holding": bot[field] = value;
+    default:
+  }
+}
 // подставить записанный мир в игру на один вызов draw и вернуть всё обратно (игра этого не видит: между тиками, без изменений)
 function rpWorldDraw(E, P, I, S, ox0, oy0, W, H){
   var R = P.R, A = I.A.w, B = (I.B && I.B.w) || A, f = I.f; if(!A){ return; }
@@ -88,7 +111,7 @@ function rpWorldDraw(E, P, I, S, ox0, oy0, W, H){
     for(var q = t0; q < R.tr.length && R.tr[q].t <= P.rt; q++){ var c = rpCl(R.tr[q]); c.born = nowTs - (P.rt - c.t)*TICK_MS; c.tk = null; tl.push(c); }
     tracers = tl; soundPings = []; teamTac = {T: null, CT: keep.teamTac && keep.teamTac.CT}; FREEZE_FX = [];
     if(R.side){ SIDE_TEAM = R.side; } if(R.NK){ NICKS = R.NK; }
-    bots.forEach(function(o, i){ var a = A.b[i], b2 = B.b[i]; RP_BF.forEach(function(k){ o[k] = b2[k]; });
+    bots.forEach(function(o, i){ var a = A.b[i], b2 = B.b[i]; RP_BF.forEach(function(k){ rpSetBotField(o, k, b2[k]); });
       o.px = a.x; o.py = a.y; o.pfacing = a._visFacing !== undefined ? a._visFacing : a.facing; movePath(o, null, "replay"); o._trail = []; });
     cv = E.cv; ctx = E.ctx; view.scale = S; view.panX = ox0; view.panY = oy0;
     draw.noHud = true; draw();
@@ -97,7 +120,7 @@ function rpWorldDraw(E, P, I, S, ox0, oy0, W, H){
   } catch(e){ /* кадр повтора не нарисовался — дальше игра не страдает: всё возвращается ниже */ }
   finally {
     draw.noHud = false;
-    bots.forEach(function(o, i){ var c = saved[i]; RP_BF.forEach(function(k){ o[k] = c[k]; }); o.px = c.px; o.py = c.py; o.pfacing = c.pfacing; movePath(o, c.path, "replay"); o._trail = c._trail; });
+    bots.forEach(function(o, i){ var c = saved[i]; RP_BF.forEach(function(k){ rpSetBotField(o, k, c[k]); }); o.px = c.px; o.py = c.py; o.pfacing = c.pfacing; movePath(o, c.path, "replay"); o._trail = c._trail; });
     clockSet(keep.tick); simTime = keep.simTime; roundNum = keep.roundNum; roundState = keep.roundState; clockAcc(keep.accumulator);
     nadeWorldSet(keep.smokes, keep.fires, keep.nadesInAir, keep.nadeFx); bomb = keep.bomb; tracers = keep.tracers; soundPings = keep.soundPings;
     groundWeapons = keep.groundWeapons; groundItems = keep.groundItems; teamTac = keep.teamTac; FREEZE_FX = keep.FREEZE_FX; SIDE_TEAM = keep.SIDE_TEAM; NICKS = keep.NICKS;

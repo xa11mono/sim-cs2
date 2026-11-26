@@ -1,4 +1,4 @@
-// [хозяева: contactTick, ctDelayNade, teamBrains] ======================= (v367) РЕАКЦИЯ НА КОНТАКТ — одно место для всех ботов и любых задач =======================
+// [хозяева: contactSetContact, contactTick, ctDelayNade, teamBrains] ======================= (v367) РЕАКЦИЯ НА КОНТАКТ — одно место для всех ботов и любых задач =======================
 // Владелец: «зачем перескакивает, если он должен убить… не хочу миллиард правок под каждую ситуацию» (m0NESY в р3 метался
 // взглядом между Connector и выходом из Palms и шёл на дефуз; magixx после флешки уходил по пост-планту). Бот свежо узнал, что
 // враг рядом (≤ CONTACT_R ед., ≤ CONTACT_AGE с: видели, слышал сам — шаги, выстрел, откуда кинули гранату — или своя флешка
@@ -107,7 +107,7 @@ function contactTick(b){
   if(!b.alive || roundState !== "live") return;
   var K = b._contact, kd = K && K.id ? teamBot(K.id) : null;
   // (v435, М168) контакт кончается по таймеру — или сразу, когда его враг убит (киллфид): держать взгляд на трупе незачем
-  if(K && (tick >= K.until || (kd && !kd.alive))){ K = b._contact = null;
+  if(K && (tick >= K.until || (kd && !kd.alive))){ K = contactSetContact(b, null);
     // (v375, отметка владельца: игрок 8 после смерти тиммейта стоял на спавне CT, «выходит на врага рядом», а врага нет) реакция
     // на контакт кончилась — её точка снимается, бот возвращается к своей задаче (раньше пост «контакт» оставался до конца раунда)
     if(b.post && /^contact/.test(b.post.tag)) clearPost(b); }
@@ -118,7 +118,7 @@ function contactTick(b){
   // (00_PLAN, аудит 3.4, 05.11: «контакт (ур. 9) держится, когда команде уже критически мало времени на ретейк») начатый контакт пересматривается
   // по событию: стало критично (contactCritical — CT впритык на дефуз, ставит / дефузит, в зоне взрыва) — ноги к своей задаче, взгляд — на контакте.
   // Раньше эта проверка была только для нового контакта, а начатый при той же инфе продлевался
-  if(K && K.lock && contactCritical(b, C)){ b._contact = {x:K.x, y:K.y, id:K.id, until:K.until, lock:false}; if(b.post && /^contact/.test(b.post.tag)) clearPost(b); return; }
+  if(K && K.lock && contactCritical(b, C)){ contactSetContact(b, {x:K.x, y:K.y, id:K.id, until:K.until, lock:false}); if(b.post && /^contact/.test(b.post.tag)) clearPost(b); return; }
   if(K && !(C.seen || C.d < 0.7*DM.hypot(K.x-b.x, K.y-b.y) || DM.hypot(C.x-K.x, C.y-K.y) < 120)) return;   // держит прежний контакт
   // тот же — уточнить место и продлить: реакция держится, пока знание о нём свежее (≤ CONTACT_AGE) + CONTACT_HOLD после
   // (Б1, ENGINE_AUDIT Х3: раньше кончалась по таймеру при живом знании — пост снят, бот шёл назад на пост роли, через CONTACT_GAP
@@ -134,7 +134,7 @@ function contactTick(b){
   var look = {x:C.x, y:C.y};
   if(contactCritical(b, C)){
     // задача важнее: взгляд — на контакт (не перебивает задачу), а у CT, идущего на бомбу, — смок на врага, если есть
-    b._contact = {x:C.x, y:C.y, id:C.id, until: tick + CONTACT_HOLD*TICK_HZ, lock:false}; b._contactT = tick;
+    contactSetContact(b, {x:C.x, y:C.y, id:C.id, until: tick + CONTACT_HOLD*TICK_HZ, lock:false}); b._contactT = tick;
     if(b.team === "CT" && bomb && bomb.state === "planted" && b.nades && b.nades.smoke > 0 && !b.defusing && C.d > 150) assignNade(b, "smoke", look, "смок на врага рядом — иду к бомбе", {now:true, range:900});
     return;
   }
@@ -144,7 +144,7 @@ function contactTick(b){
   // (v469, п.14 владельца, снимок м1 р6 т34149: после колла «T на B (~3)» m0NESY пошёл на B, через 2,5 с его остановил contact hold на
   // люркера и держал 17 с; ответ про-аналитика: ротатор и мидер стягиваются первыми, на одиночного люркера — не отвлекаться) идёт по
   // задаче команды (ротация, сбор, ретейк), а рядом по знанию один враг — взгляд на него, ноги — на задаче
-  if(b.post && taskProp(b.post.tag, "teamMove") && nE <= 1){ b._contact = {x:C.x, y:C.y, id:C.id, until: tick + CONTACT_HOLD*TICK_HZ, lock:false}; b._contactT = tick; return; }
+  if(b.post && taskProp(b.post.tag, "teamMove") && nE <= 1){ contactSetContact(b, {x:C.x, y:C.y, id:C.id, until: tick + CONTACT_HOLD*TICK_HZ, lock:false}); b._contactT = tick; return; }
   // (v418, скрин владельца 25.10: T впятером вышли на A и стреляются с 9-м, 5-й рядом «держит» — врагов 5 > своих 2 + 1) счёт тел не
   // различал «идут на меня» и «стреляются с моим»: свой рядом в бою с этой группой — выходит (стрелять, пока свой ещё жив, — кроссфайр,
   // PRO_PLAY 3: «кроссфайры — хлеб с маслом»). Только то, что игрок знает: свой стреляется рядом (слышно), его противник — в знании команды
@@ -204,7 +204,7 @@ function contactTick(b){
   // (v555, м298 р1: бомба лежала на Balcony, идущий за ней 5 с «держал контакт», и выход стоял) и тот, кто идёт за выпавшей бомбой, — тоже
   // (v570, отметка владельца м1 р4 38 с: «подобрав бомбу, остаётся держать угол со стаком») — было только в выходе; в сетапе носитель, которому
   // выходить нельзя, получал «держать контакт» — ближайшее место с видом на врага, то есть у стака. Носитель (пока жив кто-то ещё) — в любой фазе
-  if(((bomb.state === "carried" && bomb.carrier === b) || (tExec && bomb.state === "dropped" && teamTac.T.fetchId === b.id)) && aliveCount(b.team) > 1){ b._contact = {x:C.x, y:C.y, id:C.id, until: tick + CONTACT_HOLD*TICK_HZ, lock:false}; b._contactT = tick; return; }
+  if(((bomb.state === "carried" && bomb.carrier === b) || (tExec && bomb.state === "dropped" && teamTac.T.fetchId === b.id)) && aliveCount(b.team) > 1){ contactSetContact(b, {x:C.x, y:C.y, id:C.id, until: tick + CONTACT_HOLD*TICK_HZ, lock:false}); b._contactT = tick; return; }
   // (v555, отметка владельца м298 р1: «раш вышел и стоит, перестреливаются; почему не пойти втроём и не задушить одного, занять его зону»)
   // в выходе T на одного врага выходят вместе (размен сразу); вне выхода — по-прежнему один выходит, остальные держат
   if(swing && !tExec && bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o._contact && o._contact.tag === "contact:swing" && tick < o._contact.until && DM.hypot(o._contact.x-C.x, o._contact.y-C.y) < 200; })) swing = false;   // на него уже выходит свой
@@ -240,9 +240,9 @@ function contactTick(b){
   var sp = cand[0]; if(!sp) return;
   var tag = swing ? "contact:swing" : "contact:hold";
   // (v378) задача важнее контакта (бомба, сейв — арбитр места, setPost) — ноги остаются на ней, взгляд — на контакт
-  if(!setPost(b, sp, look, true, tag).ok){ b._contact = {x:C.x, y:C.y, id:C.id, until: tick + CONTACT_HOLD*TICK_HZ, lock:false}; b._contactT = tick; return; }
-  b._contact = {x:C.x, y:C.y, id:C.id, until: taskDeadline(b, sp, CONTACT_HOLD, b.walking), lock:true, pt:sp, tag:tag}; b._contactT = tick;   // (18.11) срок — от прихода на точку выхода (task)
-  taskKeep(b, 0, "contact"); b._probeLock = 0; knowIntel(b, {x:look.x, y:look.y, tick:tick, src:"call"});
+  if(!setPost(b, sp, look, true, tag).ok){ contactSetContact(b, {x:C.x, y:C.y, id:C.id, until: tick + CONTACT_HOLD*TICK_HZ, lock:false}); b._contactT = tick; return; }
+  contactSetContact(b, {x:C.x, y:C.y, id:C.id, until: taskDeadline(b, sp, CONTACT_HOLD, b.walking), lock:true, pt:sp, tag:tag}); b._contactT = tick;   // (18.11) срок — от прихода на точку выхода (task)
+  taskKeep(b, 0, "contact"); taskSetProbeLock(b, 0); knowIntel(b, {x:look.x, y:look.y, tick:tick, src:"call"});
   if(swing && !C.own && b.nades && b.nades.flash > 0 && C.d > 150 && !hasLOS(b.x, b.y, look.x, look.y, b.z)) assignNade(b, "flash", look, "флешка под выход на врага рядом", {now:true, range:900, forC: nadeOwnerOf(b, C.id || null)});
   // (v443, док владельца 27.10: «войс раунда спамится») «держу X» — 23 строки за раунд, один бот повторял её ~3 раза: это пересказ своих
   // действий, а в войсе про — враг, где и сколько, свои гранаты (PRO_PLAY, «Войс»). «Держу» не говорится; «выхожу на него» — один раз
@@ -373,9 +373,9 @@ function hurtReactTick(b){
   var sec = pathLenTo(b, sp.x, sp.y)/SPEED;
   if(sec > DETOUR_MAX.hurt || (!taskCanSet(b, "repos:hurt") && !detourOk(b, "hurt", sec))) return;
   detourStart(b, "hurt", "repos:hurt", sec + 1.5);
-  if(!setPost(b, sp, {x:F.x, y:F.y}, true, "repos:hurt").ok){ b._detour = null; return; }
+  if(!setPost(b, sp, {x:F.x, y:F.y}, true, "repos:hurt").ok){ taskSetDetour(b, null); return; }
   if(b.state === "hold") leaveHold(b);
-  taskKeep(b, 0, "contact"); b._probeLock = 0;
+  taskKeep(b, 0, "contact"); taskSetProbeLock(b, 0);
   logEvent(b.id+": "+(miss ? "по мне стреляют" : "ранен ("+b._hurtSrc+")")+" — ухожу из-под линии "+calloutName(F.x, F.y)+" за укрытие");
 }
 function teamBrains(){
@@ -393,3 +393,6 @@ function teamBrains(){
   smokeFadeTick(); awpSmokeTick(); bombPassTick();
 }
 
+
+// Запись состояния канала. Вызовы выполняются в исходной точке тика.
+function contactSetContact(bot, value){ return bot._contact = value; }

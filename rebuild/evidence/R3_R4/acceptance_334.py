@@ -165,13 +165,16 @@ def job_plan(ref, identity, reusable):
         plan['require_runtime'] = dict(zip(RUNTIME, identity))
     for name, tag in MAPS.items():
         for kind, label in (('fp', f'r34_on_{tag}'), ('off', f'r34_off_{tag}'), ('rec', f'r34_rec_{tag}')):
-            matches = [m for m in MATCHES if (kind, name, m) not in reusable]
+            # The current build's trace-on fingerprint rides with each new rec.
+            matches = [m for m in MATCHES if (('rec', name, m) in reusable if kind == 'fp'
+                                              else (kind, name, m) not in reusable)]
             if matches:
                 job = dict(label=label, ref=ref, map=name, matches=matches)
                 if kind == 'off':
                     job['trace'] = False
                 if kind == 'rec':
                     job['complete'] = True
+                    job['fingerprint'] = True
                 plan['rec' if kind == 'rec' else 'fp'].append(job)
     return plan
 
@@ -183,35 +186,37 @@ def verify(root, plan, identity, reusable, danger):
         identity = normalized_runtime(load_result(root / 'r34_off_anc' / 'versions.json'))
     issues = []
     for name, tag in MAPS.items():
-        cached = {}
+        fp_on, fp_off = {}, {}
         for kind, label in (('fp', f'r34_on_{tag}'), ('off', f'r34_off_{tag}'), ('rec', f'r34_rec_{tag}')):
             folder = root / label
             env_file = 'env.json' if kind == 'rec' else 'versions.json'
-            if any((kind, name, m) not in reusable for m in MATCHES):
+            job = next((job for section in ('fp', 'rec') for job in plan[section] if job['label'] == label), None)
+            if job:
                 env = normalized_runtime(load_result(folder / env_file))
                 if env is None or env != identity:
                     issues.append(f'{label}: среда не совпала')
-            for match in MATCHES:
-                key = (kind, name, match)
+            for match in job['matches'] if job else []:
                 prefix = 'rec' if kind == 'rec' else 'fp'
-                row = reusable.get(key)
-                if row is None:
-                    row = load_result(folder / f'{prefix}_{match}.json')
-                    guard = load_result(folder / f'guard_{match}.json')
-                    if not completed(guard) or guard.get('engine') != 'chromium':
-                        issues.append(f'{label}/{match}: нет успешного guard')
+                row = load_result(folder / f'{prefix}_{match}.json')
+                guard = load_result(folder / f'guard_{match}.json')
+                if not completed(guard) or guard.get('engine') != 'chromium':
+                    issues.append(f'{label}/{match}: нет успешного guard')
                 if kind == 'fp':
-                    cached[match] = row
-                    if not same_fp(row, load_result(BASE / tag / f'fp_{match}.json'), match):
-                        issues.append(f'{label}/{match}: отличается от Р2')
+                    fp_on[match] = row
                 elif kind == 'off':
-                    if not same_fp(row, cached[match], match):
-                        issues.append(f'{label}/{match}: след вкл/выкл дал разные отпечатки')
-                elif row is not True:
+                    fp_off[match] = row
+                else:
                     issues.extend(f'{label}/{match}: {error}' for error in rec_errors(row, match))
+                    fp_on[match] = row.get('fingerprint') if isinstance(row, dict) else None
                     preserved = danger.get((name, match))
                     if preserved is not None and (not isinstance(row, dict) or danger_summary(row) != preserved):
                         issues.append(f'{label}/{match}: события danger отличаются от сохранившихся в 334')
+        for match in MATCHES:
+            baseline = reusable.get(('fp', name, match)) or load_result(BASE / tag / f'fp_{match}.json')
+            if not same_fp(fp_on.get(match), baseline, match):
+                issues.append(f'{name}/{match}: отпечаток текущей сборки со следом отличается от эталона')
+            if not same_fp(fp_off.get(match), fp_on.get(match), match):
+                issues.append(f'{name}/{match}: след вкл/выкл дал разные отпечатки')
     return issues
 
 

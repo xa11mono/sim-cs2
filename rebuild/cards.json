@@ -110,6 +110,11 @@
     "startRoute",
     "taskDetourKind",
     "taskProp",
+    "taskSetAtPost",
+    "taskSetDetour",
+    "taskSetFillLock",
+    "taskSetProbeLock",
+    "taskSetSetupLook",
     "updatePost"
    ],
    "src": "таблица «Где что»"
@@ -121,6 +126,8 @@
     "bombActReset",
     "bombDamageAt",
     "bombFleePoint",
+    "bombSetFlee",
+    "bombSetStopPlantUntil",
     "bombTick"
    ],
    "src": "таблица «Где что»"
@@ -141,13 +148,18 @@
   "ct-setup.js": {
    "mech": "позиции по названиям зон, расстановки CT chooseCtSetup, любимые углы",
    "owns": [
-    "chooseCtSetup"
+    "chooseCtSetup",
+    "setupSetMistakes"
    ],
    "src": "таблица «Где что»"
   },
   "lurker.js": {
    "mech": "лёркер lurkerBrain, пробы, «проверено — пусто» markClear",
    "owns": [
+    "lurkSetLurkArr",
+    "lurkSetLurkIdx",
+    "lurkSetLurkPh",
+    "lurkSetProbe",
     "lurkerBrain",
     "markClear"
    ],
@@ -157,6 +169,7 @@
    "mech": "IGL tIglReplan, стадии stagePost / tSetSite",
    "owns": [
     "stagePost",
+    "stageSetStageInfo",
     "tIglReplan",
     "tPhaseSet",
     "tSetSite"
@@ -179,6 +192,8 @@
    "mech": "сейв pickSaveSpot, ретейк updateRetake",
    "owns": [
     "pickSaveSpot",
+    "retakeSetRetakeRole",
+    "retakeSetSaveSpot",
     "updateRetake"
    ],
    "src": "таблица «Где что»"
@@ -261,6 +276,10 @@
    "owns": [
     "lookCands",
     "lookPlan",
+    "lookSetLkC",
+    "lookSetLkPt",
+    "lookSetLkTop",
+    "lookSetLkZ",
     "smoothLookFilter"
    ],
    "src": "таблица «Где что»"
@@ -272,6 +291,8 @@
     "handTurn",
     "lookFace",
     "lookReset",
+    "lookSetAimFix",
+    "lookSetLookTarget",
     "lookTick",
     "lookTrack",
     "lookTurnBy"
@@ -316,12 +337,16 @@
   },
   "ct-early.js": {
    "mech": "эндгейм, клатч CT, ранний пик CT, мид",
-   "owns": [],
+   "owns": [
+    "holdSetHoldLog"
+   ],
    "src": "таблица «Где что»"
   },
   "endgame.js": {
    "mech": "эндгейм, клатч CT, ранний пик CT, мид",
-   "owns": [],
+   "owns": [
+    "huntSetEgC"
+   ],
    "src": "таблица «Где что»"
   },
   "brain-ct.js": {
@@ -339,6 +364,7 @@
   "contact.js": {
    "mech": "реакция на контакт (одно место): contactTick; teamBrains; CT задерживает гранатой (одно место, v419): ctDelayNade",
    "owns": [
+    "contactSetContact",
     "contactTick",
     "ctDelayNade",
     "teamBrains"
@@ -387,13 +413,22 @@
     "ladderTick",
     "laddersBuild",
     "navAtLevel",
-    "navOnFloor"
+    "navOnFloor",
+    "navSetArea",
+    "navSetClimb",
+    "navSetFall",
+    "navSetLandAt",
+    "navSetZ"
    ],
    "src": "таблица «Где что»"
   },
   "throw.js": {
    "mech": "гранаты: закуп buyNades, дым и видимость smokeBlocks; бросок throwNade (подбор физикой nadeSolve); полёт — физика 3D (30.10): 385_nades_flight (nadeLaunch / nadeStep / nadeAim), луч кубиком m3NadeTrace (035), отчёт docs/reports/GRENADE_PHYSICS_IMPLEMENTATION.md; бросок смока с разбега runupTick (эта",
    "owns": [
+    "nadeSetNadeNo",
+    "nadeSetNadeT",
+    "nadeSetNades",
+    "nadeSetThrowUntil",
     "nadeSolve",
     "runupTick",
     "throwNade"
@@ -420,6 +455,19 @@
    "mech": "гранаты: закуп buyNades, дым и видимость smokeBlocks; бросок throwNade (подбор физикой nadeSolve); полёт — физика 3D (30.10): 385_nades_flight (nadeLaunch / nadeStep / nadeAim), луч кубиком m3NadeTrace (035), отчёт docs/reports/GRENADE_PHYSICS_IMPLEMENTATION.md; бросок смока с разбега runupTick (эта",
    "owns": [
     "applyDamage",
+    "damageSetAlive",
+    "damageSetArmor",
+    "damageSetArmorHp",
+    "damageSetBlindBy",
+    "damageSetBlindUntil",
+    "damageSetDeaths",
+    "damageSetDmgBy",
+    "damageSetFireIn",
+    "damageSetHelmet",
+    "damageSetHp",
+    "damageSetKills",
+    "damageSetRoundDmg",
+    "damageSetRoundKills",
     "detonate",
     "nadesTick"
    ],
@@ -429,6 +477,7 @@
    "mech": "гранаты: закуп buyNades, дым и видимость smokeBlocks; бросок throwNade (подбор физикой nadeSolve); полёт — физика 3D (30.10): 385_nades_flight (nadeLaunch / nadeStep / nadeAim), луч кубиком m3NadeTrace (035), отчёт docs/reports/GRENADE_PHYSICS_IMPLEMENTATION.md; бросок смока с разбега runupTick (эта",
    "owns": [
     "nadeReact",
+    "nadeSetHeDone",
     "selfNadeTick"
    ],
    "src": "таблица «Где что»"
@@ -437,8 +486,9 @@
    "mech": "гранаты: закуп buyNades, дым и видимость smokeBlocks; бросок throwNade (подбор физикой nadeSolve); полёт — физика 3D (30.10): 385_nades_flight (nadeLaunch / nadeStep / nadeAim), луч кубиком m3NadeTrace (035), отчёт docs/reports/GRENADE_PHYSICS_IMPLEMENTATION.md; бросок смока с разбега runupTick (эта",
    "owns": [
     "nadeBrains",
-    "nadeTaskEnd",
     "nadeCancel",
+    "nadeSetNadeQueue",
+    "nadeTaskEnd",
     "nadeUseTick"
    ],
    "src": "таблица «Где что»"
@@ -446,6 +496,15 @@
   "fov.js": {
    "mech": "оружие, боты makeTeam, роумер",
    "owns": [
+    "roamSetRoamCheckStart",
+    "roamSetRoamCheckUntil",
+    "roamSetRoamChecking",
+    "roamSetRoamIdx",
+    "roamSetRoamLookPt",
+    "roamSetRoamPrevPt",
+    "roamSetRoamSoundHandled",
+    "roamSetRoamSoundLockUntil",
+    "roamSetRoamTarget",
     "updateRoamer"
    ],
    "src": "таблица «Где что»"
@@ -479,6 +538,13 @@
    "owns": [
     "bulletVictim",
     "dropWeaponOnDeath",
+    "equipmentSetDrawUntil",
+    "equipmentSetKit",
+    "equipmentSetKnife",
+    "equipmentSetPrimary",
+    "equipmentSetSecAmmo",
+    "equipmentSetSecondary",
+    "equipmentSetWeapon",
     "itemPickupTick",
     "knifeTick"
    ],
@@ -487,7 +553,9 @@
   "sound.js": {
    "mech": "звук emitSound, мелкие ситуации (пас бомбы, добить, смок уходит, ослеплён, пистолет)",
    "owns": [
-    "emitSound"
+    "emitSound",
+    "soundSetBlind",
+    "soundSetOnPistol"
    ],
    "src": "таблица «Где что»"
   },
@@ -496,6 +564,9 @@
    "owns": [
     "fightCover",
     "fightCycleTick",
+    "fightSetCovLog",
+    "fightSetCovT",
+    "fightSetFc",
     "fightStrafe"
    ],
    "src": "таблица «Где что»"
@@ -503,6 +574,10 @@
   "assist.js": {
    "mech": "дабл-пик, фланг, перезарядка updateReload",
    "owns": [
+    "knifeSetStabT",
+    "reloadSetAmmoFor",
+    "reloadSetReloadUntil",
+    "reloadSetReloading",
     "updateReload"
    ],
    "src": "таблица «Где что»"
@@ -512,6 +587,11 @@
    "owns": [
     "aimSigma",
     "fireVAcc",
+    "shotSetAmmo",
+    "shotSetBurstCount",
+    "shotSetLastShotTick",
+    "shotSetNextShotTick",
+    "shotSetTagUntil",
     "shotSpread",
     "tryShoot"
    ],
@@ -544,6 +624,15 @@
     "engSee",
     "engShoot",
     "engTarget",
+    "engagementSetContactStreak",
+    "engagementSetDecisionTick",
+    "engagementSetForcedRetreat",
+    "engagementSetHoldSinceTick",
+    "engagementSetNearestEnemyBot",
+    "engagementSetPickTick",
+    "engagementSetSawEnemy",
+    "engagementSetStateSince",
+    "engagementSetTs",
     "resolveEngagements"
    ],
    "src": "таблица «Где что»"
@@ -553,6 +642,7 @@
    "owns": [
     "buyForPlayer",
     "decideRoundType0",
+    "economySetMoney",
     "smgFor"
    ],
    "src": "таблица «Где что»"
@@ -578,6 +668,11 @@
     "movePathIdx",
     "movePlace",
     "moveRunWhy",
+    "moveSetFireExit",
+    "moveSetFireExitFire",
+    "moveSetStopWhy",
+    "moveSetX",
+    "moveSetY",
     "moveSpeed",
     "moveSpeedTick",
     "moveWalk",
@@ -755,6 +850,8 @@
   "brain-t-postplant.js": {
    "mech": "мозг T после планта: tBrainPostplant — часть tBrain (Р3.2), контекст K",
    "owns": [
+    "huntSetHuntArrive",
+    "huntSetHuntIdx",
     "tBrainPostplant"
    ],
    "src": "Р4.4 (деление крупного файла)"
@@ -845,6 +942,9 @@
   "tick-jump.js": {
    "mech": "прыжки и подсадки: звук приземления, подсадка (boost), клавиши в воздухе, проверка прыжка на ходу (jumpCheckTick); было одним файлом engine/core/tick.js (Р4.4, 26.11)",
    "owns": [
+    "jumpSetBoost",
+    "jumpSetJc",
+    "jumpSetJump",
     "landSound"
    ],
    "src": "таблица «Где что»"
@@ -857,6 +957,15 @@
   "tick-step.js": {
    "mech": "шаг движка: stepTick (порядок тика) и stepBot (ход одного бота); было одним файлом engine/core/tick.js (Р4.4, 26.11)",
    "owns": [
+    "moveSetHeading",
+    "moveSetHold",
+    "moveSetLastStepTick",
+    "moveSetOffNav",
+    "moveSetOnStairs",
+    "moveSetPrevOffX",
+    "moveSetPrevOffY",
+    "moveSetStuckTicks",
+    "moveSetUnstickT",
     "stepBot",
     "stepTick"
    ],

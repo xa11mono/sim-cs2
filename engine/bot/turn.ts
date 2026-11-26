@@ -1,4 +1,4 @@
-// [хозяева: freezeLookTick, handTurn, lookFace, lookReset, lookTick, lookTrack, lookTurnBy] (15.11, перестройка, фаза 3 — канал взгляда, шаг 1: перенос без смены поведения) ПОВОРОТ БОТА — одно место.
+// [хозяева: freezeLookTick, handTurn, lookFace, lookReset, lookSetAimFix, lookSetLookTarget, lookTick, lookTrack, lookTurnBy] (15.11, перестройка, фаза 3 — канал взгляда, шаг 1: перенос без смены поведения) ПОВОРОТ БОТА — одно место.
 // Поле b.facing пишет только этот файл: куда смотреть (арбитр lookArbiter, 270) → как повернуться (рука handTurn, ведение цели lookTrack),
 // взгляд во фризе (freezeLookTick). Остальные системы не пишут b.facing, а зовут интерфейс канала (rebuild/DEVICE.md §3а):
 //   lookFace(b, угол, причина)   — повернуть сразу к углу (бросок гранаты, первый тик, разминка, демо-вид)
@@ -34,7 +34,7 @@ function lookTick(): void{
     var LD: LookDebug | null = LOOKDBG.on ? {tick: tick, reason: b.lookReason || null, raw: look ? {x: look.x, y: look.y} : null, steps: []} : null;
     var LF = lookFilter(b, look, LD), slUrg = LF.urgent; look = LF.look;
     if(LD){ LD.final = look ? {x: look.x, y: look.y} : null; LD.reasonFinal = b.lookReason || null; b._ld = LD; }
-    b.lookTarget = look ? {x:look.x, y:look.y} : null;
+    lookSetLookTarget(b, look ? {x:look.x, y:look.y} : null);
     // (v153) бросает гранату — смотрит туда, куда кинул, пока бросок не закончен
     // (раньше за 0,2с после броска взгляд щёлкал обратно — самый частый "рывок")
     if(look && b.throwUntil && tick < b.throwUntil && !b._sawEnemy) look = null;
@@ -65,14 +65,14 @@ function lookTick(): void{
         if(b._sawEnemy && b._hand && tick < b._hand.t0 + b._hand.T){ var rem = 0; b._hand.segs.forEach(function(g){ rem += g.A*(1 - (g.s || 0)); });
           if(_angOff(b.facing + rem, want) > HAND_FIGHT){ b._hand = null; dd = want - b.facing; dd = ((dd + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI; } }
         var hA = b._hand && b._hand.f && tick < b._hand.t0 + b._hand.T + b._hand.gap;
-        if(Math.abs(dd) >= HAND_FIGHT || hA){ b._aimFix = true; handTurn(b, dd, "f"); if(b._hand) b._hand.f = true; }
+        if(Math.abs(dd) >= HAND_FIGHT || hA){ lookSetAimFix(b, true); handTurn(b, dd, "f"); if(b._hand) b._hand.f = true; }
         else {
           // (В147) ведение цели — короткими рывками-колоколами подряд (прерывистое слежение человека: Miall, Weir, Stein 1993 — 2–3
           // подвижки в секунду), длительность — по модели «перестрелка» из демок, без промаха и паузы. Было: непрерывное ведение с запаздыванием —
           // у ботов в бою 72 поворота в мин против 140 у про, длительность — медиана 10 тиков против 6 (мерка формы)
           var hT = b._hand && tick < b._hand.t0 + b._hand.T;
           // порог подвижки — как у руки вне боя (2°); меньше — медленное ведение между подвижками (у про в бою прицел движется половину времени)
-          if(hT || Math.abs(dd) >= HAND_START){ b._aimTrk = false; b._aimFix = true; handTurn(b, dd, "f", true); } else lookTrack(b, dd);
+          if(hT || Math.abs(dd) >= HAND_START){ b._aimTrk = false; lookSetAimFix(b, true); handTurn(b, dd, "f", true); } else lookTrack(b, dd);
         }
       }
       else {
@@ -84,7 +84,7 @@ function lookTick(): void{
         // длительность по углу, промах и пауза перед доводкой — из демок (MAP.turnmodel). Было: затухание SL.ease с потолком SL.calmRate —
         // ровный медленный разворот (мерка формы tools/motion/motion_shape.py: угол / время / пик поворота вне боя — разница 81 / 63 / 67 %)
         b._aimTrk = false;
-        if(Math.abs(dd) >= HAND_START) b._aimFix = true; else if(Math.abs(dd) <= 0.01) b._aimFix = false;
+        if(Math.abs(dd) >= HAND_START) lookSetAimFix(b, true); else if(Math.abs(dd) <= 0.01) lookSetAimFix(b, false);
         handTurn(b, dd, "n");
       }
     }
@@ -96,7 +96,7 @@ function lookTick(): void{
 function lookTrack(b: Bot, dd: number): void{
   if(Math.abs(dd) >= AIM_TRACK_BAND) b._aimTrk = true; else if(Math.abs(dd) <= AIM_TRACK_BAND/5) b._aimTrk = false;
   if(b._aimTrk){ var tr = Math.max(AIM_TRACK_MIN, Math.abs(dd)*(1 - DM.exp(-1/(AIM_LAG*TICK_HZ)))); b.facing! += Math.max(-tr, Math.min(tr, dd)); }   // тип: lookTrack зовётся из lookTick после записи взгляда (строка 43)
-  b._aimFix = false;
+  lookSetAimFix(b, false);
 }
 // (В147) «рука» — как человек ведёт мышь к цели: рывок (мин. рывок: s = 10τ³ − 15τ⁴ + 6τ⁵ — колокол скорости) за T тиков на угол
 // цели с промахом (перелёт / недолёт — доля угла), потом пауза, и только потом — доводка следующим рывком, если осталось больше порога.
@@ -175,3 +175,7 @@ function freezeLookTick(): void{
   });
 }
 
+
+// Запись состояния канала. Вызовы выполняются в исходной точке тика.
+function lookSetAimFix(bot: Bot, value: boolean){ return bot._aimFix = value; }
+function lookSetLookTarget(bot: Bot, value: P2 | null){ return bot.lookTarget = value; }

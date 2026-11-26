@@ -49,7 +49,7 @@ function tFallbackTick(){
     var cand = center ? pickSpots("tfb"+tick+b.id, center, 4, {rMax:FB.rMax, minGap:40, hideFrom: th ? [th] : []}) : [];
     var sp = coverPick(cand.filter(function(q){ var zq = bzOf(q.x, q.y); return zq >= 0 && ED[zq] >= ED[zb] + FB.gainED; }), coverZ(b), coverThreats(b, th ? [th] : []));   // (18.11) общий выбор укрытия (fight)
     if(!sp) return;
-    b._fbRound = roundNum; taskKeep(b, 0, "fallback"); b._probeLock = 0;
+    b._fbRound = roundNum; taskKeep(b, 0, "fallback"); taskSetProbeLock(b, 0);
     setPost(b, sp, th || null, true, "repos:fallback");
     taskKeep(b, tick + FB.lock*TICK_HZ, "fallback");
     voiceLog("T", "tfb"+b.id+roundNum, b.id, why+" ("+calloutName(sp.x, sp.y).replace(/^на /,"")+")");
@@ -173,7 +173,7 @@ function infoFallbackTick(){
       var nz = bzOf(nm.x, nm.y); if(!(nz >= 0 && beliefCount("CT", [nz]) >= 0.5)) sp = walk({x: nm.x, y: nm.y}); }
     if(!sp) return;
     b._fbRound = roundNum;
-    taskKeep(b, 0, "fallback"); b._probeLock = 0;
+    taskKeep(b, 0, "fallback"); taskSetProbeLock(b, 0);
     setPost(b, sp, th || null, true, "repos:fallback");
     taskKeep(b, tick + FB.lock*TICK_HZ, "fallback");
     voiceLog("CT", "fb"+b.id+roundNum, b.id, why+" ("+calloutName(sp.x, sp.y).replace(/^на /,"")+")");

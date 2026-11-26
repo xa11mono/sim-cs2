@@ -18,6 +18,7 @@ function snapTake(){ var o = {}; mkSnapList().forEach(function(e){ if(SNAP_SKIP.
 var R_END = 0;
 freshMatch(__M__);
 var M0=matchNum;
+/*@@FP_SETUP@@*/
 /*@@WATCH@@*/
 var REC={rounds:[], kills:[], pos:[], plants:[], buys:[], nades:[], ctcall:[], carh:[], bsum:[], jit:{alive:0, look:0, moveEng:0, moveIdle:0, moveOther:0, ev:[]}}, rs=null, cur=null;
 // (Р0.4, 24.11) подписка на события симуляции (435 simEvOn) вместо подмены функций игры; старые сборки без simEvOn (базы прошлых версий,
@@ -74,6 +75,7 @@ for(var t=0;t<__T__ && roundState!=='matchover';t++){ var _t0=performance.now();
  if(SNAP_NEXT && matchNum===M0){ REC.snaps[SNAP_NEXT] = {t:tick, s:snapTake()}; SNAP_NEXT = 0; }
  if(R_END && roundNum > R_END) break;
  if(matchNum!==M0) break;
+ /*@@FP_SAMPLE@@*/
  if(roundState!==rs){ if(roundState==='live'){ cur={r:roundNum, t0:tick, ctType:teamEco.CT.roundType, tType:teamEco.T.roundType, tac:(typeof teamTac!=='undefined'&&teamTac.T&&teamTac.T.tac)?teamTac.T.tac.id:null, tsite:(typeof teamTac!=='undefined'&&teamTac.T)?teamTac.T.site:null, ctSetup:(typeof teamTac!=='undefined'&&teamTac.CT&&teamTac.CT.setup)?teamTac.CT.setup.id:null}; REC.rounds.push(cur);
    bots.forEach(function(b){ REC.buys.push([roundNum, b.id, b.team, b.primary||'', b.secondary||'', b.armor?1:0, b.helmet?1:0, b.kit?1:0, b.nades?(b.nades.smoke+b.nades.flash+b.nades.he+b.nades.molly):0, b.money]); }); H={}; }
    rs=roundState; }
@@ -123,4 +125,5 @@ if(typeof WATCH!=='undefined') REC.watch=WATCH.report();
 // (Р3.6, владелец 26.11) причины всех увеличений счётчиков ошибок движения — полный журнал матча (событие, причина stall.*, след решения)
 if(typeof PROB!=='undefined' && PROB.all) REC.prob=PROB.all.map(function(e){ return [e.tick, e.id, e.kind, e.sub||null, e.text, e.x, e.y, e.round, e.why||null]; });
 REC.match=M0; REC.ticks=tick; REC.finished=matchNum===M0 && roundState==='matchover'; if(typeof VOICE_STATS!=='undefined') REC.voice=VOICE_STATS;
+/*@@FP_FINISH@@*/
 JSON.stringify(REC)

@@ -1,4 +1,4 @@
-// [хозяева: —] =====================================================================
+// [хозяева: holdSetHoldLog] =====================================================================
 // (v150) ПРО-ЛАЙНАПЫ ИЗ ДЕМОК: 12 матчей, повторяющиеся броски (одна точка
 // броска → одна точка падения, ≥3 раз, ≥2 матча). У каждого — доля раундов,
 // в которых про его кидают (prob), и среднее время броска (at, с от начала).
@@ -118,7 +118,7 @@ function secondOnSite(b, k, ap){
   for(var t=0; t<names.length && !p; t++){
     var nm = names[(ni + t) % names.length];
     var q = namedSpot(nm, SITES[k], {team: "CT", see:ents, hideFrom:[GEO[k].tStage], cross: ap ? {from:ap, pt:GEO[k].tEntry} : null, key:"2nd"+k+(ap?Math.round(ap.x/40):"")});
-    if(q && (!ap || DM.hypot(q.x-ap.x, q.y-ap.y) > 90)){ p = q; if(b._holdLog !== roundNum){ b._holdLog = roundNum; logEvent(b.id+": вторым на "+k+" — «"+nm+"»"); } }
+    if(q && (!ap || DM.hypot(q.x-ap.x, q.y-ap.y) > 90)){ p = q; if(b._holdLog !== roundNum){ holdSetHoldLog(b, roundNum); logEvent(b.id+": вторым на "+k+" — «"+nm+"»"); } }
   }
   if(!p) return false;
   var lk2 = lookFrom(p, ents, GEO[k].tEntry, b);
@@ -442,3 +442,6 @@ function ctInfoCheck(b, ct, cts){
   voiceLog("CT", "info"+b.id+roundNum+I.n, b.id, "гляну "+calloutName(best.c.x, best.c.y).replace(/^на /, ""));
   return true;
 }
+
+// Запись состояния канала. Вызовы выполняются в исходной точке тика.
+function holdSetHoldLog(bot, value){ return bot._holdLog = value; }

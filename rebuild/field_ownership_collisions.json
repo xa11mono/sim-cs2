@@ -1,0 +1,544 @@
+{
+ "_": "Совпадения имён с полями игрока: координаты карты, объектов мира, гранат, камеры, временных точек и записей знания, счётчики наблюдателя и план закупки. Разбор выполняется по месту и выражению. Записи полей игрока здесь запрещены.",
+ "sites": [
+  {
+   "file": "bomb.js",
+   "function": "bombTick",
+   "field": "x",
+   "expression": "bomb.x = c.baseX",
+   "count": 1
+  },
+  {
+   "file": "bomb.js",
+   "function": "bombTick",
+   "field": "x",
+   "expression": "bomb.x = c.x",
+   "count": 1
+  },
+  {
+   "file": "bomb.js",
+   "function": "bombTick",
+   "field": "y",
+   "expression": "bomb.y = c.baseY",
+   "count": 1
+  },
+  {
+   "file": "bomb.js",
+   "function": "bombTick",
+   "field": "y",
+   "expression": "bomb.y = c.y",
+   "count": 1
+  },
+  {
+   "file": "bomb.js",
+   "function": "bombTick",
+   "field": "z",
+   "expression": "bomb.z = c.z",
+   "count": 1
+  },
+  {
+   "file": "bomb.js",
+   "function": "dropBomb",
+   "field": "x",
+   "expression": "bomb.x = dp.x",
+   "count": 1
+  },
+  {
+   "file": "bomb.js",
+   "function": "dropBomb",
+   "field": "y",
+   "expression": "bomb.y = dp.y",
+   "count": 1
+  },
+  {
+   "file": "contact.js",
+   "function": "contactTick",
+   "field": "x",
+   "expression": "K.x = C.x",
+   "count": 1
+  },
+  {
+   "file": "contact.js",
+   "function": "contactTick",
+   "field": "y",
+   "expression": "K.y = C.y",
+   "count": 1
+  },
+  {
+   "file": "contact.js",
+   "function": "hurtReactTick",
+   "field": "z",
+   "expression": "q.z = a ? a.z : b.z",
+   "count": 1
+  },
+  {
+   "file": "ct-early.js",
+   "function": "infoGo",
+   "field": "x",
+   "expression": "I.x = nx.c.x",
+   "count": 1
+  },
+  {
+   "file": "ct-early.js",
+   "function": "infoGo",
+   "field": "y",
+   "expression": "I.y = nx.c.y",
+   "count": 1
+  },
+  {
+   "file": "ct-setup.js",
+   "function": "ctSetupRole",
+   "field": "z",
+   "expression": "RZ.z[nm] = b.id",
+   "count": 1
+  },
+  {
+   "file": "ct-setup.js",
+   "function": "ctSetupRole",
+   "field": "z",
+   "expression": "delete RZ.z[n]",
+   "count": 1
+  },
+  {
+   "file": "ct-setup.js",
+   "function": "habitAdd",
+   "field": "x",
+   "expression": "c.x = (c.x*c.n + x*w)/(c.n + w)",
+   "count": 1
+  },
+  {
+   "file": "ct-setup.js",
+   "function": "habitAdd",
+   "field": "y",
+   "expression": "c.y = (c.y*c.n + y*w)/(c.n + w)",
+   "count": 1
+  },
+  {
+   "file": "damage.js",
+   "function": "nadesTick",
+   "field": "x",
+   "expression": "n.x = R[0]",
+   "count": 1
+  },
+  {
+   "file": "damage.js",
+   "function": "nadesTick",
+   "field": "y",
+   "expression": "n.y = R[1]",
+   "count": 1
+  },
+  {
+   "file": "damage.js",
+   "function": "nadesTick",
+   "field": "z",
+   "expression": "n.z = n.p[2]",
+   "count": 1
+  },
+  {
+   "file": "demo.js",
+   "function": "dvTick",
+   "field": "x",
+   "expression": "bomb.x = e[3]",
+   "count": 1
+  },
+  {
+   "file": "demo.js",
+   "function": "dvTick",
+   "field": "y",
+   "expression": "bomb.y = e[4]",
+   "count": 1
+  },
+  {
+   "file": "economy.js",
+   "function": "buyFullKit",
+   "field": "helmet",
+   "expression": "P.helmet = false",
+   "count": 1
+  },
+  {
+   "file": "economy.js",
+   "function": "buyFullKit",
+   "field": "kit",
+   "expression": "P.kit = !T && !b.kit && b.primary !== \"AWP\" && (b.tRole === \"anchorA\" || b.tRole === \"anchorB\" || ((b.tRole === \"rotator\" || b.tRole === \"mid\") && !mates.some(function(m){ return m !== b && (m.tRole === \"rotator\" || m.tRole === \"mid\") && m.kit; })))",
+   "count": 1
+  },
+  {
+   "file": "economy.js",
+   "function": "buyFullKit",
+   "field": "kit",
+   "expression": "P.kit = false",
+   "count": 1
+  },
+  {
+   "file": "economy.js",
+   "function": "buyFullKit",
+   "field": "nades",
+   "expression": "P.nades.push({t:t, tag:tag})",
+   "count": 1
+  },
+  {
+   "file": "economy.js",
+   "function": "buyFullKit",
+   "field": "nades",
+   "expression": "P.nades.splice(i, 1)",
+   "count": 1
+  },
+  {
+   "file": "endgame.js",
+   "function": "endgameBrain",
+   "field": "x",
+   "expression": "ST.x = K.x",
+   "count": 1
+  },
+  {
+   "file": "endgame.js",
+   "function": "endgameBrain",
+   "field": "y",
+   "expression": "ST.y = K.y",
+   "count": 1
+  },
+  {
+   "file": "events.js",
+   "function": "knowApply",
+   "field": "x",
+   "expression": "h.x = s.x",
+   "count": 1
+  },
+  {
+   "file": "events.js",
+   "function": "knowApply",
+   "field": "y",
+   "expression": "h.y = s.y",
+   "count": 1
+  },
+  {
+   "file": "events.js",
+   "function": "knowKill",
+   "field": "alive",
+   "expression": "K.alive--",
+   "count": 1
+  },
+  {
+   "file": "events.js",
+   "function": "knowKill",
+   "field": "x",
+   "expression": "B.hyps[0].x = undefined",
+   "count": 1
+  },
+  {
+   "file": "events.js",
+   "function": "knowRetakeDrift",
+   "field": "x",
+   "expression": "h.x = x",
+   "count": 1
+  },
+  {
+   "file": "events.js",
+   "function": "knowRetakeDrift",
+   "field": "y",
+   "expression": "h.y = y",
+   "count": 1
+  },
+  {
+   "file": "exec-sync.js",
+   "function": "exuScan",
+   "field": "x",
+   "expression": "it.x = t.x",
+   "count": 1
+  },
+  {
+   "file": "exec-sync.js",
+   "function": "exuScan",
+   "field": "y",
+   "expression": "it.y = t.y",
+   "count": 1
+  },
+  {
+   "file": "highlights.js",
+   "function": "hlKill",
+   "field": "kills",
+   "expression": "H.kills++",
+   "count": 1
+  },
+  {
+   "file": "igl.js",
+   "function": "tIglReplan",
+   "field": "x",
+   "expression": "ctr.x += b.x/tsA.length",
+   "count": 1
+  },
+  {
+   "file": "igl.js",
+   "function": "tIglReplan",
+   "field": "x",
+   "expression": "ctrR.x += b.x/tsR.length",
+   "count": 1
+  },
+  {
+   "file": "igl.js",
+   "function": "tIglReplan",
+   "field": "y",
+   "expression": "ctr.y += b.y/tsA.length",
+   "count": 1
+  },
+  {
+   "file": "igl.js",
+   "function": "tIglReplan",
+   "field": "y",
+   "expression": "ctrR.y += b.y/tsR.length",
+   "count": 1
+  },
+  {
+   "file": "knowledge.js",
+   "function": "hearReal",
+   "field": "z",
+   "expression": "s.z = sb.z",
+   "count": 1
+  },
+  {
+   "file": "knowledge.js",
+   "function": "knowRoundStart",
+   "field": "alive",
+   "expression": "K.alive++",
+   "count": 1
+  },
+  {
+   "file": "knowledge.js",
+   "function": "knowSources",
+   "field": "x",
+   "expression": "q.x = h.x",
+   "count": 1
+  },
+  {
+   "file": "knowledge.js",
+   "function": "knowSources",
+   "field": "y",
+   "expression": "q.y = h.y",
+   "count": 1
+  },
+  {
+   "file": "lineup-editor.js",
+   "function": "(верх файла)",
+   "field": "x",
+   "expression": "z.points[zsDrag].x = w.x",
+   "count": 1
+  },
+  {
+   "file": "lineup-editor.js",
+   "function": "(верх файла)",
+   "field": "y",
+   "expression": "z.points[zsDrag].y = w.y",
+   "count": 1
+  },
+  {
+   "file": "observer.js",
+   "function": "obsCtx",
+   "field": "alive",
+   "expression": "C.alive[o.team]++",
+   "count": 1
+  },
+  {
+   "file": "plan.js",
+   "function": "teamNadePlan",
+   "field": "z",
+   "expression": "w.z = tac.fake",
+   "count": 1
+  },
+  {
+   "file": "problem-watch.js",
+   "function": "probTick",
+   "field": "x",
+   "expression": "s.x = b.x",
+   "count": 2
+  },
+  {
+   "file": "problem-watch.js",
+   "function": "probTick",
+   "field": "y",
+   "expression": "s.y = b.y",
+   "count": 2
+  },
+  {
+   "file": "replay-play.js",
+   "function": "rpDraw",
+   "field": "x",
+   "expression": "P.cam.x += (tx - P.cam.x)*k",
+   "count": 1
+  },
+  {
+   "file": "replay-play.js",
+   "function": "rpDraw",
+   "field": "y",
+   "expression": "P.cam.y += (ty - P.cam.y)*k",
+   "count": 1
+  },
+  {
+   "file": "replay.js",
+   "function": "rpRecord",
+   "field": "kills",
+   "expression": "OBS_ST.kills++",
+   "count": 1
+  },
+  {
+   "file": "replay.js",
+   "function": "rpRecord",
+   "field": "kills",
+   "expression": "RP.rec.kills.push({t: Math.round((k.at||simTime)*TICK_HZ), att: rpIdByNick(k.att), vic: rpIdByNick(k.vic), attTeam: k.attTeam, vicTeam: k.vicTeam,\n        w: k.w, hs: k.hs, smoke: k.smoke, wall: k.wall, noscope: k.noscope, blind: k.blind, attN: k.att, vicN: k.vic, live: kLive})",
+   "count": 1
+  },
+  {
+   "file": "round.js",
+   "function": "runMatch",
+   "field": "kills",
+   "expression": "RUN_MATCH.kills.push({tick: tick, round: roundNum, att: A[0] ? A[0].id : null, vic: A[1].id, weapon: String(A[2]), hs: !!A[3]})",
+   "count": 1
+  },
+  {
+   "file": "round.js",
+   "function": "runMatch",
+   "field": "nades",
+   "expression": "RUN_MATCH.nades.push({tick: tick, round: roundNum, bot: A[0].id, type: A[1]})",
+   "count": 1
+  },
+  {
+   "file": "scoreboard.js",
+   "function": "plCardUpdate",
+   "field": "alive",
+   "expression": "R.alive = b.alive",
+   "count": 1
+  },
+  {
+   "file": "smoke-react.js",
+   "function": "smokeHeTick",
+   "field": "_heDone",
+   "expression": "s._heDone = {}",
+   "count": 1
+  },
+  {
+   "file": "sound.js",
+   "function": "bombPassTick",
+   "field": "x",
+   "expression": "bomb.x = to.baseX",
+   "count": 1
+  },
+  {
+   "file": "sound.js",
+   "function": "bombPassTick",
+   "field": "y",
+   "expression": "bomb.y = to.baseY",
+   "count": 1
+  },
+  {
+   "file": "tactics.js",
+   "function": "saveOppProfile",
+   "field": "x",
+   "expression": "o.x = (o.x*o.n*0.5 + h.x*h.n)/(o.n*0.5 + h.n)",
+   "count": 1
+  },
+  {
+   "file": "tactics.js",
+   "function": "saveOppProfile",
+   "field": "y",
+   "expression": "o.y = (o.y*o.n*0.5 + h.y*h.n)/(o.n*0.5 + h.n)",
+   "count": 1
+  },
+  {
+   "file": "throw.js",
+   "function": "nadeSolve",
+   "field": "x",
+   "expression": "r.x = R[0]",
+   "count": 1
+  },
+  {
+   "file": "throw.js",
+   "function": "nadeSolve",
+   "field": "y",
+   "expression": "r.y = R[1]",
+   "count": 1
+  },
+  {
+   "file": "throw.js",
+   "function": "updateNadeTask1",
+   "field": "x",
+   "expression": "t.x = M.to.x",
+   "count": 1
+  },
+  {
+   "file": "throw.js",
+   "function": "updateNadeTask1",
+   "field": "y",
+   "expression": "t.y = M.to.y",
+   "count": 1
+  },
+  {
+   "file": "timeout.js",
+   "function": "tsCam",
+   "field": "x",
+   "expression": "P.cam.x += (c.x - P.cam.x)*k",
+   "count": 1
+  },
+  {
+   "file": "timeout.js",
+   "function": "tsCam",
+   "field": "y",
+   "expression": "P.cam.y += (c.y - P.cam.y)*k",
+   "count": 1
+  },
+  {
+   "file": "view3d-frame.js",
+   "function": "(верх файла)",
+   "field": "x",
+   "expression": "d.x = e.clientX",
+   "count": 1
+  },
+  {
+   "file": "view3d-frame.js",
+   "function": "(верх файла)",
+   "field": "y",
+   "expression": "d.y = e.clientY",
+   "count": 1
+  },
+  {
+   "file": "view3d.js",
+   "function": "d3Corpse",
+   "field": "x",
+   "expression": "C.x = nx",
+   "count": 1
+  },
+  {
+   "file": "zone-danger.js",
+   "function": "resnapSpawns",
+   "field": "x",
+   "expression": "sp.x = s2.x",
+   "count": 1
+  },
+  {
+   "file": "zone-danger.js",
+   "function": "resnapSpawns",
+   "field": "y",
+   "expression": "sp.y = s2.y",
+   "count": 1
+  },
+  {
+   "file": "zones.js",
+   "function": "applyNavTransform",
+   "field": "z",
+   "expression": "q.z = p.z",
+   "count": 1
+  },
+  {
+   "file": "zones.js",
+   "function": "applyZoneLayerToData",
+   "field": "x",
+   "expression": "p.x = q.x",
+   "count": 1
+  },
+  {
+   "file": "zones.js",
+   "function": "applyZoneLayerToData",
+   "field": "y",
+   "expression": "p.y = q.y",
+   "count": 1
+  }
+ ]
+}

@@ -1,4 +1,4 @@
-// [хозяева: bulletVictim, dropWeaponOnDeath, itemPickupTick, knifeTick]
+// [хозяева: bulletVictim, dropWeaponOnDeath, equipmentSetDrawUntil, equipmentSetKit, equipmentSetKnife, equipmentSetPrimary, equipmentSetSecAmmo, equipmentSetSecondary, equipmentSetWeapon, itemPickupTick, knifeTick]
 var tracers = [];
 // (v151) как выглядит выстрел у разного оружия: пистолет — тонкий короткий след и
 // маленькая вспышка; ПП — частые тонкие; винтовка — как было; AWP — толстый
@@ -50,7 +50,7 @@ function bulletLineHit(sh, ex, ey, skip, seed, note){
   var w = sh.weapon, sd = DM.hypot(sv.x-sh.x, sv.y-sh.y), sz = hashRand(seed);
   var sm = sz < 0.22 ? 0.75 : (sz < 0.42 ? 1.25 : 1.0), sArm = sz >= 0.22 && sv.armor;
   var sdmg = w.dmg * DM.pow(w.rm, sd*PX_UNITS/500) * sm;
-  sv._hitFx = {t:nowTs, head:false}; sv._tagUntil = tick + 16;
+  sv._hitFx = {t:nowTs, head:false}; shotSetTagUntil(sv, tick + 16);
   applyDamage(sh, sv, sdmg, "bullet", {armorRatio: sArm ? w.armorPen : null, wkey:w.key, reward:w.killReward||300, note:" ("+note+", дист. "+Math.round(sd)+")", mods:{blind: tick < (sh.blindUntil||0), smoke: !!smokeBlocks(sh.x, sh.y, sv.x, sv.y)}});   // (v554) значки киллфида
   return sv;
 }
@@ -107,7 +107,7 @@ function itemPickupTick(){
       var G = groundItems[i];
       if(DM.hypot(G.x-b.x, G.y-b.y) > 38) continue;
       var N = b.nades;
-      if(G.kind === "kit"){ if(b.team !== "CT" || b.kit) continue; b.kit = true; }
+      if(G.kind === "kit"){ if(b.team !== "CT" || b.kit) continue; equipmentSetKit(b, true); }
       else if(G.kind === "nade"){
         var tot = N.smoke + N.flash + N.he + N.molly;
         if(tot >= 4 || (G.key === "flash" ? N.flash >= 2 : N[G.key] >= 1)) continue;
@@ -117,7 +117,7 @@ function itemPickupTick(){
         if(!b.secondary || WEAPONS[G.key].tier <= WEAPONS[b.secondary].tier) continue;
         var held = b.weapon === WEAPONS[b.secondary];
         groundItems.push({kind:"pistol", key:b.secondary, x:b.x, y:b.y, t:tick, from:b.id});
-        b.secondary = G.key; b._secAmmo = null; if(held){ b.weapon = WEAPONS[G.key]; b._ammoFor = null; }
+        equipmentSetSecondary(b, G.key); equipmentSetSecAmmo(b, null); if(held){ equipmentSetWeapon(b, WEAPONS[G.key]); reloadSetAmmoFor(b, null); }
       } else continue;
       groundItems.splice(i, 1);
       logEvent(b.id+" подобрал "+(G.kind === "kit" ? "кит" : G.kind === "nade" ? NADE[G.key].name : WEAPONS[G.key].name)+(G.from ? " ("+G.from+")" : ""));
@@ -159,10 +159,10 @@ function knifeDefuseTick(b){
   var D = bots.filter(function(o){ return o.alive && o.defusing; })[0]; if(!D) return false;
   var d = DM.hypot(D.x-b.x, D.y-b.y); if(d > KNIFE_GO) return false;
   if(!(b.ammo <= 0 || b._reloading || !b._spam || d <= 3*KNIFE_REACH)) return false;
-  b._knife = true; b._knDef = D.id;   // точку «к нему» даёт задача «сбить дефуз» (tBrain, brain-t); очередь в дым снимает её хозяин (smoke-react)
+  equipmentSetKnife(b, true); b._knDef = D.id;   // точку «к нему» даёт задача «сбить дефуз» (tBrain, brain-t); очередь в дым снимает её хозяин (smoke-react)
   if(d > KNIFE_REACH) return true;
   if(tick < (b._stabT || 0)) return true;
-  b._stabT = tick + KNIFE_GAP;
+  knifeSetStabT(b, tick + KNIFE_GAP);
   var back = D.facing !== undefined && _angOff(DM.atan2(b.y-D.y, b.x-D.x), D.facing) > 2*Math.PI/3;
   applyDamage(b, D, back ? KNIFE_BACK : KNIFE_STAB, "knife", {wkey:"KNIFE_T", reward:1500, note:" (нож"+(back ? ", в спину" : "")+")"});
   knowSound(D, {x:b.x, y:b.y, z:b.z, tick:tick, team:b.team, src:b.id, kind:"hit"});
@@ -180,8 +180,8 @@ function knifeTick(b){
     var d = knifeEnemyDist(b), pk = 0; for(var i = 0; i < KNIFE_D.length; i++){ if(d < KNIFE_D[i]){ pk = row[i]; break; } }
     want = b._knU < pk;
   }
-  if(want && !b._knife){ b._knife = true; }
-  else if(!want && b._knife){ b._knife = false; b._drawUntil = tick + Math.round(0.4*TICK_HZ); }
+  if(want && !b._knife){ equipmentSetKnife(b, true); }
+  else if(!want && b._knife){ equipmentSetKnife(b, false); equipmentSetDrawUntil(b, tick + Math.round(0.4*TICK_HZ)); }
 }
 function weaponSpeedMul(b){
   if(b._knife) return 250/225;
@@ -263,7 +263,7 @@ function weaponPickupTick(){
       if(G.key === "AWP" && !awpAllowed(b) && cur >= 5) continue; // снайпу — снайперу
       groundWeapons.splice(i, 1);
       if(b.primary && !sellItem(b, b.primary)) groundWeapons.push({key:b.primary, x:b.x, y:b.y, t:tick, from:b.id});   // (v334) купил в этом раунде — продаёт
-      b.primary = G.key; b.weapon = WEAPONS[G.key]; b._ammoFor = null; b._pickGo = null;
+      equipmentSetPrimary(b, G.key); equipmentSetWeapon(b, WEAPONS[G.key]); reloadSetAmmoFor(b, null); b._pickGo = null;
       logEvent(b.id+" подобрал "+WEAPONS[G.key].name+(G.from ? " ("+G.from+")" : ""));
       soundEv("sndPickup", b, "w");   // (v338) звук подбора — только показ
       return;
@@ -286,7 +286,7 @@ function weaponPickupTick(){
         var dG = DM.hypot(G.x-b.x, G.y-b.y); if(dG < gd && hasLOS(b.x, b.y, G.x, G.y, b.z)){ gd = dG; gBest = G; } });
       if(gBest && (b.state !== "patrol" || intelEstimate(b.team, gBest.x, gBest.y, 450, 3*TICK_HZ).n > 0) && pickDetour(b, gBest)){
         b._fpT = tick;
-        if(b.state !== "patrol"){ fightState(b, "patrol", "нож"); fightHoldOff(b, "knife"); b.stateSince = tick; }
+        if(b.state !== "patrol"){ fightState(b, "patrol", "нож"); fightHoldOff(b, "knife"); engagementSetStateSince(b, tick); }
         if(setPost(b, {x:gBest.x, y:gBest.y}, null, true, "pickup").ok) b._pickGo = {x:gBest.x, y:gBest.y, round:roundNum};
         if(!b._fpV || tick - b._fpV > 5*TICK_HZ){ b._fpV = tick; logEvent(b.id+": в бою — подбираю "+WEAPONS[gBest.key].name); }
         return;
@@ -325,3 +325,12 @@ function weaponPickupTick(){
     if(setPost(b, {x:best.x, y:best.y}, null, true, "pickup").ok){ b._pickGo = {x:best.x, y:best.y, round:roundNum}; if(savingNow){ b._pickSave = roundNum; logEvent(b.id+": сейв — по пути подбираю "+WEAPONS[best.key].name); } }
   });
 }
+
+// Запись состояния канала. Вызовы выполняются в исходной точке тика.
+function equipmentSetDrawUntil(bot, value){ return bot._drawUntil = value; }
+function equipmentSetKnife(bot, value){ return bot._knife = value; }
+function equipmentSetSecAmmo(bot, value){ return bot._secAmmo = value; }
+function equipmentSetKit(bot, value){ return bot.kit = value; }
+function equipmentSetPrimary(bot, value){ return bot.primary = value; }
+function equipmentSetSecondary(bot, value){ return bot.secondary = value; }
+function equipmentSetWeapon(bot, value){ return bot.weapon = value; }

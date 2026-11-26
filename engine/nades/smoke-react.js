@@ -73,7 +73,7 @@ function smokeHoleFlight(b, t, cl){
 var BLIND_SPREAD = 0.35;   // (v554) проектное число: рад — разброс очереди ослеплённого (не видит прицела), сквозь дым — 0.08
 function blindBullet(b, pt){
   var w = b.weapon; if(!w || b.ammo <= 0) return false;
-  b.ammo--; b.lastShotTick = tick; b.nextShotTick = tick + (w.fireIntervalTicks||6);
+  shotSetAmmo(b, +b.ammo - 1); shotSetLastShotTick(b, tick); shotSetNextShotTick(b, tick + (w.fireIntervalTicks||6));
   var a = DM.atan2(pt.y-b.y, pt.x-b.x) + (hashRand(tick*31 + b.id.charCodeAt(1))-0.5)*(pt.spread || 0.08);
   var cl = bulletClip3(b, b.x + DM.cos(a)*(w.range||900), b.y + DM.sin(a)*(w.range||900), {x:pt.x, y:pt.y, z:pt.z});   // (v519) по 3D-геометрии
   smokeHoleFlight(b, pt, cl);
@@ -96,7 +96,7 @@ function smokeSpamTick(){
              (!P.blind && (smokes.indexOf(P.s) < 0 || (tick % 16 === 0 && !smokeEnemyPossible(b, P.s, P.pt, P.seen)))))){ b._spam = null; P = null; }
     // (v554 → v556 сюда) ослеплённый с причиной (onBlind, 460: видел врага ≤ 1 с до вспышки, он рядом) — очередь вслепую в ту точку, один раз
     var BF = b._blind && b._blind.fire;
-    if(!P && BF && tick < b.blindUntil && !b._sawEnemy && b.ammo > 0 && !b._reloading && !b._knife){ b._blind.fire = null;
+    if(!P && BF && tick < b.blindUntil && !b._sawEnemy && b.ammo > 0 && !b._reloading && !b._knife){ blindSetFire(b._blind, null);
       P = b._spam = {pt:BF, s:null, blind:true, seen:true, bursts:SMK.burstsMin, shot:0, nextBurst:tick + (b.reactionTicks||12), until:b.blindUntil}; }
     if(P){
       if(tick < P.nextBurst) return;

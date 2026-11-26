@@ -1,4 +1,4 @@
-// [хозяева: movePath, movePathIdx, movePlace, moveRunWhy, moveSpeed, moveSpeedTick, moveWalk, moveWalkTick, moveWalkWhy] ======================= (v522) РЕЖИМ ДВИЖЕНИЯ — одно место: шагом / бегом / стоять =======================
+// [хозяева: movePath, movePathIdx, movePlace, moveRunWhy, moveSetFireExit, moveSetFireExitFire, moveSetStopWhy, moveSetX, moveSetY, moveSpeed, moveSpeedTick, moveWalk, moveWalkTick, moveWalkWhy] ======================= (v522) РЕЖИМ ДВИЖЕНИЯ — одно место: шагом / бегом / стоять =======================
 // Раньше эти решения были размазаны по stepTick одним условием из полутора десятков причин и цепочкой отмен после него.
 // Логика перенесена сюда БЕЗ изменений (тот же порядок проверок, отпечаток бит в бит) — но теперь у решения есть причина:
 //   bot._walkWhy — почему идёт шагом (null — не шагом), bot._runWhy — какая отмена сняла шаг (null — не снимала),
@@ -20,7 +20,7 @@ var MOVE = {run: 0, burn: null};   // выход moveSpeedTick: скорость
 // просьба о флешке 365, флешка под пик 380, своя флешка 410, сейв 180) не пишут _waitPopUntil / _waitPopKey, а просят moveWaitPop
 // (Р3.2 ход ш.2, 26.11) сдвинуть бота на точку (бой: шаг стрейфа, отход за укрытие) — позицию пишет ход, не бой. vis — и видимую (x, y)
 // сразу. Порядок записей — прежний (baseX, baseY, затем x, y)
-function movePlace(b, x, y, vis){ b.baseX = x; b.baseY = y; if(vis){ b.x = x; b.y = y; } }
+function movePlace(b, x, y, vis){ b.baseX = x; b.baseY = y; if(vis){ moveSetX(b, x); moveSetY(b, y); } }
 function moveWaitPop(b, until, key, why){ b._waitPopUntil = until; if(key !== undefined) b._waitPopKey = key; b._moveWhy = why; }
 // (Р3.2 ход ш.2) idx — и номер точки пути (было: movePath(…); b.pathIdx = 0 у вызывающих). Порядок записей прежний: путь, причина, номер
 function movePath(b, p, why, idx){ b.path = p; b._moveWhy = why; if(idx !== undefined) b.pathIdx = idx; }
@@ -153,7 +153,7 @@ function moveSpeedTick(bot, runSpeed, BRAKE_RADIUS, maxDelta){
     // Из огня бот ВЫХОДИТ обычным бегом по пути к ближайшему краю (раньше его
     // каждый тик сдвигало наружу напрямую — выглядело как отбрасывание).
     bombActAbort(bot, "огонь", "молотов, не доживёт");   // (Р3.2 ход ш.2) плант / дефуз прерывает хозяин бомбы, не ход
-    bot.atPost = false;
+    taskSetAtPost(bot, false);
     bot._burning = true;
     if(!bot._fireExit || inFire(bot._fireExit.x, bot._fireExit.y, bot.z) || bot._fireExitFire !== burn){
       var best = null, bd = Infinity;
@@ -166,7 +166,7 @@ function moveSpeedTick(bot, runSpeed, BRAKE_RADIUS, maxDelta){
         if(bot.post) dq += DM.hypot(qx-bot.post.x, qy-bot.post.y)*(0.08);   // (v151) ближний край важнее, не через весь огонь
         if(dq < bd){ bd = dq; best = {x:qx, y:qy}; }
       }
-      bot._fireExit = best; bot._fireExitFire = burn;
+      moveSetFireExit(bot, best); moveSetFireExitFire(bot, burn);
       if(best){ bot.path = [[best.x, best.y, bot.z]]; bot.pathIdx = 0; }
     }
     // (v151) раньше путь наружу перебивали пост/бой каждый тик, а держащий угол
@@ -179,7 +179,7 @@ function moveSpeedTick(bot, runSpeed, BRAKE_RADIUS, maxDelta){
     }
     targetSpeed = SPEED * weaponSpeedMul(bot); why = "выбегает из огня";
   } else {
-    bot._burning = false; if(bot._fireExit){ bot._fireExit = null; bot._fireExitFire = null; }
+    bot._burning = false; if(bot._fireExit){ moveSetFireExit(bot, null); moveSetFireExitFire(bot, null); }
     if(burn && targetSpeed > 0) targetSpeed = SPEED * weaponSpeedMul(bot);   // (v263, Б2) идёт по делу через огонь — бегом, не шифтом
   }
   // (v263, Б2) в огне — без торможения у конца пути: точка выхода всего в 28 px за краем, и бот, тормозя к ней, полз по
@@ -194,12 +194,19 @@ function moveSpeedTick(bot, runSpeed, BRAKE_RADIUS, maxDelta){
   if(bot._blind && tick < bot._blind.until && !burn){
     targetSpeed = bot._blind.back ? runSpeed*0.55 : 0; why = bot._blind.back ? "ослеплён — шаг назад" : "ослеплён — стоит";
     if(!bot._blind.back) placeStance(bot, true, "blind");
-  } else if(bot._blind && tick >= bot._blind.until){ bot._blind = null; }
+  } else if(bot._blind && tick >= bot._blind.until){ soundSetBlind(bot, null); }
   if(bot._boost){ targetSpeed = 0; bot.curSpeed = 0; why = "подсадка"; }   // (v575, В144) подсадка — оба стоят (tick, jumpCheckTick)
   // (v575, В144) в воздухе — не разгоняется; ход гаснет к доле про к приземлению (поворот A / D в воздухе у про стоит скорости, RUN_JUMP.keep, 540)
   if(bot._jc && bot._jc.run){ var jq = Math.min(1, (tick - bot._jc.t)/(RUN_JUMP.air*TICK_HZ)); bot.curSpeed = bot._jc.v0*(1 - (1 - bot._jc.kt)*jq); targetSpeed = bot.curSpeed; why = "в прыжке"; }
   if(bot.curSpeed < targetSpeed) bot.curSpeed = Math.min(targetSpeed, bot.curSpeed+maxDelta);
   else if(bot.curSpeed > targetSpeed) bot.curSpeed = Math.max(targetSpeed, bot.curSpeed-maxDelta);
   if(tick < (bot._tagUntil||0)){ bot.curSpeed = Math.min(bot.curSpeed, SPEED*0.4); why = (why ? why + " + " : "") + "попали — замедлен"; }
-  bot._stopWhy = why; MOVE.run = runSpeed; MOVE.burn = burn;
+  moveSetStopWhy(bot, why); MOVE.run = runSpeed; MOVE.burn = burn;
 }
+
+// Запись состояния канала. Вызовы выполняются в исходной точке тика.
+function moveSetFireExit(bot, value){ return bot._fireExit = value; }
+function moveSetFireExitFire(bot, value){ return bot._fireExitFire = value; }
+function moveSetStopWhy(bot, value){ return bot._stopWhy = value; }
+function moveSetX(bot, value){ return bot.x = value; }
+function moveSetY(bot, value){ return bot.y = value; }

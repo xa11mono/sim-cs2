@@ -100,7 +100,7 @@ function makeTeam(team, spawnPt, count, weapon){
       money: START_MONEY, primary: null, secondary: team==="CT" ? "USP" : "GLOCK",
       armor: false, helmet: false, kills: 0, deaths: 0, roundKills: 0
     });
-    bots[bots.length-1].weapon = WEAPONS[bots[bots.length-1].secondary];
+    equipmentSetWeapon(bots[bots.length-1], WEAPONS[bots[bots.length-1].secondary]);
   }
 }
 makeTeam("CT", CT_SPAWN, 5, WEAPONS.M4);
@@ -157,11 +157,11 @@ function buildRoamRoutes(){
     ROAM_ROUTES[team] = user.length >= 2 ? user : buildAutoRoamRoute(team);
     ROAM_ROUTES[team].forEach(function(p){ p.cleared = -99999; });
   });
-  bots.forEach(function(b){ if(b.role==="roamer"){ b.roamIdx = 0; b.roamChecking = false; b.roamTarget = null; movePath(b, [], "roam-routes", 0); } });
+  bots.forEach(function(b){ if(b.role==="roamer"){ roamSetRoamIdx(b, 0); roamSetRoamChecking(b, false); roamSetRoamTarget(b, null); movePath(b, [], "roam-routes", 0); } });
 }
 function initRoam(b){
-  b.roamIdx = 0; b.roamChecking = false; b.roamCheckUntil = 0; b.roamCheckStart = 0;
-  b.roamTarget = null; b.roamPrevPt = null; b.roamLookPt = null; b._roamSoundHandled = -1; b._roamSoundLockUntil = 0;
+  roamSetRoamIdx(b, 0); roamSetRoamChecking(b, false); roamSetRoamCheckUntil(b, 0); roamSetRoamCheckStart(b, 0);
+  roamSetRoamTarget(b, null); roamSetRoamPrevPt(b, null); roamSetRoamLookPt(b, null); roamSetRoamSoundHandled(b, -1); roamSetRoamSoundLockUntil(b, 0);
 }
 // по одному роумеру в команде — последний бот (CT4 / T4)
 // роумер — только у CT (CT4); у T последний бот — лёркер со своей логикой (lurkerBrain)

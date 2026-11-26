@@ -1,4 +1,4 @@
-// [хозяева: stagePost, tIglReplan, tPhaseSet, tSetSite] ---- IGL: перестройка плана по ходу раунда ----
+// [хозяева: stagePost, stageSetStageInfo, tIglReplan, tPhaseSet, tSetSite] ---- IGL: перестройка плана по ходу раунда ----
 // Раньше IGL менял план в двух случаях (стак на сайте / минус опорника), а в
 // остальном играл "по бумажке": потеряли человека на миде — всё равно ждём
 // тайминга; энтри и поддержку сняли на входе — оставшиеся двое по одному
@@ -124,7 +124,7 @@ function tIglReplan(tt, site, other, secLeft){
       tsA.forEach(function(b){ ctr.x += b.x/tsA.length; ctr.y += b.y/tsA.length; });
       var travel = DM.hypot(ctr.x-SITES[other].x, ctr.y-SITES[other].y)*1.4/SPEED;
       var goOther = otherB < 1.2 && secLeft > travel + 15 && !tSiteTaking(tt);   // (22.11, Ж16)
-      tsA.forEach(function(b){ routeDrop(b, true); b._stageInfo = null; });
+      tsA.forEach(function(b){ routeDrop(b, true); stageSetStageInfo(b, null); });
       tt.takeAssign = null; tt.plantPick = null; tt.wave2 = null; tt.w1Contact = null; tt._popDone = false; tt._waitLog = false;
       nadeFlags.tExec = false; nadeFlags.tExecSm = false; nadeFlags.peekFlashPlanned = false;
       if(goOther){
@@ -180,7 +180,7 @@ function stagePost(mem, k){
     var ups = srt.filter(function(b){ return b.tRole !== "entry"; }).slice(0, nUp), low = mem.filter(function(b){ return ups.indexOf(b) < 0; });
     var upLook = zonePoint(SSk.upLook, g.tStageUp) || g.tEntry;
     groupPost(low, g.tStage, g.tEntry, "stage"+k, opt);
-    ups.forEach(function(b){ b._stageInfo = {from:g.tStageUp, to:upLook, look:SITES[k], round:roundNum}; });
+    ups.forEach(function(b){ stageSetStageInfo(b, {from:g.tStageUp, to:upLook, look:SITES[k], round:roundNum}); });
     groupPost(ups, g.tStageUp, upLook, "stage"+k+":"+SSk.up, {team: "T", rMax:160, minGap:50, hideFrom:[SITES[k], g.anchor], see:[upLook]});
     return;
   }
@@ -214,12 +214,12 @@ function tSetSite(tt, site){ var _ev = simEvIn("tSetSite", arguments);
     if(b.team !== "T") return;
     // маршрут тактики задан под старый сайт — снят и помечен пройденным, чтобы тактика не запустила его заново
     // (раньше два пути смены обнуляли и «пройден», и группа снова шла по маршруту к старому сайту)
-    routeDrop(b, "пройден"); b._stageInfo = null;
+    routeDrop(b, "пройден"); stageSetStageInfo(b, null);
     // (п.4 владельца 29.10, м1 р2: после перекола B→A носитель ещё 3 с шёл на «stageB» в B Apartments) пост под старый сайт (стадия,
     // зачистка, удержание) — снят: новый даст тактика под новый сайт
     var tg = b.post && b.post.tag;
     // (v519, пак 09.11 п.12) и проба под старый сайт (у пробы свой тег probe…, раньше не снималась — после перекола бот ещё шёл «посмотреть» старый сайт)
-    if(old && old !== site && tg && (tg.indexOf("stage" + old) === 0 || tg.indexOf("sitehold" + old) === 0 || tg.indexOf("clear" + old) === 0 || (tg.indexOf("probe" + old) === 0))){ clearPost(b); if(b._probe) b._probe = null; }
+    if(old && old !== site && tg && (tg.indexOf("stage" + old) === 0 || tg.indexOf("sitehold" + old) === 0 || tg.indexOf("clear" + old) === 0 || (tg.indexOf("probe" + old) === 0))){ clearPost(b); if(b._probe) lurkSetProbe(b, null); }
     var t = b.nadeTask;
     if(old && old !== site && t && SITES[old] && DM.hypot(t.x-SITES[old].x, t.y-SITES[old].y) < DM.hypot(t.x-SITES[site].x, t.y-SITES[site].y)){
       nadeCancel(b, "igl-site"); if(b.post && taskProp(b.post.tag, "lineupTask")) clearPost(b);
@@ -264,3 +264,6 @@ function ppTimeNamed(group, bp0, site, rMax){
   });
   return true;
 }
+
+// Запись состояния канала. Вызовы выполняются в исходной точке тика.
+function stageSetStageInfo(bot, value){ return bot._stageInfo = value; }

@@ -117,6 +117,24 @@ def versions(engines):
     return result
 
 
+def record_fingerprint(rec, fingerprint):
+    # Тот же отпечаток, что отдельный Э1. Диагностика снимается до смены матча,
+    # затем продолжается лишь накопление отпечатка до штатного перехода.
+    setup = fingerprint.split('freshMatch(__M__);\n', 1)[1].split('for(var t = 0;', 1)[0]
+    sample = fingerprint.split('if(matchNum !== M0) break;\n', 1)[1].split('\n}', 1)[0]
+    finish = fingerprint.split('\nFP.ticks = ', 1)[1].split('\nif(typeof FW_OUT', 1)[0]
+    return (rec.replace('/*@@FP_SETUP@@*/',
+                        'var recFP = (function(){\n' + setup + '\nreturn {sample:function(){\n' + sample +
+                        '\n}, result:function(){ FP.ticks = ' + finish + '\nreturn FP; }};\n})();')
+               .replace('/*@@FP_SAMPLE@@*/', 'recFP.sample();')
+               .replace('/*@@FP_FINISH@@*/', '''if(REC.finished){
+  for(;t < 400000 && matchNum === M0;t++){
+    stepTick(); if(matchNum === M0) recFP.sample();
+  }
+  if(matchNum !== M0) REC.fingerprint = recFP.result();
+}'''))
+
+
 def main():
     BUILT.clear(); REFS.clear()
     open(LOG, 'w', encoding='utf-8').close()
@@ -180,23 +198,28 @@ def main():
         watch = '\n'.join(open(f, encoding='utf-8').read() for f in (os.path.join(HERE, 'audit', 'watch.js'), os.path.join(E, 'walk_watch.js'), os.path.join(E, 'know_watch.js'), os.path.join(E, 'g_watch.js')))
         A = "if(typeof WATCH!=='undefined') WATCH.tick();"; B = "if(typeof WATCH!=='undefined') REC.watch=WATCH.report();"
         tpl = tpl.replace(A, A + " WALK.tick(); KNOWW.tick(); GWATCH.tick();").replace(B, B + " REC.walk=WALK.report(); REC.know=KNOWW.report(); REC.gw=GWATCH.report();")
-        def rec_ok(path, complete=False):
+        def rec_ok(path, complete=False, fingerprint=False):
             try:
                 with open(path, encoding='utf-8') as f:
                     row = json.load(f)
-                return 'watch' in row and (not complete or
-                        (row.get('finished') is True and isinstance(row.get('prob'), list)))
+                return ('watch' in row and (not complete or
+                        (row.get('finished') is True and isinstance(row.get('prob'), list))) and
+                        (not fingerprint or fingerprint_jobs.valid_fp(row.get('fingerprint'), row.get('match'))))
             except (OSError, ValueError, TypeError):
                 return False
         for j in req['rec']:
+            code = tpl
+            if j.get('fingerprint'):
+                with open(os.path.join(HERE, 'fingerprint.js'), encoding='utf-8') as f:
+                    code = record_fingerprint(tpl, f.read())
             sim = os.path.join(sims, j['label'] + '.html'); build(j['ref'], j.get('map', 'ancient'), sim)
             out = os.path.join(ROOT, 'tools', 'measure', 'runs', j['label']); os.makedirs(out, exist_ok=True)
             for m in j.get('matches', [3, 7, 11, 13, 17, 19, 23, 29]):
-                js = os.path.join(out, '_rec_%d.js' % m); open(js, 'w', encoding='utf-8').write(tpl.replace('__M__', str(m)).replace('__T__', str(j.get('ticks', 200000))).replace('/*@@WATCH@@*/', watch))
+                js = os.path.join(out, '_rec_%d.js' % m); open(js, 'w', encoding='utf-8').write(code.replace('__M__', str(m)).replace('__T__', str(j.get('ticks', 200000))).replace('/*@@WATCH@@*/', watch))
                 pool.add({'name': 'rec %s m%d' % (j['label'], m), 'cmd': ['node', os.path.join(ROOT, 'src', 'q.js'), sim, '@' + js], 'cwd': ROOT, 'engine': 'chromium',
                           'est_key': 'chromium:' + j.get('map', 'ancient'), 'out': os.path.join(out, 'rec_%d.json' % m), 'err': os.path.join(out, 'err_%d.txt' % m),
                           'guard': os.path.join(out, 'guard_%d.json' % m),
-                          'valid': lambda path, complete=j.get('complete', False): rec_ok(path, complete)})
+                          'valid': lambda path, complete=j.get('complete', False), fp=j.get('fingerprint', False): rec_ok(path, complete, fp)})
     if pool.q or pool.run or pool.retry: pool.wait_all()
     # ---- (Р0.6, Р0.11, Р0.13, Р0.14, 24.11) задания перестройки: каждое пишет в runs/<label>/; ошибка задания не валит остальные ----
     R0 = os.path.join(ROOT, 'tools', 'measure')

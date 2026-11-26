@@ -33,18 +33,18 @@ function sbOrderPoint(x, y){
 // поставить бота в точку (x, y): пол — ближайший участок навмеша, всё движение и задачи — заново
 function sbPlace(b, x, y){
   var w = snapToWalkable(x, y), a = navFloorNear(w.x, w.y, 40, null) || navAt(w.x, w.y, b.z || 0);
-  b.x = b.baseX = b.px = w.x; b.y = b.baseY = b.py = w.y;
-  if(a){ b.z = navFloorZ(a, w.x, w.y); b._area = a.id; }
-  movePath(b, [], "sandbox", 0); b._climb = null; b._fc = null; b._hold = null; b._trail = []; moveSpeed(b, 0, "sandbox");
-  b._underV = null; b._overV = null; b._fall = null; floorViewTick(b);
+  moveSetX(b, b.baseX = b.px = w.x); moveSetY(b, b.baseY = b.py = w.y);
+  if(a){ navSetZ(b, navFloorZ(a, w.x, w.y)); navSetArea(b, a.id); }
+  movePath(b, [], "sandbox", 0); navSetClimb(b, null); fightSetFc(b, null); moveSetHold(b, null); b._trail = []; moveSpeed(b, 0, "sandbox");
+  b._underV = null; b._overV = null; navSetFall(b, null); floorViewTick(b);
 }
 function sbRevive(b, x, y){
-  b.alive = true; b.hp = 100; fightReset(b); clearPost(b); b._contact = null;
-  b.contactStreak = 0; b._ts = {}; b.nextShotTick = 0; b._reloading = false; b._blind = null; b.blindUntil = 0;
+  damageSetAlive(b, true); damageSetHp(b, 100); fightReset(b); clearPost(b); contactSetContact(b, null);
+  engagementSetContactStreak(b, 0); engagementSetTs(b, {}); shotSetNextShotTick(b, 0); reloadSetReloading(b, false); soundSetBlind(b, null); damageSetBlindUntil(b, 0);
   sbPlace(b, x, y);
   logEvent("песочница: " + b.id + " в игре");
 }
-function sbRemove(b){ b.alive = false; b.hp = 0; clearPost(b); b._fc = null; if(SANDBOX.drag === b) SANDBOX.drag = null; logEvent("песочница: " + b.id + " убран"); }
+function sbRemove(b){ damageSetAlive(b, false); damageSetHp(b, 0); clearPost(b); fightSetFc(b, null); if(SANDBOX.drag === b) SANDBOX.drag = null; logEvent("песочница: " + b.id + " убран"); }
 // ---------- панель ----------
 function sbEsc(s){ return String(s == null ? "" : s).replace(/[&<>]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c]; }); }
 function sbPanel(){

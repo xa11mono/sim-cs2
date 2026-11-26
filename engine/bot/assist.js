@@ -1,4 +1,4 @@
-// [хозяева: updateReload] ---- дабл-пик: помочь тиммейту в перестрелке ----
+// [хозяева: knifeSetStabT, reloadSetAmmoFor, reloadSetReloadUntil, reloadSetReloading, updateReload] ---- дабл-пик: помочь тиммейту в перестрелке ----
 // Раньше, если тиммейт в упор рядом перестреливался, а самому врага не видно
 // (стоял за углом/смотрел свой угол), бот так и стоял: реакции на "рядом идёт
 // бой" не было — только размен ПОСЛЕ смерти. Теперь: тиммейт ≤160px уже ~0.3с
@@ -71,7 +71,7 @@ function flankAssist(b){
   if(!sp) return false;
   // (v518a) идёт по задаче важнее захода — заход как отклонение (detourOk, task): цена — время дойти до точки захода
   if(!taskCanSet(b, "repos:flank")){ var fsec = pathLenTo(b, sp.x, sp.y)/SPEED; if(!detourOk(b, "help", fsec)) return false; detourStart(b, "help", "repos:flank", fsec + 2); }
-  taskKeep(b, 0, "assist"); b._probeLock = 0;
+  taskKeep(b, 0, "assist"); taskSetProbeLock(b, 0);
   setPost(b, sp, ep, true, "repos:flank");
   if(!b.post || b.post.tag !== "repos:flank") return false;
   if(b.state === "hold") leaveHold(b);
@@ -125,7 +125,7 @@ function assistPeek(b){
   // точку на моём ярусе ближе к врагу — вперёд по линии на него и в стороны от неё, — откуда видна хоть часть врага; ближайшую
   if(!sp) sp = assistEdgeSpot(b, E);
   if(!sp) return false;
-  taskKeep(b, 0, "assist"); b._probeLock = 0;
+  taskKeep(b, 0, "assist"); taskSetProbeLock(b, 0);
   if(detour) detourStart(b, "help", "repos:assist", 2);
   setPost(b, sp, ep, true, "repos:assist");
   if(!b.post || b.post.tag !== "repos:assist") return false;
@@ -139,9 +139,9 @@ function assistPeek(b){
 function rlFracOf(){ return 0.75; }
 function updateReload(b){
   var w = b.weapon; if(!w || !b.alive) return;
-  if(b._ammoFor !== w.key){ b._ammoFor = w.key; b.ammo = w.mag; b._reloading = false; b.reloadUntil = 0; }
+  if(b._ammoFor !== w.key){ reloadSetAmmoFor(b, w.key); shotSetAmmo(b, w.mag); reloadSetReloading(b, false); reloadSetReloadUntil(b, 0); }
   // (v555, м298 р1: «пострелял, ушёл за укрытие и стоит») перезарядился — укрытие больше не нужно: задача снимается, бот возвращается к своей
-  if(b._reloading && tick >= b.reloadUntil){ b._reloading = false; b.ammo = w.mag; if(b.post && b.post.tag === "repos:rlcover"){ taskKeep(b, 0, "assist"); clearPost(b); } }
+  if(b._reloading && tick >= b.reloadUntil){ reloadSetReloading(b, false); shotSetAmmo(b, w.mag); if(b.post && b.post.tag === "repos:rlcover"){ taskKeep(b, 0, "assist"); clearPost(b); } }
   if(b._onPistol) pistolBack(b);
   if(!b._reloading && b.ammo <= 0 && pistolSwap(b)) return;
   // после перестрелки про перезаряжается почти всегда, если магазин заметно
@@ -170,7 +170,7 @@ function updateReload(b){
         if(sq && !stepBlocked(b.x, b.y, sq.x, sq.y, b)){ taskKeep(b, 0, "assist"); setPost(b, sq, exE[0], true, "repos:rlcover"); if(b.post && b.post.tag === "repos:rlcover") taskKeep(b, tick + Math.round(w.reload*TICK_HZ), "assist"); }
       }
     }
-    b._reloading = true; b.reloadUntil = tick + Math.round(w.reload*TICK_HZ);
+    reloadSetReloading(b, true); reloadSetReloadUntil(b, tick + Math.round(w.reload*TICK_HZ));
     if(b.post && b.post.tag === "repos:rlcover") taskKeep(b, b.reloadUntil, "assist");   // (v555) укрытие держится, пока идёт перезарядка, — не 3 с
     if(b.ammo <= 0) logEvent(b.id+": перезарядка ("+w.name+", "+w.reload+"с)");
     reloadHeard(b, w);
@@ -333,9 +333,9 @@ function ambushTick(b, side){
   // в спину: к последнему месту ближайшей цели, шагом; вплотную со спины — нож
   var tg = A.last.id ? teamBot(A.last.id) : null;
   if(tg && tg.alive && seenNow.indexOf(tg) >= 0 && DM.hypot(tg.x-b.x, tg.y-b.y) <= 3*KNIFE_REACH && ambPassing(b, tg) && !b._reloading){
-    b._knife = true;
+    equipmentSetKnife(b, true);
     if(DM.hypot(tg.x-b.x, tg.y-b.y) <= KNIFE_REACH && tick >= (b._stabT || 0)){
-      b._stabT = tick + KNIFE_GAP;
+      knifeSetStabT(b, tick + KNIFE_GAP);
       applyDamage(b, tg, KNIFE_BACK, "knife", {side: side, wkey: "KNIFE_T", reward: 1500, note: " (нож, в спину)"});
       knowSound(tg, {x: b.x, y: b.y, z: b.z, tick: tick, team: b.team, src: b.id, kind: "hit"});
     }
@@ -343,3 +343,9 @@ function ambushTick(b, side){
   setPost(b, A.last, A.goal && SITES[A.goal] ? SITES[A.goal] : A.last, true, "backstab");   // доигрываю у сайта — взгляд на сайт
   return ambOn(b) || ambEnd(b, "задача выше");
 }
+
+// Запись состояния канала. Вызовы выполняются в исходной точке тика.
+function reloadSetAmmoFor(bot, value){ return bot._ammoFor = value; }
+function reloadSetReloading(bot, value){ return bot._reloading = value; }
+function reloadSetReloadUntil(bot, value){ return bot.reloadUntil = value; }
+function knifeSetStabT(bot, value){ return bot._stabT = value; }

@@ -31,7 +31,7 @@ function memStart(){
   siteHeat = {A:1, B:1}; tSiteHist = []; rmemSet({awp:[], aggro:[], rush:[], midDeath:[]}); nadeLandSet({A:[], B:[]}); lastTacticId = null;
   tacMem = {}; ctRead = []; roundHist = []; ctHabit = {}; tacHist = []; ctSetupHist = []; ctSetupMem = {}; aggrObs = {}; loadOppProfile();
 }
-function resetMatchMemory(){ MEM_BOX = {}; bots.forEach(function(b){ b._mistakes = 0; }); memStart(); }
+function resetMatchMemory(){ MEM_BOX = {}; bots.forEach(function(b){ setupSetMistakes(b, 0); }); memStart(); }
 // Профиль соперника: что команды выучили друг о друге за матч (тактики, что
 // сработало у CT, любимые углы каждого игрока, кто как агрессивен) — сохраняется
 // в конце матча; следующий матч стартует с этим знанием (вес половинный, дальше

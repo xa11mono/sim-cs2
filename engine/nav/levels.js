@@ -1,4 +1,4 @@
-// [хозяева: floorCover, floorViewTick, inFire, ladderTick, laddersBuild, navAtLevel, navOnFloor]
+// [хозяева: floorCover, floorViewTick, inFire, ladderTick, laddersBuild, navAtLevel, navOnFloor, navSetArea, navSetClimb, navSetFall, navSetLandAt, navSetZ]
 function fireDamageFor(sec){ var n = Math.floor(sec/FIRE_HIT_SEC), d = 0; for(var k=1;k<=n;k++) d += Math.min(FIRE_HIT_MAX, k); return d; }
 // (v438) загорелся молотов — у кого оставшийся путь проходит через огонь (точка пути или отрезок ближе радиуса огня), путь строится
 // заново (buildWaypointPath обходит огонь, FIRE_DETOUR, 050): раньше путь, построенный до огня, вёл прямо в него
@@ -195,7 +195,7 @@ function navDropTo(a, b){
 function ladderTick(bot){
   var C = bot._climb;
   if(C){
-    if(!bot.alive){ bot._climb = null; return false; }
+    if(!bot.alive){ navSetClimb(bot, null); return false; }
     var p = Math.min(1, (tick - C.t0)/C.dur), ph = climbPhase(C);
     // (v533) через стоянку: прыжок на промежуточный ящик, (v550) остановка на нём, прыжок наверх
     var A = ph.seg === 2 ? C.mid : C.from, B = ph.seg === 1 && C.mid ? C.mid : C.to, q = ph.q;
@@ -205,17 +205,17 @@ function ladderTick(bot){
     // по прыжку — плавный разгон и торможение (smoothstep), а не равномерный «лифт»; белая стрелка «прыжок» у подъёмов не ставится — в воздухе
     // видно ободок и тень (draw)
     if(C.jump){ C.air = ph.seg === 0 ? 0 : q;
-      if(C.mid && ph.seg !== 1 && !C.land1){ C.land1 = true; bot.baseX = bot.x = C.mid.x; bot.baseY = bot.y = C.mid.y; landSound(bot, false, "up"); } }
+      if(C.mid && ph.seg !== 1 && !C.land1){ C.land1 = true; bot.baseX = moveSetX(bot, C.mid.x); bot.baseY = moveSetY(bot, C.mid.y); landSound(bot, false, "up"); } }
     // (v551, владелец 11.11: «встаёт в точку и по крутой дуге — в другую, нет инерции») по горизонтали — с постоянной скоростью (инерция разбега),
     // без разгона с места и торможения (v550 — smoothstep)
     var e = q;
-    bot.baseX = bot.x = A.x + (B.x - A.x)*e; bot.baseY = bot.y = A.y + (B.y - A.y)*e; bot.z = A.z + (B.z - A.z)*e;
+    bot.baseX = moveSetX(bot, A.x + (B.x - A.x)*e); bot.baseY = moveSetY(bot, A.y + (B.y - A.y)*e); navSetZ(bot, A.z + (B.z - A.z)*e);
     // (v548, владелец 10.11: «в воздухе он должен по дуге поворачивать к приземлению; стрейф в воздухе — от клавиши и от того, куда смотришь»)
     // прыжок через щель — дугой с прогибом из демок (G.bow — доля длины, + — влево): квадратичная кривая, середина отходит на bow·L
     if(C.G && C.G.bow){ var Lc = DM.hypot(B.x - A.x, B.y - A.y), th = DM.atan2(B.y - A.y, B.x - A.x), k = 4*C.G.bow*Lc*e*(1 - e);
-      bot.baseX = bot.x = bot.x - DM.sin(th)*k; bot.baseY = bot.y = bot.y + DM.cos(th)*k; }
+      bot.baseX = moveSetX(bot, bot.x - DM.sin(th)*k); bot.baseY = moveSetY(bot, bot.y + DM.cos(th)*k); }
     bot.curSpeed = LADDER_SPEED/2.5;
-    if(p >= 1){ bot.z = C.to.z; bot._area = C.to.area; bot._climb = null; bot.path = []; bot.pathIdx = 0; if(C.jump) landLook(bot); if(C.jump) landSound(bot, false, C.gap && !(C.G && C.G.walkOk) ? "gap" : "up"); }   // (v549) щель, где про прыгают и с шага, — на шифте тихо
+    if(p >= 1){ navSetZ(bot, C.to.z); navSetArea(bot, C.to.area); navSetClimb(bot, null); bot.path = []; bot.pathIdx = 0; if(C.jump) landLook(bot); if(C.jump) landSound(bot, false, C.gap && !(C.G && C.G.walkOk) ? "gap" : "up"); }   // (v549) щель, где про прыгают и с шага, — на шифте тихо
     return true;
   }
   if(bot.z == null || !bot.path || bot.pathIdx >= bot.path.length) return false;
@@ -229,7 +229,7 @@ function ladderTick(bot){
     if(dC > GAP_NEAR){ var JWc = bot._jnw; if(!JWc || tick - JWc.last > 2) JWc = bot._jnw = {t0: tick, last: tick}; JWc.last = tick;
       if(dC > LADDER_NEAR || tick - JWc.t0 < JUMP_NEAR_WAIT){ bot.path.splice(bot.pathIdx, 0, [CU.lo.x, CU.lo.y, CU.lo.z]); return false; } }
     if(jumpFaceWait(bot, CU.Y ? CU.Y.yaw0*Math.PI/180 : null, CU.mid || CU.hi)) return true;
-    bot._climb = {t0: tick, dur: Math.max(8, Math.round((CU.sec || 0.5)*TICK_HZ)), from: {x: bot.baseX, y: bot.baseY, z: bot.z}, to: CU.hi, mid: CU.mid || null, jump: true, Y: CU.Y || null, a0: bot.facing};
+    navSetClimb(bot, {t0: tick, dur: Math.max(8, Math.round((CU.sec || 0.5)*TICK_HZ)), from: {x: bot.baseX, y: bot.baseY, z: bot.z}, to: CU.hi, mid: CU.mid || null, jump: true, Y: CU.Y || null, a0: bot.facing});
     bot.pathIdx++;
     return ladderTick(bot);
   }
@@ -237,7 +237,7 @@ function ladderTick(bot){
   if(G && Math.abs(wp[2] - G.b.z) < 1){
     if(DM.hypot(G.a.x - bot.baseX, G.a.y - bot.baseY) > GAP_NEAR){ bot.path.splice(bot.pathIdx, 0, [G.a.x, G.a.y, G.a.z]); return false; }
     if(jumpFaceWait(bot, G.yaw0*Math.PI/180, G.b)) return true;
-    bot._climb = {t0: tick, dur: Math.max(8, Math.round(G.sec*TICK_HZ)), from: {x: bot.baseX, y: bot.baseY, z: bot.z}, to: G.b, mid: null, jump: true, gap: true, G: G, a0: bot.facing};
+    navSetClimb(bot, {t0: tick, dur: Math.max(8, Math.round(G.sec*TICK_HZ)), from: {x: bot.baseX, y: bot.baseY, z: bot.z}, to: G.b, mid: null, jump: true, gap: true, G: G, a0: bot.facing});
     bot.pathIdx++;
     return ladderTick(bot);
   }
@@ -272,7 +272,7 @@ function ladderTick(bot){
   if(L.jump && jumpFaceWait(bot, L.Y ? L.Y.yaw0*Math.PI/180 : null, L.mid || L.far)) return true;
   var dz = Math.abs(L.far.z - L.near.z);
   // (v546) по лестнице шагом (bot.walking) — медленнее, как шаг (WALK_SPEED_FRAC), и бесшумно (шаги на лестнице — 540)
-  bot._climb = {t0: tick, dur: Math.max(8, Math.round((L.sec || dz/LADDER_SPEED/(!L.jump && bot.walking ? WALK_SPEED_FRAC : 1))*TICK_HZ)), from: {x: bot.baseX, y: bot.baseY, z: bot.z}, to: L.far, mid: L.mid || null, jump: !!L.jump, Y: L.Y || null, a0: bot.facing};
+  navSetClimb(bot, {t0: tick, dur: Math.max(8, Math.round((L.sec || dz/LADDER_SPEED/(!L.jump && bot.walking ? WALK_SPEED_FRAC : 1))*TICK_HZ)), from: {x: bot.baseX, y: bot.baseY, z: bot.z}, to: L.far, mid: L.mid || null, jump: !!L.jump, Y: L.Y || null, a0: bot.facing});
   if(bot.path[bot.pathIdx] && DM.hypot(bot.path[bot.pathIdx][0]-L.near.x, bot.path[bot.pathIdx][1]-L.near.y) < 4) bot.pathIdx++;
   return ladderTick(bot);
 }
@@ -379,9 +379,9 @@ function navFollowFloor(bot){
   var FA = bot._fall;
   if(FA){ var tf = (tick - FA.t0)/TICK_HZ, zf = FA.z0 - 0.5*FALL_G*tf*tf, g = navAt(bot.baseX, bot.baseY, FA.zt) || navArea(FA.area), gz = g ? navFloorZ(g, bot.baseX, bot.baseY) : FA.zt;
     bot._flx = bot.baseX; bot._fly = bot.baseY;
-    if(zf > gz){ bot.z = zf; return; }
-    bot._fall = null; bot.z = gz; if(g) bot._area = g.id;
-    if(FA.z0 - gz > LAND_SOUND_DROP){ bot._jump = {t:tick, up:false}; if(roundState === "live") landSound(bot); }
+    if(zf > gz){ navSetZ(bot, zf); return; }
+    navSetFall(bot, null); navSetZ(bot, gz); if(g) navSetArea(bot, g.id);
+    if(FA.z0 - gz > LAND_SOUND_DROP){ jumpSetJump(bot, {t:tick, up:false}); if(roundState === "live") landSound(bot); }
     if(FA.z0 - gz > JUMP_UP && bot.path && bot.pathIdx < bot.path.length){ bot.path = []; bot.pathIdx = 0; }
     return; }
   if(bot._flx === bot.baseX && bot._fly === bot.baseY) return;
@@ -412,19 +412,19 @@ function navFollowFloor(bot){
     // (v336, владелец: «прыгают на рандом, где не нужно, и палятся») прыжок и приземление — по полу у края (navStepDz),
     // а не по центрам участков: ступени и пандусы Mirage (Stairs, Palace, рампы) больше не «прыжок» со звуком
     var djz = (a0z && naz !== a0z) ? navStepDz(a0z, naz, bot.baseX, bot.baseY) : (naz === a0z ? 0 : dzz);
-    if(bot.z != null && djz < -18 && dzz < -18){ bot._fall = {z0: bot.z, t0: tick, area: naz.id, zt: naz.z}; bot._area = naz.id; return; }   // падение (выше)
-    if(djz > 18) bot._jump = {t:tick, up:true}; else if(djz < -LAND_SOUND_DROP) bot._jump = {t:tick, up:false};
+    if(bot.z != null && djz < -18 && dzz < -18){ navSetFall(bot, {z0: bot.z, t0: tick, area: naz.id, zt: naz.z}); navSetArea(bot, naz.id); return; }   // падение (выше)
+    if(djz > 18) jumpSetJump(bot, {t:tick, up:true}); else if(djz < -LAND_SOUND_DROP) jumpSetJump(bot, {t:tick, up:false});
     // (v322, М29) прыжок / приземление слышно и при тихом шаге, далеко (csdb.gg: «громкий звук приземления, слышно
     // издалека», без числа) — радиус как у бега: проектное число
     // (v335, владелец: «звук прыжка в одном месте, а он в другом; приземление должно его перебивать») звучит только
     // приземление — там, где игрок приземлился: спрыгнул вниз — сразу; запрыгнул вверх — через LAND_DELAY с (полёт)
     if(roundState === "live" && djz < -LAND_SOUND_DROP) landSound(bot);
-    else if(roundState === "live" && djz > 18) bot._landAt = tick + Math.round(LAND_DELAY*TICK_HZ);
+    else if(roundState === "live" && djz > 18) navSetLandAt(bot, tick + Math.round(LAND_DELAY*TICK_HZ));
     // (v333) сменил этаж (спуск, лестница) — путь, построенный с прежнего этажа, пересчитывается с нового
     if(Math.abs(dzz) > JUMP_UP && bot.path && bot.pathIdx < bot.path.length){ bot.path = []; bot.pathIdx = 0; }
     // (Г1, 04.11, разбор отметок п.15) высота бота — пол участка под ногами (плоскость по высотам углов, navFloorZ), а не одна высота на
     // весь участок: на ровном Top Mid стык участков −205 / −179 давал скачок +26 за тик (сторож: 53–74 таких скачка на раунд)
-    bot.z = navFloorZ(naz, bot.baseX, bot.baseY); bot._area = naz.id; }
+    navSetZ(bot, navFloorZ(naz, bot.baseX, bot.baseY)); navSetArea(bot, naz.id); }
 }
 // (v403) как далеко от пола своего уровня (± JUMP_UP) точка: 0 — на полу, дальше NAV_OFF_R — NAV_OFF_R+1 (шаг 2 ед. карты)
 var NAV_OFF_R = 24;   // проектное число: дальше бот вне пола не бывает (перенос navSnap — через 0,5 с)
@@ -576,3 +576,10 @@ function inFire(x, y, z){
 }
 // (17.11, перестройка — модули) запись извне — только через хозяина (импорт модуля только для чтения): лестницы сбрасывает пересборка навмеша (paths)
 function laddersReset(){ LADDERS = null; }
+
+// Запись состояния канала. Вызовы выполняются в исходной точке тика.
+function navSetArea(bot, value){ return bot._area = value; }
+function navSetClimb(bot, value){ return bot._climb = value; }
+function navSetFall(bot, value){ return bot._fall = value; }
+function navSetLandAt(bot, value){ return bot._landAt = value; }
+function navSetZ(bot, value){ return bot.z = value; }

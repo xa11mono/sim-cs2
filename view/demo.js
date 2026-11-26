@@ -28,7 +28,7 @@ function dvStart(i){
   var wkey = {}; Object.keys(WEAPONS).forEach(function(k){ wkey[WEAPONS[k].name] = k; });
   Object.keys(DEMOV.BOT).forEach(function(s){ var x = DEMOV.BOT[s], pr = null, sc = null;
     P[s].track.forEach(function(r){ var k = wkey[r[7]]; if(!k) return; if(WEAPONS[k].slot === "secondary") sc = k; else pr = k; });
-    x.primary = pr; if(sc) x.secondary = sc; x.weapon = WEAPONS[pr || x.secondary]; x._ammoFor = null; x.armor = true; x.helmet = true; x._dvName = P[s].name; });
+    equipmentSetPrimary(x, pr); if(sc) equipmentSetSecondary(x, sc); equipmentSetWeapon(x, WEAPONS[pr || x.secondary]); reloadSetAmmoFor(x, null); damageSetArmor(x, true); damageSetHelmet(x, true); x._dvName = P[s].name; });
   DEMOV.on = true; dvPlace(); clockPause(false);
   logEvent("раунд из демки: " + R.demo + " р" + R.num + " — игроки по демке, боты решают («тень»)");
   dvRender(true);
@@ -39,7 +39,7 @@ function dvTick(){
   var R = DEMOV.R, t = tick - DEMOV.t0, B = DEMOV.BOT;
   if(t >= R.len){ DEMOV.on = false; clockPause(true); logEvent("раунд из демки кончился"); dvRender(true); return; }
   while(DEMOV.ei < R.ev.length && R.ev[DEMOV.ei][1] <= t){ var e = R.ev[DEMOV.ei++], A = B[e[2]];
-    if(e[0] === "shot" && A && A.alive){ A.lastShotTick = tick; dvHearShot(A); }
+    if(e[0] === "shot" && A && A.alive){ shotSetLastShotTick(A, tick); dvHearShot(A); }
     else if(e[0] === "hurt" && A && B[e[3]] && B[e[3]].alive){ var V = B[e[3]]; knowHear(V, {x: A.x, y: A.y, tick: tick, team: A.team, src: A.id, kind: "hit"}); V._shotAtT = tick; V._shotAtBy = A; }
     else if(e[0] === "death" && B[e[3]] && B[e[3]].alive){ DEMOV.allow = true; applyDamage(A || B[e[3]], B[e[3]], 999, "bullet", {}); DEMOV.allow = false; }
     else if(e[0] === "nade" && e[3] === "smoke") smokes.push({x: e[4], y: e[5], born: tick, until: tick + NADE.smoke.life, team: A ? A.team : "T"});
@@ -50,7 +50,7 @@ function dvTick(){
 }
 function dvPlace(){ var t = tick - DEMOV.t0;
   Object.keys(DEMOV.BOT).forEach(function(s){ var x = DEMOV.BOT[s]; if(!x.alive) return; var q = dvAt(s, t), q1 = dvAt(s, t - 8);
-    x.x = x.baseX = x.px = q[1]; x.y = x.baseY = x.py = q[2]; lookFace(x, q[4], "demo"); moveSpeed(x, Math.hypot(q[1]-q1[1], q[2]-q1[2]) / (8/TICK_HZ), "demo"); if(q[6] > 0) x.hp = q[6]; }); }
+    moveSetX(x, x.baseX = x.px = q[1]); moveSetY(x, x.baseY = x.py = q[2]); lookFace(x, q[4], "demo"); moveSpeed(x, Math.hypot(q[1]-q1[1], q[2]-q1[2]) / (8/TICK_HZ), "demo"); if(q[6] > 0) damageSetHp(x, q[6]); }); }
 // выстрел демки слышат враги — как в игре (shoot: слышимость по прямой / сквозь стены, место — с ошибкой hearPos)
 function dvHearShot(sh){ bots.forEach(function(o){ if(!o.alive || o.team === sh.team) return; var dG = Math.hypot(o.x-sh.x, o.y-sh.y);
   var hearR = hasLOS(o.x, o.y, sh.x, sh.y, o.z, sh.z) ? GUN_HEAR_OPEN : GUN_HEAR_WALL; if(dG >= hearR) return;

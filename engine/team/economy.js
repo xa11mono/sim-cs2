@@ -1,4 +1,4 @@
-// [хозяева: buyForPlayer, decideRoundType0, smgFor] ---------- rounds ----------
+// [хозяева: buyForPlayer, decideRoundType0, economySetMoney, smgFor] ---------- rounds ----------
 var roundNum = 1, score = {CT:0, T:0};
 var roundState = "live";
 var roundEndTime = -1;
@@ -47,7 +47,7 @@ function payRoundEconomy(winner, reason){
       if(b.team !== team) return;
       var inc = income;
       if(!won && team === "T" && reason === "time" && b.alive) inc = 0;
-      b.money = Math.min(MAX_MONEY, b.money + inc);
+      economySetMoney(b, Math.min(MAX_MONEY, b.money + inc));
       // (Г1) то же — в подсчёте соперника: траты (увиденное оружие, если не принесено) и доход по правилам
       var R = ecoKnowRow(team === "CT" ? "T" : "CT", b.id), spend = R.gun && R.gun !== R.carry ? WEAPONS[R.gun].price : 0;
       R.m = Math.min(MAX_MONEY, Math.max(0, R.m - spend) + inc); R.carry = b.alive ? (R.gun || R.carry) : null; R.gun = null;
@@ -208,7 +208,7 @@ function canSell(b, key){
 }
 function sellItem(b, key){
   if(!canSell(b, key)) return false;
-  b.money += WEAPONS[key].price; delete b._bought[key];
+  economySetMoney(b, b.money + (WEAPONS[key].price)); delete b._bought[key];
   if(roundState === "freeze") FREEZE_FX.push({kind:"sell", from:b.id, key:key, t:tick});
   logEvent(b.id+" продал "+WEAPONS[key].name+" (+$"+WEAPONS[key].price+")");
   return true;
@@ -216,13 +216,13 @@ function sellItem(b, key){
 function buyItem(b, key){
   var w = WEAPONS[key];
   if(b.money < w.price) return false;
-  b.money -= w.price;
+  economySetMoney(b, b.money - (w.price));
   // купил основное поверх старого: купленное в этом раунде — продаёт, иначе старое падает под ноги (как в CS2)
   if(w.slot === "primary" && b.primary && b.primary !== key && WEAPONS[b.primary] && !sellItem(b, b.primary)){
     groundWeapons.push({key:b.primary, x:b.x + 6, y:b.y + 6, t:tick, from:b.id});
     FREEZE_FX.push({kind:"throw", from:b.id, key:b.primary, t:tick});
   }
-  if(w.slot === "primary") b.primary = key; else b.secondary = key;
+  if(w.slot === "primary") equipmentSetPrimary(b, key); else equipmentSetSecondary(b, key);
   (b._bought || (b._bought = {}))[key] = roundNum;
   return true;
 }
@@ -230,11 +230,11 @@ function buyItem(b, key){
 // если прочность ниже порога ARMOR_REBUY (оценка аналитики: фулл 90, тесный фулл 60, форс/хаф 40; на эко не докупают).
 // Каска $350 — только к целой (sites-spots) броне, иначе сначала докупка (источники расходятся; так в вики CS)
 var ARMOR_REBUY = {full:90, tight:60, force:40, half:40, eco:0, pistol:1};
-function armorHpOf(b){ if(b.armorHp == null) b.armorHp = b.armor ? 100 : 0; return b.armorHp; }
+function armorHpOf(b){ if(b.armorHp == null) damageSetArmorHp(b, b.armor ? 100 : 0); return b.armorHp; }
 function buyArmor(b, withHelmet, below){
   var hp = armorHpOf(b); if(below == null) below = 1;
-  if((hp < below || (withHelmet && !b.helmet && hp < 100)) && b.money >= ARMOR_PRICE){ b.money -= ARMOR_PRICE; b.armor = true; b.armorHp = 100; }
-  if(withHelmet && b.armor && b.armorHp >= 100 && !b.helmet && b.money >= HELMET_UPGRADE){ b.money -= HELMET_UPGRADE; b.helmet = true; }
+  if((hp < below || (withHelmet && !b.helmet && hp < 100)) && b.money >= ARMOR_PRICE){ economySetMoney(b, b.money - (ARMOR_PRICE)); damageSetArmor(b, true); damageSetArmorHp(b, 100); }
+  if(withHelmet && b.armor && b.armorHp >= 100 && !b.helmet && b.money >= HELMET_UPGRADE){ economySetMoney(b, b.money - (HELMET_UPGRADE)); damageSetHelmet(b, true); }
 }
 // каска по таблице (ответ Claude, JSON helmet_decision_table): T на фулле — всегда (M4 в каску с одного выстрела не убивает);
 // на форсе/хафе против фулла CT — без каски. CT против фулла T (AK в голову убивает и в каске) — на фулле берут, но каску
@@ -281,28 +281,28 @@ function buyFullKit(b, idx){
     if(c === "top") P.top = false;
     else if(c === "helmet") P.helmet = false;
     else if(c === "kit") P.kit = false;
-    else if(c === "awp"){ if(P.weapon === WEAPONS.AWP) P.weapon = cur && cur.tier >= 6 ? null : rifle; }
-    else if(c === "rifle"){ if(P.weapon === rifle && !(cur && cur.tier >= 5)) P.weapon = cheap; }
+    else if(c === "awp"){ if(P.weapon === WEAPONS.AWP) equipmentSetWeapon(P, cur && cur.tier >= 6 ? null : rifle); }
+    else if(c === "rifle"){ if(P.weapon === rifle && !(cur && cur.tier >= 5)) equipmentSetWeapon(P, cheap); }
     else dropN(c);
   }
   // покупка: оружие, броня, каска, кит, гранаты — что по деньгам (если и после всех срезов не хватает — по порядку)
   if(P.weapon && b.money >= P.weapon.price) buyItem(b, P.weapon.key);
   if(!b.primary || WEAPONS[b.primary].tier < 5){ var bp = bestPrimary(b, 99999, ARMOR_PRICE); if(bp) buyItem(b, bp.key); }
   buyArmor(b, P.helmet, P.refill || P.top ? 101 : 1);
-  if(P.kit && b.money >= 400){ b.money -= 400; b.kit = true; }
+  if(P.kit && b.money >= 400){ economySetMoney(b, b.money - (400)); equipmentSetKit(b, true); }
   P.nades.forEach(function(n){ var pr = nadePrice(n.t, b.team), tot = b.nades.smoke + b.nades.flash + b.nades.he + b.nades.molly;
-    if(tot < 4 && b.money >= pr && (n.t === "flash" ? b.nades.flash < 2 : b.nades[n.t] < 1)){ b.money -= pr; b.nades[n.t]++; npBought(b, n.t); } });
+    if(tot < 4 && b.money >= pr && (n.t === "flash" ? b.nades.flash < 2 : b.nades[n.t] < 1)){ economySetMoney(b, b.money - (pr)); nadeChangeStock(b.nades, n.t, 1); npBought(b, n.t); } });
   // срезанное, на что после замены оружия (AK → Galil) хватает остатка, — докупает по тому же плану
   NPL.forEach(function(t){ var pr = nadePrice(t, b.team), tot = b.nades.smoke + b.nades.flash + b.nades.he + b.nades.molly;
     var need = NPL.filter(function(x){ return x === t; }).length;
-    if(tot < 4 && b.money >= pr && b.nades[t] < need){ b.money -= pr; b.nades[t]++; npBought(b, t); } });
+    if(tot < 4 && b.money >= pr && b.nades[t] < need){ economySetMoney(b, b.money - (pr)); nadeChangeStock(b.nades, t, 1); npBought(b, t); } });
   // (v438, док владельца 27.10: «куча денег, а гранаты до конца не закупают»; замер: 1,7–2,1 гранаты на игрока) план — это сколько про
   // БРОСАЮТ за раунд (MAP.pro.nadesBy); покупают больше: полный закуп «с гранатами» — ≈ $5000 T / $6000 CT (ProSettings, гайд по экономике
   // CS2; docs/PRO_PLAY.md) — после оружия, брони и кита это ≈ 4 гранаты. Остаток денег сверх того, что нужно на фулл в следующем раунде
   // при поражении, — до 4 гранат по набору роли (NADE_WISH_PRO), без плана (момент «сейчас», своя зона: npBought)
   var keepF = Math.max(0, fullNeed(b) - nextLossIncome(b.team)), wishF = NADE_WISH_PRO[b.tRole] || NADE_WISH[b.tRole] || [];
   wishF.forEach(function(t){ var pr = nadePrice(t, b.team), tot = b.nades.smoke + b.nades.flash + b.nades.he + b.nades.molly;
-    if(tot < 4 && b.money - pr >= keepF && (t === "flash" ? b.nades.flash < 2 : b.nades[t] < 1)){ b.money -= pr; b.nades[t]++; npBought(b, t); } });
+    if(tot < 4 && b.money - pr >= keepF && (t === "flash" ? b.nades.flash < 2 : b.nades[t] < 1)){ economySetMoney(b, b.money - (pr)); nadeChangeStock(b.nades, t, 1); npBought(b, t); } });
   b._fullKit = roundNum;
 }
 // лучшая основная, которую можно купить, оставив `keep` денег; не ниже того, что уже есть
@@ -330,10 +330,10 @@ function buyForPlayer(b, type, idx){
     else if(b.team === "T" && hP < 0.07) buyItem(b, "P250");
     // (v293, Э-пункт, владелец 14.10: «на пистолетке не покупают гранаты») кому команда отдала гранату — берёт её вместо кевлара
     var PN = teamNadePlan(b.team, "pistol")[b.id];
-    if(PN){ if(!b.nades) b.nades = emptyNades(); PN.forEach(function(t){ var pr = nadePrice(t, b.team); if(b.money >= pr){ b.money -= pr; b.nades[t]++; npBought(b, t); } }); }
+    if(PN){ if(!b.nades) nadeSetNades(b, emptyNades()); PN.forEach(function(t){ var pr = nadePrice(t, b.team); if(b.money >= pr){ economySetMoney(b, b.money - (pr)); nadeChangeStock(b.nades, t, 1); npBought(b, t); } }); }
     else if(!b.secondary || b.secondary === (b.team === "CT" ? "USP" : "GLOCK")) buyArmor(b, false, ARMOR_REBUY.pistol);
   } else if(type === "full"){
-    if(!b.nades) b.nades = emptyNades();
+    if(!b.nades) nadeSetNades(b, emptyNades());
     buyFullKit(b, idx);
   } else if(type === "force" && teamEco[b.team].antiEcoSmg){
     // против эко: броня + SMG ($600 за килл), винтовку — только если и так богат
@@ -361,7 +361,7 @@ function buyForPlayer(b, type, idx){
     buyArmor(b, helmetWanted(b, "force"), ARMOR_REBUY.force);
     // (v469, п.17) на форсе — один кит на команду: тот, у кого больше всех денег (ответ про-аналитика 29.10); раньше — каждый второй
     if(b.team === "CT" && !b.kit && b.money >= 400 && !bots.some(function(o){ return o.team === "CT" && o !== b && o.kit; }) &&
-       !bots.some(function(o){ return o.team === "CT" && o !== b && o.money > b.money; })){ b.money -= 400; b.kit = true; }
+       !bots.some(function(o){ return o.team === "CT" && o !== b && o.money > b.money; })){ economySetMoney(b, b.money - (400)); equipmentSetKit(b, true); }
   } else if(type === "half"){
     // хаф-бай: броня + SMG/дешёвая винтовка, но оставляем деньги на следующий раунд
     var keep = teamEco[b.team].bonus ? 0 : Math.max(0, fullNeed(b) - nextLossIncome(b.team));
@@ -377,9 +377,9 @@ function buyForPlayer(b, type, idx){
     if(ep && b.money - WEAPONS[ep].price >= keepE) buyItem(b, ep);
     else if(ep && ep !== "P250" && b.money - 300 >= keepE) buyItem(b, "P250");
   }
-  if(!b.nades) b.nades = emptyNades();
+  if(!b.nades) nadeSetNades(b, emptyNades());
   buyNades(b, type);
-  b.weapon = WEAPONS[b.primary || b.secondary];
+  equipmentSetWeapon(b, WEAPONS[b.primary || b.secondary]);
   return before - b.money;
 }
 
@@ -393,7 +393,7 @@ function awpSwap(team){
   var sn = mates.filter(function(b){ return (b.tRole === "awp" || (team === "CT" && b.tRole === "mid")) && b.primary !== "AWP"; })[0];
   var hold = mates.filter(function(b){ return b !== sn && b.primary === "AWP" && !(b.tRole === "awp" || (team === "CT" && b.tRole === "mid")); })[0];
   if(!sn || !hold) return;
-  var give = sn.primary || null; sn.primary = "AWP"; hold.primary = give;
+  var give = sn.primary || null; equipmentSetPrimary(sn, "AWP"); equipmentSetPrimary(hold, give);
   logEvent(hold.id+" отдал AWP "+sn.id+(give ? ", взял "+WEAPONS[give].name : ""));
   FREEZE_FX.push({kind:"drop", from:hold.id, to:sn.id, key:"AWP", t:tick});
   if(give) FREEZE_FX.push({kind:"drop", from:sn.id, to:hold.id, key:give, t:tick});
@@ -409,7 +409,7 @@ function teamDrops(team){
     var rich = mates.filter(function(m){ return m !== poor && m.money - rifle.price >= fullNeed(m); })
                     .sort(function(a,b){ return b.money - a.money; })[0];
     if(!rich) return;
-    rich.money -= rifle.price; poor.primary = rifle.key;
+    economySetMoney(rich, rich.money - (rifle.price)); equipmentSetPrimary(poor, rifle.key);
     logEvent(rich.id+" дропнул "+rifle.name+" → "+poor.id);
     FREEZE_FX.push({kind:"drop", from:rich.id, to:poor.id, key:rifle.key, t:tick});   // (v321, М14) видно на радаре
   });
@@ -431,9 +431,12 @@ function teamAwp(team, type){
   if(!awper || awper.primary === "AWP") return;
   if(mates.some(function(m){ return m.primary === "AWP"; })) return;   // (v271) AWP у команды уже есть (подобрал) — вторую не берут: у про две AWP в 1% закупов
   var P = WEAPONS.AWP.price;
-  if(awper.money >= P + ARMOR_PRICE){ awper.money -= P; awper.primary = "AWP"; return; }
+  if(awper.money >= P + ARMOR_PRICE){ economySetMoney(awper, awper.money - (P)); equipmentSetPrimary(awper, "AWP"); return; }
   var rich = mates.filter(function(m){ return m !== awper && m.money - P >= fullNeed(m); })
                   .sort(function(a,b){ return b.money - a.money; })[0];
-  if(rich){ rich.money -= P; awper.primary = "AWP"; logEvent(rich.id+" скинул AWP → "+awper.id); FREEZE_FX.push({kind:"drop", from:rich.id, to:awper.id, key:"AWP", t:tick}); }
+  if(rich){ economySetMoney(rich, rich.money - (P)); equipmentSetPrimary(awper, "AWP"); logEvent(rich.id+" скинул AWP → "+awper.id); FREEZE_FX.push({kind:"drop", from:rich.id, to:awper.id, key:"AWP", t:tick}); }
 }
 var BUY_SHOW = {}, BUY_SHOW_FIRST = [1.05, 2, 4.27, 8.5, 12.92], BUY_SHOW_GAP = 0.35;   // (v323, М28) числа закупа по очереди — описание у buyShowStart
+
+// Запись состояния канала. Вызовы выполняются в исходной точке тика.
+function economySetMoney(bot, value){ return bot.money = value; }

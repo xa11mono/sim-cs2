@@ -1,4 +1,4 @@
-// [хозяева: —] ---- эндгейм: у врага 1–2 живых, и известно, где он ----
+// [хозяева: huntSetEgC] ---- эндгейм: у врага 1–2 живых, и известно, где он ----
 // Раньше каждый продолжал стоять на своей точке по роли и чекать углы, где
 // врага уже быть не может. Теперь: кто рядом (≤650) — держит угол на него,
 // кто далеко — подтягивается к нему, на линию, откуда его видно. Носитель
@@ -40,7 +40,7 @@ function egCutPoint(b, lead, kp){
 var EG_BOMB_SITE_R = 700;   // (v555) проектное число: ед. — носитель, замеченный ближе к центру сайта, идёт ставить туда
 function endgameBrain(){
   // (v146) после планта охоты нет: у T — пост-плант, у CT — ретейк/сейв
-  if(bomb && bomb.state === "planted") bots.forEach(function(o){ if(o.alive && o.post && o.post.tag === "endhunt"){ o._egC = null; clearPost(o); } });
+  if(bomb && bomb.state === "planted") bots.forEach(function(o){ if(o.alive && o.post && o.post.tag === "endhunt"){ huntSetEgC(o, null); clearPost(o); } });
   if(roundState !== "live" || (bomb && bomb.state === "planted")) return;
   ["CT","T"].forEach(function(team){
     var foe = team === "CT" ? "T" : "CT";
@@ -50,7 +50,7 @@ function endgameBrain(){
     // стороне CT: без перевеса (1 на 1, 2 на 2) CT не ищут последних по карте, а держат подходы к сайтам — роль / клатч CT (ctClutch, ct-early);
     // охота — только большинством. T время против них — им идти, как было
     // охоту, начатую с перевесом, снимает тот же хозяин, когда перевеса нет (прогон 208, Ancient: «охота не пускает» другие задачи CT 8–15 с)
-    if(team === "CT" && mine.length <= nFoe){ mine.forEach(function(o){ if(o.post && o.post.tag === "endhunt"){ o._egC = null; clearPost(o); } }); return; }
+    if(team === "CT" && mine.length <= nFoe){ mine.forEach(function(o){ if(o.post && o.post.tag === "endhunt"){ huntSetEgC(o, null); clearPost(o); } }); return; }
     if(team === "CT" && teamTac.CT && teamTac.CT.saving) return;
     var sig = teamIntel[team].sig, K = null;
     for(var i=sig.length-1; i>=0; i--){
@@ -163,7 +163,7 @@ function endgameBrain(){
             if(!b._egEnd || b._egEnd.round !== roundNum) b._egEnd = {round:roundNum, t:tick};
             postKeep(b); return;
           }
-          b._egC = null; b._egEnd = null; clearPost(b);
+          huntSetEgC(b, null); b._egEnd = null; clearPost(b);
         }
         return;
       }
@@ -180,7 +180,7 @@ function endgameBrain(){
         var fsp = flankSpot(b, mC, kp);
         if(!fsp) b._fsFail = {id: K.id, t: tick};
         if(fsp) flankClaim(b, K.id, true);
-        if(fsp){ b._egC = {gk:gk, round:roundNum, spot:fsp, look:{x:kp.x, y:kp.y}, fl:K.id};
+        if(fsp){ huntSetEgC(b, {gk:gk, round:roundNum, spot:fsp, look:{x:kp.x, y:kp.y}, fl:K.id});
           voiceLog(team, "flank"+b.id, b.id, "захожу с фланга на "+K.id); }
       }
       if(b._egC && b._egC.round === roundNum && b._egC.fl === K.id && mC){ setPost(b, b._egC.spot, {x:kp.x, y:kp.y}, true, "endhunt"); return; }
@@ -190,7 +190,7 @@ function endgameBrain(){
         var farC = walk({x: kp.x + (b.x-kp.x)*Math.min(0.9, 420/Math.max(1, d)), y: kp.y + (b.y-kp.y)*Math.min(0.9, 420/Math.max(1, d))});
         var spots = d < 650 ? pickSpots("eg:"+b.id+":"+gk, {x:b.x, y:b.y}, 2, {rMax:120, minGap:40, see:[kp]}).filter(function(q){ return hasLOS(q.x, q.y, kp.x, kp.y); }) : [];
         if(!spots.length) spots = pickSpots("egf:"+b.id+":"+gk, farC || {x:b.x, y:b.y}, 2, {rMax:200, minGap:40, see:[kp]});
-        b._egC = {gk:gk, round:roundNum, spot:spots[0], look:{x:kp.x, y:kp.y}};
+        huntSetEgC(b, {gk:gk, round:roundNum, spot:spots[0], look:{x:kp.x, y:kp.y}});
       }
       if(BAL.egPair && egWaitPartner(b, mine, kp)) return;
       setPost(b, b._egC.spot, b._egC.look, true, "endhunt");
@@ -318,3 +318,6 @@ function ctLandPunish(b){
   voiceLog("CT", "lp"+b.id+h.tick, b.id, "спрыгнул один — "+calloutName(h.x, h.y)+", выхожу на него");
   return true;
 }
+
+// Запись состояния канала. Вызовы выполняются в исходной точке тика.
+function huntSetEgC(bot, value){ return bot._egC = value; }

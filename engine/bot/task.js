@@ -1,4 +1,4 @@
-// [хозяева: clearPost, clearPostDo, detourOk, placeResetPost, placeStance, routeDrop, routeTick, setPost, setPostDo, startRoute, taskDetourKind, taskProp, updatePost] ---------- посты: "куда встать и куда смотреть" ----------
+// [хозяева: clearPost, clearPostDo, detourOk, placeResetPost, placeStance, routeDrop, routeTick, setPost, setPostDo, startRoute, taskDetourKind, taskProp, taskSetAtPost, taskSetDetour, taskSetFillLock, taskSetProbeLock, taskSetSetupLook, updatePost] ---------- посты: "куда встать и куда смотреть" ----------
 // Когда у бота в патруле есть пост — он идёт к нему, а дойдя (hold) стоит и
 // смотрит в look. Бой (engage/hold/retreat) по-прежнему перебивает всё.
 // ---- маршруты по названиям зон ----
@@ -267,7 +267,7 @@ function taskKeepUntil(b, tag){
   if(f[1] === "tradeR"){ var L = b._tradeLock; if(!L) return 0;   // окно размена 3,5 с; кончилось, а убийцу не сняли — туда же второй раз не лезет
     if(tick >= L.until){ knowAvoidPeek(b, L.at, 6); tradeEnd(b); return 0; } return L.until; }
   if(f[1] === "fill"){ var FL = b._fillLock; if(!FL) return 0;   // ≤ 15 с, пока план не сдвинулся (T — смена фазы, CT — «играем ретейк»), бомба
-    if(tick >= FL.until || (bomb && bomb.state === "planted") || (FL.team === "T" ? !(teamTac.T && teamTac.T.phase === FL.ph) : !!(teamTac.CT && teamTac.CT.playRetake))){ b._fillLock = null; return 0; }
+    if(tick >= FL.until || (bomb && bomb.state === "planted") || (FL.team === "T" ? !(teamTac.T && teamTac.T.phase === FL.ph) : !!(teamTac.CT && teamTac.CT.playRetake))){ taskSetFillLock(b, null); return 0; }
     return FL.until; }
   if(f[1] === "repos") return b._reposUntil || 0;
   return b._rebal && b._rebal.round === roundNum ? Infinity : 0;   // ребаланс — до конца раунда
@@ -286,7 +286,7 @@ function taskAlive(b){ var T = b._task; return !!T && T.round === roundNum && (t
 // можно ли сейчас поставить задачу tag (то же решение, что примет setPost) — для механик, которые решают, затевать ли своё
 function taskCanSet(b, tag){
   var D = b._detour;
-  if(D && (D.round !== roundNum || tick >= D.until || !b.alive)) D = b._detour = null;
+  if(D && (D.round !== roundNum || tick >= D.until || !b.alive)) D = taskSetDetour(b, null);
   if(D){ if(taskTagB(tag) === D.tb) return true;   // (v518a) отклонение уточняет свою точку
     if(taskLevel(tag) <= D.lv) return false; }      // главная задача ждёт конца отклонения (не перебивает его каждый тик)
   var T = b._task; if(!taskAlive(b)) return true;
@@ -341,7 +341,7 @@ function taskCanTry(b, tag){ if(taskCanSet(b, tag)) return true; var dk = taskDe
 // начать отклонение: задача tag на sec секунд, главная задача (её уровень) ждёт
 function detourStart(b, kind, tag, sec){
   var lv = taskAlive(b) ? b._task.lv : 1;
-  b._detour = {kind:kind, tb:taskTagB(tag), lv:Math.max(lv, taskLevel(tag)), until: tick + Math.round(sec*TICK_HZ), round:roundNum};
+  taskSetDetour(b, {kind:kind, tb:taskTagB(tag), lv:Math.max(lv, taskLevel(tag)), until: tick + Math.round(sec*TICK_HZ), round:roundNum});
 }
 // механика держит свою текущую задачу (пост не меняется — подтвердить, что затея ещё идёт)
 function postKeep(b){ if(b.post && b._task && b._task.tag === b.post.tag) b._task.t = tick; }
@@ -466,7 +466,7 @@ function setPostDo(b, pt, look, hold, tag, spreadIdx){
   (b._postSets || (b._postSets = [])).push(tick); if(b._postSets.length > 12) b._postSets.shift();   // (v570) диагностика для 545 (игра не читает)
   b.post = {id:id, x:x, y:y, z:(pt.z != null ? pt.z : navOnlyZ(x, y)), look:look||null, hold:hold, tag:tag, src:{x:pt0.x, y:pt0.y}};   // (v546) z — высота точки, если задана, или пол точки, если он там один (ящик); иначе null
   if(psn) b.post.pro = psn.sp;
-  b.atPost = false;
+  taskSetAtPost(b, false);
   if(b.state === "patrol"){ movePath(b, [], "post", 0); }
   return {ok: true, why: "поставлен", lv: lv};
 }
@@ -517,7 +517,7 @@ function afterTaskPick(b, pt){
   return {pt:{x:A.x, y:A.y}, look:{x:th.x, y:th.y}};
 }
 // механика сама сняла свою точку — её задача кончилась (следующая ставится без ожидания)
-function clearPostDo(b){ b._task = null; if(b._detour && b.post && taskTagB(b.post.tag) === b._detour.tb) b._detour = null; if(b.post){ b.post = null; b.atPost = false; if(b.state==="patrol"){ movePath(b, [], "post", 0); } } }
+function clearPostDo(b){ b._task = null; if(b._detour && b.post && taskTagB(b.post.tag) === b._detour.tb) taskSetDetour(b, null); if(b.post){ b.post = null; taskSetAtPost(b, false); if(b.state==="patrol"){ movePath(b, [], "post", 0); } } }
 // (17.11, перестройка — модули) запись в журнал решений (trace) — здесь, у хозяина (было: 645 подменял функцию обёрткой)
 function clearPost(b){
   if(b && b.post) dlog(b, "место", "снята задача «" + b.post.tag + "»"); return clearPostDo.apply(this, arguments);
@@ -529,9 +529,9 @@ function placeStance(b, c, why){ b.crouching = c; b._stanceWhy = why; }
 function placeResetPost(b){ b.post = null; }
 function placeResetTask(b){ b._task = null; }
 function updatePost(b){
-  if(!b.post || b.state !== "patrol"){ b.atPost = false; return; }
+  if(!b.post || b.state !== "patrol"){ taskSetAtPost(b, false); return; }
   var ep = fireSafe(b.post, b);
-  if(ep !== b.post && b.atPost && DM.hypot(ep.x-b.baseX, ep.y-b.baseY) > 34){ b.atPost = false; movePath(b, [], "post", 0); }
+  if(ep !== b.post && b.atPost && DM.hypot(ep.x-b.baseX, ep.y-b.baseY) > 34){ taskSetAtPost(b, false); movePath(b, [], "post", 0); }
   var d = DM.hypot(ep.x-b.baseX, ep.y-b.baseY);
   if(b.post.hold){
     // точка планта: "дошёл" — это именно внутри зоны сайта, а не в 34px от точки
@@ -555,7 +555,7 @@ function updatePost(b){
       else if(d < (b.post.tag === "lineup" ? RUN_NEAR : 70) && tick - b._apT > 90){ var lp = b.path && b.path.length ? b.path[b.path.length-1] : null;
         if((!lp || lp[2] == null || b.z == null || Math.abs(lp[2] - b.z) <= 40) && (b.post.z == null || b.z == null || Math.abs(b.post.z - b.z) <= 40)) arrived = true; }   // (v546) и не под постом на ящике
     }
-    if(!b.atPost && arrived){ b.atPost = true; movePath(b, [], "post", 0);
+    if(!b.atPost && arrived){ taskSetAtPost(b, true); movePath(b, [], "post", 0);
       // встал с AWP на угол — щелчок зума слышно рядом (≤200 по прямой, ≤120 за стеной)
       if(b.weapon && b.weapon.key === "AWP" && roundState === "live" && tick - (b._zoomTick||-9999) > 3*TICK_HZ){
         b._zoomTick = tick;
@@ -564,7 +564,14 @@ function updatePost(b){
         });
       }
     }
-    else if(b.atPost && (d > 80 || (b.post.tag === "defuse" && d >= DEFUSE_R - 4))){ b.atPost = false; movePath(b, [], "post", 0); }
-  } else b.atPost = false;
+    else if(b.atPost && (d > 80 || (b.post.tag === "defuse" && d >= DEFUSE_R - 4))){ taskSetAtPost(b, false); movePath(b, [], "post", 0); }
+  } else taskSetAtPost(b, false);
 }
 
+
+// Запись состояния канала. Вызовы выполняются в исходной точке тика.
+function taskSetDetour(bot, value){ return bot._detour = value; }
+function taskSetFillLock(bot, value){ return bot._fillLock = value; }
+function taskSetProbeLock(bot, value){ return bot._probeLock = value; }
+function taskSetAtPost(bot, value){ return bot.atPost = value; }
+function taskSetSetupLook(post, value){ return post.setupLook = value; }

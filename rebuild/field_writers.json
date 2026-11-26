@@ -26,9 +26,7 @@
    "look-peek · prePeekDecide"
   ],
   "_aimFix": [
-   "tick-step · stepBot",
-   "turn · lookTick",
-   "turn · lookTrack"
+   "turn · lookSetAimFix"
   ],
   "_aimTrk": [
    "turn · lookTick",
@@ -40,14 +38,7 @@
    "assist · ambushTick"
   ],
   "_ammoFor": [
-   "assist · updateReload",
-   "demo · dvStart",
-   "items · itemPickupTick",
-   "items · weaponPickupTick",
-   "round · resetRound",
-   "sound · pistolBack",
-   "sound · pistolSwap",
-   "warmup · warmSpawn"
+   "assist · reloadSetAmmoFor"
   ],
   "_apBest": [
    "task · updatePost"
@@ -65,12 +56,7 @@
    "look-peek · appearFrom"
   ],
   "_area": [
-   "levels · ladderTick",
-   "levels · navFollowFloor",
-   "round · resetRound",
-   "sandbox · sbPlace",
-   "tick · navSnap",
-   "tick-step · stepBot"
+   "levels · navSetArea"
   ],
   "_assistNext": [
    "assist · assistPeek"
@@ -91,22 +77,16 @@
    "belief · beliefTick"
   ],
   "_blind": [
-   "move · moveSpeedTick",
-   "round · resetRound",
-   "sandbox · sbRevive",
-   "sound · onBlind"
+   "sound · soundSetBlind"
   ],
   "_blindBy": [
-   "damage · detonate",
-   "round · resetRound"
+   "damage · damageSetBlindBy"
   ],
   "_bomb": [
    "fx · hudBombEdge"
   ],
   "_boost": [
-   "round · resetRound",
-   "tick-jump · boostEnd",
-   "tick-jump · jumpCheckTick"
+   "tick-jump · jumpSetBoost"
   ],
   "_boostTry": [
    "tick-jump · jumpCheckTick"
@@ -124,9 +104,7 @@
    "look · lookPlan"
   ],
   "_climb": [
-   "levels · ladderTick",
-   "round · resetRound",
-   "sandbox · sbPlace"
+   "levels · navSetClimb"
   ],
   "_clr": [
    "brain-t-phases · tBrainExecute"
@@ -135,9 +113,7 @@
    "ct-early · ctClutch"
   ],
   "_contact": [
-   "contact · contactTick",
-   "fight-state · killMoveCover",
-   "sandbox · sbRevive"
+   "contact · contactSetContact"
   ],
   "_contactT": [
    "contact · contactTick"
@@ -149,15 +125,13 @@
    "look-peek · cornerLook0"
   ],
   "_covLog": [
-   "fight · fightCycleTick",
-   "shoot · tryShoot"
+   "fight · fightSetCovLog"
   ],
   "_covShot": [
    "shoot · tryShoot"
   ],
   "_covT": [
-   "fight · fightCycleTick",
-   "shoot · tryShoot"
+   "fight · fightSetCovT"
   ],
   "_defuseCont": [
    "bomb · defuseContTick"
@@ -170,10 +144,7 @@
    "contact · ctDelayNade"
   ],
   "_detour": [
-   "contact · hurtReactTick",
-   "task · clearPostDo",
-   "task · detourStart",
-   "task · taskCanSet"
+   "task · taskSetDetour"
   ],
   "_djErr": [
    "bomb · bombTick"
@@ -185,13 +156,10 @@
    "bomb · bombTick"
   ],
   "_dmgBy": [
-   "damage · applyDamage",
-   "round · resetRound"
+   "damage · damageSetDmgBy"
   ],
   "_drawUntil": [
-   "items · knifeTick",
-   "round · resetRound",
-   "shoot · tryShoot"
+   "items · equipmentSetDrawUntil"
   ],
   "_duckT": [
    "engagements · duckDecide"
@@ -203,7 +171,6 @@
    "self · nadeReact"
   ],
   "_dvName": [
-   "demo · dvStart",
    "demo · dvStop"
   ],
   "_dwOnT": [
@@ -237,8 +204,7 @@
    "ct-setup · ctSetupRole"
   ],
   "_egC": [
-   "brain-t · tBrainExecGo",
-   "endgame · endgameBrain"
+   "endgame · huntSetEgC"
   ],
   "_egEnd": [
    "endgame · endgameBrain"
@@ -276,20 +242,14 @@
    "bomb · bombTick"
   ],
   "_fall": [
-   "levels · navFollowFloor",
-   "round · resetRound",
-   "sandbox · sbPlace"
+   "levels · navSetFall"
   ],
   "_fbRound": [
    "roles · infoFallbackTick",
    "roles · tFallbackTick"
   ],
   "_fc": [
-   "fight · fcEnd",
-   "fight · fightCycleTick",
-   "round · resetRound",
-   "sandbox · sbPlace",
-   "sandbox · sbRemove"
+   "fight · fightSetFc"
   ],
   "_fcCv": [
    "fight · fightCycleTick"
@@ -322,9 +282,7 @@
    "damage · applyDamage"
   ],
   "_fillLock": [
-   "bomb · resetBomb",
-   "save-retake · saveCancelTrades",
-   "task · taskKeepUntil"
+   "task · taskSetFillLock"
   ],
   "_finId": [
    "sound · finishPush"
@@ -340,16 +298,13 @@
    "decide · resetNades"
   ],
   "_fireExit": [
-   "move · moveSpeedTick",
-   "round · resetRound"
+   "move · moveSetFireExit"
   ],
   "_fireExitFire": [
-   "move · moveSpeedTick",
-   "round · resetRound"
+   "move · moveSetFireExitFire"
   ],
   "_fireIn": [
-   "damage · nadesTick",
-   "decide · resetNades"
+   "damage · damageSetFireIn"
   ],
   "_fireRp": [
    "tick-step · stepBot"
@@ -364,8 +319,7 @@
    "assist · flankAssist"
   ],
   "_flee": [
-   "bomb · bombFleePoint",
-   "brain-t-postplant · tBrainPostplant"
+   "bomb · bombSetFlee"
   ],
   "_fleeLog": [
    "bomb · bombFleePoint"
@@ -411,7 +365,7 @@
    "self · heDodgeTick"
   ],
   "_heDone": [
-   "self · nadeReact",
+   "self · nadeSetHeDone",
    "smoke-react · smokeHeTick"
   ],
   "_headLvl": [
@@ -439,13 +393,10 @@
    "damage · applyDamage"
   ],
   "_hold": [
-   "round · resetRound",
-   "sandbox · sbPlace",
-   "tick-step · stepBot"
+   "tick-step · moveSetHold"
   ],
   "_holdLog": [
-   "brain-ct-players · ctBrainPlayers",
-   "ct-early · secondOnSite"
+   "ct-early · holdSetHoldLog"
   ],
   "_holdWhy": [
    "fight-state · fightHoldOff"
@@ -457,12 +408,10 @@
    "fight-state · shiftHold"
   ],
   "_huntArrive": [
-   "brain-t-postplant · tBrainPostplant",
-   "round · resetRound"
+   "brain-t-postplant · huntSetHuntArrive"
   ],
   "_huntIdx": [
-   "brain-t-postplant · tBrainPostplant",
-   "round · resetRound"
+   "brain-t-postplant · huntSetHuntIdx"
   ],
   "_huntStart": [
    "brain-t-postplant · tBrainPostplant"
@@ -495,8 +444,7 @@
    "engagements · engDecide"
   ],
   "_jc": [
-   "round · resetRound",
-   "tick-jump · jumpCheckTick"
+   "tick-jump · jumpSetJc"
   ],
   "_jfw": [
    "levels · jumpFaceWait"
@@ -505,10 +453,7 @@
    "levels · ladderTick"
   ],
   "_jump": [
-   "levels · navFollowFloor",
-   "round · resetRound",
-   "tick-jump · boostEnd",
-   "tick-jump · jumpCheckTick"
+   "tick-jump · jumpSetJump"
   ],
   "_jumpPrep": [
    "levels · jumpFaceWait",
@@ -536,11 +481,7 @@
    "items · knifeTick"
   ],
   "_knife": [
-   "assist · ambushTick",
-   "items · knifeDefuseTick",
-   "items · knifeTick",
-   "round · resetRound",
-   "shoot · tryShoot"
+   "items · equipmentSetKnife"
   ],
   "_kwl": [
    "look · knownWayLook"
@@ -549,8 +490,7 @@
    "look-arbiter · landLook"
   ],
   "_landAt": [
-   "levels · navFollowFloor",
-   "tick-jump · landSound"
+   "levels · navSetLandAt"
   ],
   "_lastNade": [
    "throw · throwNadeTry"
@@ -575,26 +515,22 @@
    "look-arbiter · lookAssigned"
   ],
   "_lkC": [
-   "look · lookPlan",
-   "reach · beliefReset"
+   "look · lookSetLkC"
   ],
   "_lkPick": [
    "look · lookPlan"
   ],
   "_lkPt": [
-   "look · lookPlan",
-   "reach · beliefReset"
+   "look · lookSetLkPt"
   ],
   "_lkTop": [
-   "look · lookPlan",
-   "reach · beliefReset"
+   "look · lookSetLkTop"
   ],
   "_lkW": [
    "turn · lookTick"
   ],
   "_lkZ": [
-   "look · lookPlan",
-   "reach · beliefReset"
+   "look · lookSetLkZ"
   ],
   "_lookLvl": [
    "look-arbiter · lookApply"
@@ -609,19 +545,16 @@
    "endgame · ctLandPunish"
   ],
   "_lurkArr": [
-   "lurker · lurkerBrain",
-   "round · resetRound"
+   "lurker · lurkSetLurkArr"
   ],
   "_lurkGo": [
    "lurker · lurkerBrain"
   ],
   "_lurkIdx": [
-   "lurker · lurkerBrain",
-   "round · resetRound"
+   "lurker · lurkSetLurkIdx"
   ],
   "_lurkPh": [
-   "lurker · lurkerBrain",
-   "round · resetRound"
+   "lurker · lurkSetLurkPh"
   ],
   "_lurkPlan": [
    "lurker · lurkerBrain"
@@ -649,8 +582,7 @@
    "brain-t · tBrainMidTake"
   ],
   "_mistakes": [
-   "ct-setup · noteMistake",
-   "tactics · resetMatchMemory"
+   "ct-setup · setupSetMistakes"
   ],
   "_moV": [
    "fight-state · decideActionR"
@@ -669,12 +601,10 @@
    "decide · resetNades"
   ],
   "_nadeNo": [
-   "round · resetRound",
-   "throw · nadeNoteFail"
+   "throw · nadeSetNadeNo"
   ],
   "_nadeT": [
-   "round · resetRound",
-   "throw · throwNadeTry"
+   "throw · nadeSetNadeT"
   ],
   "_nadeUseT": [
    "decide · nadeUseTick"
@@ -686,9 +616,7 @@
    "save-retake · retakeDefGo"
   ],
   "_nearestEnemyBot": [
-   "engagements · engSee",
-   "engagements · engTarget",
-   "warmup · warmTick"
+   "engagements · engagementSetNearestEnemyBot"
   ],
   "_nearestEnemyDist": [
    "engagements · engSee",
@@ -736,8 +664,7 @@
    "look-peek · openDirLook"
   ],
   "_offNav": [
-   "tick · navSnap",
-   "tick-step · stepBot"
+   "tick-step · moveSetOffNav"
   ],
   "_olK": [
    "look-peek · openLook"
@@ -746,9 +673,7 @@
    "look-peek · openLook"
   ],
   "_onPistol": [
-   "round · resetRound",
-   "sound · pistolBack",
-   "sound · pistolSwap"
+   "sound · soundSetOnPistol"
   ],
   "_overV": [
    "levels · floorViewTick",
@@ -839,12 +764,10 @@
    "shoot · tryShoot"
   ],
   "_prevOffX": [
-   "round · resetRound",
-   "tick-step · stepBot"
+   "tick-step · moveSetPrevOffX"
   ],
   "_prevOffY": [
-   "round · resetRound",
-   "tick-step · stepBot"
+   "tick-step · moveSetPrevOffY"
   ],
   "_proM": [
    "task · proSpotLook"
@@ -853,24 +776,10 @@
    "pro-positions · proRolePost"
   ],
   "_probe": [
-   "igl · tSetSite",
-   "lurker · tProbes"
+   "lurker · lurkSetProbe"
   ],
   "_probeLock": [
-   "assist · assistPeek",
-   "assist · flankAssist",
-   "contact · contactTick",
-   "contact · hurtReactTick",
-   "fight · lowHpBack",
-   "fight-state · afterKillReact",
-   "fight-state · killMoveCover",
-   "fight-state · postKillDecide",
-   "fight-state · shiftHold",
-   "intel · intelDeath",
-   "roles · infoFallbackTick",
-   "roles · tFallbackTick",
-   "sound · finishPush",
-   "sound · reloadPeek"
+   "task · taskSetProbeLock"
   ],
   "_progBest": [
    "tick-step · stepBot"
@@ -906,13 +815,7 @@
    "look · smoothLookFilter"
   ],
   "_reloading": [
-   "assist · updateReload",
-   "fight · fightCycleTick",
-   "round · resetRound",
-   "sandbox · sbRevive",
-   "sound · pistolBack",
-   "sound · pistolSwap",
-   "warmup · warmSpawn"
+   "assist · reloadSetReloading"
   ],
   "_repeeked": [
    "fight-state · afterKillReact"
@@ -933,12 +836,10 @@
    "sound · reloadHeard"
   ],
   "_roamSoundHandled": [
-   "fov · updateRoamer",
-   "weapons-bots · initRoam"
+   "fov · roamSetRoamSoundHandled"
   ],
   "_roamSoundLockUntil": [
-   "fov · updateRoamer",
-   "weapons-bots · initRoam"
+   "fov · roamSetRoamSoundLockUntil"
   ],
   "_rotMidLog": [
    "brain-ct-players · ctBrainPlayers"
@@ -963,19 +864,10 @@
    "fight · safeRotate"
   ],
   "_saveSpot": [
-   "brain-ct · ctBrainSave",
-   "brain-ct-players · ctBrainPlayers",
-   "brain-t · tBrainExecGo",
-   "brain-t · tBrainTeam",
-   "brain-t-postplant · tBrainPostplant",
-   "fight-state · afterKillReact",
-   "round · resetRound",
-   "save-retake · tSaveHold"
+   "save-retake · retakeSetSaveSpot"
   ],
   "_sawEnemy": [
-   "engagements · engSee",
-   "warmup · warmSpawn",
-   "warmup · warmTick"
+   "engagements · engagementSetSawEnemy"
   ],
   "_sbGo": [
    "sandbox · sbTick"
@@ -994,9 +886,7 @@
    "ct-setup · ctSeatRoles"
   ],
   "_secAmmo": [
-   "items · itemPickupTick",
-   "round · resetRound",
-   "sound · pistolBack"
+   "items · equipmentSetSecAmmo"
   ],
   "_seenAt": [
    "engagements · engSee"
@@ -1054,14 +944,10 @@
    "smoke-react · smokeSpamTick"
   ],
   "_stabT": [
-   "assist · ambushTick",
-   "items · knifeDefuseTick"
+   "assist · knifeSetStabT"
   ],
   "_stageInfo": [
-   "brain-t-phases · tBrainSetup",
-   "igl · stagePost",
-   "igl · tIglReplan",
-   "igl · tSetSite"
+   "igl · stageSetStageInfo"
   ],
   "_stanceWhy": [
    "task · placeStance"
@@ -1082,12 +968,10 @@
    "brain-ct-players · ctBrainPlayers"
   ],
   "_stopPlantUntil": [
-   "brain-ct-players · ctBrainPlayers",
-   "brain-t-postplant · tBrainPostplant"
+   "bomb · bombSetStopPlantUntil"
   ],
   "_stopWhy": [
-   "move · moveSpeedTick",
-   "tick-step · stepBot"
+   "move · moveSetStopWhy"
   ],
   "_stuckResets": [
    "tick-step · stepBot"
@@ -1096,8 +980,7 @@
    "contact · contactTick"
   ],
   "_tagUntil": [
-   "round · resetRound",
-   "shoot · tryShoot"
+   "shoot · shotSetTagUntil"
   ],
   "_takeAt": [
    "brain-t-phases · tBrainExecute"
@@ -1137,12 +1020,7 @@
    "tick-step · stepBot"
   ],
   "_ts": [
-   "damage · detonate",
-   "engagements · engDecide",
-   "round · resetRound",
-   "sandbox · sbRevive",
-   "warmup · warmSpawn",
-   "warmup · warmTick"
+   "engagements · engagementSetTs"
   ],
   "_underV": [
    "levels · floorViewTick",
@@ -1150,8 +1028,7 @@
    "sandbox · sbPlace"
   ],
   "_unstickT": [
-   "round · resetRound",
-   "tick-step · stepBot"
+   "tick-step · moveSetUnstickT"
   ],
   "_utilW": [
    "brain-t-phases · tBrainExecute"
@@ -1196,48 +1073,25 @@
    "task · updatePost"
   ],
   "alive": [
-   "damage · applyDamage",
+   "damage · damageSetAlive",
    "events · knowKill",
    "knowledge · knowRoundStart",
-   "round · resetRound",
-   "sandbox · sbRemove",
-   "sandbox · sbRevive",
-   "scoreboard · plCardUpdate",
-   "warmup · warmSpawn"
+   "scoreboard · plCardUpdate"
   ],
   "ammo": [
-   "assist · updateReload",
-   "shoot · tryShoot",
-   "smoke-react · blindBullet",
-   "sound · pistolBack",
-   "sound · pistolSwap",
-   "warmup · warmSpawn"
+   "shoot · shotSetAmmo"
   ],
   "armor": [
-   "damage · applyDamage",
-   "damage · armorSoak",
-   "demo · dvStart",
-   "economy · buyArmor",
-   "round · startHalf",
-   "warmup · warmSpawn"
+   "damage · damageSetArmor"
   ],
   "armorHp": [
-   "damage · applyDamage",
-   "damage · armorSoak",
-   "economy · armorHpOf",
-   "economy · buyArmor",
-   "round · startHalf",
-   "warmup · warmSpawn"
+   "damage · damageSetArmorHp"
   ],
   "assists": [
    "round · newMatch"
   ],
   "atPost": [
-   "move · moveSpeedTick",
-   "round · resetRound",
-   "task · clearPostDo",
-   "task · setPostDo",
-   "task · updatePost"
+   "task · taskSetAtPost"
   ],
   "baseX": [
    "demo · dvPlace",
@@ -1266,17 +1120,10 @@
    "warmup · warmTick"
   ],
   "blindUntil": [
-   "damage · detonate",
-   "decide · resetNades",
-   "sandbox · sbRevive",
-   "smoke · (верх файла)",
-   "warmup · warmSpawn"
+   "damage · damageSetBlindUntil"
   ],
   "burstCount": [
-   "engagements · engTarget",
-   "round · resetRound",
-   "shoot · tryShoot",
-   "sound · pistolSwap"
+   "shoot · shotSetBurstCount"
   ],
   "className": [
    "app · (верх файла)",
@@ -1287,12 +1134,7 @@
    "map-walls · mapEdSwitch"
   ],
   "contactStreak": [
-   "damage · detonate",
-   "engagements · engDecide",
-   "round · resetRound",
-   "sandbox · sbRevive",
-   "warmup · warmSpawn",
-   "warmup · warmTick"
+   "engagements · engagementSetContactStreak"
   ],
   "cool": [
    "ct-setup · (верх файла)"
@@ -1308,13 +1150,10 @@
    "tick-step · stepBot"
   ],
   "deaths": [
-   "damage · applyDamage",
-   "round · newMatch"
+   "damage · damageSetDeaths"
   ],
   "decisionTick": [
-   "engagements · engDecide",
-   "fight-state · leaveHold",
-   "round · resetRound"
+   "engagements · engagementSetDecisionTick"
   ],
   "defuseCooldownUntil": [
    "bomb · bombActAbort",
@@ -1373,14 +1212,8 @@
    "bomb · bombTick",
    "bomb · resetBomb"
   ],
-  "fire": [
-   "smoke-react · smokeSpamTick",
-   "sound · onBlind"
-  ],
   "forcedRetreat": [
-   "engagements · engDecide",
-   "round · resetRound",
-   "tick-step · stepBot"
+   "engagements · engagementSetForcedRetreat"
   ],
   "fresh": [
    "ct-setup · (верх файла)"
@@ -1389,29 +1222,18 @@
    "ct-early · proLineups"
   ],
   "heading": [
-   "round · resetRound",
-   "tick-step · stepBot",
-   "warmup · warmTick"
-  ],
-  "helmet": [
-   "damage · applyDamage",
-   "damage · armorSoak",
-   "demo · dvStart",
-   "economy · buyArmor",
-   "economy · buyFullKit",
-   "round · startHalf",
-   "warmup · warmSpawn"
-  ],
-  "hits": [
-   "damage · nadesTick"
-  ],
-  "holdSinceTick": [
-   "engagements · engDecide",
-   "round · resetRound"
+   "tick-step · moveSetHeading"
   ],
   "heardSound": [
    "knowledge · knowHear",
    "knowledge · knowSound"
+  ],
+  "helmet": [
+   "damage · damageSetHelmet",
+   "economy · buyFullKit"
+  ],
+  "holdSinceTick": [
+   "engagements · engagementSetHoldSinceTick"
   ],
   "holding": [
    "engagements · engDecide",
@@ -1420,23 +1242,14 @@
    "fight-state · leaveHold"
   ],
   "hp": [
-   "damage · applyDamage",
-   "demo · dvPlace",
-   "round · resetRound",
-   "sandbox · sbRemove",
-   "sandbox · sbRevive",
-   "warmup · warmSpawn"
+   "damage · damageSetHp"
   ],
   "kills": [
-   "damage · applyDamage",
-   "round · newMatch"
+   "damage · damageSetKills"
   ],
   "kit": [
-   "damage · applyDamage",
-   "economy · buyForPlayer",
    "economy · buyFullKit",
-   "items · itemPickupTick",
-   "round · startHalf"
+   "items · equipmentSetKit"
   ],
   "know": [
    "knowledge · knowRoundStart"
@@ -1445,14 +1258,10 @@
    "knowledge · knowIntel"
   ],
   "lastShotTick": [
-   "demo · dvTick",
-   "round · resetRound",
-   "shoot · tryShoot",
-   "smoke-react · blindBullet"
+   "shoot · shotSetLastShotTick"
   ],
   "lastStepTick": [
-   "round · resetRound",
-   "tick-step · stepBot"
+   "tick-step · moveSetLastStepTick"
   ],
   "log": [
    "move · moveSpeedTick"
@@ -1468,33 +1277,16 @@
    "look-arbiter · lookReasonSet"
   ],
   "lookTarget": [
-   "round · resetRound",
-   "turn · lookTick"
+   "turn · lookSetLookTarget"
   ],
   "money": [
-   "bomb · bombTick",
-   "damage · applyDamage",
-   "economy · buyArmor",
-   "economy · buyForPlayer",
-   "economy · buyFullKit",
-   "economy · buyItem",
-   "economy · payRoundEconomy",
-   "economy · sellItem",
-   "economy · teamAwp",
-   "economy · teamDrops",
-   "round · resetRound",
-   "round · startHalf",
-   "smoke · buyNades"
+   "economy · economySetMoney"
   ],
   "n": [
    "shoot · tryShoot"
   ],
   "nadeQueue": [
-   "decide · nadeTaskEnd",
-   "decide · resetNades",
-   "exec-sync · exuReassign",
-   "lineups · lineupTick",
-   "smoke · (верх файла)"
+   "decide · nadeSetNadeQueue"
   ],
   "nadeTask": [
    "decide · nadeTaskEnd",
@@ -1507,25 +1299,13 @@
    "throw · nadeQueueNext"
   ],
   "nades": [
-   "damage · applyDamage",
-   "decide · resetNades",
-   "economy · buyForPlayer",
-   "round · startHalf",
-   "smoke · (верх файла)",
-   "smoke · buyNades"
+   "throw · nadeSetNades"
   ],
   "nextShotTick": [
-   "engagements · engTarget",
-   "round · resetRound",
-   "sandbox · sbRevive",
-   "shoot · tryShoot",
-   "smoke-react · blindBullet",
-   "sound · pistolSwap",
-   "warmup · warmSpawn"
+   "shoot · shotSetNextShotTick"
   ],
   "onStairs": [
-   "round · resetRound",
-   "tick-step · stepBot"
+   "tick-step · moveSetOnStairs"
   ],
   "path": [
    "levels · fireRepath",
@@ -1555,8 +1335,7 @@
    "turn · freezeLookTick"
   ],
   "pickTick": [
-   "engagements · assignNewDestination",
-   "round · resetRound"
+   "engagements · engagementSetPickTick"
   ],
   "plantUntil": [
    "bomb · bombTick"
@@ -1581,15 +1360,7 @@
    "observer · obsCtx"
   ],
   "primary": [
-   "damage · applyDamage",
-   "demo · dvStart",
-   "economy · awpSwap",
-   "economy · buyItem",
-   "economy · teamAwp",
-   "economy · teamDrops",
-   "items · weaponPickupTick",
-   "round · startHalf",
-   "warmup · warmSpawn"
+   "items · equipmentSetPrimary"
   ],
   "pro": [
    "task · setPostDo"
@@ -1619,69 +1390,46 @@
    "rosters · seatPlayers"
   ],
   "reloadUntil": [
-   "assist · updateReload",
-   "fight · fightCycleTick",
-   "sound · pistolBack",
-   "sound · pistolSwap"
+   "assist · reloadSetReloadUntil"
   ],
   "retakeRole": [
-   "bomb · resetBomb",
-   "save-retake · updateRetake"
+   "save-retake · retakeSetRetakeRole"
   ],
   "roamCheckStart": [
-   "fov · updateRoamer",
-   "weapons-bots · initRoam"
+   "fov · roamSetRoamCheckStart"
   ],
   "roamCheckUntil": [
-   "fov · updateRoamer",
-   "weapons-bots · initRoam"
+   "fov · roamSetRoamCheckUntil"
   ],
   "roamChecking": [
-   "engagements · engDecide",
-   "fov · updateRoamer",
-   "tick-step · stepBot",
-   "weapons-bots · buildRoamRoutes",
-   "weapons-bots · initRoam"
+   "fov · roamSetRoamChecking"
   ],
   "roamIdx": [
-   "fov · updateRoamer",
-   "weapons-bots · buildRoamRoutes",
-   "weapons-bots · initRoam"
+   "fov · roamSetRoamIdx"
   ],
   "roamLookPt": [
-   "fov · updateRoamer",
-   "weapons-bots · initRoam"
+   "fov · roamSetRoamLookPt"
   ],
   "roamPrevPt": [
-   "fov · updateRoamer",
-   "weapons-bots · initRoam"
+   "fov · roamSetRoamPrevPt"
   ],
   "roamTarget": [
-   "engagements · assignNewDestination",
-   "weapons-bots · buildRoamRoutes",
-   "weapons-bots · initRoam"
+   "fov · roamSetRoamTarget"
   ],
   "role": [
    "weapons-bots · (верх файла)"
   ],
   "roundDmg": [
-   "damage · applyDamage",
-   "round · resetRound"
+   "damage · damageSetRoundDmg"
   ],
   "roundKills": [
-   "damage · applyDamage",
-   "round · resetRound"
+   "damage · damageSetRoundKills"
   ],
   "secondary": [
-   "damage · applyDamage",
-   "demo · dvStart",
-   "economy · buyItem",
-   "items · itemPickupTick",
-   "round · startHalf"
+   "items · equipmentSetSecondary"
   ],
   "setupLook": [
-   "ct-setup · ctSetupRole",
-   "position · ppProGroup"
+   "task · taskSetSetupLook"
   ],
   "skill": [
    "rosters · seatPlayers"
@@ -1694,12 +1442,10 @@
    "fight-state · fightStateDo"
   ],
   "stateSince": [
-   "engagements · engDecide",
-   "items · weaponPickupTick"
+   "engagements · engagementSetStateSince"
   ],
   "stuckTicks": [
-   "round · resetRound",
-   "tick-step · stepBot"
+   "tick-step · moveSetStuckTicks"
   ],
   "t": [
    "items · weaponPickupTick",
@@ -1722,8 +1468,7 @@
    "map-walls · mapEdSwitch"
   ],
   "throwUntil": [
-   "decide · resetNades",
-   "throw · throwNadeTry"
+   "throw · nadeSetThrowUntil"
   ],
   "title": [
    "app · (верх файла)",
@@ -1748,16 +1493,7 @@
    "tick-step · stepBot"
   ],
   "weapon": [
-   "demo · dvStart",
-   "economy · buyForPlayer",
-   "economy · buyFullKit",
-   "items · itemPickupTick",
-   "items · weaponPickupTick",
-   "round · startHalf",
-   "sound · pistolBack",
-   "sound · pistolSwap",
-   "warmup · warmSpawn",
-   "weapons-bots · makeTeam"
+   "items · equipmentSetWeapon"
   ],
   "weight": [
    "knowledge · knowBuild"
@@ -1766,35 +1502,14 @@
    "knowledge · knowBuild"
   ],
   "x": [
-   "demo · dvPlace",
-   "levels · ladderTick",
-   "move · movePlace",
-   "round · resetRound",
-   "sandbox · sbPlace",
-   "tick · navSnap",
-   "tick-step · stepBot",
-   "warmup · warmSpawn",
-   "warmup · warmTick"
+   "move · moveSetX"
   ],
   "y": [
-   "demo · dvPlace",
-   "levels · ladderTick",
-   "move · movePlace",
-   "round · resetRound",
-   "sandbox · sbPlace",
-   "tick · navSnap",
-   "tick-step · stepBot",
-   "warmup · warmSpawn",
-   "warmup · warmTick"
+   "move · moveSetY"
   ],
   "z": [
    "knowledge · hearReal",
-   "levels · ladderTick",
-   "levels · navFollowFloor",
-   "round · resetRound",
-   "sandbox · sbPlace",
-   "tick · navSnap",
-   "tick-step · stepBot"
+   "levels · navSetZ"
   ]
  }
 }

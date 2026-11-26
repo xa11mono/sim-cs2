@@ -83,7 +83,14 @@ save(path.join(OUT, "registry.json"), JSON.stringify(R, null, 0));
 const FIELDS = ["facing", "walking", "curSpeed", "post", "_task", "_reposUntil", "_waitPopUntil", "_avoidPeekUntil", "_tradeUntil", "_tradeLock", "state", "nadeTask", "holding", "crouching", "path", "phase", "lookReason", "_lookLvl", "heardSound", "lastIntel", "planting", "defusing", "_route", "_routeDone", "baseX", "baseY", "pathIdx"];   // (Р3.2 взгляд ш.2) + причина и уровень взгляда
 // хозяева — rebuild/owners.json (одно место; его же читает проверка сборки); поля без хозяина — пусто
 const OWN = JSON.parse(fs.readFileSync(path.join(ROOT, "rebuild", "owners.json"), "utf8"));
-const OWNER = {}; FIELDS.forEach(f => { OWNER[f] = OWN[f] ? new RegExp("^(" + OWN[f].allow.join("|") + ")$") : /^$/; });
+for (const [field, owner] of Object.entries(OWN)) if (owner.exclusive === true && !FIELDS.includes(field)) FIELDS.push(field);
+if (CHECK) {
+  const collisions = JSON.parse(fs.readFileSync(path.join(ROOT, "rebuild", "field_ownership_collisions.json"), "utf8")).sites;
+  const owned = require("./owned_fields").check({ asts, tops, owners: OWN, collisions, fileAt, lineAt });
+  if (owned.errors.length) { owned.errors.forEach(e => console.error("ОШИБКА владения: " + e)); process.exit(1); }
+  console.log("Единственный писатель: полей " + owned.count + ", записей в обход 0");
+}
+const OWNER = {}; FIELDS.forEach(f => { OWNER[f] = OWN[f] ? new RegExp("^(" + (OWN[f].writer || OWN[f].allow.join("|")) + ")$") : /^$/; });
 // канал может быть набором файлов (гранаты — 360–420): files — номера файлов канала, запись из любой их функции — своя;
 // функция из чужого файла, но в allow (интерфейс канала) — тоже своя
 const OWNF = {}; FIELDS.forEach(f => { OWNF[f] = new Set((OWN[f] && OWN[f].files) || []); });
@@ -154,7 +161,8 @@ for (const { ast, off } of asts) walk.fullAncestor(ast, (n, _st, anc) => {
   if (FLD && fld === "phase") { if (!/tt|tac|teamTac|T0|TT/.test(objTxt)) return; (W[fld][fn + " · " + GS.fileId(f)] = W[fld][fn + " · " + GS.fileId(f)] || []).push(lineAt(pos)); return; }   // фаза плана T
   const root = tgt.object.type === "Identifier" ? tgt.object.name : rootOf(tgt.object);
   const NONBOT = new Set(["bomb", "it", "S", "RP", "HGT_C", "E", "MAPED", "DEMOV", "SANDBOX"]), BOTN = new Set(["b", "bot", "bt", "sh", "shooter", "target", "vic", "victim", "att", "killer", "mate"]);
-  let isBot = !NONBOT.has(root) && (root === "#bot" || /^bots\[/.test(objTxt) || BOTN.has(root));
+  let isBot = (OWN[fld]?.exclusive && OWN[fld].ownerFile === GS.fileId(f) && OWN[fld].writer === fn)
+    || !NONBOT.has(root) && (root === "#bot" || /^bots\[/.test(objTxt) || BOTN.has(root));
   // параметр обхода bots.forEach / filter / … — бот
   if (!isBot && !NONBOT.has(root)) for (let i = anc.length - 1; i >= 1; i--) { const a = anc[i], c = anc[i - 1];
     if (/Function/.test(a.type) && c.type === "CallExpression" && c.callee.type === "MemberExpression" && c.callee.object.type === "Identifier" && c.callee.object.name === "bots" && a.params.some(q => q.name === root)) { isBot = true; break; } }
@@ -458,7 +466,7 @@ if (CHECK) { const R9 = [...all.matchAll(/\.test\(\s*\(?\s*NADE_FAIL\b|NADE_FAIL
 // ---- проверка владения: запись поля из функции не из канала (owners.json → allow) — предупреждение, при enforce — ошибка
 if (CHECK) {
   let bad = 0, warn = [];
-  for (const fl of Object.keys(OWN).filter(k => k[0] !== "_")) {
+  for (const fl of FIELDS.filter(k => OWN[k] && !OWN[k].exclusive)) {
     const E = Object.entries(W[fl]).filter(([k]) => !isOwn(fl, k));
     if (!E.length) continue;
     const n = E.reduce((a, [, L]) => a + L.length, 0), txt = "`" + fl + "` (" + OWN[fl].channel + "): " + n + " мест мимо хозяина — " + E.map(([k, L]) => k + "×" + L.length).join(", ");

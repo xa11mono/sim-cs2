@@ -20,7 +20,10 @@ function decls() {   // файл → множество объявленных �
 }
 function ownersAllow() {   // хозяева полей: имя функции → поля
   const O = JSON.parse(fs.readFileSync(path.join(ROOT, 'rebuild', 'owners.json'), 'utf8')), A = {};
-  for (const [fl, o] of Object.entries(O)) { if (fl[0] === '_' || !o || !Array.isArray(o.allow)) continue; o.allow.forEach(fn => (A[fn] = A[fn] || []).push(fl)); }
+  for (const [fl, o] of Object.entries(O)) {
+    if (o?.exclusive === true) (A[o.writer] = A[o.writer] || []).push(fl);
+    else if (fl[0] !== '_' && Array.isArray(o?.allow)) o.allow.forEach(fn => (A[fn] = A[fn] || []).push(fl));
+  }
   return A;
 }
 function table() {   // строки таблицы «Где что» из AGENTS.md §11: [что, файлы]

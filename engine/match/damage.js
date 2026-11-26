@@ -1,4 +1,4 @@
-// [хозяева: applyDamage, detonate, nadesTick] ---------- физика полёта и срабатывание ----------
+// [хозяева: applyDamage, damageSetAlive, damageSetArmor, damageSetArmorHp, damageSetBlindBy, damageSetBlindUntil, damageSetDeaths, damageSetDmgBy, damageSetFireIn, damageSetHelmet, damageSetHp, damageSetKills, damageSetRoundDmg, damageSetRoundKills, detonate, nadesTick] ---------- физика полёта и срабатывание ----------
 // (физика гранат, 30.10.2026; так было в В3, ветка nades-v398) смок / молотов лёг на крышу — по настоящему касанию (точка покоя
 // физики), высоко над полом, куда можно дойти (выше NADE_ROOF_DZ над самым высоким таким полом под ним): разрыв виден и слышен,
 // но дым / огонь не действуют на тех, кто под крышей (дым и огонь у нас без этажа). На ящике, карнизе пониже — действует. Флешка
@@ -77,8 +77,8 @@ function detonate(n){ var _ev = simEvIn("detonate", arguments);
       if(warned) secs *= (b === n.thrower ? 0.05 : 0.18);
       if(secs > 0.35){
         var lkBefore = b.lastIntel || (b._nearestEnemyBot ? {x:b._nearestEnemyBot.x, y:b._nearestEnemyBot.y, tick:tick} : null);
-        b.blindUntil = Math.max(b.blindUntil, tick + Math.round(secs*TICK_HZ)); if(n.thrower && n.thrower.team !== b.team) b._blindBy = n.thrower.id;
-        b.contactStreak = 0; b._ts = {}; knowIntel(b, null);
+        damageSetBlindUntil(b, Math.max(b.blindUntil, tick + Math.round(secs*TICK_HZ))); if(n.thrower && n.thrower.team !== b.team) damageSetBlindBy(b, n.thrower.id);
+        engagementSetContactStreak(b, 0); engagementSetTs(b, {}); knowIntel(b, null);
         if(secs > 1.2) logEvent(b.id+" ослеплён"+(b.team===n.team?" своей флешкой":"")+" ("+secs.toFixed(1)+"с)");
         if(b.team !== n.team && secs > 0.8) onBlind(b, lkBefore || {x:n.x, y:n.y});
       }
@@ -122,12 +122,12 @@ var FF_TK_CASH = -300;
 // молотов броню не трогает (демки: 0 из 25). Бомба — как была (подобрана по демкам на игроках в броне)
 var ARMOR_BONUS = 0.5, HE_ARMOR_K = 0.66;
 function armorSoak(b, raw, ratio, src){
-  if(b.armorHp == null) b.armorHp = b.armor ? 100 : 0;   // снимки до v357
+  if(b.armorHp == null) damageSetArmorHp(b, b.armor ? 100 : 0);   // снимки до v357
   if(!(b.armorHp > 0)) return raw;
   var h = raw*ratio, a = src === "HE" ? h*HE_ARMOR_K : (raw - h)*ARMOR_BONUS;
   if(a > b.armorHp){ h = src === "HE" ? raw - b.armorHp*(1-ratio)/(ratio*HE_ARMOR_K) : raw - b.armorHp/ARMOR_BONUS; a = b.armorHp; }
-  b.armorHp = Math.max(0, Math.round(b.armorHp - a));
-  if(b.armorHp <= 0){ b.armor = false; b.helmet = false; }
+  damageSetArmorHp(b, Math.max(0, Math.round(b.armorHp - a)));
+  if(b.armorHp <= 0){ damageSetArmor(b, false); damageSetHelmet(b, false); }
   return Math.max(0, h);
 }
 var HURT_SND_GAP = 32;   // (v546) тиков (0,5 с) — проектное число
@@ -140,30 +140,30 @@ function applyDamage(att, b, dmg, src, o){ var _ev = simEvIn("applyDamage", argu
   if(o.armorRatio != null) dmg = armorSoak(b, dmg, o.armorRatio, src);
   if(mate){ var fx = dmg + (b._ffFrac||0); dmg = Math.floor(fx); b._ffFrac = fx - dmg; if(dmg <= 0) return simEvOut(_ev, false); }
   else { dmg = Math.round(dmg); if(dmg <= 0) return simEvOut(_ev, false); }
-  if(foe){ var dl0 = Math.min(dmg, Math.max(0,b.hp)); foe.roundDmg = (foe.roundDmg||0) + dl0; var D0 = b._dmgBy || (b._dmgBy = {}); D0[foe.id] = (D0[foe.id]||0) + dl0;
+  if(foe){ var dl0 = Math.min(dmg, Math.max(0,b.hp)); damageSetRoundDmg(foe, (foe.roundDmg||0) + dl0); var D0 = b._dmgBy || (damageSetDmgBy(b, {})); D0[foe.id] = (D0[foe.id]||0) + dl0;
     // (дуэли 06.11) кто кому сколько в этой перестрелке — 470 duelEval / fin: последние попадания у обоих, [тик, кто, урон]
     var HL = b._hitIn || (b._hitIn = []); HL.push([tick, foe.id, dl0]); if(HL.length > 16) HL.shift();
     var HO = foe._hitOut || (foe._hitOut = []); HO.push([tick, b.id, dl0]); if(HO.length > 16) HO.shift(); }
   // (v518a, пак 09.11 п.6) «ранен» — одно место для пули, HE и огня (раньше ставили только пули, 490 / 450): откуда — то, что знает живой игрок:
   // пуля — откуда стреляли (звук выстрела + сторона попадания), HE / огонь — где разорвалось / горит. Реакция — hurtReactTick (contact)
   if(foe){ b._hurtT = tick; b._hurtSrc = src; b._hurtFrom = o.from || {x:foe.x, y:foe.y, z:foe.z}; }
-  b.hp -= dmg;
+  damageSetHp(b, b.hp - (dmg));
   // (v546, владелец 10.11: «боты слышат, как кто-то подгорает в молотове или получил урон от пули, от гранаты» — это инфа) звук попадания
   // слышат враги раненого (moveSoundEmit — как шаги: за стеной ближе, место — пятно): пуля и HE — как бег (таблица владельца: 800–900 ед.,
   // «как бег / чуть громче»), огонь — 600 / 800 бега. Чаще раза в HURT_SND_GAP у одного игрока не повторяется (проектное число)
   if(roundState === "live" && src !== "C4" && tick - (b._hurtSndT || -1e9) >= HURT_SND_GAP){ b._hurtSndT = tick; var fireH = src === "молотов";
     moveSoundEmit(b, SOUND_RADIUS_RUN*(fireH ? 600/800 : 1), "steps", fireH ? "горит в молотове" : "попадание"); }
   if(b.hp > 0) return simEvOut(_ev, false);
-  b.alive = false; b.deaths++; b._killer = att && att !== b ? att.id : null;   // (v330) кто убил — для обсервера (показ)
+  damageSetAlive(b, false); damageSetDeaths(b, +b.deaths + 1); b._killer = att && att !== b ? att.id : null;   // (v330) кто убил — для обсервера (показ)
   dropWeaponOnDeath(b);
-  b.primary = null; b.secondary = b.team==="CT" ? "USP" : "GLOCK"; b.armor = false; b.helmet = false; b.armorHp = 0; b.kit = false;
-  bombActReset(b); b.nades = emptyNades(); nadeCancel(b, "death");
+  equipmentSetPrimary(b, null); equipmentSetSecondary(b, b.team==="CT" ? "USP" : "GLOCK"); damageSetArmor(b, false); damageSetHelmet(b, false); damageSetArmorHp(b, 0); equipmentSetKit(b, false);
+  bombActReset(b); nadeSetNades(b, emptyNades()); nadeCancel(b, "death");
   dropBomb(b);
   intelDeath(b, foe, o.side);   // o.side — сторона мозга, из которого убили (засада из ctBrain), для выбора мест размена   // своего убил свой — в войсе «минус», без «убил X»: враг тут ни при чём
   if(foe){ LOOK_REPLAN[foe.team] = true; foe._killHowT = tick; }   // _killHowT — для обсервера (показ)
   if(foe) hlKill(foe);   // (v447) хайлайт: серия в ударе
-  if(foe){ foe.kills++; foe.roundKills++; foe.money = Math.min(MAX_MONEY, foe.money + (o.reward || 300)); ecoKnowKill(foe, o.reward || 300); }   // (Г1) награда видна в киллфиде
-  else if(mate) att.money = Math.max(0, att.money + FF_TK_CASH);
+  if(foe){ damageSetKills(foe, +foe.kills + 1); damageSetRoundKills(foe, +foe.roundKills + 1); economySetMoney(foe, Math.min(MAX_MONEY, foe.money + (o.reward || 300))); ecoKnowKill(foe, o.reward || 300); }   // (Г1) награда видна в киллфиде
+  else if(mate) economySetMoney(att, Math.max(0, att.money + FF_TK_CASH));
   var wkey = o.wkey || (src === "HE" ? "HE" : "MOLOTOV");
   logEvent((att?att.id:(src === "C4" ? "бомба" : "?"))+" ["+(o.wkey ? (WEAPONS[o.wkey] ? WEAPONS[o.wkey].name : o.wkey) : src)+"] "+(mate ? "убил своего " : att === b ? "убил себя " : "устранил ")+b.id+(o.note||""), true);
   var mods = o.mods || {}; if(mate || att === b) mods.tk = true;
@@ -230,12 +230,28 @@ function nadesTick(){
       if(!b.alive) return;   // (v263, Б1) огонь жжёт и своих — множитель в applyDamage
       if(fireTouches(fr, b.x, b.y, b.z)){
         // (v323, М35) урон за удар растёт 1 → 8, удар раз в 0,2 с — чем дольше в огне, тем сильнее (fireDamageFor)
-        if(!b._fireIn || b._fireIn.f !== fr){ b._fireIn = {f:fr, t:tick, hits:0}; }
+        if(!b._fireIn || b._fireIn.f !== fr){ damageSetFireIn(b, {f:fr, t:tick, hits:0}); }
         var hitsNow = Math.floor((tick - b._fireIn.t)/TICK_HZ/FIRE_HIT_SEC);
-        while(b._fireIn.hits < hitsNow && b.alive){ b._fireIn.hits++; if(b._fireIn.hits % 3 === 1) soundEv("sndBody", "burn", b.x, b.y); applyDamage(fr.thrower, b, Math.min(FIRE_HIT_MAX, b._fireIn.hits), "молотов", {from:{x:fr.x, y:fr.y}}); }
-      } else if(b._fireIn && b._fireIn.f === fr){ b._fireIn = null; }
+        while(b._fireIn.hits < hitsNow && b.alive){ nadeCountFireHit(b._fireIn); if(b._fireIn.hits % 3 === 1) soundEv("sndBody", "burn", b.x, b.y); applyDamage(fr.thrower, b, Math.min(FIRE_HIT_MAX, b._fireIn.hits), "молотов", {from:{x:fr.x, y:fr.y}}); }
+      } else if(b._fireIn && b._fireIn.f === fr){ damageSetFireIn(b, null); }
     });
   }
   for(var x=nadeFx.length-1;x>=0;x--) if(tick - nadeFx[x].born > 40) nadeFx.splice(x,1);
 }
 
+
+// Запись состояния канала. Вызовы выполняются в исходной точке тика.
+function damageSetBlindBy(bot, value){ return bot._blindBy = value; }
+function damageSetDmgBy(bot, value){ return bot._dmgBy = value; }
+function damageSetFireIn(bot, value){ return bot._fireIn = value; }
+function nadeCountFireHit(burn){ burn.hits++; }
+function damageSetAlive(bot, value){ return bot.alive = value; }
+function damageSetArmor(bot, value){ return bot.armor = value; }
+function damageSetArmorHp(bot, value){ return bot.armorHp = value; }
+function damageSetBlindUntil(bot, value){ return bot.blindUntil = value; }
+function damageSetDeaths(bot, value){ return bot.deaths = value; }
+function damageSetHelmet(bot, value){ return bot.helmet = value; }
+function damageSetHp(bot, value){ return bot.hp = value; }
+function damageSetKills(bot, value){ return bot.kills = value; }
+function damageSetRoundDmg(bot, value){ return bot.roundDmg = value; }
+function damageSetRoundKills(bot, value){ return bot.roundKills = value; }

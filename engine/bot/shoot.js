@@ -1,4 +1,4 @@
-// [хозяева: aimSigma, fireVAcc, shotSpread, tryShoot] (Б4) стрелять на ходу или сначала остановиться: выстрел, если попасть в корпус на текущей скорости не меньше FIRE_K от
+// [хозяева: aimSigma, fireVAcc, shotSetAmmo, shotSetBurstCount, shotSetLastShotTick, shotSetNextShotTick, shotSetTagUntil, shotSpread, tryShoot] (Б4) стрелять на ходу или сначала остановиться: выстрел, если попасть в корпус на текущей скорости не меньше FIRE_K от
 // «стоя». Проектное число, подобрано по демкам (b4_shots.py: первый выстрел очереди у про — 60–65 % на точной скорости ≤ 34 %
 // максимальной, 20–25 % до 60 %, остальное быстрее; медиана скорости 52–62 ед./с)
 var FIRE_K = 0.7;
@@ -70,7 +70,7 @@ function tryShoot(shooter, target, dist){ var _ev = simEvIn("tryShoot", argument
   // а не по контакту бота с кем угодно: раньше вторая цель в живой перестрелке шла без реакции (34 % выстрелов раньше 150 мс)
   var cs = (shooter._ts && shooter._ts[target.id]) || 0;
   if(!shooter.alive || !target.alive) return simEvOut(_ev);
-  if((shooter._knife || (shooter._drawUntil && tick < shooter._drawUntil))){ if(shooter._knife){ shooter._knife = false; shooter._drawUntil = tick + Math.round(0.4*TICK_HZ); } return simEvOut(_ev); } // достаёт оружие
+  if((shooter._knife || (shooter._drawUntil && tick < shooter._drawUntil))){ if(shooter._knife){ equipmentSetKnife(shooter, false); equipmentSetDrawUntil(shooter, tick + Math.round(0.4*TICK_HZ)); } return simEvOut(_ev); } // достаёт оружие
   // отступающий стреляет на отходе (раньше не стрелял вообще — его просто
   // расстреливали в спину); бег и так режет ему точность
   if(shooter.planting || shooter.defusing) return simEvOut(_ev); // руки заняты
@@ -227,11 +227,11 @@ function tryShoot(shooter, target, dist){ var _ev = simEvIn("tryShoot", argument
   var pBody = function(sg){ return 1 - DM.exp(-(bA*bA)/(2*sg*sg)); };
   if(wSpread > w0 && pBody(sigma) < FIRE_K * pBody(sig0)){ fireReady(shooter, target, 0); return simEvOut(_ev); }
   shooter._fire = null;
-  shooter.burstCount = burstIdx + 1;
-  shooter.lastShotTick = tick;
+  shotSetBurstCount(shooter, burstIdx + 1);
+  shotSetLastShotTick(shooter, tick);
   target._shotAtT = tick; target._shotAtBy = shooter;
-  shooter.nextShotTick = tick + w.fireIntervalTicks;
-  shooter.ammo--;
+  shotSetNextShotTick(shooter, tick + w.fireIntervalTicks);
+  shotSetAmmo(shooter, +shooter.ammo - 1);
   shooter._heat = heat + 1; if(shooter._tap) shooter._tap.n++;
   var pIn = function(R){ return 1 - DM.exp(-(R*R)/(2*sigma*sigma)); };
   var seedS = tick*104729 + shooter.id.charCodeAt(0)*31 + shooter.id.length*7 + target.id.charCodeAt(0)*17 + Math.floor(shooter.nextShotTick*8);
@@ -288,7 +288,7 @@ function tryShoot(shooter, target, dist){ var _ev = simEvIn("tryShoot", argument
     var bx = target.x - (target.y - shooter.y)*bk, by = target.y + (target.x - shooter.x)*bk;
     if(!visMarch(shooter.x, shooter.y, vz0, bx, by, fz1 + Math.max(4, uy))){ hbZone = null; shooter._covShot = tick; } }
   // (v570) счёт своих пуль, ушедших в край / укрытие (видно по попаданиям в стену — как живому игроку): читает перестрелка (fight, место пика)
-  var CS = shooter._covLog || (shooter._covLog = []); CS.push(shooter._covShot === tick ? 1 : 0); if(CS.length > 8) CS.shift(); (shooter._covT || (shooter._covT = [])).push(tick); if(shooter._covT.length > 8) shooter._covT.shift();
+  fightRecordCoverSample(shooter);
   headshot = hbZone === "head"; hit = !!hbZone;
   var endX = target.x, endY = target.y, hitZone = null;
   if(hit){
@@ -302,7 +302,7 @@ function tryShoot(shooter, target, dist){ var _ev = simEvIn("tryShoot", argument
     else if(zr < 0.42){ mult = 1.25; armored = target.armor; hitZone = "stomach"; }
     else { mult = 1.0; armored = target.armor; hitZone = "chest"; }
     var dmg = Math.max(1, Math.round(base * mult * (armored ? w.armorPen : 1)));   // ожидаемый урон в HP (для логов); сам урон — applyDamage
-    target._tagUntil = tick + 16; // попали — на ~0.25с замедлен
+    shotSetTagUntil(target, tick + 16); // попали — на ~0.25с замедлен
     target._hitFx = {t:nowTs, head:headshot};
     if(headshot && burstIdx === 0 && (shooter._place||0) > 0.8 && target.hp <= dmg && hashRand(seedS+29) < 0.5) logEvent(shooter.id+": прицел стоял на угле — хэдшот с первой пули по "+target.id);
     soundEv("sndBody", headshot ? (target.helmet ? "hshelm" : "hs") : (target.armor ? "kevlar" : "body"), target.x, target.y);
@@ -406,3 +406,10 @@ function duelContext(bot, enemiesSeen, alliesNear){
   }
   return o;
 }
+
+// Запись состояния канала. Вызовы выполняются в исходной точке тика.
+function shotSetTagUntil(bot, value){ return bot._tagUntil = value; }
+function shotSetAmmo(bot, value){ return bot.ammo = value; }
+function shotSetBurstCount(bot, value){ return bot.burstCount = value; }
+function shotSetLastShotTick(bot, value){ return bot.lastShotTick = value; }
+function shotSetNextShotTick(bot, value){ return bot.nextShotTick = value; }
