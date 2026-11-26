@@ -22,7 +22,7 @@
   - `nadesTick` (damage) — если !postRun
     - `tClearCalls` (lurker) — если roundState === "live" && tick % 16 === 0
   - `bombBeepTick` (journal) — если !postRun
-  - `stepBot` (tick) — в обходе (forEach и т.п.)
+  - `stepBot` (tick-step) — в обходе (forEach и т.п.)
 - `resolveEngagements` (engagements)
 - `ecoKnowSeeTick` (economy)
 - `smokeSpamTick` (smoke-react)

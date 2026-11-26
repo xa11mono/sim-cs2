@@ -1,4 +1,5 @@
-/* [хозяева: nadeBrains, nadeTaskEnd, nadeCancel, nadeUseTick] */ var FLASH_EXIT_MAX = 413;   // px: 90 % флешек «под свой выход» у про (pro_nades.csv, purpose flash_exit)
+// [хозяева: nadeBrains, nadeTaskEnd, nadeCancel, nadeUseTick]
+var FLASH_EXIT_MAX = 413;   // px: 90 % флешек «под свой выход» у про (pro_nades.csv, purpose flash_exit)
 function nadeUsePick(b, pts, R){
   var I = nadeLaneIdx(), L = I.L, best = null, bd = Infinity;
   pts.forEach(function(p){

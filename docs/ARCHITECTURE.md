@@ -466,6 +466,8 @@ CT идёт через зону с ролью `CTspawn`.
 - Р4.4: `view/view3d.js` → + `view3d-frame.js` (`d3Frame`, `d3Proj`, `d3Tag`, запуск); `view/replay.js` → + `replay-play.js` (скорость, рисование, звук, переход к раунду). Не поделены (одна большая функция — нужна правка вида `brain_split` и снимки показа): `view/draw.js` (`draw`), `engine/core/tick.js` (`stepTick`, модуль esbuild); модули `throw.js`, `fight.js` — деление меняет модульную сборку, отдельно.
 - Р4.4: `stepTick` (`engine/core/tick.js`) — тело обхода ботов вынесено в `stepBot(bot, …числа тика)` дословно (числа — параметрами с теми же именами, только чтение); файл не делился — модуль esbuild.
 - Р4.4: `draw` (`view/draw.js`) — 8 частей в прежнем порядке (`drawZones` … `drawBots`, контекст `K`, `brain_split.js`); кадр холста до / после — попиксельно тот же (`tools/page/frame_hash.js`, `rebuild/evidence/R4/draw_split_frames.json`).
+- Р4.4 (26.11, v637a): файл `view/draw.js` поделён по смыслу на `draw.js` (кадр: порядок частей), `draw-map.js` (зоны, опасность, навмеш, лучи), `draw-fx.js` (дым, огонь, гранаты, трассеры), `draw-layers.js` (слои), `draw-bots.js` (боты); склейка — тот же текст (`tools/rebuild/split_file.py`).
+- Р4.4 (26.11, v637a): модуль `engine/core/tick.js` поделён по смыслу на `tick.js` (часы, звук шагов, дефуз-шаг, привязка к навмешу), `tick-jump.js` (прыжки, подсадки, клавиши в воздухе), `tick-keys.js` (стрейф по нажатиям про), `tick-step.js` (`stepTick`, `stepBot`); все четыре — модули (`rebuild/modules.json`), порядок тот же.
 
 
 ## Устройство каналов (перенесено дословно из `docs/ARCHITECTURE.md`, 26.11, Р4.6; ответы владельца 15.11 — внутри)
@@ -620,7 +622,7 @@ CT идёт через зону с ролью `CTspawn`.
 | роли `pRole`, `tFallbackTick`, ребаланс сайта; про-позиции `ppLayer`/`proPick` | `engine/team/roles`, `engine/team/pro-positions` |
 | память команды v166 (только радар + войс): `intelPush`, `teamInfoTick`, `commSend` = радар, `intelEstimate`, `lkpNear`, названия зон `calloutName` | `engine/know/intel`; `teamHeardToIntel` — `engine/know/voice` |
 | тайминги «может ли там уже кто-то быть»: `beliefBuild`, `reach*` | `engine/know/reach` |
-| **знание бота о врагах** (одно место): `KNOW`, `hearReal`, гипотезы `know*`; позиции про `KNOW_POSITIONS` | `engine/know/knowledge` |
+| **знание бота о врагах** (одно место): `KNOW`, `hearReal`, гипотезы `know*`; позиции про `KNOW_POSITIONS`; запись «что слышал» / «где последний раз враг» — только `knowHear` / `knowSound` / `knowIntel` (v637a) | `engine/know/knowledge` |
 | … события знания: `knowCall`, `knowClearZone`, `knowKill`, `knowTick` | `engine/know/events` |
 | **войс** (одно место «что сказали»): `TEAM`, `teamNotice`, `teamChannel`, `teamDeath`, `teamTick` → `knowCall` | `engine/know/voice` |
 | карта команды `belief` из гипотез: `beliefTick`; чтение `beliefZoneKnown` | `engine/know/belief`; `beliefZoneKnown` — `engine/bot/look-threat` |

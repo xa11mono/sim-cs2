@@ -1,4 +1,5 @@
-/* [хозяева: bulletVictim, dropWeaponOnDeath, itemPickupTick, knifeTick] */ var tracers = [];
+// [хозяева: bulletVictim, dropWeaponOnDeath, itemPickupTick, knifeTick]
+var tracers = [];
 // (v151) как выглядит выстрел у разного оружия: пистолет — тонкий короткий след и
 // маленькая вспышка; ПП — частые тонкие; винтовка — как было; AWP — толстый
 // мгновенный луч с ореолом, большая вспышка, след висит дольше

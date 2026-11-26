@@ -73,6 +73,9 @@
   "round.js",
   "move.js",
   "tick.js",
+  "tick-jump.js",
+  "tick-keys.js",
+  "tick-step.js",
   "modes.js",
   "problem-watch.js",
   "nav-zones.js",
@@ -84,6 +87,10 @@
   "look-debug.js",
   "team.js",
   "draw.js",
+  "draw-map.js",
+  "draw-fx.js",
+  "draw-layers.js",
+  "draw-bots.js",
   "view3d.js",
   "view3d-frame.js",
   "killfeed.js",
@@ -674,6 +681,27 @@
    "legacy": "540"
   },
   {
+   "file": "tick-jump.js",
+   "id": "tick-jump",
+   "part": "engine",
+   "sys": "ход",
+   "dir": "engine/core"
+  },
+  {
+   "file": "tick-keys.js",
+   "id": "tick-keys",
+   "part": "engine",
+   "sys": "ход",
+   "dir": "engine/core"
+  },
+  {
+   "file": "tick-step.js",
+   "id": "tick-step",
+   "part": "engine",
+   "sys": "ход",
+   "dir": "engine/core"
+  },
+  {
    "file": "modes.js",
    "id": "modes",
    "part": "engine",
@@ -759,6 +787,34 @@
    "sys": "показ и инструменты",
    "dir": "view",
    "legacy": "620"
+  },
+  {
+   "file": "draw-map.js",
+   "id": "draw-map",
+   "part": "show",
+   "sys": "показ и инструменты",
+   "dir": "view"
+  },
+  {
+   "file": "draw-fx.js",
+   "id": "draw-fx",
+   "part": "show",
+   "sys": "показ и инструменты",
+   "dir": "view"
+  },
+  {
+   "file": "draw-layers.js",
+   "id": "draw-layers",
+   "part": "show",
+   "sys": "показ и инструменты",
+   "dir": "view"
+  },
+  {
+   "file": "draw-bots.js",
+   "id": "draw-bots",
+   "part": "show",
+   "sys": "показ и инструменты",
+   "dir": "view"
   },
   {
    "file": "view3d.js",

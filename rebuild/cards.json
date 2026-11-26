@@ -581,12 +581,8 @@
    "src": "таблица «Где что»"
   },
   "tick.js": {
-   "mech": "цикл stepTick (+ замирание, шаги, прыжки; звук приземления — одно место landSound, шаги на лестнице — v546)",
-   "owns": [
-    "landSound",
-    "stepBot",
-    "stepTick"
-   ],
+   "mech": "часы тика (TICK_HZ, пауза, шаг кадра), звук шагов moveSoundEmit, подход к дефузу, привязка к навмешу navSnap; было одним файлом engine/core/tick.js (Р4.4, 26.11)",
+   "owns": [],
    "src": "таблица «Где что»"
   },
   "problem-watch.js": {
@@ -640,17 +636,9 @@
    "src": "шапка файла"
   },
   "draw.js": {
-   "mech": "рисование кадра draw — части в прежнем порядке (Р4.4): drawZones → drawDanger → drawNav → drawRays → drawSmokes → drawTracers → drawLayers → drawBots → HUD (в draw); общее — контекст K",
+   "mech": "кадр радара: draw() — порядок частей кадра (карта, гранаты и выстрелы, слои, боты); было одним файлом view/draw.js (Р4.4, 26.11)",
    "owns": [
-    "draw",
-    "drawBots",
-    "drawDanger",
-    "drawLayers",
-    "drawNav",
-    "drawRays",
-    "drawSmokes",
-    "drawTracers",
-    "drawZones"
+    "draw"
    ],
    "src": "таблица «Где что»"
   },
@@ -810,6 +798,58 @@
    "mech": "состояние режимов страницы (демо, песочница, разминка) и надпись смены сторон, которые читает / пишет ядро (Р5)",
    "owns": [],
    "src": "Р5"
+  },
+  "draw-map.js": {
+   "mech": "кадр: карта и слои анализа — зоны, опасность, навмеш, лучи (drawZones, drawDanger, drawNav, drawRays); было одним файлом view/draw.js (Р4.4, 26.11)",
+   "owns": [
+    "drawDanger",
+    "drawNav",
+    "drawRays",
+    "drawZones"
+   ],
+   "src": "таблица «Где что»"
+  },
+  "draw-fx.js": {
+   "mech": "кадр: дым, огонь, гранаты в полёте, трассеры (drawSmokes, drawTracers); было одним файлом view/draw.js (Р4.4, 26.11)",
+   "owns": [
+    "drawSmokes",
+    "drawTracers"
+   ],
+   "src": "таблица «Где что»"
+  },
+  "draw-layers.js": {
+   "mech": "кадр: слои отладки и подсказок (drawLayers); было одним файлом view/draw.js (Р4.4, 26.11)",
+   "owns": [
+    "drawLayers"
+   ],
+   "src": "таблица «Где что»"
+  },
+  "draw-bots.js": {
+   "mech": "кадр: боты — значки, взгляд, подписи (drawBots); контур области areaPath; было одним файлом view/draw.js (Р4.4, 26.11)",
+   "owns": [
+    "drawBots"
+   ],
+   "src": "таблица «Где что»"
+  },
+  "tick-jump.js": {
+   "mech": "прыжки и подсадки: звук приземления, подсадка (boost), клавиши в воздухе, проверка прыжка на ходу (jumpCheckTick); было одним файлом engine/core/tick.js (Р4.4, 26.11)",
+   "owns": [
+    "landSound"
+   ],
+   "src": "таблица «Где что»"
+  },
+  "tick-keys.js": {
+   "mech": "клавиши стрейфа по нажатиям про (strafeKeysTick, KEYS_PRO); было одним файлом engine/core/tick.js (Р4.4, 26.11)",
+   "owns": [],
+   "src": "таблица «Где что»"
+  },
+  "tick-step.js": {
+   "mech": "шаг движка: stepTick (порядок тика) и stepBot (ход одного бота); было одним файлом engine/core/tick.js (Р4.4, 26.11)",
+   "owns": [
+    "stepBot",
+    "stepTick"
+   ],
+   "src": "таблица «Где что»"
   }
  }
 }

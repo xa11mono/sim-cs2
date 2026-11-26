@@ -106,7 +106,7 @@
    "why": "свои T не лёркеры",
    "n": 1
   },
-  "tick:jumpCheckTick:crouching,facing,x,y,z": {
+  "tick-jump:jumpCheckTick:crouching,facing,x,y,z": {
    "class": "восприятие",
    "why": "кто кого видит на вершине прыжка (visParts, конус взгляда, ослепление) → intelPush",
    "n": 1

@@ -36,7 +36,8 @@ function probEvent(kind, b, text, sub){
   var ep = null;
   if(kind === "stall"){ var st = PROB.s[b.id] || (PROB.s[b.id] = {}), E = st.ep;
     if(!E || E.round !== roundNum || DM.hypot(b.baseX - E.x, b.baseY - E.y) > PROB_STALL_MOVE*2){ PROB.ep = (PROB.ep || 0) + 1; E = st.ep = {n: PROB.ep, x: b.baseX, y: b.baseY, round: roundNum}; }
-    ep = E.n; } if(sub){ PROB.sub = PROB.sub || {}; PROB.sub[sub] = (PROB.sub[sub] || 0) + 1; }
+    ep = E.n; }
+  if(sub){ PROB.sub = PROB.sub || {}; PROB.sub[sub] = (PROB.sub[sub] || 0) + 1; }
   PROB.ev.push({kind: kind, id: b.id, x: Math.round(b.baseX), y: Math.round(b.baseY), tick: tick, round: roundNum, text: text, sub: sub, ep: ep, why: probTrace(b)});
   // (Р3.6, владелец 26.11) полный журнал матча — у каждого увеличения счётчика своя причина (PROB.all, без ограничения); PROB.ev — последние 400
   // (слой «ошибки движения» на экране)

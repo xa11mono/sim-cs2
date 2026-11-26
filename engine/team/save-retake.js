@@ -1,4 +1,5 @@
-/* [хозяева: pickSaveSpot, updateRetake] */ var SAVE_TOPN = 12;
+// [хозяева: pickSaveSpot, updateRetake]
+var SAVE_TOPN = 12;
 function pickSaveSpot(b){
   // только то, что команда знает (радар/слышали за 15с), а не настоящие позиции T
   var ts = [], BLs = kvLast("CT");

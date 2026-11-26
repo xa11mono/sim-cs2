@@ -1,4 +1,5 @@
-/* [хозяева: tBrainPostplant] */ 
+// [хозяева: tBrainPostplant]
+
 // часть tBrain (Р3.2 команда, разрезание в прежнем порядке) — ветка строк 850–1075 исходного tBrain; true — выйти из мозга
 function tBrainPostplant(K){
   var gs = GEO[bomb.site];

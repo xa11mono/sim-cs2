@@ -1,4 +1,5 @@
-/* [хозяева: tBrainExecute, tBrainSetup] */ 
+// [хозяева: tBrainExecute, tBrainSetup]
+
 // часть tBrain (Р3.2 команда, разрезание в прежнем порядке) — ветка строк 396–588 исходного tBrain
 function tBrainSetup(K){
   if(K.lurker) lurkerBrain(K.lurker, K.tt, K.other);

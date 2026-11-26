@@ -42,13 +42,14 @@ function init() {
 }
 // (Р3.5, 26.11) шапка файла — часть карточки: первая строка файла несёт «[хозяева: a, b]» (или «[хозяева: —]») — те же функции, что owns
 // карточки; строка не добавляется (тег — в начале первой строки: «// [хозяева: …] прежний текст» или «/* [хозяева: …] */ код»), номера
-// строк файла не сдвигаются. --headers — записать теги по карточкам
+// строк файла не сдвигаются (у файла без шапки-комментария тег — новой первой строкой). --headers — записать теги по карточкам
 const HEAD_RE = /\[хозяева: ([^\]]*)\]/;
 const headTag = owns => '[хозяева: ' + (owns.length ? owns.join(', ') : '—') + ']';
 function headers(C) {
   let n = 0;
   for (const [f, c] of Object.entries(C)) { const p = SRC.gamePath(f), s = fs.readFileSync(p, 'utf8'), i = s.indexOf('\n'), l1 = i < 0 ? s : s.slice(0, i), tag = headTag(c.owns || []);
-    let nl = HEAD_RE.test(l1) ? l1.replace(HEAD_RE, tag) : /^\/\/ ?/.test(l1) ? l1.replace(/^\/\/ ?/, '// ' + tag + ' ') : '/* ' + tag + ' */ ' + l1;
+    // нет шапки-комментария — тег отдельной строкой: в одной строке с кодом («/* … */ var X = 1;») сборщик модулей (mod_build) терял объявление
+    let nl = /^\/\* \[хозяева: [^\]]*\] \*\/ /.test(l1) ? '// ' + tag + '\n' + l1.replace(/^\/\* \[хозяева: [^\]]*\] \*\/ /, '') : HEAD_RE.test(l1) ? l1.replace(HEAD_RE, tag) : /^\/\/ ?/.test(l1) ? l1.replace(/^\/\/ ?/, '// ' + tag + ' ') : '// ' + tag + '\n' + l1;
     if (nl !== l1) { fs.writeFileSync(p, nl + (i < 0 ? '' : s.slice(i))); n++; } }
   return n;
 }

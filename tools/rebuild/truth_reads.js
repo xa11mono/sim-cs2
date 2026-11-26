@@ -20,7 +20,7 @@ const IT = new Set(['forEach', 'filter', 'some', 'find', 'map', 'every', 'reduce
 // восприятие и движок: читают истину по должности (файл:функция или файл целиком)
 const PERCEPTION = {
   'engagements': ['engSee'],                                        // кто кого видит
-  'tick': ['stepTick'],                                      // движок: столкновения, шаги
+  'tick-step': ['stepTick'],                                 // движок: столкновения, шаги
   'damage': ['nadeOrigin', 'detonate'],                        // физика гранат: кого задело
   'bomb': ['defuseSound', 'bombTick'],                       // источник звука (кто слышит — hearReal)
   'items': ['itemPickupTick'],                                // подбор: кто стоит на предмете

@@ -1,4 +1,5 @@
-/* [хозяева: ctBrainPlayers] */ 
+// [хозяева: ctBrainPlayers]
+
 // часть ctBrain (Р3.2 команда, разрезание в прежнем порядке) — операторы строк 420–745 исходного ctBrain
 function ctBrainPlayers(K){
   K.cts.forEach(function(b){

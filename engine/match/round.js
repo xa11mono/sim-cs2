@@ -1,4 +1,5 @@
-/* [хозяева: buyPhase, coreLoadEnd, endRound, freshMatch, resetRound, sideSwapNow, swapSides] */ function buyPhase(){
+// [хозяева: buyPhase, coreLoadEnd, endRound, freshMatch, resetRound, sideSwapNow, swapSides]
+function buyPhase(){
   showEv("buyShow", tick, bots.map(function(b){ return {id: b.id, team: b.team, _knife: b._knife, weapon: b.weapon, helmet: b.helmet, armor: b.armor, kit: b.kit, nades: Object.assign({}, b.nades), primary: b.primary, secondary: b.secondary}; }));   // (17.11) снаряжение до закупа — для показа закупки по одной (scoreboard)
   ["CT","T"].forEach(function(team){
     teamEco[team].antiEcoSmg = false;

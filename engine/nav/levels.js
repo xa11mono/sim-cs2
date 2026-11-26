@@ -1,4 +1,5 @@
-/* [хозяева: floorCover, floorViewTick, inFire, ladderTick, laddersBuild, navAtLevel, navOnFloor] */ function fireDamageFor(sec){ var n = Math.floor(sec/FIRE_HIT_SEC), d = 0; for(var k=1;k<=n;k++) d += Math.min(FIRE_HIT_MAX, k); return d; }
+// [хозяева: floorCover, floorViewTick, inFire, ladderTick, laddersBuild, navAtLevel, navOnFloor]
+function fireDamageFor(sec){ var n = Math.floor(sec/FIRE_HIT_SEC), d = 0; for(var k=1;k<=n;k++) d += Math.min(FIRE_HIT_MAX, k); return d; }
 // (v438) загорелся молотов — у кого оставшийся путь проходит через огонь (точка пути или отрезок ближе радиуса огня), путь строится
 // заново (buildWaypointPath обходит огонь, FIRE_DETOUR, 050): раньше путь, построенный до огня, вёл прямо в него
 // (v450, док владельца 28.10 №5: «раш через Рампу, а идут через Палас»; м19 р1: CT кинули молотов на T Ramp, путь T0 к Tetris построился
