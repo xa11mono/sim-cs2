@@ -234,7 +234,7 @@ class Pool:
         ok = rc == 0 and not r['why'] and (not t.get('valid') or not t.get('out') or t['valid'](t['out']))
         if ok and r['peak']: self.peak_by_eng[eng] = max(self.peak_by_eng.get(eng, 0), r['peak'])
         av = mem_mb()[1]
-        g = {'name': t['name'], 'engine': eng, 'rc': rc, 'ok': ok, 'secs': round(dur, 1), 'peak_mb': r['peak'], 'procs_max': r['nproc_max'],
+        g = {'name': t['name'], 'engine': eng, 'rc': rc, 'ok': ok, 'secs': round(dur, 1), 't_start': round(r['t0'], 1), 't_end': round(time.time(), 1), 'peak_mb': r['peak'], 'procs_max': r['nproc_max'],
              'stopped': r['why'], 'orphans_killed': left, 'job': bool(r['job']), 'par_cap': self.cap, 'running_with': len(self.run),
              'mem_total_mb': self.total, 'mem_avail_mb_after': av, 'retry': bool(t.get('retried'))}
         if t.get('guard'):
