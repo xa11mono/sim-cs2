@@ -7,8 +7,9 @@
 дочерние процессы браузера после смерти node никто не добивал; новый матч запускался без взгляда на свободную память.
 
 Что делает пул (Pool):
-  * допуск учитывает прогноз оставшегося роста идущих матчей, прогноз нового матча и запас памяти. Непроверенную пару
-    движок/карта сначала калибрует один матч. При длительном отсутствии памяти допуск завершается явной ошибкой.
+  * Firefox и WebKit резервируют оставшийся рост до пиков и калибруют новую пару движок/карта одним матчем.
+    Chromium и Node допускаются по свободной памяти и текущему потреблению. Новые деревья учитываются до первого замера.
+    При длительном отсутствии памяти допуск завершается явной ошибкой.
   * свободной памяти меньше критической — снять самый новый матч (причина lowmem), уменьшить параллельность, переиграть его один раз в конце;
   * лимит памяти на матч (всё дерево процессов: node + браузер + его дети) и лимит времени — снять (memlimit / timeout);
   * Windows: родительский Job Object ограничивает суммарный commit пула, отдельный Job Object — commit дерева матча.
@@ -122,6 +123,8 @@ if WIN:
     class _EXT(ctypes.Structure):
         _fields_ = [('Basic', _BASIC), ('Io', _IO), ('ProcessMemoryLimit', ctypes.c_size_t), ('JobMemoryLimit', ctypes.c_size_t),
                     ('PeakProcessMemoryUsed', ctypes.c_size_t), ('PeakJobMemoryUsed', ctypes.c_size_t)]
+    class _JOB_MEMORY_USAGE(ctypes.Structure):
+        _fields_ = [('JobMemory', ctypes.c_ulonglong), ('PeakJobMemoryUsed', ctypes.c_ulonglong)]
     _k = ctypes.WinDLL('kernel32', use_last_error=True)
     _k.CreateJobObjectW.restype = W.HANDLE; _k.CreateJobObjectW.argtypes = [ctypes.c_void_p, W.LPCWSTR]
     _k.SetInformationJobObject.argtypes = [W.HANDLE, ctypes.c_int, ctypes.c_void_p, W.DWORD]
@@ -170,6 +173,17 @@ class Job:
         e = _EXT()
         if not _k.QueryInformationJobObject(self.h, 9, ctypes.byref(e), ctypes.sizeof(e), None): return None
         return e.PeakJobMemoryUsed // MB
+
+    def current_mb(self):
+        if not self.h:
+            return None
+        usage = _JOB_MEMORY_USAGE()
+        # JobObjectMemoryUsageInformation. Older Windows may not support this
+        # query, so let admission fall back to the conservative peak model.
+        if not _k.QueryInformationJobObject(self.h, 28, ctypes.byref(usage), ctypes.sizeof(usage), None):
+            return None
+        return (usage.JobMemory + MB - 1) // MB
+
     def close(self, kill=True):
         if not self.h: return
         if kill: _k.TerminateJobObject(self.h, 1)
@@ -178,6 +192,7 @@ class Job:
 # ---------------- пул ----------------
 DEF = {'reserve_mb': None, 'critical_mb': None, 'critical_polls': 3, 'match_mem_mb': 6144, 'match_timeout_min': 90, 'poll_s': 2, 'tree_s': 10,
        'est_mb': {'chromium': 1000, 'webkit': 1500, 'firefox': 2000, 'node': 800}, 'job': True, 'log_s': 30, 'recover_s': 60}
+DYNAMIC_ENGINES = {'chromium', 'node'}
 # Windows: внешний Job Object ограничивает суммарный commit всех матчей, внутренний — каждого дерева.
 # Допуск прогнозирует RAM по своим данным на пару движок/карта. Вне Windows остаётся опрос и запас.
 STATE = os.path.join(os.path.expanduser('~'), 'simcs2_guard_state.json')   # последнее состояние памяти: переживает перезагрузку ПК
@@ -307,15 +322,36 @@ class Pool:
     @staticmethod
     def _key(t):   # ключ оценки пика: est_key задания («движок:карта» — матчи Ancient и Mirage разного размера) или движок
         return t.get('est_key') or t.get('engine', 'chromium')
+
+    @staticmethod
+    def _dynamic(t):
+        return t.get('engine', 'chromium') in DYNAMIC_ENGINES
+
+    def _seed(self, key):
+        engine = key.split(':')[0]
+        configured = self.c['est_mb']
+        return configured.get(key, configured.get(engine, DEF['est_mb'].get(engine, DEF['est_mb']['webkit'])))
+
     def _est(self, key):
         # пик: наибольший замеченный у матчей с этим ключом (и у идущих — растут), пока замеров нет — est_mb движка
         live = max([r['peak'] for r in self.run if self._key(r['t']) == key] or [0])
-        configured = self.c['est_mb']
-        floor = configured.get(key, configured.get(key.split(':')[0], DEF['est_mb'].get(key.split(':')[0], 1500)))
-        return max(self.peaks.get(key, 0), live, floor)
-    def _need(self):
+        return max(self.peaks.get(key, 0), live, self._seed(key))
+
+    def _start_cost(self, key):
+        current = [r.get('now') or 0 for r in self.run if self._key(r['t']) == key]
+        return max(self._seed(key), max(current, default=0))
+
+    def _need(self, dynamic=False):
         # сколько ещё памяти возьмут идущие матчи до своего пика (матч без замера — весь пик)
-        return sum(max(0, self._est(self._key(r['t'])) - (r.get('now') or 0)) for r in self.run)
+        need = 0
+        for r in self.run:
+            key, used = self._key(r['t']), r.get('now')
+            if dynamic and self._dynamic(r['t']):
+                if not used:
+                    need += r['start_cost']
+            else:
+                need += max(0, self._est(key) - (used or 0))
+        return need
     def _cap_set(self, v, why):
         v = max(1, min(self.par, v))
         if v != self.cap: self.cap_log.append([time.time(), v, why]); self.log('guard: параллельность %d → %d (%s)' % (self.cap, v, why))
@@ -324,31 +360,47 @@ class Pool:
     def _can_start(self, t, available):
         return self._admit(t, available)[0]
     def _admit(self, t, available):
-        # (26.11, владелец: «в журнал — причину недопуска») то же решение, что было, плюс числа для журнала
         key = self._key(t)
-        estimate = self._est(key); need = self._need()
-        info = {'key': key, 'est': estimate, 'need': need, 'avail': available, 'reserve': self.reserve, 'after_peak': available - need - estimate}
+        dynamic = self._dynamic(t)
+        estimate = self._start_cost(key) if dynamic else self._est(key)
+        need = self._need(dynamic)
+        info = {'key': key, 'est': estimate, 'need': need, 'avail': available, 'reserve': self.reserve,
+                'remaining': available - need - estimate, 'dynamic': dynamic}
         if self.run and (t.get('retried') or any(r['t'].get('retried') for r in self.run)):
             return False, dict(info, why='повтор снятого — идёт один')
-        # Без законченного измерения одной пары разрешён один калибровочный матч этой пары.
-        if key not in self.calibrated and any(self._key(r['t']) == key for r in self.run):
+        if not dynamic and key not in self.calibrated and any(self._key(r['t']) == key for r in self.run):
             return False, dict(info, why='калибровка: у пары %s нет законченного замера пика — один матч' % key)
-        if available - need - estimate < self.reserve:
-            return False, dict(info, why='память: свободно − рост идущих − пик нового < запас')
+        if info['remaining'] < self.reserve:
+            return False, dict(info, why='RAM: после допуска осталось бы меньше запаса')
         if self.group:
-            peaks = sum(self._est(self._key(r['t'])) for r in self.run)
-            info.update(commit_peaks=peaks, commit_limit=self.group_limit, commit_peak_used=self.group.peak_mb())
-            if peaks + estimate > self.group_limit:
-                return False, dict(info, why='общий лимит commit: пики идущих + пик нового > лимит')
+            current = self.group.current_mb() if dynamic else None
+            if current is None:
+                committed = sum(self._est(self._key(r['t'])) for r in self.run)
+                extra = self._est(key)
+            else:
+                committed, extra = current + need, estimate
+            info.update(commit_used=committed, commit_new=extra, commit_limit=self.group_limit,
+                        commit_current=current)
+            if committed + extra > self.group_limit:
+                return False, dict(info, why='общий Job Object: budget commit исчерпан')
+        elif self.protected:
+            budget = min(available, _windows_memory().ullAvailPageFile // MB) - self.reserve
+            if budget < estimate:
+                return False, dict(info, why='общий Job Object: свободный commit за вычетом запаса меньше бюджета запуска',
+                                   commit_used=0, commit_new=estimate, commit_limit=budget, commit_current=0)
         return True, dict(info, why='')
     def _log_block(self, t, info, now):
         k = (t['name'], info['why'])
         if k == getattr(self, '_blk', None) and now - getattr(self, '_blk_t', 0) < self.c['log_s']: return
         self._blk, self._blk_t = k, now
-        s = ('guard: недопуск %s — %s; прогноз пика нового %d МБ (%s), рост идущих до пика +%d МБ, свободно %d МБ, запас %d МБ → после пиков свободно %d МБ'
-             % (t['name'], info['why'], info['est'], info['key'], info['need'], info['avail'], info['reserve'], info['after_peak']))
+        policy = 'фактическая память' if info['dynamic'] else 'прогноз пиков'
+        s = ('guard: недопуск %s — %s; %s (%s): новое дерево +%d МБ, резерв для идущих +%d МБ, свободно %d МБ, запас %d МБ → остаток %d МБ'
+             % (t['name'], info['why'], policy, info['key'], info['est'], info['need'], info['avail'], info['reserve'], info['remaining']))
         if 'commit_limit' in info:
-            s += '; commit: пики идущих %d + новый %d = %d из лимита %d МБ (наибольший занятый %s МБ)' % (info['commit_peaks'], info['est'], info['commit_peaks'] + info['est'], info['commit_limit'], info['commit_peak_used'])
+            current = info['commit_current']
+            s += '; commit: учтено %d + новый %d из лимита %d МБ (факт %s)' % (
+                info['commit_used'], info['commit_new'], info['commit_limit'],
+                'нет замера' if current is None else '%d МБ' % current)
         self.log(s)
 
     def _increase_group_if_possible(self, available):
@@ -364,7 +416,8 @@ class Pool:
         if not self.protected or self.group:
             return True
         self.group_limit = min(available, _windows_memory().ullAvailPageFile // MB) - self.reserve
-        if self.group_limit < self._est(self._key(t)):
+        estimate = self._start_cost(self._key(t)) if self._dynamic(t) else self._est(self._key(t))
+        if self.group_limit < estimate:
             return False
         group = Job(self.group_limit)
         if not group.h:
@@ -398,6 +451,7 @@ class Pool:
                     raise RuntimeError('Job Object не назначен для %s: %s / %s' % (t['name'], self.group.err, job.err))
             r = {'t': t, 'p': p, 'fo': fo, 'fe': fe, 'job': job, 't0': time.time(), 'start': time.monotonic(),
                  'peak': 0, 'nproc': 0, 'nproc_max': 0, 'seen': set(), 'why': None,
+                 'start_cost': self._start_cost(self._key(t)),
                  'group_limit_mb': self.group_limit if self.protected else None}
             if self.protected:
                 p.stdin.write(b'1')
@@ -466,7 +520,14 @@ class Pool:
         if ok and t.get('save'): self._save(t)
         self.log('end %s: код %s, %.0f с, пик %s МБ, процессов до %d%s%s' % (t['name'], rc, dur, r['peak'], r['nproc_max'],
                  ', СНЯТ: ' + r['why'] if r['why'] else ('' if ok else ', РЕЗУЛЬТАТ НЕГОДЕН'), ', добито осиротевших: %d' % left if left else ''))
-        if r['why'] and r['why'].startswith('lowmem') and not t.get('retried'):
+        lowmem = r['why'] and r['why'].startswith('lowmem')
+        # A hard Job memory limit can surface as a child process error.
+        # A single isolated retry distinguishes transient shared pressure
+        # from repeatable process failures without treating either as success.
+        shared_failure = (r['job'] and self._dynamic(t) and rc != 0 and not r['why'] and stats['par_max'] > 1)
+        if not t.get('retried') and (lowmem or shared_failure):
+            if shared_failure:
+                self.log('guard: %s вышел с %s при общем Job Object; повторю один раз отдельно' % (t['name'], rc))
             t = dict(t); t['retried'] = True; self.retry.append(t)
 
     def _sweep(self, where):
@@ -507,7 +568,7 @@ class Pool:
                     self.group.close(True)
                     self.group = None
                 if not self.q and not self.run and self.retry:
-                    self.log('guard: переигровка снятых по памяти: %d (по одному)' % len(self.retry))
+                    self.log('guard: повтор остановленных или упавших матчей: %d (по одному)' % len(self.retry))
                     self.q, self.retry = self.retry, []
                 if not self.q and not self.run:
                     break
@@ -542,7 +603,8 @@ class Pool:
                     self._increase_group_if_possible(av)
                 if (self.cap < self.par and self.low == 0 and now - self.t_cap >= self.c['recover_s']
                         and self.q and not self.q[0].get('retried') and self._can_start(self.q[0], av)):
-                    self._cap_set(self.cap + 1, 'память позволяет: свободно %d МБ, прогноз идущих +%d' % (av, self._need()))
+                    self._cap_set(self.cap + 1, 'память позволяет: свободно %d МБ, резерв идущих +%d' % (
+                        av, self._need(self._dynamic(self.q[0]))))
                 while self.q and len(self.run) < self.cap:
                     next_task = self.q[0]
                     ok, info = self._admit(next_task, av)
