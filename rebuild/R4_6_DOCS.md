@@ -38,11 +38,11 @@
   `docs/ARCHITECTURE.md` — реализация и «Где что».
 
 ## Шаг 4 (26.11) — по описи Codex (`documentation_inventory.csv`)
-- В архив: `docs/tasks/CLAUDE_AI_BEHAVIOR_ROOT_CAUSE_TASK.md`, `CLAUDE_GRENADE_TASK_PROMPT.md`, `HANDOFF_MOTION.md` → `docs/archive/tasks/`;
-  `rebuild/bal_removed.md`, `dead_removed.md` → `rebuild/archive/`.
-- Объединены дословно: `rebuild/DEVICE.md` → `docs/ARCHITECTURE.md` («Устройство каналов»), `rebuild/TOOLS.md` → `tools/README.md`;
+- В архив: docs/tasks/CLAUDE_AI_BEHAVIOR_ROOT_CAUSE_TASK.md, `CLAUDE_GRENADE_TASK_PROMPT.md`, `HANDOFF_MOTION.md` → `docs/archive/tasks/`;
+  rebuild/bal_removed.md, `dead_removed.md` → `rebuild/archive/`.
+- Объединены дословно: rebuild/DEVICE.md → `docs/ARCHITECTURE.md` («Устройство каналов»), rebuild/TOOLS.md → `tools/README.md`;
   оригиналы — `rebuild/archive/`. Полнота: из 98 предложений не найдены дословно 2 заголовка (заменены заголовками разделов).
-- Не объединены (с причиной): `rebuild/OPEN_QUESTIONS.md` → реестр решений — в вопросах ответ стоит рядом с вопросом и вариантами; реестр
+- Не объединены (с причиной): rebuild/OPEN_QUESTIONS.md → реестр решений — в вопросах ответ стоит рядом с вопросом и вариантами; реестр
   `docs/architecture/DECISIONS.md` ссылается, а не копирует (иначе два источника); `docs/BRAIN.md` → `PLAYER_MINDSET.md` — нужна сверка
   действующих контрактов знания и ролей по коду (Р5 / после Р8 вместе с правками знания), до неё — оба остаются, BRAIN — источник
   происхождения данных Setup (`tools/map/positions_bake.py`).
