@@ -332,9 +332,15 @@
    "src": "таблица «Где что»"
   },
   "340_ctbrain.js": {
-   "mech": "мозг CT ctBrain",
+   "mech": "мозг CT ctBrain — части в прежнем порядке (Р3.2 команда): ctBrainBombDown (бомба выбита) → ctBrainCall (колл по сайтам) → ctBrainRotate (ротации по коллу) → ctBrainFlank (фланг) → ctBrainSave (сейв / ретейк команды) → ctBrainPlayers (по игроку); общее — контекст K",
    "owns": [
-    "ctBrain"
+    "ctBrain",
+    "ctBrainBombDown",
+    "ctBrainCall",
+    "ctBrainFlank",
+    "ctBrainPlayers",
+    "ctBrainRotate",
+    "ctBrainSave"
    ],
    "src": "таблица «Где что»"
   },
