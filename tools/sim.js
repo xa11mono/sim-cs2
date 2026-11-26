@@ -146,7 +146,7 @@ const CMDS = {
   build: a => run(PY, [path.join(ROOT, 'src', 'build.py'), '--map', opt(a, 'map', 'ancient')].concat(pos(a))),
   pub: a => run(PY, [path.join(ROOT, 'src', 'mkpub.py'), '--map', opt(a, 'map', 'ancient')]),
   fp, fpdiff,
-  check: a => run('node', [path.join(ROOT, 'tools', 'rebuild', 'gen_maps.js'), '--check']) || run('node', [path.join(ROOT, 'tools', 'rebuild', 'doc_links.js')]) || run('node', [path.join(ROOT, 'tools', 'rebuild', 'snap_vars_test.js')]) || run('node', [path.join(ROOT, 'tools', 'rebuild', 'typecheck.js')]) || run(PY, [path.join(ROOT, 'tools', 'map', 'map_check.py'), '--known=rebuild/known_map_gaps.json'].concat(pos(a))),
+  check: a => run('node', [path.join(ROOT, 'tools', 'rebuild', 'gen_maps.js'), '--check']) || run('node', [path.join(ROOT, 'tools', 'rebuild', 'frame_contract.js'), '--check']) || run('node', [path.join(ROOT, 'tools', 'rebuild', 'doc_links.js')]) || run('node', [path.join(ROOT, 'tools', 'rebuild', 'snap_vars_test.js')]) || run('node', [path.join(ROOT, 'tools', 'rebuild', 'typecheck.js')]) || run(PY, [path.join(ROOT, 'tools', 'map', 'map_check.py'), '--known=rebuild/known_map_gaps.json'].concat(pos(a))),
   scen: a => run('node', [path.join(ROOT, 'tools', 'marks', 'scenarios.js')].concat(a)),
   why: a => run('node', [path.join(ROOT, 'tools', 'marks', 'why.js')].concat(a)),
   mark: a => MARK_V2[a[0]] ? markV2(a[0], a.slice(1)) : run('node', [path.join(ROOT, 'tools', 'marks', 'prototype', 'cli.cjs')].concat(a)),   // (Р5.7) отметки v2: пакет (прототип Codex) + разбор / видео / повтор

@@ -141,6 +141,7 @@
   "DEMOV": {
    "from": "modes.js",
    "by": [
+    "app",
     "demo"
    ]
   },
@@ -447,6 +448,7 @@
   "SANDBOX": {
    "from": "modes.js",
    "by": [
+    "app",
     "sandbox"
    ]
   },
@@ -947,6 +949,7 @@
   "nowTs": {
    "from": "items.js",
    "by": [
+    "app",
     "demo",
     "draw-fx",
     "look-debug",

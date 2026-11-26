@@ -279,9 +279,9 @@ function wkStart(pre){
 // что у Worker (postMessage / message), поверх HTTP: команда — POST /cmd, ответ — кадр / снимок текстом (mkPack); снимки перемотки не ходят
 function wkLocal(){
   var L = {h: [], onmessage: null, addEventListener: function(n, f){ L.h.push(f); }, removeEventListener: function(n, f){ L.h = L.h.filter(function(x){ return x !== f; }); },
-    postMessage: function(m){ if(m.S) m = Object.assign({}, m, {S: mkPack(m.S), cp: null}); else if(m.cp) m = Object.assign({}, m, {cp: null});
+    postMessage: function(m){ if(m.S) m = Object.assign({}, m, {S: mkPack(m.S), cp: null, dlog: m.dlog && mkPack(m.dlog)}); else if(m.cp) m = Object.assign({}, m, {cp: null});
       fetch("/cmd", {method: "POST", body: JSON.stringify(m)}).then(function(r){ return r.json(); }).then(function(d){
-      var e = {data: {tick: d.tick, F: d.F && mkUnpack(d.F), S: d.S && mkUnpack(d.S), cp: null, ls: d.ls}}; if(L.onmessage) L.onmessage(e); L.h.slice().forEach(function(f){ f(e); }); })
+      var e = {data: {tick: d.tick, F: d.F && mkUnpack(d.F), S: d.S && mkUnpack(d.S), cp: null, dlog: d.dlog && mkUnpack(d.dlog), ls: d.ls}}; if(L.onmessage) L.onmessage(e); L.h.slice().forEach(function(f){ f(e); }); })
       .catch(function(e){ showFatal(new Error("локальный режим: " + e)); }); }, terminate: function(){} };
   WK.w = L; WK.local = true; L.onmessage = function(e){ wkMsg(e.data); }; WK.on = true;
   WK.busy = true; L.postMessage({cmd: "init", ls: wkLs(), now: nowTs}); return true;
@@ -298,7 +298,7 @@ function wkToPage(then, why){
   if(why) WK.stay = why;
   if(WK.hand){ if(then) WK.after.push(then); return; }
   WK.hand = true; WK.after = then ? [then] : [];
-  WK.cb = function(d){ mkRestore(d.S); if(d.cp){ MK.cps = d.cp.cps; MK.cpMatch = d.cp.m; MK.lastCpTick = d.cp.t; }
+  WK.cb = function(d){ mkRestore(d.S); if(d.cp){ MK.cps = d.cp.cps; MK.cpMatch = d.cp.m; MK.lastCpTick = d.cp.t; } if(d.dlog) DLOG.by = d.dlog;   // журнал решений — вне снимка, с переходом
     WK.on = false; WK.hand = false; WK.F = null; WK.pend = 0; WK.idle = 0; clockAcc(0);
     var A = WK.after; WK.after = []; A.forEach(function(f){ f(); }); };
   WK.w.postMessage({cmd: "snap", cp: !WK.local, now: nowTs});
@@ -317,7 +317,7 @@ function wkPageFrame(dt){
   if(wkMode()){ WK.idle = 0; return; }
   WK.idle += dt; if(WK.idle < WK_IDLE_MS) return;
   WK.on = true; WK.busy = true; WK.idle = 0; WK.pend = 0; WK.F = null; WK.fresh = false;
-  WK.w.postMessage({cmd: "restore", S: mkSnapshot(), cp: {cps: MK.cps, m: MK.cpMatch, t: MK.lastCpTick}, now: nowTs});
+  WK.w.postMessage({cmd: "restore", S: mkSnapshot(), cp: {cps: MK.cps, m: MK.cpMatch, t: MK.lastCpTick}, dlog: DLOG.by, now: nowTs});
 }
 // управление, которое меняет игру: событие задерживается, симуляция переходит на страницу, событие повторяется
 function wkCtl(t){ for(; t && t !== document; t = t.parentNode){ if(t.id === "mkItems" || /^(INPUT|SELECT|BUTTON|TEXTAREA)$/.test(t.tagName)) return t; } return null; }

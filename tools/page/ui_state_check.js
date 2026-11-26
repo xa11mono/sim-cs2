@@ -1,0 +1,127 @@
+// (Р5.1 / Р5.2 / Р5.4 / Р5.10, владелец 26.11) Интерфейс не меняет игру: одна и та же последовательность настоящих действий (клики Playwright по
+// элементам страницы — меню открываются кликом; клавиши — клавиатура Playwright) в вариантах, которые отличаются только показом, даёт одно и то
+// же ПОЛНОЕ состояние игры (tools/measure/dv_state.js — все переменные снимка). Кадр — настоящий цикл страницы frameBody с заданными метками
+// времени (60 к/с, 30 к/с с рывками, «скрытая вкладка» — один кадр через минуту). Не сравниваются только MK* (инструмент отметок) и поля
+// показа, для которых разбор кода доказал, что ядро их не читает (rebuild/gen/ui.json showFields, tools/rebuild/frame_contract.js). Кэши
+// (класс «кэш»: их наполняет и показ — путь для рисунка) сравниваются по общим ключам: значения равны; лишние ключи — в отчёт.
+// Варианты: base — без рисунка (кадр остановлен, тики шагами); draw60; draw30 (рывки, скрытая вкладка); layers (все слои); view3d (3D, от
+// первого лица); hud (обсервер O, размер окна); seq — действия, меняющие игру (пауза / продолжение, отметка M и отмена, «раунд заново»), в
+// обычном режиме, в Worker (--worker-sim=<сборка --worker>) и в локальном режиме (--local=<адрес tools/node/local_server.js>).
+// Запуск: node tools/page/ui_state_check.js <sim.html> [--worker-sim=…] [--local=http://127.0.0.1:8766] [--match=3] [--ticks=5000] [--only=…]
+'use strict';
+const pw = require('playwright'), url = require('url'), path = require('path'), fs = require('fs');
+const DVS = require('../measure/dv_state.js'), ROOT = path.join(__dirname, '..', '..');
+const A = Object.fromEntries(process.argv.slice(3).map(a => { const t = a.replace(/^--/, ''), i = t.indexOf('='); return i < 0 ? [t, '1'] : [t.slice(0, i), t.slice(i + 1)]; }));
+const SIM = path.resolve(process.argv[2]), M = +(A.match || 3), T = +(A.ticks || 5000), ONLY = A.only ? A.only.split(',') : null;
+const REG = require('../../rebuild/state_classes.json'), UI = require('../../rebuild/gen/ui.json');
+const CACHE = new Set(Object.keys(REG).filter(k => k.startsWith('g:') && REG[k].class === 'кэш').map(k => k.slice(2)));
+// поля показа, которые ядро не читает (доказательство — разбор кода, rebuild/gen/ui.json): не сравниваются
+const rx = x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const SHOWF = UI.showFields.filter(x => !x.read_by_core.length).map(x => rx(x.field)), SHOWV = (UI.showVars || []).filter(x => !x.read_by_core.length).map(x => rx(x.var));
+const SET = DVS.setupCode(DVS.skipDefault().replace(/\)\$$/, '|WK_STAT|' + SHOWV.join('|') + ')$'), DVS.SKIPF_DEFAULT.replace(/\)\$$/, '|' + SHOWF.join('|') + ')$')) + '\n1';
+// класс различия: игра — провал; диагностика (переменная / поле класса «диагностика» реестра; включает слой) — отдельной строкой
+const gameVar = k => !/^(диагностика|показ)$/.test((REG['g:' + k] || {}).class || ''), gameField = f => !/^(диагностика|показ|не поле бота)$/.test((REG['b:' + f] || {}).class || '');
+async function open(br, file, q, base) {
+  const p = await br.newPage({ viewport: { width: 1600, height: 1000 } }); const errs = []; p.on('pageerror', e => errs.push(String(e).slice(0, 200)));
+  await p.route(/^https?:/, r => (r.request().url().startsWith('http://127.0.0.1:') ? r.continue() : r.abort()));
+  await p.addInitScript(() => { let s = 1; Math.random = () => { s = Math.imul(s ^ (s >>> 15), 1 | s) + 0x6D2B79F5 >>> 0; return (s >>> 8) / 16777216; }; window.requestAnimationFrame = () => 0; });
+  await p.goto((base || url.pathToFileURL(file).href) + q); await p.waitForTimeout(1200); await p.evaluate(c => __ev(c), SET); p.errs = errs; p.ts = 1000; return p;
+}
+// настоящий клик по элементу: в закрытом меню — сначала клик по его заголовку
+async function click(p, sel) {
+  const vis = await p.isVisible(sel); if (!vis) { const opened = await p.evaluate(s => { const d = document.querySelector(s); const dd = d && d.closest('details'); if (dd && !dd.open) { dd.querySelector('summary').click(); return true; } return false; }, sel); }
+  await p.click(sel, { timeout: 5000 });
+}
+const ev = (p, s) => p.evaluate(s => __ev(s), s);
+// кадры страницы: dts — длительности кадров (мс) по кругу; до тика ≥ цель − 40, остаток — шагами (одинаково во всех вариантах)
+async function frames(p, until, dts, worker) {
+  let i = 0, guard = 0;
+  while (guard++ < 200000) {
+    const k = worker ? 1 : 30, seq = []; for (let j = 0; j < k; j++) { p.ts += dts[i++ % dts.length]; seq.push(p.ts); }
+    // кадр — только пока до цели больше 40 тиков (кадр после «скрытой вкладки» — до FRAME_CATCHUP_MS, ~16 тиков): цель не проскакивается
+    const tk = await p.evaluate(([S, U]) => { for (const t of S) { if (__ev('tick') >= U - 40) break; __ev('frameBody(' + t + ')'); } return __ev('tick'); }, [seq, until]);
+    // Worker / Node: ждать ответ и сразу положить кадр (иначе страница видит тик на кадр позже — действие пришлось бы на другой тик)
+    if (worker) { for (let w = 0; w < 400 && await ev(p, 'WK.on && WK.busy'); w++) await p.waitForTimeout(5); await ev(p, 'if(WK.on && WK.F){ frameApply(WK.F); WK.F = null; } 1'); }
+    if (tk >= until - 40 || await ev(p, 'paused')) return tk;   // пауза: кадры идут, тиков нет
+  }
+}
+async function finish(p, worker) {   // ровно до T и состояние (Worker / Node — сперва на страницу: снимок ядра)
+  if (await ev(p, 'WK.on')) { await p.evaluate(t => new Promise(ok => { const w = __ev('WK.w'); const h = e => { if (e.data.tick >= t || e.data.S) { w.removeEventListener('message', h); ok(); } }; w.addEventListener('message', h); __ev('WK.busy = true; 1'); w.postMessage({ cmd: 'to', t, now: 1e6 }); }), T);
+    await p.evaluate(() => new Promise(ok => { __ev('wkToPage')(ok); })); }
+  await ev(p, `while(tick < ${T}) stepTick(); 1`);
+  return { tick: await ev(p, 'tick'), st: JSON.parse(await ev(p, 'JSON.stringify(DV.state())')), errs: p.errs };
+}
+async function start(p) {   // новый матч — как владелец: разминка выключена, номер матча, кнопка «Новый матч»
+  if (await p.isChecked('#chkWarm')) await click(p, '#chkWarm');
+  await p.fill('#inpMatchNum', String(M)); await click(p, '#btnFreshMatch');
+  for (let w = 0; w < 200 && await ev(p, 'WK.on && (WK.busy || WK.hand)'); w++) await p.waitForTimeout(20);
+}
+const F60 = [16.667], F30 = [33.3, 33.3, 100, 5, 33.3, 250];
+const VARIANTS = {
+  base: async (p) => { await start(p); await DVS.stopFrames(p); await ev(p, 'clockPause(false); 1'); },
+  draw60: async (p) => { await start(p); await frames(p, T, F60); },
+  draw30: async (p) => { await start(p); await frames(p, T / 2, F30); p.ts += 60000; await ev(p, 'frameBody(' + p.ts + '); 1'); await frames(p, T, F30); },
+  layers: async (p) => { await start(p);
+    for (const id of await p.evaluate(() => [...document.querySelectorAll('details.dd input[type=checkbox]')].filter(c => /^chk/.test(c.id) && !c.checked && c.closest('details').querySelector('summary').textContent === 'Слои').map(c => c.id))) await click(p, '#' + id);
+    await frames(p, T, F60); },
+  view3d: async (p) => { await start(p); await frames(p, T / 3, F60); await click(p, '#btn3d'); await frames(p, 2 * T / 3, F60);
+    if (await p.isVisible('#v3Fp')) await click(p, '#v3Fp'); await frames(p, T, F60); },
+  hud: async (p) => { await start(p); await frames(p, T / 3, F60); await p.keyboard.press('o'); await p.setViewportSize({ width: 1100, height: 700 }); await frames(p, 2 * T / 3, F30);
+    await p.keyboard.press('o'); await p.setViewportSize({ width: 1600, height: 1000 }); await frames(p, T, F60); },
+  // меняет игру: одна и та же последовательность в обычном режиме, Worker и Node
+  seqM: async (p, worker) => { await start(p); await frames(p, 2500, F60, worker); await p.keyboard.press('m');
+    for (let w = 0; w < 200 && await ev(p, '!MK.cur'); w++) await p.waitForTimeout(20);
+    await click(p, '#mkCancel'); if (await ev(p, 'paused')) await click(p, '#btnPause'); await frames(p, T, F60, worker); },
+  seqP: async (p, worker) => { await start(p); await frames(p, 1500, F60, worker);
+    await click(p, '#btnPause'); for (let i = 0; i < 20; i++) await frames(p, 1e9, F60, worker); await click(p, '#btnPause'); await frames(p, T, F60, worker); },
+  seq: async (p, worker) => { await start(p); await frames(p, 1500, F60, worker);
+    await click(p, '#btnPause'); for (let i = 0; i < 20; i++) await frames(p, 1e9, F60, worker); await click(p, '#btnPause');   // пауза — кадры идут, тиков нет
+    await frames(p, 2500, F60, worker); await p.keyboard.press('m');
+    for (let w = 0; w < 200 && await ev(p, '!MK.cur'); w++) await p.waitForTimeout(20);
+    await click(p, '#mkCancel'); if (await ev(p, 'paused')) await click(p, '#btnPause');
+    await frames(p, 3500, F60, worker); await click(p, '#btnRestartRound');
+    for (let w = 0; w < 200 && await ev(p, 'WK.on && (WK.busy || WK.hand)'); w++) await p.waitForTimeout(20);
+    await frames(p, T, F60, worker); },
+};
+// сравнение: игра — точно; кэш — общие ключи равны (лишние — от показа, в отчёт)
+function compare(a, b) {
+  const out = { game: [], cacheDiff: [], cacheExtra: [] };
+  out.diag = [];
+  for (const k of new Set([...Object.keys(a.st), ...Object.keys(b.st)])) { if (a.st[k] === b.st[k]) continue; (CACHE.has(k) ? out.cacheDiff : k === 'bots' ? (out.bots = true, out.game) : gameVar(k) ? out.game : out.diag).push(k); }
+  return out;
+}
+async function cacheKeys(p, names) {   // для различающихся кэшей: значения по общим ключам
+  return p.evaluate(N => { const o = {}; N.forEach(n => { try { o[n] = JSON.parse(DV.last[n]); } catch (e) { o[n] = null; } }); return o; }, names);
+}
+(async () => {
+  const br = await pw.chromium.launch(); let bad = 0; const R = {};
+  const run = async (name, file, q, base, worker) => { const p = await open(br, file, q, base); if (worker && !(await ev(p, 'WK.on'))) throw new Error(name + ': режим ' + q + ' не включился');
+    await VARIANTS[name.split(':')[0]](p, worker); const r = await finish(p, worker); r.page = p; R[name] = r; return r; };
+  const report = async (name, ref) => { const a = R[ref], b = R[name], c = compare(a, b);
+    let cacheNote = '';
+    if (c.cacheDiff.length) { const ka = await cacheKeys(a.page, c.cacheDiff), kb = await cacheKeys(b.page, c.cacheDiff); const realDiff = [];
+      for (const n of c.cacheDiff) { const x = ka[n], y = kb[n]; if (!x || !y || typeof x !== 'object' || Array.isArray(x) || x.m) { realDiff.push(n); continue; }
+        const common = Object.keys(x).filter(q => q in y); if (common.some(q => JSON.stringify(x[q]) !== JSON.stringify(y[q]))) realDiff.push(n); else c.cacheExtra.push(n + ' (+' + (Object.keys(x).length - common.length) + ' / +' + (Object.keys(y).length - common.length) + ')'); }
+      c.game.push(...realDiff.map(n => n + ' (кэш: разные значения по общим ключам)')); }
+    if (c.cacheExtra.length) cacheNote = '; кэш — лишние ключи от показа (значения общих равны): ' + c.cacheExtra.join(', ');
+    if (c.bots) {   // боты — по полям: игровые поля — провал, поля диагностики — отдельной строкой
+      const fa = JSON.parse(await a.page.evaluate(() => DV.last.bots)), fb = JSON.parse(await b.page.evaluate(() => DV.last.bots)), F = new Set();
+      fa.forEach((x, i) => { const y = fb[i] || {}; Object.keys(Object.assign({}, x, y)).forEach(f => { if (JSON.stringify(x[f]) !== JSON.stringify(y[f])) F.add(f); }); });
+      c.game.splice(c.game.indexOf('bots'), 1); [...F].forEach(f => (gameField(f) ? c.game : c.diag).push('bots.' + f)); }
+    if (c.diag.length) cacheNote += '; диагностика (не игра по реестру): ' + c.diag.join(', ');
+    if (A.detail) for (const k of [...c.game, ...c.diag, ...c.cacheDiff].map(x => x.split(' ')[0].split('.')[0]).filter((x, i, L) => L.indexOf(x) === i).slice(0, 6)) {   // --detail: где первое различие
+      const x = await a.page.evaluate(k => DV.last[k] || '', k), y = await b.page.evaluate(k => DV.last[k] || '', k); let i = 0; while (i < x.length && x[i] === y[i]) i++;
+      console.log('    ' + k + ' @' + i + '\n      ' + ref + ': …' + x.slice(Math.max(0, i - 160), i + 120) + '\n      ' + name + ': …' + y.slice(Math.max(0, i - 160), i + 120)); }
+    const ok = a.tick === b.tick && !c.game.length; if (!ok) bad++;
+    console.log((ok ? '✓ ' : '✗ ') + name + ' = ' + ref + ' (тик ' + b.tick + ', переменных ' + Object.keys(b.st).length + ')' + (c.game.length ? ' — РАЗНЫЕ: ' + c.game.slice(0, 15).join(', ') : '') + cacheNote + (b.errs.length ? '; ошибки страницы: ' + b.errs.slice(0, 2).join(' | ') : '')); };
+  const want = n => !ONLY || ONLY.includes(n);
+  await run('base', SIM, '');
+  for (const n of ['draw60', 'draw30', 'layers', 'view3d', 'hud']) if (want(n)) { await run(n, SIM, ''); await report(n, 'base'); }
+  for (const n of ['seqM', 'seqP']) if (ONLY && ONLY.includes(n)) { await run(n, SIM, ''); await report(n, 'base'); if (A['worker-sim']) { await run(n + ':worker', path.resolve(A['worker-sim']), '?worker=1', null, true); await report(n + ':worker', n); } }
+  if (want('seq')) {
+    await run('seq', SIM, '');
+    if (A['worker-sim']) { await run('seq:worker', path.resolve(A['worker-sim']), '?worker=1', null, true); await report('seq:worker', 'seq'); }
+    if (A.local) { await run('seq:local', null, '/?local=1', A.local, true); await report('seq:local', 'seq'); }
+  }
+  await br.close(); console.log(bad ? 'НЕ ПРОШЛО: ' + bad : 'итог: всё равно'); process.exit(bad ? 1 : 0);
+})().catch(e => { console.error(e); process.exit(2); });

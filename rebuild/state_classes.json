@@ -1499,39 +1499,39 @@
 "cmp": "да"
 },
 "b:_ld": {
-"class": "матч",
+"class": "диагностика",
 "owner": "",
 "life": "до перезаписи; freshMatch удаляет (BOT_INIT), newMatch — нет (Т-2)",
 "snap": "с bots",
-"src": "правило",
-"why": "пишет симуляция (turn), resetRound не сбрасывает, метки раунда / срока нет; в опыте у ботов не появлялось",
+"src": "ручная",
+"why": "(26.11, граница показ → игра) пишется только при LOOKDBG.on (слой «отладка взгляда»: look.js, look-arbiter.js, turn.ts), ядро не читает (tools/rebuild/frame_contract.js, showFields) — диагностика; было: пишет симуляция (turn), resetRound не сбрасывает, метки раунда / срока нет; в опыте у ботов не появлялось",
 "cmp": "да"
 },
 "b:_ldArb": {
-"class": "матч",
+"class": "диагностика",
 "owner": "",
 "life": "до перезаписи; freshMatch удаляет (BOT_INIT), newMatch — нет (Т-2)",
 "snap": "с bots",
-"src": "правило",
-"why": "пишет симуляция (look-arbiter), resetRound не сбрасывает, метки раунда / срока нет; в опыте у ботов не появлялось",
+"src": "ручная",
+"why": "(26.11, граница показ → игра) пишется только при LOOKDBG.on (слой «отладка взгляда»: look.js, look-arbiter.js, turn.ts), ядро не читает (tools/rebuild/frame_contract.js, showFields) — диагностика; было: пишет симуляция (look-arbiter), resetRound не сбрасывает, метки раунда / срока нет; в опыте у ботов не появлялось",
 "cmp": "да"
 },
 "b:_ldPlan": {
-"class": "матч",
+"class": "диагностика",
 "owner": "",
 "life": "до перезаписи; freshMatch удаляет (BOT_INIT), newMatch — нет (Т-2)",
 "snap": "с bots",
-"src": "правило",
-"why": "пишет симуляция (look), resetRound не сбрасывает, метки раунда / срока нет; в опыте у ботов не появлялось",
+"src": "ручная",
+"why": "(26.11, граница показ → игра) пишется только при LOOKDBG.on (слой «отладка взгляда»: look.js, look-arbiter.js, turn.ts), ядро не читает (tools/rebuild/frame_contract.js, showFields) — диагностика; было: пишет симуляция (look), resetRound не сбрасывает, метки раунда / срока нет; в опыте у ботов не появлялось",
 "cmp": "да"
 },
 "b:_ldZones": {
-"class": "матч",
+"class": "диагностика",
 "owner": "",
 "life": "до перезаписи; freshMatch удаляет (BOT_INIT), newMatch — нет (Т-2)",
 "snap": "с bots",
-"src": "правило",
-"why": "пишет симуляция (look), resetRound не сбрасывает, метки раунда / срока нет; в опыте у ботов не появлялось",
+"src": "ручная",
+"why": "(26.11, граница показ → игра) пишется только при LOOKDBG.on (слой «отладка взгляда»: look.js, look-arbiter.js, turn.ts), ядро не читает (tools/rebuild/frame_contract.js, showFields) — диагностика; было: пишет симуляция (look), resetRound не сбрасывает, метки раунда / срока нет; в опыте у ботов не появлялось",
 "cmp": "да"
 },
 "b:_lkAltPt": {

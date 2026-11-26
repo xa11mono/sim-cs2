@@ -1,0 +1,5321 @@
+{
+ "_": "генерируется tools/rebuild/frame_contract.js: реестр управления (handlers), граница показ → игра (boundary), поля показа (showFields), переменные показа / диагностики в ядре (showVars)",
+ "handlers": [
+  {
+   "file": "voice-console.js",
+   "line": 20,
+   "what": "событие",
+   "el": "window",
+   "ev": "keydown",
+   "keys": [
+    "Backquote"
+   ],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "nav-zones.js",
+   "line": 5,
+   "what": "событие",
+   "el": "img",
+   "ev": "load",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "nav-zones.js",
+   "line": 6,
+   "what": "событие",
+   "el": "img",
+   "ev": "error",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "nav-zones.js",
+   "line": 18,
+   "what": "событие",
+   "el": "window",
+   "ev": "resize",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "nav-zones.js",
+   "line": 80,
+   "what": "событие",
+   "el": "#cv",
+   "ev": "mousemove",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "nav-zones.js",
+   "line": 116,
+   "what": "setTimeout",
+   "el": "—",
+   "ev": "setTimeout",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "rebuildNav"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    ".path",
+    ".pathIdx",
+    ".z"
+   ],
+   "map_via_calls": [
+    "CLIMB_BY_EDGE",
+    "NAVAREAS",
+    "NAV_GAPS",
+    "NAV_GAP_AT",
+    "PORTAL_MIN_OVERLAP",
+    "PORTAL_TOL",
+    "navAutoLinks",
+    "navDropLinks",
+    "portalCount",
+    "portalMissing",
+    "wallSegs",
+    "zonesById"
+   ],
+   "localStorage": false
+  },
+  {
+   "file": "nav-zones.js",
+   "line": 184,
+   "what": "событие",
+   "el": "#btnNavWarpUndo",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "applyNavWarpChange"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    ".path",
+    ".pathIdx",
+    ".z"
+   ],
+   "map_via_calls": [
+    "CLIMB_BY_EDGE",
+    "NAVAREAS",
+    "NAV_GAPS",
+    "NAV_GAP_AT",
+    "PORTAL_MIN_OVERLAP",
+    "PORTAL_TOL",
+    "navAutoLinks",
+    "navDropLinks",
+    "navWarp",
+    "portalCount",
+    "portalMissing",
+    "wallSegs"
+   ],
+   "localStorage": true
+  },
+  {
+   "file": "nav-zones.js",
+   "line": 189,
+   "what": "событие",
+   "el": "#btnNavWarpClear",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "applyNavWarpChange"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [
+    "navAnchors"
+   ],
+   "game_via_calls": [
+    ".path",
+    ".pathIdx",
+    ".z"
+   ],
+   "map_via_calls": [
+    "CLIMB_BY_EDGE",
+    "NAVAREAS",
+    "NAV_GAPS",
+    "NAV_GAP_AT",
+    "PORTAL_MIN_OVERLAP",
+    "PORTAL_TOL",
+    "navAutoLinks",
+    "navDropLinks",
+    "navWarp",
+    "portalCount",
+    "portalMissing",
+    "wallSegs"
+   ],
+   "localStorage": true
+  },
+  {
+   "file": "nav-zones.js",
+   "line": 220,
+   "what": "событие",
+   "el": "#zoneKindSelect",
+   "ev": "change",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "nav-zones.js",
+   "line": 235,
+   "what": "событие",
+   "el": "#btnZoneFinish",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "finishZoneDraw"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    ".path",
+    ".pathIdx",
+    ".roamChecking",
+    ".roamIdx",
+    ".roamTarget",
+    ".x",
+    ".y",
+    "userZonesSaveTimer"
+   ],
+   "map_via_calls": [
+    "CLIMB_BY_EDGE",
+    "CT_SPAWN",
+    "NAV_GAPS",
+    "NAV_GAP_AT",
+    "POINT_POOL",
+    "ROAM_ROUTES",
+    "T_SPAWN"
+   ],
+   "localStorage": true
+  },
+  {
+   "file": "nav-zones.js",
+   "line": 236,
+   "what": "событие",
+   "el": "#btnZoneDelete",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "applyUserZones",
+    "saveUserZonesDebounced"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    ".path",
+    ".pathIdx",
+    ".roamChecking",
+    ".roamIdx",
+    ".roamTarget",
+    ".x",
+    ".y",
+    "userZonesSaveTimer"
+   ],
+   "map_via_calls": [
+    "CLIMB_BY_EDGE",
+    "CT_SPAWN",
+    "NAV_GAPS",
+    "NAV_GAP_AT",
+    "POINT_POOL",
+    "ROAM_ROUTES",
+    "T_SPAWN"
+   ],
+   "localStorage": true
+  },
+  {
+   "file": "nav-zones.js",
+   "line": 270,
+   "what": "событие",
+   "el": "el",
+   "ev": "change",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "applyZoneLayer"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [
+    "zoneLayer"
+   ],
+   "game_via_calls": [
+    "._lkC",
+    "._lkPt",
+    "._lkTop",
+    "._lkZ",
+    ".path",
+    ".pathIdx",
+    ".roamChecking",
+    ".roamIdx",
+    ".roamTarget",
+    ".x",
+    ".y",
+    "LAST_CLEAR",
+    "REACH",
+    "REACH_E",
+    "REACH_SRC",
+    "belief",
+    "beliefLast",
+    "beliefSeen",
+    "zoneLayerRebuildTimer"
+   ],
+   "map_via_calls": [
+    "CLIMB_BY_EDGE",
+    "CT_SPAWN",
+    "NAV_GAPS",
+    "NAV_GAP_AT",
+    "POINT_POOL",
+    "ROAM_ROUTES",
+    "T_SPAWN",
+    "ZONE_CENTROIDS"
+   ],
+   "localStorage": true
+  },
+  {
+   "file": "nav-zones.js",
+   "line": 275,
+   "what": "событие",
+   "el": "#btnZlReset",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "applyZoneLayer"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [
+    "zoneLayer"
+   ],
+   "game_via_calls": [
+    "._lkC",
+    "._lkPt",
+    "._lkTop",
+    "._lkZ",
+    ".path",
+    ".pathIdx",
+    ".roamChecking",
+    ".roamIdx",
+    ".roamTarget",
+    ".x",
+    ".y",
+    "LAST_CLEAR",
+    "REACH",
+    "REACH_E",
+    "REACH_SRC",
+    "belief",
+    "beliefLast",
+    "beliefSeen",
+    "zoneLayerRebuildTimer"
+   ],
+   "map_via_calls": [
+    "CLIMB_BY_EDGE",
+    "CT_SPAWN",
+    "NAV_GAPS",
+    "NAV_GAP_AT",
+    "POINT_POOL",
+    "ROAM_ROUTES",
+    "T_SPAWN",
+    "ZONE_CENTROIDS"
+   ],
+   "localStorage": true
+  },
+  {
+   "file": "nav-zones.js",
+   "line": 292,
+   "what": "событие",
+   "el": "#chkZoneEdit",
+   "ev": "change",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "nav-zones.js",
+   "line": 293,
+   "what": "событие",
+   "el": "#chkZoneAlign",
+   "ev": "change",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "nav-zones.js",
+   "line": 294,
+   "what": "событие",
+   "el": "#chkAlign",
+   "ev": "change",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "nav-zones.js",
+   "line": 295,
+   "what": "событие",
+   "el": "#chkNavWarp",
+   "ev": "change",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "nav-zones.js",
+   "line": 300,
+   "what": "событие",
+   "el": "#cv",
+   "ev": "contextmenu",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "lineup-editor.js",
+   "line": 58,
+   "what": "событие",
+   "el": "#warn",
+   "ev": "id === \"luName\" ? \"input\" : \"c",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "draw",
+    "refreshLineupList"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._nv",
+    ".alive",
+    ".path"
+   ],
+   "map_via_calls": [
+    "BUILTIN_OFF",
+    "_WB",
+    "_WBn"
+   ],
+   "localStorage": true
+  },
+  {
+   "file": "lineup-editor.js",
+   "line": 64,
+   "what": "событие",
+   "el": "#warn",
+   "ev": "keydown",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "lineup-editor.js",
+   "line": 91,
+   "what": "событие",
+   "el": "#luBuiltinDet",
+   "ev": "toggle",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "lineup-editor.js",
+   "line": 93,
+   "what": "событие",
+   "el": "btn",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "draw",
+    "refreshLineupList"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._nv",
+    ".alive",
+    ".path"
+   ],
+   "map_via_calls": [
+    "BUILTIN_OFF",
+    "_WB",
+    "_WBn"
+   ],
+   "localStorage": true
+  },
+  {
+   "file": "lineup-editor.js",
+   "line": 96,
+   "what": "событие",
+   "el": "row",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "selectLineup"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._nv",
+    ".alive",
+    ".path"
+   ],
+   "map_via_calls": [
+    "_WB",
+    "_WBn"
+   ],
+   "localStorage": false
+  },
+  {
+   "file": "lineup-editor.js",
+   "line": 98,
+   "what": "событие",
+   "el": "btn",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "builtinCopy"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._nv",
+    ".alive",
+    ".path"
+   ],
+   "map_via_calls": [
+    "_WB",
+    "_WBn"
+   ],
+   "localStorage": true
+  },
+  {
+   "file": "lineup-editor.js",
+   "line": 99,
+   "what": "событие",
+   "el": "btn",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "draw",
+    "refreshLineupList"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [
+    "BUILTIN_OFF"
+   ],
+   "game_via_calls": [
+    "._nv",
+    ".alive",
+    ".path"
+   ],
+   "map_via_calls": [
+    "BUILTIN_OFF",
+    "_WB",
+    "_WBn"
+   ],
+   "localStorage": true
+  },
+  {
+   "file": "lineup-editor.js",
+   "line": 103,
+   "what": "событие",
+   "el": "#luShowBuiltin",
+   "ev": "change",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "draw"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._nv",
+    ".alive",
+    ".path"
+   ],
+   "map_via_calls": [
+    "_WB",
+    "_WBn"
+   ],
+   "localStorage": false
+  },
+  {
+   "file": "lineup-editor.js",
+   "line": 104,
+   "what": "событие",
+   "el": "#chkLineups",
+   "ev": "change",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "draw",
+    "refreshLineupList"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._nv",
+    ".alive",
+    ".path"
+   ],
+   "map_via_calls": [
+    "BUILTIN_OFF",
+    "_WB",
+    "_WBn"
+   ],
+   "localStorage": true
+  },
+  {
+   "file": "lineup-editor.js",
+   "line": 105,
+   "what": "событие",
+   "el": "document",
+   "ev": "keydown",
+   "keys": [
+    "Escape"
+   ],
+   "class": "меняет игру",
+   "commands": [
+    "draw",
+    "refreshLineupList"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._nv",
+    ".alive",
+    ".path"
+   ],
+   "map_via_calls": [
+    "BUILTIN_OFF",
+    "_WB",
+    "_WBn"
+   ],
+   "localStorage": true
+  },
+  {
+   "file": "lineup-editor.js",
+   "line": 106,
+   "what": "событие",
+   "el": "cv",
+   "ev": "mousemove",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "draw"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [
+    "USER_LINEUPS"
+   ],
+   "game_via_calls": [
+    "._nv",
+    ".alive",
+    ".path"
+   ],
+   "map_via_calls": [
+    "_WB",
+    "_WBn"
+   ],
+   "localStorage": false
+  },
+  {
+   "file": "lineup-editor.js",
+   "line": 112,
+   "what": "событие",
+   "el": "window",
+   "ev": "mouseup",
+   "keys": [],
+   "class": "настройки / данные карты",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": true
+  },
+  {
+   "file": "lineup-editor.js",
+   "line": 150,
+   "what": "setTimeout",
+   "el": "—",
+   "ev": "setTimeout",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "applyZoneLayer",
+    "draw"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._lkC",
+    "._lkPt",
+    "._lkTop",
+    "._lkZ",
+    "._nv",
+    ".alive",
+    ".path",
+    ".pathIdx",
+    ".roamChecking",
+    ".roamIdx",
+    ".roamTarget",
+    ".x",
+    ".y",
+    "LAST_CLEAR",
+    "REACH",
+    "REACH_E",
+    "REACH_SRC",
+    "belief",
+    "beliefLast",
+    "beliefSeen"
+   ],
+   "map_via_calls": [
+    "CLIMB_BY_EDGE",
+    "CT_SPAWN",
+    "NAV_GAPS",
+    "NAV_GAP_AT",
+    "POINT_POOL",
+    "ROAM_ROUTES",
+    "T_SPAWN",
+    "ZONE_CENTROIDS",
+    "_WB",
+    "_WBn"
+   ],
+   "localStorage": true
+  },
+  {
+   "file": "lineup-editor.js",
+   "line": 152,
+   "what": "событие",
+   "el": "#chkZoneShape",
+   "ev": "change",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "draw"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._nv",
+    ".alive",
+    ".path"
+   ],
+   "map_via_calls": [
+    "_WB",
+    "_WBn"
+   ],
+   "localStorage": false
+  },
+  {
+   "file": "lineup-editor.js",
+   "line": 155,
+   "what": "событие",
+   "el": "#zoneShapeReset",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "applyZoneLayerToData",
+    "draw",
+    "rebuildAfterZoneShape"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._lkC",
+    "._lkPt",
+    "._lkTop",
+    "._lkZ",
+    "._nv",
+    ".alive",
+    ".path",
+    ".pathIdx",
+    ".roamChecking",
+    ".roamIdx",
+    ".roamTarget",
+    ".x",
+    ".y",
+    "LAST_CLEAR",
+    "REACH",
+    "REACH_E",
+    "REACH_SRC",
+    "belief",
+    "beliefLast",
+    "beliefSeen"
+   ],
+   "map_via_calls": [
+    "CLIMB_BY_EDGE",
+    "CT_SPAWN",
+    "NAV_GAPS",
+    "NAV_GAP_AT",
+    "POINT_POOL",
+    "ROAM_ROUTES",
+    "T_SPAWN",
+    "ZONE_CENTROIDS",
+    "_WB",
+    "_WBn"
+   ],
+   "localStorage": true
+  },
+  {
+   "file": "lineup-editor.js",
+   "line": 185,
+   "what": "событие",
+   "el": "cv",
+   "ev": "mousemove",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "draw"
+   ],
+   "direct_game": [],
+   "direct_fields": [
+    "x",
+    "y"
+   ],
+   "direct_map": [],
+   "game_via_calls": [
+    "._nv",
+    ".alive",
+    ".path"
+   ],
+   "map_via_calls": [
+    "_WB",
+    "_WBn"
+   ],
+   "localStorage": false
+  },
+  {
+   "file": "lineup-editor.js",
+   "line": 190,
+   "what": "событие",
+   "el": "window",
+   "ev": "mouseup",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "saveZoneShape"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._lkC",
+    "._lkPt",
+    "._lkTop",
+    "._lkZ",
+    "._nv",
+    ".alive",
+    ".path",
+    ".pathIdx",
+    ".roamChecking",
+    ".roamIdx",
+    ".roamTarget",
+    ".x",
+    ".y",
+    "LAST_CLEAR",
+    "REACH",
+    "REACH_E",
+    "REACH_SRC",
+    "belief",
+    "beliefLast",
+    "beliefSeen"
+   ],
+   "map_via_calls": [
+    "CLIMB_BY_EDGE",
+    "CT_SPAWN",
+    "NAV_GAPS",
+    "NAV_GAP_AT",
+    "POINT_POOL",
+    "ROAM_ROUTES",
+    "T_SPAWN",
+    "ZONE_CENTROIDS",
+    "ZONE_SHAPES",
+    "_WB",
+    "_WBn"
+   ],
+   "localStorage": true
+  },
+  {
+   "file": "lineup-editor.js",
+   "line": 200,
+   "what": "setTimeout",
+   "el": "—",
+   "ev": "setTimeout",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "lineup-editor.js",
+   "line": 208,
+   "what": "событие",
+   "el": "#btnZoneNameSave",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "saveZoneNameFromInput"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._nv",
+    ".alive",
+    ".path"
+   ],
+   "map_via_calls": [
+    "ZONE_NAMES",
+    "_WB",
+    "_WBn"
+   ],
+   "localStorage": true
+  },
+  {
+   "file": "lineup-editor.js",
+   "line": 209,
+   "what": "событие",
+   "el": "#btnZoneNameReset",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "draw"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._nv",
+    ".alive",
+    ".path"
+   ],
+   "map_via_calls": [
+    "_WB",
+    "_WBn"
+   ],
+   "localStorage": true
+  },
+  {
+   "file": "lineup-editor.js",
+   "line": 210,
+   "what": "событие",
+   "el": "#btnZoneNameClose",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "draw"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._nv",
+    ".alive",
+    ".path"
+   ],
+   "map_via_calls": [
+    "_WB",
+    "_WBn"
+   ],
+   "localStorage": false
+  },
+  {
+   "file": "lineup-editor.js",
+   "line": 211,
+   "what": "событие",
+   "el": "#zoneNameInput2",
+   "ev": "keydown",
+   "keys": [
+    "Enter"
+   ],
+   "class": "меняет игру",
+   "commands": [
+    "saveZoneNameFromInput"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._nv",
+    ".alive",
+    ".path"
+   ],
+   "map_via_calls": [
+    "ZONE_NAMES",
+    "_WB",
+    "_WBn"
+   ],
+   "localStorage": true
+  },
+  {
+   "file": "lineup-editor.js",
+   "line": 212,
+   "what": "событие",
+   "el": "cv",
+   "ev": "mousedown",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "applyNavWarpChange",
+    "applyUserZones",
+    "lineupClick",
+    "openZoneName",
+    "saveUserZonesDebounced",
+    "zoneShapeMouseDown"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._lkC",
+    "._lkPt",
+    "._lkTop",
+    "._lkZ",
+    "._nv",
+    ".alive",
+    ".path",
+    ".pathIdx",
+    ".roamChecking",
+    ".roamIdx",
+    ".roamTarget",
+    ".x",
+    ".y",
+    ".z",
+    "LAST_CLEAR",
+    "REACH",
+    "REACH_E",
+    "REACH_SRC",
+    "belief",
+    "beliefLast"
+   ],
+   "map_via_calls": [
+    "BUILTIN_OFF",
+    "CLIMB_BY_EDGE",
+    "CT_SPAWN",
+    "NAVAREAS",
+    "NAV_GAPS",
+    "NAV_GAP_AT",
+    "POINT_POOL",
+    "PORTAL_MIN_OVERLAP",
+    "PORTAL_TOL",
+    "ROAM_ROUTES",
+    "T_SPAWN",
+    "ZONE_CENTROIDS"
+   ],
+   "localStorage": true
+  },
+  {
+   "file": "lineup-editor.js",
+   "line": 338,
+   "what": "событие",
+   "el": "window",
+   "ev": "mousemove",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "applyNavTransform",
+    "applyUserZones",
+    "applyZoneLayer",
+    "saveUserZonesDebounced",
+    "scheduleNavRebuild"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [
+    "USER_ZONES",
+    "zoneLayer",
+    "navTransform"
+   ],
+   "game_via_calls": [
+    "._lkC",
+    "._lkPt",
+    "._lkTop",
+    "._lkZ",
+    ".path",
+    ".pathIdx",
+    ".roamChecking",
+    ".roamIdx",
+    ".roamTarget",
+    ".x",
+    ".y",
+    ".z",
+    "LAST_CLEAR",
+    "REACH",
+    "REACH_E",
+    "REACH_SRC",
+    "belief",
+    "beliefLast",
+    "beliefSeen",
+    "userZonesSaveTimer"
+   ],
+   "map_via_calls": [
+    "CLIMB_BY_EDGE",
+    "CT_SPAWN",
+    "NAVAREAS",
+    "NAV_GAPS",
+    "NAV_GAP_AT",
+    "POINT_POOL",
+    "PORTAL_MIN_OVERLAP",
+    "PORTAL_TOL",
+    "ROAM_ROUTES",
+    "T_SPAWN",
+    "ZONE_CENTROIDS",
+    "navAutoLinks"
+   ],
+   "localStorage": true
+  },
+  {
+   "file": "lineup-editor.js",
+   "line": 372,
+   "what": "событие",
+   "el": "window",
+   "ev": "mouseup",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "applyZoneLayer",
+    "rebuildNav"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._lkC",
+    "._lkPt",
+    "._lkTop",
+    "._lkZ",
+    ".path",
+    ".pathIdx",
+    ".roamChecking",
+    ".roamIdx",
+    ".roamTarget",
+    ".x",
+    ".y",
+    ".z",
+    "LAST_CLEAR",
+    "REACH",
+    "REACH_E",
+    "REACH_SRC",
+    "belief",
+    "beliefLast",
+    "beliefSeen",
+    "zoneLayerRebuildTimer"
+   ],
+   "map_via_calls": [
+    "CLIMB_BY_EDGE",
+    "CT_SPAWN",
+    "NAVAREAS",
+    "NAV_GAPS",
+    "NAV_GAP_AT",
+    "POINT_POOL",
+    "PORTAL_MIN_OVERLAP",
+    "PORTAL_TOL",
+    "ROAM_ROUTES",
+    "T_SPAWN",
+    "ZONE_CENTROIDS",
+    "navAutoLinks"
+   ],
+   "localStorage": true
+  },
+  {
+   "file": "lineup-editor.js",
+   "line": 383,
+   "what": "событие",
+   "el": "cv",
+   "ev": "wheel",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "applyNavTransform",
+    "applyUserZones",
+    "applyZoneLayer",
+    "saveUserZonesDebounced",
+    "scheduleNavRebuild"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [
+    "zoneLayer",
+    "navTransform"
+   ],
+   "game_via_calls": [
+    "._lkC",
+    "._lkPt",
+    "._lkTop",
+    "._lkZ",
+    ".path",
+    ".pathIdx",
+    ".roamChecking",
+    ".roamIdx",
+    ".roamTarget",
+    ".x",
+    ".y",
+    ".z",
+    "LAST_CLEAR",
+    "REACH",
+    "REACH_E",
+    "REACH_SRC",
+    "belief",
+    "beliefLast",
+    "beliefSeen",
+    "userZonesSaveTimer"
+   ],
+   "map_via_calls": [
+    "CLIMB_BY_EDGE",
+    "CT_SPAWN",
+    "NAVAREAS",
+    "NAV_GAPS",
+    "NAV_GAP_AT",
+    "POINT_POOL",
+    "PORTAL_MIN_OVERLAP",
+    "PORTAL_TOL",
+    "ROAM_ROUTES",
+    "T_SPAWN",
+    "ZONE_CENTROIDS",
+    "navAutoLinks"
+   ],
+   "localStorage": true
+  },
+  {
+   "file": "lineup-editor.js",
+   "line": 415,
+   "what": "событие",
+   "el": "#warn",
+   "ev": "change",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "applyNavTransform",
+    "rebuildNav"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [
+    "navTransform"
+   ],
+   "game_via_calls": [
+    ".path",
+    ".pathIdx",
+    ".z"
+   ],
+   "map_via_calls": [
+    "CLIMB_BY_EDGE",
+    "NAVAREAS",
+    "NAV_GAPS",
+    "NAV_GAP_AT",
+    "PORTAL_MIN_OVERLAP",
+    "PORTAL_TOL",
+    "navAutoLinks",
+    "navDropLinks",
+    "portalCount",
+    "portalMissing",
+    "wallSegs",
+    "zonesById"
+   ],
+   "localStorage": false
+  },
+  {
+   "file": "lineup-editor.js",
+   "line": 423,
+   "what": "событие",
+   "el": "btnNavReset",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "applyNavTransform",
+    "rebuildNav"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [
+    "navTransform"
+   ],
+   "game_via_calls": [
+    ".path",
+    ".pathIdx",
+    ".z"
+   ],
+   "map_via_calls": [
+    "CLIMB_BY_EDGE",
+    "NAVAREAS",
+    "NAV_GAPS",
+    "NAV_GAP_AT",
+    "PORTAL_MIN_OVERLAP",
+    "PORTAL_TOL",
+    "navAutoLinks",
+    "navDropLinks",
+    "portalCount",
+    "portalMissing",
+    "wallSegs",
+    "zonesById"
+   ],
+   "localStorage": false
+  },
+  {
+   "file": "map-walls.js",
+   "line": 69,
+   "what": "setTimeout",
+   "el": "—",
+   "ev": "setTimeout",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "mapEdSaveNow"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    ".state"
+   ],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "map-walls.js",
+   "line": 135,
+   "what": "событие",
+   "el": "b",
+   "ev": "click",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "map-walls.js",
+   "line": 234,
+   "what": "событие",
+   "el": "b",
+   "ev": "click",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "map-walls.js",
+   "line": 236,
+   "what": "событие",
+   "el": "#medWDel",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "medWDelete"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    ".state"
+   ],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "map-walls.js",
+   "line": 338,
+   "what": "событие",
+   "el": "cv",
+   "ev": "mousedown",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "map-walls.js",
+   "line": 342,
+   "what": "событие",
+   "el": "window",
+   "ev": "mousemove",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "map-walls.js",
+   "line": 343,
+   "what": "событие",
+   "el": "window",
+   "ev": "mouseup",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "map-walls.js",
+   "line": 344,
+   "what": "событие",
+   "el": "window",
+   "ev": "keydown",
+   "keys": [
+    "KeyZ",
+    "z",
+    "я"
+   ],
+   "class": "меняет игру",
+   "commands": [
+    "mapEdUndo"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    ".state"
+   ],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "map-walls.js",
+   "line": 351,
+   "what": "событие",
+   "el": "#chkMapEdit",
+   "ev": "change",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "map-walls.js",
+   "line": 354,
+   "what": "событие",
+   "el": "#mapEdUndo",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "mapEdUndo"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    ".state"
+   ],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "map-walls.js",
+   "line": 355,
+   "what": "событие",
+   "el": "#mapEdReset",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "mapEdResetToCode"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    ".state"
+   ],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "map-heights.js",
+   "line": 151,
+   "what": "событие",
+   "el": "cv",
+   "ev": "mousemove",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "hgtTipText"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    ".path"
+   ],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "map-heights.js",
+   "line": 162,
+   "what": "событие",
+   "el": "cv",
+   "ev": "mouseleave",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "map-heights.js",
+   "line": 163,
+   "what": "событие",
+   "el": "#chkHeights",
+   "ev": "change",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "map-heights.js",
+   "line": 209,
+   "what": "событие",
+   "el": "b",
+   "ev": "click",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "map-heights.js",
+   "line": 210,
+   "what": "событие",
+   "el": "b",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "medHApply"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    ".state"
+   ],
+   "map_via_calls": [
+    "HGT_OWN"
+   ],
+   "localStorage": false
+  },
+  {
+   "file": "map-heights.js",
+   "line": 211,
+   "what": "событие",
+   "el": "b",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "medHApply"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    ".state"
+   ],
+   "map_via_calls": [
+    "HGT_OWN"
+   ],
+   "localStorage": false
+  },
+  {
+   "file": "map-heights.js",
+   "line": 212,
+   "what": "событие",
+   "el": "#medHLv",
+   "ev": "change",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "medHApply"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    ".state"
+   ],
+   "map_via_calls": [
+    "HGT_OWN"
+   ],
+   "localStorage": false
+  },
+  {
+   "file": "map-heights.js",
+   "line": 213,
+   "what": "событие",
+   "el": "#medHAuto",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "medHAutoSel"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    ".state"
+   ],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "map-heights.js",
+   "line": 330,
+   "what": "событие",
+   "el": "cv",
+   "ev": "mousemove",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "map-heights.js",
+   "line": 342,
+   "what": "событие",
+   "el": "cv",
+   "ev": "mouseleave",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "map-heights.js",
+   "line": 343,
+   "what": "событие",
+   "el": "#chkCover",
+   "ev": "change",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "map-cover.js",
+   "line": 58,
+   "what": "событие",
+   "el": "b",
+   "ev": "click",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "map-cover.js",
+   "line": 59,
+   "what": "событие",
+   "el": "b",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "medCApply"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    ".state"
+   ],
+   "map_via_calls": [
+    "COV_OWN"
+   ],
+   "localStorage": false
+  },
+  {
+   "file": "map-cover.js",
+   "line": 60,
+   "what": "событие",
+   "el": "#medCH",
+   "ev": "change",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "medCApply"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    ".state"
+   ],
+   "map_via_calls": [
+    "COV_OWN"
+   ],
+   "localStorage": false
+  },
+  {
+   "file": "map-cover.js",
+   "line": 61,
+   "what": "событие",
+   "el": "#medCAuto",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "medCAuto"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    ".state"
+   ],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "map-cover.js",
+   "line": 62,
+   "what": "событие",
+   "el": "#medCDel",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "medCDelete"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    ".state"
+   ],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "map-cover.js",
+   "line": 196,
+   "what": "событие",
+   "el": "cv",
+   "ev": "mousemove",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "map-cover.js",
+   "line": 208,
+   "what": "событие",
+   "el": "cv",
+   "ev": "mouseleave",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "map-cover.js",
+   "line": 209,
+   "what": "событие",
+   "el": "#chkWallbang",
+   "ev": "change",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "draw"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._nv",
+    ".alive",
+    ".path"
+   ],
+   "map_via_calls": [
+    "_WB",
+    "_WBn"
+   ],
+   "localStorage": false
+  },
+  {
+   "file": "map-wallbang.js",
+   "line": 76,
+   "what": "событие",
+   "el": "b",
+   "ev": "click",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "map-wallbang.js",
+   "line": 77,
+   "what": "событие",
+   "el": "b",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "medBApply"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    ".state"
+   ],
+   "map_via_calls": [
+    "WB_OWN"
+   ],
+   "localStorage": false
+  },
+  {
+   "file": "map-wallbang.js",
+   "line": 78,
+   "what": "событие",
+   "el": "#medBMat",
+   "ev": "change",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "medBApply"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    ".state"
+   ],
+   "map_via_calls": [
+    "WB_OWN"
+   ],
+   "localStorage": false
+  },
+  {
+   "file": "map-wallbang.js",
+   "line": 79,
+   "what": "событие",
+   "el": "#medBT",
+   "ev": "change",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "medBApply"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    ".state"
+   ],
+   "map_via_calls": [
+    "WB_OWN"
+   ],
+   "localStorage": false
+  },
+  {
+   "file": "map-wallbang.js",
+   "line": 80,
+   "what": "событие",
+   "el": "#medBAuto",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "medBAuto"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    ".state"
+   ],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "map-wallbang.js",
+   "line": 81,
+   "what": "событие",
+   "el": "#medBDel",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "medBDelete"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    ".state"
+   ],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "look-debug.js",
+   "line": 89,
+   "what": "событие",
+   "el": "cv",
+   "ev": "mousedown",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "draw"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._nv",
+    ".alive",
+    ".path"
+   ],
+   "map_via_calls": [
+    "_WB",
+    "_WBn"
+   ],
+   "localStorage": false
+  },
+  {
+   "file": "look-debug.js",
+   "line": 99,
+   "what": "событие",
+   "el": "window",
+   "ev": "keydown",
+   "keys": [
+    "Escape"
+   ],
+   "class": "меняет игру",
+   "commands": [
+    "draw"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._nv",
+    ".alive",
+    ".path"
+   ],
+   "map_via_calls": [
+    "_WB",
+    "_WBn"
+   ],
+   "localStorage": false
+  },
+  {
+   "file": "look-debug.js",
+   "line": 100,
+   "what": "событие",
+   "el": "#chkVis",
+   "ev": "change",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "draw"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._nv",
+    ".alive",
+    ".path"
+   ],
+   "map_via_calls": [
+    "_WB",
+    "_WBn"
+   ],
+   "localStorage": false
+  },
+  {
+   "file": "look-debug.js",
+   "line": 106,
+   "what": "событие",
+   "el": "#chkLookDbg",
+   "ev": "change",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "team.js",
+   "line": 8,
+   "what": "событие",
+   "el": "chkTeamDbg",
+   "ev": "change",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "view3d-frame.js",
+   "line": 289,
+   "what": "событие",
+   "el": "#btn3d",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "d3Toggle"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "events"
+   ],
+   "map_via_calls": [],
+   "localStorage": true
+  },
+  {
+   "file": "view3d-frame.js",
+   "line": 292,
+   "what": "событие",
+   "el": "#cv3",
+   "ev": "contextmenu",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "view3d-frame.js",
+   "line": 293,
+   "what": "событие",
+   "el": "#cv3",
+   "ev": "wheel",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "view3d-frame.js",
+   "line": 294,
+   "what": "событие",
+   "el": "#cv3",
+   "ev": "pointerdown",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "view3d-frame.js",
+   "line": 295,
+   "what": "событие",
+   "el": "#cv3",
+   "ev": "pointermove",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [
+    "x",
+    "y"
+   ],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "view3d-frame.js",
+   "line": 302,
+   "what": "событие",
+   "el": "#cv3",
+   "ev": "pointerup",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "playersUpdate"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._nv",
+    ".alive"
+   ],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "view3d-frame.js",
+   "line": 308,
+   "what": "событие",
+   "el": "el",
+   "ev": "click",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "killfeed.js",
+   "line": 77,
+   "what": "setTimeout",
+   "el": "—",
+   "ev": "setTimeout",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "killfeed.js",
+   "line": 107,
+   "what": "событие",
+   "el": "#econ",
+   "ev": "pointerdown",
+   "keys": [],
+   "class": "настройки / данные карты",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": true
+  },
+  {
+   "file": "killfeed.js",
+   "line": 109,
+   "what": "событие",
+   "el": "#econ",
+   "ev": "keydown",
+   "keys": [
+    "Enter",
+    " "
+   ],
+   "class": "настройки / данные карты",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": true
+  },
+  {
+   "file": "fx.js",
+   "line": 16,
+   "what": "событие",
+   "el": "window",
+   "ev": "resize",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "fx.js",
+   "line": 31,
+   "what": "requestAnimationFrame",
+   "el": "—",
+   "ev": "requestAnimationFrame",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "hudTwStep"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._nv"
+   ],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "fx.js",
+   "line": 40,
+   "what": "requestAnimationFrame",
+   "el": "—",
+   "ev": "requestAnimationFrame",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "hudTwStep"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._nv"
+   ],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "scoreboard.js",
+   "line": 237,
+   "what": "событие",
+   "el": "el",
+   "ev": "pointerdown",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "scoreboard.js",
+   "line": 238,
+   "what": "событие",
+   "el": "el",
+   "ev": "keydown",
+   "keys": [
+    "Enter",
+    " "
+   ],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "scoreboard.js",
+   "line": 243,
+   "what": "событие",
+   "el": "cv",
+   "ev": "mousedown",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "scoreboard.js",
+   "line": 244,
+   "what": "событие",
+   "el": "cv",
+   "ev": "mouseup",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "playersUpdate"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._nv",
+    ".alive"
+   ],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "observer.js",
+   "line": 346,
+   "what": "событие",
+   "el": "#btnWarmSkip",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "warmEnd"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._ammoFor",
+    "._area",
+    "._blind",
+    "._blindBy",
+    "._boost",
+    "._bought",
+    "._climb",
+    "._defuseHeard",
+    "._dmgBy",
+    "._drawUntil",
+    "._faceWhy",
+    "._fall",
+    "._fc",
+    "._fillLock",
+    "._fireAcc",
+    "._fireExit",
+    "._fireExitFire",
+    "._fireIn",
+    "._fullKit",
+    "._hold"
+   ],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "observer.js",
+   "line": 350,
+   "what": "событие",
+   "el": "#chkWarm",
+   "ev": "change",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "warmEnd"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._ammoFor",
+    "._area",
+    "._blind",
+    "._blindBy",
+    "._boost",
+    "._bought",
+    "._climb",
+    "._defuseHeard",
+    "._dmgBy",
+    "._drawUntil",
+    "._faceWhy",
+    "._fall",
+    "._fc",
+    "._fillLock",
+    "._fireAcc",
+    "._fireExit",
+    "._fireExitFire",
+    "._fireIn",
+    "._fullKit",
+    "._hold"
+   ],
+   "map_via_calls": [],
+   "localStorage": true
+  },
+  {
+   "file": "observer.js",
+   "line": 351,
+   "what": "событие",
+   "el": "#selSeries",
+   "ev": "change",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [],
+   "direct_game": [
+    "SERIES"
+   ],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "observer.js",
+   "line": 353,
+   "what": "событие",
+   "el": "#btnObs",
+   "ev": "click",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "observer.js",
+   "line": 356,
+   "what": "событие",
+   "el": "#btnObsMap",
+   "ev": "click",
+   "keys": [],
+   "class": "настройки / данные карты",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": true
+  },
+  {
+   "file": "observer.js",
+   "line": 358,
+   "what": "событие",
+   "el": "cv",
+   "ev": "mousedown",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "observer.js",
+   "line": 358,
+   "what": "событие",
+   "el": "cv",
+   "ev": "wheel",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "observer.js",
+   "line": 366,
+   "what": "событие",
+   "el": "el",
+   "ev": "pointerdown",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "observer.js",
+   "line": 368,
+   "what": "событие",
+   "el": "cv",
+   "ev": "mousedown",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "observer.js",
+   "line": 369,
+   "what": "событие",
+   "el": "cv",
+   "ev": "mouseup",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "observer.js",
+   "line": 374,
+   "what": "событие",
+   "el": "window",
+   "ev": "keydown",
+   "keys": [
+    "o",
+    "O",
+    "щ",
+    "Щ"
+   ],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "replay.js",
+   "line": 232,
+   "what": "событие",
+   "el": "RP_EL.skip",
+   "ev": "click",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "replay.js",
+   "line": 233,
+   "what": "событие",
+   "el": "window",
+   "ev": "keydown",
+   "keys": [
+    "Escape",
+    "Space"
+   ],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "replay-play.js",
+   "line": 315,
+   "what": "setTimeout",
+   "el": "—",
+   "ev": "setTimeout",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "replay-play.js",
+   "line": 321,
+   "what": "событие",
+   "el": "#chkRp",
+   "ev": "change",
+   "keys": [],
+   "class": "настройки / данные карты",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": true
+  },
+  {
+   "file": "replay-play.js",
+   "line": 322,
+   "what": "событие",
+   "el": "#selRp",
+   "ev": "change",
+   "keys": [],
+   "class": "настройки / данные карты",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": true
+  },
+  {
+   "file": "replay-play.js",
+   "line": 323,
+   "what": "событие",
+   "el": "#btnRpLast",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "rpPlay"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "RP_EL"
+   ],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "replay-play.js",
+   "line": 324,
+   "what": "setTimeout",
+   "el": "—",
+   "ev": "setTimeout",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "rpGoto"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._2nd",
+    "._actS",
+    "._adSpot",
+    "._afPt",
+    "._agV",
+    "._aimFix",
+    "._aimTrk",
+    "._amb",
+    "._ammoFor",
+    "._apBest",
+    "._apId",
+    "._apT",
+    "._apfC",
+    "._apfP",
+    "._area",
+    "._assistNext",
+    "._assistVoice",
+    "._avoidPeekAt",
+    "._avoidPeekUntil",
+    "._awpLog"
+   ],
+   "map_via_calls": [
+    "CLIMB_BY_EDGE",
+    "MOVE",
+    "NAV_GAPS",
+    "NAV_GAP_AT"
+   ],
+   "localStorage": true
+  },
+  {
+   "file": "timeout.js",
+   "line": 30,
+   "what": "событие",
+   "el": "TS.el.skip",
+   "ev": "click",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "timeout.js",
+   "line": 240,
+   "what": "событие",
+   "el": "#btnToLast",
+   "ev": "click",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "timeout.js",
+   "line": 241,
+   "what": "событие",
+   "el": "#btnToTake",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [],
+   "direct_game": [
+    "TO_FORCE"
+   ],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "timeout.js",
+   "line": 243,
+   "what": "событие",
+   "el": "#btnRpGo",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "rpJump"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._2nd",
+    "._actS",
+    "._adSpot",
+    "._afPt",
+    "._agV",
+    "._aimFix",
+    "._aimTrk",
+    "._amb",
+    "._ammoFor",
+    "._apBest",
+    "._apId",
+    "._apT",
+    "._apfC",
+    "._apfP",
+    "._area",
+    "._assistNext",
+    "._assistVoice",
+    "._avoidPeekAt",
+    "._avoidPeekUntil",
+    "._awpLog"
+   ],
+   "map_via_calls": [
+    "CLIMB_BY_EDGE",
+    "MOVE",
+    "NAV_GAPS",
+    "NAV_GAP_AT"
+   ],
+   "localStorage": true
+  },
+  {
+   "file": "timeout.js",
+   "line": 244,
+   "what": "событие",
+   "el": "#btnToGo",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "rpJump"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._2nd",
+    "._actS",
+    "._adSpot",
+    "._afPt",
+    "._agV",
+    "._aimFix",
+    "._aimTrk",
+    "._amb",
+    "._ammoFor",
+    "._apBest",
+    "._apId",
+    "._apT",
+    "._apfC",
+    "._apfP",
+    "._area",
+    "._assistNext",
+    "._assistVoice",
+    "._avoidPeekAt",
+    "._avoidPeekUntil",
+    "._awpLog"
+   ],
+   "map_via_calls": [
+    "CLIMB_BY_EDGE",
+    "MOVE",
+    "NAV_GAPS",
+    "NAV_GAP_AT"
+   ],
+   "localStorage": true
+  },
+  {
+   "file": "sandbox.js",
+   "line": 58,
+   "what": "событие",
+   "el": "el",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "draw",
+    "sbRemove",
+    "sbRender"
+   ],
+   "direct_game": [],
+   "direct_fields": [
+    "_sbOff",
+    "_sbWalk"
+   ],
+   "direct_map": [],
+   "game_via_calls": [
+    "._fc",
+    "._nv",
+    "._sbOff",
+    "._sbWalk",
+    ".alive",
+    ".hp",
+    ".path",
+    "SB_PANEL_EL",
+    "events"
+   ],
+   "map_via_calls": [
+    "_WB",
+    "_WBn"
+   ],
+   "localStorage": false
+  },
+  {
+   "file": "sandbox.js",
+   "line": 126,
+   "what": "событие",
+   "el": "cv",
+   "ev": "mousedown",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "draw",
+    "logEvent",
+    "sbRender",
+    "sbRevive"
+   ],
+   "direct_game": [],
+   "direct_fields": [
+    "_sbGo"
+   ],
+   "direct_map": [],
+   "game_via_calls": [
+    "._area",
+    "._blind",
+    "._climb",
+    "._contact",
+    "._fall",
+    "._fc",
+    "._hold",
+    "._nv",
+    "._reloading",
+    "._sbOff",
+    "._sbWalk",
+    "._trail",
+    "._ts",
+    ".alive",
+    ".baseX",
+    ".baseY",
+    ".blindUntil",
+    ".contactStreak",
+    ".curSpeed",
+    ".holding"
+   ],
+   "map_via_calls": [
+    "_WB",
+    "_WBn"
+   ],
+   "localStorage": false
+  },
+  {
+   "file": "sandbox.js",
+   "line": 134,
+   "what": "событие",
+   "el": "window",
+   "ev": "mousemove",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "draw",
+    "sbPlace"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._area",
+    "._climb",
+    "._fall",
+    "._fc",
+    "._hold",
+    "._nv",
+    "._trail",
+    ".alive",
+    ".baseX",
+    ".baseY",
+    ".curSpeed",
+    ".path",
+    ".pathIdx",
+    ".px",
+    ".py",
+    ".x",
+    ".y",
+    ".z"
+   ],
+   "map_via_calls": [
+    "_WB",
+    "_WBn"
+   ],
+   "localStorage": false
+  },
+  {
+   "file": "sandbox.js",
+   "line": 141,
+   "what": "событие",
+   "el": "window",
+   "ev": "mouseup",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "sandbox.js",
+   "line": 142,
+   "what": "событие",
+   "el": "#btnSandbox",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "sbToggle"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._ammoFor",
+    "._area",
+    "._blind",
+    "._blindBy",
+    "._boost",
+    "._bought",
+    "._climb",
+    "._defuseHeard",
+    "._dmgBy",
+    "._drawUntil",
+    "._faceWhy",
+    "._fall",
+    "._fc",
+    "._fillLock",
+    "._fireAcc",
+    "._fireExit",
+    "._fireExitFire",
+    "._fireIn",
+    "._fullKit",
+    "._hold"
+   ],
+   "map_via_calls": [
+    "_WB",
+    "_WBn"
+   ],
+   "localStorage": false
+  },
+  {
+   "file": "sandbox.js",
+   "line": 143,
+   "what": "setInterval",
+   "el": "—",
+   "ev": "setInterval",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "sbRender"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._fc",
+    "._nv",
+    "._sbOff",
+    "._sbWalk",
+    ".alive",
+    ".hp",
+    ".path",
+    "SB_PANEL_EL",
+    "events"
+   ],
+   "map_via_calls": [
+    "_WB",
+    "_WBn"
+   ],
+   "localStorage": false
+  },
+  {
+   "file": "demo.js",
+   "line": 85,
+   "what": "событие",
+   "el": "DV_PANEL_EL",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "dvStart",
+    "dvStop"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._ammoFor",
+    "._area",
+    "._blind",
+    "._blindBy",
+    "._boost",
+    "._bought",
+    "._climb",
+    "._defuseHeard",
+    "._dmgBy",
+    "._drawUntil",
+    "._dvName",
+    "._faceWhy",
+    "._fall",
+    "._fc",
+    "._fillLock",
+    "._fireAcc",
+    "._fireExit",
+    "._fireExitFire",
+    "._fireIn",
+    "._fullKit"
+   ],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "demo.js",
+   "line": 105,
+   "what": "setInterval",
+   "el": "—",
+   "ev": "setInterval",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "dvRender"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._ammoFor",
+    "._area",
+    "._blind",
+    "._blindBy",
+    "._boost",
+    "._bought",
+    "._climb",
+    "._defuseHeard",
+    "._dmgBy",
+    "._drawUntil",
+    "._dvName",
+    "._faceWhy",
+    "._fall",
+    "._fc",
+    "._fillLock",
+    "._fireAcc",
+    "._fireExit",
+    "._fireExitFire",
+    "._fireIn",
+    "._fullKit"
+   ],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "demo.js",
+   "line": 106,
+   "what": "событие",
+   "el": "#btnDemoView",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "dvToggle"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._ammoFor",
+    "._area",
+    "._blind",
+    "._blindBy",
+    "._boost",
+    "._bought",
+    "._climb",
+    "._defuseHeard",
+    "._dmgBy",
+    "._drawUntil",
+    "._dvName",
+    "._faceWhy",
+    "._fall",
+    "._fc",
+    "._fillLock",
+    "._fireAcc",
+    "._fireExit",
+    "._fireExitFire",
+    "._fireIn",
+    "._fullKit"
+   ],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "app.js",
+   "line": 187,
+   "what": "событие",
+   "el": "document",
+   "ev": "pt",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "app.js",
+   "line": 193,
+   "what": "событие",
+   "el": "#sndVol",
+   "ev": "input",
+   "keys": [],
+   "class": "настройки / данные карты",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": true
+  },
+  {
+   "file": "app.js",
+   "line": 202,
+   "what": "setTimeout",
+   "el": "—",
+   "ev": "setTimeout",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "app.js",
+   "line": 195,
+   "what": "событие",
+   "el": "#btnSnd",
+   "ev": "click",
+   "keys": [],
+   "class": "настройки / данные карты",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": true
+  },
+  {
+   "file": "app.js",
+   "line": 222,
+   "what": "событие",
+   "el": "window",
+   "ev": "error",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "showFatal"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    ".id"
+   ],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "app.js",
+   "line": 275,
+   "what": "событие",
+   "el": "e = ",
+   "ev": "message",
+   "keys": [],
+   "class": "настройки / данные карты",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": true
+  },
+  {
+   "file": "app.js",
+   "line": 276,
+   "what": "событие",
+   "el": "= fu",
+   "ev": "error",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "showFatal"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    ".id"
+   ],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "app.js",
+   "line": 287,
+   "what": "событие",
+   "el": "L",
+   "ev": "message",
+   "keys": [],
+   "class": "настройки / данные карты",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": true
+  },
+  {
+   "file": "app.js",
+   "line": 340,
+   "what": "requestAnimationFrame",
+   "el": "—",
+   "ev": "requestAnimationFrame",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "frame"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._2nd",
+    "._actS",
+    "._adSpot",
+    "._afPt",
+    "._agV",
+    "._aimFix",
+    "._aimTrk",
+    "._amb",
+    "._ammoFor",
+    "._apBest",
+    "._apId",
+    "._apT",
+    "._apfC",
+    "._apfP",
+    "._area",
+    "._assistNext",
+    "._assistVoice",
+    "._avoidPeekAt",
+    "._avoidPeekUntil",
+    "._awpLog"
+   ],
+   "map_via_calls": [
+    "CLIMB_BY_EDGE",
+    "MOVE",
+    "NAV_GAPS",
+    "NAV_GAP_AT",
+    "_WB",
+    "_WBn"
+   ],
+   "localStorage": true
+  },
+  {
+   "file": "app.js",
+   "line": 377,
+   "what": "событие",
+   "el": "#hlP",
+   "ev": "input",
+   "keys": [],
+   "class": "настройки / данные карты",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [
+    "HL"
+   ],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": true
+  },
+  {
+   "file": "app.js",
+   "line": 379,
+   "what": "событие",
+   "el": "#btnFreshMatch",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "freshMatch",
+    "logEvent",
+    "warmStart"
+   ],
+   "direct_game": [
+    "SERIES"
+   ],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._ammoFor",
+    "._area",
+    "._blind",
+    "._blindBy",
+    "._boost",
+    "._bought",
+    "._climb",
+    "._defuseHeard",
+    "._dmgBy",
+    "._drawUntil",
+    "._faceWhy",
+    "._fall",
+    "._fc",
+    "._fillLock",
+    "._fireAcc",
+    "._fireExit",
+    "._fireExitFire",
+    "._fireIn",
+    "._fullKit",
+    "._hold"
+   ],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "app.js",
+   "line": 380,
+   "what": "setInterval",
+   "el": "—",
+   "ev": "setInterval",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "app.js",
+   "line": 386,
+   "what": "requestAnimationFrame",
+   "el": "—",
+   "ev": "requestAnimationFrame",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "frame"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._2nd",
+    "._actS",
+    "._adSpot",
+    "._afPt",
+    "._agV",
+    "._aimFix",
+    "._aimTrk",
+    "._amb",
+    "._ammoFor",
+    "._apBest",
+    "._apId",
+    "._apT",
+    "._apfC",
+    "._apfP",
+    "._area",
+    "._assistNext",
+    "._assistVoice",
+    "._avoidPeekAt",
+    "._avoidPeekUntil",
+    "._awpLog"
+   ],
+   "map_via_calls": [
+    "CLIMB_BY_EDGE",
+    "MOVE",
+    "NAV_GAPS",
+    "NAV_GAP_AT",
+    "_WB",
+    "_WBn"
+   ],
+   "localStorage": true
+  },
+  {
+   "file": "app.js",
+   "line": 391,
+   "what": "событие",
+   "el": "d",
+   "ev": "toggle",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "app.js",
+   "line": 392,
+   "what": "событие",
+   "el": "document",
+   "ev": "mousedown",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "app.js",
+   "line": 393,
+   "what": "событие",
+   "el": "document",
+   "ev": "keydown",
+   "keys": [
+    "Escape"
+   ],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "app.js",
+   "line": 395,
+   "what": "событие",
+   "el": "#btnPause",
+   "ev": "click",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "app.js",
+   "line": 401,
+   "what": "событие",
+   "el": "#btnExportProject",
+   "ev": "click",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "app.js",
+   "line": 424,
+   "what": "событие",
+   "el": "#btnRestartRound",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "draw",
+    "logEvent",
+    "resetRound"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._ammoFor",
+    "._area",
+    "._blind",
+    "._blindBy",
+    "._boost",
+    "._bought",
+    "._climb",
+    "._defuseHeard",
+    "._dmgBy",
+    "._drawUntil",
+    "._faceWhy",
+    "._fall",
+    "._fc",
+    "._fillLock",
+    "._fireAcc",
+    "._fireExit",
+    "._fireExitFire",
+    "._fireIn",
+    "._fullKit",
+    "._hold"
+   ],
+   "map_via_calls": [
+    "_WB",
+    "_WBn"
+   ],
+   "localStorage": false
+  },
+  {
+   "file": "src/marks.js",
+   "line": 94,
+   "what": "событие",
+   "el": "s",
+   "ev": "load",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "src/marks.js",
+   "line": 94,
+   "what": "событие",
+   "el": "s",
+   "ev": "error",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "src/marks.js",
+   "line": 109,
+   "what": "setTimeout",
+   "el": "—",
+   "ev": "setTimeout",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "src/marks.js",
+   "line": 189,
+   "what": "setTimeout",
+   "el": "—",
+   "ev": "setTimeout",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "src/marks.js",
+   "line": 271,
+   "what": "событие",
+   "el": "#mkToast",
+   "ev": "ev",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "src/marks.js",
+   "line": 272,
+   "what": "событие",
+   "el": "#btnMark",
+   "ev": "click",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "src/marks.js",
+   "line": 273,
+   "what": "событие",
+   "el": "#btnBack10",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "mkBack10"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._2nd",
+    "._actS",
+    "._adSpot",
+    "._afPt",
+    "._agV",
+    "._aimFix",
+    "._aimTrk",
+    "._amb",
+    "._ammoFor",
+    "._apBest",
+    "._apId",
+    "._apT",
+    "._apfC",
+    "._apfP",
+    "._area",
+    "._assistNext",
+    "._assistVoice",
+    "._avoidPeekAt",
+    "._avoidPeekUntil",
+    "._awpLog"
+   ],
+   "map_via_calls": [
+    "CLIMB_BY_EDGE",
+    "MOVE",
+    "NAV_GAPS",
+    "NAV_GAP_AT"
+   ],
+   "localStorage": true
+  },
+  {
+   "file": "src/marks.js",
+   "line": 274,
+   "what": "событие",
+   "el": "#btnMarks",
+   "ev": "click",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "src/marks.js",
+   "line": 275,
+   "what": "событие",
+   "el": "#mkLX",
+   "ev": "click",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "src/marks.js",
+   "line": 276,
+   "what": "событие",
+   "el": "#mkX",
+   "ev": "click",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "src/marks.js",
+   "line": 276,
+   "what": "событие",
+   "el": "#mkCancel",
+   "ev": "click",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "src/marks.js",
+   "line": 277,
+   "what": "событие",
+   "el": "#mkGo",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "mkSubmit"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._nv",
+    ".alive",
+    ".id",
+    ".path"
+   ],
+   "map_via_calls": [
+    "_WB",
+    "_WBn"
+   ],
+   "localStorage": false
+  },
+  {
+   "file": "src/marks.js",
+   "line": 278,
+   "what": "событие",
+   "el": "#mkFile",
+   "ev": "click",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "src/marks.js",
+   "line": 279,
+   "what": "событие",
+   "el": "#mkText",
+   "ev": "input",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "src/marks.js",
+   "line": 280,
+   "what": "событие",
+   "el": "mkEl(id)",
+   "ev": "keydown",
+   "keys": [
+    "Enter"
+   ],
+   "class": "меняет игру",
+   "commands": [
+    "mkSubmit"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._nv",
+    ".alive",
+    ".id",
+    ".path"
+   ],
+   "map_via_calls": [
+    "_WB",
+    "_WBn"
+   ],
+   "localStorage": false
+  },
+  {
+   "file": "src/marks.js",
+   "line": 281,
+   "what": "событие",
+   "el": "#mkCopy",
+   "ev": "click",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "src/marks.js",
+   "line": 282,
+   "what": "событие",
+   "el": "#mkItems",
+   "ev": "click",
+   "keys": [],
+   "class": "меняет игру",
+   "commands": [
+    "mkJump"
+   ],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [
+    "._2nd",
+    "._actS",
+    "._adSpot",
+    "._afPt",
+    "._agV",
+    "._aimFix",
+    "._aimTrk",
+    "._amb",
+    "._ammoFor",
+    "._apBest",
+    "._apId",
+    "._apT",
+    "._apfC",
+    "._apfP",
+    "._area",
+    "._assistNext",
+    "._assistVoice",
+    "._avoidPeekAt",
+    "._avoidPeekUntil",
+    "._awpLog"
+   ],
+   "map_via_calls": [
+    "CLIMB_BY_EDGE",
+    "MOVE",
+    "NAV_GAPS",
+    "NAV_GAP_AT"
+   ],
+   "localStorage": true
+  },
+  {
+   "file": "src/marks.js",
+   "line": 290,
+   "what": "событие",
+   "el": "cv",
+   "ev": "mousedown",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "src/marks.js",
+   "line": 298,
+   "what": "событие",
+   "el": "window",
+   "ev": "keydown",
+   "keys": [
+    "m",
+    "M",
+    "ь",
+    "Ь"
+   ],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "src/marks.js",
+   "line": 302,
+   "what": "событие",
+   "el": "#btnRestartRound",
+   "ev": "click",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  },
+  {
+   "file": "src/marks.js",
+   "line": 303,
+   "what": "событие",
+   "el": "#btnFreshMatch",
+   "ev": "click",
+   "keys": [],
+   "class": "только показ",
+   "commands": [],
+   "direct_game": [],
+   "direct_fields": [],
+   "direct_map": [],
+   "game_via_calls": [],
+   "map_via_calls": [],
+   "localStorage": false
+  }
+ ],
+ "showVars": [
+  {
+   "var": "BEEP_FINAL",
+   "class": "показ",
+   "read_by_core": [
+    "journal.js:152"
+   ]
+  },
+  {
+   "var": "BEEP_NEXT",
+   "class": "показ",
+   "read_by_core": [
+    "journal.js:153"
+   ]
+  },
+  {
+   "var": "BUY_SHOW",
+   "class": "показ",
+   "read_by_core": []
+  },
+  {
+   "var": "CTSET_DBG",
+   "class": "диагностика",
+   "read_by_core": []
+  },
+  {
+   "var": "DEMOV",
+   "class": "показ",
+   "read_by_core": [
+    "bomb.js:248",
+    "bomb.js:333",
+    "damage.js:135",
+    "damage.js:135",
+    "shoot.js:68",
+    "round.js:155",
+    "tick-step.js:30"
+   ]
+  },
+  {
+   "var": "DLOG",
+   "class": "диагностика",
+   "read_by_core": [
+    "sites-spots.js:216",
+    "knowledge.js:81",
+    "knowledge.js:83",
+    "lineups.js:252",
+    "lineups.js:260",
+    "trace.js:9",
+    "trace.js:9",
+    "trace.js:10",
+    "trace.js:13",
+    "trace.js:16"
+   ]
+  },
+  {
+   "var": "KF_DIRTY",
+   "class": "показ",
+   "read_by_core": []
+  },
+  {
+   "var": "KNOW_LOG",
+   "class": "диагностика",
+   "read_by_core": [
+    "knowledge.js:249"
+   ]
+  },
+  {
+   "var": "KNOW_TRACE",
+   "class": "диагностика",
+   "read_by_core": [
+    "knowledge.js:247",
+    "knowledge.js:247"
+   ]
+  },
+  {
+   "var": "LOG_DIRTY",
+   "class": "показ",
+   "read_by_core": []
+  },
+  {
+   "var": "LOOKDBG",
+   "class": "диагностика",
+   "read_by_core": [
+    "look.js:35",
+    "look.js:297",
+    "look-arbiter.js:5",
+    "look-arbiter.js:183",
+    "turn.ts:34"
+   ]
+  },
+  {
+   "var": "NADE_SOLVE_MS",
+   "class": "диагностика",
+   "read_by_core": [
+    "throw.js:45",
+    "throw.js:45",
+    "throw.js:45"
+   ]
+  },
+  {
+   "var": "PROB",
+   "class": "диагностика",
+   "read_by_core": [
+    "problem-watch.js:20",
+    "problem-watch.js:20",
+    "problem-watch.js:20",
+    "problem-watch.js:20",
+    "problem-watch.js:20",
+    "problem-watch.js:20",
+    "problem-watch.js:20",
+    "problem-watch.js:20",
+    "problem-watch.js:32",
+    "problem-watch.js:37",
+    "problem-watch.js:37",
+    "problem-watch.js:38",
+    "problem-watch.js:38",
+    "problem-watch.js:38",
+    "problem-watch.js:40",
+    "problem-watch.js:40",
+    "problem-watch.js:40",
+    "problem-watch.js:40",
+    "problem-watch.js:41",
+    "problem-watch.js:44",
+    "problem-watch.js:44",
+    "problem-watch.js:44",
+    "problem-watch.js:44",
+    "problem-watch.js:45",
+    "problem-watch.js:45",
+    "problem-watch.js:61",
+    "problem-watch.js:61",
+    "problem-watch.js:62",
+    "problem-watch.js:62",
+    "problem-watch.js:62",
+    "problem-watch.js:62",
+    "problem-watch.js:62",
+    "problem-watch.js:65",
+    "problem-watch.js:66",
+    "problem-watch.js:66"
+   ]
+  },
+  {
+   "var": "RC_HALF",
+   "class": "показ",
+   "read_by_core": []
+  },
+  {
+   "var": "REAR_WHY",
+   "class": "диагностика",
+   "read_by_core": [
+    "look.js:39"
+   ]
+  },
+  {
+   "var": "RUN_MATCH_SUB",
+   "class": "диагностика",
+   "read_by_core": [
+    "round.js:260"
+   ]
+  },
+  {
+   "var": "SANDBOX",
+   "class": "показ",
+   "read_by_core": [
+    "round.js:154",
+    "move.js:112",
+    "move.js:113",
+    "tick-step.js:29"
+   ]
+  },
+  {
+   "var": "SHOW_Q",
+   "class": "показ",
+   "read_by_core": [
+    "journal.js:8",
+    "journal.js:8",
+    "journal.js:8"
+   ]
+  },
+  {
+   "var": "TACT_DBG",
+   "class": "диагностика",
+   "read_by_core": []
+  },
+  {
+   "var": "TEAM_LOG",
+   "class": "диагностика",
+   "read_by_core": [
+    "journal.js:51",
+    "journal.js:51",
+    "journal.js:51",
+    "journal.js:52",
+    "journal.js:52",
+    "journal.js:52"
+   ]
+  },
+  {
+   "var": "VOICE_DIRTY",
+   "class": "показ",
+   "read_by_core": []
+  },
+  {
+   "var": "WARM",
+   "class": "показ",
+   "read_by_core": [
+    "round.js:93",
+    "round.js:93",
+    "src/snapshot.js:237",
+    "src/snapshot.js:237"
+   ]
+  },
+  {
+   "var": "accumulator",
+   "class": "показ",
+   "read_by_core": []
+  },
+  {
+   "var": "lastFrame",
+   "class": "показ",
+   "read_by_core": [
+    "tick.js:15",
+    "tick.js:15"
+   ]
+  },
+  {
+   "var": "nadeFx",
+   "class": "показ",
+   "read_by_core": [
+    "damage.js:105",
+    "damage.js:220",
+    "damage.js:239",
+    "damage.js:239",
+    "damage.js:239",
+    "decide.js:260",
+    "round.js:100"
+   ]
+  },
+  {
+   "var": "nowTs",
+   "class": "показ",
+   "read_by_core": [
+    "smoke-react.js:82",
+    "journal.js:95",
+    "journal.js:109",
+    "journal.js:114",
+    "items.js:53",
+    "shoot.js:306",
+    "shoot.js:359",
+    "tick-jump.js:10",
+    "tick-step.js:139",
+    "src/snapshot.js:174",
+    "src/snapshot.js:174"
+   ]
+  },
+  {
+   "var": "paused",
+   "class": "показ",
+   "read_by_core": [
+    "src/snapshot.js:254"
+   ]
+  },
+  {
+   "var": "soundPings",
+   "class": "показ",
+   "read_by_core": [
+    "round.js:100",
+    "tick-jump.js:10",
+    "tick-step.js:139",
+    "tick-step.js:143",
+    "tick-step.js:143",
+    "src/snapshot.js:172",
+    "src/snapshot.js:172"
+   ]
+  },
+  {
+   "var": "tracers",
+   "class": "показ",
+   "read_by_core": [
+    "smoke-react.js:82",
+    "smoke-react.js:82",
+    "smoke-react.js:82",
+    "shoot.js:359",
+    "shoot.js:379",
+    "shoot.js:379",
+    "round.js:100",
+    "round.js:222",
+    "src/snapshot.js:172",
+    "src/snapshot.js:172"
+   ]
+  }
+ ],
+ "boundary": [
+  {
+   "fn": "showFatal",
+   "file": "app.js",
+   "write": ".id"
+  },
+  {
+   "fn": "(обработчик click #btnFreshMatch)",
+   "file": "app.js",
+   "write": "SERIES"
+  },
+  {
+   "fn": "dvStart",
+   "file": "demo.js",
+   "write": "._ammoFor"
+  },
+  {
+   "fn": "dvStart",
+   "file": "demo.js",
+   "write": "._dvName"
+  },
+  {
+   "fn": "dvStop",
+   "file": "demo.js",
+   "write": "._dvName"
+  },
+  {
+   "fn": "dvTick",
+   "file": "demo.js",
+   "write": "._shotAtBy"
+  },
+  {
+   "fn": "dvTick",
+   "file": "demo.js",
+   "write": "._shotAtT"
+  },
+  {
+   "fn": "dvStart",
+   "file": "demo.js",
+   "write": ".armor"
+  },
+  {
+   "fn": "dvPlace",
+   "file": "demo.js",
+   "write": ".baseX"
+  },
+  {
+   "fn": "dvPlace",
+   "file": "demo.js",
+   "write": ".baseY"
+  },
+  {
+   "fn": "dvStart",
+   "file": "demo.js",
+   "write": ".helmet"
+  },
+  {
+   "fn": "dvPlace",
+   "file": "demo.js",
+   "write": ".hp"
+  },
+  {
+   "fn": "dvPanel",
+   "file": "demo.js",
+   "write": ".id"
+  },
+  {
+   "fn": "dvTick",
+   "file": "demo.js",
+   "write": ".lastShotTick"
+  },
+  {
+   "fn": "dvStart",
+   "file": "demo.js",
+   "write": ".primary"
+  },
+  {
+   "fn": "dvPlace",
+   "file": "demo.js",
+   "write": ".px"
+  },
+  {
+   "fn": "dvPlace",
+   "file": "demo.js",
+   "write": ".py"
+  },
+  {
+   "fn": "dvStart",
+   "file": "demo.js",
+   "write": ".secondary"
+  },
+  {
+   "fn": "dvTick",
+   "file": "demo.js",
+   "write": ".state"
+  },
+  {
+   "fn": "dvStart",
+   "file": "demo.js",
+   "write": ".weapon"
+  },
+  {
+   "fn": "dvTick",
+   "file": "demo.js",
+   "write": ".x"
+  },
+  {
+   "fn": "dvPlace",
+   "file": "demo.js",
+   "write": ".x"
+  },
+  {
+   "fn": "dvTick",
+   "file": "demo.js",
+   "write": ".y"
+  },
+  {
+   "fn": "dvPlace",
+   "file": "demo.js",
+   "write": ".y"
+  },
+  {
+   "fn": "dvTick",
+   "file": "demo.js",
+   "write": "bomb"
+  },
+  {
+   "fn": "dvPanel",
+   "file": "demo.js",
+   "write": "DV_PANEL_EL"
+  },
+  {
+   "fn": "hudNum",
+   "file": "fx.js",
+   "write": "._nv"
+  },
+  {
+   "fn": "hudTwStep",
+   "file": "fx.js",
+   "write": "._nv"
+  },
+  {
+   "fn": "(обработчик mousemove cv)",
+   "file": "lineup-editor.js",
+   "write": ".x"
+  },
+  {
+   "fn": "(обработчик mousemove cv)",
+   "file": "lineup-editor.js",
+   "write": ".y"
+  },
+  {
+   "fn": "hgtCache",
+   "file": "map-heights.js",
+   "write": ".path"
+  },
+  {
+   "fn": "mapEdQueueSave",
+   "file": "map-walls.js",
+   "write": ".state"
+  },
+  {
+   "fn": "mapEdSaveNow",
+   "file": "map-walls.js",
+   "write": ".state"
+  },
+  {
+   "fn": "obsSet",
+   "file": "observer.js",
+   "write": ".id"
+  },
+  {
+   "fn": "(обработчик change #selSeries)",
+   "file": "observer.js",
+   "write": "SERIES"
+  },
+  {
+   "fn": "rpWorldDraw",
+   "file": "replay-play.js",
+   "write": "._trail"
+  },
+  {
+   "fn": "rpWorldDraw",
+   "file": "replay-play.js",
+   "write": ".pfacing"
+  },
+  {
+   "fn": "rpWorldDraw",
+   "file": "replay-play.js",
+   "write": ".px"
+  },
+  {
+   "fn": "rpWorldDraw",
+   "file": "replay-play.js",
+   "write": ".py"
+  },
+  {
+   "fn": "rpTalkOrder",
+   "file": "replay-play.js",
+   "write": ".voice"
+  },
+  {
+   "fn": "rpDraw",
+   "file": "replay-play.js",
+   "write": ".x"
+  },
+  {
+   "fn": "rpDraw",
+   "file": "replay-play.js",
+   "write": ".y"
+  },
+  {
+   "fn": "rpWorldDraw",
+   "file": "replay-play.js",
+   "write": "bomb"
+  },
+  {
+   "fn": "rpWorldDraw",
+   "file": "replay-play.js",
+   "write": "FREEZE_FX"
+  },
+  {
+   "fn": "rpWorldDraw",
+   "file": "replay-play.js",
+   "write": "groundItems"
+  },
+  {
+   "fn": "rpWorldDraw",
+   "file": "replay-play.js",
+   "write": "groundWeapons"
+  },
+  {
+   "fn": "rpWorldDraw",
+   "file": "replay-play.js",
+   "write": "NICKS"
+  },
+  {
+   "fn": "rpWorldDraw",
+   "file": "replay-play.js",
+   "write": "roundNum"
+  },
+  {
+   "fn": "rpWorldDraw",
+   "file": "replay-play.js",
+   "write": "roundState"
+  },
+  {
+   "fn": "rpWorldDraw",
+   "file": "replay-play.js",
+   "write": "SIDE_TEAM"
+  },
+  {
+   "fn": "rpWorldDraw",
+   "file": "replay-play.js",
+   "write": "simTime"
+  },
+  {
+   "fn": "rpWorldDraw",
+   "file": "replay-play.js",
+   "write": "teamTac"
+  },
+  {
+   "fn": "rpEnd",
+   "file": "replay.js",
+   "write": ".holding"
+  },
+  {
+   "fn": "rpHold",
+   "file": "replay.js",
+   "write": ".holding"
+  },
+  {
+   "fn": "rpRecord",
+   "file": "replay.js",
+   "write": ".kills"
+  },
+  {
+   "fn": "rpEls",
+   "file": "replay.js",
+   "write": "RP_EL"
+  },
+  {
+   "fn": "sbPlace",
+   "file": "sandbox.js",
+   "write": "._area"
+  },
+  {
+   "fn": "sbRevive",
+   "file": "sandbox.js",
+   "write": "._blind"
+  },
+  {
+   "fn": "sbPlace",
+   "file": "sandbox.js",
+   "write": "._climb"
+  },
+  {
+   "fn": "sbRevive",
+   "file": "sandbox.js",
+   "write": "._contact"
+  },
+  {
+   "fn": "sbPlace",
+   "file": "sandbox.js",
+   "write": "._fall"
+  },
+  {
+   "fn": "sbPlace",
+   "file": "sandbox.js",
+   "write": "._fc"
+  },
+  {
+   "fn": "sbRemove",
+   "file": "sandbox.js",
+   "write": "._fc"
+  },
+  {
+   "fn": "sbPlace",
+   "file": "sandbox.js",
+   "write": "._hold"
+  },
+  {
+   "fn": "sbRevive",
+   "file": "sandbox.js",
+   "write": "._reloading"
+  },
+  {
+   "fn": "sbTick",
+   "file": "sandbox.js",
+   "write": "._sbGo"
+  },
+  {
+   "fn": "(обработчик mousedown cv)",
+   "file": "sandbox.js",
+   "write": "._sbGo"
+  },
+  {
+   "fn": "sbPanel",
+   "file": "sandbox.js",
+   "write": "._sbOff"
+  },
+  {
+   "fn": "sbToggle",
+   "file": "sandbox.js",
+   "write": "._sbOff"
+  },
+  {
+   "fn": "(обработчик click el)",
+   "file": "sandbox.js",
+   "write": "._sbOff"
+  },
+  {
+   "fn": "sbPanel",
+   "file": "sandbox.js",
+   "write": "._sbWalk"
+  },
+  {
+   "fn": "(обработчик click el)",
+   "file": "sandbox.js",
+   "write": "._sbWalk"
+  },
+  {
+   "fn": "sbPlace",
+   "file": "sandbox.js",
+   "write": "._trail"
+  },
+  {
+   "fn": "sbRevive",
+   "file": "sandbox.js",
+   "write": "._ts"
+  },
+  {
+   "fn": "sbRevive",
+   "file": "sandbox.js",
+   "write": ".alive"
+  },
+  {
+   "fn": "sbRemove",
+   "file": "sandbox.js",
+   "write": ".alive"
+  },
+  {
+   "fn": "sbPlace",
+   "file": "sandbox.js",
+   "write": ".baseX"
+  },
+  {
+   "fn": "sbPlace",
+   "file": "sandbox.js",
+   "write": ".baseY"
+  },
+  {
+   "fn": "sbRevive",
+   "file": "sandbox.js",
+   "write": ".blindUntil"
+  },
+  {
+   "fn": "sbRevive",
+   "file": "sandbox.js",
+   "write": ".contactStreak"
+  },
+  {
+   "fn": "sbRevive",
+   "file": "sandbox.js",
+   "write": ".hp"
+  },
+  {
+   "fn": "sbRemove",
+   "file": "sandbox.js",
+   "write": ".hp"
+  },
+  {
+   "fn": "sbRevive",
+   "file": "sandbox.js",
+   "write": ".nextShotTick"
+  },
+  {
+   "fn": "sbPlace",
+   "file": "sandbox.js",
+   "write": ".px"
+  },
+  {
+   "fn": "sbPlace",
+   "file": "sandbox.js",
+   "write": ".py"
+  },
+  {
+   "fn": "sbPlace",
+   "file": "sandbox.js",
+   "write": ".x"
+  },
+  {
+   "fn": "sbPlace",
+   "file": "sandbox.js",
+   "write": ".y"
+  },
+  {
+   "fn": "sbPlace",
+   "file": "sandbox.js",
+   "write": ".z"
+  },
+  {
+   "fn": "sbTick",
+   "file": "sandbox.js",
+   "write": "bomb"
+  },
+  {
+   "fn": "sbToggle",
+   "file": "sandbox.js",
+   "write": "roundStartTick"
+  },
+  {
+   "fn": "sbTick",
+   "file": "sandbox.js",
+   "write": "roundStartTime"
+  },
+  {
+   "fn": "sbToggle",
+   "file": "sandbox.js",
+   "write": "roundStartTime"
+  },
+  {
+   "fn": "sbPanel",
+   "file": "sandbox.js",
+   "write": "SB_PANEL_EL"
+  },
+  {
+   "fn": "plCardUpdate",
+   "file": "scoreboard.js",
+   "write": ".alive"
+  },
+  {
+   "fn": "mkSave",
+   "file": "src/marks.js",
+   "write": ".id"
+  },
+  {
+   "fn": "tsCam",
+   "file": "timeout.js",
+   "write": ".x"
+  },
+  {
+   "fn": "tsCam",
+   "file": "timeout.js",
+   "write": ".y"
+  },
+  {
+   "fn": "(обработчик click #btnToTake)",
+   "file": "timeout.js",
+   "write": "TO_FORCE"
+  },
+  {
+   "fn": "(обработчик pointermove #cv3)",
+   "file": "view3d-frame.js",
+   "write": ".x"
+  },
+  {
+   "fn": "(обработчик pointermove #cv3)",
+   "file": "view3d-frame.js",
+   "write": ".y"
+  },
+  {
+   "fn": "d3Corpse",
+   "file": "view3d.js",
+   "write": ".x"
+  },
+  {
+   "fn": "warmSpawn",
+   "file": "warmup.js",
+   "write": "._ammoFor"
+  },
+  {
+   "fn": "warmTick",
+   "file": "warmup.js",
+   "write": "._nearestEnemyBot"
+  },
+  {
+   "fn": "warmSpawn",
+   "file": "warmup.js",
+   "write": "._reloading"
+  },
+  {
+   "fn": "warmSpawn",
+   "file": "warmup.js",
+   "write": "._sawEnemy"
+  },
+  {
+   "fn": "warmTick",
+   "file": "warmup.js",
+   "write": "._sawEnemy"
+  },
+  {
+   "fn": "warmSpawn",
+   "file": "warmup.js",
+   "write": "._ts"
+  },
+  {
+   "fn": "warmTick",
+   "file": "warmup.js",
+   "write": "._ts"
+  },
+  {
+   "fn": "warmTick",
+   "file": "warmup.js",
+   "write": "._wIdx"
+  },
+  {
+   "fn": "warmSpawn",
+   "file": "warmup.js",
+   "write": "._wPath"
+  },
+  {
+   "fn": "warmTick",
+   "file": "warmup.js",
+   "write": "._wPath"
+  },
+  {
+   "fn": "warmSpawn",
+   "file": "warmup.js",
+   "write": "._wRespawn"
+  },
+  {
+   "fn": "warmTick",
+   "file": "warmup.js",
+   "write": "._wRespawn"
+  },
+  {
+   "fn": "warmTick",
+   "file": "warmup.js",
+   "write": "._wv"
+  },
+  {
+   "fn": "warmSpawn",
+   "file": "warmup.js",
+   "write": ".alive"
+  },
+  {
+   "fn": "warmSpawn",
+   "file": "warmup.js",
+   "write": ".ammo"
+  },
+  {
+   "fn": "warmSpawn",
+   "file": "warmup.js",
+   "write": ".armor"
+  },
+  {
+   "fn": "warmSpawn",
+   "file": "warmup.js",
+   "write": ".armorHp"
+  },
+  {
+   "fn": "warmSpawn",
+   "file": "warmup.js",
+   "write": ".baseX"
+  },
+  {
+   "fn": "warmTick",
+   "file": "warmup.js",
+   "write": ".baseX"
+  },
+  {
+   "fn": "warmSpawn",
+   "file": "warmup.js",
+   "write": ".baseY"
+  },
+  {
+   "fn": "warmTick",
+   "file": "warmup.js",
+   "write": ".baseY"
+  },
+  {
+   "fn": "warmSpawn",
+   "file": "warmup.js",
+   "write": ".blindUntil"
+  },
+  {
+   "fn": "warmSpawn",
+   "file": "warmup.js",
+   "write": ".contactStreak"
+  },
+  {
+   "fn": "warmTick",
+   "file": "warmup.js",
+   "write": ".contactStreak"
+  },
+  {
+   "fn": "warmTick",
+   "file": "warmup.js",
+   "write": ".heading"
+  },
+  {
+   "fn": "warmSpawn",
+   "file": "warmup.js",
+   "write": ".helmet"
+  },
+  {
+   "fn": "warmSpawn",
+   "file": "warmup.js",
+   "write": ".hp"
+  },
+  {
+   "fn": "warmSpawn",
+   "file": "warmup.js",
+   "write": ".nextShotTick"
+  },
+  {
+   "fn": "warmSpawn",
+   "file": "warmup.js",
+   "write": ".primary"
+  },
+  {
+   "fn": "warmSpawn",
+   "file": "warmup.js",
+   "write": ".px"
+  },
+  {
+   "fn": "warmTick",
+   "file": "warmup.js",
+   "write": ".px"
+  },
+  {
+   "fn": "warmSpawn",
+   "file": "warmup.js",
+   "write": ".py"
+  },
+  {
+   "fn": "warmTick",
+   "file": "warmup.js",
+   "write": ".py"
+  },
+  {
+   "fn": "warmSpawn",
+   "file": "warmup.js",
+   "write": ".weapon"
+  },
+  {
+   "fn": "warmSpawn",
+   "file": "warmup.js",
+   "write": ".x"
+  },
+  {
+   "fn": "warmTick",
+   "file": "warmup.js",
+   "write": ".x"
+  },
+  {
+   "fn": "warmSpawn",
+   "file": "warmup.js",
+   "write": ".y"
+  },
+  {
+   "fn": "warmTick",
+   "file": "warmup.js",
+   "write": ".y"
+  },
+  {
+   "fn": "warmStart",
+   "file": "warmup.js",
+   "write": "killfeed"
+  },
+  {
+   "fn": "warmEnd",
+   "file": "warmup.js",
+   "write": "killfeed"
+  },
+  {
+   "fn": "warmStart",
+   "file": "warmup.js",
+   "write": "roundState"
+  },
+  {
+   "fn": "warmEnd",
+   "file": "warmup.js",
+   "write": "voiceLines"
+  }
+ ],
+ "showFields": [
+  {
+   "field": "F",
+   "class": "показ",
+   "read_by_core": []
+  },
+  {
+   "field": "_bomb",
+   "class": "показ",
+   "read_by_core": []
+  },
+  {
+   "field": "_fcWhy",
+   "class": "диагностика",
+   "read_by_core": []
+  },
+  {
+   "field": "_idle",
+   "class": "показ",
+   "read_by_core": []
+  },
+  {
+   "field": "_idlePhase",
+   "class": "показ",
+   "read_by_core": []
+  },
+  {
+   "field": "_keepWhy",
+   "class": "диагностика",
+   "read_by_core": []
+  },
+  {
+   "field": "_ld",
+   "class": "диагностика",
+   "read_by_core": []
+  },
+  {
+   "field": "_ldArb",
+   "class": "диагностика",
+   "read_by_core": []
+  },
+  {
+   "field": "_ldPlan",
+   "class": "диагностика",
+   "read_by_core": []
+  },
+  {
+   "field": "_ldZones",
+   "class": "диагностика",
+   "read_by_core": []
+  },
+  {
+   "field": "_moveWhy",
+   "class": "диагностика",
+   "read_by_core": []
+  },
+  {
+   "field": "_overV",
+   "class": "показ",
+   "read_by_core": [
+    "levels.js:510",
+    "levels.js:510",
+    "levels.js:510"
+   ]
+  },
+  {
+   "field": "_paused",
+   "class": "показ",
+   "read_by_core": []
+  },
+  {
+   "field": "_runWhy",
+   "class": "диагностика",
+   "read_by_core": [
+    "trace.js:34",
+    "trace.js:34"
+   ]
+  },
+  {
+   "field": "_stateWhy",
+   "class": "диагностика",
+   "read_by_core": []
+  },
+  {
+   "field": "_stopWhy",
+   "class": "диагностика",
+   "read_by_core": [
+    "problem-watch.js:28",
+    "problem-watch.js:58",
+    "trace.js:34",
+    "trace.js:34"
+   ]
+  },
+  {
+   "field": "_underV",
+   "class": "показ",
+   "read_by_core": [
+    "levels.js:509",
+    "levels.js:509",
+    "levels.js:509"
+   ]
+  },
+  {
+   "field": "_visFacing",
+   "class": "показ",
+   "read_by_core": []
+  },
+  {
+   "field": "_walkWhy",
+   "class": "диагностика",
+   "read_by_core": [
+    "problem-watch.js:28",
+    "trace.js:34"
+   ]
+  },
+  {
+   "field": "className",
+   "class": "показ",
+   "read_by_core": []
+  },
+  {
+   "field": "disabled",
+   "class": "показ",
+   "read_by_core": []
+  },
+  {
+   "field": "pp",
+   "class": "показ",
+   "read_by_core": []
+  },
+  {
+   "field": "ppT",
+   "class": "показ",
+   "read_by_core": []
+  },
+  {
+   "field": "textContent",
+   "class": "показ",
+   "read_by_core": []
+  },
+  {
+   "field": "title",
+   "class": "показ",
+   "read_by_core": []
+  }
+ ]
+}

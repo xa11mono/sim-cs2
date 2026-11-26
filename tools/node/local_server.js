@@ -16,8 +16,8 @@ function cmd(m) {   // команда — coreCmd ядра (tools/node/core_buil
   if (m.cmd === 'init' || !EV) { LS = Object.assign({}, m.ls || {}); EV = require('./core_run.js').load(CORE); EV('SIM_SHOW = true; 1'); }   // показ есть (страница): строки войса — как у Worker
   if (m.cmd === 'init') m = { cmd: 'set', v: {}, now: m.now };
   globalThis.__cmd = m; LSOUT = [];
-  const out = EV(`(function(m){ if(typeof m.S === "string") m.S = mkUnpack(m.S); var r = coreCmd(m);
-    if(r.F) r.F = mkPack(r.F); if(r.S) r.S = mkPack(r.S); return JSON.stringify(r); })(globalThis.__cmd)`);
+  const out = EV(`(function(m){ if(typeof m.S === "string") m.S = mkUnpack(m.S); if(typeof m.dlog === "string") m.dlog = mkUnpack(m.dlog); var r = coreCmd(m);
+    if(r.F) r.F = mkPack(r.F); if(r.S) r.S = mkPack(r.S); if(r.dlog) r.dlog = mkPack(r.dlog); return JSON.stringify(r); })(globalThis.__cmd)`);
   return LSOUT.length ? out.replace(/}$/, ',"ls":' + JSON.stringify(LSOUT) + '}') : out;
 }
 http.createServer((req, res) => {
