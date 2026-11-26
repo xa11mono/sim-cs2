@@ -1,0 +1,25 @@
+freshMatch(3);
+var player = bots.find(function(b){return b.team === "CT";});
+var foe = bots.find(function(b){return b.team === "T";});
+bots.forEach(function(b){damageSetAlive(b,b===player || b===foe);});
+moveSetX(foe,player.x + 48); moveSetY(foe,player.y);
+nadeSetNades(player,emptyNades());
+var stock=player.nades;
+roundSetState("live");
+groundItems.length=0;
+groundItems.push({kind:"nade",key:"he",x:player.x,y:player.y});
+itemPickupTick();
+var pickup={he:player.nades.he, remaining:groundItems.length,sameObject:stock===player.nades};
+WARM={on:true,left:4};
+roundSetState("warmup");
+engagementSetTs(player,{});
+engagementSetTs(foe,{});
+var exposure=player._ts;
+hasLOS=function(){return true;};
+var shots=[];
+tryShoot=function(sh,target,dist){
+  shots.push([sh.id,target.id,dist,sh._ts[target.id]]);
+};
+warmTick(1/TICK_HZ);
+warmTick(1/TICK_HZ);
+JSON.stringify({pickup:pickup,warmup:{seen:player._ts[foe.id],sameObject:exposure===player._ts,shots:shots}});
