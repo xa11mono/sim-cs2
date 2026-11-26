@@ -78,13 +78,20 @@ async function measure() {
     cmp('назад в ' + K + ', до ' + T3 + ' (' + t3 + ')', hA3, hB3);
     // снимки сравниваются как у локатора (tools/measure/dv_state.js: состояние игры без кэшей и показа — кэши страницы и Worker'а наполняет
     // разный рисунок): снимок кладётся в страницу (mkRestore) и снимается DV.state
-    const DVS = require('../measure/dv_state.js'), SET = DVS.setupCode(DVS.skipDefault(), DVS.SKIPF_DEFAULT) + '\n1';
+    // и без кэшей (класс «кэш» реестра): их наполняет и показ страницы (путь для рисунка — CLIMB_AT), у Worker'а показа нет — общие записи равны
+    const CACHE = Object.keys(require('../../rebuild/state_classes.json')).filter(k => k.startsWith('g:') && (require('../../rebuild/state_classes.json')[k] || {}).class === 'кэш').map(k => k.slice(2));
+    const DVS = require('../measure/dv_state.js'), SET = DVS.setupCode(DVS.skipDefault().replace(/\)\$$/, '|' + CACHE.join('|') + ')$'), DVS.SKIPF_DEFAULT) + '\n1';
     await a.evaluate(c => __ev(c), SET); await b.evaluate(c => __ev(c), SET);
-    const MKH = `var c = MK.cur, st = function(S){ mkRestore(S); return DV.h(JSON.stringify(DV.state())); };
-      c ? 'тик ' + c.tick + ' снимок ' + st(c.snap) + ', до: ' + (c.pre ? 'тик ' + c.pre.tick + ' ' + st(c.pre.data) : 'нет') : 'отметка не открылась'`;
+    const MKS = `var c = MK.cur, st = function(S){ mkRestore(S); return DV.state(); };
+      JSON.stringify(c ? {tick: c.tick, snap: st(c.snap), preTick: c.pre && c.pre.tick, pre: c.pre ? st(c.pre.data) : null} : null)`;
+    const h = o => o ? require('crypto').createHash('sha1').update(JSON.stringify(o)).digest('hex').slice(0, 10) : 'нет';
     const key = p => p.evaluate(() => { window.dispatchEvent(new KeyboardEvent('keydown', { key: 'm', code: 'KeyM' })); });
     await key(a); await key(b); await handed(b);
-    cmp('отметка M', await a.evaluate(s => __ev(s), MKH), await b.evaluate(s => __ev(s), MKH));
+    const sa = JSON.parse(await a.evaluate(s => __ev(s), MKS)), sb = JSON.parse(await b.evaluate(s => __ev(s), MKS));
+    const MKH = x => x ? 'тик ' + x.tick + ' снимок ' + h(x.snap) + ', до: тик ' + x.preTick + ' ' + h(x.pre) : 'отметка не открылась';
+    const dif = (x, y) => x && y ? Object.keys(Object.assign({}, x, y)).filter(k => x[k] !== y[k]) : [];
+    if (sa && sb) { const d1 = dif(sa.snap, sb.snap), d2 = dif(sa.pre, sb.pre); if (d1.length || d2.length) console.log('  разные переменные — снимок: ' + d1.slice(0, 20).join(', ') + '; до: ' + d2.slice(0, 20).join(', ')); }
+    cmp('отметка M', MKH(sa), MKH(sb));
   }
   if (a.errs.length || b.errs.length) console.log('ошибки страниц: ' + a.errs.concat(b.errs).slice(0, 3).join(' | '));
   await br.close(); process.exit(bad ? 1 : 0);
