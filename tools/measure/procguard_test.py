@@ -4,7 +4,7 @@
   1. оценка пика занижена (est 500 МБ при пике 2000): первая волна переполняет память → снятие, cap ниже; потом cap восстанавливается
      (память позволяет), снятые переигрываются по одному, после фазы cap = par;
   2. следующая фаза — матчи меньше: фактическая параллельность снова доходит до par (ограничение прошлой фазы не переносится);
-  3. оценка верная (est = пик): ни одного снятия, одновременно — не больше, чем позволяет прогноз; защита держит запас.
+  3. Firefox с верной оценкой пика: ни одного снятия, прогноз держит запас.
 Запуск: python3 tools/measure/procguard_test.py   (только Linux / macOS: процессы — sleep)"""
 import os, sys, time, subprocess
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -34,13 +34,13 @@ TEMP = tempfile.TemporaryDirectory(prefix='procguard-test-')
 G.STATE = os.path.join(TEMP.name, 'state.json')
 
 LOG = []
-def pool(par, est):
+def pool(par, est, engine='chromium'):
     cfg = {'reserve_mb': 3000, 'critical_mb': 1500, 'critical_polls': 2, 'poll_s': 0.05, 'tree_s': 0.1, 'recover_s': 0.6, 'log_s': 1000,
-           'job': False, 'est_mb': {'chromium': est}, 'match_timeout_min': 5}
+           'job': False, 'est_mb': {engine: est}, 'match_timeout_min': 5}
     return G.Pool(par, cfg, None, log=LOG.append)
-def task(i, secs, peak, tag):
+def task(i, secs, peak, tag, engine='chromium'):
     g = os.path.join(TEMP.name, '%s_%d.json' % (tag, i))
-    return {'name': '%s m%d' % (tag, i), 'cmd': [sys.executable, '-c', 'import time; time.sleep(%g)' % secs], 'engine': 'chromium', 'est_key': 'chromium:' + tag,
+    return {'name': '%s m%d' % (tag, i), 'cmd': [sys.executable, '-c', 'import time; time.sleep(%g)' % secs], 'engine': engine, 'est_key': engine + ':' + tag,
             'env': dict(os.environ, FAKE_PEAK=str(peak)), 'guard': g}, g
 import json
 def guards(G_):
@@ -67,9 +67,9 @@ for i in range(9): t, g = task(i, 2.0, 400, 'ph2'); P.add(t); gs2.append(g)
 P.wait_all(); R2 = guards(gs2)
 check(max(r['par_seen_max'] for r in R2) == 8, 'фаза 2: фактическая параллельность снова 8 (была %d)' % max(r['par_seen_max'] for r in R2))
 check(all(r['ok'] for r in R2), 'фаза 2: все годны')
-# 3: оценка верная — без снятий, прогноз держит запас
-P3 = pool(8, 2000); gs3 = []
-for i in range(8): t, g = task(i, 2.5, 2000, 'ph3'); P3.add(t); gs3.append(g)
+# 3: строгий допуск Firefox с верным прогнозом пика держит запас без снятий
+P3 = pool(8, 2000, 'firefox'); gs3 = []
+for i in range(8): t, g = task(i, 2.5, 2000, 'ph3', 'firefox'); P3.add(t); gs3.append(g)
 P3.wait_all(); R3 = guards(gs3)
 check(not any(r['stopped'] for r in R3), 'фаза 3 (оценка = пик): снятий нет')
 mx = max(r['par_seen_max'] for r in R3)
