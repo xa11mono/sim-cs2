@@ -244,29 +244,96 @@ function showSync(){
 }
 // (Р5.2, 26.11) режим Worker (страница с ?worker=1, сборка src/build.py --worker): симуляция — ядро в Worker из Blob-URL (текст ядра — в
 // странице, #simCore; data: на страницах-артефактах запрещён, Р0.2), показ — тот же код по кадру (frameApply, src/snapshot.js). Время копится,
-// пока Worker занят (одна команда в пути). Разминка, песочница, повтор, редакторы — пока на странице (режим Worker их не включает)
-var WK = {on: false, w: null, F: null, busy: false, pend: 0};
-function wkStart(){
+// пока Worker занят (одна команда в пути). Команды — coreCmd ядра (tools/node/core_build.py).
+// (Р5.2, режимы, 26.11) все режимы игры: управление, которое меняет игру (всё, кроме слоёв, звука, камеры, паузы — WK_VIEW), переводит
+// симуляцию на страницу — снимок Worker (snap) → mkRestore (тот же код, что у отметок) — и только потом выполняется, как в обычной странице:
+// разминка, песочница, демо, новый матч / раунд, отметка (M), перемотка, повтор, пауза-таймаут, серия, хайлайты. Ни один режим не идёт
+// (WK_IDLE_MS подряд) — снимок страницы обратно в Worker (restore, со снимками перемотки). Редакторы карты, правки карты из базы страницы —
+// меняют данные карты, которых нет в снимке: симуляция остаётся на странице до перезагрузки (WK.stay — причина)
+var WK = {on: false, w: null, F: null, busy: false, pend: 0, cb: null, hand: false, after: [], stay: "", idle: 0, local: false, fresh: true};
+var WK_IDLE_MS = 1000;   // проектное число: пауза без режимов до возврата в Worker (чтобы цепочка «кнопка → режим» не возвращалась на полпути)
+var WK_VIEW = /^(chk(Los|Tracers|Sound|Calls|Roam|Paths|Prob|Why|LookDbg|TeamDbg|Outline|Walls|Heights|Cover|Wallbang|Vis|Zones|Points|Danger|Navmesh|Portals|Rp)|btnPause|inpMatchNum|selRp|btnSnd|sndVol|btnObs|btnObsMap|btn3d|v3[A-Za-z]+|btnExportProject|btnMarks|mkLX|mkX)$/;
+// хранилище браузера (настройки и правки, которые ядро читает при загрузке) — в Worker то же, что у страницы; запись ядра — странице (ls)
+function wkLs(){ var D = {}; try{ for(var i = 0; i < localStorage.length; i++){ var k = localStorage.key(i); D[k] = localStorage.getItem(k); } }catch(e){} return D; }
+function wkMsg(d){
+  if(d.ls){ (Array.isArray(d.ls[0]) ? d.ls : [d.ls]).forEach(function(p){ try{ if(p[1] === null) localStorage.removeItem(p[0]); else localStorage.setItem(p[0], p[1]); }catch(e){} }); if(!d.F && !d.S) return; }
+  if(d.S){ var f = WK.cb; WK.cb = null; if(f) f(d); return; }
+  if(d.B){ var t0 = performance.now(); d.F = mkUnpack(new TextDecoder().decode(d.B)); wkStat(d.B.byteLength, d.enc, performance.now() - t0); }
+  WK.F = d.F; WK.busy = false;
+}
+// (Р5.2) замер передачи кадров: байт на кадр, мс упаковки (Worker), распаковки и применения (страница); длинная задача по вине передачи —
+// распаковка + применение одного кадра дольше 50 мс (порог Long Tasks API)
+var WK_STAT = {n: 0, bytes: 0, maxBytes: 0, enc: 0, dec: 0, apply: 0, maxMs: 0, long: 0};
+function wkStat(b, enc, dec){ var S = WK_STAT; S.n++; S.bytes += b; S.maxBytes = Math.max(S.maxBytes, b); S.enc += enc || 0; S.dec += dec; S.lastDec = dec; }
+function wkStatApply(ms){ var S = WK_STAT, all = ms + (S.lastDec || 0); S.apply += ms; S.maxMs = Math.max(S.maxMs, all); if(all > 50) S.long++; S.lastDec = 0; }
+function wkStart(pre){
   var el = document.getElementById("simCore"); if(!el || typeof Worker === "undefined") return false;
-  WK.w = new Worker(URL.createObjectURL(new Blob([el.textContent], {type: "text/javascript"})));
-  WK.w.onmessage = function(e){ WK.F = e.data.F; WK.busy = false; };
+  var ls = "(function(D){ var has = function(k){ return Object.prototype.hasOwnProperty.call(D, k); }; self.localStorage = {getItem: function(k){ return has(k) ? D[k] : null; },\n" +
+    "  setItem: function(k, v){ D[k] = String(v); postMessage({ls: [k, String(v)]}); }, removeItem: function(k){ delete D[k]; postMessage({ls: [k, null]}); }}; })(" + JSON.stringify(wkLs()) + ");\n";
+  WK.w = new Worker(URL.createObjectURL(new Blob([(pre || "") + ls + el.textContent], {type: "text/javascript"})));
+  WK.w.onmessage = function(e){ wkMsg(e.data); };
   WK.w.onerror = function(e){ showFatal(new Error("Worker: " + (e.message || e))); };
   WK.on = true; return true;
 }
 // (Р5.4, 26.11) локальный режим (?local=1, сервер tools/node/local_server.js): симуляция — процесс Node этого компьютера; тот же интерфейс,
-// что у Worker (postMessage / message), поверх HTTP: команда — POST /cmd, ответ — кадр текстом (mkPack)
+// что у Worker (postMessage / message), поверх HTTP: команда — POST /cmd, ответ — кадр / снимок текстом (mkPack); снимки перемотки не ходят
 function wkLocal(){
   var L = {h: [], onmessage: null, addEventListener: function(n, f){ L.h.push(f); }, removeEventListener: function(n, f){ L.h = L.h.filter(function(x){ return x !== f; }); },
-    postMessage: function(m){ fetch("/cmd", {method: "POST", body: JSON.stringify(m)}).then(function(r){ return r.json(); }).then(function(d){
-      var e = {data: {tick: d.tick, F: mkUnpack(d.F)}}; if(L.onmessage) L.onmessage(e); L.h.slice().forEach(function(f){ f(e); }); })
+    postMessage: function(m){ if(m.S) m = Object.assign({}, m, {S: mkPack(m.S), cp: null}); else if(m.cp) m = Object.assign({}, m, {cp: null});
+      fetch("/cmd", {method: "POST", body: JSON.stringify(m)}).then(function(r){ return r.json(); }).then(function(d){
+      var e = {data: {tick: d.tick, F: d.F && mkUnpack(d.F), S: d.S && mkUnpack(d.S), cp: null, ls: d.ls}}; if(L.onmessage) L.onmessage(e); L.h.slice().forEach(function(f){ f(e); }); })
       .catch(function(e){ showFatal(new Error("локальный режим: " + e)); }); }, terminate: function(){} };
-  WK.w = L; L.onmessage = function(e){ WK.F = e.data.F; WK.busy = false; }; WK.on = true; return true;
+  WK.w = L; WK.local = true; L.onmessage = function(e){ wkMsg(e.data); }; WK.on = true;
+  WK.busy = true; L.postMessage({cmd: "init", ls: wkLs(), now: nowTs}); return true;
 }
 function wkSend(m){ WK.busy = true; WK.w.postMessage(m); }
 function wkFrame(ms){
-  if(WK.F){ frameApply(WK.F); WK.F = null; }
-  WK.pend += ms; if(!WK.busy && WK.pend > 0){ wkSend({cmd: "adv", ms: WK.pend, now: nowTs}); WK.pend = 0; }
+  if(WK.hand) return;
+  if(WK.F){ var t0 = performance.now(); frameApply(WK.F); WK.F = null; wkStatApply(performance.now() - t0); }
+  WK.pend += ms; if(!WK.busy && WK.pend > 0){ WK.fresh = false; wkSend({cmd: "adv", ms: WK.pend, now: nowTs}); WK.pend = 0; }
 }
+// симуляция — на страницу: снимок Worker (и снимки перемотки) → страница; then — когда страница уже ведёт игру
+function wkToPage(then, why){
+  if(!WK.on){ if(then) then(); return; }
+  if(why) WK.stay = why;
+  if(WK.hand){ if(then) WK.after.push(then); return; }
+  WK.hand = true; WK.after = then ? [then] : [];
+  WK.cb = function(d){ mkRestore(d.S); if(d.cp){ MK.cps = d.cp.cps; MK.cpMatch = d.cp.m; MK.lastCpTick = d.cp.t; }
+    WK.on = false; WK.hand = false; WK.F = null; WK.pend = 0; WK.idle = 0; clockAcc(0);
+    var A = WK.after; WK.after = []; A.forEach(function(f){ f(); }); };
+  WK.w.postMessage({cmd: "snap", cp: !WK.local, now: nowTs});
+}
+// режим, которому нужна симуляция на странице (идёт сейчас)
+function wkMode(){
+  return WARM.on || SANDBOX.on || DEMOV.on || MK.busy || !!MK.cur || !!(typeof MAPED !== "undefined" && MAPED.on) ||
+    ["chkLineups", "chkZoneEdit", "chkZoneAlign", "chkAlign", "chkNavWarp", "chkZoneShape"].some(function(id){ var c = document.getElementById(id); return c && c.checked; });
+}
+// кадр страницы, пока симуляция на странице: редактор / правка карты — остаться; ни одного режима WK_IDLE_MS — обратно в Worker
+function wkPageFrame(dt){
+  if(!WK.w || WK.stay) return;
+  var edited = typeof MAPED !== "undefined" && Object.keys(MAPED.src || {}).some(function(k){ return MAPED.src[k] && MAPED.src[k].from === "page"; });
+  if(edited || (typeof MAPED !== "undefined" && MAPED.on) || ["chkLineups", "chkZoneEdit", "chkZoneAlign", "chkAlign", "chkNavWarp", "chkZoneShape"].some(function(id){ var c = document.getElementById(id); return c && c.checked; })){
+    WK.stay = edited ? "правки карты с этой страницы" : "редактор"; return; }
+  if(wkMode()){ WK.idle = 0; return; }
+  WK.idle += dt; if(WK.idle < WK_IDLE_MS) return;
+  WK.on = true; WK.busy = true; WK.idle = 0; WK.pend = 0; WK.F = null; WK.fresh = false;
+  WK.w.postMessage({cmd: "restore", S: mkSnapshot(), cp: {cps: MK.cps, m: MK.cpMatch, t: MK.lastCpTick}, now: nowTs});
+}
+// управление, которое меняет игру: событие задерживается, симуляция переходит на страницу, событие повторяется
+function wkCtl(t){ for(; t && t !== document; t = t.parentNode){ if(t.id === "mkItems" || /^(INPUT|SELECT|BUTTON|TEXTAREA)$/.test(t.tagName)) return t; } return null; }
+function wkCatch(e){
+  if(!WK.on || e.wkAgain) return;
+  var t, again;
+  if(e.type === "keydown"){ var tg = e.target && e.target.tagName; if(tg === "INPUT" || tg === "TEXTAREA" || tg === "SELECT") return;
+    if(!/^(m|M|ь|Ь)$/.test(e.key) || e.ctrlKey || e.metaKey || e.altKey) return;   // M — отметка (src/marks.js); остальные клавиши — показ
+    var K = {key: e.key, code: e.code}; again = function(){ var k = new KeyboardEvent("keydown", K); k.wkAgain = true; window.dispatchEvent(k); }; }
+  else { t = wkCtl(e.target); if(!t || WK_VIEW.test(t.id || "")) return;
+    var tgt = e.target, typ = e.type;
+    if(typ === "click") again = function(){ var c = new MouseEvent("click", {bubbles: true, cancelable: true}); c.wkAgain = true; tgt.dispatchEvent(c); };
+    else again = function(){ var c = new Event(typ, {bubbles: true}); c.wkAgain = true; tgt.dispatchEvent(c); }; }
+  e.preventDefault(); e.stopImmediatePropagation(); wkToPage(again);
+}
+if(typeof window !== "undefined") ["click", "change", "input", "keydown"].forEach(function(n){ window.addEventListener(n, wkCatch, true); });
 function frame(ts){
   try{ frameBody(ts); }catch(e){ showFatal(e); }
   requestAnimationFrame(frame);
@@ -276,7 +343,8 @@ function frameBody(ts){
   if(typeof zoneDangerSync === "function") zoneDangerSync();   // (Р3.4) правка карты при остановленной игре — таблица для рисования
   if(SND && SND.ctx) sndFireTick();   // (v333) треск огня — и останавливается, когда огонь погас / раунд кончился / звук выключен
   var dt = clockFrameDt(ts);
-  if(WK.on){ wkFrame(paused ? 0 : Math.min(dt, FRAME_CATCHUP_MS)); }   // (Р5.2) симуляция в Worker: время — туда, кадр — оттуда
+  if(WK.on && !WK.hand && wkMode()){ if(!WK.fresh) wkToPage(); else if(!WK.busy) WK.on = false; }   // (Р5.2) режим без кнопки (разминка при загрузке): Worker ещё не играл — состояние то же, снимок не нужен
+  if(WK.on){ wkFrame(paused || rpHold() ? 0 : Math.min(dt, FRAME_CATCHUP_MS)); }   // (Р5.2) симуляция в Worker: время — туда, кадр — оттуда (повтор клатча ждёт — как ниже)
   else if(!paused && WARM.on){ var wdt = Math.min(0.1, dt/1000); warmTick(wdt); clockAcc(0); }
   else if(!paused){
     // (v397, М146) догонять не больше FRAME_CATCHUP_MS за кадр: после скрытой вкладки или долгого кадра цикл раньше считал все
@@ -288,6 +356,7 @@ function frameBody(ts){
     while(accumulator >= TICK_MS){ stepTick(); clockAcc(accumulator - TICK_MS); }
     mkAfterTicks();
   }
+  if(!WK.on) wkPageFrame(dt);   // (Р5.2) симуляция на странице — назад в Worker, когда режимов нет
   rpRecord();   // (v459) запись для повтора клатча — только читает
   if(!rpFrame(ts) && !tsFrame(ts)){   // идёт повтор клатча или сцена паузы — они рисуют экран сами
     obsFrame(ts);
@@ -306,7 +375,7 @@ function frameBody(ts){
   r.value = Math.round(HL.p*100); show();
   r.addEventListener("input", function(){ HL.p = (+r.value || 0)/100; show(); try{ localStorage.setItem(HL_KEY, JSON.stringify({p: HL.p})); }catch(e){} });
 })();
-document.getElementById("btnFreshMatch").addEventListener("click", function(){ var n = Math.max(1, parseInt(document.getElementById("inpMatchNum").value, 10) || 1); if(WK.on){ wkSend({cmd: "match", n: n}); return; }   /* (Р5.2) режим Worker: новый матч — в Worker (серия, профили — пока на странице) */ var sel = document.getElementById("selSeries"), bo = sel ? +sel.value : 3; if(bo !== SERIES.bo || seriesDone()) SERIES = {bo:bo, maps:{}}; var cw = document.getElementById("chkWarm"); if(cw && !cw.checked) freshMatch(n); else warmStart(n); clockPause(false); var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); } logEvent("Матч №"+n+" с чистого листа (воспроизводимый)", true); });
+document.getElementById("btnFreshMatch").addEventListener("click", function(){ var n = Math.max(1, parseInt(document.getElementById("inpMatchNum").value, 10) || 1); var sel = document.getElementById("selSeries"), bo = sel ? +sel.value : 3; if(bo !== SERIES.bo || seriesDone()) SERIES = {bo:bo, maps:{}}; var cw = document.getElementById("chkWarm"); if(cw && !cw.checked) freshMatch(n); else warmStart(n); clockPause(false); var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); } logEvent("Матч №"+n+" с чистого листа (воспроизводимый)", true); });
 setInterval(function(){ var el = document.getElementById("matchTick"); if(el) el.textContent = "матч "+matchNum+" · тик "+tick; }, 250);
 if(/[?&]worker=1/.test(location.search)) wkStart();   // (Р5.2) режим Worker — по адресу страницы
 else if(/[?&]local=1/.test(location.search)) wkLocal();   // (Р5.4) локальный режим — симуляция в процессе Node

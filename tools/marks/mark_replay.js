@@ -3,6 +3,7 @@
 //   node tools/marks/mark_replay.js make  <sim.html> <матч> <тик «до»> <тиков до отметки> <папка>   — сделать отметку как владелец:
 //        <папка>/pre.json (снимок «до», mkPack) и <папка>/mark.json (тик отметки, отпечаток сборки env.src, хэши состояния в момент отметки)
 //   node tools/marks/mark_replay.js check <sim.html> <папка>  — открыть pre.json, дойти до тика отметки, сравнить; код 0 — бит в бит
+//        (папка — и пакет отметки v2: «до» → тик снимка «момент», сравнение с ним; Р5.7)
 // Кадр страницы остановлен (dv_state.stopFrames): игру ведут только шаги инструмента.
 'use strict';
 const pw = require('playwright'), url = require('url'), fs = require('fs'), path = require('path');
@@ -28,7 +29,15 @@ async function page(b, file) {
       fs.writeFileSync(path.join(dir, 'mark.json'), JSON.stringify({ match: +m, preTick: +t0, tick: st.tick, env: { src }, state: st.st }));
       console.log('отметка: матч ' + m + ', снимок «до» на тике ' + t0 + ', отметка на тике ' + st.tick + ', сборка ' + src);
     } else {
-      const dir = rest[0], mark = JSON.parse(fs.readFileSync(path.join(dir, 'mark.json'), 'utf8')), pre = fs.readFileSync(path.join(dir, 'pre.json'), 'utf8');
+      const dir = rest[0], mark = JSON.parse(fs.readFileSync(path.join(dir, 'mark.json'), 'utf8'));
+      let pre;
+      // (Р5.7, 26.11) пакет отметки v2 (tools/marks/prototype): «до» и «момент» — вложения; цель — состояние снимка «момент» (DV.state)
+      if (mark.snapshots) { const rd = S => { const b = fs.readFileSync(path.join(dir, S.file)); return (S.file.endsWith('.gz') ? require('zlib').gunzipSync(b) : b).toString('utf8'); };
+        if (!mark.snapshots.before || !mark.snapshots.moment) throw new Error('в пакете нужны снимки «до» и «момент»');
+        pre = rd(mark.snapshots.before);
+        const w = JSON.parse(await p.evaluate(s => __ev('mkOpenSnap(' + JSON.stringify(s) + '); JSON.stringify({tick: tick, st: DV.state()})'), rd(mark.snapshots.moment)));
+        Object.assign(mark, { tick: w.tick, state: w.st, env: { src: (mark.identity && mark.identity.buildHash || '').slice(0, 16) } }); }
+      else pre = fs.readFileSync(path.join(dir, 'pre.json'), 'utf8');
       await p.evaluate(s => { __ev('mkOpenSnap(' + JSON.stringify(s) + '); 1'); }, pre);
       const st = JSON.parse(await p.evaluate(T => __ev(`var g = 0; while(tick < ${T} && g++ < 200000) stepTick(); JSON.stringify({tick: tick, st: DV.state()})`), mark.tick));
       const diff = Object.keys(Object.assign({}, st.st, mark.state)).filter(k => st.st[k] !== mark.state[k]);

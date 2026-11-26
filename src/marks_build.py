@@ -92,5 +92,7 @@ def inject(s):
     # неизменяемых и настроек (они загружены с обеих сторон) — то, что меняет симуляция; кадр = снимок только их (src/snapshot.js frameMake)
     try: FJ = json.load(open(os.path.join(os.path.dirname(REGISTRY), 'gen', 'frame.json'), encoding='utf-8')); FR = dict(FJ.get('reads', {}), **FJ.get('readsVia', {}))   # + косвенно через вызовы функций симуляции
     except (OSError, ValueError, KeyError): FR = {}
-    frame = sorted(v for v in FR if v in V and (REG.get('g:' + v) or {}).get('class') not in ('неизменяемое', 'вход'))
+    # (Р5.2, 26.11) и без кэшей: кэш — запомненный ответ функции от неизменяемых данных, страница считает его сама, как в обычном режиме
+    # (WPM — ~14 МБ из ~17 МБ кадра; передача каждый кадр — секунда на кадр)
+    frame = sorted(v for v in FR if v in V and (REG.get('g:' + v) or {}).get('class') not in ('неизменяемое', 'вход', 'кэш'))
     return s.replace(MARK, snap + ('var MK_BUILD_SHA = "%s", MK_DMATH_SHA = "%s";\n' % (build_sha, dmath_sha)) + 'var MK_BUILD = "%s";\nvar MK_KEEP = %s, MK_REF_ROOTS = %s, MK_STATIC_FIELDS = %s, FRAME_VARS = %s;\n' % (build, json.dumps(keep), json.dumps(roots), json.dumps(sf), json.dumps(frame)) + mod)

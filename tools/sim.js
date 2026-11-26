@@ -14,6 +14,27 @@ function run(cmd, args, opt) {
   if (r.error) { console.error(r.error.message); return 1; }
   return r.status == null ? 1 : r.status;
 }
+// (Р5.7, 26.11) отметка v2 — пакет (папка: mark.json + вложения с SHA-256, tools/marks/prototype): целостность — check пакета; снимки «до» /
+// «момент» — файлами для прежних инструментов tools/marks/*; сборка — та, на которой отметка записана (identity.buildHash, первые 16 знаков =
+// отпечаток MK_BUILD; tools/marks/mark_build.py — своя или старая, Р2.1), или --sim=…
+const MARK_V2 = { story: 'mark_story', frames: 'mark_frames', video: 'mark_video', replay: 'mark_replay' };
+function markV2(sub, a) {
+  const P = pos(a), dir = P[0]; if (!dir || !fs.existsSync(path.join(dir, 'mark.json'))) { console.error('mark ' + sub + ' <папка пакета> …: нет mark.json'); return 2; }
+  if (run('node', [path.join(ROOT, 'tools', 'marks', 'prototype', 'cli.cjs'), 'check', dir], { stdio: ['ignore', 'ignore', 'inherit'] })) { console.error('пакет не прошёл проверку целостности (mark check)'); return 1; }
+  const M = JSON.parse(fs.readFileSync(path.join(dir, 'mark.json'), 'utf8')), I = M.identity || {}, tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'mark-v2-')), F = {};
+  ['before', 'moment'].forEach(r => { const S = M.snapshots && M.snapshots[r]; if (!S) return; const b = fs.readFileSync(path.join(dir, S.file));
+    F[r] = path.join(tmp, r + '.json'); fs.writeFileSync(F[r], S.file.endsWith('.gz') ? require('zlib').gunzipSync(b) : b); });
+  let sim = opt(a, 'sim', null);
+  if (!sim) { if (!I.buildHash || !I.map) { console.error('в пакете нет identity.buildHash / map — укажите --sim=…'); return 2; }
+    sim = path.join(tmp, 'sim.html'); if (run('python3', [path.join(ROOT, 'tools', 'marks', 'mark_build.py'), '--src=' + I.buildHash.slice(0, 16), '--map=' + I.map, '--out=' + sim])) return 1; }
+  const rest = a.filter(x => !x.startsWith('--sim=') && x !== dir), tool = path.join(ROOT, 'tools', 'marks', MARK_V2[sub] + '.js');
+  const need = r => { if (!F[r]) { console.error('в пакете нет снимка «' + (r === 'before' ? 'до' : 'момент') + '»'); return false; } return true; };
+  if (sub === 'replay') return run('node', [tool, 'check', sim, dir]);
+  if (!need('before')) return 2;
+  if (sub === 'video') return run('node', [tool, sim, F.before, String(I.tick)].concat(rest));   // <бот> <с, от> <с, до> out.mp4 […]
+  if (!need('moment')) return 2;
+  return run('node', [tool, sim, F.before, F.moment].concat(rest));   // story: [бот] […]; frames: <бот> <папка> […]
+}
 function opt(args, name, def) { const a = args.find(x => x.startsWith('--' + name + '=')); return a ? a.slice(name.length + 3) : def; }
 function pos(args) { return args.filter(x => !x.startsWith('--')); }
 
@@ -128,7 +149,7 @@ const CMDS = {
   check: a => run('node', [path.join(ROOT, 'tools', 'rebuild', 'gen_maps.js'), '--check']) || run('node', [path.join(ROOT, 'tools', 'rebuild', 'doc_links.js')]) || run('node', [path.join(ROOT, 'tools', 'rebuild', 'snap_vars_test.js')]) || run('node', [path.join(ROOT, 'tools', 'rebuild', 'typecheck.js')]) || run(PY, [path.join(ROOT, 'tools', 'map', 'map_check.py'), '--known=rebuild/known_map_gaps.json'].concat(pos(a))),
   scen: a => run('node', [path.join(ROOT, 'tools', 'marks', 'scenarios.js')].concat(a)),
   why: a => run('node', [path.join(ROOT, 'tools', 'marks', 'why.js')].concat(a)),
-  mark: a => run('node', [path.join(ROOT, 'tools', 'marks', 'prototype', 'cli.cjs')].concat(a)),   // (Р5.7) отметки v2: convert / open / check / unpack (прототип Codex)
+  mark: a => MARK_V2[a[0]] ? markV2(a[0], a.slice(1)) : run('node', [path.join(ROOT, 'tools', 'marks', 'prototype', 'cli.cjs')].concat(a)),   // (Р5.7) отметки v2: пакет (прототип Codex) + разбор / видео / повтор
   marks: a => MARKS[a[0]] ? run('node', [path.join(ROOT, 'tools', 'marks', MARKS[a[0]] + '.js')].concat(a.slice(1))) : (console.error('marks: ' + Object.keys(MARKS).join(' | ')), 2),
   measure: a => a[0] === 'check' ? measureCheck(a.slice(1)) : (console.error('measure check [request.json] — проверить задание; запуск — пуш ветки measure/<имя> (CLAUDE.md §8)'), 2),
   context, graph,
@@ -146,7 +167,8 @@ const HELP = `node tools/sim.js <команда> — единая точка в�
   check [карта…]                          проверка устройства (gen_maps --check), типов .ts (typecheck) и данных карт (map_check.py)
   scen [--map=…] [--only=…]               проверки по отметкам (tools/marks/scenarios.js)
   why <отметка> <бот> [тик] [--sim=…]     почему бот так сделал: каналы у хозяев + след решений (tools/marks/why.js, Р3.3)
-  mark <convert|open|check|unpack|help> …   отметки v2 (Р5.7): пакет mark.json + вложения с SHA-256, переходник старых (tools/marks/prototype)
+  mark <import|convert|open|check|unpack|events|help> …   отметки v2 (Р5.7): пакет mark.json + вложения с SHA-256, переходник старых (tools/marks/prototype)
+  mark <story|frames|video|replay> <пакет> [--sim=…] …   разбор / раскадровка / видео / повтор отметки v2 сборкой записи (tools/marks/*)
   marks <open|story|frames|video|scenarios|replay> …   инструменты отметок (tools/marks/*)
   measure check [request.json]            проверить задание прогона на ПК
   env [файл]                              среда: Playwright, Chromium, Node, ОС
