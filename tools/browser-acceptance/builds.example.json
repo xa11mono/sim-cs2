@@ -1,0 +1,6 @@
+{
+  "builds": [
+    { "id": "single-map", "map": "ancient", "entry": "../../dist/ancient.html" },
+    { "id": "single-map", "map": "mirage", "entry": "../../dist/mirage.html" }
+  ]
+}

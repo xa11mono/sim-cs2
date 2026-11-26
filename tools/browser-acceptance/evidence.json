@@ -1,0 +1,359 @@
+{
+  "playwright": "1.62.1",
+  "results": [
+    {
+      "engine": "chromium",
+      "version": "151.0.7922.34",
+      "build": "single-map",
+      "map": "ancient",
+      "checks": {
+        "interface": {
+          "status": "passed"
+        },
+        "hud": {
+          "status": "passed"
+        },
+        "radar2d": {
+          "status": "passed"
+        },
+        "view3d": {
+          "status": "passed"
+        },
+        "sound": {
+          "status": "passed"
+        },
+        "marks": {
+          "status": "fallback",
+          "reason": "Standalone marks use the session-local list"
+        },
+        "markSnapshot": {
+          "status": "passed"
+        },
+        "editors": {
+          "status": "passed"
+        },
+        "sandbox": {
+          "status": "passed"
+        },
+        "replay": {
+          "status": "passed"
+        }
+      },
+      "screenshots": {
+        "hud": {
+          "filename": "chromium-single-map-ancient-hud.png",
+          "sha256": "264c7e46780347181ef68aa84b19b9dba2735886231886d9095ca9887eff29fb"
+        },
+        "radar": {
+          "filename": "chromium-single-map-ancient-radar.png",
+          "sha256": "26afe2866abddd21f5a4a2443a4d16408212d994a8a46abcd571d09980b55345"
+        },
+        "webgl": {
+          "filename": "chromium-single-map-ancient-webgl.png",
+          "sha256": "2e9a88db5b33a2bb8ae5e6795f70c5e3f3dc34be0ab310cffdc34e27fc562746"
+        }
+      },
+      "pageErrors": [],
+      "blockedOrigins": [
+        "https://cdnjs.cloudflare.com"
+      ],
+      "failed": false
+    },
+    {
+      "engine": "chromium",
+      "version": "151.0.7922.34",
+      "build": "single-map",
+      "map": "mirage",
+      "checks": {
+        "interface": {
+          "status": "passed"
+        },
+        "hud": {
+          "status": "passed"
+        },
+        "radar2d": {
+          "status": "passed"
+        },
+        "view3d": {
+          "status": "passed"
+        },
+        "sound": {
+          "status": "passed"
+        },
+        "marks": {
+          "status": "fallback",
+          "reason": "Standalone marks use the session-local list"
+        },
+        "markSnapshot": {
+          "status": "passed"
+        },
+        "editors": {
+          "status": "passed"
+        },
+        "sandbox": {
+          "status": "passed"
+        },
+        "replay": {
+          "status": "passed"
+        }
+      },
+      "screenshots": {
+        "hud": {
+          "filename": "chromium-single-map-mirage-hud.png",
+          "sha256": "c84c0f1adfb77ffe384ee2a84d2c22da96eb30c554c91519f5d14ca060cccf39"
+        },
+        "radar": {
+          "filename": "chromium-single-map-mirage-radar.png",
+          "sha256": "f4d9cc3764e8f8f2ea1a74c60e8a640abeb245689ed5a84529d5985d5c4c715e"
+        },
+        "webgl": {
+          "filename": "chromium-single-map-mirage-webgl.png",
+          "sha256": "380cd844b800484727c5bfe23f1e4a1119f3bd87aa0d503aa3629bf6ebd5e883"
+        }
+      },
+      "pageErrors": [],
+      "blockedOrigins": [
+        "https://cdnjs.cloudflare.com"
+      ],
+      "failed": false
+    },
+    {
+      "engine": "firefox",
+      "version": "153.0",
+      "build": "single-map",
+      "map": "ancient",
+      "checks": {
+        "interface": {
+          "status": "passed"
+        },
+        "hud": {
+          "status": "passed"
+        },
+        "radar2d": {
+          "status": "passed"
+        },
+        "view3d": {
+          "status": "fallback",
+          "reason": "браузер не даёт WebGL2"
+        },
+        "sound": {
+          "status": "failed",
+          "reason": "Error: AudioContext after user gesture: suspended"
+        },
+        "marks": {
+          "status": "fallback",
+          "reason": "Standalone marks use the session-local list"
+        },
+        "markSnapshot": {
+          "status": "passed"
+        },
+        "editors": {
+          "status": "passed"
+        },
+        "sandbox": {
+          "status": "passed"
+        },
+        "replay": {
+          "status": "passed"
+        }
+      },
+      "screenshots": {
+        "hud": {
+          "filename": "firefox-single-map-ancient-hud.png",
+          "sha256": "efa9ebb9d06434b2de447151b48a56265889c571dccafb8cb4571811ccda4f80"
+        },
+        "radar": {
+          "filename": "firefox-single-map-ancient-radar.png",
+          "sha256": "203a1ad14c6c25ebc02a44048678119c2f6e24fd9577407609ed670933f8025e"
+        }
+      },
+      "pageErrors": [],
+      "blockedOrigins": [
+        "https://cdnjs.cloudflare.com"
+      ],
+      "failed": true
+    },
+    {
+      "engine": "firefox",
+      "version": "153.0",
+      "build": "single-map",
+      "map": "mirage",
+      "checks": {
+        "interface": {
+          "status": "passed"
+        },
+        "hud": {
+          "status": "passed"
+        },
+        "radar2d": {
+          "status": "passed"
+        },
+        "view3d": {
+          "status": "fallback",
+          "reason": "браузер не даёт WebGL2"
+        },
+        "sound": {
+          "status": "failed",
+          "reason": "Error: AudioContext after user gesture: suspended"
+        },
+        "marks": {
+          "status": "fallback",
+          "reason": "Standalone marks use the session-local list"
+        },
+        "markSnapshot": {
+          "status": "passed"
+        },
+        "editors": {
+          "status": "passed"
+        },
+        "sandbox": {
+          "status": "passed"
+        },
+        "replay": {
+          "status": "passed"
+        }
+      },
+      "screenshots": {
+        "hud": {
+          "filename": "firefox-single-map-mirage-hud.png",
+          "sha256": "cafa3e8bd5d240a198ddc3c770af72aa0272a4e7163e06ab2d6cbea0d618a595"
+        },
+        "radar": {
+          "filename": "firefox-single-map-mirage-radar.png",
+          "sha256": "0992810d328c607c48029269942738d7d165304312e54a041cb0906dd85b4a6e"
+        }
+      },
+      "pageErrors": [],
+      "blockedOrigins": [
+        "https://cdnjs.cloudflare.com"
+      ],
+      "failed": true
+    },
+    {
+      "engine": "webkit",
+      "version": "26.5",
+      "build": "single-map",
+      "map": "ancient",
+      "checks": {
+        "interface": {
+          "status": "passed"
+        },
+        "hud": {
+          "status": "passed"
+        },
+        "radar2d": {
+          "status": "passed"
+        },
+        "view3d": {
+          "status": "passed"
+        },
+        "sound": {
+          "status": "passed"
+        },
+        "marks": {
+          "status": "fallback",
+          "reason": "Standalone marks use the session-local list"
+        },
+        "markSnapshot": {
+          "status": "passed"
+        },
+        "editors": {
+          "status": "passed"
+        },
+        "sandbox": {
+          "status": "passed"
+        },
+        "replay": {
+          "status": "passed"
+        }
+      },
+      "screenshots": {
+        "hud": {
+          "filename": "webkit-single-map-ancient-hud.png",
+          "sha256": "ecee76205820aae4a16f81b1356e2b04154117abe065d44c1c4d4633365ac9ba"
+        },
+        "radar": {
+          "filename": "webkit-single-map-ancient-radar.png",
+          "sha256": "ae4a8a3cd39cfe7fefe76b6c997284df8d78ba7baa113f5c3aa9c57793d14203"
+        },
+        "webgl": {
+          "filename": "webkit-single-map-ancient-webgl.png",
+          "sha256": "c7f0c99d72e91c5dd8e5ddf7bda7e9179c4451476eff5cf96295e5aef1630309"
+        }
+      },
+      "pageErrors": [],
+      "blockedOrigins": [
+        "https://cdnjs.cloudflare.com"
+      ],
+      "failed": false
+    },
+    {
+      "engine": "webkit",
+      "version": "26.5",
+      "build": "single-map",
+      "map": "mirage",
+      "checks": {
+        "interface": {
+          "status": "passed"
+        },
+        "hud": {
+          "status": "passed"
+        },
+        "radar2d": {
+          "status": "passed"
+        },
+        "view3d": {
+          "status": "passed"
+        },
+        "sound": {
+          "status": "passed"
+        },
+        "marks": {
+          "status": "fallback",
+          "reason": "Standalone marks use the session-local list"
+        },
+        "markSnapshot": {
+          "status": "passed"
+        },
+        "editors": {
+          "status": "passed"
+        },
+        "sandbox": {
+          "status": "passed"
+        },
+        "replay": {
+          "status": "passed"
+        }
+      },
+      "screenshots": {
+        "hud": {
+          "filename": "webkit-single-map-mirage-hud.png",
+          "sha256": "7e3d24ad990a73900bde1c3ccd8b91949a1285e172e7e9158d33894f07c24313"
+        },
+        "radar": {
+          "filename": "webkit-single-map-mirage-radar.png",
+          "sha256": "77bfb5e359660437c9f81965a2cd11f9bbafc0c76fa6949ef1390a16062d4972"
+        },
+        "webgl": {
+          "filename": "webkit-single-map-mirage-webgl.png",
+          "sha256": "f32506cacd9584534656d590c918f4a8811f994082c170466e06e6aff645a865"
+        }
+      },
+      "pageErrors": [],
+      "blockedOrigins": [
+        "https://cdnjs.cloudflare.com"
+      ],
+      "failed": false
+    }
+  ],
+  "repeatedScreenshots": {
+    "engine": "chromium",
+    "version": "151.0.7922.34",
+    "map": "ancient",
+    "identicalBySHA256": [
+      "hud",
+      "radar",
+      "webgl"
+    ]
+  }
+}
