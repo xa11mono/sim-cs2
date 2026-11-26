@@ -100,6 +100,9 @@ function context(args) {
     '# Состояние перестройки (rebuild/JOURNAL.md §2)\n' + sect(J, '## 2. Сейчас', '## 3.'),
     '# Текущий этап (rebuild/MASTER_PLAN.md)\n' + sect(P, '### ' + m + '.', '\n### '),
   ];
+  // (Р4.6) подробные правила — по теме, а не всем (AGENTS.md — компактный старт)
+  const RULES = [[/ошиб|поведен|бот|отмет|эпизод|fix|чин/, 'docs/rules/fixing.md'], [/код|правк|функц|хозя|code|модул|файл/, 'docs/rules/code.md'], [/прогон|провер|отпеч|замер|матч|run|пк|э1/, 'docs/rules/runs.md']];
+  RULES.forEach(([re, f]) => { if (words.some(w => re.test(w))) parts.push('# Подробно: ' + f + '\n' + rd(f)); });
   const rows = [['Решения (docs/architecture/DECISIONS.md)', rd('docs/architecture/DECISIONS.md')], ['Отложенные игровые недостатки (rebuild/BEHAVIOR_BACKLOG.md)', rd('rebuild/BEHAVIOR_BACKLOG.md')]];
   for (const [h, t] of rows) { const r = pick(t); if (r.length) parts.push('# ' + h + ' — по теме\n' + r.join('\n')); }
   const out = parts.join('\n\n'), f = opt(args, 'out', '');

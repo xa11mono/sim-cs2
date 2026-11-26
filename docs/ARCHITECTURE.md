@@ -286,7 +286,7 @@ CT идёт через зону с ролью `CTspawn`.
 - Отметка: снимок открывается `node tools/marks/mark_open.js sim.html <снимок.json> "<код>"`.
 - Правка не должна менять игру: `bash tools/measure/fingerprint.sh sim.html <папка>`
   до и после, затем `diff -r`.
-- Замер против про — `tools/measure/measure.py`, сколько матчей — `docs/tasks/work_rules.md` («Прогоны»); общая проверка —
+- Замер против про — `tools/measure/measure.py`, сколько матчей — `docs/rules/runs.md` («Прогоны»); общая проверка —
   `tools/measure/check.py` (раздел ниже).
 
 

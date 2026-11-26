@@ -22,7 +22,7 @@ sim-cs2/
 ├── docs/
 │   ├── ARCHITECTURE.md   устройство (без истории)      PRINCIPLES.md, PRO_PLAY.md, PRO_DECISIONS.md, DECISIONS.md,
 │   │                     BRAIN.md, ECONOMY.md, DESIGN_SOURCES.md
-│   ├── tasks/            work_rules.md, 02-mark-moment.md, ответы и вопросы владельца, действующие задания (18)
+│   ├── tasks/            02-mark-moment.md (правила — `docs/rules/`), ответы и вопросы владельца, действующие задания (18)
 │   ├── reports/          отчёты, на которые ссылаются код и доки (≈ 70 файлов)
 │   ├── diagrams/         3 схемы
 │   └── archive/          история (не открывать без нужды)
