@@ -1,0 +1,155 @@
+playwright 1.63.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\v632a_anc\env.json
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\v632a_mir\env.json
+> git fetch --quiet origin 1e749ce723696483a92b797b82a27406e8b35c27
+> git fetch --quiet origin 1e749ce723696483a92b797b82a27406e8b35c27
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_e1ptq_bb FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_e1ptq_bb\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v632a_anc.html
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+модули: task.js, intel.js, events.js, turn.ts, smoke.js, plan.js, exec-sync.js, levels.js, throw.js, flight.js, lineups.js, damage.js, self.js, decide.js, fight.js, assist.js, shoot.js, fight-state.js, engagements.js, move.js, tick.js — ядро отдаёт 286 имён, берёт 664
+пометок 1734 | полей facing:7 walking:4 curSpeed:5 post:3 _task:4 _reposUntil:1 _waitPopUntil:1 _avoidPeekUntil:1 _tradeUntil:2 _tradeLock:1 state:2 nadeTask:10 holding:4 crouching:1 path:7 phase:1 lookReason:2 _lookLvl:1 | функций 1333
+общих переменных 975 из чужих файлов пишут 85
+реестр состояния: строк 1467, не размечено 0
+карточки механик: файлов 93, расхождений 0
+чтения истины врага (решения): мест 52, новых 0; известных нарушений «истина» 13 (BEHAVIOR_BACKLOG, после Р8)
+> git fetch --quiet origin 1e749ce723696483a92b797b82a27406e8b35c27
+> git fetch --quiet origin 1e749ce723696483a92b797b82a27406e8b35c27
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_zluek6gv FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_zluek6gv\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v632a_mir.html
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+модули: task.js, intel.js, events.js, turn.ts, smoke.js, plan.js, exec-sync.js, levels.js, throw.js, flight.js, lineups.js, damage.js, self.js, decide.js, fight.js, assist.js, shoot.js, fight-state.js, engagements.js, move.js, tick.js — ядро отдаёт 286 имён, берёт 664
+пометок 1734 | полей facing:7 walking:4 curSpeed:5 post:3 _task:4 _reposUntil:1 _waitPopUntil:1 _avoidPeekUntil:1 _tradeUntil:2 _tradeLock:1 state:2 nadeTask:10 holding:4 crouching:1 path:7 phase:1 lookReason:2 _lookLvl:1 | функций 1333
+общих переменных 975 из чужих файлов пишут 85
+реестр состояния: строк 1467, не размечено 0
+карточки механик: файлов 93, расхождений 0
+чтения истины врага (решения): мест 52, новых 0; известных нарушений «истина» 13 (BEHAVIOR_BACKLOG, после Р8)
+guard: память 15977 МБ, свободно 8904; запас 3195, критично 1536; на матч ≤ 6144 МБ, ≤ 90 мин; par ≤ 8; объект задания: да; продолжение: да
+start fp v632a_anc.html m3 (идёт 1, свободно 8902 МБ)
+start fp v632a_anc.html m7 (идёт 2, свободно 8902 МБ)
+start fp v632a_anc.html m11 (идёт 3, свободно 8898 МБ)
+start fp v632a_anc.html m13 (идёт 4, свободно 8890 МБ)
+start fp v632a_anc.html m17 (идёт 5, свободно 8879 МБ)
+start fp v632a_anc.html m19 (идёт 6, свободно 8865 МБ)
+start fp v632a_anc.html m23 (идёт 7, свободно 8852 МБ)
+start fp v632a_anc.html m29 (идёт 8, свободно 8835 МБ)
+mem: свободно 5260 / 15977 МБ; par ≤ 8; очередь 8; идёт 8: fp v632a_anc.html m3 631 МБ / 5 проц., fp v632a_anc.html m7 628 МБ / 5 проц., fp v632a_anc.html m11 622 МБ / 5 проц., fp v632a_anc.html m13 627 МБ / 5 проц., fp v632a_anc.html m17 683 МБ / 5 проц., fp v632a_anc.html m19 679 МБ / 5 проц., fp v632a_anc.html m23 645 МБ / 5 проц., fp v632a_anc.html m29 683 МБ / 5 проц.
+mem: свободно 2361 / 15977 МБ; par ≤ 8; очередь 8; идёт 8: fp v632a_anc.html m3 973 МБ / 5 проц., fp v632a_anc.html m7 990 МБ / 5 проц., fp v632a_anc.html m11 1005 МБ / 5 проц., fp v632a_anc.html m13 1009 МБ / 5 проц., fp v632a_anc.html m17 1058 МБ / 5 проц., fp v632a_anc.html m19 1106 МБ / 5 проц., fp v632a_anc.html m23 1076 МБ / 5 проц., fp v632a_anc.html m29 1052 МБ / 5 проц.
+mem: свободно 1397 / 15977 МБ; par ≤ 8; очередь 8; идёт 8: fp v632a_anc.html m3 1087 МБ / 5 проц., fp v632a_anc.html m7 1128 МБ / 5 проц., fp v632a_anc.html m11 1187 МБ / 5 проц., fp v632a_anc.html m13 1213 МБ / 5 проц., fp v632a_anc.html m17 1119 МБ / 5 проц., fp v632a_anc.html m19 1153 МБ / 5 проц., fp v632a_anc.html m23 1268 МБ / 5 проц., fp v632a_anc.html m29 1101 МБ / 5 проц.
+guard: мало памяти — параллельность 7
+end fp v632a_anc.html m29: код 1, 71 с, пик 1101 МБ, процессов до 5, СНЯТ: lowmem (свободно 1344 МБ)
+mem: свободно 1649 / 15977 МБ; par ≤ 7; очередь 8; идёт 7: fp v632a_anc.html m3 1247 МБ / 5 проц., fp v632a_anc.html m7 1319 МБ / 5 проц., fp v632a_anc.html m11 1368 МБ / 5 проц., fp v632a_anc.html m13 1396 МБ / 5 проц., fp v632a_anc.html m17 1275 МБ / 5 проц., fp v632a_anc.html m19 1351 МБ / 5 проц., fp v632a_anc.html m23 1304 МБ / 5 проц.
+guard: мало памяти — параллельность 6
+end fp v632a_anc.html m23: код 1, 108 с, пик 1406 МБ, процессов до 5, СНЯТ: lowmem (свободно 1462 МБ)
+mem: свободно 1900 / 15977 МБ; par ≤ 6; очередь 8; идёт 6: fp v632a_anc.html m3 1425 МБ / 5 проц., fp v632a_anc.html m7 1388 МБ / 5 проц., fp v632a_anc.html m11 1504 МБ / 5 проц., fp v632a_anc.html m13 1578 МБ / 5 проц., fp v632a_anc.html m17 1480 МБ / 5 проц., fp v632a_anc.html m19 1422 МБ / 5 проц.
+guard: мало памяти — параллельность 5
+end fp v632a_anc.html m19: код 1, 157 с, пик 1557 МБ, процессов до 5, СНЯТ: lowmem (свободно 1350 МБ)
+mem: свободно 2591 / 15977 МБ; par ≤ 5; очередь 8; идёт 5: fp v632a_anc.html m3 1499 МБ / 5 проц., fp v632a_anc.html m7 1487 МБ / 5 проц., fp v632a_anc.html m11 1686 МБ / 5 проц., fp v632a_anc.html m13 1630 МБ / 5 проц., fp v632a_anc.html m17 1531 МБ / 5 проц.
+mem: свободно 1816 / 15977 МБ; par ≤ 5; очередь 8; идёт 5: fp v632a_anc.html m3 1706 МБ / 5 проц., fp v632a_anc.html m7 1637 МБ / 5 проц., fp v632a_anc.html m11 1737 МБ / 5 проц., fp v632a_anc.html m13 1739 МБ / 5 проц., fp v632a_anc.html m17 1777 МБ / 5 проц.
+guard: мало памяти — параллельность 4
+end fp v632a_anc.html m17: код 1, 220 с, пик 1854 МБ, процессов до 5, СНЯТ: lowmem (свободно 1478 МБ)
+mem: свободно 2855 / 15977 МБ; par ≤ 4; очередь 8; идёт 4: fp v632a_anc.html m3 1845 МБ / 5 проц., fp v632a_anc.html m7 1797 МБ / 5 проц., fp v632a_anc.html m11 1820 МБ / 5 проц., fp v632a_anc.html m13 1847 МБ / 5 проц.
+mem: свободно 2684 / 15977 МБ; par ≤ 4; очередь 8; идёт 4: fp v632a_anc.html m3 1828 МБ / 5 проц., fp v632a_anc.html m7 1812 МБ / 5 проц., fp v632a_anc.html m11 1904 МБ / 5 проц., fp v632a_anc.html m13 1887 МБ / 5 проц.
+end fp v632a_anc.html m11: код 0, 268 с, пик 1932 МБ, процессов до 5
+mem: свободно 4045 / 15977 МБ; par ≤ 4; очередь 8; идёт 3: fp v632a_anc.html m3 1999 МБ / 5 проц., fp v632a_anc.html m7 1961 МБ / 5 проц., fp v632a_anc.html m13 1930 МБ / 5 проц.
+mem: свободно 3952 / 15977 МБ; par ≤ 4; очередь 8; идёт 3: fp v632a_anc.html m3 1966 МБ / 5 проц., fp v632a_anc.html m7 2000 МБ / 5 проц., fp v632a_anc.html m13 2013 МБ / 5 проц.
+mem: свободно 3720 / 15977 МБ; par ≤ 4; очередь 8; идёт 3: fp v632a_anc.html m3 2042 МБ / 5 проц., fp v632a_anc.html m7 2101 МБ / 5 проц., fp v632a_anc.html m13 2045 МБ / 5 проц.
+mem: свободно 3528 / 15977 МБ; par ≤ 4; очередь 8; идёт 3: fp v632a_anc.html m3 2107 МБ / 5 проц., fp v632a_anc.html m7 2101 МБ / 5 проц., fp v632a_anc.html m13 2173 МБ / 5 проц.
+end fp v632a_anc.html m3: код 0, 397 с, пик 2120 МБ, процессов до 5
+start fp v632a_mir.html m3 (идёт 3, свободно 5422 МБ)
+start fp v632a_mir.html m7 (идёт 4, свободно 5422 МБ)
+end fp v632a_anc.html m7: код 0, 404 с, пик 2145 МБ, процессов до 5
+start fp v632a_mir.html m11 (идёт 4, свободно 7151 МБ)
+end fp v632a_anc.html m13: код 0, 406 с, пик 2180 МБ, процессов до 5
+start fp v632a_mir.html m13 (идёт 4, свободно 7694 МБ)
+mem: свободно 7054 / 15977 МБ; par ≤ 4; очередь 4; идёт 4: fp v632a_mir.html m3 820 МБ / 5 проц., fp v632a_mir.html m7 814 МБ / 5 проц., fp v632a_mir.html m11 None МБ / 0 проц., fp v632a_mir.html m13 None МБ / 0 проц.
+mem: свободно 6384 / 15977 МБ; par ≤ 4; очередь 4; идёт 4: fp v632a_mir.html m3 1066 МБ / 5 проц., fp v632a_mir.html m7 1083 МБ / 5 проц., fp v632a_mir.html m11 1089 МБ / 5 проц., fp v632a_mir.html m13 1066 МБ / 5 проц.
+mem: свободно 6207 / 15977 МБ; par ≤ 4; очередь 4; идёт 4: fp v632a_mir.html m3 1118 МБ / 5 проц., fp v632a_mir.html m7 1129 МБ / 5 проц., fp v632a_mir.html m11 1099 МБ / 5 проц., fp v632a_mir.html m13 1118 МБ / 5 проц.
+mem: свободно 5946 / 15977 МБ; par ≤ 4; очередь 4; идёт 4: fp v632a_mir.html m3 1179 МБ / 5 проц., fp v632a_mir.html m7 1152 МБ / 5 проц., fp v632a_mir.html m11 1206 МБ / 5 проц., fp v632a_mir.html m13 1160 МБ / 5 проц.
+mem: свободно 5865 / 15977 МБ; par ≤ 4; очередь 4; идёт 4: fp v632a_mir.html m3 1164 МБ / 5 проц., fp v632a_mir.html m7 1178 МБ / 5 проц., fp v632a_mir.html m11 1217 МБ / 5 проц., fp v632a_mir.html m13 1172 МБ / 5 проц.
+mem: свободно 5692 / 15977 МБ; par ≤ 4; очередь 4; идёт 4: fp v632a_mir.html m3 1259 МБ / 5 проц., fp v632a_mir.html m7 1208 МБ / 5 проц., fp v632a_mir.html m11 1275 МБ / 5 проц., fp v632a_mir.html m13 1188 МБ / 5 проц.
+mem: свободно 5722 / 15977 МБ; par ≤ 4; очередь 4; идёт 4: fp v632a_mir.html m3 1258 МБ / 5 проц., fp v632a_mir.html m7 1205 МБ / 5 проц., fp v632a_mir.html m11 1276 МБ / 5 проц., fp v632a_mir.html m13 1198 МБ / 5 проц.
+mem: свободно 5688 / 15977 МБ; par ≤ 4; очередь 4; идёт 4: fp v632a_mir.html m3 1264 МБ / 5 проц., fp v632a_mir.html m7 1248 МБ / 5 проц., fp v632a_mir.html m11 1262 МБ / 5 проц., fp v632a_mir.html m13 1206 МБ / 5 проц.
+mem: свободно 5680 / 15977 МБ; par ≤ 4; очередь 4; идёт 4: fp v632a_mir.html m3 1236 МБ / 5 проц., fp v632a_mir.html m7 1225 МБ / 5 проц., fp v632a_mir.html m11 1250 МБ / 5 проц., fp v632a_mir.html m13 1249 МБ / 5 проц.
+mem: свободно 5688 / 15977 МБ; par ≤ 4; очередь 4; идёт 4: fp v632a_mir.html m3 1239 МБ / 5 проц., fp v632a_mir.html m7 1242 МБ / 5 проц., fp v632a_mir.html m11 1235 МБ / 5 проц., fp v632a_mir.html m13 1256 МБ / 5 проц.
+mem: свободно 5655 / 15977 МБ; par ≤ 4; очередь 4; идёт 4: fp v632a_mir.html m3 1267 МБ / 5 проц., fp v632a_mir.html m7 1307 МБ / 5 проц., fp v632a_mir.html m11 1257 МБ / 5 проц., fp v632a_mir.html m13 1237 МБ / 5 проц.
+mem: свободно 5569 / 15977 МБ; par ≤ 4; очередь 4; идёт 4: fp v632a_mir.html m3 1320 МБ / 5 проц., fp v632a_mir.html m7 1312 МБ / 5 проц., fp v632a_mir.html m11 1320 МБ / 5 проц., fp v632a_mir.html m13 1243 МБ / 5 проц.
+end fp v632a_mir.html m13: код 0, 365 с, пик 1318 МБ, процессов до 5
+start fp v632a_mir.html m17 (идёт 4, свободно 6473 МБ)
+mem: свободно 5895 / 15977 МБ; par ≤ 4; очередь 3; идёт 4: fp v632a_mir.html m3 1275 МБ / 5 проц., fp v632a_mir.html m7 1326 МБ / 5 проц., fp v632a_mir.html m11 1292 МБ / 5 проц., fp v632a_mir.html m17 927 МБ / 5 проц.
+end fp v632a_mir.html m11: код 0, 401 с, пик 1346 МБ, процессов до 5
+start fp v632a_mir.html m19 (идёт 4, свободно 6766 МБ)
+end fp v632a_mir.html m3: код 0, 418 с, пик 1322 МБ, процессов до 5
+start fp v632a_mir.html m23 (идёт 4, свободно 6968 МБ)
+mem: свободно 6580 / 15977 МБ; par ≤ 4; очередь 1; идёт 4: fp v632a_mir.html m7 1273 МБ / 5 проц., fp v632a_mir.html m17 1060 МБ / 5 проц., fp v632a_mir.html m19 831 МБ / 5 проц., fp v632a_mir.html m23 None МБ / 0 проц.
+end fp v632a_mir.html m7: код 0, 452 с, пик 1374 МБ, процессов до 5
+mem: свободно 7064 / 15977 МБ; par ≤ 4; очередь 1; идёт 3: fp v632a_mir.html m17 1150 МБ / 5 проц., fp v632a_mir.html m19 1070 МБ / 5 проц., fp v632a_mir.html m23 1043 МБ / 5 проц.
+start fp v632a_mir.html m29 (идёт 4, свободно 7065 МБ)
+mem: свободно 6292 / 15977 МБ; par ≤ 4; очередь 0; идёт 4: fp v632a_mir.html m17 1182 МБ / 5 проц., fp v632a_mir.html m19 1123 МБ / 5 проц., fp v632a_mir.html m23 1117 МБ / 5 проц., fp v632a_mir.html m29 1033 МБ / 5 проц.
+mem: свободно 6023 / 15977 МБ; par ≤ 4; очередь 0; идёт 4: fp v632a_mir.html m17 1215 МБ / 5 проц., fp v632a_mir.html m19 1158 МБ / 5 проц., fp v632a_mir.html m23 1169 МБ / 5 проц., fp v632a_mir.html m29 1153 МБ / 5 проц.
+mem: свободно 5896 / 15977 МБ; par ≤ 4; очередь 0; идёт 4: fp v632a_mir.html m17 1204 МБ / 5 проц., fp v632a_mir.html m19 1159 МБ / 5 проц., fp v632a_mir.html m23 1204 МБ / 5 проц., fp v632a_mir.html m29 1179 МБ / 5 проц.
+mem: свободно 5820 / 15977 МБ; par ≤ 4; очередь 0; идёт 4: fp v632a_mir.html m17 1231 МБ / 5 проц., fp v632a_mir.html m19 1203 МБ / 5 проц., fp v632a_mir.html m23 1222 МБ / 5 проц., fp v632a_mir.html m29 1265 МБ / 5 проц.
+mem: свободно 5723 / 15977 МБ; par ≤ 4; очередь 0; идёт 4: fp v632a_mir.html m17 1238 МБ / 5 проц., fp v632a_mir.html m19 1244 МБ / 5 проц., fp v632a_mir.html m23 1218 МБ / 5 проц., fp v632a_mir.html m29 1236 МБ / 5 проц.
+mem: свободно 5628 / 15977 МБ; par ≤ 4; очередь 0; идёт 4: fp v632a_mir.html m17 1236 МБ / 5 проц., fp v632a_mir.html m19 1254 МБ / 5 проц., fp v632a_mir.html m23 1247 МБ / 5 проц., fp v632a_mir.html m29 1277 МБ / 5 проц.
+mem: свободно 5710 / 15977 МБ; par ≤ 4; очередь 0; идёт 4: fp v632a_mir.html m17 1280 МБ / 5 проц., fp v632a_mir.html m19 1208 МБ / 5 проц., fp v632a_mir.html m23 1276 МБ / 5 проц., fp v632a_mir.html m29 1291 МБ / 5 проц.
+mem: свободно 5647 / 15977 МБ; par ≤ 4; очередь 0; идёт 4: fp v632a_mir.html m17 1266 МБ / 5 проц., fp v632a_mir.html m19 1263 МБ / 5 проц., fp v632a_mir.html m23 1245 МБ / 5 проц., fp v632a_mir.html m29 1250 МБ / 5 проц.
+end fp v632a_mir.html m17: код 0, 337 с, пик 1286 МБ, процессов до 5
+mem: свободно 6469 / 15977 МБ; par ≤ 4; очередь 0; идёт 3: fp v632a_mir.html m19 1285 МБ / 5 проц., fp v632a_mir.html m23 1304 МБ / 5 проц., fp v632a_mir.html m29 1288 МБ / 5 проц.
+end fp v632a_mir.html m23: код 0, 338 с, пик 1338 МБ, процессов до 5
+mem: свободно 7397 / 15977 МБ; par ≤ 4; очередь 0; идёт 2: fp v632a_mir.html m19 1244 МБ / 5 проц., fp v632a_mir.html m29 1264 МБ / 5 проц.
+mem: свободно 7403 / 15977 МБ; par ≤ 4; очередь 0; идёт 2: fp v632a_mir.html m19 1310 МБ / 5 проц., fp v632a_mir.html m29 1310 МБ / 5 проц.
+mem: свободно 7418 / 15977 МБ; par ≤ 4; очередь 0; идёт 2: fp v632a_mir.html m19 1284 МБ / 5 проц., fp v632a_mir.html m29 1274 МБ / 5 проц.
+end fp v632a_mir.html m19: код 0, 425 с, пик 1310 МБ, процессов до 5
+mem: свободно 8299 / 15977 МБ; par ≤ 4; очередь 0; идёт 1: fp v632a_mir.html m29 1309 МБ / 5 проц.
+mem: свободно 8294 / 15977 МБ; par ≤ 4; очередь 0; идёт 1: fp v632a_mir.html m29 1287 МБ / 5 проц.
+mem: свободно 8375 / 15977 МБ; par ≤ 4; очередь 0; идёт 1: fp v632a_mir.html m29 1314 МБ / 5 проц.
+end fp v632a_mir.html m29: код 0, 474 с, пик 1364 МБ, процессов до 5
+guard: переигровка снятых по памяти: 4 (по одному)
+start fp v632a_anc.html m29 (идёт 1, свободно 9422 МБ)
+mem: свободно 8516 / 15977 МБ; par ≤ 1; очередь 3; идёт 1: fp v632a_anc.html m29 918 МБ / 5 проц.
+mem: свободно 8319 / 15977 МБ; par ≤ 1; очередь 3; идёт 1: fp v632a_anc.html m29 1047 МБ / 5 проц.
+mem: свободно 8147 / 15977 МБ; par ≤ 1; очередь 3; идёт 1: fp v632a_anc.html m29 1317 МБ / 5 проц.
+mem: свободно 8027 / 15977 МБ; par ≤ 1; очередь 3; идёт 1: fp v632a_anc.html m29 1456 МБ / 5 проц.
+mem: свободно 7837 / 15977 МБ; par ≤ 1; очередь 3; идёт 1: fp v632a_anc.html m29 1572 МБ / 5 проц.
+mem: свободно 7713 / 15977 МБ; par ≤ 1; очередь 3; идёт 1: fp v632a_anc.html m29 1786 МБ / 5 проц.
+mem: свободно 7595 / 15977 МБ; par ≤ 1; очередь 3; идёт 1: fp v632a_anc.html m29 1870 МБ / 5 проц.
+mem: свободно 7425 / 15977 МБ; par ≤ 1; очередь 3; идёт 1: fp v632a_anc.html m29 1888 МБ / 5 проц.
+mem: свободно 7253 / 15977 МБ; par ≤ 1; очередь 3; идёт 1: fp v632a_anc.html m29 2034 МБ / 5 проц.
+mem: свободно 7351 / 15977 МБ; par ≤ 1; очередь 3; идёт 1: fp v632a_anc.html m29 2030 МБ / 5 проц.
+mem: свободно 7315 / 15977 МБ; par ≤ 1; очередь 3; идёт 1: fp v632a_anc.html m29 2049 МБ / 5 проц.
+end fp v632a_anc.html m29: код 0, 357 с, пик 2147 МБ, процессов до 5
+start fp v632a_anc.html m23 (идёт 1, свободно 9300 МБ)
+mem: свободно 8531 / 15977 МБ; par ≤ 1; очередь 2; идёт 1: fp v632a_anc.html m23 639 МБ / 5 проц.
+mem: свободно 8226 / 15977 МБ; par ≤ 1; очередь 2; идёт 1: fp v632a_anc.html m23 1098 МБ / 5 проц.
+mem: свободно 8012 / 15977 МБ; par ≤ 1; очередь 2; идёт 1: fp v632a_anc.html m23 1320 МБ / 5 проц.
+mem: свободно 7924 / 15977 МБ; par ≤ 1; очередь 2; идёт 1: fp v632a_anc.html m23 1501 МБ / 5 проц.
+mem: свободно 7655 / 15977 МБ; par ≤ 1; очередь 2; идёт 1: fp v632a_anc.html m23 1587 МБ / 5 проц.
+mem: свободно 7649 / 15977 МБ; par ≤ 1; очередь 2; идёт 1: fp v632a_anc.html m23 1766 МБ / 5 проц.
+mem: свободно 7484 / 15977 МБ; par ≤ 1; очередь 2; идёт 1: fp v632a_anc.html m23 1916 МБ / 5 проц.
+end fp v632a_anc.html m23: код 0, 229 с, пик 1973 МБ, процессов до 5
+start fp v632a_anc.html m19 (идёт 1, свободно 9282 МБ)
+mem: свободно 8776 / 15977 МБ; par ≤ 1; очередь 1; идёт 1: fp v632a_anc.html m19 631 МБ / 5 проц.
+mem: свободно 8455 / 15977 МБ; par ≤ 1; очередь 1; идёт 1: fp v632a_anc.html m19 1043 МБ / 5 проц.
+mem: свободно 8150 / 15977 МБ; par ≤ 1; очередь 1; идёт 1: fp v632a_anc.html m19 1294 МБ / 5 проц.
+mem: свободно 8019 / 15977 МБ; par ≤ 1; очередь 1; идёт 1: fp v632a_anc.html m19 1340 МБ / 5 проц.
+mem: свободно 7817 / 15977 МБ; par ≤ 1; очередь 1; идёт 1: fp v632a_anc.html m19 1575 МБ / 5 проц.
+mem: свободно 7731 / 15977 МБ; par ≤ 1; очередь 1; идёт 1: fp v632a_anc.html m19 1645 МБ / 5 проц.
+mem: свободно 7754 / 15977 МБ; par ≤ 1; очередь 1; идёт 1: fp v632a_anc.html m19 1724 МБ / 5 проц.
+mem: свободно 7617 / 15977 МБ; par ≤ 1; очередь 1; идёт 1: fp v632a_anc.html m19 1865 МБ / 5 проц.
+mem: свободно 7574 / 15977 МБ; par ≤ 1; очередь 1; идёт 1: fp v632a_anc.html m19 1887 МБ / 5 проц.
+mem: свободно 7432 / 15977 МБ; par ≤ 1; очередь 1; идёт 1: fp v632a_anc.html m19 2029 МБ / 5 проц.
+mem: свободно 7316 / 15977 МБ; par ≤ 1; очередь 1; идёт 1: fp v632a_anc.html m19 0 МБ / 0 проц.
+end fp v632a_anc.html m19: код 0, 316 с, пик 2029 МБ, процессов до 5
+start fp v632a_anc.html m17 (идёт 1, свободно 9259 МБ)
+mem: свободно 8430 / 15977 МБ; par ≤ 1; очередь 0; идёт 1: fp v632a_anc.html m17 1009 МБ / 5 проц.
+mem: свободно 8173 / 15977 МБ; par ≤ 1; очередь 0; идёт 1: fp v632a_anc.html m17 1165 МБ / 5 проц.
+mem: свободно 8184 / 15977 МБ; par ≤ 1; очередь 0; идёт 1: fp v632a_anc.html m17 1291 МБ / 5 проц.
+mem: свободно 7983 / 15977 МБ; par ≤ 1; очередь 0; идёт 1: fp v632a_anc.html m17 1472 МБ / 5 проц.
+mem: свободно 7846 / 15977 МБ; par ≤ 1; очередь 0; идёт 1: fp v632a_anc.html m17 1726 МБ / 5 проц.
+mem: свободно 7603 / 15977 МБ; par ≤ 1; очередь 0; идёт 1: fp v632a_anc.html m17 1802 МБ / 5 проц.
+mem: свободно 7526 / 15977 МБ; par ≤ 1; очередь 0; идёт 1: fp v632a_anc.html m17 1881 МБ / 5 проц.
+mem: свободно 7577 / 15977 МБ; par ≤ 1; очередь 0; идёт 1: fp v632a_anc.html m17 1929 МБ / 5 проц.
+mem: свободно 7478 / 15977 МБ; par ≤ 1; очередь 0; идёт 1: fp v632a_anc.html m17 2099 МБ / 5 проц.
+end fp v632a_anc.html m17: код 0, 287 с, пик 2099 МБ, процессов до 5
+all done
