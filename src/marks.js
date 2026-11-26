@@ -139,6 +139,14 @@ function mkSnapshot(){
     }
   }
 }
+// (вопрос 13, владелец 26.11, вариант а) снимок формата 1 мог сохранить у CT проверку инфо прежнего вида (до 18.11, f7995ee): одна проверка
+// {round, n, by, pt, look, x, y, until, at}; с 18.11 ctInfoCheck ждёт {round, n, P: {по игроку}}. Переходник берёт только то, что есть в
+// обоих видах (round, n), по игрокам — пусто, как в начале раунда: отсутствующее не придумывается. Это АДАПТИРОВАННОЕ открытие старой
+// ситуации текущим кодом, а не воспроизведение старой сборкой (то — mark_replay.js со сборкой той версии)
+MK_SNAP_UP[1] = function(c){
+  var ct = c.teamTac && c.teamTac.CT, I = ct && ct._info;
+  if(I && typeof I === "object" && !I.P){ ct._info = {round: I.round, n: I.n || 0, P: {}}; (c.__adapted = c.__adapted || []).push("teamTac.CT._info: вид до 18.11 → {round, n, P: {}}"); }
+};
 function mkRestore(data){ var c = structuredClone(data); for(var f = c.__fmt || 1; f < MK_SNAP_FMT; f++) if(MK_SNAP_UP[f]) MK_SNAP_UP[f](c);
   var Lp = NAV_UNLINKED.slice();
   var L = mkSnapList(); L.forEach(function(e){ if(e[0] in c) e[2](c[e[0]]); });
