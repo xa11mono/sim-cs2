@@ -13,7 +13,7 @@ if (!corePath || !packPath || !evidencePath) {
 }
 const core = readFileSync(corePath, 'utf8');
 const pack = openMapPack(readFileSync(packPath));
-const matchMap = /\bvar MAP = \{[\s\S]*?\};\r?\n/;
+const matchMap = /\bvar MAP = (?:\(globalThis\.__MAP_SHA = "[0-9a-f]+", \{[\s\S]*?\}\)|\{[\s\S]*?\});\r?\n/;   // (26.11) и с хэшем набора карты (src/mapset.py)
 assert.match(core, matchMap, 'Expected a fresh tools/node/core_build.py build');
 const packedCore = enableBinaryGeometry(core.replace(matchMap, 'var MAP = __packedMap;\n'));
 let fingerprint = readFileSync(new URL('../measure/fingerprint.js', import.meta.url), 'utf8');

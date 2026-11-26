@@ -90,4 +90,6 @@ def inject_map(html, name, need=('@@MAP@@', '@@MAP_NAME@@')):
     html = html.replace('@@MAP_NAME@@', meta['name'])
     html = html.replace('@@MAP_ZONE_HINT@@', ui.get('zoneNameHint', ''))
     html = html.replace('@@MAP_ZONE_LAYER_HINT@@', ui.get('zoneLayerHint', ''))
-    return html.replace('@@MAP@@', js, 1)
+    # (Р5.7, 26.11) SHA-256 набора карты (как он вшит в страницу) — для identity отметки v2: глобальное свойство, не переменная игры
+    import hashlib
+    return html.replace('@@MAP@@', '(globalThis.__MAP_SHA = "%s", %s)' % (hashlib.sha256(js.encode('utf-8')).hexdigest(), js), 1)

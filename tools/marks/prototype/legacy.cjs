@@ -43,6 +43,8 @@ async function convert(input, out, options = {}) {
       map: doc.map, seed: doc.seed, match: doc.match, round: doc.round, tick: doc.tick, gameVersion: doc.env?.build,
       legacySourceHash: doc.env?.src
     });
+    // (Р5.7, 26.11) выгрузка из страницы (mark-export) несёт и хэши сборки, карты, dmath
+    if (obj(doc.identity)) mark.identity = { ...mark.identity, ...present({ buildHash: doc.identity.buildHash, mapHash: doc.identity.mapHash, dmath: doc.identity.dmath }) };
     if (kind === 'scenario') {
       // The registry stores this as one human-authored string. Keep it verbatim.
       mark.source.reference = doc.mark;

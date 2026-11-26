@@ -78,7 +78,9 @@ def inject(s):
     # (Р2.1, 25.11) отпечаток исходника игры (склейка + модули; .ts — без типов) — отметка записывает его (mkEnv), инструмент
     # tools/marks/mark_build.js по нему находит коммит и собирает ту самую сборку: старая отметка открывается своей сборкой
     import hashlib
-    build = hashlib.sha256((s + module_source()).encode('utf-8')).hexdigest()[:16]
+    build_sha = hashlib.sha256((s + module_source()).encode('utf-8')).hexdigest(); build = build_sha[:16]
+    # (Р5.7, 26.11) для identity отметки v2: полный SHA-256 исходника игры и SHA-256 исходника dmath (одинаковая математика — та же версия)
+    dmath_sha = hashlib.sha256(open(os.path.join(HERE, '..', 'engine', 'core', 'dmath.ts'), 'rb').read()).hexdigest()
     # (Т-2) память между матчами — по классам реестра состояния (одно место): чистый старт матча (marks.js mkMatchClean) её не трогает
     REG = json.load(open(REGISTRY, encoding='utf-8'))
     keep = sorted(k[2:] for k, o in REG.items() if k.startswith('g:') and o.get('class') in ('постоянная память', 'серия'))
@@ -91,4 +93,4 @@ def inject(s):
     try: FJ = json.load(open(os.path.join(os.path.dirname(REGISTRY), 'gen', 'frame.json'), encoding='utf-8')); FR = dict(FJ.get('reads', {}), **FJ.get('readsVia', {}))   # + косвенно через вызовы функций симуляции
     except (OSError, ValueError, KeyError): FR = {}
     frame = sorted(v for v in FR if v in V and (REG.get('g:' + v) or {}).get('class') not in ('неизменяемое', 'вход'))
-    return s.replace(MARK, snap + 'var MK_BUILD = "%s";\nvar MK_KEEP = %s, MK_REF_ROOTS = %s, MK_STATIC_FIELDS = %s, FRAME_VARS = %s;\n' % (build, json.dumps(keep), json.dumps(roots), json.dumps(sf), json.dumps(frame)) + mod)
+    return s.replace(MARK, snap + ('var MK_BUILD_SHA = "%s", MK_DMATH_SHA = "%s";\n' % (build_sha, dmath_sha)) + 'var MK_BUILD = "%s";\nvar MK_KEEP = %s, MK_REF_ROOTS = %s, MK_STATIC_FIELDS = %s, FRAME_VARS = %s;\n' % (build, json.dumps(keep), json.dumps(roots), json.dumps(sf), json.dumps(frame)) + mod)

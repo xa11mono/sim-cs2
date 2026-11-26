@@ -176,7 +176,8 @@ async function mkExportFile(){
   var img = null; try{ img = m.screenP ? await m.screenP : null; }catch(e){}
   var doc = { match: m.match, tick: m.tick, round: m.round, roundTime: m.roundTime, category: mkEl("mkCat").value, priority: mkEl("mkPrioU").checked ? "urgent" : "normal",
     text: m.text, want: m.want, bot: m.bot || null, principle: null, status: "new", version: null, fp: m.fp, state: m.state, created: Date.now(), updated: Date.now(),
-    env: mkEnv(), preTick: m.pre ? m.pre.tick : null, map: MAP.id || null, seed: m.match };   // map, seed — в identity пакета (номер матча задаёт зерно матча)
+    env: mkEnv(), preTick: m.pre ? m.pre.tick : null, map: MAP.id || null, seed: m.match,
+    identity: {buildHash: typeof MK_BUILD_SHA !== "undefined" ? MK_BUILD_SHA : null, mapHash: globalThis.__MAP_SHA || null, dmath: typeof MK_DMATH_SHA !== "undefined" ? MK_DMATH_SHA : null} };   // map, seed — в identity пакета (номер матча задаёт зерно матча)
   var out = JSON.stringify({format: "sim-cs2/mark-export", version: 1, doc: doc, snapshot: mkPack(m.snap), pre: m.pre ? mkPack(m.pre.data) : null, image: img || null});
   var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([out], {type: "application/json"}));
   a.download = "mark-m" + m.match + "-t" + m.tick + ".json"; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
