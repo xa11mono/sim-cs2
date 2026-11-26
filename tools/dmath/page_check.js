@@ -5,7 +5,7 @@
 const pw = require('playwright'), fs = require('fs'), path = require('path');
 const args = process.argv.slice(2), opt = (n, d) => { const a = args.find(x => x.startsWith('--' + n + '=')); return a ? a.slice(n.length + 3) : d; };
 const corpusFile = args.find(x => !x.startsWith('--')), N = +opt('n', 100000), ENGINE = process.env.SIM_BROWSER || 'chromium';
-const SRC = require(path.join(__dirname, '..', 'rebuild', 'game_src.js')).readGame('005_dmath.ts');
+const SRC = require(path.join(__dirname, '..', 'rebuild', 'game_src.js')).readGame('dmath.ts');
 // один и тот же код считает хэши в Node и в странице
 const RUN = function (D, corpus, N) {
   const F = new Float64Array(1), U = new Uint32Array(F.buffer); let seed = 987654321 >>> 0;

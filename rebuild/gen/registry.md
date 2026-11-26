@@ -83,33 +83,33 @@
 
 ## Функции с больше всего пометками (где решения копятся)
 
-- `stepTick (540)` — 40
-- `contactTick (350)` — 33
-- `draw (620)` — 32
-- `tBrainExecute (170)` — 30
-- `lineupTick (390)` — 27
-- `updateNadeTask1 (380)` — 26
-- `(верх файла) (110)` — 24
-- `lookCands0 (270)` — 24
-- `tryShoot (490)` — 24
-- `(верх файла) (380)` — 22
-- `obsFrame (670)` — 19
-- `setPostDo (110)` — 18
-- `fightCycleTick (470)` — 18
-- `(верх файла) (050)` — 16
-- `ctSetupRole (140)` — 16
-- `(верх файла) (370)` — 16
-- `chooseTactic (130)` — 15
-- `ctBrainRotate (340)` — 15
-- `(верх файла) (680)` — 15
-- `tBrainSetup (170)` — 14
-- `intelDeath (190)` — 14
-- `smoothLookFilter (270)` — 14
-- `endgameBrain (330)` — 14
-- `buildWaypointPath0 (050)` — 13
-- `tBrainPostplant (170)` — 13
-- `ctBrainPlayers (340)` — 13
-- `throwNadeTry (380)` — 13
-- `(верх файла) (670)` — 13
-- `contactInfo (350)` — 12
-- `navFollowFloor (370)` — 12
+- `stepTick (tick)` — 40
+- `contactTick (contact)` — 33
+- `draw (draw)` — 32
+- `tBrainExecute (brain-t)` — 30
+- `lineupTick (lineups)` — 27
+- `updateNadeTask1 (throw)` — 26
+- `(верх файла) (task)` — 24
+- `lookCands0 (look)` — 24
+- `tryShoot (shoot)` — 24
+- `(верх файла) (throw)` — 22
+- `obsFrame (observer)` — 19
+- `setPostDo (task)` — 18
+- `fightCycleTick (fight)` — 18
+- `(верх файла) (paths)` — 16
+- `ctSetupRole (ct-setup)` — 16
+- `(верх файла) (levels)` — 16
+- `chooseTactic (tactics)` — 15
+- `ctBrainRotate (brain-ct)` — 15
+- `(верх файла) (app)` — 15
+- `tBrainSetup (brain-t)` — 14
+- `intelDeath (intel)` — 14
+- `smoothLookFilter (look)` — 14
+- `endgameBrain (endgame)` — 14
+- `buildWaypointPath0 (paths)` — 13
+- `tBrainPostplant (brain-t)` — 13
+- `ctBrainPlayers (brain-ct)` — 13
+- `throwNadeTry (throw)` — 13
+- `(верх файла) (observer)` — 13
+- `contactInfo (contact)` — 12
+- `navFollowFloor (levels)` — 12

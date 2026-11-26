@@ -3,7 +3,7 @@ var FIRE_LONG = 80, FIRE_STILL = 48;   // (v583a) тики: в огне доль
 // чего ещё не видели. Подключается в замер матча (rec2.js → REC.watch) и в прогон снимков отметок (watch_snaps.py).
 // Использование: eval(этот файл); WATCH.tick() — после каждого stepTick(); WATCH.report() — итог (JSON-объект).
 // Классы (каждый — общий, не под одну ситуацию):
-//   stall, tug, nav — (v407) из PROB игры (src/game/545_problem_watch.js): застрял (хочет и пытается идти к одной задаче 5 с,
+//   stall, tug, nav — (v407) из PROB игры (engine/debug/problem-watch.js): застрял (хочет и пытается идти к одной задаче 5 с,
 //            сдвинулся < 25 px — с причиной), перенос (видимая позиция за тик дальше шага), перетягивание (A → B → A за 2 с, кроме
 //            «кинул гранату и вернулся»); старый счёт (повторы при сдвиге точки, «стоял до задачи») — удалён
 //   wait     — ожидание без выхода: стоит на посту ожидания (сбор, ждёт гранат/смока/бомбы…) > 8 с; с раскладом
@@ -123,7 +123,7 @@ var FIRE_LONG = 80, FIRE_STILL = 48;   // (v583a) тики: в огне доль
       s.fireT = inF ? s.fireT + 16 : 0; s.fireStill = inF && !escaping ? (s.fireStill || 0) + 16 : 0;
       if(!inF) s.fireCnt = 0;
       if(inF && !s.fireCnt && (s.fireT >= FIRE_LONG || s.fireStill >= FIRE_STILL)){ s.fireCnt = 1; W.n.danger++; inc(W.dangerBy, "стоит в огне"); if(W.ev.danger.length < EVMAX) W.ev.danger.push([tick, b.id, "стоит в огне", b.post ? b.post.tag : "-"]); }
-      // (v407) перетягивание, застой, перенос — одно место в игре: PROB (src/game/545_problem_watch.js); здесь только отчёт
+      // (v407) перетягивание, застой, перенос — одно место в игре: PROB (engine/debug/problem-watch.js); здесь только отчёт
       // ожидание без выхода
       if(b.post && b.atPost && WAIT_RE.test(b.post.tag)){ s.waitT += 16;
         if(s.waitT === 8*64){ var foe = b.team === "T" ? "CT" : "T", nE = aliveCount(foe);

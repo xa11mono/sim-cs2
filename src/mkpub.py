@@ -9,7 +9,7 @@ from mapset import map_arg, inject_map
 from gamesrc import game_source   # v377: исходник игры — склейка src/game/*
 MAPNAME, _ = map_arg(sys.argv[1:])
 s = inject_map(inject(game_source()), MAPNAME)   # v255: «Отметить момент»
-# (v430) страница — целый документ: <!doctype html> и обёртка из 000_head.html — файл с диска идёт в обычном режиме, как артефакт
+# (v430) страница — целый документ: <!doctype html> и обёртка из head.html — файл с диска идёт в обычном режиме, как артефакт
 # (без doctype браузер включал режим совместимости: другие шрифты в таблицах, отступы). Стили игры из <head> переносим в начало
 # <body>: публикация артефакта заменяет <head> своим, и всё, что лежало в нём, терялось (v430: пропали табло и панели игроков)
 assert s.lstrip().lower().startswith('<!doctype html>')

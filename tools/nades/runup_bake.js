@@ -9,7 +9,7 @@
 require('../dmath/global.js');   // (Р2.3) DM — общая математика игры (файлы игры зовут DM.*)
 const path = require('path'), fs = require('fs'), ROOT = path.join(__dirname, '..', '..');
 const map = process.argv[2] || 'ancient';
-const W = require('./world.js').load(map), N = require(path.join(ROOT, 'src/game/385_nades_flight.js'));
+const W = require('./world.js').load(map), N = require(path.join(ROOT, 'engine/nades/flight.js'));
 const M = W.M, k = M.unit / M.cell, game = (x, y) => [M.X0 + x * k, M.Y0 - y * k];
 // скорость бота, ед/с игры: SPEED (px/с) × ед. на px; BAL.realSpeed — 90 px/с (080); шаг — × WALK_SPEED_FRAC 0,5 (070)
 const BOT_RUN = 90 * k, BOT_WALK = BOT_RUN * 0.5, WALK_IF = 160;   // ед/с; про медленнее WALK_IF — шаг (проектное число: между шагом 130 и бегом 215–250)

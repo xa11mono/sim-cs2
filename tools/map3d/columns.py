@@ -21,7 +21,7 @@ from scipy.spatial import ConvexHull
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE); sys.path.insert(0, os.path.join(HERE, '..'))
 import mapdir  # noqa
 
-VIS_CELL = 2          # px радара 0..2048 — как VIS_CELL в src/game/040_visibility.js
+VIS_CELL = 2          # px радара 0..2048 — как VIS_CELL в engine/sense/vision.js
 CELL_PX = VIS_CELL    # клетка столбиков, px радара (= клетка VIS; 5 ед. у Mirage); --cell=1 — вдвое мельче
 for _a in list(sys.argv[1:]):
     if _a.startswith('--cell='): CELL_PX = int(_a[7:]); sys.argv.remove(_a)

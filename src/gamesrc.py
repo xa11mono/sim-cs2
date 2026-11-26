@@ -4,7 +4,7 @@
   from gamesrc import game_source;  s = game_source()
   python3 src/gamesrc.py [куда]   — записать склейку в файл (по умолчанию — в stdout), напр. для grep/diff по старому виду
 """
-import os, sys
+import os, re, sys
 
 GAME_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'game')
 
@@ -36,6 +36,9 @@ def order():
     L = list(json.load(open(FILES_JSON, encoding='utf-8'))['files'])
     dirs = {g['dir'] for g in json.load(open(FILES_JSON, encoding='utf-8'))['game']}   # (Р4.2а) каталоги файлов игры
     disk = set(f for d in dirs for f in os.listdir(os.path.join(ROOT, d)) if f.endswith(SRC_EXT))
+    num = sorted(f for f in disk if re.match(r'\d{3}_', f))   # (Р4.5) файл с числовым префиксом в engine/ / view/ — ошибка
+    if num:
+        sys.exit('файл игры с числовым префиксом (Р4.5: имя без номера, место — строка в rebuild/files.json): ' + ', '.join(num))
     extra, missing = sorted(disk - set(L)), [f for f in L if f not in disk]
     if extra or missing:
         sys.exit('порядок загрузки (rebuild/files.json): ' + ('нет в списке: ' + ', '.join(extra) + '; ' if extra else '') +

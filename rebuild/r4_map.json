@@ -1,0 +1,642 @@
+{
+ "_": "Р4.2 карта переименования файлов игры (91): по rebuild/preparation/path_migration.csv (Codex, порядок склейки), отступления: 560 → view/editors/lineup-editor.js, 610 → view/debug/look-debug.js (имена файлов уникальны — имя служит ключом). id — новое имя без расширения (вместо номера-метки)",
+ "map": [
+  {
+   "old": "000_head.html",
+   "old_id": "000",
+   "new": "head.html",
+   "dir": "view/page",
+   "id": "head"
+  },
+  {
+   "old": "001_fonts.html",
+   "old_id": "001",
+   "new": "fonts.html",
+   "dir": "view/page",
+   "id": "fonts"
+  },
+  {
+   "old": "002_style.html",
+   "old_id": "002",
+   "new": "style.html",
+   "dir": "view/page",
+   "id": "style"
+  },
+  {
+   "old": "004_markup.html",
+   "old_id": "004",
+   "new": "markup.html",
+   "dir": "view/page",
+   "id": "markup"
+  },
+  {
+   "old": "005_dmath.ts",
+   "old_id": "005",
+   "new": "dmath.ts",
+   "dir": "engine/core",
+   "id": "dmath"
+  },
+  {
+   "old": "010_map_zones_warp.js",
+   "old_id": "010",
+   "new": "zones.js",
+   "dir": "engine/map",
+   "id": "zones"
+  },
+  {
+   "old": "020_map_navmesh_autowalls.js",
+   "old_id": "020",
+   "new": "navmesh.js",
+   "dir": "engine/nav",
+   "id": "navmesh"
+  },
+  {
+   "old": "030_map_walls_heights_cover_wallbang.js",
+   "old_id": "030",
+   "new": "walls-heights-cover.js",
+   "dir": "engine/map",
+   "id": "walls-heights-cover"
+  },
+  {
+   "old": "035_map3d.js",
+   "old_id": "035",
+   "new": "geometry3d.js",
+   "dir": "engine/map",
+   "id": "geometry3d"
+  },
+  {
+   "old": "040_visibility.js",
+   "old_id": "040",
+   "new": "vision.js",
+   "dir": "engine/sense",
+   "id": "vision"
+  },
+  {
+   "old": "050_nav_rebuild_paths.js",
+   "old_id": "050",
+   "new": "paths.js",
+   "dir": "engine/nav",
+   "id": "paths"
+  },
+  {
+   "old": "060_zone_danger_user_zones.js",
+   "old_id": "060",
+   "new": "zone-danger.js",
+   "dir": "engine/map",
+   "id": "zone-danger"
+  },
+  {
+   "old": "070_weapons_bots_roam.js",
+   "old_id": "070",
+   "new": "weapons-bots.js",
+   "dir": "engine/match",
+   "id": "weapons-bots"
+  },
+  {
+   "old": "080_bal.js",
+   "old_id": "080",
+   "new": "tuning.js",
+   "dir": "engine/core",
+   "id": "tuning"
+  },
+  {
+   "old": "090_profiles_teams.js",
+   "old_id": "090",
+   "new": "rosters.js",
+   "dir": "engine/team",
+   "id": "rosters"
+  },
+  {
+   "old": "100_sites_spots.js",
+   "old_id": "100",
+   "new": "sites-spots.js",
+   "dir": "engine/map",
+   "id": "sites-spots"
+  },
+  {
+   "old": "110_post_routes.js",
+   "old_id": "110",
+   "new": "task.js",
+   "dir": "engine/bot",
+   "id": "task"
+  },
+  {
+   "old": "120_bomb.js",
+   "old_id": "120",
+   "new": "bomb.js",
+   "dir": "engine/match",
+   "id": "bomb"
+  },
+  {
+   "old": "130_tactics_match_adapt.js",
+   "old_id": "130",
+   "new": "tactics.js",
+   "dir": "engine/team",
+   "id": "tactics"
+  },
+  {
+   "old": "140_named_spots_ct_setup.js",
+   "old_id": "140",
+   "new": "ct-setup.js",
+   "dir": "engine/team",
+   "id": "ct-setup"
+  },
+  {
+   "old": "150_lurker_probes_clear.js",
+   "old_id": "150",
+   "new": "lurker.js",
+   "dir": "engine/team",
+   "id": "lurker"
+  },
+  {
+   "old": "160_igl_replan.js",
+   "old_id": "160",
+   "new": "igl.js",
+   "dir": "engine/team",
+   "id": "igl"
+  },
+  {
+   "old": "170_tbrain.js",
+   "old_id": "170",
+   "new": "brain-t.js",
+   "dir": "engine/bot",
+   "id": "brain-t"
+  },
+  {
+   "old": "180_save_retake.js",
+   "old_id": "180",
+   "new": "save-retake.js",
+   "dir": "engine/team",
+   "id": "save-retake"
+  },
+  {
+   "old": "190_team_intel_lkp_calls.js",
+   "old_id": "190",
+   "new": "intel.js",
+   "dir": "engine/know",
+   "id": "intel"
+  },
+  {
+   "old": "200_belief_reach.js",
+   "old_id": "200",
+   "new": "reach.js",
+   "dir": "engine/know",
+   "id": "reach"
+  },
+  {
+   "old": "210_know_hyp.js",
+   "old_id": "210",
+   "new": "knowledge.js",
+   "dir": "engine/know",
+   "id": "knowledge"
+  },
+  {
+   "old": "220_know_events_tick.js",
+   "old_id": "220",
+   "new": "events.js",
+   "dir": "engine/know",
+   "id": "events"
+  },
+  {
+   "old": "230_team_voice.js",
+   "old_id": "230",
+   "new": "voice.js",
+   "dir": "engine/know",
+   "id": "voice"
+  },
+  {
+   "old": "240_belief_tick.js",
+   "old_id": "240",
+   "new": "belief.js",
+   "dir": "engine/know",
+   "id": "belief"
+  },
+  {
+   "old": "250_look_prepeek_corners.js",
+   "old_id": "250",
+   "new": "look-peek.js",
+   "dir": "engine/bot",
+   "id": "look-peek"
+  },
+  {
+   "old": "260_look_threat.js",
+   "old_id": "260",
+   "new": "look-threat.js",
+   "dir": "engine/bot",
+   "id": "look-threat"
+  },
+  {
+   "old": "270_look_plan_smooth.js",
+   "old_id": "270",
+   "new": "look.js",
+   "dir": "engine/bot",
+   "id": "look"
+  },
+  {
+   "old": "275_look_turn.ts",
+   "old_id": "275",
+   "new": "turn.ts",
+   "dir": "engine/bot",
+   "id": "turn"
+  },
+  {
+   "old": "280_pos_pref_hold.js",
+   "old_id": "280",
+   "new": "position.js",
+   "dir": "engine/bot",
+   "id": "position"
+  },
+  {
+   "old": "290_smoke_react.js",
+   "old_id": "290",
+   "new": "smoke-react.js",
+   "dir": "engine/nades",
+   "id": "smoke-react"
+  },
+  {
+   "old": "300_roles_fallback_rebalance.js",
+   "old_id": "300",
+   "new": "roles.js",
+   "dir": "engine/team",
+   "id": "roles"
+  },
+  {
+   "old": "310_pro_positions.js",
+   "old_id": "310",
+   "new": "pro-positions.js",
+   "dir": "engine/team",
+   "id": "pro-positions"
+  },
+  {
+   "old": "320_pro_lineups_ct_early.js",
+   "old_id": "320",
+   "new": "ct-early.js",
+   "dir": "engine/team",
+   "id": "ct-early"
+  },
+  {
+   "old": "330_endgame_smoke_push.js",
+   "old_id": "330",
+   "new": "endgame.js",
+   "dir": "engine/team",
+   "id": "endgame"
+  },
+  {
+   "old": "340_ctbrain.js",
+   "old_id": "340",
+   "new": "brain-ct.js",
+   "dir": "engine/bot",
+   "id": "brain-ct"
+  },
+  {
+   "old": "350_contact_reaction.js",
+   "old_id": "350",
+   "new": "contact.js",
+   "dir": "engine/bot",
+   "id": "contact"
+  },
+  {
+   "old": "360_nades_buy_smoke_vision.js",
+   "old_id": "360",
+   "new": "smoke.js",
+   "dir": "engine/nades",
+   "id": "smoke"
+  },
+  {
+   "old": "365_nade_plan.js",
+   "old_id": "365",
+   "new": "plan.js",
+   "dir": "engine/nades",
+   "id": "plan"
+  },
+  {
+   "old": "366_exec_sync.js",
+   "old_id": "366",
+   "new": "exec-sync.js",
+   "dir": "engine/nades",
+   "id": "exec-sync"
+  },
+  {
+   "old": "370_fire_nav_levels_ladders.js",
+   "old_id": "370",
+   "new": "levels.js",
+   "dir": "engine/nav",
+   "id": "levels"
+  },
+  {
+   "old": "380_nades_throw.js",
+   "old_id": "380",
+   "new": "throw.js",
+   "dir": "engine/nades",
+   "id": "throw"
+  },
+  {
+   "old": "385_nades_flight.js",
+   "old_id": "385",
+   "new": "flight.js",
+   "dir": "engine/nades",
+   "id": "flight"
+  },
+  {
+   "old": "390_nades_lineups.js",
+   "old_id": "390",
+   "new": "lineups.js",
+   "dir": "engine/nades",
+   "id": "lineups"
+  },
+  {
+   "old": "400_nades_physics_damage.js",
+   "old_id": "400",
+   "new": "damage.js",
+   "dir": "engine/match",
+   "id": "damage"
+  },
+  {
+   "old": "410_nades_tactical_self.js",
+   "old_id": "410",
+   "new": "self.js",
+   "dir": "engine/nades",
+   "id": "self"
+  },
+  {
+   "old": "420_nades_brains.js",
+   "old_id": "420",
+   "new": "decide.js",
+   "dir": "engine/nades",
+   "id": "decide"
+  },
+  {
+   "old": "430_fov_roam.js",
+   "old_id": "430",
+   "new": "fov.js",
+   "dir": "engine/sense",
+   "id": "fov"
+  },
+  {
+   "old": "435_match_events.js",
+   "old_id": "435",
+   "new": "journal.js",
+   "dir": "engine/match",
+   "id": "journal"
+  },
+  {
+   "old": "440_voicepanel_console.js",
+   "old_id": "440",
+   "new": "voice-console.js",
+   "dir": "view/hud",
+   "id": "voice-console"
+  },
+  {
+   "old": "450_combat_items_knife.js",
+   "old_id": "450",
+   "new": "items.js",
+   "dir": "engine/match",
+   "id": "items"
+  },
+  {
+   "old": "460_sound_situations.js",
+   "old_id": "460",
+   "new": "sound.js",
+   "dir": "engine/sense",
+   "id": "sound"
+  },
+  {
+   "old": "470_fight_cycle.js",
+   "old_id": "470",
+   "new": "fight.js",
+   "dir": "engine/bot",
+   "id": "fight"
+  },
+  {
+   "old": "480_assist_flank_reload.js",
+   "old_id": "480",
+   "new": "assist.js",
+   "dir": "engine/bot",
+   "id": "assist"
+  },
+  {
+   "old": "490_shoot.js",
+   "old_id": "490",
+   "new": "shoot.js",
+   "dir": "engine/bot",
+   "id": "shoot"
+  },
+  {
+   "old": "495_highlights.js",
+   "old_id": "495",
+   "new": "highlights.js",
+   "dir": "engine/bot",
+   "id": "highlights"
+  },
+  {
+   "old": "500_decide_afterkill_cover.js",
+   "old_id": "500",
+   "new": "fight-state.js",
+   "dir": "engine/bot",
+   "id": "fight-state"
+  },
+  {
+   "old": "510_engagements.js",
+   "old_id": "510",
+   "new": "engagements.js",
+   "dir": "engine/bot",
+   "id": "engagements"
+  },
+  {
+   "old": "520_economy.js",
+   "old_id": "520",
+   "new": "economy.js",
+   "dir": "engine/team",
+   "id": "economy"
+  },
+  {
+   "old": "530_round_sides_match.js",
+   "old_id": "530",
+   "new": "round.js",
+   "dir": "engine/match",
+   "id": "round"
+  },
+  {
+   "old": "535_move_mode.js",
+   "old_id": "535",
+   "new": "move.js",
+   "dir": "engine/bot",
+   "id": "move"
+  },
+  {
+   "old": "540_step_tick.js",
+   "old_id": "540",
+   "new": "tick.js",
+   "dir": "engine/core",
+   "id": "tick"
+  },
+  {
+   "old": "545_problem_watch.js",
+   "old_id": "545",
+   "new": "problem-watch.js",
+   "dir": "engine/debug",
+   "id": "problem-watch"
+  },
+  {
+   "old": "550_render_nav_zone_tools.js",
+   "old_id": "550",
+   "new": "nav-zones.js",
+   "dir": "view/editors",
+   "id": "nav-zones"
+  },
+  {
+   "old": "560_lineup_zone_editor.js",
+   "old_id": "560",
+   "new": "lineup-editor.js",
+   "dir": "view/editors",
+   "id": "lineup-editor"
+  },
+  {
+   "old": "570_maped_core_walls.js",
+   "old_id": "570",
+   "new": "map-walls.js",
+   "dir": "view/editors",
+   "id": "map-walls"
+  },
+  {
+   "old": "580_maped_heights.js",
+   "old_id": "580",
+   "new": "map-heights.js",
+   "dir": "view/editors",
+   "id": "map-heights"
+  },
+  {
+   "old": "590_maped_cover.js",
+   "old_id": "590",
+   "new": "map-cover.js",
+   "dir": "view/editors",
+   "id": "map-cover"
+  },
+  {
+   "old": "600_maped_wallbang.js",
+   "old_id": "600",
+   "new": "map-wallbang.js",
+   "dir": "view/editors",
+   "id": "map-wallbang"
+  },
+  {
+   "old": "610_vistool_lookdebug.js",
+   "old_id": "610",
+   "new": "look-debug.js",
+   "dir": "view/debug",
+   "id": "look-debug"
+  },
+  {
+   "old": "612_team_debug.js",
+   "old_id": "612",
+   "new": "team.js",
+   "dir": "view/debug",
+   "id": "team"
+  },
+  {
+   "old": "620_draw.js",
+   "old_id": "620",
+   "new": "draw.js",
+   "dir": "view",
+   "id": "draw"
+  },
+  {
+   "old": "625_view3d.js",
+   "old_id": "625",
+   "new": "view3d.js",
+   "dir": "view",
+   "id": "view3d"
+  },
+  {
+   "old": "630_killfeed_banners_econ.js",
+   "old_id": "630",
+   "new": "killfeed.js",
+   "dir": "view/hud",
+   "id": "killfeed"
+  },
+  {
+   "old": "635_hud_fx.js",
+   "old_id": "635",
+   "new": "fx.js",
+   "dir": "view/hud",
+   "id": "fx"
+  },
+  {
+   "old": "640_scoreboard_players.js",
+   "old_id": "640",
+   "new": "scoreboard.js",
+   "dir": "view/hud",
+   "id": "scoreboard"
+  },
+  {
+   "old": "645_decision_log.js",
+   "old_id": "645",
+   "new": "trace.js",
+   "dir": "engine/debug",
+   "id": "trace"
+  },
+  {
+   "old": "650_marks_hook.js",
+   "old_id": "650",
+   "new": "marks-hook.js",
+   "dir": "view",
+   "id": "marks-hook"
+  },
+  {
+   "old": "660_warmup.js",
+   "old_id": "660",
+   "new": "warmup.js",
+   "dir": "view",
+   "id": "warmup"
+  },
+  {
+   "old": "670_observer.js",
+   "old_id": "670",
+   "new": "observer.js",
+   "dir": "view",
+   "id": "observer"
+  },
+  {
+   "old": "675_replay.js",
+   "old_id": "675",
+   "new": "replay.js",
+   "dir": "view",
+   "id": "replay"
+  },
+  {
+   "old": "676_timeout_show.js",
+   "old_id": "676",
+   "new": "timeout.js",
+   "dir": "view/hud",
+   "id": "timeout"
+  },
+  {
+   "old": "677_sandbox.js",
+   "old_id": "677",
+   "new": "sandbox.js",
+   "dir": "view",
+   "id": "sandbox"
+  },
+  {
+   "old": "678_demo_view.js",
+   "old_id": "678",
+   "new": "demo.js",
+   "dir": "view",
+   "id": "demo"
+  },
+  {
+   "old": "680_sound_frame_buttons.js",
+   "old_id": "680",
+   "new": "app.js",
+   "dir": "view",
+   "id": "app"
+  },
+  {
+   "old": "990_tail.html",
+   "old_id": "990",
+   "new": "tail.html",
+   "dir": "view/page",
+   "id": "tail"
+  }
+ ]
+}

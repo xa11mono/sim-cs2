@@ -1,4 +1,4 @@
-// В2–В3 (21.10.2026): проверка физики гранаты (src/game/385_nades_flight.js) на геометрии игры (map3d.json) бросками про из В1 — без матчей.
+// В2–В3 (21.10.2026): проверка физики гранаты (engine/nades/flight.js) на геометрии игры (map3d.json) бросками про из В1 — без матчей.
 // node tools/nades/check.js <карта> --fuse [--fill] [--par '{"GRAV":..}'] [--out файл] [--every k] [--nojump]
 // Каждый бросок (data/maps/<карта>/throws.json, связанные с разрывом) — через физику со всеми тремя силами (1 ЛКМ, 0,5 обе,
 // 0 ПКМ); берётся сила с наименьшей ошибкой (место + время × V_T). Совпал — ошибка места ≤ N и времени ≤ M (NADES.md).
@@ -8,7 +8,7 @@
 require('../dmath/global.js');   // (Р2.3) DM — общая математика игры (файлы игры зовут DM.*)
 const fs = require('fs'), path = require('path');
 const ROOT = path.join(__dirname, '..', '..');
-const NP = require(path.join(ROOT, 'src', 'game', '385_nades_flight.js')), P = NP.NADE_P;
+const NP = require(path.join(ROOT, 'engine', 'nades', 'flight.js')), P = NP.NADE_P;
 const args = process.argv.slice(2), map = args[0];
 const arg = (k, d) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : d; };
 Object.assign(P, JSON.parse(arg('--par', '{}')));

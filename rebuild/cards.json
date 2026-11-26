@@ -1,22 +1,22 @@
 {
  "_": "Карточки механик (Р3.5): файл → механика, функции-хозяева (owns). Проверка — tools/rebuild/cards.js из gen_maps --check: правится вместе с кодом.",
  "cards": {
-  "005_dmath.ts": {
+  "dmath.ts": {
    "mech": "общая математика DM (Р2): libm + hypot по алгоритму V8, контракт JS; стоит до обёртки игры",
    "owns": [],
    "src": "таблица «Где что»"
   },
-  "010_map_zones_warp.js": {
+  "zones.js": {
    "mech": "загрузка карты MAP, зоны, слой зон, калибровка навмеша; навмеш .nav, порталы, авто-стены",
    "owns": [],
    "src": "таблица «Где что»"
   },
-  "020_map_navmesh_autowalls.js": {
+  "navmesh.js": {
    "mech": "загрузка карты MAP, зоны, слой зон, калибровка навмеша; навмеш .nav, порталы, авто-стены",
    "owns": [],
    "src": "таблица «Где что»"
   },
-  "030_map_walls_heights_cover_wallbang.js": {
+  "walls-heights-cover.js": {
    "mech": "карта (данные — MAP, набор data/maps/<карта>/): стены WALL_POLYS / applyWalls; высоты HEIGHTS / hgtInfo; укрытия COVER / covList; прострелы WALLBANG / wbList, wbAfter",
    "owns": [
     "applyWalls",
@@ -27,7 +27,7 @@
    ],
    "src": "таблица «Где что»"
   },
-  "035_map3d.js": {
+  "geometry3d.js": {
    "mech": "3D-геометрия игры (А5 Mirage, А6 Ancient — с v388 у обеих карт, MAP.map3d): m3(), луч m3Line/m3Hit, этажи m3Floors, «в стене» m3Solid/m3SolidHit, распаковка zInflate",
    "owns": [
     "m3Floors",
@@ -39,7 +39,7 @@
    ],
    "src": "таблица «Где что»"
   },
-  "040_visibility.js": {
+  "vision.js": {
    "mech": "кто кого видит (одно место, 3D): VIS_*, visLine, visParts, visFloorAt, visInvalidate; через неё hasLOS и таблица «откуда простреливается» computeZoneDanger",
    "owns": [
     "visFloorAt",
@@ -49,7 +49,7 @@
    ],
    "src": "таблица «Где что»"
   },
-  "050_nav_rebuild_paths.js": {
+  "paths.js": {
    "mech": "кто кого видит (одно место, 3D): VIS_*, visLine, visParts, visFloorAt, visInvalidate; через неё hasLOS и таблица «откуда простреливается» computeZoneDanger; навмеш и пути: rebuildNav, zoneDijkstra, funnel, buildWaypointPath; связи выше прыжка navCutTall / перепад navEdgeDz (v533); уровни/лестницы/по",
    "owns": [
     "buildWaypointPath",
@@ -64,7 +64,7 @@
    ],
    "src": "таблица «Где что»"
   },
-  "060_zone_danger_user_zones.js": {
+  "zone-danger.js": {
    "mech": "кто кого видит (одно место, 3D): VIS_*, visLine, visParts, visFloorAt, visInvalidate; через неё hasLOS и таблица «откуда простреливается» computeZoneDanger",
    "owns": [
     "computeZoneDanger",
@@ -72,26 +72,26 @@
    ],
    "src": "таблица «Где что»"
   },
-  "070_weapons_bots_roam.js": {
+  "weapons-bots.js": {
    "mech": "оружие, боты makeTeam, роумер",
    "owns": [
     "makeTeam"
    ],
    "src": "таблица «Где что»"
   },
-  "080_bal.js": {
+  "tuning.js": {
    "mech": "переключатели и числа движка BAL",
    "owns": [],
    "src": "таблица «Где что»"
   },
-  "090_profiles_teams.js": {
+  "rosters.js": {
    "mech": "профили игроков, команды LINEUP, SIDE_TEAM, seatPlayers",
    "owns": [
     "seatPlayers"
    ],
    "src": "таблица «Где что»"
   },
-  "100_sites_spots.js": {
+  "sites-spots.js": {
    "mech": "сайты, точки планта, pickSpots; «рядом» для решений — по пути nearP (v532)",
    "owns": [
     "nearP",
@@ -99,7 +99,7 @@
    ],
    "src": "таблица «Где что»"
   },
-  "110_post_routes.js": {
+  "task.js": {
    "mech": "позиция: setPost / updatePost, арбитр места TASK_LEVEL, свойства задач TASK_PROP / taskProp (v527); отклонение вместо отказа taskDetourKind / detourOk (v547); «дошёл» POST_ARRIVE; маршруты startRoute / routeTick",
    "owns": [
     "clearPost",
@@ -118,7 +118,7 @@
    ],
    "src": "таблица «Где что»"
   },
-  "120_bomb.js": {
+  "bomb.js": {
    "mech": "бомба: bombTick, урон взрыва bombDamageAt (BOMB_DMG), куда бежать bombFleePoint, дефуз",
    "owns": [
     "bombDamageAt",
@@ -127,7 +127,7 @@
    ],
    "src": "таблица «Где что»"
   },
-  "130_tactics_match_adapt.js": {
+  "tactics.js": {
    "mech": "тактики T chooseTactic, память матча memSnapshot/memRestore/memStart, MEM_BOX, профиль соперника OPP.by; тактические паузы (v460): TOUT, timeoutCheck / timeoutWant, план тренера coachPlan, TO_NOW; показ паузы — 676_timeout_show (ts*)",
    "owns": [
     "chooseTactic",
@@ -140,14 +140,14 @@
    ],
    "src": "таблица «Где что»"
   },
-  "140_named_spots_ct_setup.js": {
+  "ct-setup.js": {
    "mech": "позиции по названиям зон, расстановки CT chooseCtSetup, любимые углы",
    "owns": [
     "chooseCtSetup"
    ],
    "src": "таблица «Где что»"
   },
-  "150_lurker_probes_clear.js": {
+  "lurker.js": {
    "mech": "лёркер lurkerBrain, пробы, «проверено — пусто» markClear",
    "owns": [
     "lurkerBrain",
@@ -155,7 +155,7 @@
    ],
    "src": "таблица «Где что»"
   },
-  "160_igl_replan.js": {
+  "igl.js": {
    "mech": "IGL tIglReplan, стадии stagePost / tSetSite",
    "owns": [
     "stagePost",
@@ -164,7 +164,7 @@
    ],
    "src": "таблица «Где что»"
   },
-  "170_tbrain.js": {
+  "brain-t.js": {
    "mech": "мозг T tBrain — части в прежнем порядке (Р3.2 команда): вступление и роли в tBrain; tBrainExecGo (сейв, момент выхода, постплант) → tBrainSiteSwitch (смена сайта, IGL) → tBrainMidTake (мид, чтение расстановки CT) → tBrainTeam (постплант-позиции, сейв) → tBrainBomb (за бомбой) → фаза: tBrainSetup / tBrainExecute / tBrainPostplant; общее — контекст K",
    "owns": [
     "tBrain",
@@ -179,7 +179,7 @@
    ],
    "src": "таблица «Где что»"
   },
-  "180_save_retake.js": {
+  "save-retake.js": {
    "mech": "сейв pickSaveSpot, ретейк updateRetake",
    "owns": [
     "pickSaveSpot",
@@ -187,7 +187,7 @@
    ],
    "src": "таблица «Где что»"
   },
-  "190_team_intel_lkp_calls.js": {
+  "intel.js": {
    "mech": "память команды v166 (только радар + войс): intelPush, teamInfoTick, commSend = радар, intelEstimate, lkpNear, названия зон calloutName",
    "owns": [
     "calloutName",
@@ -199,21 +199,21 @@
    ],
    "src": "таблица «Где что»"
   },
-  "200_belief_reach.js": {
+  "reach.js": {
    "mech": "тайминги «может ли там уже кто-то быть»: beliefBuild, reach*",
    "owns": [
     "beliefBuild"
    ],
    "src": "таблица «Где что»"
   },
-  "210_know_hyp.js": {
+  "knowledge.js": {
    "mech": "знание бота о врагах (одно место): KNOW, hearReal, гипотезы know*; позиции про KNOW_POSITIONS",
    "owns": [
     "hearReal"
    ],
    "src": "таблица «Где что»"
   },
-  "220_know_events_tick.js": {
+  "events.js": {
    "mech": "… события знания: knowCall, knowClearZone, knowKill, knowTick",
    "owns": [
     "knowCall",
@@ -223,7 +223,7 @@
    ],
    "src": "таблица «Где что»"
   },
-  "230_team_voice.js": {
+  "voice.js": {
    "mech": "память команды v166 (только радар + войс): intelPush, teamInfoTick, commSend = радар, intelEstimate, lkpNear, названия зон calloutName; войс (одно место «что сказали»): TEAM, teamNotice, teamChannel, teamDeath, teamTick → knowCall",
    "owns": [
     "teamChannel",
@@ -234,7 +234,7 @@
    ],
    "src": "таблица «Где что»"
   },
-  "240_belief_tick.js": {
+  "belief.js": {
    "mech": "карта команды belief из гипотез: beliefTick; чтение beliefZoneKnown",
    "owns": [
     "beliefTick",
@@ -242,7 +242,7 @@
    ],
    "src": "таблица «Где что»"
   },
-  "250_look_prepeek_corners.js": {
+  "look-peek.js": {
    "mech": "взгляд (одно место, v381): арбитр lookArbiter / LOOK_LEVEL, общий фильтр lookFilter; делёж углов lookCands, lookPlan, smoothLookFilter; пики до контакта prePeekTick, углы cornerLook; взгляд в прыжке jumpLook (v548; доворот у края — jumpFaceWait, 370); числа LOOK, threatEntrances; поворот (одно место",
    "owns": [
     "cornerLook",
@@ -250,14 +250,14 @@
    ],
    "src": "таблица «Где что»"
   },
-  "260_look_threat.js": {
+  "look-threat.js": {
    "mech": "карта команды belief из гипотез: beliefTick; чтение beliefZoneKnown; взгляд (одно место, v381): арбитр lookArbiter / LOOK_LEVEL, общий фильтр lookFilter; делёж углов lookCands, lookPlan, smoothLookFilter; пики до контакта prePeekTick, углы cornerLook; взгляд в прыжке jumpLook (v548; доворот у края —",
    "owns": [
     "beliefZoneKnown"
    ],
    "src": "таблица «Где что»"
   },
-  "270_look_plan_smooth.js": {
+  "look.js": {
    "mech": "взгляд (одно место, v381): арбитр lookArbiter / LOOK_LEVEL, общий фильтр lookFilter; делёж углов lookCands, lookPlan, smoothLookFilter; пики до контакта prePeekTick, углы cornerLook; взгляд в прыжке jumpLook (v548; доворот у края — jumpFaceWait, 370); числа LOOK, threatEntrances; поворот (одно место",
    "owns": [
     "jumpLook",
@@ -272,7 +272,7 @@
    ],
    "src": "таблица «Где что»"
   },
-  "275_look_turn.ts": {
+  "turn.ts": {
    "mech": "взгляд (одно место, v381): арбитр lookArbiter / LOOK_LEVEL, общий фильтр lookFilter; делёж углов lookCands, lookPlan, smoothLookFilter; пики до контакта prePeekTick, углы cornerLook; взгляд в прыжке jumpLook (v548; доворот у края — jumpFaceWait, 370); числа LOOK, threatEntrances; поворот (одно место",
    "owns": [
     "freezeLookTick",
@@ -285,7 +285,7 @@
    ],
    "src": "таблица «Где что»"
   },
-  "280_pos_pref_hold.js": {
+  "position.js": {
    "mech": "где встать по почерку, оружию и прошлому раунду (одно место): posPref, posPickName, posTick; «держать район» holdSpot / holdGroup, варианты holdCands",
    "owns": [
     "holdCands",
@@ -297,7 +297,7 @@
    ],
    "src": "таблица «Где что»"
   },
-  "290_smoke_react.js": {
+  "smoke-react.js": {
    "mech": "смоки: прострел smokeSpamTick, smokeEnemyPossible; дыры от пуль smokeBulletHole / что видно сквозь дыру smokeHoleParts (v548)",
    "owns": [
     "smokeEnemyPossible",
@@ -305,7 +305,7 @@
    ],
    "src": "таблица «Где что»"
   },
-  "300_roles_fallback_rebalance.js": {
+  "roles.js": {
    "mech": "роли pRole, tFallbackTick, ребаланс сайта; про-позиции ppLayer/proPick",
    "owns": [
     "pRole",
@@ -313,7 +313,7 @@
    ],
    "src": "таблица «Где что»"
   },
-  "310_pro_positions.js": {
+  "pro-positions.js": {
    "mech": "роли pRole, tFallbackTick, ребаланс сайта; про-позиции ppLayer/proPick",
    "owns": [
     "ppLayer",
@@ -321,17 +321,17 @@
    ],
    "src": "таблица «Где что»"
   },
-  "320_pro_lineups_ct_early.js": {
+  "ct-early.js": {
    "mech": "эндгейм, клатч CT, ранний пик CT, мид",
    "owns": [],
    "src": "таблица «Где что»"
   },
-  "330_endgame_smoke_push.js": {
+  "endgame.js": {
    "mech": "эндгейм, клатч CT, ранний пик CT, мид",
    "owns": [],
    "src": "таблица «Где что»"
   },
-  "340_ctbrain.js": {
+  "brain-ct.js": {
    "mech": "мозг CT ctBrain — части в прежнем порядке (Р3.2 команда): ctBrainBombDown (бомба выбита) → ctBrainCall (колл по сайтам) → ctBrainRotate (ротации по коллу) → ctBrainFlank (фланг) → ctBrainSave (сейв / ретейк команды) → ctBrainPlayers (по игроку); общее — контекст K",
    "owns": [
     "ctBrain",
@@ -344,7 +344,7 @@
    ],
    "src": "таблица «Где что»"
   },
-  "350_contact_reaction.js": {
+  "contact.js": {
    "mech": "реакция на контакт (одно место): contactTick; teamBrains; CT задерживает гранатой (одно место, v419): ctDelayNade",
    "owns": [
     "contactTick",
@@ -353,7 +353,7 @@
    ],
    "src": "таблица «Где что»"
   },
-  "360_nades_buy_smoke_vision.js": {
+  "smoke.js": {
    "mech": "смоки: прострел smokeSpamTick, smokeEnemyPossible; дыры от пуль smokeBulletHole / что видно сквозь дыру smokeHoleParts (v548); гранаты: закуп buyNades, дым и видимость smokeBlocks; бросок throwNade (подбор физикой nadeSolve); полёт — физика 3D (30.10): 385_nades_flight (nadeLaunch / nadeStep / nadeA",
    "owns": [
     "buyNades",
@@ -363,7 +363,7 @@
    ],
    "src": "таблица «Где что»"
   },
-  "365_nade_plan.js": {
+  "plan.js": {
    "mech": "план гранат команды (одно место, v428): закуп под план раунда по зонам, хозяин и момент гранаты — teamNadePlan, npBought, npCanUse, npUse, npZoneOf; данные — MAP.nadeplan (tools/map/nadeplan_bake.py)",
    "owns": [
     "npBought",
@@ -374,7 +374,7 @@
    ],
    "src": "таблица «Где что»"
   },
-  "366_exec_sync.js": {
+  "exec-sync.js": {
    "mech": "синхронизация выхода T с гранатами (одно место, v481): жизненный цикл смока выхода EXU (exuTick, exuThrown, exuLanded), можно ли выходить exuGate / exuPending, резервный исполнитель exuBackup / exuReassign",
    "owns": [
     "exuBackup",
@@ -386,7 +386,7 @@
    ],
    "src": "таблица «Где что»"
   },
-  "370_fire_nav_levels_ladders.js": {
+  "levels.js": {
    "mech": "навмеш и пути: rebuildNav, zoneDijkstra, funnel, buildWaypointPath; связи выше прыжка navCutTall / перепад navEdgeDz (v533); уровни/лестницы/подъёмы navAtLevel, laddersBuild, ladderTick (подъём через промежуточный ящик — mid, v533); под / над этажом floorCover / floorViewTick (v535); «на полу» — одн",
    "owns": [
     "floorCover",
@@ -399,7 +399,7 @@
    ],
    "src": "таблица «Где что»"
   },
-  "380_nades_throw.js": {
+  "throw.js": {
    "mech": "гранаты: закуп buyNades, дым и видимость smokeBlocks; бросок throwNade (подбор физикой nadeSolve); полёт — физика 3D (30.10): 385_nades_flight (nadeLaunch / nadeStep / nadeAim), луч кубиком m3NadeTrace (035), отчёт docs/reports/GRENADE_PHYSICS_IMPLEMENTATION.md; бросок смока с разбега runupTick (эта",
    "owns": [
     "assignNadeR",
@@ -409,7 +409,7 @@
    ],
    "src": "таблица «Где что»"
   },
-  "385_nades_flight.js": {
+  "flight.js": {
    "mech": "гранаты: закуп buyNades, дым и видимость smokeBlocks; бросок throwNade (подбор физикой nadeSolve); полёт — физика 3D (30.10): 385_nades_flight (nadeLaunch / nadeStep / nadeAim), луч кубиком m3NadeTrace (035), отчёт docs/reports/GRENADE_PHYSICS_IMPLEMENTATION.md; бросок смока с разбега runupTick (эта",
    "owns": [
     "nadeAim",
@@ -418,14 +418,14 @@
    ],
    "src": "таблица «Где что»"
   },
-  "390_nades_lineups.js": {
+  "lineups.js": {
    "mech": "гранаты: закуп buyNades, дым и видимость smokeBlocks; бросок throwNade (подбор физикой nadeSolve); полёт — физика 3D (30.10): 385_nades_flight (nadeLaunch / nadeStep / nadeAim), луч кубиком m3NadeTrace (035), отчёт docs/reports/GRENADE_PHYSICS_IMPLEMENTATION.md; бросок смока с разбега runupTick (эта",
    "owns": [
     "lineupTick"
    ],
    "src": "таблица «Где что»"
   },
-  "400_nades_physics_damage.js": {
+  "damage.js": {
    "mech": "гранаты: закуп buyNades, дым и видимость smokeBlocks; бросок throwNade (подбор физикой nadeSolve); полёт — физика 3D (30.10): 385_nades_flight (nadeLaunch / nadeStep / nadeAim), луч кубиком m3NadeTrace (035), отчёт docs/reports/GRENADE_PHYSICS_IMPLEMENTATION.md; бросок смока с разбега runupTick (эта",
    "owns": [
     "applyDamage",
@@ -434,7 +434,7 @@
    ],
    "src": "таблица «Где что»"
   },
-  "410_nades_tactical_self.js": {
+  "self.js": {
    "mech": "гранаты: закуп buyNades, дым и видимость smokeBlocks; бросок throwNade (подбор физикой nadeSolve); полёт — физика 3D (30.10): 385_nades_flight (nadeLaunch / nadeStep / nadeAim), луч кубиком m3NadeTrace (035), отчёт docs/reports/GRENADE_PHYSICS_IMPLEMENTATION.md; бросок смока с разбега runupTick (эта",
    "owns": [
     "nadeReact",
@@ -442,7 +442,7 @@
    ],
    "src": "таблица «Где что»"
   },
-  "420_nades_brains.js": {
+  "decide.js": {
    "mech": "гранаты: закуп buyNades, дым и видимость smokeBlocks; бросок throwNade (подбор физикой nadeSolve); полёт — физика 3D (30.10): 385_nades_flight (nadeLaunch / nadeStep / nadeAim), луч кубиком m3NadeTrace (035), отчёт docs/reports/GRENADE_PHYSICS_IMPLEMENTATION.md; бросок смока с разбега runupTick (эта",
    "owns": [
     "nadeBrains",
@@ -451,14 +451,14 @@
    ],
    "src": "таблица «Где что»"
   },
-  "430_fov_roam.js": {
+  "fov.js": {
    "mech": "оружие, боты makeTeam, роумер",
    "owns": [
     "updateRoamer"
    ],
    "src": "таблица «Где что»"
   },
-  "435_match_events.js": {
+  "journal.js": {
    "mech": "журнал матча (данные игры, с 17.11): строки консоли logEvent, войса voiceFeed / voiceKind, киллфида feedKill (+ знание о смерти, ассист, клатч clutchInfo) / feedBombKill / feedEvent, серия SERIES, решения команд TEAM_LOG, расписание писка бомбы bombBeepTick; события для показа — очередь SHOW_Q (show",
    "owns": [
     "bombBeepTick",
@@ -473,7 +473,7 @@
    ],
    "src": "таблица «Где что»"
   },
-  "440_voicepanel_console.js": {
+  "voice-console.js": {
    "mech": "панель войса и консоль (только показ): renderVoice, logRender, toggleConsole (по Ё)",
    "owns": [
     "logRender",
@@ -482,7 +482,7 @@
    ],
    "src": "таблица «Где что»"
   },
-  "450_combat_items_knife.js": {
+  "items.js": {
    "mech": "трассеры, свой на линии bulletVictim; выпадение при смерти dropWeaponOnDeath → groundWeapons / groundItems (itemPickupTick); нож knifeTick; подбор оружия",
    "owns": [
     "bulletVictim",
@@ -492,14 +492,14 @@
    ],
    "src": "таблица «Где что»"
   },
-  "460_sound_situations.js": {
+  "sound.js": {
    "mech": "звук emitSound, мелкие ситуации (пас бомбы, добить, смок уходит, ослеплён, пистолет)",
    "owns": [
     "emitSound"
    ],
    "src": "таблица «Где что»"
   },
-  "470_fight_cycle.js": {
+  "fight.js": {
    "mech": "движение в перестрелке (одно место): fightCycleTick — на линии (стрейф и контрстрейф fightStrafe, v390) → за укрытие fightCover → снова; числа PEEK_PRO, STRAFE_PRO; безопасная ротация, мало HP",
    "owns": [
     "fightCover",
@@ -508,14 +508,14 @@
    ],
    "src": "таблица «Где что»"
   },
-  "480_assist_flank_reload.js": {
+  "assist.js": {
    "mech": "дабл-пик, фланг, перезарядка updateReload",
    "owns": [
     "updateReload"
    ],
    "src": "таблица «Где что»"
   },
-  "490_shoot.js": {
+  "shoot.js": {
    "mech": "стрельба tryShoot (целится в видимое); ошибка прицела aimSigma, разброс shotSpread, «стрелять с ходу» FIRE_K/fireVAcc (v390)",
    "owns": [
     "aimSigma",
@@ -525,12 +525,12 @@
    ],
    "src": "таблица «Где что»"
   },
-  "495_highlights.js": {
+  "highlights.js": {
    "mech": "(v447, владелец 28.10) ХАЙЛАЙТЫ — «игрок в ударе» — одно место",
    "owns": [],
    "src": "шапка файла"
   },
-  "500_decide_afterkill_cover.js": {
+  "fight-state.js": {
    "mech": "режим боя (state: patrol / hold / engage / retreat) — одна точка записи fightState (v525), оценка decideAction; после фрага afterKillMove, findCover; оценка размена duelBalance / duelEval / duelOdds и конец перестрелки снаружи fcEnd — в 470_fight_cycle",
    "owns": [
     "afterKillMove",
@@ -542,7 +542,7 @@
    ],
    "src": "таблица «Где что»"
   },
-  "510_engagements.js": {
+  "engagements.js": {
    "mech": "перестрелки resolveEngagements — этапы: кто кого видит engSee (visParts) → цель engTarget → контакт и режим боя engDecide → отход engRetreatCheck → взгляд (275) → выстрелы engShoot; assignNewDestination",
    "owns": [
     "assignNewDestination",
@@ -555,7 +555,7 @@
    ],
    "src": "таблица «Где что»"
   },
-  "520_economy.js": {
+  "economy.js": {
    "mech": "экономика: decideRoundType0, buyForPlayer; что берут — доли про smgFor, PRO_PISTOL (tools/pro/buy_pro.py)",
    "owns": [
     "buyForPlayer",
@@ -564,7 +564,7 @@
    ],
    "src": "таблица «Где что»"
   },
-  "530_round_sides_match.js": {
+  "round.js": {
    "mech": "смена сторон и раунд: buyPhase, sideSwapNow, swapSides, freshMatch, endRound, resetRound",
    "owns": [
     "buyPhase",
@@ -576,7 +576,7 @@
    ],
    "src": "таблица «Где что»"
   },
-  "535_move_mode.js": {
+  "move.js": {
    "mech": "шагом / бегом / стоять (одно место, v522): moveWalkWhy (причина шага), moveRunWhy (отмена шага), moveWalkTick, целевая скорость moveSpeedTick; причины у бота _walkWhy / _runWhy / _stopWhy",
    "owns": [
     "movePath",
@@ -589,7 +589,7 @@
    ],
    "src": "таблица «Где что»"
   },
-  "540_step_tick.js": {
+  "tick.js": {
    "mech": "цикл stepTick (+ замирание, шаги, прыжки; звук приземления — одно место landSound, шаги на лестнице — v546)",
    "owns": [
     "landSound",
@@ -597,44 +597,44 @@
    ],
    "src": "таблица «Где что»"
   },
-  "545_problem_watch.js": {
+  "problem-watch.js": {
    "mech": "счёт ошибок движения (одно место, только наблюдает, v407): PROB / probTick — застрял (с причиной), перенос, перетягивание; слой «ошибки движения», сторож замера",
    "owns": [
     "probTick"
    ],
    "src": "таблица «Где что»"
   },
-  "550_render_nav_zone_tools.js": {
+  "nav-zones.js": {
    "mech": "рисование вспомогательного: навмеш/зоны (режимы редактирования); редактор лайнапов и форм зон",
    "owns": [],
    "src": "таблица «Где что»"
   },
-  "560_lineup_zone_editor.js": {
+  "lineup-editor.js": {
    "mech": "рисование вспомогательного: навмеш/зоны (режимы редактирования); редактор лайнапов и форм зон",
    "owns": [],
    "src": "таблица «Где что»"
   },
-  "570_maped_core_walls.js": {
+  "map-walls.js": {
    "mech": "редактор карты MAPED (вкладки, Ctrl+Z, база; стены); высоты; укрытия; прострелы",
    "owns": [],
    "src": "таблица «Где что»"
   },
-  "580_maped_heights.js": {
+  "map-heights.js": {
    "mech": "редактор карты MAPED (вкладки, Ctrl+Z, база; стены); высоты; укрытия; прострелы",
    "owns": [],
    "src": "таблица «Где что»"
   },
-  "590_maped_cover.js": {
+  "map-cover.js": {
    "mech": "редактор карты MAPED (вкладки, Ctrl+Z, база; стены); высоты; укрытия; прострелы",
    "owns": [],
    "src": "таблица «Где что»"
   },
-  "600_maped_wallbang.js": {
+  "map-wallbang.js": {
    "mech": "редактор карты MAPED (вкладки, Ctrl+Z, база; стены); высоты; укрытия; прострелы",
    "owns": [],
    "src": "таблица «Где что»"
   },
-  "610_vistool_lookdebug.js": {
+  "look-debug.js": {
    "mech": "проверка «кто кого видит» visToolDraw; разбор взгляда lookDbgPanel",
    "owns": [
     "lookDbgPanel",
@@ -642,19 +642,19 @@
    ],
    "src": "таблица «Где что»"
   },
-  "612_team_debug.js": {
+  "team.js": {
    "mech": "(v566, владелец 12.11: «как разбор взгляда — для закупов, расстановок, клатчей: почему так играют, зачем») разбор команды",
    "owns": [],
    "src": "шапка файла"
   },
-  "620_draw.js": {
+  "draw.js": {
    "mech": "рисование кадра draw",
    "owns": [
     "draw"
    ],
    "src": "таблица «Где что»"
   },
-  "625_view3d.js": {
+  "view3d.js": {
    "mech": "3D-вид (кнопка «3D», только показ, v571): D3, сцена d3Build (пол — навмеш, ящики — m3() до D3_CUT), кадр d3Frame, таблички d3Tag; своё WebGL2",
    "owns": [
     "d3Build",
@@ -663,7 +663,7 @@
    ],
    "src": "таблица «Где что»"
   },
-  "630_killfeed_banners_econ.js": {
+  "killfeed.js": {
    "mech": "киллфид — рисует renderFeed (иконки KF_ICON, затухание kfExpireTick), силуэты летящих гранат NADE_ICON / nadeImg, баннеры, карточка раунда, экономика на экране",
    "owns": [
     "kfExpireTick",
@@ -672,12 +672,12 @@
    ],
    "src": "таблица «Где что»"
   },
-  "635_hud_fx.js": {
+  "fx.js": {
    "mech": "(v430) движение HUD — одно место: масштаб HUD под окно, «прокрутка» чисел, вспышки",
    "owns": [],
    "src": "шапка файла"
   },
-  "640_scoreboard_players.js": {
+  "scoreboard.js": {
    "mech": "табло scoreboardUpdate, панели игроков playersUpdate",
    "owns": [
     "playersUpdate",
@@ -685,7 +685,7 @@
    ],
    "src": "таблица «Где что»"
   },
-  "645_decision_log.js": {
+  "trace.js": {
    "mech": "след решений (Р3.3) вне состояния игры: DLOG по номеру бота, dlog / dlogOf; инструмент why (tools/marks/why.js)",
    "owns": [
     "dlog",
@@ -694,24 +694,24 @@
    ],
    "src": "шапка файла"
   },
-  "650_marks_hook.js": {
+  "marks-hook.js": {
    "mech": "место вставки «Отметить момент» (@@BUILD@@)",
    "owns": [],
    "src": "таблица «Где что»"
   },
-  "660_warmup.js": {
+  "warmup.js": {
    "mech": "разминка warm*; автообсервер obs* (числа OBS_K, бой obsFight, слежка OBS.lock), мини-карта; повтор клатча rp* (запись rpRecord, клип rpBuild, эмоции rpEmotions, перейти к раунду rpGoto / #round=М.Р); звук snd*, разбор событий игры для показа showSync (звуки, баннеры, карточка раунда, закупка), главн",
    "owns": [],
    "src": "таблица «Где что»"
   },
-  "670_observer.js": {
+  "observer.js": {
    "mech": "разминка warm*; автообсервер obs* (числа OBS_K, бой obsFight, слежка OBS.lock), мини-карта; повтор клатча rp* (запись rpRecord, клип rpBuild, эмоции rpEmotions, перейти к раунду rpGoto / #round=М.Р); звук snd*, разбор событий игры для показа showSync (звуки, баннеры, карточка раунда, закупка), главн",
    "owns": [
     "obsFight"
    ],
    "src": "таблица «Где что»"
   },
-  "675_replay.js": {
+  "replay.js": {
    "mech": "разминка warm*; автообсервер obs* (числа OBS_K, бой obsFight, слежка OBS.lock), мини-карта; повтор клатча rp* (запись rpRecord, клип rpBuild, эмоции rpEmotions, перейти к раунду rpGoto / #round=М.Р); звук snd*, разбор событий игры для показа showSync (звуки, баннеры, карточка раунда, закупка), главн",
    "owns": [
     "rpBuild",
@@ -721,12 +721,12 @@
    ],
    "src": "таблица «Где что»"
   },
-  "676_timeout_show.js": {
+  "timeout.js": {
    "mech": "тактики T chooseTactic, память матча memSnapshot/memRestore/memStart, MEM_BOX, профиль соперника OPP.by; тактические паузы (v460): TOUT, timeoutCheck / timeoutWant, план тренера coachPlan, TO_NOW; показ паузы — 676_timeout_show (ts*)",
    "owns": [],
    "src": "таблица «Где что»"
   },
-  "677_sandbox.js": {
+  "sandbox.js": {
    "mech": "песочница (одно место, v536): SANDBOX, sbTick (часы стоят), sbPlace / sbRevive / sbRemove, панель sbRender / sbLogic; приказ sbGo",
    "owns": [
     "sbLogic",
@@ -738,12 +738,12 @@
    ],
    "src": "таблица «Где что»"
   },
-  "678_demo_view.js": {
+  "demo.js": {
    "mech": "(v571) РАУНД ИЗ ДЕМКИ («режим тени», В136) — одно место",
    "owns": [],
    "src": "шапка файла"
   },
-  "680_sound_frame_buttons.js": {
+  "app.js": {
    "mech": "разминка warm*; автообсервер obs* (числа OBS_K, бой obsFight, слежка OBS.lock), мини-карта; повтор клатча rp* (запись rpRecord, клип rpBuild, эмоции rpEmotions, перейти к раунду rpGoto / #round=М.Р); звук snd*, разбор событий игры для показа showSync (звуки, баннеры, карточка раунда, закупка), главн",
    "owns": [],
    "src": "таблица «Где что»"

@@ -6,13 +6,13 @@
 Как их получили: google/fonts (ofl/golostext, robotocondensed, ibmplexmono, ibmplexsans) →
 fontTools.varLib.instancer (оси wght 400–700, wdth 100) → pyftsubset --flavor=woff (набор знаков — UNICODES ниже).
 
-  python3 tools/page/embed_fonts.py   → src/game/001_fonts.html
+  python3 tools/page/embed_fonts.py   → view/page/fonts.html
 """
 import base64, os
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 FONTS = os.path.join(ROOT, 'src', 'fonts')
-OUT = os.path.join(ROOT, 'src', 'game', '001_fonts.html')
+OUT = os.path.join(ROOT, 'view', 'page', 'fonts.html')
 UNICODES = ('U+0020-007E,U+00A0-00FF,U+0400-045F,U+0490-0491,U+2010-2027,U+2030-203A,U+2116,U+2190-2199,'
             'U+2212,U+2022,U+25A0-25FF,U+2713-2716,U+2726,U+2605,U+2668,U+20BD,U+00D7')
 

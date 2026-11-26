@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""(v428) Доли гранат про по моменту раунда и зоне карты — для командного плана гранат (src/game/365_nade_plan.js).
+"""(v428) Доли гранат про по моменту раунда и зоне карты — для командного плана гранат (engine/nades/plan.js).
 
 python3 tools/map/nadeplan_bake.py [--map mirage]   →   data/maps/<карта>/nadeplan.json (в игре — MAP.nadeplan)
 

@@ -1,8 +1,8 @@
 // Перестройка, фаза 1: убрать вечные переключатели BAL (всегда одно значение, нигде не меняются) вместе с их условиями.
 // Разбор — acorn (AST), правки — по точным диапазонам исходника; игра не должна меняться (отпечаток бит в бит на ПК).
 // Запуск: NODE_PATH=/opt/node-tools/node_modules node tools/rebuild/bal_fold.js <ключи через запятую | all> [--keep=a,b]
-// Пишет: правки в src/game/*.js и src/marks.js, строки ключей в 080_bal.js — удаляет; реестр удалённого — rebuild/bal_removed.md
-// (описание ключа из 080_bal.js дословно, где стоял, и каждый выброшенный кусок кода дословно — ничего не теряется).
+// Пишет: правки в src/game/*.js и src/marks.js, строки ключей в tuning.js — удаляет; реестр удалённого — rebuild/bal_removed.md
+// (описание ключа из tuning.js дословно, где стоял, и каждый выброшенный кусок кода дословно — ничего не теряется).
 // Сворачивает только то, что не меняет значения: `true && X` → X, `false || X` → X, `!true` → false, `T ? A : B` → A,
 // `if(true) S` → S, `if(false) S else E` → E; `X && true` / `X || false` — только там, где важна лишь истинность (условие).
 // Остальное (`false && X`, `X && false`, `X || true` — может пропасть вызов в X) не трогает и печатает списком «вручную».
@@ -13,8 +13,8 @@ const GS = require("./game_src.js"), GAME = GS.GAME;   // (Р4.2а) файлы �
 const args = process.argv.slice(2);
 const keep = new Set(((args.find(a => a.startsWith("--keep=")) || "--keep=").slice(7)).split(",").filter(Boolean));
 
-// ---- значения BAL из 080_bal.js
-const balSrc = fs.readFileSync(GS.gamePath("080_bal.js"), "utf8");
+// ---- значения BAL из tuning.js
+const balSrc = fs.readFileSync(GS.gamePath("tuning.js"), "utf8");
 const balAst = acorn.parse(balSrc, { ecmaVersion: "latest", ranges: true, locations: true, onComment: [] });
 let balObj = null;
 for (const st of balAst.body) if (st.type === "VariableDeclaration" && st.declarations[0].id.name === "BAL") balObj = st.declarations[0].init;
@@ -158,8 +158,8 @@ for (const f of files) {
   if (n) fs.writeFileSync(f, src);
 }
 
-// ---- 080_bal.js: убрать ключи из объекта (описание — в реестр)
-let bs = fs.readFileSync(GS.gamePath("080_bal.js"), "utf8");
+// ---- tuning.js: убрать ключи из объекта (описание — в реестр)
+let bs = fs.readFileSync(GS.gamePath("tuning.js"), "utf8");
 const desc = {};
 {
   const ast = parse(bs); let obj = null;
@@ -182,13 +182,13 @@ const desc = {};
   });
   cuts.sort((a, b) => b.s - a.s).forEach(c => { bs = bs.slice(0, c.s) + bs.slice(c.e); });
 }
-fs.writeFileSync(GS.gamePath("080_bal.js"), bs);
+fs.writeFileSync(GS.gamePath("tuning.js"), bs);
 
 // ---- реестр
 const R = path.join(ROOT, "rebuild", "bal_removed.md");
 let out = fs.existsSync(R) ? fs.readFileSync(R, "utf8") : "# Убранные вечные переключатели BAL (перестройка, фаза 1)\n\n" +
   "Каждый ключ всегда имел одно значение и нигде не менялся; условия с ним свёрнуты (`tools/rebuild/bal_fold.js`), игра та же " +
-  "(отпечаток на ПК). Здесь — описание ключа из `080_bal.js` дословно, где он стоял (файл:строка до свёртки) и выброшенные ветки " +
+  "(отпечаток на ПК). Здесь — описание ключа из `tuning.js` дословно, где он стоял (файл:строка до свёртки) и выброшенные ветки " +
   "дословно (старое поведение до версии ключа). Решения отсюда переходят в реестр решений фазы 2.\n";
 for (const k of keys) {
   out += "\n## `BAL." + k + "` = " + BALV[k] + "\n" + (desc[k] ? "Описание: " + desc[k] + "\n" : "") + "Где стоял: " + ((report[k] || []).join(", ") || "нигде (не использовался)") + "\n";

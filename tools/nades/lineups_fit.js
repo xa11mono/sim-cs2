@@ -1,5 +1,5 @@
 // В4 (21.10.2026): записанные лайнапы про (lineups.json → pro / proExtra → throws[], tools/nades/lineups_rec.py) — сила броска
-// (1 ЛКМ, 0,5 обе, 0 ПКМ) и прыжок на бинде, которых в демке не видно: подбираются физикой игры (src/game/385_nades_flight.js) на
+// (1 ЛКМ, 0,5 обе, 0 ПКМ) и прыжок на бинде, которых в демке не видно: подбираются физикой игры (engine/nades/flight.js) на
 // геометрии игры (map3d.json) — та сила / прыжок, при которых записанные броски варианта ложатся ближе всего к своим разрывам у про.
 // Пишет в вариант: s (сила), j (прыжок на бинде), ok (доля его бросков, которые физика кладёт туда же, где у про: место ≤ N ед.,
 // время ≤ M с — пороги В2), e50 (медиана ошибки, ед.). И печатает проверку «без матчей» — по типам.
@@ -8,14 +8,14 @@
 require('../dmath/global.js');   // (Р2.3) DM — общая математика игры (файлы игры зовут DM.*)
 const fs = require('fs'), path = require('path');
 const ROOT = path.join(__dirname, '..', '..');
-const NP = require(path.join(ROOT, 'src', 'game', '385_nades_flight.js')), P = NP.NADE_P;
+const NP = require(path.join(ROOT, 'engine', 'nades', 'flight.js')), P = NP.NADE_P;
 const map = process.argv[2];
 const W = require('./world.js').load(map);
 const FL = path.join(ROOT, 'data', 'maps', map, 'lineups.json');
 const LJ = JSON.parse(fs.readFileSync(FL, 'utf8'));
 const N = 32, M = 0.25;
 const PT = { molly: 'molotov' };
-// бросок записи так, как его кинет бот в игре (src/game/380_nades_throw.js: nadeRecThrow — задержка вылета SPAWN модуля)
+// бросок записи так, как его кинет бот в игре (engine/nades/throw.js: nadeRecThrow — задержка вылета SPAWN модуля)
 function sim(type, r, s, j, duck) {
   return NP.nadeThrow({ type: PT[type] || type, pos: r.p, yaw: r.yaw, pitch: r.pitch, vel: r.vel, duck: !!duck, strength: s, jump: j }, W.trace);
 }

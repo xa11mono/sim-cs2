@@ -1,4 +1,4 @@
-// (Р2.2, 25.11: игровой src/game/005_dmath.ts через tools/dmath/dmath.js; эталон pow — pow_js, hypot — hypot_v8 / hypot3_v8, плюс
+// (Р2.2, 25.11: игровой engine/core/dmath.ts через tools/dmath/dmath.js; эталон pow — pow_js, hypot — hypot_v8 / hypot3_v8, плюс
 // hypot = Math.hypot Node (V8) и контракт JS: особые значения, знак, NaN — как у Math) (Р0.12, 24.11) Проверка прототипа dmath: каждая функция против Rust libm 0.2.16 (tools/dmath/ref, нативно) — бит в бит на
 // (1) случайных входах в диапазонах игры, (2) случайных битах по всему диапазону double, (3) граничных значениях (и всех их парах),
 // (4) корпусе реальных аргументов из матчей (--corpus=файл, пишет tools/dmath/corpus.js). Плюс: где JS Math этой среды отличается от libm

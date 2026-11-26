@@ -19,12 +19,12 @@ const TRUTH = new Set(['x', 'y', 'z', 'baseX', 'baseY', 'hp', 'armor', 'armorHp'
 const IT = new Set(['forEach', 'filter', 'some', 'find', 'map', 'every', 'reduce', 'findIndex']);
 // восприятие и движок: читают истину по должности (файл:функция или файл целиком)
 const PERCEPTION = {
-  '510': ['engSee'],                                        // кто кого видит
-  '540': ['stepTick'],                                      // движок: столкновения, шаги
-  '400': ['nadeOrigin', 'detonate'],                        // физика гранат: кого задело
-  '120': ['defuseSound', 'bombTick'],                       // источник звука (кто слышит — hearReal)
-  '450': ['itemPickupTick'],                                // подбор: кто стоит на предмете
-  '520': ['payRoundEconomy']                                // экономика: начисление по правилам
+  'engagements': ['engSee'],                                        // кто кого видит
+  'tick': ['stepTick'],                                      // движок: столкновения, шаги
+  'damage': ['nadeOrigin', 'detonate'],                        // физика гранат: кого задело
+  'bomb': ['defuseSound', 'bombTick'],                       // источник звука (кто слышит — hearReal)
+  'items': ['itemPickupTick'],                                // подбор: кто стоит на предмете
+  'economy': ['payRoundEconomy']                                // экономика: начисление по правилам
 };
 // хозяева решений и записи бота: элемент, переданный им первым аргументом, — действующий
 const ACTOR_FN = /^(setPost|setPostR|clearPost|assignNade|assignNadeR|nadeCancel|fightState|fightReset|fightHoldOff|movePath|moveWalk|moveSpeed|lookFace|lookTurnBy|placeStance|dlog|voiceLog|noteMistake|startRoute|fcEnd|knowCall|teamNotice|throwNade|selfNade|stagePost)$/;
@@ -171,7 +171,7 @@ function teamBotReads() {
 }
 const key = s => SRC.fileId(s.file) + ':' + s.fn + ':' + s.props.join(',');
 // (Р3.2 знание, шаг 2) KnowledgeView только для чтения: запись в знание команды (beliefLast, в т. ч. через kvLast(…)) — только у хозяев
-const KNOW_OWNERS = { beliefLast: ['190', '200', '240'] };
+const KNOW_OWNERS = { beliefLast: ['intel', 'reach', 'belief'] };
 function knowWrites() {
   const bad = [];
   for (const f of SRC.gameFiles().filter(f => /\.(js|ts)$/.test(f))) { const num = SRC.fileId(f); let ast;

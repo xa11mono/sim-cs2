@@ -1,4 +1,4 @@
-// (v421) Проверка взглядов расстановок CT набора карты (MAP.tactics.ctSetups) — той же логикой, что в игре (140_named_spots_ct_setup.js:
+// (v421) Проверка взглядов расстановок CT набора карты (MAP.tactics.ctSetups) — той же логикой, что в игре (ct-setup.js:
 // место роли = pickSpots у zonePoint(pos), точка взгляда = lookPt из демок или zonePoint(look); видимость — hasLOS, 3D, без дыма).
 // Только наблюдает: игру и набор карты не меняет. Вызывается шагом checklooks из tools/map/map_build.py, можно и отдельно:
 //   node tools/ct/ct_look_check.js sim.html out.json

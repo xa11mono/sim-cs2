@@ -7,7 +7,7 @@ const vm = require('node:vm');
 
 const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
-const prob = read('src/game/545_problem_watch.js');
+const prob = read('engine/debug/problem-watch.js');
 const watch = read('tools/measure/audit/watch.js');
 const inv = read('tools/measure/invariants.js');
 const cases = [];

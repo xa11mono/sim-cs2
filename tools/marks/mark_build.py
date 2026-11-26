@@ -34,15 +34,23 @@ def strip_ts(data):
 
 def src_hash(commit):
     """Отпечаток исходника игры коммита — так же, как src/marks_build.py inject (game_source() + module_source())."""
-    names = [l.split('\t', 1)[1] for l in git('ls-tree', commit, 'src/game/').splitlines() if '\t' in l]
-    files = sorted(os.path.basename(n) for n in names if n.endswith(('.html', '.js', '.ts')))
     try: mods = json.loads(git('show', '%s:rebuild/modules.json' % commit)).get('modules', [])
     except Exception: mods = []
+    # (Р4.2, 26.11) после переименования файлы игры — в каталогах engine/ и view/ по списку rebuild/files.json (порядок и каталог — оттуда,
+    # модули — в порядке списка, Р4.1); до него — src/game/ по порядку имён
+    try: G = json.loads(git('show', '%s:rebuild/files.json' % commit)).get('game')
+    except Exception: G = None
+    if G and any(g.get('dir', 'src/game') != 'src/game' for g in G):
+        where = {g['file']: g['dir'] for g in G}; files = [g['file'] for g in G]; mod_order = [f for f in files if f in mods]
+    else:
+        names = [l.split('\t', 1)[1] for l in git('ls-tree', commit, 'src/game/').splitlines() if '\t' in l]
+        files = sorted(os.path.basename(n) for n in names if n.endswith(('.html', '.js', '.ts')))
+        where = {f: 'src/game' for f in files}; mod_order = sorted(mods)
     def read(f):
-        b = git('show', '%s:src/game/%s' % (commit, f), binary=True)
+        b = git('show', '%s:%s/%s' % (commit, where[f], f), binary=True)
         return strip_ts(b) if f.endswith('.ts') else b
     game = b''.join(('/*@@MODINIT %s@@*/\n' % f).encode('utf-8') if f in mods else read(f) for f in files)
-    mod = b''.join(read(f) for f in sorted(mods))
+    mod = b''.join(read(f) for f in mod_order)
     return hashlib.sha256(game + mod).hexdigest()[:16]
 
 
@@ -52,7 +60,7 @@ def find(src, depth):
         if src in idx: return idx[src]['commit']
     except Exception: pass
     seen = set()
-    for c in git('log', '--all', '--format=%H', '-n', str(depth), '--', 'src/game', 'rebuild/modules.json').split():
+    for c in git('log', '--all', '--format=%H', '-n', str(depth), '--', 'src/game', 'engine', 'view', 'rebuild/modules.json', 'rebuild/files.json').split():
         if c in seen: continue
         seen.add(c)
         try:

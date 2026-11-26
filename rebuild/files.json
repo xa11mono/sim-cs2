@@ -1,739 +1,830 @@
 {
- "_": "Согласованные файлы игры (src/game). Новый файл — только с согласием владельца: сначала строка сюда и в docs/ARCHITECTURE.md; иначе сборка падает (tools/rebuild/gen_maps.js --check). Функцию — в файл своей механики (CLAUDE.md §7).",
+ "_": "Согласованные файлы игры (engine/, view/). Новый файл — только с согласием владельца: сначала строка сюда и в docs/ARCHITECTURE.md; иначе сборка падает (tools/rebuild/gen_maps.js --check). Функцию — в файл своей механики (CLAUDE.md §7).",
  "files": [
-  "000_head.html",
-  "001_fonts.html",
-  "002_style.html",
-  "004_markup.html",
-  "005_dmath.ts",
-  "010_map_zones_warp.js",
-  "020_map_navmesh_autowalls.js",
-  "030_map_walls_heights_cover_wallbang.js",
-  "035_map3d.js",
-  "040_visibility.js",
-  "050_nav_rebuild_paths.js",
-  "060_zone_danger_user_zones.js",
-  "070_weapons_bots_roam.js",
-  "080_bal.js",
-  "090_profiles_teams.js",
-  "100_sites_spots.js",
-  "110_post_routes.js",
-  "120_bomb.js",
-  "130_tactics_match_adapt.js",
-  "140_named_spots_ct_setup.js",
-  "150_lurker_probes_clear.js",
-  "160_igl_replan.js",
-  "170_tbrain.js",
-  "180_save_retake.js",
-  "190_team_intel_lkp_calls.js",
-  "200_belief_reach.js",
-  "210_know_hyp.js",
-  "220_know_events_tick.js",
-  "230_team_voice.js",
-  "240_belief_tick.js",
-  "250_look_prepeek_corners.js",
-  "260_look_threat.js",
-  "270_look_plan_smooth.js",
-  "275_look_turn.ts",
-  "280_pos_pref_hold.js",
-  "290_smoke_react.js",
-  "300_roles_fallback_rebalance.js",
-  "310_pro_positions.js",
-  "320_pro_lineups_ct_early.js",
-  "330_endgame_smoke_push.js",
-  "340_ctbrain.js",
-  "350_contact_reaction.js",
-  "360_nades_buy_smoke_vision.js",
-  "365_nade_plan.js",
-  "366_exec_sync.js",
-  "370_fire_nav_levels_ladders.js",
-  "380_nades_throw.js",
-  "385_nades_flight.js",
-  "390_nades_lineups.js",
-  "400_nades_physics_damage.js",
-  "410_nades_tactical_self.js",
-  "420_nades_brains.js",
-  "430_fov_roam.js",
-  "435_match_events.js",
-  "440_voicepanel_console.js",
-  "450_combat_items_knife.js",
-  "460_sound_situations.js",
-  "470_fight_cycle.js",
-  "480_assist_flank_reload.js",
-  "490_shoot.js",
-  "495_highlights.js",
-  "500_decide_afterkill_cover.js",
-  "510_engagements.js",
-  "520_economy.js",
-  "530_round_sides_match.js",
-  "535_move_mode.js",
-  "540_step_tick.js",
-  "545_problem_watch.js",
-  "550_render_nav_zone_tools.js",
-  "560_lineup_zone_editor.js",
-  "570_maped_core_walls.js",
-  "580_maped_heights.js",
-  "590_maped_cover.js",
-  "600_maped_wallbang.js",
-  "610_vistool_lookdebug.js",
-  "612_team_debug.js",
-  "620_draw.js",
-  "625_view3d.js",
-  "630_killfeed_banners_econ.js",
-  "635_hud_fx.js",
-  "640_scoreboard_players.js",
-  "645_decision_log.js",
-  "650_marks_hook.js",
-  "660_warmup.js",
-  "670_observer.js",
-  "675_replay.js",
-  "676_timeout_show.js",
-  "677_sandbox.js",
-  "678_demo_view.js",
-  "680_sound_frame_buttons.js",
-  "990_tail.html"
+  "head.html",
+  "fonts.html",
+  "style.html",
+  "markup.html",
+  "dmath.ts",
+  "zones.js",
+  "navmesh.js",
+  "walls-heights-cover.js",
+  "geometry3d.js",
+  "vision.js",
+  "paths.js",
+  "zone-danger.js",
+  "weapons-bots.js",
+  "tuning.js",
+  "rosters.js",
+  "sites-spots.js",
+  "task.js",
+  "bomb.js",
+  "tactics.js",
+  "ct-setup.js",
+  "lurker.js",
+  "igl.js",
+  "brain-t.js",
+  "save-retake.js",
+  "intel.js",
+  "reach.js",
+  "knowledge.js",
+  "events.js",
+  "voice.js",
+  "belief.js",
+  "look-peek.js",
+  "look-threat.js",
+  "look.js",
+  "turn.ts",
+  "position.js",
+  "smoke-react.js",
+  "roles.js",
+  "pro-positions.js",
+  "ct-early.js",
+  "endgame.js",
+  "brain-ct.js",
+  "contact.js",
+  "smoke.js",
+  "plan.js",
+  "exec-sync.js",
+  "levels.js",
+  "throw.js",
+  "flight.js",
+  "lineups.js",
+  "damage.js",
+  "self.js",
+  "decide.js",
+  "fov.js",
+  "journal.js",
+  "voice-console.js",
+  "items.js",
+  "sound.js",
+  "fight.js",
+  "assist.js",
+  "shoot.js",
+  "highlights.js",
+  "fight-state.js",
+  "engagements.js",
+  "economy.js",
+  "round.js",
+  "move.js",
+  "tick.js",
+  "problem-watch.js",
+  "nav-zones.js",
+  "lineup-editor.js",
+  "map-walls.js",
+  "map-heights.js",
+  "map-cover.js",
+  "map-wallbang.js",
+  "look-debug.js",
+  "team.js",
+  "draw.js",
+  "view3d.js",
+  "killfeed.js",
+  "fx.js",
+  "scoreboard.js",
+  "trace.js",
+  "marks-hook.js",
+  "warmup.js",
+  "observer.js",
+  "replay.js",
+  "timeout.js",
+  "sandbox.js",
+  "demo.js",
+  "app.js",
+  "tail.html"
  ],
  "game": [
   {
-   "file": "000_head.html",
-   "id": "000",
+   "file": "head.html",
+   "id": "head",
    "part": "page",
    "sys": "разметка",
-   "dir": "src/game"
+   "dir": "view/page",
+   "legacy": "000"
   },
   {
-   "file": "001_fonts.html",
-   "id": "001",
+   "file": "fonts.html",
+   "id": "fonts",
    "part": "page",
    "sys": "разметка",
-   "dir": "src/game"
+   "dir": "view/page",
+   "legacy": "001"
   },
   {
-   "file": "002_style.html",
-   "id": "002",
+   "file": "style.html",
+   "id": "style",
    "part": "page",
    "sys": "разметка",
-   "dir": "src/game"
+   "dir": "view/page",
+   "legacy": "002"
   },
   {
-   "file": "004_markup.html",
-   "id": "004",
+   "file": "markup.html",
+   "id": "markup",
    "part": "page",
    "sys": "разметка",
-   "dir": "src/game"
+   "dir": "view/page",
+   "legacy": "004"
   },
   {
-   "file": "005_dmath.ts",
-   "id": "005",
+   "file": "dmath.ts",
+   "id": "dmath",
    "part": "math",
    "sys": "разметка",
-   "dir": "src/game"
+   "dir": "engine/core",
+   "legacy": "005"
   },
   {
-   "file": "010_map_zones_warp.js",
-   "id": "010",
+   "file": "zones.js",
+   "id": "zones",
    "part": "infra",
    "sys": "карта и видимость",
-   "dir": "src/game"
+   "dir": "engine/map",
+   "legacy": "010"
   },
   {
-   "file": "020_map_navmesh_autowalls.js",
-   "id": "020",
+   "file": "navmesh.js",
+   "id": "navmesh",
    "part": "infra",
    "sys": "карта и видимость",
-   "dir": "src/game"
+   "dir": "engine/nav",
+   "legacy": "020"
   },
   {
-   "file": "030_map_walls_heights_cover_wallbang.js",
-   "id": "030",
+   "file": "walls-heights-cover.js",
+   "id": "walls-heights-cover",
    "part": "infra",
    "sys": "карта и видимость",
-   "dir": "src/game"
+   "dir": "engine/map",
+   "legacy": "030"
   },
   {
-   "file": "035_map3d.js",
-   "id": "035",
+   "file": "geometry3d.js",
+   "id": "geometry3d",
    "part": "infra",
    "sys": "карта и видимость",
-   "dir": "src/game"
+   "dir": "engine/map",
+   "legacy": "035"
   },
   {
-   "file": "040_visibility.js",
-   "id": "040",
+   "file": "vision.js",
+   "id": "vision",
    "part": "infra",
    "sys": "карта и видимость",
-   "dir": "src/game"
+   "dir": "engine/sense",
+   "legacy": "040"
   },
   {
-   "file": "050_nav_rebuild_paths.js",
-   "id": "050",
+   "file": "paths.js",
+   "id": "paths",
    "part": "infra",
    "sys": "карта и видимость",
-   "dir": "src/game"
+   "dir": "engine/nav",
+   "legacy": "050"
   },
   {
-   "file": "060_zone_danger_user_zones.js",
-   "id": "060",
+   "file": "zone-danger.js",
+   "id": "zone-danger",
    "part": "infra",
    "sys": "зоны",
-   "dir": "src/game"
+   "dir": "engine/map",
+   "legacy": "060"
   },
   {
-   "file": "070_weapons_bots_roam.js",
-   "id": "070",
+   "file": "weapons-bots.js",
+   "id": "weapons-bots",
    "part": "infra",
    "sys": "боты, оружие",
-   "dir": "src/game"
+   "dir": "engine/match",
+   "legacy": "070"
   },
   {
-   "file": "080_bal.js",
-   "id": "080",
+   "file": "tuning.js",
+   "id": "tuning",
    "part": "infra",
    "sys": "числа BAL",
-   "dir": "src/game"
+   "dir": "engine/core",
+   "legacy": "080"
   },
   {
-   "file": "090_profiles_teams.js",
-   "id": "090",
+   "file": "rosters.js",
+   "id": "rosters",
    "part": "infra",
    "sys": "игроки, команды",
-   "dir": "src/game"
+   "dir": "engine/team",
+   "legacy": "090"
   },
   {
-   "file": "100_sites_spots.js",
-   "id": "100",
+   "file": "sites-spots.js",
+   "id": "sites-spots",
    "part": "decide",
    "sys": "место",
-   "dir": "src/game"
+   "dir": "engine/map",
+   "legacy": "100"
   },
   {
-   "file": "110_post_routes.js",
-   "id": "110",
+   "file": "task.js",
+   "id": "task",
    "part": "decide",
    "sys": "место",
-   "dir": "src/game"
+   "dir": "engine/bot",
+   "legacy": "110"
   },
   {
-   "file": "120_bomb.js",
-   "id": "120",
+   "file": "bomb.js",
+   "id": "bomb",
    "part": "decide",
    "sys": "бомба",
-   "dir": "src/game"
+   "dir": "engine/match",
+   "legacy": "120"
   },
   {
-   "file": "130_tactics_match_adapt.js",
-   "id": "130",
+   "file": "tactics.js",
+   "id": "tactics",
    "part": "decide",
    "sys": "тактики T, память матча",
-   "dir": "src/game"
+   "dir": "engine/team",
+   "legacy": "130"
   },
   {
-   "file": "140_named_spots_ct_setup.js",
-   "id": "140",
+   "file": "ct-setup.js",
+   "id": "ct-setup",
    "part": "decide",
    "sys": "место",
-   "dir": "src/game"
+   "dir": "engine/team",
+   "legacy": "140"
   },
   {
-   "file": "150_lurker_probes_clear.js",
-   "id": "150",
+   "file": "lurker.js",
+   "id": "lurker",
    "part": "decide",
    "sys": "тактики T",
-   "dir": "src/game"
+   "dir": "engine/team",
+   "legacy": "150"
   },
   {
-   "file": "160_igl_replan.js",
-   "id": "160",
+   "file": "igl.js",
+   "id": "igl",
    "part": "decide",
    "sys": "тактики T",
-   "dir": "src/game"
+   "dir": "engine/team",
+   "legacy": "160"
   },
   {
-   "file": "170_tbrain.js",
-   "id": "170",
+   "file": "brain-t.js",
+   "id": "brain-t",
    "part": "decide",
    "sys": "мозг T",
-   "dir": "src/game"
+   "dir": "engine/bot",
+   "legacy": "170"
   },
   {
-   "file": "180_save_retake.js",
-   "id": "180",
+   "file": "save-retake.js",
+   "id": "save-retake",
    "part": "decide",
    "sys": "сейв, ретейк",
-   "dir": "src/game"
+   "dir": "engine/team",
+   "legacy": "180"
   },
   {
-   "file": "190_team_intel_lkp_calls.js",
-   "id": "190",
+   "file": "intel.js",
+   "id": "intel",
    "part": "decide",
    "sys": "знание и войс",
-   "dir": "src/game"
+   "dir": "engine/know",
+   "legacy": "190"
   },
   {
-   "file": "200_belief_reach.js",
-   "id": "200",
+   "file": "reach.js",
+   "id": "reach",
    "part": "decide",
    "sys": "знание и войс",
-   "dir": "src/game"
+   "dir": "engine/know",
+   "legacy": "200"
   },
   {
-   "file": "210_know_hyp.js",
-   "id": "210",
+   "file": "knowledge.js",
+   "id": "knowledge",
    "part": "decide",
    "sys": "знание и войс",
-   "dir": "src/game"
+   "dir": "engine/know",
+   "legacy": "210"
   },
   {
-   "file": "220_know_events_tick.js",
-   "id": "220",
+   "file": "events.js",
+   "id": "events",
    "part": "decide",
    "sys": "знание и войс",
-   "dir": "src/game"
+   "dir": "engine/know",
+   "legacy": "220"
   },
   {
-   "file": "230_team_voice.js",
-   "id": "230",
+   "file": "voice.js",
+   "id": "voice",
    "part": "decide",
    "sys": "знание и войс",
-   "dir": "src/game"
+   "dir": "engine/know",
+   "legacy": "230"
   },
   {
-   "file": "240_belief_tick.js",
-   "id": "240",
+   "file": "belief.js",
+   "id": "belief",
    "part": "decide",
    "sys": "знание и войс",
-   "dir": "src/game"
+   "dir": "engine/know",
+   "legacy": "240"
   },
   {
-   "file": "250_look_prepeek_corners.js",
-   "id": "250",
+   "file": "look-peek.js",
+   "id": "look-peek",
    "part": "decide",
    "sys": "взгляд",
-   "dir": "src/game"
+   "dir": "engine/bot",
+   "legacy": "250"
   },
   {
-   "file": "260_look_threat.js",
-   "id": "260",
+   "file": "look-threat.js",
+   "id": "look-threat",
    "part": "decide",
    "sys": "взгляд",
-   "dir": "src/game"
+   "dir": "engine/bot",
+   "legacy": "260"
   },
   {
-   "file": "270_look_plan_smooth.js",
-   "id": "270",
+   "file": "look.js",
+   "id": "look",
    "part": "decide",
    "sys": "взгляд",
-   "dir": "src/game"
+   "dir": "engine/bot",
+   "legacy": "270"
   },
   {
-   "file": "275_look_turn.ts",
-   "id": "275",
+   "file": "turn.ts",
+   "id": "turn",
    "part": "decide",
    "sys": "взгляд",
-   "dir": "src/game"
+   "dir": "engine/bot",
+   "legacy": "275"
   },
   {
-   "file": "280_pos_pref_hold.js",
-   "id": "280",
+   "file": "position.js",
+   "id": "position",
    "part": "decide",
    "sys": "место",
-   "dir": "src/game"
+   "dir": "engine/bot",
+   "legacy": "280"
   },
   {
-   "file": "290_smoke_react.js",
-   "id": "290",
+   "file": "smoke-react.js",
+   "id": "smoke-react",
    "part": "decide",
    "sys": "смоки",
-   "dir": "src/game"
+   "dir": "engine/nades",
+   "legacy": "290"
   },
   {
-   "file": "300_roles_fallback_rebalance.js",
-   "id": "300",
+   "file": "roles.js",
+   "id": "roles",
    "part": "decide",
    "sys": "роли, про-позиции",
-   "dir": "src/game"
+   "dir": "engine/team",
+   "legacy": "300"
   },
   {
-   "file": "310_pro_positions.js",
-   "id": "310",
+   "file": "pro-positions.js",
+   "id": "pro-positions",
    "part": "decide",
    "sys": "роли, про-позиции",
-   "dir": "src/game"
+   "dir": "engine/team",
+   "legacy": "310"
   },
   {
-   "file": "320_pro_lineups_ct_early.js",
-   "id": "320",
+   "file": "ct-early.js",
+   "id": "ct-early",
    "part": "decide",
    "sys": "эндгейм, клатч, ранний пик",
-   "dir": "src/game"
+   "dir": "engine/team",
+   "legacy": "320"
   },
   {
-   "file": "330_endgame_smoke_push.js",
-   "id": "330",
+   "file": "endgame.js",
+   "id": "endgame",
    "part": "decide",
    "sys": "эндгейм, клатч, ранний пик",
-   "dir": "src/game"
+   "dir": "engine/team",
+   "legacy": "330"
   },
   {
-   "file": "340_ctbrain.js",
-   "id": "340",
+   "file": "brain-ct.js",
+   "id": "brain-ct",
    "part": "decide",
    "sys": "мозг CT",
-   "dir": "src/game"
+   "dir": "engine/bot",
+   "legacy": "340"
   },
   {
-   "file": "350_contact_reaction.js",
-   "id": "350",
+   "file": "contact.js",
+   "id": "contact",
    "part": "decide",
    "sys": "реакция на контакт",
-   "dir": "src/game"
+   "dir": "engine/bot",
+   "legacy": "350"
   },
   {
-   "file": "360_nades_buy_smoke_vision.js",
-   "id": "360",
+   "file": "smoke.js",
+   "id": "smoke",
    "part": "decide",
    "sys": "гранаты",
-   "dir": "src/game"
+   "dir": "engine/nades",
+   "legacy": "360"
   },
   {
-   "file": "365_nade_plan.js",
-   "id": "365",
+   "file": "plan.js",
+   "id": "plan",
    "part": "decide",
    "sys": "гранаты",
-   "dir": "src/game"
+   "dir": "engine/nades",
+   "legacy": "365"
   },
   {
-   "file": "366_exec_sync.js",
-   "id": "366",
+   "file": "exec-sync.js",
+   "id": "exec-sync",
    "part": "decide",
    "sys": "гранаты",
-   "dir": "src/game"
+   "dir": "engine/nades",
+   "legacy": "366"
   },
   {
-   "file": "370_fire_nav_levels_ladders.js",
-   "id": "370",
+   "file": "levels.js",
+   "id": "levels",
    "part": "decide",
    "sys": "ход (уровни, лестницы, огонь)",
-   "dir": "src/game"
+   "dir": "engine/nav",
+   "legacy": "370"
   },
   {
-   "file": "380_nades_throw.js",
-   "id": "380",
+   "file": "throw.js",
+   "id": "throw",
    "part": "decide",
    "sys": "гранаты",
-   "dir": "src/game"
+   "dir": "engine/nades",
+   "legacy": "380"
   },
   {
-   "file": "385_nades_flight.js",
-   "id": "385",
+   "file": "flight.js",
+   "id": "flight",
    "part": "decide",
    "sys": "гранаты",
-   "dir": "src/game"
+   "dir": "engine/nades",
+   "legacy": "385"
   },
   {
-   "file": "390_nades_lineups.js",
-   "id": "390",
+   "file": "lineups.js",
+   "id": "lineups",
    "part": "decide",
    "sys": "гранаты",
-   "dir": "src/game"
+   "dir": "engine/nades",
+   "legacy": "390"
   },
   {
-   "file": "400_nades_physics_damage.js",
-   "id": "400",
+   "file": "damage.js",
+   "id": "damage",
    "part": "decide",
    "sys": "гранаты",
-   "dir": "src/game"
+   "dir": "engine/match",
+   "legacy": "400"
   },
   {
-   "file": "410_nades_tactical_self.js",
-   "id": "410",
+   "file": "self.js",
+   "id": "self",
    "part": "decide",
    "sys": "гранаты",
-   "dir": "src/game"
+   "dir": "engine/nades",
+   "legacy": "410"
   },
   {
-   "file": "420_nades_brains.js",
-   "id": "420",
+   "file": "decide.js",
+   "id": "decide",
    "part": "decide",
    "sys": "гранаты",
-   "dir": "src/game"
+   "dir": "engine/nades",
+   "legacy": "420"
   },
   {
-   "file": "430_fov_roam.js",
-   "id": "430",
+   "file": "fov.js",
+   "id": "fov",
    "part": "decide",
    "sys": "взгляд",
-   "dir": "src/game"
+   "dir": "engine/sense",
+   "legacy": "430"
   },
   {
-   "file": "435_match_events.js",
-   "id": "435",
+   "file": "journal.js",
+   "id": "journal",
    "part": "decide",
    "sys": "взгляд",
-   "dir": "src/game"
+   "dir": "engine/match",
+   "legacy": "435"
   },
   {
-   "file": "440_voicepanel_console.js",
-   "id": "440",
+   "file": "voice-console.js",
+   "id": "voice-console",
    "part": "decide",
    "sys": "показ",
-   "dir": "src/game"
+   "dir": "view/hud",
+   "legacy": "440"
   },
   {
-   "file": "450_combat_items_knife.js",
-   "id": "450",
+   "file": "items.js",
+   "id": "items",
    "part": "decide",
    "sys": "бой",
-   "dir": "src/game"
+   "dir": "engine/match",
+   "legacy": "450"
   },
   {
-   "file": "460_sound_situations.js",
-   "id": "460",
+   "file": "sound.js",
+   "id": "sound",
    "part": "decide",
    "sys": "звук и ситуации",
-   "dir": "src/game"
+   "dir": "engine/sense",
+   "legacy": "460"
   },
   {
-   "file": "470_fight_cycle.js",
-   "id": "470",
+   "file": "fight.js",
+   "id": "fight",
    "part": "decide",
    "sys": "бой",
-   "dir": "src/game"
+   "dir": "engine/bot",
+   "legacy": "470"
   },
   {
-   "file": "480_assist_flank_reload.js",
-   "id": "480",
+   "file": "assist.js",
+   "id": "assist",
    "part": "decide",
    "sys": "бой",
-   "dir": "src/game"
+   "dir": "engine/bot",
+   "legacy": "480"
   },
   {
-   "file": "490_shoot.js",
-   "id": "490",
+   "file": "shoot.js",
+   "id": "shoot",
    "part": "decide",
    "sys": "бой",
-   "dir": "src/game"
+   "dir": "engine/bot",
+   "legacy": "490"
   },
   {
-   "file": "495_highlights.js",
-   "id": "495",
+   "file": "highlights.js",
+   "id": "highlights",
    "part": "decide",
    "sys": "бой",
-   "dir": "src/game"
+   "dir": "engine/bot",
+   "legacy": "495"
   },
   {
-   "file": "500_decide_afterkill_cover.js",
-   "id": "500",
+   "file": "fight-state.js",
+   "id": "fight-state",
    "part": "decide",
    "sys": "бой",
-   "dir": "src/game"
+   "dir": "engine/bot",
+   "legacy": "500"
   },
   {
-   "file": "510_engagements.js",
-   "id": "510",
+   "file": "engagements.js",
+   "id": "engagements",
    "part": "decide",
    "sys": "бой",
-   "dir": "src/game"
+   "dir": "engine/bot",
+   "legacy": "510"
   },
   {
-   "file": "520_economy.js",
-   "id": "520",
+   "file": "economy.js",
+   "id": "economy",
    "part": "decide",
    "sys": "экономика",
-   "dir": "src/game"
+   "dir": "engine/team",
+   "legacy": "520"
   },
   {
-   "file": "530_round_sides_match.js",
-   "id": "530",
+   "file": "round.js",
+   "id": "round",
    "part": "decide",
    "sys": "раунд и стороны",
-   "dir": "src/game"
+   "dir": "engine/match",
+   "legacy": "530"
   },
   {
-   "file": "535_move_mode.js",
-   "id": "535",
+   "file": "move.js",
+   "id": "move",
    "part": "decide",
    "sys": "ход",
-   "dir": "src/game"
+   "dir": "engine/bot",
+   "legacy": "535"
   },
   {
-   "file": "540_step_tick.js",
-   "id": "540",
+   "file": "tick.js",
+   "id": "tick",
    "part": "engine",
    "sys": "ход",
-   "dir": "src/game"
+   "dir": "engine/core",
+   "legacy": "540"
   },
   {
-   "file": "545_problem_watch.js",
-   "id": "545",
+   "file": "problem-watch.js",
+   "id": "problem-watch",
    "part": "watch",
    "sys": "наблюдение",
-   "dir": "src/game"
+   "dir": "engine/debug",
+   "legacy": "545"
   },
   {
-   "file": "550_render_nav_zone_tools.js",
-   "id": "550",
+   "file": "nav-zones.js",
+   "id": "nav-zones",
    "part": "show",
    "sys": "показ и инструменты",
-   "dir": "src/game"
+   "dir": "view/editors",
+   "legacy": "550"
   },
   {
-   "file": "560_lineup_zone_editor.js",
-   "id": "560",
+   "file": "lineup-editor.js",
+   "id": "lineup-editor",
    "part": "show",
    "sys": "показ и инструменты",
-   "dir": "src/game"
+   "dir": "view/editors",
+   "legacy": "560"
   },
   {
-   "file": "570_maped_core_walls.js",
-   "id": "570",
+   "file": "map-walls.js",
+   "id": "map-walls",
    "part": "show",
    "sys": "показ и инструменты",
-   "dir": "src/game"
+   "dir": "view/editors",
+   "legacy": "570"
   },
   {
-   "file": "580_maped_heights.js",
-   "id": "580",
+   "file": "map-heights.js",
+   "id": "map-heights",
    "part": "show",
    "sys": "показ и инструменты",
-   "dir": "src/game"
+   "dir": "view/editors",
+   "legacy": "580"
   },
   {
-   "file": "590_maped_cover.js",
-   "id": "590",
+   "file": "map-cover.js",
+   "id": "map-cover",
    "part": "show",
    "sys": "показ и инструменты",
-   "dir": "src/game"
+   "dir": "view/editors",
+   "legacy": "590"
   },
   {
-   "file": "600_maped_wallbang.js",
-   "id": "600",
+   "file": "map-wallbang.js",
+   "id": "map-wallbang",
    "part": "show",
    "sys": "показ и инструменты",
-   "dir": "src/game"
+   "dir": "view/editors",
+   "legacy": "600"
   },
   {
-   "file": "610_vistool_lookdebug.js",
-   "id": "610",
+   "file": "look-debug.js",
+   "id": "look-debug",
    "part": "show",
    "sys": "показ и инструменты",
-   "dir": "src/game"
+   "dir": "view/debug",
+   "legacy": "610"
   },
   {
-   "file": "612_team_debug.js",
-   "id": "612",
+   "file": "team.js",
+   "id": "team",
    "part": "show",
    "sys": "показ и инструменты",
-   "dir": "src/game"
+   "dir": "view/debug",
+   "legacy": "612"
   },
   {
-   "file": "620_draw.js",
-   "id": "620",
+   "file": "draw.js",
+   "id": "draw",
    "part": "show",
    "sys": "показ и инструменты",
-   "dir": "src/game"
+   "dir": "view",
+   "legacy": "620"
   },
   {
-   "file": "625_view3d.js",
-   "id": "625",
+   "file": "view3d.js",
+   "id": "view3d",
    "part": "show",
    "sys": "показ и инструменты",
-   "dir": "src/game"
+   "dir": "view",
+   "legacy": "625"
   },
   {
-   "file": "630_killfeed_banners_econ.js",
-   "id": "630",
+   "file": "killfeed.js",
+   "id": "killfeed",
    "part": "show",
    "sys": "показ и инструменты",
-   "dir": "src/game"
+   "dir": "view/hud",
+   "legacy": "630"
   },
   {
-   "file": "635_hud_fx.js",
-   "id": "635",
+   "file": "fx.js",
+   "id": "fx",
    "part": "show",
    "sys": "показ и инструменты",
-   "dir": "src/game"
+   "dir": "view/hud",
+   "legacy": "635"
   },
   {
-   "file": "640_scoreboard_players.js",
-   "id": "640",
+   "file": "scoreboard.js",
+   "id": "scoreboard",
    "part": "show",
    "sys": "показ и инструменты",
-   "dir": "src/game"
+   "dir": "view/hud",
+   "legacy": "640"
   },
   {
-   "file": "645_decision_log.js",
-   "id": "645",
+   "file": "trace.js",
+   "id": "trace",
    "part": "show",
    "sys": "наблюдение",
-   "dir": "src/game"
+   "dir": "engine/debug",
+   "legacy": "645"
   },
   {
-   "file": "650_marks_hook.js",
-   "id": "650",
+   "file": "marks-hook.js",
+   "id": "marks-hook",
    "part": "show",
    "sys": "показ и инструменты",
-   "dir": "src/game"
+   "dir": "view",
+   "legacy": "650"
   },
   {
-   "file": "660_warmup.js",
-   "id": "660",
+   "file": "warmup.js",
+   "id": "warmup",
    "part": "show",
    "sys": "режимы и инструменты",
    "mode": true,
-   "dir": "src/game"
+   "dir": "view",
+   "legacy": "660"
   },
   {
-   "file": "670_observer.js",
-   "id": "670",
+   "file": "observer.js",
+   "id": "observer",
    "part": "show",
    "sys": "показ и инструменты",
-   "dir": "src/game"
+   "dir": "view",
+   "legacy": "670"
   },
   {
-   "file": "675_replay.js",
-   "id": "675",
+   "file": "replay.js",
+   "id": "replay",
    "part": "show",
    "sys": "показ и инструменты",
    "mode": true,
-   "dir": "src/game"
+   "dir": "view",
+   "legacy": "675"
   },
   {
-   "file": "676_timeout_show.js",
-   "id": "676",
+   "file": "timeout.js",
+   "id": "timeout",
    "part": "show",
    "sys": "показ и инструменты",
-   "dir": "src/game"
+   "dir": "view/hud",
+   "legacy": "676"
   },
   {
-   "file": "677_sandbox.js",
-   "id": "677",
+   "file": "sandbox.js",
+   "id": "sandbox",
    "part": "show",
    "sys": "режимы и инструменты",
    "mode": true,
-   "dir": "src/game"
+   "dir": "view",
+   "legacy": "677"
   },
   {
-   "file": "678_demo_view.js",
-   "id": "678",
+   "file": "demo.js",
+   "id": "demo",
    "part": "show",
    "sys": "режимы и инструменты",
    "mode": true,
-   "dir": "src/game"
+   "dir": "view",
+   "legacy": "678"
   },
   {
-   "file": "680_sound_frame_buttons.js",
-   "id": "680",
+   "file": "app.js",
+   "id": "app",
    "part": "show",
    "sys": "показ и инструменты",
-   "dir": "src/game"
+   "dir": "view",
+   "legacy": "680"
   },
   {
-   "file": "990_tail.html",
-   "id": "990",
+   "file": "tail.html",
+   "id": "tail",
    "part": "page",
    "sys": "показ и инструменты",
-   "dir": "src/game"
+   "dir": "view/page",
+   "legacy": "990"
   }
  ],
  "_game": "(Р4.2а, 26.11) порядок загрузки и описание файлов игры: file — имя в src/game, id — короткая метка (в картах устройства, owners.json, ключах cards / truth_known), part — page (разметка) / math (общая математика DM) / infra (карта, математика, данные: до 100) / decide (решения: 100–535) / engine (движок тика: 540) / watch (наблюдение: 545) / show (показ и инструменты: 550+), sys — система (карты устройства). Инструменты берут это отсюда (tools/rebuild/game_src.js, src/gamesrc.py), а не из номера в имени; mode: true — режим страницы (разминка, повтор, песочница, демо): показ, который пишет состояние игры по должности; dir — каталог файла от корня репозитория (путь файла — dir/file; имя файла уникально и служит ключом)"

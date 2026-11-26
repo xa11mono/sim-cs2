@@ -9,7 +9,7 @@
 require('../dmath/global.js');   // (Р2.3) DM — общая математика игры (файлы игры зовут DM.*)
 const path = require('path'), fs = require('fs'), ROOT = path.join(__dirname, '..', '..');
 const map = process.argv[2] || 'ancient';
-const W = require('./world.js').load(map), N = require(path.join(ROOT, 'src/game/385_nades_flight.js'));
+const W = require('./world.js').load(map), N = require(path.join(ROOT, 'engine/nades/flight.js'));
 const M = W.M, k = M.unit / M.cell, game = (x, y) => [M.X0 + x * k, M.Y0 - y * k];
 const DT_TOL = 1;   // с — допуск времени полёта к демке (проектное число)
 const SAME = 32, NEAR = 60, REF = +(process.env.REF || 5);   // ° — уточнение у прицела про: точка лайнапа в ≤ 60 ед. от места про (проектное число)

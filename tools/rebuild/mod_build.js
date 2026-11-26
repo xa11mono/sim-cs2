@@ -13,7 +13,7 @@ const argv = process.argv.slice(2), COMPACT = argv.includes("--compact");   // -
 const [page, srcDir, ...mods] = argv.filter(a => a !== "--compact");
 let html = fs.readFileSync(page, "utf8");
 
-// главная функция страницы: «(function(){ "use strict"; … })();» в большом <script> (начало — 010_map_zones_warp.js)
+// главная функция страницы: «(function(){ "use strict"; … })();» в большом <script> (начало — zones.js)
 const sm = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].reduce((a, m) => (m[1].length > (a ? a[1].length : 0) ? m : a), null);
 const sOff = sm.index + sm[0].indexOf(">") + 1, script = sm[1];
 const ast = acorn.parse(script, { ecmaVersion: "latest", sourceType: "script" });

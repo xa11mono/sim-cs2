@@ -1,6 +1,6 @@
 // Регрессия физики гранаты (30.10.2026): детерминированные сценарии на искусственной геометрии + броски на картах.
 // node tools/tests/nade_physics_test.js            → строки «ok / FAIL», код выхода 1 при любой ошибке
-// Физика — src/game/385_nades_flight.js (как в игре), луч — m3NadeTrace из src/game/035_map3d.js (как в игре); искусственный
+// Физика — engine/nades/flight.js (как в игре), луч — m3NadeTrace из engine/map/geometry3d.js (как в игре); искусственный
 // мир собирается в ту же структуру, что m3Load (треугольники, блоки, корзины), — проверяется и отбор по корзинам.
 // Инварианты на каждом полёте: (1) кубик чуть меньше гранаты не проходит сквозь геометрию ни на одном тике (нет туннеля),
 // (2) направление по горизонтали меняется только в тик с касанием (нет поворота «из ничего»), (3) шаг за тик не больше
@@ -9,8 +9,8 @@
 require('../dmath/global.js');   // (Р2.3) DM — общая математика игры (файлы игры зовут DM.*)
 const path = require('path');
 const ROOT = path.join(__dirname, '..', '..');
-const G = require(path.join(ROOT, 'src', 'game', '035_map3d.js'));
-const NP = require(path.join(ROOT, 'src', 'game', '385_nades_flight.js')), P = NP.NADE_P;
+const G = require(path.join(ROOT, 'engine', 'map', 'geometry3d.js'));
+const NP = require(path.join(ROOT, 'engine', 'nades', 'flight.js')), P = NP.NADE_P;
 let fails = 0, oks = 0;
 function check(name, cond, info){ if(cond){ oks++; console.log('ok   ', name); } else { fails++; console.log('FAIL ', name, info !== undefined ? JSON.stringify(info) : ''); } }
 

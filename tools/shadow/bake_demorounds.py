@@ -1,4 +1,4 @@
-"""В136: раунды демок про для режима «Раунд из демки» в странице (678_demo_view.js) — в набор карты: data/maps/<карта>/demorounds.json
+"""В136: раунды демок про для режима «Раунд из демки» в странице (demo.js) — в набор карты: data/maps/<карта>/demorounds.json
 (MAP.demorounds). Берёт выгруженные раунды tools/shadow/round_<демка>_<номер>.json этой карты (export_round.py).
 Запуск: python3 tools/shadow/bake_demorounds.py --map mirage"""
 import sys, os, json, glob

@@ -3,7 +3,7 @@
 const { chromium } = require('playwright'), fs = require('fs'), path = require('path');
 const args = process.argv.slice(2), opt = (n, d) => { const a = args.find(x => x.startsWith('--' + n + '=')); return a ? a.slice(n.length + 3) : d; };
 const corpus = JSON.parse(fs.readFileSync(args.find(x => !x.startsWith('--')), 'utf8')), N = +opt('n', 50000);
-const src = require(path.join(__dirname, '..', 'rebuild', 'game_src.js')).readGame('005_dmath.ts') + '\nwindow.D = DM;';   // (Р2.2) игровой dmath
+const src = require(path.join(__dirname, '..', 'rebuild', 'game_src.js')).readGame('dmath.ts') + '\nwindow.D = DM;';   // (Р2.2) игровой dmath
 (async () => {
   const b = await chromium.launch(), p = await b.newPage(); await p.addScriptTag({ content: src });
   const sub = {}; for (const [k, v] of Object.entries(corpus)) sub[k] = v.slice(0, N);

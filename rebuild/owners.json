@@ -1,23 +1,251 @@
 {
   "_": "Хозяева полей бота (rebuild/DEVICE.md §1, §3). allow — функции канала: хозяин и исполнитель внутри канала; остальные записи — мимо хозяина. enforce: false — предупреждение (канал ещё не перенесён), true — сборка падает (ставится, когда канал перенесён, фаза 3). Читают tools/rebuild/gen_maps.js и проверка сборки (src/build.py). Полей без хозяина (nadeTask, path, phase) здесь нет — назначит перенос.",
   "_show_ban": true,
-  "_locks": {"_avoidPeekUntil": ["220"], "_drawUntil": ["450", "490", "530"], "_exposedUntil": ["490"], "_noPlantUntil": ["120", "535"], "_ppWaitUntil": ["250"], "_reposUntil": ["110"], "_roamSoundLockUntil": ["070", "430"], "_stopPlantUntil": ["170", "340"], "_tagUntil": ["450", "490", "530"], "_tradeUntil": ["190"], "_waitPopUntil": ["535"]},
+  "_locks": {
+    "_avoidPeekUntil": [
+      "events"
+    ],
+    "_drawUntil": [
+      "items",
+      "shoot",
+      "round"
+    ],
+    "_exposedUntil": [
+      "shoot"
+    ],
+    "_noPlantUntil": [
+      "bomb",
+      "move"
+    ],
+    "_ppWaitUntil": [
+      "look-peek"
+    ],
+    "_reposUntil": [
+      "task"
+    ],
+    "_roamSoundLockUntil": [
+      "weapons-bots",
+      "fov"
+    ],
+    "_stopPlantUntil": [
+      "brain-t",
+      "brain-ct"
+    ],
+    "_tagUntil": [
+      "items",
+      "shoot",
+      "round"
+    ],
+    "_tradeUntil": [
+      "intel"
+    ],
+    "_waitPopUntil": [
+      "move"
+    ]
+  },
   "_locks_why": "замки _xxxUntil, которые уже есть (17.11), и файлы, где их пишут; новый замок или новый файл с замком — ошибка сборки: срок решения держит хозяин канала (taskKeep, moveWaitPop, knowAvoidPeek …), а не свой таймер (CLAUDE.md §7)",
-  "_show_marks": ["VOICE_DIRTY", "LOG_DIRTY", "RC_HALF", "plSelected", "BOT_INIT"],
+  "_show_marks": [
+    "VOICE_DIRTY",
+    "LOG_DIRTY",
+    "RC_HALF",
+    "plSelected",
+    "BOT_INIT"
+  ],
   "_show_marks_why": "отметки «показ, обнови» — задуманный путь симуляция → показ (DEVICE.md §5): симуляция ставит, показ рисует и снимает; plSelected — выбор игрока для разбора взгляда (270, отладка), BOT_INIT — исходные поля ботов (680, считается в конце загрузки) — только чтение; в запрет «симуляция не трогает показ» не идут",
-  "facing":    {"channel": "взгляд", "allow": ["lookFace", "lookTurnBy", "lookReset", "lookTick", "lookTrack", "handTurn", "freezeLookTick"], "enforce": true, "since": "фаза 3, 15.11: канал перенесён в 275_look_turn.js (с Р1.3, 25.11 — .ts); остальные — через lookFace / lookTurnBy / lookReset"},
-  "crouching": {"channel": "место",  "allow": ["placeStance"], "enforce": true, "since": "фаза 3, 15.11: канал места — 110 (placeStance / placeResetPost / placeResetTask)"},
-  "post":      {"channel": "место",  "allow": ["setPost", "setPostDo", "updatePost", "clearPost", "clearPostDo", "placeResetPost"], "enforce": true, "since": "фаза 3, 15.11: канал места — 110 (placeStance / placeResetPost / placeResetTask)"},
-  "_task":     {"channel": "место",  "allow": ["setPost", "setPostDo", "updatePost", "clearPost", "clearPostDo", "placeResetTask", "routeTick"], "enforce": true, "since": "фаза 3, 15.11: канал места — 110 (placeStance / placeResetPost / placeResetTask)"},
-  "state":     {"channel": "бой", "files": ["470", "480", "490", "500", "510"], "allow": ["fightReset"], "enforce": true, "since": "фаза 3, 15.11: канал боя — файлы 470–510; снаружи — fightState / fightReset"},
-  "holding":   {"channel": "бой", "files": ["470", "480", "490", "500", "510"], "allow": ["fightReset", "fightHoldOff"], "enforce": true, "since": "фаза 3, 15.11: снаружи — fightHoldOff / fightReset"},
-  "walking":   {"channel": "ход", "files": ["535", "540", "370"], "allow": ["moveWalk"], "enforce": true, "since": "фаза 3, 15.11: канал хода — 535, 540, 370; снаружи — moveWalk / moveSpeed / movePath"},
-  "curSpeed":  {"channel": "ход", "files": ["535", "540", "370"], "allow": ["moveSpeed"], "enforce": true, "since": "фаза 3, 15.11"},
-  "path":      {"channel": "ход", "files": ["535", "540", "370"], "allow": ["movePath"], "enforce": true, "since": "фаза 3, 15.11"},
-  "nadeTask":  {"channel": "гранаты", "files": ["360", "365", "366", "380", "385", "390", "400", "410", "420"], "allow": ["nadeCancel"], "enforce": true, "since": "фаза 3, 15.11: канал гранат — файлы 360–420; снаружи — nadeCancel"},
-  "_reposUntil": {"channel": "место", "files": ["110"], "allow": ["taskKeep"], "enforce": true, "since": "фаза 3 шаг 3, 17.11: срок перестановки — у арбитра места (taskKeep / taskKeepUntil)"},
-  "_waitPopUntil": {"channel": "ход", "files": ["535"], "allow": ["moveWaitPop"], "enforce": true, "since": "фаза 3 шаг 3, 17.11: «подождать флешку» — причина стоять у хода (moveWaitPop)"},
-  "_avoidPeekUntil": {"channel": "знание", "files": ["220"], "allow": ["knowAvoidPeek"], "enforce": true, "since": "дубль 7, 17.11: «туда не выглядывать» — знание бота (knowAvoidPeek / knowAvoidPeekNear)"},
-  "_tradeLock": {"channel": "знание и войс", "files": ["190"], "allow": ["tradeStart", "tradeEnd"], "enforce": true, "since": "дубль 8, 17.11: окно размена — 190 (tradeStart / tradeGoing / tradeEnd)"},
-  "_tradeUntil": {"channel": "знание и войс", "files": ["190"], "allow": ["tradeStart", "tradeAlertSet", "tradeEnd"], "enforce": true, "since": "дубль 8, 17.11: тревога после смерти своего — 190 (tradeAlert)"}
+  "facing": {
+    "channel": "взгляд",
+    "allow": [
+      "lookFace",
+      "lookTurnBy",
+      "lookReset",
+      "lookTick",
+      "lookTrack",
+      "handTurn",
+      "freezeLookTick"
+    ],
+    "enforce": true,
+    "since": "фаза 3, 15.11: канал перенесён в 275_look_turn.js (с Р1.3, 25.11 — .ts); остальные — через lookFace / lookTurnBy / lookReset"
+  },
+  "crouching": {
+    "channel": "место",
+    "allow": [
+      "placeStance"
+    ],
+    "enforce": true,
+    "since": "фаза 3, 15.11: канал места — 110 (placeStance / placeResetPost / placeResetTask)"
+  },
+  "post": {
+    "channel": "место",
+    "allow": [
+      "setPost",
+      "setPostDo",
+      "updatePost",
+      "clearPost",
+      "clearPostDo",
+      "placeResetPost"
+    ],
+    "enforce": true,
+    "since": "фаза 3, 15.11: канал места — 110 (placeStance / placeResetPost / placeResetTask)"
+  },
+  "_task": {
+    "channel": "место",
+    "allow": [
+      "setPost",
+      "setPostDo",
+      "updatePost",
+      "clearPost",
+      "clearPostDo",
+      "placeResetTask",
+      "routeTick"
+    ],
+    "enforce": true,
+    "since": "фаза 3, 15.11: канал места — 110 (placeStance / placeResetPost / placeResetTask)"
+  },
+  "state": {
+    "channel": "бой",
+    "files": [
+      "fight",
+      "assist",
+      "shoot",
+      "fight-state",
+      "engagements"
+    ],
+    "allow": [
+      "fightReset"
+    ],
+    "enforce": true,
+    "since": "фаза 3, 15.11: канал боя — файлы 470–510; снаружи — fightState / fightReset"
+  },
+  "holding": {
+    "channel": "бой",
+    "files": [
+      "fight",
+      "assist",
+      "shoot",
+      "fight-state",
+      "engagements"
+    ],
+    "allow": [
+      "fightReset",
+      "fightHoldOff"
+    ],
+    "enforce": true,
+    "since": "фаза 3, 15.11: снаружи — fightHoldOff / fightReset"
+  },
+  "walking": {
+    "channel": "ход",
+    "files": [
+      "move",
+      "tick",
+      "levels"
+    ],
+    "allow": [
+      "moveWalk"
+    ],
+    "enforce": true,
+    "since": "фаза 3, 15.11: канал хода — 535, 540, 370; снаружи — moveWalk / moveSpeed / movePath"
+  },
+  "curSpeed": {
+    "channel": "ход",
+    "files": [
+      "move",
+      "tick",
+      "levels"
+    ],
+    "allow": [
+      "moveSpeed"
+    ],
+    "enforce": true,
+    "since": "фаза 3, 15.11"
+  },
+  "path": {
+    "channel": "ход",
+    "files": [
+      "move",
+      "tick",
+      "levels"
+    ],
+    "allow": [
+      "movePath"
+    ],
+    "enforce": true,
+    "since": "фаза 3, 15.11"
+  },
+  "nadeTask": {
+    "channel": "гранаты",
+    "files": [
+      "smoke",
+      "plan",
+      "exec-sync",
+      "throw",
+      "flight",
+      "lineups",
+      "damage",
+      "self",
+      "decide"
+    ],
+    "allow": [
+      "nadeCancel"
+    ],
+    "enforce": true,
+    "since": "фаза 3, 15.11: канал гранат — файлы 360–420; снаружи — nadeCancel"
+  },
+  "_reposUntil": {
+    "channel": "место",
+    "files": [
+      "task"
+    ],
+    "allow": [
+      "taskKeep"
+    ],
+    "enforce": true,
+    "since": "фаза 3 шаг 3, 17.11: срок перестановки — у арбитра места (taskKeep / taskKeepUntil)"
+  },
+  "_waitPopUntil": {
+    "channel": "ход",
+    "files": [
+      "move"
+    ],
+    "allow": [
+      "moveWaitPop"
+    ],
+    "enforce": true,
+    "since": "фаза 3 шаг 3, 17.11: «подождать флешку» — причина стоять у хода (moveWaitPop)"
+  },
+  "_avoidPeekUntil": {
+    "channel": "знание",
+    "files": [
+      "events"
+    ],
+    "allow": [
+      "knowAvoidPeek"
+    ],
+    "enforce": true,
+    "since": "дубль 7, 17.11: «туда не выглядывать» — знание бота (knowAvoidPeek / knowAvoidPeekNear)"
+  },
+  "_tradeLock": {
+    "channel": "знание и войс",
+    "files": [
+      "intel"
+    ],
+    "allow": [
+      "tradeStart",
+      "tradeEnd"
+    ],
+    "enforce": true,
+    "since": "дубль 8, 17.11: окно размена — 190 (tradeStart / tradeGoing / tradeEnd)"
+  },
+  "_tradeUntil": {
+    "channel": "знание и войс",
+    "files": [
+      "intel"
+    ],
+    "allow": [
+      "tradeStart",
+      "tradeAlertSet",
+      "tradeEnd"
+    ],
+    "enforce": true,
+    "since": "дубль 8, 17.11: тревога после смерти своего — 190 (tradeAlert)"
+  }
 }

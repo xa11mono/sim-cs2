@@ -66,7 +66,7 @@
         C.map(function(c){ return [R(c.x), R(c.y), Math.round(c.w*100)/100, c.t, place(c.x, c.y), c.i ? 1 : 0]; })]);
   }
 
-  // копия visParts (040_visibility.js, v388) с подъёмом глаз / тела: vLift, tLift — ед. игры над полом
+  // копия visParts (vision.js, v388) с подъёмом глаз / тела: vLift, tLift — ед. игры над полом
   function visPartsL(vx, vy, vC, tx, ty, tC, vz, tz, vLift, tLift){
     var no = {head: false, body: false}; visReady();
     var L = Math.hypot(tx - vx, ty - vy) || 1, s = VIS_SHOULDER / MAP.pxUnits, px = -(ty - vy) / L * s, py = (tx - vx) / L * s;

@@ -39,7 +39,7 @@ function setupCode(SKIP, SKIPF) {
   mathOn: function(){ if(DV.M) return; DV.M = {}; DV.log = [];
     ['sin','cos','tan','atan','atan2','asin','acos','exp','log','pow','hypot','sqrt'].forEach(function(f){ var o = Math[f]; DV.M[f] = o;
       Math[f] = function(){ var r = o.apply(Math, arguments); if(DV.inTick && DV.log.length < 200000) DV.log.push([f, Array.prototype.slice.call(arguments), r]); return r; }; });
-    // (Р2.3) и общая математика DM (005_dmath.ts): вызов DM.hypot3 пишется как hypot, с меткой 'DM' — сравнение шагов замены идёт по имени
+    // (Р2.3) и общая математика DM (dmath.ts): вызов DM.hypot3 пишется как hypot, с меткой 'DM' — сравнение шагов замены идёт по имени
     // функции, аргументам и ответу (метка не сравнивается): первый вызов с теми же аргументами и другим ответом — разница реализаций
     if(typeof DM !== 'undefined') Object.keys(DM).forEach(function(k){ var o = DM[k], f = k === 'hypot3' ? 'hypot' : k;
       DM[k] = function(){ var r = o.apply(DM, arguments); if(DV.inTick && DV.log.length < 200000) DV.log.push([f, Array.prototype.slice.call(arguments), r, 'DM']); return r; }; }); },
