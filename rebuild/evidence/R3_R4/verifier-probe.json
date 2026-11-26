@@ -1,0 +1,6 @@
+{
+  "fixture": true,
+  "all_16_valid": true,
+  "wrong_trace_hash_rejected": true,
+  "wrong_restored_danger_rejected": true
+}
