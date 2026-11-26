@@ -6,14 +6,19 @@
 
 ## Исходник по модулям (v377)
 
-> **v430:** `001_fonts.html` — шрифты внутри страницы (`tools/page/embed_fonts.py`); `635_hud_fx.js` — одно место движения HUD (только вид,
+> **v430:** `fonts.html` — шрифты внутри страницы (`tools/page/embed_fonts.py`); `fx.js` — одно место движения HUD (только вид,
 > игру не читает и не меняет); глобальные переменные только вида — с приставкой `HUD_`, снимок «Отметить момент» их пропускает.
-> `mkpub.py` пишет страницу целым документом (`<!doctype html>` + обёртка из `000_head.html`).
+> `mkpub.py` пишет страницу целым документом (`<!doctype html>` + обёртка из `head.html`).
+> **Р2 (25.11), `dmath.ts` — общая математика `DM`** (согласовано планом перестройки, Р2): стоит между `004` (открывает `<script>`) и `010`
+> (открывает обёртку игры) — единственный код вне обёртки, одно глобальное имя `DM`, внутри — строгий режим. Готов до любого кода игры
+> (010 зовёт `hypot` / `log` уже при загрузке). Код расчёта зовёт `DM.sin(…)` и т. п. вместо `Math.sin(…)` — одинаковые биты в любом браузере,
+> ОС и в Rust; `Math.sqrt / abs / floor / round / min / max` остаются (точные в стандарте). Не состояние: в снимок отметки не входит
+> (`marks_build.py`, `EXTRA_STATIC`). Инструменты Node берут тот же файл: `tools/dmath/dmath.js`.
 Игра — один `<script>` (внутри обёртки `(function(){ … })();`) плюс разметка и стили вокруг, но лежит не одним файлом, а
-кусками в `src/game/`: `000_head.html`, `002_style.html`, `004_markup.html` (до `<script>` включительно), код
-`010_map_zones_warp.js` … `680_sound_frame_buttons.js`, `990_tail.html` (`</script>` и конец страницы).
+кусками в `engine/` и `view/` (порядок — список `rebuild/files.json`, Р4; до 26.11 — src/game/): `head.html`, `style.html`, `markup.html` (до `<script>` включительно), код
+`zones.js` … `app.js`, `tail.html` (`</script>` и конец страницы).
 - **Как собирается.** `src/gamesrc.py` → `game_source()` склеивает все `src/game/*.html|js` в порядке имён — это ровно
-  прежний `src/game.html`. Его вызывают `src/build.py` (`sim.html`) и `src/mkpub.py` (`<карта>-radar.html`); других
+  прежний src/game.html (до v377). Его вызывают `src/build.py` (`sim.html`) и `src/mkpub.py` (`<карта>-radar.html`); других
   читателей исходника нет — инструменты (`health.py`, `measure/*`, `mark_open.js`, `replay_owner.js`, `map_shot.js`) берут
   собранный `sim.html`. Склейка одним файлом (для grep/diff) — `python3 src/gamesrc.py файл`.
 - **Порядок важен.** Номер впереди имени — место куска в странице. Кусок кода — не самостоятельный файл: первый открывает
@@ -27,7 +32,7 @@
 - Разрезал `tools/page/split_game.py` (одноразовый; план кусков — в нём, проверка «склейка == исходник» — тоже).
 
 ## План гранат команды — одно место (v428, 25.10.2026, PRINCIPLES М160)
-`src/game/365_nade_plan.js`. Одно место для решения «какие гранаты команда покупает на раунд, у кого какая, на какой момент и для
+`engine/nades/plan.js`. Одно место для решения «какие гранаты команда покупает на раунд, у кого какая, на какой момент и для
 какой зоны» и проверки «можно ли бойцу кинуть гранату сейчас». Заменяет: закуп гранат по роли на фулле (`buyFullKit` / `NADE_WISH_PRO`),
 план команды на пистолетке / эко / форсе (`teamNadePlan` из `520` — переехал сюда, раздаёт по зонам, а не по ролям), отдельные правила
 запаса (`tSmokeReserveOk`, `keepMol`), выбор бросающего лайнап «опорник не дальше 300» (v285) и «по пути, крюк 300» (v424).
@@ -42,7 +47,7 @@
   хозяином гранаты этой зоны; колл, ретейк, после планта — помощь, зона не важна; последний живой — что угодно.
 
 ## Синхронизация выхода T с гранатами — одно место (v481, 30.10.2026)
-`src/game/366_exec_sync.js`. Одно место для вопроса «можно ли команде T выходить по таймингу, или ждём гранаты выхода».
+`engine/nades/exec-sync.js`. Одно место для вопроса «можно ли команде T выходить по таймингу, или ждём гранаты выхода».
 Заменяет: ожидание «смоки летят» (`tExecNadesFlying`, `tt._smT`, ≤ 5 с от броска и от тайминга) в `tBrain`.
 - Запись `EXU.items` на каждый смок выхода (задание с `exec`: `420` «вход CT» / «кросс», `390` лайнапы «выход»): `assigned` →
   `flying` (`throwNade` → `exuThrown`, срок срабатывания `n.etaDet` — полёт той же физикой) → `forming` (`detonate` → `exuLanded`;
@@ -72,7 +77,7 @@
   (`after:hold`).
 
 ## Режим движения — одно место (v522, 10.11.2026)
-`src/game/535_move_mode.js`. `stepTick` зовёт `moveWalkTick(bot)` (шагом или бегом) и `moveSpeedTick(bot, runSpeed, BRAKE_RADIUS,
+`engine/bot/move.js`. `stepTick` зовёт `moveWalkTick(bot)` (шагом или бегом) и `moveSpeedTick(bot, runSpeed, BRAKE_RADIUS,
 maxDelta)` (целевая скорость: стоять / идти / выбегать из огня / тормозить / ослеплён; разгон к ней; замедление от попадания).
 Причины — первая подходящая, порядок исторический (перенос из `stepTick` без смены логики, отпечаток бит в бит):
 `moveWalkWhy` — почему шагом, `moveRunWhy` — почему шаг отменён. У бота остаётся причина: `_walkWhy`, `_runWhy`, `_stopWhy`.
@@ -86,15 +91,15 @@ maxDelta)` (целевая скорость: стоять / идти / выбе�
 снимает только `fcEnd(b, причина)` (470). AWP без прицела — `awpNoscope` (490), читают задержка выстрела и разброс в `tryShoot`.
 
 ## Счёт ошибок движения — одно место (v407, 22.10.2026)
-`src/game/545_problem_watch.js`: `PROB` (n: stall / nav / tug; ev — события с ботом, местом, тиком, раундом, текстом), `probTick()` —
+`engine/debug/problem-watch.js`: `PROB` (n: stall / nav / tug; ev — события с ботом, местом, тиком, раундом, текстом), `probTick()` —
 в конце `stepTick`, только наблюдает (игра бит в бит). Застрял — бот хочет и пытается идти к одной задаче 5 с и сдвинулся < 25 px
 (причина — проверка шага к точке пути: `crossesWall` / `heightBlocked` / `offNavStep` / огонь); перенос — видимая позиция за тик
-дальше двух шагов бегом; перетягивание — задача A → B → A за 2 с. Читают: слой «ошибки движения» (`620_draw`) и сторож замера
+дальше двух шагов бегом; перетягивание — задача A → B → A за 2 с. Читают: слой «ошибки движения» (`view/draw`) и сторож замера
 (`tools/measure/audit/watch.js` — stall / tug / nav только отсюда).
 
 ## Набор карты (v317, этап 1 из 3 подготовки к 7 картам; v318 — сборка из исходников)
 
-Всё, что относится к одной карте, лежит в `data/maps/<карта>/`. Код `src/game.html` карт не знает: в нём нет ни названий
+Всё, что относится к одной карте, лежит в `data/maps/<карта>/`. Код игры (`engine/`, `view/`) карт не знает: в нём нет ни названий
 мест, ни координат, ни тактик, ни радара — только объект `MAP`. Сборка вшивает набор выбранной карты:
 `python3 src/build.py [--map ancient]` → `sim.html`, `python3 src/mkpub.py [--map ancient]` → `<карта>-radar.html`
 (по умолчанию `ancient`). Склеивает `src/mapset.py`: в начале скрипта игры `var MAP = @@MAP@@;`, в разметке — надписи
@@ -113,7 +118,7 @@ maxDelta)` (целевая скорость: стоять / идти / выбе�
 | `defaultpos.json` | `defaultpos` | (v443) где стоят T в фазе дефолта: `sites.A/B` — `[зона, игроков из 5]` на 20–50-й с у про (`tools/map/defpos_bake.py`: Mirage — раунды с плантом после 60 с, Ancient — фаза setup); игра (170, `inDef`) раздаёт зоны жребием по долям. Нет файла — по-старому (подготовка у цели) |
 | `lineups.json` | `lineups` | `baked` (лайнапы из редактора), `pro` и `proExtra` (из демок; `proExtra` — только при `BAL.nadeMore`; с В4 у записи `throws` — записанные броски про: варианты с `rec`, сила `s`, прыжок `j`, `tools/nades/lineups_rec.py` + `lineups_fit.js`), `builtinOff` | `LINEUPS_BAKED`, `PRO_LINEUPS_RAW`, `BUILTIN_OFF_BAKED` |
 | `pro.json` | `pro` | места и взгляды про из демок: `spots`, `prior`, `look`, `positions`; `pistolNades` (v370, `tools/pro/nades_pro.py`) | `PRO_SPOTS`, `PRO_PRIOR`, `PRO_LOOK`, `KNOW_POSITIONS` |
-| `map3d.json` (А5, необязательный) | `map3d` | 3D-геометрия игры (раздел «Карта 3D» ниже): есть — видимость, «в стене», гранатные проверки идут по ней, стены радара — только рисование | `MAP3D`, `m3()` (`035_map3d.js`) |
+| `map3d.json` (А5, необязательный) | `map3d` | 3D-геометрия игры (раздел «Карта 3D» ниже): есть — видимость, «в стене», гранатные проверки идут по ней, стены радара — только рисование | `MAP3D`, `m3()` (`geometry3d.js`) |
 | `climbs.json` (v372, необязательный) | `climbs`, `gaps` (v546) | подъёмы из демок (`tools/map/climbs_bake.py`): уступ «только спрыгнуть», куда про залезают — `{lo, hi, n, sec}`; прыжки через щель (`tools/map/gaps_bake.py`) — `{a, b, n, demos, sec}` | связь «вверх» в `NAVAREAS[].conn`, `LADDERS` (`up:true`); щель — `navGapsAdd` (050) |
 
 Старые имена (`ZONEMAP`, `HEIGHTS`, `T_TACTICS`, …) остались короткими ссылками на `MAP.…` на тех же местах кода — порядок
@@ -205,7 +210,7 @@ CT идёт через зону с ролью `CTspawn`.
 картинки — `layer_pics.py`; проверка образцом игры — `node tools/map3d/map3d_check.js <карта>`. `map3d.json` (с А5) — в корне набора
 (игра: `MAP.map3d`); остальное — в `geom3d/` (в `MAP` не попадает: `src/mapset.py` берёт только `*.json` в корне).
 
-**В игре (А5)** — `src/game/035_map3d.js` (один код с node: `tools/map3d/map3d.js` его подключает): распаковка zlib своя
+**В игре (А5)** — `engine/map/geometry3d.js` (один код с node: `tools/map3d/map3d.js` его подключает): распаковка zlib своя
 (`zInflate`, синхронно, ≈ 0,25 с на загрузку), `m3()` — геометрия при первом вопросе; столбики гранат и неба — при первом
 броске. Что берёт геометрию, если она у карты есть (иначе — прежняя сетка VIS по стенам радара, навмешу и укрытиям; с А6 геометрия есть и у Ancient — у обеих карт):
 - `visMarch` = луч `m3Line(…, 'sight')`; `visWallHit` и `levelBlocked` — пусто (у геометрии свои стены и перекрытия на каждом этаже);
@@ -250,14 +255,14 @@ CT идёт через зону с ролью `CTspawn`.
 ## Физика гранаты (30.10.2026; ядро — В2–В3 21.10) — одно место полёта гранаты
 История: В2–В5 (21–22.10) откачены в v400 (ветка `nades-v398`); 30.10 возвращено ядро полёта с размером гранаты, без В4–В5
 (записанные броски, бросок с хода). Отчёт — `docs/reports/GRENADE_PHYSICS_IMPLEMENTATION.md`.
-`src/game/385_nades_flight.js` (тот же файл берут проверки в node — `tools/nades/check.js`, `tools/tests/nade_physics_test.js`):
+`engine/nades/flight.js` (тот же файл берут проверки в node — `tools/nades/check.js`, `tools/tests/nade_physics_test.js`):
 `nadeLaunch` (откуда и с какой скоростью: глаза, наклон, сила 1 / 0,5 / 0, прыжок на бинде; точка вылета — трасса кубика от глаз)
 → `nadeState` / `nadeStep` (один тик 1/64 с: тяжесть средней скоростью за тик, касание кубиком ±`R`, сдвиг 0,05 по нормали,
 отражение × 0,45, покой < 30 ед/с; флешка / HE — запал 1,627 с, молотов — пол ≤ 30° или 2 с в воздухе, смок — остановка; касание
 пишется `[x, y, z, вид, nx, ny, nz, |v| до, |v| после, t]`) и `nadeFly` (весь полёт). `nadeAim` — как кинуть в точку (перебор наклона ×
 силы настоящим полётом, затем прыжок на бинде, затем поворот вбок; `o.wide` — чаще и при всех силах; ошибка `e3` — в 3D). Числа —
 `NADE_P`. Про карту модуль знает только луч `trace(A, B, r) → {f, n}` в ед. игры.
-- Луч в игре — `m3NadeTrace(M, A, B, r)` (`035_map3d`): ход кубика ±r по треугольникам, блокам и сплошным укрытиям маски `nade`
+- Луч в игре — `m3NadeTrace(M, A, B, r)` (`engine/map/geometry3d`): ход кубика ±r по треугольникам, блокам и сплошным укрытиям маски `nade`
   (плоскости, отодвинутые на опору кубика, + скосы охвата; отбор — корзины 4×4 клеток); неба нет. Радар ↔ ед. игры — `m3Game` / `m3Radar`.
 - Бросок — `throwNade` (`380`): `nadeSolve` (кэш решений `nadeAim`; все полы у цели, куда можно дойти) — своя граната кидается, если
   ошибка ≤ `NADE_AIM_OK` (флешке ×2), лайнап — из своей точки `from`, если ≤ ×4; ошибка исполнения (`BAL.lobErr`, `execErr`) —
@@ -301,7 +306,7 @@ CT идёт через зону с ролью `CTspawn`.
   сцены по времени игры; в сцене «спавн» показ сам ставит камеру, обсервер ждёт.
 - (v462) Звук и голос показа — одно место `showSnd` / `showSay` / `showHush` (675). Мгновенный переход к раунду — `rpJump`: готовый
   снимок (`RP_SNAPS`, хранилище файлов страницы) → `mkOpenSnap`; снимки считает `tools/marks/snap_round.js` (на ПК, с проверкой бит в бит).
-- (v571 → v573a) 3D-вид — одно место 3D-рисования `625_view3d.js` (`D3`, `d3Build`, `d3World`, `d3Frame`): в кадре после `draw` /
+- (v571 → v573a) 3D-вид — одно место 3D-рисования `view3d.js` (`D3`, `d3Build`, `d3World`, `d3Frame`): в кадре после `draw` /
   `obsOverlay`, если включён кнопкой «3D»; в повторе клатча (675, `rpWorldDraw`) — тем же записанным миром, кадр копируется в холст повтора.
   Только читает игру; камера «обзор» — из `view` (обсервер ведёт и 3D), «пролёт» и «от первого лица» — свои. Сцена строится раз:
   пол — навмеш + пол и ступени из `m3()`; стены и предметы — вся геометрия `m3()` (флаг «взгляд»), срез на `D3_CUT` над полом под
@@ -313,11 +318,11 @@ CT идёт через зону с ролью `CTspawn`.
   холст рисуется программно — время `fillText` / `stroke` там завышено, сравнивать «было → стало» в одних условиях.
 
 ## Журнал решений (v384)
-`645_decision_log.js`: `dlog(b, вид, текст)` — последние 15 с решений бота (место, граната, взгляд) для отметок владельца; пишется
+`trace.js`: `dlog(b, вид, текст)` — последние 15 с решений бота (место, граната, взгляд) для отметок владельца; пишется
 обёрткой над setPost / clearPost / assignNade / throwNade / teamBrains, игру не меняет; в снимке — `b._dlog`, в сводке отметки — `bots[].log`.
 
 ## Арбитр места (v378, М126 этап 6)
-Одно место выбора задачи для позиции бота — `setPost` (`110_post_routes.js`). Канал только один — место; взгляд, гранаты,
+Одно место выбора задачи для позиции бота — `setPost` (`task.js`). Канал только один — место; взгляд, гранаты,
 стрельба — свои решения.
 - **Таблица важности** `TASK_LEVEL` (проектный порядок, сверху важнее; по началу tag задачи):
   11 бомба (flee, defuse, stopplant, antidefuse, plantspot) → 10 выжить (save) → 9 бой (contact, tradeR, repos:killmove) →
@@ -357,8 +362,8 @@ CT идёт через зону с ролью `CTspawn`.
 `edge.gap` (над сплошным полом по 3D — нет); путь проходит точку отталкивания и приземления (`NAV_GAP_AT`), прыжок — `ladderTick`. Цена
 перехода `navJumpCost` — время + шум по режиму (`zoneDijkstra.quiet` = бот на шифте; `buildWaypointPath(..., quiet)`). Звук приземления —
 `landSound(bot, quiet, kind)` (540), шаги на лестнице — в хозяине шагов (540), звук ранения — `applyDamage` (400).
-Песочница (v536): `677_sandbox.js` — одно место; игру вне песочницы не меняет (проверки `SANDBOX.on`, `b._sbOff`).
-Раунд из демки («режим тени», v571, В136, согласие владельца 13.11): `678_demo_view.js` — одно место. Раунд демки про (`MAP.demorounds`,
+Песочница (v536): `sandbox.js` — одно место; игру вне песочницы не меняет (проверки `SANDBOX.on`, `b._sbOff`).
+Раунд из демки («режим тени», v571, В136, согласие владельца 13.11): `demo.js` — одно место. Раунд демки про (`MAP.demorounds`,
 `data/maps/<карта>/demorounds.json` ← `tools/shadow/bake_demorounds.py` ← `export_round.py`) играется страницей: игроки ставятся по демке
 каждый тик (`dvTick` из `stepTick`, 540), выстрелы / попадания / смерти / смоки / плант — события демки; боты только решают (задача, взгляд).
 Поверх радара — `dvDraw` (620), панель — `dvRender`. Игру вне режима не меняет: проверки `DEMOV.on` в 490 (не стреляют), 400 (урон — только
@@ -368,7 +373,7 @@ CT идёт через зону с ролью `CTspawn`.
 чтение — `taskProp(tag, "свойство")`. Новая задача — вписать в нужные свойства; список имён в коде механики — нельзя.
 
 ## Арбитр взгляда (v381, М126 шаг 4)
-Одно место выбора, куда смотрит бот: `lookArbiter` (`270_look_plan_smooth.js`), вызывается из `resolveEngagements` (враг виден —
+Одно место выбора, куда смотрит бот: `lookArbiter` (`look.js`), вызывается из `resolveEngagements` (враг виден —
 верхний уровень, это решается там же). Канал только взгляд: место, гранаты, стрельба (`tryShoot` целится в видимое сам) — свои решения.
 - **Кандидаты** `{уровень, вид, точка, вес}` — механики только предлагают; источники — только то, что бот знает: свои уши
   (`heardSound`), радар и войс (`beliefLast`), киллфид (`teamIntel.sig` «died»), свой контакт (`_contact`). Роль и ситуация в таблицу
@@ -392,7 +397,7 @@ CT идёт через зону с ролью `CTspawn`.
   `deathLook`, `smokeSweep`, `threatLook`, `runGlance`, `proLook`, `claimStrong` (включённые — постоянные, выключенных не было).
 
 ## Поворот прицела — «рука» из демок (В147, 14–15.11.2026); канал взгляда — 275 (перестройка, фаза 3, 15.11)
-Куда смотреть — арбитр взгляда (выше); КАК прицел туда идёт — одно место, `275_look_turn.js`: `lookTick` (вызывается из
+Куда смотреть — арбитр взгляда (выше); КАК прицел туда идёт — одно место, `turn.ts`: `lookTick` (вызывается из
 `resolveEngagements` в том же месте тика), рука `handTurn`, ведение цели `lookTrack`, взгляд во фризе `freezeLookTick`. `b.facing` пишет
 только этот файл (сборка падает иначе — `rebuild/owners.json`, `enforce`). Остальные — через интерфейс: `lookFace(b, угол, причина)`
 (бросок — 380, первый тик — 540, разминка — 660, демо — 678), `lookTurnBy(b, угол, причина)` (взгляд по ходу на бегу — 540),
@@ -437,7 +442,7 @@ CT идёт через зону с ролью `CTspawn`.
 - правило: правка принимается, только если отчёт не хуже прошлого (`--base`).
 
 ## Хайлайты (v447, ветка highlights)
-Одно место — `src/game/495_highlights.js`: `HL` (шанс `p` — ползунок «хайлайты» в «Инструментах», хранится в браузере `sim-hl-v1`; силы
+Одно место — `engine/bot/highlights.js`: `HL` (шанс `p` — ползунок «хайлайты» в «Инструментах», хранится в браузере `sim-hl-v1`; силы
 `react`, `aim`, `scope`, окно `sec`), `hlContact` (жребий в первый тик дуэли, `tryShoot`), `hlKill` (продление и войс, `applyDamage`),
 `hlHot` (читают `afterKillMove` — не уходить в укрытие, `contactTick` — выход при перевесе), множители `hlReact`/`hlAim`/`hlScope` (`tryShoot`).
 `HL.p = 0` — игра как без хайлайтов.
@@ -454,4 +459,77 @@ CT идёт через зону с ролью `CTspawn`.
 - (v555) **CT за инфой в середине раунда** — одно место `ctInfoCheck` (320, вызов из `ctBrain` после `ctEarlyPeek`): задача `probeInfo` (уровень 3, «личная перестановка»).
 - (v559) **Цель раунда команды** — одно место `roundGoal` (520): читают выход на врага (`contactTick`), подбор оружия, ранний пик CT, гранаты-комбо, оценка действия (`decideAction`). Темп тактики T по закупу — `TAC_TEMPO` в `chooseTactic` (130).
 
-- (v566) `612_team_debug.js` — «разбор команды»: только показ, читает решения механик (`teamEco[*].buyWhy` / `ecoWhy` — 520; `TACT_DBG` — 130; `CTSET_DBG` — 140; журнал `TEAMDBG.log` — из `logEvent`, 440).
+- (v566) `team.js` — «разбор команды»: только показ, читает решения механик (`teamEco[*].buyWhy` / `ecoWhy` — 520; `TACT_DBG` — 130; `CTSET_DBG` — 140; журнал `TEAMDBG.log` — из `logEvent`, 440).
+
+- **Р4.4 (26.11): деление крупных файлов.** `engine/bot/brain-t.js` → + `brain-t-phases.js` (`tBrainSetup`, `tBrainExecute`), `brain-t-postplant.js` (`tBrainPostplant`); `engine/bot/brain-ct.js` → + `brain-ct-players.js` (`ctBrainPlayers`). Склейка по списку `rebuild/files.json` даёт прежний текст байт в байт (новые файлы — сразу за исходным).
+- Р4.4 (26.11), продолжение: `engine/bot/look.js` → + `look-arbiter.js` (арбитр взгляда, фильтр, взгляд в прыжке); `engine/nav/paths.js` → + `path-search.js` (`zoneDijkstra`, `funnel`, `buildWaypointPath`, `hasLOS`). Инструмент — `tools/rebuild/split_file.py` (граница верхнего оператора, склейка проверяется байт в байт).
+- Р4.4: `view/view3d.js` → + `view3d-frame.js` (`d3Frame`, `d3Proj`, `d3Tag`, запуск); `view/replay.js` → + `replay-play.js` (скорость, рисование, звук, переход к раунду). Не поделены (одна большая функция — нужна правка вида `brain_split` и снимки показа): `view/draw.js` (`draw`), `engine/core/tick.js` (`stepTick`, модуль esbuild); модули `throw.js`, `fight.js` — деление меняет модульную сборку, отдельно.
+- Р4.4: `stepTick` (`engine/core/tick.js`) — тело обхода ботов вынесено в `stepBot(bot, …числа тика)` дословно (числа — параметрами с теми же именами, только чтение); файл не делился — модуль esbuild.
+- Р4.4: `draw` (`view/draw.js`) — 8 частей в прежнем порядке (`drawZones` … `drawBots`, контекст `K`, `brain_split.js`); кадр холста до / после — попиксельно тот же (`tools/page/frame_hash.js`, `rebuild/evidence/R4/draw_split_frames.json`).
+
+## Где что (перенесено из AGENTS.md §11, 26.11, Р4.6)
+
+Файл — путь от корня без расширения; старые номера — `rebuild/R4_RENAME.md`.
+
+| что | файл |
+|---|---|
+| загрузка карты `MAP`, зоны, слой зон, калибровка навмеша; навмеш `.nav`, порталы, авто-стены | `engine/map/zones`, `engine/nav/navmesh` |
+| **карта** (данные — `MAP`, набор `data/maps/<карта>/`): стены `WALL_POLYS` / `applyWalls`; высоты `HEIGHTS` / `hgtInfo`; укрытия `COVER` / `covList`; прострелы `WALLBANG` / `wbList`, `wbAfter` | `engine/map/walls-heights-cover` |
+| **3D-геометрия игры** (А5 Mirage, А6 Ancient — с v388 у обеих карт, `MAP.map3d`): `m3()`, луч `m3Line`/`m3Hit`, этажи `m3Floors`, «в стене» `m3Solid`/`m3SolidHit`, распаковка `zInflate` | `engine/map/geometry3d` |
+| **кто кого видит** (одно место, 3D): `VIS_*`, `visLine`, `visParts`, `visFloorAt`, `visInvalidate`; через неё `hasLOS` и таблица «откуда простреливается» `computeZoneDanger` | `engine/sense/vision`; `hasLOS` — `engine/nav/paths` (+ поиск пути — `engine/nav/path-search`); `computeZoneDanger` — `engine/map/zone-danger` |
+| навмеш и пути: `rebuildNav`, `zoneDijkstra`, `funnel`, `buildWaypointPath`; связи выше прыжка `navCutTall` / перепад `navEdgeDz` (v533); уровни/лестницы/подъёмы `navAtLevel`, `laddersBuild`, `ladderTick` (подъём через промежуточный ящик — `mid`, v533); **под / над этажом** `floorCover` / `floorViewTick` (v535); «на полу» — одно место `navOnFloor`; огонь `inFire`; **прыжки через щель** из демок `navGapsAdd` (`tools/map/gaps_bake.py`), цена перехода «время + шум по режиму» `navJumpCost` (v546) | `engine/nav/paths`; `engine/nav/levels` |
+| оружие, боты `makeTeam`, роумер | `engine/match/weapons-bots`; `updateRoamer` — `engine/sense/fov` |
+| **общая математика** `DM` (Р2): libm + hypot по алгоритму V8, контракт JS; стоит до обёртки игры | `dmath.ts` |
+| переключатели и числа движка `BAL` | `engine/core/tuning` |
+| профили игроков, **команды** `LINEUP`, `SIDE_TEAM`, `seatPlayers` | `engine/team/rosters` |
+| сайты, точки планта, `pickSpots`; **«рядом» для решений — по пути** `nearP` (v532) | `engine/map/sites-spots` |
+| позиция: `setPost` / `updatePost`, арбитр места `TASK_LEVEL`, **свойства задач** `TASK_PROP` / `taskProp` (v527); отклонение вместо отказа `taskDetourKind` / `detourOk` (v547); «дошёл» `POST_ARRIVE`; маршруты `startRoute` / `routeTick` | `engine/bot/task` |
+| **где встать по почерку, оружию и прошлому раунду** (одно место): `posPref`, `posPickName`, `posTick`; «держать район» `holdSpot` / `holdGroup`, варианты `holdCands` | `engine/bot/position` |
+| бомба: `bombTick`, урон взрыва `bombDamageAt` (`BOMB_DMG`), куда бежать `bombFleePoint`, дефуз | `engine/match/bomb` |
+| тактики T `chooseTactic`, память матча `memSnapshot`/`memRestore`/`memStart`, `MEM_BOX`, профиль соперника `OPP.by`; **тактические паузы** (v460): `TOUT`, `timeoutCheck` / `timeoutWant`, план тренера `coachPlan`, `TO_NOW`; показ паузы — `view/hud/timeout` (`ts*`) | `engine/team/tactics`, `view/hud/timeout` |
+| позиции по названиям зон, расстановки CT `chooseCtSetup`, любимые углы | `engine/team/ct-setup` |
+| лёркер `lurkerBrain`, пробы, «проверено — пусто» `markClear` | `engine/team/lurker` |
+| IGL `tIglReplan`, стадии `stagePost` / `tSetSite` | `engine/team/igl` |
+| мозг T `tBrain` (вступление и ранние части); фазы `tBrainSetup` / `tBrainExecute`; после планта `tBrainPostplant` (Р4.4) | `engine/bot/brain-t`, `engine/bot/brain-t-phases`, `engine/bot/brain-t-postplant` |
+| сейв `pickSaveSpot`, ретейк `updateRetake` | `engine/team/save-retake` |
+| мозг CT `ctBrain`; по игроку `ctBrainPlayers` (Р4.4) | `engine/bot/brain-ct`, `engine/bot/brain-ct-players` |
+| эндгейм, клатч CT, ранний пик CT, мид | `engine/team/ct-early`, `engine/team/endgame` |
+| роли `pRole`, `tFallbackTick`, ребаланс сайта; про-позиции `ppLayer`/`proPick` | `engine/team/roles`, `engine/team/pro-positions` |
+| память команды v166 (только радар + войс): `intelPush`, `teamInfoTick`, `commSend` = радар, `intelEstimate`, `lkpNear`, названия зон `calloutName` | `engine/know/intel`; `teamHeardToIntel` — `engine/know/voice` |
+| тайминги «может ли там уже кто-то быть»: `beliefBuild`, `reach*` | `engine/know/reach` |
+| **знание бота о врагах** (одно место): `KNOW`, `hearReal`, гипотезы `know*`; позиции про `KNOW_POSITIONS` | `engine/know/knowledge` |
+| … события знания: `knowCall`, `knowClearZone`, `knowKill`, `knowTick` | `engine/know/events` |
+| **войс** (одно место «что сказали»): `TEAM`, `teamNotice`, `teamChannel`, `teamDeath`, `teamTick` → `knowCall` | `engine/know/voice` |
+| карта команды `belief` из гипотез: `beliefTick`; чтение `beliefZoneKnown` | `engine/know/belief`; `beliefZoneKnown` — `engine/bot/look-threat` |
+| **взгляд** (одно место, v381): арбитр `lookArbiter` / `LOOK_LEVEL`, общий фильтр `lookFilter`; делёж углов `lookCands`, `lookPlan`, `smoothLookFilter`; пики до контакта `prePeekTick`, углы `cornerLook`; взгляд в прыжке `jumpLook` (v548; доворот у края — `jumpFaceWait`, 370); числа `LOOK`, `threatEntrances`; **поворот** (одно место, пишет `facing` только он — фаза 3, 15.11): `lookTick`, рука `handTurn`, ведение `lookTrack`, фриз `freezeLookTick`, интерфейс `lookFace` / `lookTurnBy` / `lookReset` | `engine/bot/look` (+ арбитр — `engine/bot/look-arbiter`), `engine/bot/look-peek`, `engine/bot/look-threat`; поворот — `engine/bot/turn` |
+| смоки: прострел `smokeSpamTick`, `smokeEnemyPossible`; дыры от пуль `smokeBulletHole` / что видно сквозь дыру `smokeHoleParts` (v548) | `engine/nades/smoke-react`; `smokeBulletHole` — `engine/nades/smoke` |
+| **реакция на контакт** (одно место): `contactTick`; `teamBrains`; **CT задерживает гранатой** (одно место, v419): `ctDelayNade` | `engine/bot/contact` |
+| гранаты: закуп `buyNades`, дым и видимость `smokeBlocks`; бросок `throwNade` (подбор физикой `nadeSolve`); **полёт — физика 3D (30.10): `engine/nades/flight` (`nadeLaunch` / `nadeStep` / `nadeAim`), луч кубиком `m3NadeTrace` (035)**, отчёт `docs/reports/GRENADE_PHYSICS_IMPLEMENTATION.md`; бросок смока с разбега `runupTick` (эталон `MAP.runups`, `tools/nades/runup_bake.js`, v491); лайнапы `lineupTick`; срабатывание `detonate`, `nadesTick`; гранаты «себе» `selfNadeTick`, `nadeReact`; решения `nadeBrains` / `nadeUseTick` | `engine/nades/smoke`, `engine/nades/throw`, `engine/nades/flight`, `engine/nades/lineups`, `engine/match/damage`, `engine/nades/self`, `engine/nades/decide` |
+| **синхронизация выхода T с гранатами** (одно место, v481): жизненный цикл смока выхода `EXU` (`exuTick`, `exuThrown`, `exuLanded`), можно ли выходить `exuGate` / `exuPending`, резервный исполнитель `exuBackup` / `exuReassign` | `engine/nades/exec-sync` |
+| **план гранат команды** (одно место, v428): закуп под план раунда по зонам, хозяин и момент гранаты — `teamNadePlan`, `npBought`, `npCanUse`, `npUse`, `npZoneOf`; данные — `MAP.nadeplan` (`tools/map/nadeplan_bake.py`) | `engine/nades/plan` |
+| **урон и смерть — одно место** `applyDamage` (пули, HE, молотов; по своим `FF_MUL`) | `engine/match/damage` |
+| **журнал матча** (данные игры, с 17.11): строки консоли `logEvent`, войса `voiceFeed` / `voiceKind`, киллфида `feedKill` (+ знание о смерти, ассист, клатч `clutchInfo`) / `feedBombKill` / `feedEvent`, серия `SERIES`, решения команд `TEAM_LOG`, расписание писка бомбы `bombBeepTick`; **события для показа** — очередь `SHOW_Q` (`showEv` / `soundEv`), «есть новое» — `VOICE_DIRTY` / `LOG_DIRTY` / `KF_DIRTY` | `engine/match/journal` |
+| **панель войса и консоль** (только показ): `renderVoice`, `logRender`, `toggleConsole` (по Ё) | `view/hud/voice-console` |
+| трассеры, свой на линии `bulletVictim`; выпадение при смерти `dropWeaponOnDeath` → `groundWeapons` / `groundItems` (`itemPickupTick`); нож `knifeTick`; подбор оружия | `engine/match/items` |
+| звук `emitSound`, мелкие ситуации (пас бомбы, добить, смок уходит, ослеплён, пистолет) | `engine/sense/sound` |
+| **движение в перестрелке** (одно место): `fightCycleTick` — на линии (стрейф и контрстрейф `fightStrafe`, v390) → за укрытие `fightCover` → снова; числа `PEEK_PRO`, `STRAFE_PRO`; безопасная ротация, мало HP | `engine/bot/fight` |
+| дабл-пик, фланг, перезарядка `updateReload` | `engine/bot/assist` |
+| стрельба `tryShoot` (целится в видимое); ошибка прицела `aimSigma`, разброс `shotSpread`, «стрелять с ходу» `FIRE_K`/`fireVAcc` (v390) | `engine/bot/shoot` |
+| **режим боя** (`state`: patrol / hold / engage / retreat) — одна точка записи `fightState` (v525), оценка `decideAction`; после фрага `afterKillMove`, `findCover`; **оценка размена** `duelBalance` / `duelEval` / `duelOdds` и конец перестрелки снаружи `fcEnd` — в `engine/bot/fight` | `engine/bot/fight-state` |
+| перестрелки `resolveEngagements` (visParts), `assignNewDestination` | `engine/bot/engagements` |
+| экономика: `decideRoundType0`, `buyForPlayer`; что берут — доли про `smgFor`, `PRO_PISTOL` (`tools/pro/buy_pro.py`) | `engine/team/economy` |
+| **смена сторон и раунд**: `buyPhase`, `sideSwapNow`, `swapSides`, `freshMatch`, `endRound`, `resetRound` | `engine/match/round` |
+| **шагом / бегом / стоять** (одно место, v522): `moveWalkWhy` (причина шага), `moveRunWhy` (отмена шага), `moveWalkTick`, целевая скорость `moveSpeedTick`; причины у бота `_walkWhy` / `_runWhy` / `_stopWhy` | `engine/bot/move` |
+| цикл `stepTick` (+ замирание, шаги, прыжки; звук приземления — одно место `landSound`, шаги на лестнице — v546) | `engine/core/tick` |
+| **счёт ошибок движения** (одно место, только наблюдает, v407): `PROB` / `probTick` — застрял (с причиной), перенос, перетягивание; слой «ошибки движения», сторож замера | `engine/debug/problem-watch` |
+| рисование вспомогательного: навмеш/зоны (режимы редактирования); редактор лайнапов и форм зон | `view/editors/nav-zones`, `view/editors/lineup-editor` |
+| редактор карты `MAPED` (вкладки, Ctrl+Z, база; стены); высоты; укрытия; прострелы | `view/editors/map-walls`, `view/editors/map-heights`, `view/editors/map-cover`, `view/editors/map-wallbang` |
+| проверка «кто кого видит» `visToolDraw`; разбор взгляда `lookDbgPanel` | `view/debug/look-debug` |
+| рисование кадра `draw` | `view/draw` |
+| **3D-вид** (кнопка «3D», только показ, v571): `D3`, сцена `d3Build` (пол — навмеш, ящики — `m3()` до `D3_CUT`), кадр `d3Frame`, таблички `d3Tag`; своё WebGL2 | `view/view3d` (+ кадр — `view/view3d-frame`) |
+| киллфид — рисует `renderFeed` (иконки `KF_ICON`, затухание `kfExpireTick`), силуэты летящих гранат `NADE_ICON` / `nadeImg`, баннеры, карточка раунда, экономика на экране | `view/hud/killfeed` |
+| табло `scoreboardUpdate`, панели игроков `playersUpdate` | `view/hud/scoreboard` |
+| место вставки «Отметить момент» (`@@BUILD@@`) | `view/marks-hook` |
+| **песочница** (одно место, v536): `SANDBOX`, `sbTick` (часы стоят), `sbPlace` / `sbRevive` / `sbRemove`, панель `sbRender` / `sbLogic`; приказ `sbGo` | `view/sandbox` |
+| разминка `warm*`; автообсервер `obs*` (числа `OBS_K`, бой `obsFight`, слежка `OBS.lock`), мини-карта; **повтор клатча** `rp*` (запись `rpRecord`, клип `rpBuild`, эмоции `rpEmotions`, перейти к раунду `rpGoto` / `#round=М.Р`); звук `snd*`, разбор событий игры для показа `showSync` (звуки, баннеры, карточка раунда, закупка), главный цикл `frame`, кнопки | `view/warmup`, `view/observer`, `view/replay` (+ проигрывание — `view/replay-play`), `view/app` |
+| **отметки владельца** (v255): `src/marks.js` (кнопка M, снимок, перемотка), сборка — `src/marks_build.py`; открыть снимок — `tools/marks/mark_open.js`; разбор по истории (что было до, что перебило, веса зон) — `tools/marks/mark_story.js` (v401); раскадровка со слоями — `tools/marks/mark_frames.js` (v407б); повтор с хранилищем браузера владельца — `tools/marks/replay_owner.js` | отдельные файлы |
