@@ -182,7 +182,7 @@ function engDecide(){
         var dA = Math.abs(((wa - fa + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
         if(dA < 1.2){ var cov = findCover(b, foe); if(cov) wp = buildWaypointPath(b.baseX, b.baseY, b.z, cov.x, cov.y, 0); }
       }
-      movePath(b, wp, "fight"); b.pathIdx = 0;
+      movePath(b, wp, "fight", 0);
       b.forcedRetreat = true;
     } else if(next !== "retreat"){
       b.forcedRetreat = false;
@@ -201,7 +201,7 @@ function engRetreatCheck(){
     if(tick - b._rtChk.t >= 16){
       if(dF < b._rtChk.d - 4){
         var cv = findCover(b, foe);
-        if(cv){ movePath(b, buildWaypointPath(b.baseX, b.baseY, b.z, cv.x, cv.y, 0, b.team, botLane(b)), "fight"); b.pathIdx = 0; }
+        if(cv){ movePath(b, buildWaypointPath(b.baseX, b.baseY, b.z, cv.x, cv.y, 0, b.team, botLane(b)), "fight", 0); }
       }
       b._rtChk = {t:tick, d:dF};
     }
@@ -226,7 +226,7 @@ function escapeWallLine(bot){
       // из новой точки должно быть можно куда-то идти
       var free = 0;
       for(var q=0;q<8;q++){ var qa=q*Math.PI/4; if(!crossesWall(nx,ny,nx+DM.cos(qa)*4,ny+DM.sin(qa)*4)) free++; }
-      if(free >= 5){ movePlace(bot, nx, ny, true); movePath(bot, [], "fight"); bot.pathIdx = 0; return true; }
+      if(free >= 5){ movePlace(bot, nx, ny, true); movePath(bot, [], "fight", 0); return true; }
     }
   }
   return false;
@@ -238,15 +238,15 @@ function assignNewDestination(bot, tick){
     var foe = bot._nearestEnemyBot || (bot.lastIntel ? {x:bot.lastIntel.x, y:bot.lastIntel.y} : null);
     var cv = foe ? findCover(bot, foe) : null;
     var tgt = cv || bot.spawnPt;
-    movePath(bot, buildWaypointPath(bot.baseX, bot.baseY, bot.z, tgt.x, tgt.y, 0, bot.team, botLane(bot)), "fight");
-    bot.pathIdx = 0; bot.pickTick = tick;
+    movePath(bot, buildWaypointPath(bot.baseX, bot.baseY, bot.z, tgt.x, tgt.y, 0, bot.team, botLane(bot)), "fight", 0);
+    bot.pickTick = tick;
     return;
   }
   if(bot.post && bot.state === "patrol"){
     if(bot.atPost || bot.planting || bot.defusing) return; // стоит на посту — путь не нужен
     var epp = fireSafe(bot.post, bot);
-    movePath(bot, buildWaypointPath(bot.baseX, bot.baseY, bot.z, epp.x, epp.y, (epp === bot.post && bot.post.z) || 0, bot.team, botLane(bot), bot.walking), "fight");   // (v546) высота поста (ящик), если известна
-    bot.pathIdx = 0; bot.pickTick = tick;
+    movePath(bot, buildWaypointPath(bot.baseX, bot.baseY, bot.z, epp.x, epp.y, (epp === bot.post && bot.post.z) || 0, bot.team, botLane(bot), bot.walking), "fight", 0);   // (v546) высота поста (ящик), если известна
+    bot.pickTick = tick;
     return;
   }
   if(bot.role === "roamer" && bot.state === "patrol"){
@@ -254,15 +254,14 @@ function assignNewDestination(bot, tick){
     var route = ROAM_ROUTES[bot.team];
     if(route && route.length){
       var rp = route[bot.roamIdx % route.length];
-      movePath(bot, buildWaypointPath(bot.baseX, bot.baseY, bot.z, rp.x, rp.y, 0, bot.team, botLane(bot), bot.walking), "fight");
-      bot.pathIdx = 0; bot.pickTick = tick; bot.roamTarget = rp;
+      movePath(bot, buildWaypointPath(bot.baseX, bot.baseY, bot.z, rp.x, rp.y, 0, bot.team, botLane(bot), bot.walking), "fight", 0);
+      bot.pickTick = tick; bot.roamTarget = rp;
       return;
     }
   }
   // (Б1, ENGINE_AUDIT Х3) нет задачи (поста), не отход и не роумер — бот никуда не идёт, пока задачу не поставит механика (setPost,
   // арбитр места). Раньше здесь сам выбирал цель: случайную точку карты (в бою — тоже: путь кончился в engage — бежит на случайную
   // точку) или место сбора тактики T со сдвигом; мозг ставил пост на следующем тике — цель менялась туда-обратно
-  if(bot.path.length) movePath(bot, [], "fight");
-  bot.pathIdx = 0;
+  if(bot.path.length) movePath(bot, [], "fight", 0); else movePathIdx(bot, 0);
 }
 

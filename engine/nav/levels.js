@@ -16,7 +16,7 @@ function fireGoneRepath(fr){
     var P = b.path, e = P[P.length-1], old = 0, px = b.baseX, py = b.baseY;
     for(var i = b.pathIdx; i < P.length; i++){ old += DM.hypot(P[i][0]-px, P[i][1]-py); px = P[i][0]; py = P[i][1]; }
     var np = pathPts(b.baseX, b.baseY, e[0], e[1], b.z, e[2]); if(!np || !np.length) return;
-    if(old - polyLen(np) >= SPEED*FIRE_GONE_GAIN){ movePath(b, [], "огонь погас — путь короче"); b.pathIdx = 0; } });
+    if(old - polyLen(np) >= SPEED*FIRE_GONE_GAIN){ movePath(b, [], "огонь погас — путь короче", 0); } });
 }
 function fireRepath(fx, fy){
   var R = NADE.molly.radius + FIRE_BODY;

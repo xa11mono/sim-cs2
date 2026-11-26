@@ -467,7 +467,7 @@ function setPostDo(b, pt, look, hold, tag, spreadIdx){
   b.post = {id:id, x:x, y:y, z:(pt.z != null ? pt.z : navOnlyZ(x, y)), look:look||null, hold:hold, tag:tag, src:{x:pt0.x, y:pt0.y}};   // (v546) z — высота точки, если задана, или пол точки, если он там один (ящик); иначе null
   if(psn) b.post.pro = psn.sp;
   b.atPost = false;
-  if(b.state === "patrol"){ movePath(b, [], "post"); b.pathIdx = 0; }
+  if(b.state === "patrol"){ movePath(b, [], "post", 0); }
   return {ok: true, why: "поставлен", lv: lv};
 }
 // (17.11, перестройка — модули) запись в журнал решений (trace) — здесь, у хозяина (было: 645 подменял функцию обёрткой)
@@ -517,7 +517,7 @@ function afterTaskPick(b, pt){
   return {pt:{x:A.x, y:A.y}, look:{x:th.x, y:th.y}};
 }
 // механика сама сняла свою точку — её задача кончилась (следующая ставится без ожидания)
-function clearPostDo(b){ b._task = null; if(b._detour && b.post && taskTagB(b.post.tag) === b._detour.tb) b._detour = null; if(b.post){ b.post = null; b.atPost = false; if(b.state==="patrol"){ movePath(b, [], "post"); b.pathIdx = 0; } } }
+function clearPostDo(b){ b._task = null; if(b._detour && b.post && taskTagB(b.post.tag) === b._detour.tb) b._detour = null; if(b.post){ b.post = null; b.atPost = false; if(b.state==="patrol"){ movePath(b, [], "post", 0); } } }
 // (17.11, перестройка — модули) запись в журнал решений (trace) — здесь, у хозяина (было: 645 подменял функцию обёрткой)
 function clearPost(b){
   if(b && b.post) dlog(b, "место", "снята задача «" + b.post.tag + "»"); return clearPostDo.apply(this, arguments);
@@ -531,7 +531,7 @@ function placeResetTask(b){ b._task = null; }
 function updatePost(b){
   if(!b.post || b.state !== "patrol"){ b.atPost = false; return; }
   var ep = fireSafe(b.post, b);
-  if(ep !== b.post && b.atPost && DM.hypot(ep.x-b.baseX, ep.y-b.baseY) > 34){ b.atPost = false; movePath(b, [], "post"); b.pathIdx = 0; }
+  if(ep !== b.post && b.atPost && DM.hypot(ep.x-b.baseX, ep.y-b.baseY) > 34){ b.atPost = false; movePath(b, [], "post", 0); }
   var d = DM.hypot(ep.x-b.baseX, ep.y-b.baseY);
   if(b.post.hold){
     // точка планта: "дошёл" — это именно внутри зоны сайта, а не в 34px от точки
@@ -555,7 +555,7 @@ function updatePost(b){
       else if(d < (b.post.tag === "lineup" ? RUN_NEAR : 70) && tick - b._apT > 90){ var lp = b.path && b.path.length ? b.path[b.path.length-1] : null;
         if((!lp || lp[2] == null || b.z == null || Math.abs(lp[2] - b.z) <= 40) && (b.post.z == null || b.z == null || Math.abs(b.post.z - b.z) <= 40)) arrived = true; }   // (v546) и не под постом на ящике
     }
-    if(!b.atPost && arrived){ b.atPost = true; movePath(b, [], "post"); b.pathIdx = 0;
+    if(!b.atPost && arrived){ b.atPost = true; movePath(b, [], "post", 0);
       // встал с AWP на угол — щелчок зума слышно рядом (≤200 по прямой, ≤120 за стеной)
       if(b.weapon && b.weapon.key === "AWP" && roundState === "live" && tick - (b._zoomTick||-9999) > 3*TICK_HZ){
         b._zoomTick = tick;
@@ -564,7 +564,7 @@ function updatePost(b){
         });
       }
     }
-    else if(b.atPost && (d > 80 || (b.post.tag === "defuse" && d >= DEFUSE_R - 4))){ b.atPost = false; movePath(b, [], "post"); b.pathIdx = 0; }
+    else if(b.atPost && (d > 80 || (b.post.tag === "defuse" && d >= DEFUSE_R - 4))){ b.atPost = false; movePath(b, [], "post", 0); }
   } else b.atPost = false;
 }
 

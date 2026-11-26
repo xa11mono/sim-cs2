@@ -31,6 +31,7 @@
 | `_routeDone` | 3 | 2 | `routeTick · task`, `routeDrop · task` |
 | `baseX` | 21 | 11 | `ladderTick · levels`, `resetRound · round`, `movePlace · move`, `navSnap · tick`, `jumpCheckTick · tick-jump`, `strafeKeysTick · tick-keys`, `stepBot · tick-step`, `warmSpawn · warmup`, `warmTick · warmup`, `sbPlace · sandbox`, `dvPlace · demo` |
 | `baseY` | 21 | 11 | `ladderTick · levels`, `resetRound · round`, `movePlace · move`, `navSnap · tick`, `jumpCheckTick · tick-jump`, `strafeKeysTick · tick-keys`, `stepBot · tick-step`, `warmSpawn · warmup`, `warmTick · warmup`, `sbPlace · sandbox`, `dvPlace · demo` |
+| `pathIdx` | 20 | 8 | `fireRepath · levels`, `ladderTick · levels`, `navFollowFloor · levels`, `movePath · move`, `movePathIdx · move`, `moveSpeedTick · move`, `navSnap · tick`, `stepBot · tick-step` |
 
 ## `facing`
 
@@ -44,18 +45,18 @@
 
 ## `walking`
 
-- **хозяин** `moveWalk · move` — 1 (стр. 27)
-- **хозяин** `moveWalkTick · move` — 1 (стр. 112)
-- **хозяин** `moveSpeedTick · move` — 1 (стр. 166)
+- **хозяин** `moveWalk · move` — 1 (стр. 29)
+- **хозяин** `moveWalkTick · move` — 1 (стр. 114)
+- **хозяин** `moveSpeedTick · move` — 1 (стр. 178)
 - **хозяин** `stepBot · tick-step` — 1 (стр. 251)
 
 ## `curSpeed`
 
-- **хозяин** `moveSpeedTick · move` — 5 (стр. 186, 188, 189, 190, 191)
+- **хозяин** `moveSpeedTick · move` — 5 (стр. 198, 200, 201, 202, 203)
 - **хозяин** `stepBot · tick-step` — 5 (стр. 84, 111, 234, 249, 251)
 - **хозяин** `jumpFaceWait · levels` — 1 (стр. 111)
 - **хозяин** `ladderTick · levels` — 1 (стр. 217)
-- **хозяин** `moveSpeed · move` — 1 (стр. 26)
+- **хозяин** `moveSpeed · move` — 1 (стр. 28)
 
 ## `post`
 
@@ -106,7 +107,7 @@
 
 - **хозяин** `exuReassign · exec-sync` — 3 (стр. 128, 131, 132)
 - **хозяин** `nadeQueueNext · throw` — 2 (стр. 456, 458)
-- **хозяин** `lineupTick · lineups` — 2 (стр. 202, 264)
+- **хозяин** `lineupTick · lineups` — 2 (стр. 202, 266)
 - **хозяин** `(верх файла) · smoke` — 1 (стр. 37)
 - **хозяин** `nadeAskFlash · plan` — 1 (стр. 235)
 - **хозяин** `assignNadeDo · throw` — 1 (стр. 414)
@@ -130,10 +131,10 @@
 
 - **хозяин** `stepBot · tick-step` — 5 (стр. 249, 323, 362, 384, 399)
 - **хозяин** `navFollowFloor · levels` — 2 (стр. 385, 424)
-- **хозяин** `moveSpeedTick · move` — 2 (стр. 158, 165)
+- **хозяин** `moveSpeedTick · move` — 2 (стр. 170, 177)
 - **хозяин** `fireRepath · levels` — 1 (стр. 30)
 - **хозяин** `ladderTick · levels` — 1 (стр. 218)
-- **хозяин** `movePath · move` — 1 (стр. 25)
+- **хозяин** `movePath · move` — 1 (стр. 26)
 - **хозяин** `navSnap · tick` — 1 (стр. 67)
 
 не бот (то же имя у другого объекта — в проверку владения не идёт): `hgtCache · map-heights` (16 HGT_C)
@@ -214,3 +215,14 @@
 - **хозяин** `warmSpawn · warmup` — 1 (стр. 12)
 - **хозяин** `sbPlace · sandbox` — 1 (стр. 36)
 - **хозяин** `dvPlace · demo` — 1 (стр. 53)
+
+## `pathIdx`
+
+- **хозяин** `stepBot · tick-step` — 8 (стр. 174, 249, 254, 321, 323, 362, 384, 399)
+- **хозяин** `ladderTick · levels` — 4 (стр. 218, 233, 241, 276)
+- **хозяин** `navFollowFloor · levels` — 2 (стр. 385, 424)
+- **хозяин** `moveSpeedTick · move` — 2 (стр. 170, 177)
+- **хозяин** `fireRepath · levels` — 1 (стр. 30)
+- **хозяин** `movePath · move` — 1 (стр. 26)
+- **хозяин** `movePathIdx · move` — 1 (стр. 27)
+- **хозяин** `navSnap · tick` — 1 (стр. 67)

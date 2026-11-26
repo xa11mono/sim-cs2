@@ -210,7 +210,7 @@ function resetRound(){
     b._underV = null; b._overV = null; b._fall = null; floorViewTick(b);   // (v535) этаж — заново с нового места
     b.baseX = b.x; b.baseY = b.y;
     b.px = b.x; b.py = b.y;
-    movePath(b, [], "reset"); b.pathIdx = 0; b.alive = true; b.hp = 100;
+    movePath(b, [], "reset", 0); b.alive = true; b.hp = 100;
     b.pickTick = -999; b.contactStreak = 0; b._ts = {}; b.nextShotTick = 0;
     fightReset(b); b.decisionTick = -999; b.forcedRetreat = false;
     lookReset(b); b.heading = undefined; moveSpeed(b, 0, "reset"); placeStance(b, false, "reset"); b.holdSinceTick = -999; b.onStairs = false;

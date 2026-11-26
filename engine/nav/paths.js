@@ -248,7 +248,7 @@ function rebuildNav(){
   // possibly-wrong line (only matters once bots actually exist, i.e. on a
   // re-alignment, not the very first call at load).
   if(typeof bots !== "undefined"){
-    bots.forEach(function(b){ movePath(b, [], "nav-rebuild"); b.pathIdx = 0; });
+    bots.forEach(function(b){ movePath(b, [], "nav-rebuild", 0); });
     // (Т-4, 25.11, У-14) перестройка во время игры (редактор карты): связи выше прыжка снимаются сразу, а не при первом поиске пути —
     // иначе до него граф читали с несрезанными связями. При загрузке (ботов ещё нет, paths:254) — как было: срез при первом поиске пути
     // (laddersBuild нужен файл 370, он ещё не загружен); единственный читатель до среза при загрузке — snapToWalkable (только «есть ли

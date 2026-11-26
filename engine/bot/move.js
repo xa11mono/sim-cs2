@@ -1,4 +1,4 @@
-// [хозяева: movePath, movePlace, moveRunWhy, moveSpeed, moveSpeedTick, moveWalk, moveWalkTick, moveWalkWhy] ======================= (v522) РЕЖИМ ДВИЖЕНИЯ — одно место: шагом / бегом / стоять =======================
+// [хозяева: movePath, movePathIdx, movePlace, moveRunWhy, moveSpeed, moveSpeedTick, moveWalk, moveWalkTick, moveWalkWhy] ======================= (v522) РЕЖИМ ДВИЖЕНИЯ — одно место: шагом / бегом / стоять =======================
 // Раньше эти решения были размазаны по stepTick одним условием из полутора десятков причин и цепочкой отмен после него.
 // Логика перенесена сюда БЕЗ изменений (тот же порядок проверок, отпечаток бит в бит) — но теперь у решения есть причина:
 //   bot._walkWhy — почему идёт шагом (null — не шагом), bot._runWhy — какая отмена сняла шаг (null — не снимала),
@@ -22,7 +22,9 @@ var MOVE = {run: 0, burn: null};   // выход moveSpeedTick: скорость
 // сразу. Порядок записей — прежний (baseX, baseY, затем x, y)
 function movePlace(b, x, y, vis){ b.baseX = x; b.baseY = y; if(vis){ b.x = x; b.y = y; } }
 function moveWaitPop(b, until, key, why){ b._waitPopUntil = until; if(key !== undefined) b._waitPopKey = key; b._moveWhy = why; }
-function movePath(b, p, why){ b.path = p; b._moveWhy = why; }
+// (Р3.2 ход ш.2) idx — и номер точки пути (было: movePath(…); b.pathIdx = 0 у вызывающих). Порядок записей прежний: путь, причина, номер
+function movePath(b, p, why, idx){ b.path = p; b._moveWhy = why; if(idx !== undefined) b.pathIdx = idx; }
+function movePathIdx(b, i){ b.pathIdx = i; }   // номер точки прежнего пути (путь не меняется)
 function moveSpeed(b, v, why){ b.curSpeed = v; b._moveWhy = why; }
 function moveWalk(b, w, why){ b.walking = w; b._moveWhy = why; }
 function moveWalkWhy(bot){
@@ -113,6 +115,18 @@ function moveWalkTick(bot){
 }
 // целевая скорость этого тика: стоять / идти / выбегать из огня / тормозить; заодно разгон к ней. Возвращает ничего;
 // MOVE.run — скорость хода после поправок, MOVE.burn — огонь под ботом
+// (Р3.2 ход ш.2, 26.11) таблица писателей скорости «стоп»: кто останавливает ноги и почему — в прежнем порядке (первая подошедшая строка;
+// была цепочка if / else в moveSpeedTick). Условия — без побочных эффектов; waitPop считает moveSpeedTick
+var MOVE_STOP = [
+  {why: "ждёт флешку своего",     when: function(bot, waitPop){ return waitPop; }},
+  {why: "держит угол",            when: function(bot){ return bot.holding && !(bot.post && !bot.atPost && taskProp(bot.post.tag, "escape")); }},
+  {why: "роумер проверяет точку", when: function(bot){ return bot.roamChecking; }},
+  {why: "на посту",               when: function(bot){ return bot.atPost; }},
+  {why: "ставит бомбу",           when: function(bot){ return bot.planting; }},
+  {why: "дефузит",                when: function(bot){ return bot.defusing; }},
+  {why: "бросает гранату",        when: function(bot){ return tick < (bot.throwUntil||0); }},
+  {why: "стреляет по врагу",      when: function(bot){ return bot.state === "engage" && bot._sawEnemy; }}
+];
 function moveSpeedTick(bot, runSpeed, BRAKE_RADIUS, maxDelta){
   var why = null;
   // ждёт хлопка флешки тиммейта (поп на убийцу / ретейк) — не выбегает раньше неё
@@ -121,9 +135,7 @@ function moveSpeedTick(bot, runSpeed, BRAKE_RADIUS, maxDelta){
   var targetSpeed = runSpeed;
   // (v583a, Д26, прогон 274: раненый CT с задачей «уйти из-под линии» погиб, стоя «держу угол», в 68 из 149 случаев — снова увидел врага, режим
   // боя «держать» останавливал ноги на линии) уходит из-под линии — «держит угол» не останавливает, пока не дошёл до укрытия
-  if(waitPop){ targetSpeed = 0; why = "ждёт флешку своего"; } else if(bot.holding && !(bot.post && !bot.atPost && taskProp(bot.post.tag, "escape"))){ targetSpeed = 0; why = "держит угол"; } else if(bot.roamChecking){ targetSpeed = 0; why = "роумер проверяет точку"; }
-  else if(bot.atPost){ targetSpeed = 0; why = "на посту"; } else if(bot.planting){ targetSpeed = 0; why = "ставит бомбу"; } else if(bot.defusing){ targetSpeed = 0; why = "дефузит"; }
-  else if(tick < (bot.throwUntil||0)){ targetSpeed = 0; why = "бросает гранату"; } else if(bot.state === "engage" && bot._sawEnemy){ targetSpeed = 0; why = "стреляет по врагу"; }
+  for(var si = 0; si < MOVE_STOP.length; si++) if(MOVE_STOP[si].when(bot, waitPop)){ targetSpeed = 0; why = MOVE_STOP[si].why; break; }
   // (v375, владелец: «в 4 раунде все по одному выходили из T Ramp и умирали») демки Mirage: первый T, входящий на сайт (≤ 250
   // от него), один (своих ближе 500 нет) в 13 % раундов у про и в 29 % у ботов; второй входит через 2,0 с у про и 3,0 с у ботов.
   // Перед входом на сайт один — ждёт напарника на размен до ENTRY_WAIT (2 с — медиана про), потом идёт; лёркер и бой — без ожидания

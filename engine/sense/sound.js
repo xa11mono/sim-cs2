@@ -177,7 +177,7 @@ function onBlind(b, threat){
   if(back) wp = [[back.x, back.y, b.z]];
   else { var cv = findCover(b, threat); if(cv){ wp = buildWaypointPath(b.baseX, b.baseY, b.z, cv.x, cv.y, 0); if(wp && wp.length) back = cv; else wp = null; } }
   b._blind = {until:b.blindUntil, back:back, face:{x:threat.x, y:threat.y}};
-  if(wp){ movePath(b, wp, "blind"); b.pathIdx = 0; }
+  if(wp){ movePath(b, wp, "blind", 0); }
   // стрелять вслепую — только с настоящей причиной: видел врага перед самой вспышкой (≤ 1 с) и он рядом — он пойдёт на флешку.
   // Очередь в точку, где видел, заводит smokeSpamTick (smoke-react, хозяин огня по памяти); попадёт, если враг на линии
   var fire = threat.tick != null && threat.src !== "call" && tick - threat.tick <= TICK_HZ && DM.hypot(threat.x-b.x, threat.y-b.y) < BLIND_FIRE_R && b.ammo > 0 && b.weapon && !b.weapon.scopeTicks;

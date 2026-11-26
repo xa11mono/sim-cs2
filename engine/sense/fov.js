@@ -27,7 +27,7 @@ function updateRoamer(bot){
       bot.roamPrevPt = done;
       bot.roamChecking = false;
       bot.roamIdx = (bot.roamIdx+1) % route.length;
-      movePath(bot, [], "roam"); bot.pathIdx = 0;
+      movePath(bot, [], "roam", 0);
     }
     return;
   }
@@ -56,7 +56,7 @@ function updateRoamer(bot){
       if(d < bd){ bd = d; bi = i; }
     });
     if(bi >= 0 && bi !== bot.roamIdx % route.length){
-      bot.roamIdx = bi; movePath(bot, [], "roam"); bot.pathIdx = 0;
+      bot.roamIdx = bi; movePath(bot, [], "roam", 0);
       bot._roamSoundLockUntil = tick + 192;
       logEvent(bot.id+" (роумер): "+(snd===bot.heardSound?"услышал шаги":"по коллу тиммейта")+" — иду чекать "+roamPtLabel(route[bi]));
     }
@@ -65,7 +65,7 @@ function updateRoamer(bot){
   if(bot.roamTarget === cur && DM.hypot(cur.x-bot.baseX, cur.y-bot.baseY) < 45){
     bot.roamChecking = true;
     bot.roamCheckStart = tick; bot.roamCheckUntil = tick + ROAM_CHECK_TICKS;
-    movePath(bot, [], "roam"); bot.pathIdx = 0;
+    movePath(bot, [], "roam", 0);
     // смотрим туда, откуда вероятнее придёт враг — в сторону его спавна
     var en = bot.team==="CT" ? T_SPAWN : CT_SPAWN;
     bot.roamLookPt = {x:en.x, y:en.y};

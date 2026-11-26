@@ -405,5 +405,22 @@
     "enforce": true,
     "since": "Р3.2 ход ш.2, 26.11: позиция бота — у хода (engine/bot/move.js, движок шага engine/core/tick*); бой — через movePlace",
     "why": "кроме хода: подъём по лестнице (ladderTick — движок подъёма), расстановка на спавн (resetRound), режимы страницы (разминка, песочница, просмотр демки) ставят бота сами; новые писатели — ошибка сборки"
+  },
+  "pathIdx": {
+    "channel": "ход",
+    "files": [
+      "move",
+      "tick",
+      "tick-step",
+      "tick-jump",
+      "tick-keys",
+      "levels"
+    ],
+    "allow": [
+      "movePath",
+      "movePathIdx"
+    ],
+    "enforce": true,
+    "since": "Р3.2 ход ш.2, 26.11: номер точки пути — у хода; снаружи — movePath(b, путь, причина, номер)"
   }
 }

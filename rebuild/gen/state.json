@@ -760,7 +760,7 @@
    "snap": true
   },
   "CLR_REB_SEC": {
-   "decl": "lineups.js:311",
+   "decl": "lineups.js:313",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -1741,6 +1741,8 @@
    },
    "r": {
     "knowledge": 2,
+    "lineups": 2,
+    "sites-spots": 1,
     "trace": 5
    },
    "snap": "нет: след решений — вне состояния игры (Р3.3)"
@@ -1942,7 +1944,7 @@
    "snap": true
   },
   "EXEC_QUEUE_N": {
-   "decl": "lineups.js:311",
+   "decl": "lineups.js:313",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -1952,7 +1954,7 @@
    "snap": true
   },
   "EXEC_QUEUE_R": {
-   "decl": "lineups.js:311",
+   "decl": "lineups.js:313",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -1962,7 +1964,7 @@
    "snap": true
   },
   "EXEC_REACH": {
-   "decl": "lineups.js:311",
+   "decl": "lineups.js:313",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -1972,7 +1974,7 @@
    "snap": true
   },
   "EXEC_WAIT_SEC": {
-   "decl": "lineups.js:311",
+   "decl": "lineups.js:313",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -4117,7 +4119,7 @@
    "snap": true
   },
   "LU_DETOUR_K": {
-   "decl": "lineups.js:286",
+   "decl": "lineups.js:288",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -4127,7 +4129,7 @@
    "snap": true
   },
   "LU_DETOUR_MIN": {
-   "decl": "lineups.js:290",
+   "decl": "lineups.js:292",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -4148,7 +4150,7 @@
    "snap": true
   },
   "LU_REACH_MARGIN": {
-   "decl": "lineups.js:272",
+   "decl": "lineups.js:274",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -4158,7 +4160,7 @@
    "snap": true
   },
   "LU_REACH_PAD": {
-   "decl": "lineups.js:271",
+   "decl": "lineups.js:273",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -4186,7 +4188,7 @@
    "m": {},
    "r": {
     "lineup-editor": 4,
-    "lineups": 10,
+    "lineups": 12,
     "throw": 1
    },
    "snap": true
@@ -4569,6 +4571,16 @@
     "look-arbiter": 1
    },
    "snap": true
+  },
+  "MOVE_STOP": {
+   "decl": "move.js:120",
+   "init": "ArrayExpression",
+   "w": {},
+   "m": {},
+   "r": {
+    "move": 3
+   },
+   "snap": "нет: STATIC"
   },
   "NADE": {
    "decl": "smoke.js:10",
@@ -12852,7 +12864,7 @@
   },
   "_blind": {
    "w": [
-    "move.js:185 moveSpeedTick",
+    "move.js:197 moveSpeedTick",
     "round.js:218 resetRound",
     "sandbox.js:43 sbRevive",
     "sound.js:179 onBlind"
@@ -12901,8 +12913,8 @@
   },
   "_burning": {
    "w": [
-    "move.js:145 moveSpeedTick",
-    "move.js:170 moveSpeedTick"
+    "move.js:157 moveSpeedTick",
+    "move.js:182 moveSpeedTick"
    ],
    "lit": [],
    "r": 3
@@ -13243,8 +13255,8 @@
   },
   "_entryWait": {
    "w": [
-    "move.js:134 moveSpeedTick",
-    "move.js:136 moveSpeedTick"
+    "move.js:146 moveSpeedTick",
+    "move.js:148 moveSpeedTick"
    ],
    "lit": [],
    "r": 7
@@ -13435,8 +13447,8 @@
   },
   "_fireExit": {
    "w": [
-    "move.js:157 moveSpeedTick",
-    "move.js:170 moveSpeedTick",
+    "move.js:169 moveSpeedTick",
+    "move.js:182 moveSpeedTick",
     "round.js:208 resetRound"
    ],
    "lit": [],
@@ -13444,8 +13456,8 @@
   },
   "_fireExitFire": {
    "w": [
-    "move.js:157 moveSpeedTick",
-    "move.js:170 moveSpeedTick",
+    "move.js:169 moveSpeedTick",
+    "move.js:182 moveSpeedTick",
     "round.js:208 resetRound"
    ],
    "lit": [],
@@ -14178,9 +14190,9 @@
   "_moveWhy": {
    "w": [
     "move.js:24 moveWaitPop",
-    "move.js:25 movePath",
-    "move.js:26 moveSpeed",
-    "move.js:27 moveWalk"
+    "move.js:26 movePath",
+    "move.js:28 moveSpeed",
+    "move.js:29 moveWalk"
    ],
    "lit": [],
    "r": 4
@@ -14897,7 +14909,7 @@
   },
   "_runWhy": {
    "w": [
-    "move.js:112 moveWalkTick"
+    "move.js:114 moveWalkTick"
    ],
    "lit": [],
    "r": 3
@@ -15213,7 +15225,7 @@
   },
   "_stopWhy": {
    "w": [
-    "move.js:192 moveSpeedTick",
+    "move.js:204 moveSpeedTick",
     "tick-step.js:111 stepBot"
    ],
    "lit": [],
@@ -15436,7 +15448,7 @@
   },
   "_walkWhy": {
    "w": [
-    "move.js:112 moveWalkTick"
+    "move.js:114 moveWalkTick"
    ],
    "lit": [],
    "r": 3
@@ -15522,7 +15534,7 @@
   },
   "atPost": {
    "w": [
-    "move.js:144 moveSpeedTick",
+    "move.js:156 moveSpeedTick",
     "round.js:234 resetRound",
     "task.js:469 setPostDo",
     "task.js:520 clearPostDo",
@@ -15669,12 +15681,12 @@
    "w": [
     "levels.js:111 jumpFaceWait",
     "levels.js:217 ladderTick",
-    "move.js:186 moveSpeedTick",
-    "move.js:188 moveSpeedTick",
-    "move.js:189 moveSpeedTick",
-    "move.js:190 moveSpeedTick",
-    "move.js:191 moveSpeedTick",
-    "move.js:26 moveSpeed",
+    "move.js:198 moveSpeedTick",
+    "move.js:200 moveSpeedTick",
+    "move.js:201 moveSpeedTick",
+    "move.js:202 moveSpeedTick",
+    "move.js:203 moveSpeedTick",
+    "move.js:28 moveSpeed",
     "tick-step.js:111 stepBot",
     "tick-step.js:234 stepBot",
     "tick-step.js:249 stepBot",
@@ -16043,7 +16055,7 @@
   },
   "log": {
    "w": [
-    "move.js:135 moveSpeedTick"
+    "move.js:147 moveSpeedTick"
    ],
    "lit": [],
    "r": 0
@@ -16136,7 +16148,7 @@
     "exec-sync.js:131 exuReassign",
     "exec-sync.js:132 exuReassign",
     "lineups.js:202 lineupTick",
-    "lineups.js:264 lineupTick",
+    "lineups.js:266 lineupTick",
     "plan.js:235 nadeAskFlash",
     "smoke.js:37 (верх файла)",
     "throw.js:414 assignNadeDo",
@@ -16199,9 +16211,9 @@
     "levels.js:30 fireRepath",
     "levels.js:385 navFollowFloor",
     "levels.js:424 navFollowFloor",
-    "move.js:158 moveSpeedTick",
-    "move.js:165 moveSpeedTick",
-    "move.js:25 movePath",
+    "move.js:170 moveSpeedTick",
+    "move.js:177 moveSpeedTick",
+    "move.js:26 movePath",
     "tick-step.js:249 stepBot",
     "tick-step.js:323 stepBot",
     "tick-step.js:362 stepBot",
@@ -16216,20 +16228,6 @@
   },
   "pathIdx": {
    "w": [
-    "bomb.js:249 bombTick",
-    "bomb.js:330 bombTick",
-    "bomb.js:335 bombTick",
-    "engagements.js:185 engDecide",
-    "engagements.js:204 engRetreatCheck",
-    "engagements.js:229 escapeWallLine",
-    "engagements.js:242 assignNewDestination",
-    "engagements.js:249 assignNewDestination",
-    "engagements.js:258 assignNewDestination",
-    "engagements.js:266 assignNewDestination",
-    "fov.js:30 updateRoamer",
-    "fov.js:59 updateRoamer",
-    "fov.js:68 updateRoamer",
-    "levels.js:19 fireGoneRepath",
     "levels.js:218 ladderTick",
     "levels.js:233 ladderTick",
     "levels.js:241 ladderTick",
@@ -16237,17 +16235,10 @@
     "levels.js:30 fireRepath",
     "levels.js:385 navFollowFloor",
     "levels.js:424 navFollowFloor",
-    "move.js:158 moveSpeedTick",
-    "move.js:165 moveSpeedTick",
-    "paths.js:251 rebuildNav",
-    "round.js:213 resetRound",
-    "sandbox.js:38 sbPlace",
-    "sound.js:180 onBlind",
-    "task.js:470 setPostDo",
-    "task.js:520 clearPostDo",
-    "task.js:534 updatePost",
-    "task.js:558 updatePost",
-    "task.js:567 updatePost",
+    "move.js:170 moveSpeedTick",
+    "move.js:177 moveSpeedTick",
+    "move.js:26 movePath",
+    "move.js:27 movePathIdx",
     "tick-step.js:174 stepBot",
     "tick-step.js:249 stepBot",
     "tick-step.js:254 stepBot",
@@ -16256,13 +16247,12 @@
     "tick-step.js:362 stepBot",
     "tick-step.js:384 stepBot",
     "tick-step.js:399 stepBot",
-    "tick.js:67 navSnap",
-    "weapons-bots.js:160 buildRoamRoutes"
+    "tick.js:67 navSnap"
    ],
    "lit": [
     "weapons-bots.js:82"
    ],
-   "r": 100
+   "r": 82
   },
   "pending": {
    "w": [
@@ -16742,9 +16732,9 @@
   },
   "walking": {
    "w": [
-    "move.js:112 moveWalkTick",
-    "move.js:166 moveSpeedTick",
-    "move.js:27 moveWalk",
+    "move.js:114 moveWalkTick",
+    "move.js:178 moveSpeedTick",
+    "move.js:29 moveWalk",
     "tick-step.js:251 stepBot"
    ],
    "lit": [

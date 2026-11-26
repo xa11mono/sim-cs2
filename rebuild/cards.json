@@ -574,6 +574,7 @@
    "mech": "шагом / бегом / стоять (одно место, v522): moveWalkWhy (причина шага), moveRunWhy (отмена шага), moveWalkTick, целевая скорость moveSpeedTick; причины у бота _walkWhy / _runWhy / _stopWhy",
    "owns": [
     "movePath",
+    "movePathIdx",
     "movePlace",
     "moveRunWhy",
     "moveSpeed",
