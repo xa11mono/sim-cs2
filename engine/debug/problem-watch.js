@@ -17,7 +17,7 @@
 // Числа — проектные (как в стороже v373: 5 с / 25 px / 2 с).
 var PROB_STALL_SEC = 5, PROB_STALL_MOVE = 25, PROB_TUG_SEC = 2, PROB_SHOW_SEC = 4, PROB_BLOCK_SEC = 8;
 var PROB = {n: {stall: 0, nav: 0, tug: 0}, ev: [], s: {}, round: -1, match: -1};
-function probReset(){ PROB.n = {stall: 0, nav: 0, tug: 0}; PROB.sub = {}; PROB.ev = []; PROB.s = {}; PROB.round = -1; PROB.match = -1; }
+function probReset(){ PROB.n = {stall: 0, nav: 0, tug: 0}; PROB.sub = {}; PROB.all = []; PROB.ev = []; PROB.s = {}; PROB.round = -1; PROB.match = -1; }
 // (Р3.6, 25.11, аудит Codex D: «stall смешивает физику и отказы») stall по причинам — РЯДОМ со старым счётом (PROB.n.stall не меняется,
 // историческое сравнение сохраняется): stall.block — задачу не пускает задача выше (отказ арбитра), stall.geom — шаг упирается в геометрию
 // (стена / уступ / край пола / огонь), stall.free — шаг свободен, а бот стоит (стоп, скорость), stall.path — нет пути / на точке пути
@@ -36,6 +36,9 @@ function probEvent(kind, b, text){
   PROB.n[kind]++;
   var sub = kind === "stall" ? "stall." + probStallSub(text) : null; if(sub){ PROB.sub = PROB.sub || {}; PROB.sub[sub] = (PROB.sub[sub] || 0) + 1; }
   PROB.ev.push({kind: kind, id: b.id, x: Math.round(b.baseX), y: Math.round(b.baseY), tick: tick, round: roundNum, text: text, sub: sub, why: probTrace(b)});
+  // (Р3.6, владелец 26.11) полный журнал матча — у каждого увеличения счётчика своя причина (PROB.all, без ограничения); PROB.ev — последние 400
+  // (слой «ошибки движения» на экране)
+  (PROB.all = PROB.all || []).push(PROB.ev[PROB.ev.length - 1]);
   if(PROB.ev.length > 400) PROB.ev.shift();
 }
 function probStallWhy(b){
