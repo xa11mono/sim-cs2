@@ -21,7 +21,7 @@ function stepTick(){
     return;
   }
   if(roundState === "freeze"){
-    freezeLookTick(); nadePrecalcTick();   // (физика гранат, этап 3) решения лайнапов — заранее, пока стоят
+    freezeLookTick(); nadePrecalcTick(); spotPrecalcTick();   // (физика гранат, этап 3) решения лайнапов — заранее, пока стоят
     if(simTime >= roundStartTime){ roundSetState("live"); freezeFxReset(); logEvent("Freeze-тайм окончен — раунд пошёл"); }
     return;
   }

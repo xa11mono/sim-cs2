@@ -179,6 +179,18 @@ var spotCache = {};
 // к его спавну, чем моя) видят точку. Про встаёт так, чтобы его видели с
 // одного выхода за раз; точка под 3–4 выходами — смерть от первого же захода
 var ED_CACHE = {CT:null, T:null}, EXP_CACHE = {};
+// (Р6 К-6, опыт 27.11) пик первого тика раунда: открытость мест (spotExposure — функция геометрии, кэш EXP_CACHE живёт до пересборки точек)
+// для центров участков навмеша (кандидаты pickSpots) — заранее, пока закупка, по SPOT_PRE_N за тик в постоянном порядке (CT, затем T; участки
+// по порядку NAVAREAS); ответы те же — это заполнение кэша, не решение
+var SPOT_PRE = {i: 0, of: null}, SPOT_PRE_N = 6;
+function spotPrecalcTick(){
+  if(SPOT_PRE.of !== EXP_CACHE){ SPOT_PRE.of = EXP_CACHE; SPOT_PRE.i = 0; }
+  var N = NAVAREAS.length, done = 0;
+  while(done < SPOT_PRE_N && SPOT_PRE.i < 2*N){ var t = SPOT_PRE.i < N ? "CT" : "T", z = NAVAREAS[SPOT_PRE.i % N]; SPOT_PRE.i++;
+    if(NAV_BLOCKED[z.id] || !(zoneGraph[z.id]||[]).length) continue;
+    var c = zoneCentroid(z), ck = t+Math.round(c.x/12)+","+Math.round(c.y/12); if(EXP_CACHE[ck] !== undefined) continue;
+    spotExposure(t, c.x, c.y); done++; }
+}
 function spotExposure(team, x, y){
   if(!BZ.ids.length || !team) return 0;
   var ck = team+Math.round(x/12)+","+Math.round(y/12); if(EXP_CACHE[ck] !== undefined) return EXP_CACHE[ck];
