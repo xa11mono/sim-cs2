@@ -13,6 +13,7 @@ function loadBackend(kind, wasmBytes) {
     const m = { exports: {} }; process.dlopen(m, f); const N = m.exports, out = new Float64Array(7), pout = new Float64Array(4096);
     return { name: 'napi', geoInit: N.geoInitN, geoSet: (fld, u8) => N.geoSetN(fld, u8), geoFill: v => N.geoFillN(v), geoReady: N.geoReadyN,
       cast: (k, ax, ay, az, bx, by, bz, f) => { N.castN(k, ax, ay, az, bx, by, bz, f, out); return out; },
+      nade: (ax, ay, az, bx, by, bz, r, sk) => { N.nadeN(ax, ay, az, bx, by, bz, r, sk, out); return out; },
       pathGraph: v => N.pathGraphN(v), pathQuery: q => { const n = N.pathQueryN(q, pout); return pout.subarray(0, n); } };
   }
   const wasm = wasmBytes || fs.readFileSync(path.join(KDIR, 'target/wasm32-unknown-unknown/release/sim_r7_kernels.wasm'));
@@ -23,6 +24,7 @@ function loadBackend(kind, wasmBytes) {
     geoFill: v => { const u8 = new Uint8Array(v.buffer, v.byteOffset, v.byteLength), p = put(u8); I.r7_geo_fill(p, v.length); I.r7_free(p, u8.byteLength); },
     geoReady: I.r7_geo_ready,
     cast: (k, ax, ay, az, bx, by, bz, f) => { I.r7_cast(k, ax, ay, az, bx, by, bz, f); if (!outV || outV.buffer !== I.memory.buffer) outV = new Float64Array(I.memory.buffer, I.r7_out(), 7); return outV; },
+    nade: (ax, ay, az, bx, by, bz, r, sk) => { I.r7_nade(ax, ay, az, bx, by, bz, r, sk); if (!outV || outV.buffer !== I.memory.buffer) outV = new Float64Array(I.memory.buffer, I.r7_out(), 7); return outV; },
     pathGraph: v => { const u8 = new Uint8Array(v.buffer, v.byteOffset, v.byteLength), p = put(u8); I.r7_path_graph(p, v.length); I.r7_free(p, u8.byteLength); },
     pathQuery: q => { const u8 = new Uint8Array(q.buffer, q.byteOffset, q.byteLength), p = put(u8); const n = I.r7_path_query(p, q.length); I.r7_free(p, u8.byteLength);
       return new Float64Array(I.memory.buffer, I.r7_path_out(), n); } };
@@ -39,7 +41,7 @@ function attach(EV, opt) {
     B.geoInit(M.W, M.cell, M.unit, M.X0, M.Y0, M.B, M.BN);
     const [bo, bt] = flatLists(M.bTri), [ho, bh] = flatLists(M.bHull);
     B.geoSet(0, u8of(M.tri)); B.geoSet(1, u8of(M.triFlag)); B.geoSet(2, u8of(M.triZ)); B.geoSet(3, u8of(bo)); B.geoSet(4, u8of(bt)); B.geoSet(5, u8of(ho)); B.geoSet(6, u8of(bh));
-    B.geoSet(7, u8of(M.hullP)); B.geoSet(8, u8of(M.hullOff)); B.geoSet(9, u8of(M.hullFlag));
+    B.geoSet(7, u8of(M.hullP)); B.geoSet(8, u8of(M.hullOff)); B.geoSet(9, u8of(M.hullFlag)); B.geoSet(19, u8of(M.hullBox));
     [M.sight, M.nade, M.sky].forEach((c, k) => { B.geoSet(10 + 3*k, u8of(c.st)); B.geoSet(11 + 3*k, u8of(c.lo)); B.geoSet(12 + 3*k, u8of(c.hi)); });
     const F = M.fill || [], fv = [F.length]; F.forEach(f => { fv.push(...f.box, f.p.length); f.p.forEach(p => fv.push(p[0], p[1], p[2], p[3])); }); B.geoFill(new Float64Array(fv)); B.geoReady();
     const KIND = { sight: 0, nade: 1, sky: 2 };
@@ -55,6 +57,18 @@ function attach(EV, opt) {
         if (!same(a, b)) { C.bad++; if (!C.firstBad) C.firstBad = { args: [ax, ay, az, bx, by, bz, kind, first], js: a, kernel: b }; } return a; }
       const s = ++M.bStamp; if (s > 4e9) { M.bSeen.fill(0); M.bStamp = 1; } return mk();
     };
+    // полёт гранаты (m3NadeTrace): ход кубика ±r — первое касание
+    const SKIN = EV('M3_SKIN'), PRIM = [null, 'tri', 'hull', 'fill'];
+    st.nade = { n: 0, kern: 0, js: 0, bad: 0, firstBad: null };
+    globalThis.__R7nade = function (orig, M2, A, Bp, r) {
+      const C = st.nade; C.n++; if (M2 !== M || opt.nade === false) { C.js++; return orig(M2, A, Bp, r); }
+      const mk = () => { const o = B.nade(A[0], A[1], A[2], Bp[0], Bp[1], Bp[2], r || 0, SKIN), v = o[0]; if (v === 0) return null;
+        return { f: o[1], n: [o[3], o[4], o[5]], mat: v === 1 ? M.mats[M.triMat[o[2]]] : v === 2 ? M.mats[M.hullMat[o[2]]] : 'wood', sky: false, prim: PRIM[v] }; };
+      C.kern++;
+      if (mode === 'shadow') { const a = orig(M2, A, Bp, r), b = mk(); if (!same(a, b)) { C.bad++; if (!C.firstBad) C.firstBad = { A: Array.from(A), B: Array.from(Bp), r, js: a, kernel: b }; } return a; }
+      if (M.nStamp !== undefined) M.nStamp++; return mk();
+    };
+    EV('var __r7n0 = m3NadeTrace; m3NadeTrace = function(M, A, B, r){ return __R7nade(__r7n0, M, A, B, r); }; 1');
     EV('var __r7c0 = m3Cast; m3Cast = function(M, ax, ay, az, bx, by, bz, kind, first){ return __R7cast(__r7c0, M, ax, ay, az, bx, by, bz, kind, first); }; 1');
   }
   if (opt.path !== false) {

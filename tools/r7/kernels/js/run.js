@@ -2,8 +2,8 @@
 // js — без ядер (база). Вывод: мс на тик, контрольный хэш (места, здоровье, счёт), счётчики запросов и расхождений.
 const path = require('path'); const [core, m, T, backend, mode, what] = process.argv.slice(2);
 const EV = require(path.join(__dirname, '../../../node/core_run.js')).load(core);
-const W = (what || 'cast,path').split(',');
-let st = null; if (backend !== 'js') st = require('./bridge.js').attach(EV, { backend, mode, cast: W.includes('cast'), path: W.includes('path') });
+const W = (what || 'cast,path,nade').split(',');
+let st = null; if (backend !== 'js') st = require('./bridge.js').attach(EV, { backend, mode, cast: W.includes('cast'), path: W.includes('path'), nade: W.includes('nade') });
 EV('freshMatch(' + m + '); 1'); const t0 = process.hrtime.bigint(); EV('while(tick < ' + T + ') stepTick(); 1'); const ms = Number(process.hrtime.bigint() - t0) / 1e6;
 const h = EV('(function(){ var s = JSON.stringify([score, bots.map(function(b){ return [b.id, b.x, b.y, b.z, b.hp, b.alive, b.facing]; })]), x = 2166136261 >>> 0; for(var i = 0; i < s.length; i++) x = Math.imul(x ^ s.charCodeAt(i), 16777619) >>> 0; return x; })()');
 if (st) { delete st.M; delete st.ids; delete st.vals; }

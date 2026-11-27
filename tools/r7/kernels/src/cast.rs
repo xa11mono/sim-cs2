@@ -12,6 +12,8 @@ pub struct Geo {
     pub cols: [Option<Cols>; 3], // 0 — sight, 1 — nade, 2 — sky
     pub fill: Vec<Fill>,
     pub seen: Vec<u32>, pub stamp: u32,
+    // полёт гранаты (m3NadeTrace): рамки блоков (Int16 ×6), рамки треугольников по x, y (как M.nTriXY), отметки «уже проверен»
+    pub hull_box: Vec<i16>, pub tri_xy: Vec<f32>, pub nseen_t: Vec<u32>, pub nseen_h: Vec<u32>, pub nstamp: u32,
 }
 
 // Math.min / Math.max JS: NaN, если хоть один аргумент NaN; −0 < +0
@@ -43,7 +45,88 @@ pub fn hypot2(a: f64, b: f64) -> f64 {
     sum.sqrt() * max
 }
 
+// m3BoxPlanes: отрезок центра A + t·D против выпуклого объёма (плоскости [nx, ny, nz, d]), каждая отодвинута на опору кубика r
+fn box_planes(pl: &[f64], ax: f64, ay: f64, az: f64, dx: f64, dy: f64, dz: f64, r: f64, skin: f64) -> Option<(f64, f64, f64, f64)> {
+    let (mut t0, mut t1, mut e, mut se) = (f64::NEG_INFINITY, f64::INFINITY, -1i64, 0.0f64);
+    let mut q = 0; while q < pl.len() {
+        let (nx, ny, nz) = (pl[q], pl[q+1], pl[q+2]); let d = pl[q+3] + r*(nx.abs() + ny.abs() + nz.abs());
+        let s = nx*ax + ny*ay + nz*az - d; let v = nx*dx + ny*dy + nz*dz;
+        if v == 0.0 { if s > 0.0 { return None } q += 4; continue; }
+        let t = -s / v;
+        if v < 0.0 { if t > t0 { t0 = t; e = q as i64; se = s; } } else if t < t1 { t1 = t; }
+        if t0 > t1 { return None }
+        q += 4;
+    }
+    if e < 0 || t0 > 1.0 || t1 < 0.0 { return None }
+    if t0 < 0.0 { if se < -skin { return None } t0 = 0.0; }
+    let e = e as usize; Some((t0, pl[e], pl[e+1], pl[e+2]))
+}
+fn bevel_push(pl: &mut Vec<f64>, x0: f64, y0: f64, z0: f64, x1: f64, y1: f64, z1: f64) {
+    pl.extend_from_slice(&[1.0, 0.0, 0.0, x1, -1.0, 0.0, 0.0, -x0, 0.0, 1.0, 0.0, y1, 0.0, -1.0, 0.0, -y0, 0.0, 0.0, 1.0, z1, 0.0, 0.0, -1.0, -z0]);
+}
+#[inline] fn jmin3(a: f64, b: f64, c: f64) -> f64 { jmin(jmin(a, b), c) }
+#[inline] fn jmax3(a: f64, b: f64, c: f64) -> f64 { jmax(jmax(a, b), c) }
+// m3TriPlanes: плоскость треугольника (обе стороны), три боковые, скосы рамки; None — вырожденный
+fn tri_planes(t: &[f32], o: usize) -> Option<Vec<f64>> {
+    let v = |i: usize| t[o + i] as f64;
+    let (px, py, pz, qx, qy, qz, wx, wy, wz) = (v(0), v(1), v(2), v(3), v(4), v(5), v(6), v(7), v(8));
+    let (e1x, e1y, e1z, e2x, e2y, e2z) = (qx-px, qy-py, qz-pz, wx-px, wy-py, wz-pz);
+    let (mut nx, mut ny, mut nz) = (e1y*e2z - e1z*e2y, e1z*e2x - e1x*e2z, e1x*e2y - e1y*e2x); let l = hypot3(nx, ny, nz);
+    if l < 1e-6 { return None }
+    nx /= l; ny /= l; nz /= l;
+    let d = nx*px + ny*py + nz*pz; let mut pl = vec![nx, ny, nz, d, -nx, -ny, -nz, -d];
+    let vv = [px, py, pz, qx, qy, qz, wx, wy, wz];
+    for a in 0..3 { let b = (a + 1) % 3; let c = (a + 2) % 3;
+        let (ex, ey, ez) = (vv[b*3]-vv[a*3], vv[b*3+1]-vv[a*3+1], vv[b*3+2]-vv[a*3+2]);
+        let (mut mx, mut my, mut mz) = (ey*nz - ez*ny, ez*nx - ex*nz, ex*ny - ey*nx); let ml = hypot3(mx, my, mz); if ml < 1e-9 { return None }
+        mx /= ml; my /= ml; mz /= ml;
+        if mx*(vv[c*3]-vv[a*3]) + my*(vv[c*3+1]-vv[a*3+1]) + mz*(vv[c*3+2]-vv[a*3+2]) > 0.0 { mx = -mx; my = -my; mz = -mz; }
+        pl.extend_from_slice(&[mx, my, mz, mx*vv[a*3] + my*vv[a*3+1] + mz*vv[a*3+2]]);
+    }
+    bevel_push(&mut pl, jmin3(px, qx, wx), jmin3(py, qy, wy), jmin3(pz, qz, wz), jmax3(px, qx, wx), jmax3(py, qy, wy), jmax3(pz, qz, wz));
+    Some(pl)
+}
+
 impl Geo {
+    // m3NadeTrace (engine/map/geometry3d.js): ход кубика гранаты ±r от A к B — первое касание. out: [вид (0 — нет, 1 — треуг., 2 — блок,
+    // 3 — укрытие), доля хода f, номер, nx, ny, nz]
+    pub fn nade_trace(&mut self, ax: f64, ay: f64, az: f64, bx: f64, by: f64, bz: f64, r: f64, skin: f64, out: &mut [f64; 7]) {
+        out[0] = 0.0;
+        let (dx, dy, dz) = (bx - ax, by - ay, bz - az);
+        self.nstamp = self.nstamp.wrapping_add(1); if self.nstamp == 0 || self.nstamp as f64 > 4e9 { for s in self.nseen_t.iter_mut() { *s = 0 } for s in self.nseen_h.iter_mut() { *s = 0 } self.nstamp = 1; }
+        let stamp = self.nstamp;
+        let (x0, x1, y0, y1) = (jmin(ax, bx) - r, jmax(ax, bx) + r, jmin(ay, by) - r, jmax(ay, by) + r); let (z0, z1) = (jmin(az, bz) - r, jmax(az, bz) + r);
+        let bu = self.unit * self.b; let bn = self.bn;
+        let i0 = jmax(0.0, ((x0 - self.x0) / bu).floor()); let i1 = jmin(bn - 1.0, ((x1 - self.x0) / bu).floor());
+        let j0 = jmax(0.0, ((self.y0 - y1) / bu).floor()); let j1 = jmin(bn - 1.0, ((self.y0 - y0) / bu).floor());
+        let mut best: Option<(f64, f64, f64, f64, u8, usize)> = None;
+        let mut j = j0; while j <= j1 { let mut i = i0; while i <= i1 {
+            let b = (j * bn + i) as usize;
+            for n in self.btri_off[b] as usize..self.btri_off[b + 1] as usize { let k = self.btri[n] as usize;
+                if self.nseen_t[k] == stamp { continue } self.nseen_t[k] = stamp;
+                if (self.tri_flag[k] & 2) == 0 || (self.tri_z[k*2] as f64) > z1 || (self.tri_z[k*2+1] as f64) < z0 { continue }
+                let k4 = k * 4; if (self.tri_xy[k4] as f64) > x1 || (self.tri_xy[k4+1] as f64) < x0 || (self.tri_xy[k4+2] as f64) > y1 || (self.tri_xy[k4+3] as f64) < y0 { continue }
+                if let Some(tp) = tri_planes(&self.tri, k * 9) { if let Some(h) = box_planes(&tp, ax, ay, az, dx, dy, dz, r, skin) {
+                    if best.map_or(true, |bb| h.0 < bb.0) { best = Some((h.0, h.1, h.2, h.3, 1, k)) } } }
+            }
+            for n in self.bhull_off[b] as usize..self.bhull_off[b + 1] as usize { let hh = self.bhull[n] as usize;
+                if self.nseen_h[hh] == stamp { continue } self.nseen_h[hh] = stamp;
+                if (self.hull_flag[hh] & 2) == 0 { continue }
+                let q6 = hh * 6; let hb = |o: usize| self.hull_box[q6 + o] as f64;
+                if hb(0) > x1 || hb(3) < x0 || hb(1) > y1 || hb(4) < y0 || hb(2) > z1 || hb(5) < z0 { continue }
+                let mut pl = Vec::with_capacity(48); for q in self.hull_off[hh] as usize..self.hull_off[hh+1] as usize { for c in 0..4 { pl.push(self.hull_p[q*4 + c] as f64) } }
+                bevel_push(&mut pl, hb(0), hb(1), hb(2), hb(3), hb(4), hb(5));
+                if let Some(h) = box_planes(&pl, ax, ay, az, dx, dy, dz, r, skin) { if best.map_or(true, |bb| h.0 < bb.0) { best = Some((h.0, h.1, h.2, h.3, 2, hh)) } }
+            }
+            i += 1.0; } j += 1.0; }
+        for (fi, f) in self.fill.iter().enumerate() { let bx0 = &f.bx;
+            if bx0[0] > x1 || bx0[3] < x0 || bx0[1] > y1 || bx0[4] < y0 || bx0[2] > z1 || bx0[5] < z0 { continue }
+            let mut pf = Vec::with_capacity(f.pl.len()*4 + 24); for p in &f.pl { pf.extend_from_slice(p) } bevel_push(&mut pf, bx0[0], bx0[1], bx0[2], bx0[3], bx0[4], bx0[5]);
+            if let Some(h) = box_planes(&pf, ax, ay, az, dx, dy, dz, r, skin) { if best.map_or(true, |bb| h.0 < bb.0) { best = Some((h.0, h.1, h.2, h.3, 3, fi)) } }
+        }
+        if let Some(bb) = best { out[0] = bb.4 as f64; out[1] = bb.0; out[2] = bb.5 as f64; out[3] = bb.1; out[4] = bb.2; out[5] = bb.3; }
+    }
+
     #[inline] fn t(&self, i: usize) -> f64 { self.tri[i] as f64 }
     fn seg_tri(&self, k: usize, ax: f64, ay: f64, az: f64, dx: f64, dy: f64, dz: f64) -> f64 {
         let o = k * 9;

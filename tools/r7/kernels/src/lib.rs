@@ -11,7 +11,8 @@ fn geo() -> &'static mut Geo { unsafe { GEO.as_mut().expect("геометрия 
 
 pub fn geo_init(w: f64, cell: f64, unit: f64, x0: f64, y0: f64, b: f64, bn: f64) {
     unsafe { GEO = Some(Geo { w, cell, unit, x0, y0, b, bn, tri: vec![], tri_flag: vec![], tri_z: vec![], btri_off: vec![], btri: vec![], bhull_off: vec![], bhull: vec![],
-        hull_p: vec![], hull_off: vec![], hull_flag: vec![], cols: [None, None, None], fill: vec![], seen: vec![], stamp: 0 }); }
+        hull_p: vec![], hull_off: vec![], hull_flag: vec![], cols: [None, None, None], fill: vec![], seen: vec![], stamp: 0,
+        hull_box: vec![], tri_xy: vec![], nseen_t: vec![], nseen_h: vec![], nstamp: 0 }); }
 }
 // поле геометрии по номеру: байты (little-endian) → массив своего типа
 pub fn geo_set(field: u32, bytes: &[u8]) {
@@ -27,6 +28,7 @@ pub fn geo_set(field: u32, bytes: &[u8]) {
         10..=18 => { let k = ((field - 10) / 3) as usize; let p = (field - 10) % 3;
             let c = g.cols[k].get_or_insert(Cols { st: vec![], lo: vec![], hi: vec![] });
             match p { 0 => c.st = u32s(bytes), 1 => c.lo = i16s(bytes), _ => c.hi = i16s(bytes) } }
+        19 => g.hull_box = i16s(bytes),
         _ => {}
     }
 }
@@ -36,7 +38,18 @@ pub fn geo_fill(v: &[f64]) {
     for _ in 0..n { let bx = [v[o], v[o+1], v[o+2], v[o+3], v[o+4], v[o+5]]; let np = v[o+6] as usize; o += 7;
         let pl = (0..np).map(|q| [v[o+q*4], v[o+q*4+1], v[o+q*4+2], v[o+q*4+3]]).collect(); o += np * 4; g.fill.push(Fill { bx, pl }); }
 }
-pub fn geo_ready() { let g = geo(); let nb = (g.bn * g.bn) as usize; g.seen = vec![0; nb]; g.stamp = 0; }
+pub fn geo_ready() { let g = geo(); let nb = (g.bn * g.bn) as usize; g.seen = vec![0; nb]; g.stamp = 0;
+    // рамки треугольников по x, y — как M.nTriXY (Float32Array): min / max трёх вершин, записанные в f32
+    let nt = g.tri_flag.len(); let mut xy = vec![0f32; nt * 4];
+    for k in 0..nt { let o = k * 9; let t = &g.tri;
+        let mn = |a: f32, b: f32, c: f32| -> f32 { let m = if a < b { a } else { b }; if m < c { m } else { c } };
+        let mx = |a: f32, b: f32, c: f32| -> f32 { let m = if a > b { a } else { b }; if m > c { m } else { c } };
+        xy[k*4] = mn(t[o], t[o+3], t[o+6]); xy[k*4+1] = mx(t[o], t[o+3], t[o+6]); xy[k*4+2] = mn(t[o+1], t[o+4], t[o+7]); xy[k*4+3] = mx(t[o+1], t[o+4], t[o+7]); }
+    g.tri_xy = xy; g.nseen_t = vec![0; nt]; g.nseen_h = vec![0; g.hull_flag.len()]; g.nstamp = 0; }
+#[allow(static_mut_refs)]
+pub fn nade_out(ax: f64, ay: f64, az: f64, bx: f64, by: f64, bz: f64, r: f64, skin: f64) -> &'static [f64; 7] {
+    unsafe { geo().nade_trace(ax, ay, az, bx, by, bz, r, skin, &mut OUT); &OUT }
+}
 #[allow(static_mut_refs)]
 pub fn cast_out(kind: u32, ax: f64, ay: f64, az: f64, bx: f64, by: f64, bz: f64, first: u32) -> &'static [f64; 7] {
     unsafe { geo().cast(kind as usize, ax, ay, az, bx, by, bz, first != 0, &mut OUT); &OUT }
@@ -53,6 +66,7 @@ mod wasm {
     #[no_mangle] pub extern "C" fn r7_geo_fill(p: *const f64, n: usize) { geo_fill(unsafe { std::slice::from_raw_parts(p, n) }) }
     #[no_mangle] pub extern "C" fn r7_geo_ready() { geo_ready() }
     #[no_mangle] #[allow(static_mut_refs)] pub extern "C" fn r7_out() -> *const f64 { unsafe { OUT.as_ptr() } }
+    #[no_mangle] pub extern "C" fn r7_nade(ax: f64, ay: f64, az: f64, bx: f64, by: f64, bz: f64, r: f64, skin: f64) -> f64 { nade_out(ax, ay, az, bx, by, bz, r, skin)[0] }
     #[no_mangle] pub extern "C" fn r7_cast(kind: u32, ax: f64, ay: f64, az: f64, bx: f64, by: f64, bz: f64, first: u32) -> f64 { cast_out(kind, ax, ay, az, bx, by, bz, first)[0] }
     // поиск пути — см. path.rs
     #[no_mangle] pub extern "C" fn r7_path_graph(p: *const f64, n: usize) { path::graph_set(unsafe { std::slice::from_raw_parts(p, n) }) }
@@ -73,6 +87,7 @@ mod node {
     // ответ — в переданный Float64Array(7) (без нового объекта на вызов)
     #[napi] pub fn cast_n(kind: u32, ax: f64, ay: f64, az: f64, bx: f64, by: f64, bz: f64, first: u32, mut out: Float64Array) -> f64 {
         let r = cast_out(kind, ax, ay, az, bx, by, bz, first); out.copy_from_slice(r); r[0] }
+    #[napi] pub fn nade_n(ax: f64, ay: f64, az: f64, bx: f64, by: f64, bz: f64, r: f64, skin: f64, mut out: Float64Array) -> f64 { let o = nade_out(ax, ay, az, bx, by, bz, r, skin); out.copy_from_slice(o); o[0] }
     #[napi] pub fn path_graph_n(v: Float64Array) { path::graph_set(&v) }
     #[napi] pub fn path_query_n(v: Float64Array, mut out: Float64Array) -> u32 { let n = path::query(&v); let o = path::out_slice(); out[..n].copy_from_slice(&o[..n]); n as u32 }
 }
