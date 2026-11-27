@@ -1,0 +1,28 @@
+код 0
+
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling windows_x86_64_gnu v0.53.1
+   Compiling memchr v2.8.3
+   Compiling regex-syntax v0.8.12
+   Compiling unicode-segmentation v1.13.3
+   Compiling once_cell v1.21.4
+   Compiling semver v1.0.28
+   Compiling napi-build v2.7.0
+   Compiling cfg-if v1.0.5
+   Compiling bitflags v2.13.2
+   Compiling windows-targets v0.53.5
+   Compiling sim_r7_kernels v0.1.0 (C:\actions-runner\_work\sim-cs2\sim-cs2\tools\r7\kernels)
+   Compiling convert_case v0.6.0
+   Compiling libloading v0.8.8
+   Compiling aho-corasick v1.1.5
+   Compiling napi-sys v2.4.0
+   Compiling syn v2.0.119
+   Compiling regex-automata v0.4.19
+   Compiling regex v1.13.2
+   Compiling napi-derive-backend v1.0.75
+   Compiling ctor v0.2.9
+   Compiling napi v2.16.17
+   Compiling napi-derive v2.16.13
+    Finished `release` profile [optimized] target(s) in 10.54s

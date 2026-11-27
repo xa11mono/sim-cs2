@@ -1,0 +1,96 @@
+{
+ "par": 8,
+ "resume": true,
+ "fp": [
+  {
+   "label": "r44_off_anc",
+   "ref": "f1fe664ec03a27a7137089f6042b4135373de155",
+   "map": "ancient",
+   "matches": [
+    3,
+    7,
+    11,
+    13,
+    17,
+    19,
+    23,
+    29
+   ],
+   "trace": false
+  },
+  {
+   "label": "r44_off_mir",
+   "ref": "f1fe664ec03a27a7137089f6042b4135373de155",
+   "map": "mirage",
+   "matches": [
+    3,
+    7,
+    11,
+    13,
+    17,
+    19,
+    23,
+    29
+   ],
+   "trace": false
+  }
+ ],
+ "rec": [
+  {
+   "label": "r44_rec_anc",
+   "ref": "f1fe664ec03a27a7137089f6042b4135373de155",
+   "map": "ancient",
+   "matches": [
+    3,
+    7,
+    11,
+    13,
+    17,
+    19,
+    23,
+    29
+   ],
+   "complete": true,
+   "fingerprint": true
+  },
+  {
+   "label": "r44_rec_mir",
+   "ref": "f1fe664ec03a27a7137089f6042b4135373de155",
+   "map": "mirage",
+   "matches": [
+    3,
+    7,
+    11,
+    13,
+    17,
+    19,
+    23,
+    29
+   ],
+   "complete": true,
+   "fingerprint": true
+  }
+ ],
+ "r7": [
+  {
+   "label": "r44_r7",
+   "ref": "f1fe664ec03a27a7137089f6042b4135373de155",
+   "maps": [
+    "ancient",
+    "mirage"
+   ],
+   "match": 3,
+   "ticks": 15040,
+   "speed_ticks": 6000,
+   "repeat": 3
+  }
+ ],
+ "require_runtime": {
+  "platform": "win32",
+  "arch": "x64",
+  "node": "v24.21.0",
+  "node_v8": "13.6.233.17-node.53",
+  "playwright": "1.63.0",
+  "chromium": "153.0.8010.12"
+ }
+}

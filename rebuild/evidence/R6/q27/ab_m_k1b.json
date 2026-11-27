@@ -1,0 +1,1 @@
+{"base":"core-mirage.js","cand":"core-m-k1b.js","match":3,"ticks":6000,"repeats":5,"base_ms":{"mean":7.2297,"min":6.9319,"max":7.6477,"hash":[2663964698]},"cand_ms":{"mean":7.1136,"min":6.9987,"max":7.4402,"hash":[2663964698]},"gain_pct":1.6,"beyond_spread":false,"same_hash":true,"runs":{"base":[7.5525,6.9605,7.056,6.9319,7.6477],"cand":[7.0803,6.9991,7.0496,6.9987,7.4402]}}

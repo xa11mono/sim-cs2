@@ -1,0 +1,1 @@
+{"base":"core-ancient.js","cand":"core-a-k10b.js","match":3,"ticks":40000,"repeats":3,"base_ms":{"mean":5.807,"min":5.7008,"max":5.8653,"hash":[2703546633]},"cand_ms":{"mean":5.809,"min":5.7115,"max":5.9666,"hash":[2703546633]},"gain_pct":0,"beyond_spread":false,"same_hash":true,"runs":{"base":[5.8653,5.855,5.7008],"cand":[5.7488,5.7115,5.9666]}}
