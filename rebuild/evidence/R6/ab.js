@@ -1,0 +1,3 @@
+const [core, m, T] = process.argv.slice(2); const EV = require('../../../tools/node/core_run.js').load(core);
+EV('freshMatch(' + m + '); 1'); const t0 = process.hrtime.bigint(); EV(`while(tick < ${T}) stepTick(); 1`); const ms = Number(process.hrtime.bigint() - t0) / 1e6;
+console.log(JSON.stringify({ core: require('path').basename(core), ms_per_tick: +(ms / T).toFixed(4), hash: EV('(function(){ var h = 2166136261 >>> 0; bots.forEach(function(b){ [b.x,b.y,b.hp].forEach(function(v){ var s = String(v); for(var i=0;i<s.length;i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619) >>> 0; }); }); return h; })()') }));

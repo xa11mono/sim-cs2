@@ -1,0 +1,14 @@
+{
+ "_": "Р7 (27.11): корпус Codex (tools/r7-corpus, ветка codex/r7-kernel-corpus 0e87c98) снят с ядра v640a, сверка TS / нативный Rust / WASM",
+ "ancient": {
+  "total": 72,
+  "native": "bit-exact",
+  "wasm": "bit-exact"
+ },
+ "mirage": {
+  "total": 72,
+  "native": "bit-exact",
+  "wasm": "bit-exact"
+ },
+ "rust": "cargo 1.97.0, wasm32-unknown-unknown"
+}

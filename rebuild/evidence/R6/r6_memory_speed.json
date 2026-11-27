@@ -1,0 +1,78 @@
+{
+ "_": "Р6 (27.11, облако, Node 22, Ancient): освобождение памяти между матчами (memrel.js) до (v639a) / после (v640a); скорость попеременно 3 + 3 (ab.js, 20 000 тиков м3); повторы m3Cast (castrep.js)",
+ "memory_before_v639a": {
+  "afterLoad": 99,
+  "afterMatch1": 431,
+  "triPl1": 448943,
+  "afterNewMatch": 430,
+  "triPl2": 448943,
+  "afterMatch2": 517,
+  "m1": [
+   149003,
+   {
+    "T": 8,
+    "CT": 15
+   }
+  ],
+  "m2": [
+   158666,
+   {
+    "T": 11,
+    "CT": 13
+   },
+   160
+  ]
+ },
+ "memory_after_v640a": {
+  "afterLoad": 99,
+  "afterMatch1": 116,
+  "triPl1": 0,
+  "afterNewMatch": 120,
+  "triPl2": 0,
+  "afterMatch2": 118,
+  "m1": [
+   149003,
+   {
+    "T": 8,
+    "CT": 15
+   }
+  ],
+  "m2": [
+   158666,
+   {
+    "T": 11,
+    "CT": 13
+   },
+   160
+  ]
+ },
+ "speed_ab_ms_per_tick": {
+  "v639a": [
+   5.4811,
+   5.3875,
+   5.4678
+  ],
+  "v640a_heap_arrays": [
+   5.6287,
+   5.5535,
+   5.3933
+  ],
+  "hash_same": true
+ },
+ "m3cast_repeats": {
+  "calls": 1008137,
+  "per_tick": 252,
+  "repeats_same_tick": 141258,
+  "share": 0.14
+ },
+ "profile_self_top": {
+  "m3Cast": 14.3,
+  "relax": 12.1,
+  "(anon)": 11.6,
+  "zoneDijkstra": 6.9,
+  "(gc)": 6.7,
+  "m3SegTri": 4.2,
+  "buildWaypointPath0": 4.0,
+  "m3NadeTrace": 4.0
+ }
+}
