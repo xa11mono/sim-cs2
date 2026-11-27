@@ -78,10 +78,6 @@ function rpSample(R){
   var bs = bomb ? bomb.state : null, ci = bomb && bomb.carrier ? bots.indexOf(bomb.carrier) : -1;
   return {t: tick, b: B, sm: sm, fi: fi, nd: nd, bomb: bs ? {st: bs, x: bomb.x, y: bomb.y, c: ci} : null, w: rpWorld()};
 }
-// (v463) мир тика для кадра повтора: то, что читает draw (draw) — поля игроков, дым, огонь, гранаты, эффекты, бомба, вещи на земле
-var RP_BF = ["x","y","z","alive","hp","crouching","facing","_visFacing","_reloading","reloadUntil","weapon","_underV","_overV","_jump","blindUntil","state","tRole",
-  "_knife","planting","defusing","plantUntil","defuseUntil","kit","onStairs","walking","_killHow","_sawEnemy","curSpeed","_idle","_idlePhase","holding","atPost"];
-function rpCl(o){ var c = {}; for(var k in o){ var v = o[k]; c[k] = Array.isArray(v) ? v.slice() : v; } return c; }
 function rpWorld(){
   var W = {tick: tick, b: bots.map(function(o){ var c = {}; RP_BF.forEach(function(k){ c[k] = o[k]; }); return c; }),
     sm: smokes.map(rpCl), fi: fires.map(rpCl), nd: nadesInAir.map(rpCl), fx: nadeFx.map(rpCl),

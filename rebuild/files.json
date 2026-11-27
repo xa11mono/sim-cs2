@@ -706,7 +706,8 @@
    "id": "modes",
    "part": "engine",
    "sys": "режимы страницы",
-   "dir": "engine/core"
+   "dir": "engine/core",
+   "mode": true
   },
   {
    "file": "problem-watch.js",
@@ -876,7 +877,6 @@
    "id": "warmup",
    "part": "show",
    "sys": "режимы и инструменты",
-   "mode": true,
    "dir": "view",
    "legacy": "660"
   },
@@ -893,7 +893,6 @@
    "id": "replay",
    "part": "show",
    "sys": "показ и инструменты",
-   "mode": true,
    "dir": "view",
    "legacy": "675"
   },
@@ -902,7 +901,6 @@
    "id": "replay-play",
    "part": "show",
    "sys": "показ и инструменты",
-   "mode": true,
    "dir": "view"
   },
   {
@@ -918,7 +916,6 @@
    "id": "sandbox",
    "part": "show",
    "sys": "режимы и инструменты",
-   "mode": true,
    "dir": "view",
    "legacy": "677"
   },
@@ -927,7 +924,6 @@
    "id": "demo",
    "part": "show",
    "sys": "режимы и инструменты",
-   "mode": true,
    "dir": "view",
    "legacy": "678"
   },

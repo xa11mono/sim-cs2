@@ -112,7 +112,7 @@ function check({ asts, tops, owners, collisions, fileAt, lineAt }){
             const reset = source === "round.js" && fn === "matchBegin"
               && (expression === "delete b[k]" || expression === "b[k] = I.vals[k]");
             const sw = anc.at(-4);
-            const replay = source === "replay-play.js" && fn === "rpSetBotField" && expression === "bot[field] = value"
+            const replay = source === "modes.js" && fn === "rpSetBotField" && expression === "bot[field] = value"
               && sw?.type === "SwitchStatement" && sw.discriminant.name === "field"
               && sw.cases.at(-2) === anc.at(-3) && sw.cases.at(-1)?.test === null
               && sw.cases.at(-1).consequent.length === 0

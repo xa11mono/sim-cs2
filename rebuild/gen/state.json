@@ -9,9 +9,9 @@
    },
    "m": {},
    "r": {
+    "modes": 3,
     "throw": 1,
-    "tick-step": 1,
-    "warmup": 3
+    "tick-step": 1
    },
    "snap": true
   },
@@ -112,7 +112,7 @@
    "w": {},
    "m": {},
    "r": {
-    "warmup": 2
+    "modes": 2
    },
    "snap": true
   },
@@ -233,7 +233,7 @@
    "snap": true
   },
   "ASSIST_DMG": {
-   "decl": "journal.js:64",
+   "decl": "journal.js:65",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -329,7 +329,7 @@
    "snap": "нет: SETTINGS"
   },
   "BEEP_FINAL": {
-   "decl": "journal.js:148",
+   "decl": "journal.js:149",
    "init": "Literal",
    "w": {
     "bombBeepTick · journal": 2
@@ -341,7 +341,7 @@
    "snap": true
   },
   "BEEP_NEXT": {
-   "decl": "journal.js:145",
+   "decl": "journal.js:146",
    "init": "Literal",
    "w": {
     "bombBeepTick · journal": 2
@@ -428,7 +428,7 @@
    "m": {},
    "r": {
     "bomb": 1,
-    "demo": 1,
+    "modes": 1,
     "replay-play": 1,
     "save-retake": 1
    },
@@ -445,7 +445,7 @@
    "snap": true
   },
   "BOT_INIT": {
-   "decl": "round.js:250",
+   "decl": "round.js:251",
    "init": "Literal",
    "w": {
     "coreLoadEnd · round": 1
@@ -594,7 +594,7 @@
    "snap": "нет: STATIC"
   },
   "C4_FINAL_SEC": {
-   "decl": "journal.js:148",
+   "decl": "journal.js:149",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -1178,12 +1178,12 @@
     "intel": 2,
     "knowledge": 2,
     "look-threat": 1,
+    "modes": 1,
     "paths": 2,
     "reach": 2,
     "roles": 4,
     "save-retake": 6,
     "sites-spots": 5,
-    "warmup": 1,
     "weapons-bots": 3,
     "zone-danger": 9
    },
@@ -1652,7 +1652,7 @@
    "snap": true
   },
   "DEF_GROUP_R": {
-   "decl": "tactics.js:198",
+   "decl": "tactics.js:199",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -1662,7 +1662,7 @@
    "snap": true
   },
   "DEF_STAGE_SEC": {
-   "decl": "tactics.js:199",
+   "decl": "tactics.js:200",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -1702,20 +1702,21 @@
    "snap": true
   },
   "DEMOV": {
-   "decl": "modes.js:5",
+   "decl": "modes.js:8",
    "init": "ObjectExpression",
    "w": {},
    "m": {
-    "dvStart · demo": 9,
-    "dvStop · demo": 1,
-    "dvTick · demo": 4,
+    "dvStart · modes": 9,
+    "dvStop · modes": 1,
+    "dvTick · modes": 4,
     "dvToggle · demo": 1
    },
    "r": {
     "app": 1,
     "bomb": 2,
     "damage": 2,
-    "demo": 47,
+    "demo": 20,
+    "modes": 27,
     "round": 1,
     "shoot": 1,
     "tick-step": 1
@@ -1811,6 +1812,7 @@
     "look-peek": 50,
     "look-threat": 15,
     "lurker": 21,
+    "modes": 13,
     "move": 23,
     "navmesh": 4,
     "path-search": 12,
@@ -2481,7 +2483,7 @@
    "init": "ArrayExpression",
    "w": {
     "freezeFxReset · round": 1,
-    "rpWorldDraw · replay-play": 2
+    "rpWorldWith · modes": 2
    },
    "m": {
     "awpSwap · economy": 2,
@@ -2493,7 +2495,7 @@
    "r": {
     "draw-layers": 2,
     "economy": 6,
-    "replay-play": 1,
+    "modes": 1,
     "scoreboard": 1
    },
    "snap": true
@@ -2613,7 +2615,7 @@
    "w": {},
    "m": {},
    "r": {
-    "demo": 1,
+    "modes": 1,
     "shoot": 1,
     "smoke-react": 1
    },
@@ -2625,7 +2627,7 @@
    "w": {},
    "m": {},
    "r": {
-    "demo": 2,
+    "modes": 2,
     "shoot": 3,
     "smoke-react": 1
    },
@@ -3278,7 +3280,8 @@
     "feedEvent · journal": 1,
     "feedKill · journal": 1,
     "resetRound · round": 1,
-    "showSync · app": 1
+    "showSync · app": 1,
+    "warmStart · modes": 2
    },
    "m": {},
    "r": {
@@ -3595,8 +3598,8 @@
     "ct-setup": 2,
     "knowledge": 2,
     "lurker": 2,
-    "position": 8,
-    "warmup": 1
+    "modes": 1,
+    "position": 8
    },
    "snap": true
   },
@@ -3883,7 +3886,7 @@
    "snap": true
   },
   "LOG_DIRTY": {
-   "decl": "journal.js:12",
+   "decl": "journal.js:13",
    "init": "Literal",
    "w": {
     "logEvent · journal": 1,
@@ -4205,7 +4208,7 @@
    },
    "m": {},
    "r": {
-    "geometry3d": 4,
+    "geometry3d": 6,
     "levels": 7
    },
    "snap": "нет: STATIC"
@@ -4264,7 +4267,6 @@
     "ct-setup": 9,
     "damage": 4,
     "decide": 1,
-    "demo": 2,
     "draw": 1,
     "economy": 3,
     "events": 2,
@@ -4280,6 +4282,7 @@
     "lurker": 2,
     "map-heights": 1,
     "map-walls": 2,
+    "modes": 2,
     "nav-zones": 1,
     "paths": 7,
     "plan": 3,
@@ -4596,13 +4599,13 @@
     "contact": 5,
     "damage": 10,
     "decide": 1,
-    "demo": 1,
     "draw-fx": 3,
     "draw-layers": 1,
     "exec-sync": 4,
     "items": 1,
     "levels": 4,
     "lineups": 1,
+    "modes": 1,
     "move": 1,
     "observer": 1,
     "plan": 2,
@@ -5094,12 +5097,12 @@
     "knowledge": 4,
     "levels": 8,
     "map-heights": 3,
+    "modes": 1,
     "navmesh": 4,
     "observer": 1,
     "path-search": 2,
     "paths": 11,
     "position": 1,
-    "sandbox": 1,
     "save-retake": 3,
     "sites-spots": 4,
     "task": 1,
@@ -5165,11 +5168,11 @@
     "draw": 1,
     "fight-state": 1,
     "levels": 4,
+    "modes": 1,
     "navmesh": 3,
     "path-search": 2,
     "paths": 12,
     "position": 1,
-    "sandbox": 1,
     "save-retake": 3,
     "sites-spots": 4,
     "task": 1,
@@ -5331,10 +5334,10 @@
    "r": {
     "knowledge": 2,
     "levels": 8,
+    "modes": 2,
     "navmesh": 6,
     "path-search": 4,
     "paths": 2,
-    "sandbox": 2,
     "throw": 2,
     "vision": 6
    },
@@ -5348,10 +5351,10 @@
    "r": {
     "knowledge": 2,
     "levels": 8,
+    "modes": 2,
     "navmesh": 8,
     "path-search": 4,
     "paths": 2,
-    "sandbox": 2,
     "throw": 2,
     "vision": 2
    },
@@ -5528,14 +5531,14 @@
    "decl": "tuning.js:47",
    "init": "ObjectExpression",
    "w": {
-    "rpWorldDraw · replay-play": 2
+    "rpWorldWith · modes": 2
    },
    "m": {
     "seatPlayers · rosters": 1
    },
    "r": {
+    "modes": 1,
     "replay": 4,
-    "replay-play": 1,
     "rosters": 6,
     "tuning": 2
    },
@@ -5932,7 +5935,7 @@
    "snap": true
   },
   "PLANT_MED": {
-   "decl": "tactics.js:205",
+   "decl": "tactics.js:206",
    "init": "ObjectExpression",
    "w": {},
    "m": {},
@@ -6715,7 +6718,7 @@
    "snap": true
   },
   "RC_HALF": {
-   "decl": "modes.js:8",
+   "decl": "modes.js:11",
    "init": "Literal",
    "w": {
     "endRound · round": 1,
@@ -7083,18 +7086,18 @@
    "snap": "нет: UI"
   },
   "RP_BF": {
-   "decl": "replay.js:82",
+   "decl": "modes.js:213",
    "init": "ArrayExpression",
    "w": {},
    "m": {},
    "r": {
-    "replay": 1,
-    "replay-play": 3
+    "modes": 3,
+    "replay": 1
    },
    "snap": "нет: UI"
   },
   "RP_EL": {
-   "decl": "replay.js:225",
+   "decl": "replay.js:221",
    "init": "Literal",
    "w": {
     "rpEls · replay": 1
@@ -7119,7 +7122,7 @@
    "snap": "нет: UI"
   },
   "RP_LANG": {
-   "decl": "replay-play.js:161",
+   "decl": "replay-play.js:123",
    "init": "ObjectExpression",
    "w": {},
    "m": {},
@@ -7151,7 +7154,7 @@
    "snap": true
   },
   "RP_RU": {
-   "decl": "replay-play.js:162",
+   "decl": "replay-play.js:124",
    "init": "ObjectExpression",
    "w": {},
    "m": {},
@@ -7162,7 +7165,7 @@
    "snap": true
   },
   "RP_SAY": {
-   "decl": "replay-play.js:163",
+   "decl": "replay-play.js:125",
    "init": "ObjectExpression",
    "w": {},
    "m": {},
@@ -7172,7 +7175,7 @@
    "snap": true
   },
   "RP_SNAPS": {
-   "decl": "replay-play.js:311",
+   "decl": "replay-play.js:273",
    "init": "ObjectExpression",
    "w": {},
    "m": {},
@@ -7234,7 +7237,7 @@
    "snap": true
   },
   "RUN_MATCH": {
-   "decl": "round.js:258",
+   "decl": "round.js:259",
    "init": "Literal",
    "w": {
     "runMatch · round": 2
@@ -7248,7 +7251,7 @@
    "snap": "нет: STATIC"
   },
   "RUN_MATCH_SUB": {
-   "decl": "round.js:259",
+   "decl": "round.js:260",
    "init": "Literal",
    "w": {
     "runMatch · round": 1
@@ -7321,21 +7324,22 @@
    "snap": true
   },
   "SANDBOX": {
-   "decl": "modes.js:6",
+   "decl": "modes.js:9",
    "init": "ObjectExpression",
    "w": {},
    "m": {
-    "(верх файла) · sandbox": 5,
+    "(верх файла) · sandbox": 4,
     "sbPanel · sandbox": 3,
-    "sbRemove · sandbox": 1,
+    "sbRemove · modes": 1,
     "sbRender · sandbox": 1,
-    "sbToggle · sandbox": 3
+    "sbSwitch · modes": 3
    },
    "r": {
     "app": 1,
+    "modes": 9,
     "move": 2,
     "round": 1,
-    "sandbox": 38,
+    "sandbox": 29,
     "tick-step": 1
    },
    "snap": true
@@ -7416,8 +7420,7 @@
    "decl": "journal.js:10",
    "init": "ObjectExpression",
    "w": {
-    "(верх файла) · app": 1,
-    "(верх файла) · observer": 1
+    "seriesNew · journal": 1
    },
    "m": {
     "endRound · round": 1
@@ -7482,14 +7485,14 @@
    "init": "ObjectExpression",
    "w": {
     "newMatch · round": 1,
-    "rpWorldDraw · replay-play": 2,
+    "rpWorldWith · modes": 2,
     "swapSides · round": 1
    },
    "m": {},
    "r": {
     "ct-setup": 1,
+    "modes": 1,
     "replay": 2,
-    "replay-play": 1,
     "rosters": 3,
     "round": 6,
     "scoreboard": 1,
@@ -7499,7 +7502,7 @@
    "snap": true
   },
   "SIM_SHOW": {
-   "decl": "modes.js:11",
+   "decl": "modes.js:14",
    "init": "BinaryExpression",
    "w": {},
    "m": {},
@@ -7844,6 +7847,7 @@
     "levels": 2,
     "lineups": 2,
     "lurker": 3,
+    "modes": 1,
     "move": 5,
     "paths": 2,
     "plan": 1,
@@ -7859,8 +7863,7 @@
     "tick": 1,
     "tick-keys": 1,
     "tick-step": 4,
-    "tuning": 1,
-    "warmup": 1
+    "tuning": 1
    },
    "snap": true
   },
@@ -7999,7 +8002,7 @@
    "snap": true
   },
   "TACT_DBG": {
-   "decl": "tactics.js:213",
+   "decl": "tactics.js:214",
    "init": "Literal",
    "w": {
     "chooseTactic · tactics": 1
@@ -8011,7 +8014,7 @@
    "snap": true
   },
   "TAC_TEMPO": {
-   "decl": "tactics.js:202",
+   "decl": "tactics.js:203",
    "init": "ObjectExpression",
    "w": {},
    "m": {},
@@ -8022,7 +8025,7 @@
    "snap": true
   },
   "TAC_TEMPO_NAME": {
-   "decl": "tactics.js:204",
+   "decl": "tactics.js:205",
    "init": "ObjectExpression",
    "w": {},
    "m": {},
@@ -8222,7 +8225,7 @@
    "snap": true
   },
   "TEAM_LOG": {
-   "decl": "journal.js:11",
+   "decl": "journal.js:12",
    "init": "ObjectExpression",
    "w": {},
    "m": {
@@ -8308,7 +8311,7 @@
     "ct-setup": 7,
     "damage": 3,
     "decide": 9,
-    "demo": 3,
+    "demo": 2,
     "draw": 2,
     "draw-bots": 4,
     "draw-fx": 7,
@@ -8334,6 +8337,7 @@
     "look-peek": 12,
     "look-threat": 5,
     "lurker": 24,
+    "modes": 2,
     "move": 5,
     "nav-zones": 4,
     "observer": 10,
@@ -8365,8 +8369,7 @@
     "turn": 3,
     "view3d": 9,
     "view3d-frame": 2,
-    "voice": 1,
-    "warmup": 1
+    "voice": 1
    },
    "snap": true
   },
@@ -8379,8 +8382,8 @@
     "app": 2,
     "draw-fx": 2,
     "draw-map": 1,
-    "replay-play": 3,
-    "sandbox": 1,
+    "modes": 3,
+    "replay-play": 1,
     "tick-step": 2,
     "view3d-frame": 2
    },
@@ -8422,8 +8425,8 @@
    "decl": "tactics.js:94",
    "init": "Literal",
    "w": {
-    "(верх файла) · timeout": 1,
-    "timeoutCheck · tactics": 2
+    "timeoutCheck · tactics": 2,
+    "timeoutForce · tactics": 1
    },
    "m": {},
    "r": {
@@ -8521,10 +8524,10 @@
    "r": {
     "ct-setup": 4,
     "engagements": 5,
+    "modes": 2,
     "observer": 3,
     "replay-play": 3,
-    "timeout": 21,
-    "warmup": 2
+    "timeout": 21
    },
    "snap": "нет: UI"
   },
@@ -8619,12 +8622,12 @@
     "intel": 2,
     "knowledge": 2,
     "look-threat": 1,
+    "modes": 1,
     "paths": 2,
     "reach": 2,
     "save-retake": 4,
     "sites-spots": 5,
     "timeout": 6,
-    "warmup": 1,
     "weapons-bots": 3,
     "zone-danger": 9
    },
@@ -8894,7 +8897,7 @@
    "snap": "нет: STATIC"
   },
   "VOICE_DIRTY": {
-   "decl": "journal.js:12",
+   "decl": "journal.js:13",
    "init": "Literal",
    "w": {
     "resetRound · round": 1,
@@ -8908,7 +8911,7 @@
    "snap": true
   },
   "VOICE_KEYS": {
-   "decl": "journal.js:17",
+   "decl": "journal.js:18",
    "init": "ObjectExpression",
    "w": {},
    "m": {},
@@ -8918,7 +8921,7 @@
    "snap": true
   },
   "VOICE_KEY_KIND": {
-   "decl": "journal.js:25",
+   "decl": "journal.js:26",
    "init": "ObjectExpression",
    "w": {},
    "m": {
@@ -8930,7 +8933,7 @@
    "snap": true
   },
   "VOICE_KIND": {
-   "decl": "journal.js:15",
+   "decl": "journal.js:16",
    "init": "ObjectExpression",
    "w": {},
    "m": {},
@@ -9057,28 +9060,26 @@
    "snap": "нет: STATIC"
   },
   "WARM": {
-   "decl": "modes.js:7",
+   "decl": "modes.js:10",
    "init": "ObjectExpression",
    "w": {
-    "dvStart · demo": 1,
+    "dvStart · modes": 1,
     "matchBegin · round": 1,
     "rpJump · replay-play": 1,
-    "warmEnd · warmup": 1,
-    "warmStart · warmup": 1
+    "warmEnd · modes": 1,
+    "warmStart · modes": 1
    },
    "m": {
-    "warmTick · warmup": 1
+    "warmTick · modes": 1
    },
    "r": {
     "app": 3,
-    "demo": 1,
+    "modes": 10,
     "observer": 2,
     "replay": 1,
     "replay-play": 1,
     "round": 2,
-    "sandbox": 2,
-    "scoreboard": 5,
-    "warmup": 7
+    "scoreboard": 5
    },
    "snap": "нет: UI"
   },
@@ -9180,12 +9181,12 @@
    "r": {
     "brain-ct": 3,
     "damage": 2,
-    "demo": 4,
     "draw-layers": 4,
     "economy": 40,
     "items": 14,
     "killfeed": 2,
     "map-cover": 3,
+    "modes": 5,
     "replay-play": 1,
     "round": 1,
     "save-retake": 1,
@@ -9193,7 +9194,6 @@
     "self": 1,
     "sound": 4,
     "walls-heights-cover": 1,
-    "warmup": 1,
     "weapons-bots": 7
    },
    "snap": true
@@ -9780,7 +9780,7 @@
     "app": 3,
     "draw-fx": 2,
     "draw-map": 1,
-    "replay-play": 1,
+    "modes": 1,
     "view3d-frame": 2
    },
    "snap": "нет: UI"
@@ -9896,7 +9896,7 @@
    "init": "Literal",
    "w": {
     "resetBomb · bomb": 1,
-    "rpWorldDraw · replay-play": 2
+    "rpWorldWith · modes": 2
    },
    "m": {
     "bombPassTick · sound": 4,
@@ -9905,9 +9905,9 @@
     "checkRoundEnd · round": 1,
     "ctBombPos · save-retake": 2,
     "dropBomb · bomb": 4,
-    "dvTick · demo": 8,
-    "rpWorldDraw · replay-play": 1,
-    "sbTick · sandbox": 1,
+    "dvTick · modes": 8,
+    "rpWorldWith · modes": 1,
+    "sbTick · modes": 1,
     "tBrainBomb · brain-t": 1,
     "updateRetake · save-retake": 1
    },
@@ -9924,7 +9924,6 @@
     "ct-early": 10,
     "ct-setup": 12,
     "decide": 30,
-    "demo": 8,
     "draw": 14,
     "draw-bots": 2,
     "draw-fx": 26,
@@ -9945,6 +9944,7 @@
     "look-arbiter": 5,
     "look-peek": 5,
     "lurker": 12,
+    "modes": 15,
     "move": 14,
     "nav-zones": 3,
     "observer": 31,
@@ -9952,10 +9952,8 @@
     "position": 8,
     "pro-positions": 4,
     "replay": 23,
-    "replay-play": 3,
     "roles": 9,
     "round": 10,
-    "sandbox": 4,
     "save-retake": 80,
     "scoreboard": 7,
     "self": 7,
@@ -9990,7 +9988,6 @@
     "ct-setup": 11,
     "damage": 5,
     "decide": 12,
-    "demo": 3,
     "draw": 1,
     "draw-bots": 1,
     "draw-layers": 3,
@@ -10016,6 +10013,7 @@
     "look-peek": 3,
     "look-threat": 3,
     "lurker": 9,
+    "modes": 11,
     "move": 3,
     "observer": 15,
     "paths": 3,
@@ -10024,11 +10022,11 @@
     "problem-watch": 2,
     "reach": 3,
     "replay": 14,
-    "replay-play": 12,
+    "replay-play": 8,
     "roles": 9,
     "rosters": 3,
     "round": 14,
-    "sandbox": 7,
+    "sandbox": 5,
     "save-retake": 11,
     "scoreboard": 6,
     "self": 19,
@@ -10051,7 +10049,7 @@
     "view3d": 9,
     "view3d-frame": 5,
     "voice": 5,
-    "warmup": 3,
+    "warmup": 1,
     "weapons-bots": 7
    },
    "snap": true
@@ -10302,7 +10300,7 @@
    "snap": true
   },
   "clutchInfo": {
-   "decl": "journal.js:57",
+   "decl": "journal.js:58",
    "init": "Literal",
    "w": {
     "checkClutch · journal": 1,
@@ -10322,7 +10320,7 @@
    "snap": true
   },
   "clutchShown": {
-   "decl": "journal.js:57",
+   "decl": "journal.js:58",
    "init": "Literal",
    "w": {
     "resetRound · round": 1,
@@ -10567,10 +10565,10 @@
     "exec-sync": 2,
     "levels": 3,
     "look-arbiter": 1,
+    "modes": 1,
     "observer": 1,
     "path-search": 5,
     "replay": 2,
-    "replay-play": 1,
     "round": 1,
     "self": 1,
     "throw": 1,
@@ -10596,7 +10594,7 @@
    "decl": "items.js:89",
    "init": "ArrayExpression",
    "w": {
-    "rpWorldDraw · replay-play": 2
+    "rpWorldWith · modes": 2
    },
    "m": {
     "dropWeaponOnDeath · items": 3,
@@ -10608,8 +10606,8 @@
     "decide": 1,
     "draw-layers": 1,
     "items": 10,
+    "modes": 1,
     "replay": 1,
-    "replay-play": 1,
     "round": 1,
     "save-retake": 1
    },
@@ -10619,7 +10617,7 @@
    "decl": "items.js:84",
    "init": "ArrayExpression",
    "w": {
-    "rpWorldDraw · replay-play": 2
+    "rpWorldWith · modes": 2
    },
    "m": {
     "buyItem · economy": 1,
@@ -10634,8 +10632,8 @@
     "draw-layers": 1,
     "economy": 1,
     "items": 10,
+    "modes": 1,
     "replay": 1,
-    "replay-play": 1,
     "round": 1
    },
    "snap": true
@@ -10787,8 +10785,8 @@
    "decl": "ct-setup.js:409",
    "init": "ArrayExpression",
    "w": {
-    "warmEnd · warmup": 1,
-    "warmStart · warmup": 1
+    "warmEnd · modes": 1,
+    "warmStart · modes": 1
    },
    "m": {
     "feedBombKill · journal": 2,
@@ -11033,8 +11031,8 @@
     "damage": 5,
     "decide": 1,
     "draw-fx": 1,
+    "modes": 1,
     "replay": 1,
-    "replay-play": 1,
     "round": 1,
     "view3d-frame": 1
    },
@@ -11097,9 +11095,9 @@
     "decide": 1,
     "draw-fx": 1,
     "exec-sync": 1,
+    "modes": 1,
     "observer": 1,
     "replay": 2,
-    "replay-play": 1,
     "round": 1,
     "self": 2,
     "throw": 3,
@@ -11461,7 +11459,7 @@
    "w": {
     "newMatch · round": 1,
     "resetRound · round": 1,
-    "rpWorldDraw · replay-play": 2
+    "rpWorldWith · modes": 2
    },
    "m": {},
    "r": {
@@ -11497,13 +11495,14 @@
     "look-arbiter": 1,
     "look-peek": 6,
     "lurker": 26,
+    "modes": 1,
     "move": 2,
     "plan": 6,
     "position": 14,
     "pro-positions": 3,
     "problem-watch": 6,
     "replay": 5,
-    "replay-play": 6,
+    "replay-play": 5,
     "roles": 8,
     "round": 20,
     "save-retake": 3,
@@ -11532,7 +11531,7 @@
     "matchBegin · round": 1,
     "resetRound · round": 1,
     "roundSetStart · round": 1,
-    "sbToggle · sandbox": 1
+    "sbSwitch · modes": 1
    },
    "m": {},
    "r": {
@@ -11566,8 +11565,8 @@
    "w": {
     "resetRound · round": 1,
     "roundSetStart · round": 1,
-    "sbTick · sandbox": 1,
-    "sbToggle · sandbox": 1
+    "sbSwitch · modes": 1,
+    "sbTick · modes": 1
    },
    "m": {},
    "r": {
@@ -11606,8 +11605,8 @@
     "endRound · round": 2,
     "resetRound · round": 1,
     "roundSetState · round": 1,
-    "rpWorldDraw · replay-play": 2,
-    "warmStart · warmup": 1
+    "rpWorldWith · modes": 2,
+    "warmStart · modes": 1
    },
    "m": {},
    "r": {
@@ -11616,7 +11615,6 @@
     "contact": 3,
     "damage": 4,
     "decide": 1,
-    "demo": 1,
     "draw": 4,
     "draw-layers": 1,
     "draw-map": 1,
@@ -11630,14 +11628,14 @@
     "knowledge": 1,
     "levels": 3,
     "lineups": 2,
+    "modes": 4,
     "observer": 6,
     "position": 1,
     "problem-watch": 1,
     "replay": 4,
-    "replay-play": 2,
+    "replay-play": 1,
     "roles": 3,
     "round": 1,
-    "sandbox": 2,
     "scoreboard": 12,
     "self": 1,
     "task": 2,
@@ -11808,7 +11806,7 @@
    "init": "Literal",
    "w": {
     "matchBegin · round": 1,
-    "rpWorldDraw · replay-play": 2,
+    "rpWorldWith · modes": 2,
     "simTimeSet · round": 1
    },
    "m": {},
@@ -11829,12 +11827,11 @@
     "lineups": 2,
     "look-peek": 2,
     "lurker": 3,
+    "modes": 2,
     "position": 1,
     "replay": 7,
-    "replay-play": 1,
     "roles": 1,
     "round": 3,
-    "sandbox": 1,
     "scoreboard": 3,
     "shoot": 1,
     "team": 1,
@@ -11885,7 +11882,7 @@
    },
    "m": {
     "detonate · damage": 1,
-    "dvTick · demo": 1,
+    "dvTick · modes": 1,
     "matchBegin · round": 1,
     "nadesTick · damage": 1,
     "resetNades · decide": 1
@@ -11895,7 +11892,6 @@
     "contact": 1,
     "damage": 9,
     "decide": 2,
-    "demo": 1,
     "draw-bots": 1,
     "draw-fx": 1,
     "draw-map": 2,
@@ -11904,9 +11900,9 @@
     "look": 1,
     "look-debug": 1,
     "look-peek": 3,
+    "modes": 2,
     "observer": 1,
     "replay": 2,
-    "replay-play": 1,
     "round": 1,
     "self": 1,
     "smoke": 7,
@@ -11921,7 +11917,7 @@
    "decl": "items.js:23",
    "init": "ArrayExpression",
    "w": {
-    "rpWorldDraw · replay-play": 2
+    "rpWorldWith · modes": 2
    },
    "m": {
     "drawSmokes · draw-fx": 1,
@@ -11931,7 +11927,7 @@
    },
    "r": {
     "draw-fx": 4,
-    "replay-play": 1,
+    "modes": 1,
     "round": 1,
     "tick-jump": 1,
     "tick-step": 3
@@ -12103,7 +12099,7 @@
    "decl": "tactics.js:8",
    "init": "ObjectExpression",
    "w": {
-    "rpWorldDraw · replay-play": 2
+    "rpWorldWith · modes": 2
    },
    "m": {
     "chooseCtSetup · ct-setup": 1,
@@ -12132,11 +12128,11 @@
     "lineups": 8,
     "look-peek": 3,
     "lurker": 3,
+    "modes": 1,
     "move": 7,
     "nav-zones": 4,
     "observer": 4,
     "plan": 13,
-    "replay-play": 1,
     "roles": 1,
     "round": 4,
     "save-retake": 4,
@@ -12174,7 +12170,7 @@
     "ct-setup": 13,
     "damage": 29,
     "decide": 18,
-    "demo": 15,
+    "demo": 3,
     "draw": 3,
     "draw-bots": 7,
     "draw-fx": 19,
@@ -12203,6 +12199,7 @@
     "look-peek": 26,
     "look-threat": 6,
     "lurker": 44,
+    "modes": 18,
     "move": 17,
     "nav-zones": 4,
     "observer": 31,
@@ -12214,10 +12211,9 @@
     "problem-watch": 11,
     "reach": 9,
     "replay": 12,
-    "replay-play": 2,
     "roles": 15,
     "round": 12,
-    "sandbox": 2,
+    "sandbox": 1,
     "save-retake": 25,
     "scoreboard": 3,
     "self": 25,
@@ -12238,8 +12234,7 @@
     "turn": 23,
     "view3d": 22,
     "view3d-frame": 13,
-    "voice": 27,
-    "warmup": 3
+    "voice": 27
    },
    "snap": true
   },
@@ -12247,7 +12242,7 @@
    "decl": "items.js:2",
    "init": "ArrayExpression",
    "w": {
-    "rpWorldDraw · replay-play": 2
+    "rpWorldWith · modes": 2
    },
    "m": {
     "blindBullet · smoke-react": 2,
@@ -12258,8 +12253,8 @@
    },
    "r": {
     "draw-fx": 4,
+    "modes": 1,
     "replay": 1,
-    "replay-play": 1,
     "round": 2,
     "shoot": 3,
     "smoke-react": 3,
@@ -12317,11 +12312,11 @@
    "snap": "нет: UI"
   },
   "voiceLines": {
-   "decl": "journal.js:14",
+   "decl": "journal.js:15",
    "init": "ArrayExpression",
    "w": {
     "resetRound · round": 1,
-    "warmEnd · warmup": 1
+    "warmEnd · modes": 1
    },
    "m": {
     "voiceFeed · journal": 2
@@ -13166,7 +13161,7 @@
   },
   "_dvName": {
    "w": [
-    "demo.js:36 dvStop"
+    "modes.js:165 dvStop"
    ],
    "lit": [],
    "r": 0
@@ -14379,11 +14374,11 @@
   "_overV": {
    "w": [
     "levels.js:510 floorViewTick",
-    "round.js:212 resetRound",
-    "sandbox.js:39 sbPlace"
+    "modes.js:131 sbPlace",
+    "round.js:213 resetRound"
    ],
    "lit": [],
-   "r": 5
+   "r": 6
   },
   "_passTried": {
    "w": [
@@ -14871,31 +14866,30 @@
     "engagements.js:271 engagementSetSawEnemy"
    ],
    "lit": [],
-   "r": 100
+   "r": 101
   },
   "_sbGo": {
    "w": [
-    "sandbox.js:19 sbTick"
+    "modes.js:111 sbTick",
+    "modes.js:210 sbOrder"
    ],
    "lit": [],
-   "r": 1
+   "r": 4
   },
   "_sbOff": {
    "w": [
-    "sandbox.js:115 sbToggle",
-    "sandbox.js:61 sbPanel",
-    "sandbox.js:62 sbPanel",
-    "sandbox.js:64 sbPanel"
+    "modes.js:201 sbSwitch",
+    "modes.js:206 sbAi"
    ],
    "lit": [],
-   "r": 3
+   "r": 6
   },
   "_sbWalk": {
    "w": [
-    "sandbox.js:67 sbPanel"
+    "modes.js:208 sbWalkNext"
    ],
    "lit": [],
-   "r": 2
+   "r": 5
   },
   "_seatRole": {
    "w": [
@@ -15234,32 +15228,32 @@
   },
   "_trail": {
    "w": [
-    "replay-play.js:115 rpWorldDraw",
-    "replay-play.js:123 rpWorldDraw",
-    "round.js:220 resetRound",
-    "sandbox.js:38 sbPlace",
+    "modes.js:130 sbPlace",
+    "modes.js:256 rpWorldWith",
+    "modes.js:260 rpWorldWith",
+    "round.js:221 resetRound",
     "tick-step.js:108 stepBot",
     "tick-step.js:300 stepBot",
     "tick-step.js:384 stepBot"
    ],
    "lit": [],
-   "r": 9
+   "r": 10
   },
   "_ts": {
    "w": [
     "engagements.js:272 engagementSetTs"
    ],
    "lit": [],
-   "r": 8
+   "r": 9
   },
   "_underV": {
    "w": [
     "levels.js:509 floorViewTick",
-    "round.js:212 resetRound",
-    "sandbox.js:39 sbPlace"
+    "modes.js:131 sbPlace",
+    "round.js:213 resetRound"
    ],
    "lit": [],
-   "r": 5
+   "r": 6
   },
   "_unstickT": {
    "w": [
@@ -15290,11 +15284,11 @@
    "w": [
     "draw-map.js:214 drawNav",
     "draw-map.js:225 drawNav",
-    "warmup.js:17 warmTurn",
-    "warmup.js:19 warmTurn"
+    "modes.js:33 warmTurn",
+    "modes.js:35 warmTurn"
    ],
    "lit": [],
-   "r": 0
+   "r": 2
   },
   "_visLag": {
    "w": [
@@ -15312,28 +15306,28 @@
   },
   "_wIdx": {
    "w": [
-    "warmup.js:67 warmTick",
-    "warmup.js:72 warmTick",
-    "warmup.js:79 warmTick"
+    "modes.js:84 warmTick",
+    "modes.js:89 warmTick",
+    "modes.js:96 warmTick"
    ],
    "lit": [],
-   "r": 0
+   "r": 8
   },
   "_wPath": {
    "w": [
-    "warmup.js:12 warmSpawn",
-    "warmup.js:67 warmTick"
+    "modes.js:28 warmSpawn",
+    "modes.js:84 warmTick"
    ],
    "lit": [],
-   "r": 0
+   "r": 8
   },
   "_wRespawn": {
    "w": [
-    "warmup.js:12 warmSpawn",
-    "warmup.js:48 warmTick"
+    "modes.js:28 warmSpawn",
+    "modes.js:64 warmTick"
    ],
    "lit": [],
-   "r": 0
+   "r": 4
   },
   "_waitPopKey": {
    "w": [
@@ -15358,11 +15352,11 @@
   },
   "_wv": {
    "w": [
-    "warmup.js:54 warmTick",
-    "warmup.js:77 warmTick"
+    "modes.js:71 warmTick",
+    "modes.js:94 warmTick"
    ],
    "lit": [],
-   "r": 0
+   "r": 9
   },
   "_zoomTick": {
    "w": [
@@ -15381,7 +15375,7 @@
    "lit": [
     "weapons-bots.js:82"
    ],
-   "r": 129
+   "r": 131
   },
   "ammo": {
    "w": [
@@ -15409,7 +15403,7 @@
   },
   "assists": {
    "w": [
-    "round.js:125 newMatch"
+    "round.js:126 newMatch"
    ],
    "lit": [],
    "r": 1
@@ -15423,13 +15417,16 @@
   },
   "baseX": {
    "w": [
-    "demo.js:53 dvPlace",
     "levels.js:208 ladderTick",
     "levels.js:212 ladderTick",
     "levels.js:216 ladderTick",
+    "modes.js:128 sbPlace",
+    "modes.js:182 dvPlace",
+    "modes.js:28 warmSpawn",
+    "modes.js:96 warmTick",
+    "modes.js:99 warmTick",
     "move.js:23 movePlace",
-    "round.js:213 resetRound",
-    "sandbox.js:36 sbPlace",
+    "round.js:214 resetRound",
     "tick-jump.js:109 jumpCheckTick",
     "tick-jump.js:90 jumpCheckTick",
     "tick-keys.js:53 strafeKeysTick",
@@ -15440,25 +15437,25 @@
     "tick-step.js:320 stepBot",
     "tick-step.js:383 stepBot",
     "tick-step.js:436 stepBot",
-    "tick.js:66 navSnap",
-    "warmup.js:12 warmSpawn",
-    "warmup.js:79 warmTick",
-    "warmup.js:82 warmTick"
+    "tick.js:66 navSnap"
    ],
    "lit": [
     "weapons-bots.js:82"
    ],
-   "r": 240
+   "r": 244
   },
   "baseY": {
    "w": [
-    "demo.js:53 dvPlace",
     "levels.js:208 ladderTick",
     "levels.js:212 ladderTick",
     "levels.js:216 ladderTick",
+    "modes.js:128 sbPlace",
+    "modes.js:182 dvPlace",
+    "modes.js:28 warmSpawn",
+    "modes.js:96 warmTick",
+    "modes.js:99 warmTick",
     "move.js:23 movePlace",
-    "round.js:213 resetRound",
-    "sandbox.js:36 sbPlace",
+    "round.js:214 resetRound",
     "tick-jump.js:109 jumpCheckTick",
     "tick-jump.js:90 jumpCheckTick",
     "tick-keys.js:53 strafeKeysTick",
@@ -15469,15 +15466,12 @@
     "tick-step.js:320 stepBot",
     "tick-step.js:383 stepBot",
     "tick-step.js:436 stepBot",
-    "tick.js:66 navSnap",
-    "warmup.js:12 warmSpawn",
-    "warmup.js:79 warmTick",
-    "warmup.js:82 warmTick"
+    "tick.js:66 navSnap"
    ],
    "lit": [
     "weapons-bots.js:82"
    ],
-   "r": 239
+   "r": 243
   },
   "blindUntil": {
    "w": [
@@ -15519,7 +15513,7 @@
    "lit": [
     "weapons-bots.js:82"
    ],
-   "r": 3
+   "r": 4
   },
   "cool": {
    "w": [
@@ -15632,7 +15626,7 @@
   },
   "display": {
    "w": [
-    "demo.js:106 (верх файла)"
+    "demo.js:58 (верх файла)"
    ],
    "lit": [],
    "r": 0
@@ -15694,7 +15688,7 @@
     "turn.ts:98 lookTrack"
    ],
    "lit": [],
-   "r": 44
+   "r": 47
   },
   "fakeHoldUntil": {
    "w": [
@@ -15738,7 +15732,7 @@
     "tick-step.js:458 moveSetHeading"
    ],
    "lit": [],
-   "r": 21
+   "r": 27
   },
   "heardSound": {
    "w": [
@@ -15798,7 +15792,7 @@
     "round.js:3",
     "weapons-bots.js:82"
    ],
-   "r": 630
+   "r": 633
   },
   "kills": {
    "w": [
@@ -16032,8 +16026,8 @@
   },
   "pfacing": {
    "w": [
-    "replay-play.js:115 rpWorldDraw",
-    "replay-play.js:123 rpWorldDraw",
+    "modes.js:256 rpWorldWith",
+    "modes.js:260 rpWorldWith",
     "tick-step.js:83 stepBot",
     "turn.ts:164 freezeLookTick"
    ],
@@ -16107,7 +16101,7 @@
     "round.js:3",
     "weapons-bots.js:82"
    ],
-   "r": 59
+   "r": 60
   },
   "prior": {
    "w": [],
@@ -16130,35 +16124,35 @@
   },
   "px": {
    "w": [
-    "demo.js:53 dvPlace",
-    "replay-play.js:115 rpWorldDraw",
-    "replay-play.js:123 rpWorldDraw",
-    "round.js:214 resetRound",
-    "sandbox.js:36 sbPlace",
-    "tick-step.js:83 stepBot",
-    "warmup.js:12 warmSpawn",
-    "warmup.js:47 warmTick"
+    "modes.js:128 sbPlace",
+    "modes.js:182 dvPlace",
+    "modes.js:256 rpWorldWith",
+    "modes.js:260 rpWorldWith",
+    "modes.js:28 warmSpawn",
+    "modes.js:63 warmTick",
+    "round.js:215 resetRound",
+    "tick-step.js:83 stepBot"
    ],
    "lit": [
     "weapons-bots.js:82"
    ],
-   "r": 8
+   "r": 11
   },
   "py": {
    "w": [
-    "demo.js:53 dvPlace",
-    "replay-play.js:115 rpWorldDraw",
-    "replay-play.js:123 rpWorldDraw",
-    "round.js:214 resetRound",
-    "sandbox.js:36 sbPlace",
-    "tick-step.js:83 stepBot",
-    "warmup.js:12 warmSpawn",
-    "warmup.js:47 warmTick"
+    "modes.js:128 sbPlace",
+    "modes.js:182 dvPlace",
+    "modes.js:256 rpWorldWith",
+    "modes.js:260 rpWorldWith",
+    "modes.js:28 warmSpawn",
+    "modes.js:63 warmTick",
+    "round.js:215 resetRound",
+    "tick-step.js:83 stepBot"
    ],
    "lit": [
     "weapons-bots.js:82"
    ],
-   "r": 8
+   "r": 11
   },
   "reactionTicks": {
    "w": [
@@ -16390,7 +16384,7 @@
     "round.js:3",
     "weapons-bots.js:82"
    ],
-   "r": 557
+   "r": 561
   },
   "textContent": {
    "w": [
@@ -16472,7 +16466,7 @@
     "round.js:3",
     "weapons-bots.js:82"
    ],
-   "r": 65
+   "r": 68
   },
   "weight": {
    "w": [
@@ -16495,7 +16489,7 @@
    "lit": [
     "weapons-bots.js:82"
    ],
-   "r": 731
+   "r": 743
   },
   "y": {
    "w": [
@@ -16504,7 +16498,7 @@
    "lit": [
     "weapons-bots.js:82"
    ],
-   "r": 731
+   "r": 743
   },
   "z": {
    "w": [
@@ -16514,7 +16508,7 @@
    "lit": [
     "weapons-bots.js:82"
    ],
-   "r": 281
+   "r": 283
   }
  },
  "hidden": {
@@ -16530,13 +16524,13 @@
   },
   "draw.noHud": {
    "w": [
-    "replay-play.js:117 rpWorldDraw",
-    "replay-play.js:122 rpWorldDraw"
+    "replay-play.js:86 rpWorldDraw",
+    "replay-play.js:89 rpWorldDraw"
    ]
   },
   "dvRender._t": {
    "w": [
-    "demo.js:92 dvRender"
+    "demo.js:44 dvRender"
    ]
   },
   "hudScale._set": {
@@ -16567,13 +16561,13 @@
   },
   "simEvIn.errs": {
    "w": [
-    "journal.js:82 simEvIn",
-    "journal.js:86 simEvOut"
+    "journal.js:83 simEvIn",
+    "journal.js:87 simEvOut"
    ]
   },
   "simEvIn.h": {
    "w": [
-    "journal.js:78 simEvOn"
+    "journal.js:79 simEvOn"
    ]
   },
   "teamDbgPanel._t": {

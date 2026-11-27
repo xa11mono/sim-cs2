@@ -789,10 +789,7 @@
   },
   "warmup.js": {
    "mech": "разминка warm*; автообсервер obs* (числа OBS_K, бой obsFight, слежка OBS.lock), мини-карта; повтор клатча rp* (запись rpRecord, клип rpBuild, эмоции rpEmotions, перейти к раунду rpGoto / #round=М.Р); звук snd*, разбор событий игры для показа showSync (звуки, баннеры, карточка раунда, закупка), главн",
-   "owns": [
-    "warmSpawn",
-    "warmTick"
-   ],
+   "owns": [],
    "src": "таблица «Где что»"
   },
   "observer.js": {
@@ -819,19 +816,13 @@
    "mech": "песочница (одно место, v536): SANDBOX, sbTick (часы стоят), sbPlace / sbRevive / sbRemove, панель sbRender / sbLogic; приказ sbGo",
    "owns": [
     "sbLogic",
-    "sbPlace",
-    "sbRemove",
-    "sbRender",
-    "sbRevive",
-    "sbTick"
+    "sbRender"
    ],
    "src": "таблица «Где что»"
   },
   "demo.js": {
    "mech": "(v571) РАУНД ИЗ ДЕМКИ («режим тени», В136) — одно место",
-   "owns": [
-    "dvPlace"
-   ],
+   "owns": [],
    "src": "шапка файла"
   },
   "app.js": {
@@ -904,7 +895,15 @@
   },
   "modes.js": {
    "mech": "состояние режимов страницы (демо, песочница, разминка) и надпись смены сторон, которые читает / пишет ядро (Р5)",
-   "owns": [],
+   "owns": [
+    "dvPlace",
+    "sbPlace",
+    "sbRemove",
+    "sbRevive",
+    "sbTick",
+    "warmSpawn",
+    "warmTick"
+   ],
    "src": "Р5"
   },
   "draw-map.js": {

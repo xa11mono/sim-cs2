@@ -8,6 +8,7 @@ var SHOW_Q = [], SHOW_Q_MAX = 256, KF_DIRTY = false;
 function showEv(){ SHOW_Q.push(Array.prototype.slice.call(arguments)); if(SHOW_Q.length > SHOW_Q_MAX) SHOW_Q.shift(); }
 function soundEv(){ showEv.apply(null, ["snd"].concat(Array.prototype.slice.call(arguments))); }
 var SERIES = {bo:3, maps:{}};
+function seriesNew(bo){ SERIES = {bo:bo, maps:{}}; }   // (Р5, 27.11) новая серия — команда показа (выбор Bo, «новый матч»)
 var TEAM_LOG = {round: -1, log: []};   // (v566) решения команд за раунд — журнал; рисует «Разбор команды» (team)
 var VOICE_DIRTY = false, LOG_DIRTY = false;
 

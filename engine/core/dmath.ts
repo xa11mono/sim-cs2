@@ -316,6 +316,8 @@ var DM = (function(){
     log: (x: number): number => log(+x),
     pow: (x: number, y: number): number => { const a = +x, b = +y; if (b !== b) return NaN; if ((a === 1 || a === -1) && (b === Infinity || b === -Infinity)) return NaN; return pow(a, b); },
     hypot: hypot2,    // Math.hypot(x, y)
-    hypot3: hypot3    // Math.hypot(x, y, z)
+    hypot3: hypot3,   // Math.hypot(x, y, z)
+    // (Р5, 27.11) угол в [−π, π): прежняя формула игры ((x + π) % 2π + 2π) % 2π − π дословно — только точные операции IEEE (+, −, %, Math.PI), биты те же
+    wrapPi: (x: number): number => ((x + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI
   };
 })();

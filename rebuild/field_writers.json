@@ -171,7 +171,7 @@
    "self · nadeReact"
   ],
   "_dvName": [
-   "demo · dvStop"
+   "modes · dvStop"
   ],
   "_dwOnT": [
    "fight · dangerWalk"
@@ -677,8 +677,8 @@
   ],
   "_overV": [
    "levels · floorViewTick",
-   "round · resetRound",
-   "sandbox · sbPlace"
+   "modes · sbPlace",
+   "round · resetRound"
   ],
   "_passTried": [
    "sound · bombPassTick"
@@ -870,14 +870,15 @@
    "engagements · engagementSetSawEnemy"
   ],
   "_sbGo": [
-   "sandbox · sbTick"
+   "modes · sbOrder",
+   "modes · sbTick"
   ],
   "_sbOff": [
-   "sandbox · sbPanel",
-   "sandbox · sbToggle"
+   "modes · sbAi",
+   "modes · sbSwitch"
   ],
   "_sbWalk": [
-   "sandbox · sbPanel"
+   "modes · sbWalkNext"
   ],
   "_seatRole": [
    "ct-setup · ctSeatRoles"
@@ -1014,9 +1015,9 @@
    "intel · tradeEnd"
   ],
   "_trail": [
-   "replay-play · rpWorldDraw",
+   "modes · rpWorldWith",
+   "modes · sbPlace",
    "round · resetRound",
-   "sandbox · sbPlace",
    "tick-step · stepBot"
   ],
   "_ts": [
@@ -1024,8 +1025,8 @@
   ],
   "_underV": [
    "levels · floorViewTick",
-   "round · resetRound",
-   "sandbox · sbPlace"
+   "modes · sbPlace",
+   "round · resetRound"
   ],
   "_unstickT": [
    "tick-step · moveSetUnstickT"
@@ -1038,7 +1039,7 @@
   ],
   "_visFacing": [
    "draw-map · drawNav",
-   "warmup · warmTurn"
+   "modes · warmTurn"
   ],
   "_visLag": [
    "shoot · tryShoot"
@@ -1047,15 +1048,15 @@
    "engagements · engSee"
   ],
   "_wIdx": [
-   "warmup · warmTick"
+   "modes · warmTick"
   ],
   "_wPath": [
-   "warmup · warmSpawn",
-   "warmup · warmTick"
+   "modes · warmSpawn",
+   "modes · warmTick"
   ],
   "_wRespawn": [
-   "warmup · warmSpawn",
-   "warmup · warmTick"
+   "modes · warmSpawn",
+   "modes · warmTick"
   ],
   "_waitPopKey": [
    "move · moveWaitPop"
@@ -1067,7 +1068,7 @@
    "move · moveWalkTick"
   ],
   "_wv": [
-   "warmup · warmTick"
+   "modes · warmTick"
   ],
   "_zoomTick": [
    "task · updatePost"
@@ -1094,30 +1095,30 @@
    "task · taskSetAtPost"
   ],
   "baseX": [
-   "demo · dvPlace",
    "levels · ladderTick",
+   "modes · dvPlace",
+   "modes · sbPlace",
+   "modes · warmSpawn",
+   "modes · warmTick",
    "move · movePlace",
    "round · resetRound",
-   "sandbox · sbPlace",
    "tick · navSnap",
    "tick-jump · jumpCheckTick",
    "tick-keys · strafeKeysTick",
-   "tick-step · stepBot",
-   "warmup · warmSpawn",
-   "warmup · warmTick"
+   "tick-step · stepBot"
   ],
   "baseY": [
-   "demo · dvPlace",
    "levels · ladderTick",
+   "modes · dvPlace",
+   "modes · sbPlace",
+   "modes · warmSpawn",
+   "modes · warmTick",
    "move · movePlace",
    "round · resetRound",
-   "sandbox · sbPlace",
    "tick · navSnap",
    "tick-jump · jumpCheckTick",
    "tick-keys · strafeKeysTick",
-   "tick-step · stepBot",
-   "warmup · warmSpawn",
-   "warmup · warmTick"
+   "tick-step · stepBot"
   ],
   "blindUntil": [
    "damage · damageSetBlindUntil"
@@ -1330,7 +1331,7 @@
    "voice · teamDeath"
   ],
   "pfacing": [
-   "replay-play · rpWorldDraw",
+   "modes · rpWorldWith",
    "tick-step · stepBot",
    "turn · freezeLookTick"
   ],
@@ -1369,22 +1370,22 @@
    "rosters · seatPlayers"
   ],
   "px": [
-   "demo · dvPlace",
-   "replay-play · rpWorldDraw",
+   "modes · dvPlace",
+   "modes · rpWorldWith",
+   "modes · sbPlace",
+   "modes · warmSpawn",
+   "modes · warmTick",
    "round · resetRound",
-   "sandbox · sbPlace",
-   "tick-step · stepBot",
-   "warmup · warmSpawn",
-   "warmup · warmTick"
+   "tick-step · stepBot"
   ],
   "py": [
-   "demo · dvPlace",
-   "replay-play · rpWorldDraw",
+   "modes · dvPlace",
+   "modes · rpWorldWith",
+   "modes · sbPlace",
+   "modes · warmSpawn",
+   "modes · warmTick",
    "round · resetRound",
-   "sandbox · sbPlace",
-   "tick-step · stepBot",
-   "warmup · warmSpawn",
-   "warmup · warmTick"
+   "tick-step · stepBot"
   ],
   "reactionTicks": [
    "rosters · seatPlayers"

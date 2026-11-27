@@ -135,14 +135,14 @@
    "count": 1
   },
   {
-   "file": "demo.js",
+   "file": "modes.js",
    "function": "dvTick",
    "field": "x",
    "expression": "bomb.x = e[3]",
    "count": 1
   },
   {
-   "file": "demo.js",
+   "file": "modes.js",
    "function": "dvTick",
    "field": "y",
    "expression": "bomb.y = e[4]",

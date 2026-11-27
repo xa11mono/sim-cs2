@@ -343,12 +343,12 @@ function obsOverlay(){
 }
 function obsManual(){ OBS.manualUntil = performance.now() + 6000; OBS.sc = 0; }
 (function(){
-  var wsk = document.getElementById("btnWarmSkip"); if(wsk) wsk.addEventListener("click", warmEnd);
+  var wsk = document.getElementById("btnWarmSkip"); if(wsk) wsk.addEventListener("click", function(){ if(warmEnd()) warmShow(false); });
   // (v307) галочка «разминка» запоминается в этом браузере; снял её во время разминки — разминка сразу заканчивается
   var cw = document.getElementById("chkWarm");
   if(cw){ try{ if(localStorage.getItem("sim-warmup") === "0") cw.checked = false; }catch(e){}
-    cw.addEventListener("change", function(){ try{ localStorage.setItem("sim-warmup", cw.checked ? "1" : "0"); }catch(e){} if(!cw.checked) warmEnd(); }); }
-  var ss = document.getElementById("selSeries"); if(ss) ss.addEventListener("change", function(){ SERIES = {bo:+ss.value, maps:{}}; seriesUpdate(); });
+    cw.addEventListener("change", function(){ try{ localStorage.setItem("sim-warmup", cw.checked ? "1" : "0"); }catch(e){} if(!cw.checked && warmEnd()) warmShow(false); }); }
+  var ss = document.getElementById("selSeries"); if(ss) ss.addEventListener("change", function(){ seriesNew(+ss.value); seriesUpdate(); });
   var b = document.getElementById("btnObs");
   if(b) b.addEventListener("click", function(){ OBS.on = !OBS.on; OBS.sc = 0; OBS.manualUntil = 0; if(!OBS.on) fit(); });
   OBS.full = true; try{ OBS.full = localStorage.getItem("sim-obs-full") !== "0"; }catch(e){}   // (v364) по умолчанию — вся карта

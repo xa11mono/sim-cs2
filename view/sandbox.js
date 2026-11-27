@@ -1,50 +1,14 @@
-// [хозяева: sbLogic, sbPlace, sbRemove, sbRender, sbRevive, sbTick] ======================= (v536) ПЕСОЧНИЦА — одно место =======================
+// [хозяева: sbLogic, sbRender] ======================= (v536) ПЕСОЧНИЦА — одно место =======================
 // Владелец 10.11: «режим песочницы на любой карте: спавнить ботов, отключать, управлять ими, включать ИИ — например, два бота, включил ИИ,
 // они убили, чтобы раунды не заканчивались; перетаскивать и смотреть, какая у них сейчас включилась логика».
 // Что делает (только когда SANDBOX.on): раунд не кончается (endRound ничего не делает), часы раунда и таймер бомбы стоят; у каждого бота —
 // «ИИ вкл / выкл» (выкл — стоит и не стреляет, мозги команды его не двигают) и «в игре / убран» (убрать — без киллфида; вернуть — на точку,
 // куда кликнешь); бота можно перетащить мышью; панель показывает логику выбранного бота (то же, что подпись на карте, и причины решений).
 // Игру вне песочницы не меняет: все проверки — SANDBOX.on / b._sbOff.
-// SANDBOX (состояние режима, которое читает ядро) — engine/core/modes.js (Р5)
+// SANDBOX (состояние режима, которое читает ядро) и расчёт режима (sbTick, sbPlace, sbRevive, sbRemove, команды панели) — engine/core/modes.js (Р5)
 // (v537, владелец 10.11: «чтобы отметки тоже работали в песочнице») SANDBOX — только данные (копируется в снимок отметки: открытый снимок
 // снова в песочнице, с теми же ИИ вкл / выкл у ботов); элемент панели — отдельно (элементы страницы в снимок не идут)
 var SB_PANEL_EL = null;
-// (15.11, перестройка) sbBot — тот же код, что teamBot: вызовы переведены на teamBot
-// один тик песочницы (stepTick, раунд идёт): часы раунда и бомбы стоят
-function sbTick(){
-  roundStartTime += TICK_MS/1000;
-  // приказ «иди сюда» (Shift + клик): держится, пока не дошёл — задача уровня выше всех (TASK_LEVEL, «приказ песочницы»)
-  // (v552, отметка владельца 11.11 «бот T залез и сразу слез»: дошёл до точки приказа на ящике — приказ снимался, бот возвращался к задаче роли
-  // (siteholdA:Stairs) и уходил) приказ держится и после того, как дошёл: стоит на точке, пока не дан новый приказ (или бот погиб)
-  bots.forEach(function(b){ var G = b._sbGo; if(!G) return; if(!b.alive){ b._sbGo = null; return; }
-    setPost(b, G, G.look || null, true, "sbGo"); });
-  if(bomb && bomb.state === "planted" && bomb.explodeTick != null) bomb.explodeTick++;
-}
-// (v552, владелец 11.11: «ставлю боту точку на ящик, а у него уводит якорь») точка приказа — там, где клик, если там есть пол навмеша (верхний:
-// на ящике — его крыша), с его высотой; нет пола — ближайшее проходимое, как раньше (snapToWalkable: ящик на плоской карте — сплошная стена,
-// точку уводило к центру ближайшего участка)
-function sbOrderPoint(x, y){
-  if(!NAV_GRID) navGridBuild();
-  var L = NAV_GRID[Math.floor(x/NAV_GRID_C)+","+Math.floor(y/NAV_GRID_C)] || [], top = null;
-  for(var i = 0; i < L.length; i++){ var a = NAVAREAS[L[i]]; if(NAV_BLOCKED[a.id] || !pointInPoly(x, y, a.points)) continue; if(!top || a.z > top.z) top = a; }
-  if(top) return {x: x, y: y, z: navFloorZ(top, x, y)};
-  var g = snapToWalkable(x, y); return {x: g.x, y: g.y};
-}
-// поставить бота в точку (x, y): пол — ближайший участок навмеша, всё движение и задачи — заново
-function sbPlace(b, x, y){
-  var w = snapToWalkable(x, y), a = navFloorNear(w.x, w.y, 40, null) || navAt(w.x, w.y, b.z || 0);
-  moveSetX(b, b.baseX = b.px = w.x); moveSetY(b, b.baseY = b.py = w.y);
-  if(a){ navSetZ(b, navFloorZ(a, w.x, w.y)); navSetArea(b, a.id); }
-  movePath(b, [], "sandbox", 0); navSetClimb(b, null); fightSetFc(b, null); moveSetHold(b, null); b._trail = []; moveSpeed(b, 0, "sandbox");
-  b._underV = null; b._overV = null; navSetFall(b, null); floorViewTick(b);
-}
-function sbRevive(b, x, y){
-  damageSetAlive(b, true); damageSetHp(b, 100); fightReset(b); clearPost(b); contactSetContact(b, null);
-  engagementSetContactStreak(b, 0); engagementSetTs(b, {}); shotSetNextShotTick(b, 0); reloadSetReloading(b, false); soundSetBlind(b, null); damageSetBlindUntil(b, 0);
-  sbPlace(b, x, y);
-  logEvent("песочница: " + b.id + " в игре");
-}
-function sbRemove(b){ damageSetAlive(b, false); damageSetHp(b, 0); clearPost(b); fightSetFc(b, null); if(SANDBOX.drag === b) SANDBOX.drag = null; logEvent("песочница: " + b.id + " убран"); }
 // ---------- панель ----------
 function sbEsc(s){ return String(s == null ? "" : s).replace(/[&<>]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c]; }); }
 function sbPanel(){
@@ -58,13 +22,13 @@ function sbPanel(){
   el.addEventListener("click", function(e){
     var t = e.target.closest && e.target.closest("[data-sb]"); if(!t) return;
     var k = t.getAttribute("data-sb"), id = t.getAttribute("data-id"), b = id ? teamBot(id) : null;
-    if(k === "allOn") bots.forEach(function(o){ o._sbOff = false; });
-    else if(k === "allOff") bots.forEach(function(o){ o._sbOff = true; });
+    if(k === "allOn") sbAi(bots, false);
+    else if(k === "allOff") sbAi(bots, true);
     else if(k === "allOut") bots.forEach(function(o){ if(o.alive) sbRemove(o); });
-    else if(k === "ai" && b) b._sbOff = !b._sbOff;
+    else if(k === "ai" && b) sbAi([b], null);
     else if(k === "in" && b){ if(b.alive) sbRemove(b); else { SANDBOX.place = b; SANDBOX.sel = b; } }
     else if(k === "sel" && b) SANDBOX.sel = b;
-    else if(k === "walk" && b) b._sbWalk = b._sbWalk == null ? "walk" : b._sbWalk === "walk" ? "run" : null;   // (v544) ход: сам → шагом → бегом → сам
+    else if(k === "walk" && b) sbWalkNext(b);   // (v544) ход: сам → шагом → бегом → сам
     sbRender(true); if(typeof draw === "function") draw();
   });
   SB_PANEL_EL = el; return el;
@@ -104,17 +68,8 @@ function sbRender(force){
   el.querySelector(".sb-info").innerHTML = sbLogic(SANDBOX.sel);
 }
 function sbToggle(){
-  // (v539, владелец 10.11: «нажимаю песочницу — сразу игра с физикой обычного матча, не разминки, и не ждать закупку») включение: разминка
-  // кончается (матч — как после неё, warmEnd), раунд между раундами — новый, закупка (freeze) пропускается — раунд идёт сразу
-  if(!SANDBOX.on){
-    if(typeof WARM !== "undefined" && WARM.on) warmEnd();   // до включения: warmEnd восстанавливает снимок матча (там песочница выключена)
-    if(roundState === "ending") resetRound();
-    if(roundState === "freeze"){ roundStartTime = simTime; roundStartTick = tick; }
-  }
-  SANDBOX.on = !SANDBOX.on;
-  if(!SANDBOX.on){ bots.forEach(function(b){ b._sbOff = false; }); SANDBOX.drag = null; SANDBOX.place = null; }
+  if(sbSwitch()) warmShow(false);   // (Р5, 27.11) расчёт включения — engine/core/modes.js; здесь — кнопка, панель, рисунок
   var bt = document.getElementById("btnSandbox"); if(bt) bt.classList.toggle("on", SANDBOX.on);
-  logEvent("песочница " + (SANDBOX.on ? "включена — раунд не кончается" : "выключена"));
   sbRender(true); if(typeof draw === "function") draw();
 }
 // ---------- мышь: выбрать / перетащить / поставить ----------
@@ -127,7 +82,7 @@ cv.addEventListener("mousedown", function(e){
   if(!SANDBOX.on || e.button !== 0 || (typeof mapEdOn === "function" && mapEdOn())) return;
   var w = navScreenToWorld(e.clientX, e.clientY);
   if(SANDBOX.place){ sbRevive(SANDBOX.place, w.x, w.y); SANDBOX.place = null; }
-  else if(e.shiftKey && SANDBOX.sel && SANDBOX.sel.alive){ var g = sbOrderPoint(w.x, w.y); SANDBOX.sel._sbGo = g; /* (v538, владелец: «если ИИ выключен и я веду его — ИИ не включать») ИИ не трогаем */ logEvent("песочница: " + SANDBOX.sel.id + " — иди сюда"); }
+  else if(e.shiftKey && SANDBOX.sel && SANDBOX.sel.alive){ var g = sbOrderPoint(w.x, w.y); sbOrder(SANDBOX.sel, g); /* (v538, владелец: «если ИИ выключен и я веду его — ИИ не включать») ИИ не трогаем */ logEvent("песочница: " + SANDBOX.sel.id + " — иди сюда"); }
   else { var b = sbPick(w); if(!b) return; SANDBOX.sel = b; SANDBOX.drag = b; }
   e.stopImmediatePropagation(); e.preventDefault(); sbRender(true); if(typeof draw === "function") draw();
 }, true);

@@ -1,4 +1,4 @@
-// [хозяева: dvPlace] ======================= (v571) РАУНД ИЗ ДЕМКИ («режим тени», В136) — одно место =======================
+// [хозяева: —] ======================= (v571) РАУНД ИЗ ДЕМКИ («режим тени», В136) — одно место =======================
 // Владелец 13.11: «перенести раунд из демки полностью и посмотреть, какая механика переключает решение бота»; «чтобы использовалась графика
 // нашего радара». Раунд демки про (MAP.demorounds, tools/shadow/bake_demorounds.py) играется нашей страницей: игроки идут и смотрят ровно как
 // в демке (каждый тик), выстрелы / попадания / смерти / смоки / плант — из демки; наши боты в их телах видят и слышат по нашей видимости и
@@ -6,56 +6,8 @@
 // куда про придёт за 3 с; расхождение с про — красным. Панели «Разбор взгляда» / «Разбор команды» работают как в матче.
 // Игру вне режима не меняет: все проверки — DEMOV.on (490 не стреляет, 400 урон — только смерти демки, 530 раунд не кончается сам,
 // 120 плант / дефуз — только по демке, 540 — dvTick).
-// DEMOV (состояние режима, которое читает ядро) — engine/core/modes.js (Р5)
+// DEMOV (состояние режима, которое читает ядро) и расчёт режима (dvStart, dvTick, dvPlace, dvStop) — engine/core/modes.js (Р5)
 var DV_PANEL_EL = null;
-function dvRounds(){ return (MAP.demorounds && MAP.demorounds.rounds) || []; }
-function dvAt(s, t){ var T = DEMOV.R.players[s].track, lo = 0, hi = T.length - 1; if(t <= T[0][0]) return T[0]; if(t >= T[hi][0]) return T[hi];
-  while(hi - lo > 1){ var m = (lo + hi) >> 1; if(T[m][0] <= t) lo = m; else hi = m; } var a = T[lo], c = T[hi], k = (t - a[0]) / Math.max(1, c[0] - a[0]);
-  var dy = ((c[4]-a[4]+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI;
-  return [t, a[1]+(c[1]-a[1])*k, a[2]+(c[2]-a[2])*k, a[3]+(c[3]-a[3])*k, a[4]+dy*k, a[5], a[6], a[7]]; }
-// запуск раунда i: новый матч, закупка пропущена, игроки ↔ боты (сторона; совпал ник — тот, остальные по порядку), оружие из демки
-function dvStart(i){
-  var R = dvRounds()[i]; if(!R) return;
-  DEMOV.on = false;
-  if(WARM.on){ WARM = {on:false}; }   // кнопку прячет кадр (app, warmSkipSync)   // из разминки — сразу в раунд демки
-  freshMatch(1); var guard = 0; while(roundState !== "live" && guard++ < 20000) stepTick();
-  DEMOV.R = R; DEMOV.i = i; DEMOV.t0 = tick; DEMOV.ei = 0; DEMOV.BOT = {};
-  var P = R.players, ids = Object.keys(P), used = {};
-  ["T", "CT"].forEach(function(side){
-    var dem = ids.filter(function(s){ return P[s].side === side; }), bs = bots.filter(function(x){ return x.team === side; });
-    bs.forEach(function(x){ var n = String(nick(x.id)).toLowerCase(), m = dem.filter(function(s){ return !used[s] && P[s].name.toLowerCase() === n; })[0]; if(m){ DEMOV.BOT[m] = x; used[m] = 1; } });
-    bs.forEach(function(x){ for(var k in DEMOV.BOT) if(DEMOV.BOT[k] === x) return; var m = dem.filter(function(s){ return !used[s]; })[0]; if(m){ DEMOV.BOT[m] = x; used[m] = 1; } }); });
-  var wkey = {}; Object.keys(WEAPONS).forEach(function(k){ wkey[WEAPONS[k].name] = k; });
-  Object.keys(DEMOV.BOT).forEach(function(s){ var x = DEMOV.BOT[s], pr = null, sc = null;
-    P[s].track.forEach(function(r){ var k = wkey[r[7]]; if(!k) return; if(WEAPONS[k].slot === "secondary") sc = k; else pr = k; });
-    equipmentSetPrimary(x, pr); if(sc) equipmentSetSecondary(x, sc); equipmentSetWeapon(x, WEAPONS[pr || x.secondary]); reloadSetAmmoFor(x, null); damageSetArmor(x, true); damageSetHelmet(x, true); x._dvName = P[s].name; });
-  DEMOV.on = true; dvPlace(); clockPause(false);
-  logEvent("раунд из демки: " + R.demo + " р" + R.num + " — игроки по демке, боты решают («тень»)");
-  dvRender(true);
-}
-function dvStop(){ DEMOV.on = false; bots.forEach(function(x){ x._dvName = null; }); logEvent("раунд из демки — выключен"); dvRender(true); }
-// каждый тик (stepTick, tick): события демки до этого момента, игроки — на места демки
-function dvTick(){
-  var R = DEMOV.R, t = tick - DEMOV.t0, B = DEMOV.BOT;
-  if(t >= R.len){ DEMOV.on = false; clockPause(true); logEvent("раунд из демки кончился"); dvRender(true); return; }
-  while(DEMOV.ei < R.ev.length && R.ev[DEMOV.ei][1] <= t){ var e = R.ev[DEMOV.ei++], A = B[e[2]];
-    if(e[0] === "shot" && A && A.alive){ shotSetLastShotTick(A, tick); dvHearShot(A); }
-    else if(e[0] === "hurt" && A && B[e[3]] && B[e[3]].alive){ var V = B[e[3]]; knowHear(V, {x: A.x, y: A.y, tick: tick, team: A.team, src: A.id, kind: "hit"}); V._shotAtT = tick; V._shotAtBy = A; }
-    else if(e[0] === "death" && B[e[3]] && B[e[3]].alive){ DEMOV.allow = true; applyDamage(A || B[e[3]], B[e[3]], 999, "bullet", {}); DEMOV.allow = false; }
-    else if(e[0] === "nade" && e[3] === "smoke") smokes.push({x: e[4], y: e[5], born: tick, until: tick + NADE.smoke.life, team: A ? A.team : "T"});
-    else if(e[0] === "plant"){ bomb.state = "planted"; bomb.x = e[3]; bomb.y = e[4]; bomb.carrier = null; bomb.plantTick = tick; bomb.explodeTick = tick + BOMB_TICKS; bomb.site = R.site; }
-    else if(e[0] === "defused"){ bomb.state = "defused"; }
-  }
-  dvPlace();
-}
-function dvPlace(){ var t = tick - DEMOV.t0;
-  Object.keys(DEMOV.BOT).forEach(function(s){ var x = DEMOV.BOT[s]; if(!x.alive) return; var q = dvAt(s, t), q1 = dvAt(s, t - 8);
-    moveSetX(x, x.baseX = x.px = q[1]); moveSetY(x, x.baseY = x.py = q[2]); lookFace(x, q[4], "demo"); moveSpeed(x, Math.hypot(q[1]-q1[1], q[2]-q1[2]) / (8/TICK_HZ), "demo"); if(q[6] > 0) damageSetHp(x, q[6]); }); }
-// выстрел демки слышат враги — как в игре (shoot: слышимость по прямой / сквозь стены, место — с ошибкой hearPos)
-function dvHearShot(sh){ bots.forEach(function(o){ if(!o.alive || o.team === sh.team) return; var dG = Math.hypot(o.x-sh.x, o.y-sh.y);
-  var hearR = hasLOS(o.x, o.y, sh.x, sh.y, o.z, sh.z) ? GUN_HEAR_OPEN : GUN_HEAR_WALL; if(dG >= hearR) return;
-  var hp = hearPos(o, sh.x, sh.y, tick*17 + o.id.charCodeAt(0)*7, hearR === GUN_HEAR_WALL);
-  knowHear(o, {x: hp ? hp.x : sh.x, y: hp ? hp.y : sh.y, tick: tick, team: sh.team, src: sh.id, kind: "shots"}); }); }
 // расхождение с про: ходьба (про стоит — бот ушёл бы; про идёт — бот стоял бы; в разные стороны > 75°), взгляд (> 60°) — то же, что tools/shadow/compare.py
 function dvDiff(s, x){ var t = tick - DEMOV.t0, q = dvAt(s, t), q3 = dvAt(s, t + 192), pm = Math.hypot(q3[1]-q[1], q3[2]-q[2]), mv = null, lk = null;
   var P = x.post, bd = P ? Math.hypot(P.x-q[1], P.y-q[2]) : 0, an = function(a, b){ return Math.abs(((a-b+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI); };
@@ -83,7 +35,7 @@ function dvPanel(){
   if(DV_PANEL_EL || typeof document === "undefined") return DV_PANEL_EL;
   DV_PANEL_EL = document.createElement("div"); DV_PANEL_EL.id = "dvPanel"; DV_PANEL_EL.className = "dbgPanel"; document.body.appendChild(DV_PANEL_EL);
   DV_PANEL_EL.addEventListener("click", function(e){ var a = e.target.closest("[data-dv]"); if(!a) return; var v = a.getAttribute("data-dv");
-    if(v === "stop") dvStop(); else dvStart(+v); });
+    if(v === "stop") dvStop(); else dvStart(+v); dvRender(true); });
   return DV_PANEL_EL;
 }
 function dvRender(force){

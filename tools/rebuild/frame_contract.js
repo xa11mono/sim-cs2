@@ -14,7 +14,7 @@ const parse = f => { const t = G.readGame(f).replace(/@@[A-Z_]+@@/g, m => '0'.pa
     // тело обёртки (function(){ … })() — на верхний уровень: объявления в нём — верхний уровень игры
     const flat = []; ast.body.forEach(st => { const c = st.type === 'ExpressionStatement' && st.expression.type === 'CallExpression' && /Function/.test(st.expression.callee.type) ? st.expression.callee : null;
       if (c) flat.push(...c.body.body); else flat.push(st); });
-    return { type: 'Program', body: flat }; } catch (e) {} }
+    return { type: 'Program', body: flat, pre: a.length }; } catch (e) {} }   // pre — длина обёртки: позиции узлов сдвинуты на неё
   throw new Error('не разобран ' + f); };
 // верхний уровень симуляции: функции и var
 const SIMV = {}, SIMF = {};
@@ -101,14 +101,17 @@ console.log('Frame: переменных ' + Object.keys(R.reads).length + ' (+ 
   const src = n => path.join(ROOT, 'src', n), rd = f => fs.readFileSync(f, 'utf8');
   const parseText = t => { const o = { ecmaVersion: 'latest', allowReturnOutsideFunction: true, locations: true, ranges: true };
     return acorn.parse(t.replace(/@@[A-Z_]+@@/g, m => '0'.padEnd(m.length, ' ')), o); };
-  const UNITS = [...sim.map(f => ({ f, side: 'ядро', ast: parse(f), text: G.readGame(f) })), ...show.map(f => ({ f, side: 'показ', ast: parse(f), text: G.readGame(f) })),
+  const unit = (f, side) => { const ast = parse(f); return { f, side, ast, text: ' '.repeat(ast.pre || 0) + G.readGame(f) }; };   // текст выровнен с позициями узлов
+  const UNITS = [...sim.map(f => unit(f, 'ядро')), ...show.map(f => unit(f, 'показ')),
     { f: 'src/snapshot.js', side: 'ядро', ast: parseText(rd(src('snapshot.js'))), text: rd(src('snapshot.js')) },
     { f: 'src/marks.js', side: 'показ', ast: parseText(rd(src('marks.js'))), text: rd(src('marks.js')) }];
   // функции верхнего уровня обеих сторон: прямые записи (переменные верхнего уровня, поля по имени) и вызовы
   const FN = {}, TOPV = {};
   for (const u of UNITS) for (const s of u.ast.body) { if (s.type === 'VariableDeclaration') s.declarations.forEach(d => { if (d.id.type === 'Identifier') TOPV[d.id.name] = u; }); }
-  const effects = (node, own) => {   // прямые действия узла функции: w — переменные верхнего уровня, b — поля (по имени), c — вызовы, ls — localStorage.setItem
-    const loc = new Set(), w = new Set(), b = new Set(), c = new Set(); let ls = false;
+  const effects = (node, own, text) => {   // прямые действия узла функции: w — переменные верхнего уровня, b — поля (по имени), c — вызовы, ls — localStorage.setItem;
+    // x — выражения записей (запись → [текст цели]): совпадение имени разбирается по выражению (rebuild/ui_boundary_known.json nameCoincidence)
+    const loc = new Set(), w = new Set(), b = new Set(), c = new Set(), x = {}; let ls = false;
+    const ex = (k, n) => { if (text) (x[k] = x[k] || []).push(text.slice(n.start, n.end).replace(/\s+/g, ' ')); };
     walk.full(node, n => { if (n.type === 'VariableDeclarator' && n.id.type === 'Identifier') loc.add(n.id.name); if (/Function/.test(n.type)) n.params.forEach(q => { if (q.type === 'Identifier') loc.add(q.name); });
       if (n.type === 'FunctionDeclaration' && n !== own && n.id) loc.add(n.id.name); });
     walk.full(node, n => {
@@ -117,10 +120,10 @@ console.log('Frame: переменных ' + Object.keys(R.reads).length + ' (+ 
       const tgt = n.type === 'AssignmentExpression' ? n.left : n.type === 'UpdateExpression' ? n.argument : null; if (!tgt) return;
       // поле — по имени (с запасом), кроме свойств элементов страницы: x.style.display, x.dataset.k, x.classList…, textContent / innerHTML / value
       const DOMP = /^(style|dataset|classList|textContent|innerHTML|innerText|value|checked|disabled|hidden|title|className|src|width|height|onclick)$/;
-      let t = tgt; while (t.type === 'MemberExpression') { if (!t.computed && t === tgt && !(t.object.type === 'MemberExpression' && !t.object.computed && DOMP.test(t.object.property.name)) && !DOMP.test(t.property.name)) b.add(t.property.name); t = t.object; }
-      if (t.type === 'Identifier' && !loc.has(t.name) && TOPV[t.name]) w.add(t.name); });
-    return { w, b, c, ls }; };
-  for (const u of UNITS) for (const s of u.ast.body) if (s.type === 'FunctionDeclaration') FN[s.id.name] = Object.assign({ u, line: s.loc.start.line }, effects(s, s));
+      let t = tgt; while (t.type === 'MemberExpression') { if (!t.computed && t === tgt && !(t.object.type === 'MemberExpression' && !t.object.computed && DOMP.test(t.object.property.name)) && !DOMP.test(t.property.name)) { b.add(t.property.name); ex('.' + t.property.name, tgt); } t = t.object; }
+      if (t.type === 'Identifier' && !loc.has(t.name) && TOPV[t.name]) { w.add(t.name); ex(t.name, tgt); } });
+    return { w, b, c, ls, x }; };
+  for (const u of UNITS) for (const s of u.ast.body) if (s.type === 'FunctionDeclaration') FN[s.id.name] = Object.assign({ u, line: s.loc.start.line }, effects(s, s, u.text));
   // транзитивно: что меняет вызов функции (игра / карта и настройки), с примером цепочки
   const MEMO = {};
   const reach = (name, seen = new Set()) => { if (MEMO[name]) return MEMO[name]; const r = { game: new Set(), map: new Set(), ls: false, via: {} }; if (seen.has(name) || !FN[name]) return r; seen.add(name);
@@ -144,22 +147,22 @@ console.log('Frame: переменных ' + Object.keys(R.reads).length + ' (+ 
       else if (n.type === 'CallExpression' && n.callee.type === 'Identifier' && /^(setInterval|setTimeout|requestAnimationFrame)$/.test(n.callee.name) && n.arguments[0]) { what = n.callee.name; fn = n.arguments[0]; el = '—'; ev = n.callee.name; }
       else if (n.type === 'AssignmentExpression' && n.left.type === 'MemberExpression' && !n.left.computed && /^on[a-z]+$/.test(n.left.property.name) && /Function/.test(n.right.type)) { what = 'событие'; ev = n.left.property.name.slice(2); fn = n.right; el = idOf(n.left.object, u); }
       if (!what) return;
-      let eff; if (fn.type === 'Identifier') { eff = FN[fn.name] ? { w: new Set(), b: new Set(), c: new Set([fn.name]), ls: false } : { w: new Set(), b: new Set(), c: new Set(), ls: false }; } else eff = effects(fn, null);
-      const keys = []; if (ev === 'keydown' || ev === 'keyup') walk.full(fn, m => { if (m.type === 'BinaryExpression' && /===|==/.test(m.operator) && m.right.type === 'Literal' && m.left.type === 'MemberExpression' && /^(key|code)$/.test(m.left.property.name || '')) keys.push(m.right.value); });
+      let eff, h_x; if (fn.type === 'Identifier') { eff = FN[fn.name] ? { w: new Set(), b: new Set(), c: new Set([fn.name]), ls: false } : { w: new Set(), b: new Set(), c: new Set(), ls: false }; } else eff = effects(fn, null, u.text);
+      h_x = eff.x || {}; const keys = []; if (ev === 'keydown' || ev === 'keyup') walk.full(fn, m => { if (m.type === 'BinaryExpression' && /===|==/.test(m.operator) && m.right.type === 'Literal' && m.left.type === 'MemberExpression' && /^(key|code)$/.test(m.left.property.name || '')) keys.push(m.right.value); });
       const direct = { game: [...eff.w].filter(v => kindOfVar(v) === 'игра'), map: [...eff.w].filter(v => kindOfVar(v) === 'карта/настройки'), fields: [...eff.b].filter(f => kindOfField(f) === 'игра') };
       const via = { game: new Set(), map: new Set(), ls: eff.ls, cmd: new Set() };
       eff.c.forEach(c => { const x = reach(c); if (x.game.size) { via.cmd.add(c); x.game.forEach(v => via.game.add(v)); } x.map.forEach(v => via.map.add(v)); if (x.ls) via.ls = true; });
       const cls2 = direct.game.length || direct.fields.length || via.game.size ? 'меняет игру' : (direct.map.length || via.map.size || via.ls) ? 'настройки / данные карты' : 'только показ';
-      H.push({ file: u.f, line: n.loc.start.line, what, el, ev, keys: [...new Set(keys)], class: cls2, commands: [...via.cmd].sort(), direct_game: direct.game, direct_fields: direct.fields,
+      H.push({ _x: h_x, file: u.f, line: n.loc.start.line, what, el, ev, keys: [...new Set(keys)], class: cls2, commands: [...via.cmd].sort(), direct_game: direct.game, direct_fields: direct.fields,
         direct_map: direct.map, game_via_calls: [...via.game].sort().slice(0, 20), map_via_calls: [...via.map].sort().slice(0, 12), localStorage: via.ls });
     });
   }
   // граница: прямые записи показа в игровое состояние — в обработчиках и в функциях показа (рисунок тоже)
   const viol = [];
   for (const [name, F] of Object.entries(FN)) { if (F.u.side !== 'показ') continue;
-    F.w.forEach(v => { if (kindOfVar(v) === 'игра') viol.push({ fn: name, file: F.u.f, write: v }); });
-    F.b.forEach(f => { if (kindOfField(f) === 'игра') viol.push({ fn: name, file: F.u.f, write: '.' + f }); }); }
-  for (const h of H) { h.direct_game.forEach(v => viol.push({ fn: '(обработчик ' + h.ev + ' ' + h.el + ')', file: h.file, write: v })); h.direct_fields.forEach(f => viol.push({ fn: '(обработчик ' + h.ev + ' ' + h.el + ')', file: h.file, write: '.' + f })); }
+    F.w.forEach(v => { if (kindOfVar(v) === 'игра') viol.push({ fn: name, file: F.u.f, write: v, expr: F.x[v] || [] }); });
+    F.b.forEach(f => { if (kindOfField(f) === 'игра') viol.push({ fn: name, file: F.u.f, write: '.' + f, expr: F.x['.' + f] || [] }); }); }
+  for (const h of H) { const hf = '(обработчик ' + h.ev + ' ' + h.el + ')'; h.direct_game.forEach(v => viol.push({ fn: hf, file: h.file, write: v, expr: h._x[v] || [] })); h.direct_fields.forEach(f => viol.push({ fn: hf, file: h.file, write: '.' + f, expr: h._x['.' + f] || [] })); delete h._x; }
   // поля показа на объектах игры (класс «показ» у полей бота): пишет показ, читает ли ядро — доказательство «игра их не читает»
   const showFields = Object.keys(REG).filter(k => k.startsWith('b:') && /^(показ|диагностика)$/.test(REG[k].class)).map(k => k.slice(2)).map(f => {
     const readers = []; for (const u of UNITS.filter(x => x.side === 'ядро')) walk.ancestor(u.ast, { MemberExpression(m, anc) { if (m.computed || m.property.name !== f) return; const p = anc[anc.length - 2];
@@ -196,13 +199,20 @@ console.log('Frame: переменных ' + Object.keys(R.reads).length + ' (+ 
   const by = {}; H.forEach(h => { by[h.class] = (by[h.class] || 0) + 1; });
   console.log('интерфейс: обработчиков ' + H.length + ' (' + Object.entries(by).map(([k, v]) => k + ' ' + v).join(', ') + '); прямых записей показа в игру ' + viol.length + '; полей показа, которые читает ядро: ' + showFields.filter(x => x.read_by_core.length).map(x => x.field).join(', '));
   if (process.argv.includes('--check')) {
-    const KF = path.join(ROOT, 'rebuild', 'ui_boundary_known.json'), known = fs.existsSync(KF) ? JSON.parse(fs.readFileSync(KF, 'utf8')).known || [] : [];
-    const key = x => x.file + ' ' + x.fn + ' ' + x.write, K = new Set(known.map(key)), fresh = viol.filter(x => !K.has(key(x)));
+    const KF = path.join(ROOT, 'rebuild', 'ui_boundary_known.json'), KJ = fs.existsSync(KF) ? JSON.parse(fs.readFileSync(KF, 'utf8')) : {}, known = KJ.known || [];
+    // (Р5, 27.11) совпадение имени: поле с именем поля игрока пишется у объекта показа (элемент страницы, камера, строка табло…) — прощается
+    // только запись с тем же выражением цели, числом не больше записанного; любая другая запись поля в той же функции — ошибка
+    const NC = {}; (KJ.nameCoincidence || []).forEach(e => { NC[e.file + ' ' + e.fn + ' ' + e.write] = e; });
+    const key = x => x.file + ' ' + x.fn + ' ' + x.write, K = new Set(known.map(key));
+    const coin = x => { const e = NC[key(x)]; if (!e) return false; const left = e.expr.slice(); return x.expr.length > 0 && x.expr.every(t => { const i = left.indexOf(t); if (i < 0) return false; left.splice(i, 1); return true; }); };
+    const fresh = viol.filter(x => !K.has(key(x)) && !coin(x));
+    const staleNC = Object.keys(NC).filter(k => !viol.some(x => key(x) === k)), staleK = known.filter(k => !viol.some(x => key(x) === key(k)));
+    if (staleNC.length || staleK.length) { console.error('ОШИБКА: устарели строки rebuild/ui_boundary_known.json (записи больше нет): ' + staleNC.concat(staleK.map(key)).join('; ')); process.exit(1); }
     // сверка по файлам-читателям (строки сдвигаются при правках): новый файл, читающий поле показа, — ошибка
     const files = L => [...new Set(L.map(r => r.split(':')[0]))].sort().join(',');
     const okShow = new Set((fs.existsSync(KF) ? JSON.parse(fs.readFileSync(KF, 'utf8')).showFieldsReadByCore || [] : []).map(x => x.field + ' ' + files(x.read_by_core)));
     const badShow = showFields.filter(x => x.read_by_core.length && !okShow.has(x.field + ' ' + files(x.read_by_core)));
     if (fresh.length || badShow.length) { console.error('ОШИБКА границы показ → игра: ' + fresh.map(key).join('; ') + (badShow.length ? '; ядро читает поля показа: ' + badShow.map(x => x.field + ' ← ' + x.read_by_core.slice(0, 3).join(',')).join('; ') : '')); process.exit(1); }
-    console.log('граница показ → игра: новых прямых записей нет (известных ' + known.length + ', rebuild/ui_boundary_known.json)');
+    console.log('граница показ → игра: прямых записей в игру ' + (viol.length - viol.filter(coin).length) + ' (известных ' + known.length + '); совпадений имени с выражением ' + viol.filter(coin).length + ' (rebuild/ui_boundary_known.json)');
   }
 }

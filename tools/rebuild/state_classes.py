@@ -22,6 +22,20 @@ CODEX = {'временное состояние раунда': 'раунд', 'в
          'генераторы случайных чисел': 'случайность'}
 ROUND_RESET = {'resetRound'}
 MATCH_RESET = {'newMatch', 'freshMatch', 'matchBegin', 'resetMatchMemory', 'startHalf', 'memStart', 'memRestore'}
+# (27.11) сеттеры хозяев полей (moveSetX, engagementSetTs…), которые resetRound зовёт сам, — запись resetRound: с переносом записей в сеттеры
+# (Р3.2) правило видело только писателя-сеттер, и поля, которые resetRound сбрасывает через сеттер, уходили из «раунд» в «матч»
+def _round_setters():
+    import glob
+    for f in glob.glob(os.path.join(ROOT, 'engine', '**', '*.js'), recursive=True):
+        t = open(f, encoding='utf-8').read(); m = re.search(r'^function resetRound\(', t, re.M)
+        if not m: continue
+        i = t.index('{', m.start()); d = 0
+        for j in range(i, len(t)):
+            d += {'{': 1, '}': -1}.get(t[j], 0)
+            if d == 0: break
+        return set(re.findall(r'\b([a-z][A-Za-z]*Set[A-Z]\w*)\(', t[i:j]))
+    return set()
+ROUND_SETTERS = _round_setters()
 # (Р4.2а) часть файла (показ / режим страницы) — из rebuild/files.json «game» (src/gamesrc.py game_meta), а не номер в имени
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'src'))
 import gamesrc
@@ -88,6 +102,8 @@ def rule_bot(n, b):
         return 'неизменяемое', 'задаётся при создании бота (%s), дальше по имени не пишется' % b['lit'][0], 'игрок'
     if wn & ROUND_RESET:
         return 'раунд', 'пишет resetRound (%s)' % ', '.join(sorted(w.split(' ')[0] for w in b['w'] if w.endswith(' resetRound'))[:3]), 'раунд (resetRound)'
+    if wn & ROUND_SETTERS:
+        return 'раунд', 'пишет resetRound через сеттер хозяина (%s)' % ', '.join(sorted(wn & ROUND_SETTERS)[:3]), 'раунд (resetRound)'
     if wn & MATCH_RESET:
         return 'матч', 'пишет ' + ', '.join(sorted(wn & MATCH_RESET)) + ', не resetRound', 'матч'
     so, wf = show_only(b['w']); wf = set(wf)

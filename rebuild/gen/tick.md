@@ -13,8 +13,8 @@
     - `roundSetState` (round) — если simTime >= roundStartTime
     - `freezeFxReset` (round) — если simTime >= roundStartTime
     - `logEvent` (journal) — если simTime >= roundStartTime
-  - `sbTick` (sandbox) — если SANDBOX.on
-  - `dvTick` (demo) — если DEMOV.on
+  - `sbTick` (modes) — если SANDBOX.on
+  - `dvTick` (modes) — если DEMOV.on
   - `weaponPickupTick` (items) — если postRun
   - `itemPickupTick` (items) — если postRun
   - `teamBrains` (contact) — если !postRun

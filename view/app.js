@@ -240,7 +240,7 @@ function showSync(){
   if(LOG_DIRTY){ LOG_DIRTY = false; logRender(); }
   if(RC_HALF !== null){ var rh = document.getElementById("rcHalf"); if(rh) rh.textContent = RC_HALF; RC_HALF = null; }
   var sk = WSK_EL || (WSK_EL = document.getElementById("btnWarmSkip"));
-  if(sk && !WARM.on && sk.style.display !== "none") sk.style.display = "none";
+  if(sk){ var skw = WARM.on ? "" : "none"; if(sk.style.display !== skw) sk.style.display = skw; }   // (Р5, 27.11) и показать — разминку включает ядро
 }
 // (Р5.2, 26.11) режим Worker (страница с ?worker=1, сборка src/build.py --worker): симуляция — ядро в Worker из Blob-URL (текст ядра — в
 // странице, #simCore; data: на страницах-артефактах запрещён, Р0.2), показ — тот же код по кадру (frameApply, src/snapshot.js). Время копится,
@@ -345,7 +345,7 @@ function frameBody(ts){
   var dt = clockFrameDt(ts);
   if(WK.on && !WK.hand && wkMode()){ if(!WK.fresh) wkToPage(); else if(!WK.busy) WK.on = false; }   // (Р5.2) режим без кнопки (разминка при загрузке): Worker ещё не играл — состояние то же, снимок не нужен
   if(WK.on){ wkFrame(paused || rpHold() ? 0 : Math.min(dt, FRAME_CATCHUP_MS)); }   // (Р5.2) симуляция в Worker: время — туда, кадр — оттуда (повтор клатча ждёт — как ниже)
-  else if(!paused && WARM.on){ var wdt = Math.min(0.1, dt/1000); warmTick(wdt); clockAcc(0); }
+  else if(!paused && WARM.on){ var wdt = Math.min(0.1, dt/1000); if(warmTick(wdt, Math.random, warmFoe)) warmShow(false); clockAcc(0); }
   else if(!paused){
     // (v397, М146) догонять не больше FRAME_CATCHUP_MS за кадр: после скрытой вкладки или долгого кадра цикл раньше считал все
     // пропущенные тики разом (минута вкладки в фоне = ~3800 тиков в одном кадре — страница вставала на секунды, а следующий кадр
@@ -375,7 +375,7 @@ function frameBody(ts){
   r.value = Math.round(HL.p*100); show();
   r.addEventListener("input", function(){ HL.p = (+r.value || 0)/100; show(); try{ localStorage.setItem(HL_KEY, JSON.stringify({p: HL.p})); }catch(e){} });
 })();
-document.getElementById("btnFreshMatch").addEventListener("click", function(){ var n = Math.max(1, parseInt(document.getElementById("inpMatchNum").value, 10) || 1); var sel = document.getElementById("selSeries"), bo = sel ? +sel.value : 3; if(bo !== SERIES.bo || seriesDone()) SERIES = {bo:bo, maps:{}}; var cw = document.getElementById("chkWarm"); if(cw && !cw.checked) freshMatch(n); else warmStart(n); clockPause(false); var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); } logEvent("Матч №"+n+" с чистого листа (воспроизводимый)", true); });
+document.getElementById("btnFreshMatch").addEventListener("click", function(){ var n = Math.max(1, parseInt(document.getElementById("inpMatchNum").value, 10) || 1); var sel = document.getElementById("selSeries"), bo = sel ? +sel.value : 3; if(bo !== SERIES.bo || seriesDone()) seriesNew(bo); var cw = document.getElementById("chkWarm"); if(cw && !cw.checked) freshMatch(n); else { warmStart(n, Math.random); warmShow(true); } clockPause(false); var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); } logEvent("Матч №"+n+" с чистого листа (воспроизводимый)", true); });
 setInterval(function(){ var el = document.getElementById("matchTick"); if(el) el.textContent = "матч "+matchNum+" · тик "+tick; }, 250);
 if(/[?&]worker=1/.test(location.search)) wkStart();   // (Р5.2) режим Worker — по адресу страницы
 else if(/[?&]local=1/.test(location.search)) wkLocal();   // (Р5.4) локальный режим — симуляция в процессе Node

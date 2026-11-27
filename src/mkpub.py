@@ -22,7 +22,7 @@ _wrap_css = _css[:_css.index(WRAP_END) + len(WRAP_END)] if WRAP_END in _css else
 _game_css = _css[len(_wrap_css):]
 s = _head[:_hs] + _wrap_css + _head[_he:] + '<body>' + ('<style>' + _game_css + '</style>' if _game_css.strip() else '') + s[_hb + len('<body>'):]
 s = s.replace('window.__ev=function(src){return eval(src);};', '')
-s = s.replace('/*@@WARM_AUTO@@*/', 'warmStart(1);')
+s = s.replace('/*@@WARM_AUTO@@*/', 'warmStart(1, Math.random); warmShow(true);')
 # (v349, владелец: «обновляй версию в радаре и дату») подпись версии — номер из последней записи docs/DECISIONS.md и дата сборки
 import re as _re, datetime as _dt
 _dec = open(os.path.join(HERE, '..', 'docs', 'DECISIONS.md'), encoding='utf-8').read()

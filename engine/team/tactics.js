@@ -92,6 +92,7 @@ function readCT(){
 var TO_SEC = 30, TO_PLAN_ROUNDS = 3;
 var TOUT = {CT:{left:3, streak:0, until:0, avoid:[], plan:null}, T:{left:3, streak:0, until:0, avoid:[], plan:null}};
 var TO_NOW = null, TO_LAST = null, TO_FORCE = false, TO_DEATHS = {CT:[], T:[]};
+function timeoutForce(){ TO_FORCE = true; }   // (Р5, 27.11) «Взять паузу» — команда показа
 function timeoutsReset(){ TOUT = {CT:{left:3, streak:0, until:0, avoid:[], plan:null}, T:{left:3, streak:0, until:0, avoid:[], plan:null}}; TO_NOW = null; TO_DEATHS = {CT:[], T:[]}; }
 function timeoutCheck(winner){
   TO_NOW = null;

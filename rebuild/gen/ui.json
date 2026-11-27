@@ -2555,13 +2555,15 @@
    "ev": "change",
    "keys": [],
    "class": "меняет игру",
-   "commands": [],
-   "direct_game": [
-    "SERIES"
+   "commands": [
+    "seriesNew"
    ],
+   "direct_game": [],
    "direct_fields": [],
    "direct_map": [],
-   "game_via_calls": [],
+   "game_via_calls": [
+    "SERIES"
+   ],
    "map_via_calls": [],
    "localStorage": false
   },
@@ -2700,7 +2702,7 @@
   },
   {
    "file": "replay.js",
-   "line": 232,
+   "line": 228,
    "what": "событие",
    "el": "RP_EL.skip",
    "ev": "click",
@@ -2716,7 +2718,7 @@
   },
   {
    "file": "replay.js",
-   "line": 233,
+   "line": 229,
    "what": "событие",
    "el": "window",
    "ev": "keydown",
@@ -2735,7 +2737,7 @@
   },
   {
    "file": "replay-play.js",
-   "line": 340,
+   "line": 300,
    "what": "setTimeout",
    "el": "—",
    "ev": "setTimeout",
@@ -2751,7 +2753,7 @@
   },
   {
    "file": "replay-play.js",
-   "line": 346,
+   "line": 306,
    "what": "событие",
    "el": "#chkRp",
    "ev": "change",
@@ -2767,7 +2769,7 @@
   },
   {
    "file": "replay-play.js",
-   "line": 347,
+   "line": 307,
    "what": "событие",
    "el": "#selRp",
    "ev": "change",
@@ -2783,27 +2785,23 @@
   },
   {
    "file": "replay-play.js",
-   "line": 348,
+   "line": 308,
    "what": "событие",
    "el": "#btnRpLast",
    "ev": "click",
    "keys": [],
-   "class": "меняет игру",
-   "commands": [
-    "rpPlay"
-   ],
+   "class": "только показ",
+   "commands": [],
    "direct_game": [],
    "direct_fields": [],
    "direct_map": [],
-   "game_via_calls": [
-    "RP_EL"
-   ],
+   "game_via_calls": [],
    "map_via_calls": [],
    "localStorage": false
   },
   {
    "file": "replay-play.js",
-   "line": 349,
+   "line": 309,
    "what": "setTimeout",
    "el": "—",
    "ev": "setTimeout",
@@ -2885,13 +2883,15 @@
    "ev": "click",
    "keys": [],
    "class": "меняет игру",
-   "commands": [],
-   "direct_game": [
-    "TO_FORCE"
+   "commands": [
+    "timeoutForce"
    ],
+   "direct_game": [],
    "direct_fields": [],
    "direct_map": [],
-   "game_via_calls": [],
+   "game_via_calls": [
+    "TO_FORCE"
+   ],
    "map_via_calls": [],
    "localStorage": false
   },
@@ -2985,7 +2985,7 @@
   },
   {
    "file": "sandbox.js",
-   "line": 58,
+   "line": 22,
    "what": "событие",
    "el": "el",
    "ev": "click",
@@ -2993,14 +2993,13 @@
    "class": "меняет игру",
    "commands": [
     "draw",
+    "sbAi",
     "sbRemove",
-    "sbRender"
+    "sbRender",
+    "sbWalkNext"
    ],
    "direct_game": [],
-   "direct_fields": [
-    "_sbOff",
-    "_sbWalk"
-   ],
+   "direct_fields": [],
    "direct_map": [],
    "game_via_calls": [
     "._fc",
@@ -3010,7 +3009,6 @@
     ".alive",
     ".hp",
     ".path",
-    "SB_PANEL_EL",
     "events"
    ],
    "map_via_calls": [
@@ -3021,7 +3019,7 @@
   },
   {
    "file": "sandbox.js",
-   "line": 126,
+   "line": 81,
    "what": "событие",
    "el": "cv",
    "ev": "mousedown",
@@ -3030,13 +3028,12 @@
    "commands": [
     "draw",
     "logEvent",
+    "sbOrder",
     "sbRender",
     "sbRevive"
    ],
    "direct_game": [],
-   "direct_fields": [
-    "_sbGo"
-   ],
+   "direct_fields": [],
    "direct_map": [],
    "game_via_calls": [
     "._area",
@@ -3048,6 +3045,7 @@
     "._hold",
     "._nv",
     "._reloading",
+    "._sbGo",
     "._sbOff",
     "._sbWalk",
     "._trail",
@@ -3057,8 +3055,7 @@
     ".baseY",
     ".blindUntil",
     ".contactStreak",
-    ".curSpeed",
-    ".holding"
+    ".curSpeed"
    ],
    "map_via_calls": [
     "_WB",
@@ -3068,7 +3065,7 @@
   },
   {
    "file": "sandbox.js",
-   "line": 134,
+   "line": 89,
    "what": "событие",
    "el": "window",
    "ev": "mousemove",
@@ -3109,7 +3106,7 @@
   },
   {
    "file": "sandbox.js",
-   "line": 141,
+   "line": 96,
    "what": "событие",
    "el": "window",
    "ev": "mouseup",
@@ -3125,7 +3122,7 @@
   },
   {
    "file": "sandbox.js",
-   "line": 142,
+   "line": 97,
    "what": "событие",
    "el": "#btnSandbox",
    "ev": "click",
@@ -3167,7 +3164,7 @@
   },
   {
    "file": "sandbox.js",
-   "line": 143,
+   "line": 98,
    "what": "setInterval",
    "el": "—",
    "ev": "setInterval",
@@ -3187,7 +3184,6 @@
     ".alive",
     ".hp",
     ".path",
-    "SB_PANEL_EL",
     "events"
    ],
    "map_via_calls": [
@@ -3198,13 +3194,14 @@
   },
   {
    "file": "demo.js",
-   "line": 85,
+   "line": 37,
    "what": "событие",
    "el": "DV_PANEL_EL",
    "ev": "click",
    "keys": [],
    "class": "меняет игру",
    "commands": [
+    "dvRender",
     "dvStart",
     "dvStop"
    ],
@@ -3212,33 +3209,38 @@
    "direct_fields": [],
    "direct_map": [],
    "game_via_calls": [
+    "._2nd",
+    "._actS",
+    "._adSpot",
+    "._afPt",
+    "._agV",
+    "._aimFix",
+    "._aimTrk",
+    "._amb",
     "._ammoFor",
+    "._apBest",
+    "._apId",
+    "._apT",
+    "._apfC",
+    "._apfP",
     "._area",
-    "._blind",
-    "._blindBy",
-    "._boost",
-    "._bought",
-    "._climb",
-    "._defuseHeard",
-    "._dmgBy",
-    "._drawUntil",
-    "._dvName",
-    "._faceWhy",
-    "._fall",
-    "._fc",
-    "._fillLock",
-    "._fireAcc",
-    "._fireExit",
-    "._fireExitFire",
-    "._fireIn",
-    "._fullKit"
+    "._assistNext",
+    "._assistVoice",
+    "._avoidPeekAt",
+    "._avoidPeekUntil",
+    "._awpLog"
    ],
-   "map_via_calls": [],
-   "localStorage": false
+   "map_via_calls": [
+    "CLIMB_BY_EDGE",
+    "MOVE",
+    "NAV_GAPS",
+    "NAV_GAP_AT"
+   ],
+   "localStorage": true
   },
   {
    "file": "demo.js",
-   "line": 105,
+   "line": 57,
    "what": "setInterval",
    "el": "—",
    "ev": "setInterval",
@@ -3251,33 +3253,38 @@
    "direct_fields": [],
    "direct_map": [],
    "game_via_calls": [
+    "._2nd",
+    "._actS",
+    "._adSpot",
+    "._afPt",
+    "._agV",
+    "._aimFix",
+    "._aimTrk",
+    "._amb",
     "._ammoFor",
+    "._apBest",
+    "._apId",
+    "._apT",
+    "._apfC",
+    "._apfP",
     "._area",
-    "._blind",
-    "._blindBy",
-    "._boost",
-    "._bought",
-    "._climb",
-    "._defuseHeard",
-    "._dmgBy",
-    "._drawUntil",
-    "._dvName",
-    "._faceWhy",
-    "._fall",
-    "._fc",
-    "._fillLock",
-    "._fireAcc",
-    "._fireExit",
-    "._fireExitFire",
-    "._fireIn",
-    "._fullKit"
+    "._assistNext",
+    "._assistVoice",
+    "._avoidPeekAt",
+    "._avoidPeekUntil",
+    "._awpLog"
    ],
-   "map_via_calls": [],
-   "localStorage": false
+   "map_via_calls": [
+    "CLIMB_BY_EDGE",
+    "MOVE",
+    "NAV_GAPS",
+    "NAV_GAP_AT"
+   ],
+   "localStorage": true
   },
   {
    "file": "demo.js",
-   "line": 106,
+   "line": 58,
    "what": "событие",
    "el": "#btnDemoView",
    "ev": "click",
@@ -3290,36 +3297,41 @@
    "direct_fields": [],
    "direct_map": [],
    "game_via_calls": [
+    "._2nd",
+    "._actS",
+    "._adSpot",
+    "._afPt",
+    "._agV",
+    "._aimFix",
+    "._aimTrk",
+    "._amb",
     "._ammoFor",
+    "._apBest",
+    "._apId",
+    "._apT",
+    "._apfC",
+    "._apfP",
     "._area",
-    "._blind",
-    "._blindBy",
-    "._boost",
-    "._bought",
-    "._climb",
-    "._defuseHeard",
-    "._dmgBy",
-    "._drawUntil",
-    "._dvName",
-    "._faceWhy",
-    "._fall",
-    "._fc",
-    "._fillLock",
-    "._fireAcc",
-    "._fireExit",
-    "._fireExitFire",
-    "._fireIn",
-    "._fullKit"
+    "._assistNext",
+    "._assistVoice",
+    "._avoidPeekAt",
+    "._avoidPeekUntil",
+    "._awpLog"
    ],
-   "map_via_calls": [],
-   "localStorage": false
+   "map_via_calls": [
+    "CLIMB_BY_EDGE",
+    "MOVE",
+    "NAV_GAPS",
+    "NAV_GAP_AT"
+   ],
+   "localStorage": true
   },
   {
    "file": "app.js",
    "line": 187,
    "what": "событие",
    "el": "document",
-   "ev": "pt",
+   "ev": "ev",
    "keys": [],
    "class": "только показ",
    "commands": [],
@@ -3402,7 +3414,7 @@
    "file": "app.js",
    "line": 275,
    "what": "событие",
-   "el": "e = ",
+   "el": "WK.w",
    "ev": "message",
    "keys": [],
    "class": "настройки / данные карты",
@@ -3418,7 +3430,7 @@
    "file": "app.js",
    "line": 276,
    "what": "событие",
-   "el": "= fu",
+   "el": "WK.w",
    "ev": "error",
    "keys": [],
    "class": "меняет игру",
@@ -3525,11 +3537,10 @@
    "commands": [
     "freshMatch",
     "logEvent",
+    "seriesNew",
     "warmStart"
    ],
-   "direct_game": [
-    "SERIES"
-   ],
+   "direct_game": [],
    "direct_fields": [],
    "direct_map": [],
    "game_via_calls": [
@@ -4170,14 +4181,14 @@
    "var": "BEEP_FINAL",
    "class": "показ",
    "read_by_core": [
-    "journal.js:152"
+    "journal.js:153"
    ]
   },
   {
    "var": "BEEP_NEXT",
    "class": "показ",
    "read_by_core": [
-    "journal.js:153"
+    "journal.js:154"
    ]
   },
   {
@@ -4199,8 +4210,35 @@
     "damage.js:135",
     "damage.js:135",
     "shoot.js:68",
-    "round.js:157",
-    "tick-step.js:30"
+    "round.js:158",
+    "tick-step.js:30",
+    "modes.js:142",
+    "modes.js:149",
+    "modes.js:152",
+    "modes.js:152",
+    "modes.js:152",
+    "modes.js:152",
+    "modes.js:152",
+    "modes.js:156",
+    "modes.js:157",
+    "modes.js:157",
+    "modes.js:157",
+    "modes.js:159",
+    "modes.js:159",
+    "modes.js:162",
+    "modes.js:165",
+    "modes.js:168",
+    "modes.js:168",
+    "modes.js:168",
+    "modes.js:169",
+    "modes.js:170",
+    "modes.js:170",
+    "modes.js:170",
+    "modes.js:173",
+    "modes.js:173",
+    "modes.js:180",
+    "modes.js:181",
+    "modes.js:181"
    ]
   },
   {
@@ -4325,17 +4363,26 @@
    "var": "RUN_MATCH_SUB",
    "class": "диагностика",
    "read_by_core": [
-    "round.js:262"
+    "round.js:263"
    ]
   },
   {
    "var": "SANDBOX",
    "class": "показ",
    "read_by_core": [
-    "round.js:156",
+    "round.js:157",
     "move.js:112",
     "move.js:113",
-    "tick-step.js:29"
+    "tick-step.js:29",
+    "modes.js:139",
+    "modes.js:139",
+    "modes.js:195",
+    "modes.js:200",
+    "modes.js:200",
+    "modes.js:201",
+    "modes.js:201",
+    "modes.js:201",
+    "modes.js:202"
    ]
   },
   {
@@ -4356,12 +4403,12 @@
    "var": "TEAM_LOG",
    "class": "диагностика",
    "read_by_core": [
-    "journal.js:51",
-    "journal.js:51",
-    "journal.js:51",
     "journal.js:52",
     "journal.js:52",
-    "journal.js:52"
+    "journal.js:52",
+    "journal.js:53",
+    "journal.js:53",
+    "journal.js:53"
    ]
   },
   {
@@ -4373,8 +4420,18 @@
    "var": "WARM",
    "class": "показ",
    "read_by_core": [
-    "round.js:95",
-    "round.js:95",
+    "round.js:96",
+    "round.js:96",
+    "modes.js:48",
+    "modes.js:52",
+    "modes.js:53",
+    "modes.js:53",
+    "modes.js:59",
+    "modes.js:60",
+    "modes.js:60",
+    "modes.js:150",
+    "modes.js:196",
+    "modes.js:196",
     "src/snapshot.js:237",
     "src/snapshot.js:237"
    ]
@@ -4382,7 +4439,9 @@
   {
    "var": "accumulator",
    "class": "показ",
-   "read_by_core": []
+   "read_by_core": [
+    "modes.js:243"
+   ]
   },
   {
    "var": "lastFrame",
@@ -4402,7 +4461,8 @@
     "damage.js:239",
     "damage.js:239",
     "decide.js:260",
-    "round.js:102"
+    "round.js:103",
+    "modes.js:244"
    ]
   },
   {
@@ -4410,9 +4470,9 @@
    "class": "показ",
    "read_by_core": [
     "smoke-react.js:82",
-    "journal.js:95",
-    "journal.js:109",
-    "journal.js:114",
+    "journal.js:96",
+    "journal.js:110",
+    "journal.js:115",
     "items.js:53",
     "shoot.js:306",
     "shoot.js:359",
@@ -4433,11 +4493,12 @@
    "var": "soundPings",
    "class": "показ",
    "read_by_core": [
-    "round.js:102",
+    "round.js:103",
     "tick-jump.js:10",
     "tick-step.js:139",
     "tick-step.js:143",
     "tick-step.js:143",
+    "modes.js:244",
     "src/snapshot.js:172",
     "src/snapshot.js:172"
    ]
@@ -4452,8 +4513,9 @@
     "shoot.js:359",
     "shoot.js:379",
     "shoot.js:379",
-    "round.js:102",
-    "round.js:224",
+    "round.js:103",
+    "round.js:225",
+    "modes.js:244",
     "src/snapshot.js:172",
     "src/snapshot.js:172"
    ]
@@ -4463,447 +4525,189 @@
   {
    "fn": "showFatal",
    "file": "app.js",
-   "write": ".id"
-  },
-  {
-   "fn": "(обработчик click #btnFreshMatch)",
-   "file": "app.js",
-   "write": "SERIES"
-  },
-  {
-   "fn": "dvStart",
-   "file": "demo.js",
-   "write": "._dvName"
-  },
-  {
-   "fn": "dvStop",
-   "file": "demo.js",
-   "write": "._dvName"
-  },
-  {
-   "fn": "dvTick",
-   "file": "demo.js",
-   "write": "._shotAtBy"
-  },
-  {
-   "fn": "dvTick",
-   "file": "demo.js",
-   "write": "._shotAtT"
-  },
-  {
-   "fn": "dvPlace",
-   "file": "demo.js",
-   "write": ".baseX"
-  },
-  {
-   "fn": "dvPlace",
-   "file": "demo.js",
-   "write": ".baseY"
+   "write": ".id",
+   "expr": [
+    "d.id"
+   ]
   },
   {
    "fn": "dvPanel",
    "file": "demo.js",
-   "write": ".id"
-  },
-  {
-   "fn": "dvPlace",
-   "file": "demo.js",
-   "write": ".px"
-  },
-  {
-   "fn": "dvPlace",
-   "file": "demo.js",
-   "write": ".py"
-  },
-  {
-   "fn": "dvTick",
-   "file": "demo.js",
-   "write": ".state"
-  },
-  {
-   "fn": "dvTick",
-   "file": "demo.js",
-   "write": ".x"
-  },
-  {
-   "fn": "dvTick",
-   "file": "demo.js",
-   "write": ".y"
-  },
-  {
-   "fn": "dvTick",
-   "file": "demo.js",
-   "write": "bomb"
-  },
-  {
-   "fn": "dvPanel",
-   "file": "demo.js",
-   "write": "DV_PANEL_EL"
+   "write": ".id",
+   "expr": [
+    "DV_PANEL_EL.id"
+   ]
   },
   {
    "fn": "hudNum",
    "file": "fx.js",
-   "write": "._nv"
+   "write": "._nv",
+   "expr": [
+    "el._nv"
+   ]
   },
   {
    "fn": "hudTwStep",
    "file": "fx.js",
-   "write": "._nv"
+   "write": "._nv",
+   "expr": [
+    "el._nv"
+   ]
   },
   {
    "fn": "(обработчик mousemove cv)",
    "file": "lineup-editor.js",
-   "write": ".x"
+   "write": ".x",
+   "expr": [
+    "z.points[zsDrag].x"
+   ]
   },
   {
    "fn": "(обработчик mousemove cv)",
    "file": "lineup-editor.js",
-   "write": ".y"
+   "write": ".y",
+   "expr": [
+    "z.points[zsDrag].y"
+   ]
   },
   {
    "fn": "hgtCache",
    "file": "map-heights.js",
-   "write": ".path"
+   "write": ".path",
+   "expr": [
+    "HGT_C.path"
+   ]
   },
   {
    "fn": "mapEdQueueSave",
    "file": "map-walls.js",
-   "write": ".state"
+   "write": ".state",
+   "expr": [
+    "S.state",
+    "S.state"
+   ]
   },
   {
    "fn": "mapEdSaveNow",
    "file": "map-walls.js",
-   "write": ".state"
+   "write": ".state",
+   "expr": [
+    "S.state",
+    "S.state",
+    "S.state"
+   ]
   },
   {
    "fn": "obsSet",
    "file": "observer.js",
-   "write": ".id"
-  },
-  {
-   "fn": "(обработчик change #selSeries)",
-   "file": "observer.js",
-   "write": "SERIES"
-  },
-  {
-   "fn": "rpWorldDraw",
-   "file": "replay-play.js",
-   "write": "._trail"
-  },
-  {
-   "fn": "rpWorldDraw",
-   "file": "replay-play.js",
-   "write": ".pfacing"
-  },
-  {
-   "fn": "rpWorldDraw",
-   "file": "replay-play.js",
-   "write": ".px"
-  },
-  {
-   "fn": "rpWorldDraw",
-   "file": "replay-play.js",
-   "write": ".py"
+   "write": ".id",
+   "expr": [
+    "OBS.id"
+   ]
   },
   {
    "fn": "rpTalkOrder",
    "file": "replay-play.js",
-   "write": ".voice"
+   "write": ".voice",
+   "expr": [
+    "q.voice"
+   ]
   },
   {
    "fn": "rpDraw",
    "file": "replay-play.js",
-   "write": ".x"
+   "write": ".x",
+   "expr": [
+    "P.cam.x"
+   ]
   },
   {
    "fn": "rpDraw",
    "file": "replay-play.js",
-   "write": ".y"
-  },
-  {
-   "fn": "rpWorldDraw",
-   "file": "replay-play.js",
-   "write": "bomb"
-  },
-  {
-   "fn": "rpWorldDraw",
-   "file": "replay-play.js",
-   "write": "FREEZE_FX"
-  },
-  {
-   "fn": "rpWorldDraw",
-   "file": "replay-play.js",
-   "write": "groundItems"
-  },
-  {
-   "fn": "rpWorldDraw",
-   "file": "replay-play.js",
-   "write": "groundWeapons"
-  },
-  {
-   "fn": "rpWorldDraw",
-   "file": "replay-play.js",
-   "write": "NICKS"
-  },
-  {
-   "fn": "rpWorldDraw",
-   "file": "replay-play.js",
-   "write": "roundNum"
-  },
-  {
-   "fn": "rpWorldDraw",
-   "file": "replay-play.js",
-   "write": "roundState"
-  },
-  {
-   "fn": "rpWorldDraw",
-   "file": "replay-play.js",
-   "write": "SIDE_TEAM"
-  },
-  {
-   "fn": "rpWorldDraw",
-   "file": "replay-play.js",
-   "write": "simTime"
-  },
-  {
-   "fn": "rpWorldDraw",
-   "file": "replay-play.js",
-   "write": "teamTac"
+   "write": ".y",
+   "expr": [
+    "P.cam.y"
+   ]
   },
   {
    "fn": "rpEnd",
    "file": "replay.js",
-   "write": ".holding"
+   "write": ".holding",
+   "expr": [
+    "RP.holding"
+   ]
   },
   {
    "fn": "rpHold",
    "file": "replay.js",
-   "write": ".holding"
+   "write": ".holding",
+   "expr": [
+    "RP.holding"
+   ]
   },
   {
    "fn": "rpRecord",
    "file": "replay.js",
-   "write": ".kills"
-  },
-  {
-   "fn": "rpEls",
-   "file": "replay.js",
-   "write": "RP_EL"
-  },
-  {
-   "fn": "sbTick",
-   "file": "sandbox.js",
-   "write": "._sbGo"
-  },
-  {
-   "fn": "(обработчик mousedown cv)",
-   "file": "sandbox.js",
-   "write": "._sbGo"
-  },
-  {
-   "fn": "sbPanel",
-   "file": "sandbox.js",
-   "write": "._sbOff"
-  },
-  {
-   "fn": "sbToggle",
-   "file": "sandbox.js",
-   "write": "._sbOff"
-  },
-  {
-   "fn": "(обработчик click el)",
-   "file": "sandbox.js",
-   "write": "._sbOff"
-  },
-  {
-   "fn": "sbPanel",
-   "file": "sandbox.js",
-   "write": "._sbWalk"
-  },
-  {
-   "fn": "(обработчик click el)",
-   "file": "sandbox.js",
-   "write": "._sbWalk"
-  },
-  {
-   "fn": "sbPlace",
-   "file": "sandbox.js",
-   "write": "._trail"
-  },
-  {
-   "fn": "sbPlace",
-   "file": "sandbox.js",
-   "write": ".baseX"
-  },
-  {
-   "fn": "sbPlace",
-   "file": "sandbox.js",
-   "write": ".baseY"
-  },
-  {
-   "fn": "sbPlace",
-   "file": "sandbox.js",
-   "write": ".px"
-  },
-  {
-   "fn": "sbPlace",
-   "file": "sandbox.js",
-   "write": ".py"
-  },
-  {
-   "fn": "sbTick",
-   "file": "sandbox.js",
-   "write": "bomb"
-  },
-  {
-   "fn": "sbToggle",
-   "file": "sandbox.js",
-   "write": "roundStartTick"
-  },
-  {
-   "fn": "sbTick",
-   "file": "sandbox.js",
-   "write": "roundStartTime"
-  },
-  {
-   "fn": "sbToggle",
-   "file": "sandbox.js",
-   "write": "roundStartTime"
-  },
-  {
-   "fn": "sbPanel",
-   "file": "sandbox.js",
-   "write": "SB_PANEL_EL"
+   "write": ".kills",
+   "expr": [
+    "OBS_ST.kills"
+   ]
   },
   {
    "fn": "plCardUpdate",
    "file": "scoreboard.js",
-   "write": ".alive"
+   "write": ".alive",
+   "expr": [
+    "R.alive"
+   ]
   },
   {
    "fn": "mkSave",
    "file": "src/marks.js",
-   "write": ".id"
+   "write": ".id",
+   "expr": [
+    "doc.id"
+   ]
   },
   {
    "fn": "tsCam",
    "file": "timeout.js",
-   "write": ".x"
+   "write": ".x",
+   "expr": [
+    "P.cam.x"
+   ]
   },
   {
    "fn": "tsCam",
    "file": "timeout.js",
-   "write": ".y"
-  },
-  {
-   "fn": "(обработчик click #btnToTake)",
-   "file": "timeout.js",
-   "write": "TO_FORCE"
-  },
-  {
-   "fn": "(обработчик pointermove #cv3)",
-   "file": "view3d-frame.js",
-   "write": ".x"
+   "write": ".y",
+   "expr": [
+    "P.cam.y"
+   ]
   },
   {
    "fn": "(обработчик pointermove #cv3)",
    "file": "view3d-frame.js",
-   "write": ".y"
+   "write": ".x",
+   "expr": [
+    "d.x"
+   ]
+  },
+  {
+   "fn": "(обработчик pointermove #cv3)",
+   "file": "view3d-frame.js",
+   "write": ".y",
+   "expr": [
+    "d.y"
+   ]
   },
   {
    "fn": "d3Corpse",
    "file": "view3d.js",
-   "write": ".x"
-  },
-  {
-   "fn": "warmTick",
-   "file": "warmup.js",
-   "write": "._wIdx"
-  },
-  {
-   "fn": "warmSpawn",
-   "file": "warmup.js",
-   "write": "._wPath"
-  },
-  {
-   "fn": "warmTick",
-   "file": "warmup.js",
-   "write": "._wPath"
-  },
-  {
-   "fn": "warmSpawn",
-   "file": "warmup.js",
-   "write": "._wRespawn"
-  },
-  {
-   "fn": "warmTick",
-   "file": "warmup.js",
-   "write": "._wRespawn"
-  },
-  {
-   "fn": "warmTick",
-   "file": "warmup.js",
-   "write": "._wv"
-  },
-  {
-   "fn": "warmSpawn",
-   "file": "warmup.js",
-   "write": ".baseX"
-  },
-  {
-   "fn": "warmTick",
-   "file": "warmup.js",
-   "write": ".baseX"
-  },
-  {
-   "fn": "warmSpawn",
-   "file": "warmup.js",
-   "write": ".baseY"
-  },
-  {
-   "fn": "warmTick",
-   "file": "warmup.js",
-   "write": ".baseY"
-  },
-  {
-   "fn": "warmSpawn",
-   "file": "warmup.js",
-   "write": ".px"
-  },
-  {
-   "fn": "warmTick",
-   "file": "warmup.js",
-   "write": ".px"
-  },
-  {
-   "fn": "warmSpawn",
-   "file": "warmup.js",
-   "write": ".py"
-  },
-  {
-   "fn": "warmTick",
-   "file": "warmup.js",
-   "write": ".py"
-  },
-  {
-   "fn": "warmStart",
-   "file": "warmup.js",
-   "write": "killfeed"
-  },
-  {
-   "fn": "warmEnd",
-   "file": "warmup.js",
-   "write": "killfeed"
-  },
-  {
-   "fn": "warmStart",
-   "file": "warmup.js",
-   "write": "roundState"
-  },
-  {
-   "fn": "warmEnd",
-   "file": "warmup.js",
-   "write": "voiceLines"
+   "write": ".x",
+   "expr": [
+    "C.x"
+   ]
   }
  ],
  "showFields": [
@@ -5028,6 +4832,11 @@
   },
   {
    "field": "disabled",
+   "class": "показ",
+   "read_by_core": []
+  },
+  {
+   "field": "display",
    "class": "показ",
    "read_by_core": []
   },
