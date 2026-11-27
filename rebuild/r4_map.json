@@ -46,7 +46,7 @@
   {
    "old": "020_map_navmesh_autowalls.js",
    "old_id": "020",
-   "new": "navmesh.js",
+   "new": "navmesh.ts",
    "dir": "engine/nav",
    "id": "navmesh"
   },
