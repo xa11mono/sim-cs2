@@ -342,8 +342,10 @@ function updateRetake(cts){
   // дефуз под смоком: дефузер подходит к бомбе — смок на неё (его или тиммейта),
   // T с пост-плант позиций не видят того, кто дефузит
   if(R.phase === "go" && !nadeFlags.defSmoke && def && aliveCount("T") > 0){
-    var bpS = ctBombPos(), dDef = DM.hypot(def.x-bpS.x, def.y-bpS.y);
-    if(dDef < 420 && !smokeCovered(bpS.x, bpS.y)){
+    // (после изоляции, разбор тактика 27.11) смок кладут на бомбу, которую видели (знание точное): оценка по местам планта — облако, смок
+    // лёг бы в пустое место; подходящий дефузер бомбу увидит — знание станет точным (датчик knowTeamLook)
+    var bpS = ctBombPos(), dDef = bpS ? DM.hypot(def.x-bpS.x, def.y-bpS.y) : Infinity;
+    if(bpS && bpS.exact && dDef < 420 && !smokeCovered(bpS.x, bpS.y)){
       var smk = [def].concat(alive.filter(function(b){ return b !== def; })).filter(function(b){ return b.nades && b.nades.smoke > 0 && !b.nadeTask && DM.hypot(b.x-bpS.x, b.y-bpS.y) < NADE_THROW_RANGE; })[0];
       if(smk && assignNade(smk, "smoke", bpS, "смок на бомбу — дефуз под ним", {now:true}).ok){ nadeFlags.defSmoke = tick;
         voiceLog("CT", "defsmk", smk.id, smk === def ? "кидаю смок на бомбу, дефужу под ним" : "смок на бомбу — "+def.id+", дефузь под ним"); }
