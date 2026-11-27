@@ -11,11 +11,11 @@ def cls(r):
     return 'непригодна', v
 rows = []; tot = collections.Counter(); grp = collections.defaultdict(collections.Counter)
 for f in sorted(os.listdir(d)):
-    if not f.endswith('.log') or not f.startswith(pre): continue
+    if not (f.endswith('.log') or f.endswith('.json')) or not f.startswith(pre): continue
     try: r = json.load(open(os.path.join(d, f)))
     except Exception: rows.append((f, 'непригодна', 'лог не дописан / ошибка')); tot['непригодна'] += 1; continue
     c, v = cls(r); fam = r.get('family'); tot[c] += 1; grp[fam][c] += 1
-    rows.append((f[:-4], c, '%s · м%s · тик %s · %s%s' % (fam, r.get('match'), r.get('at'), v[:90], (' · ' + (r.get('change') or '')[:50]) if r.get('change') else '')))
+    rows.append((f.rsplit('.', 1)[0], c, '%s · м%s · тик %s · %s%s' % (fam, r.get('match'), r.get('at'), v[:90], (' · ' + (r.get('change') or '')[:50]) if r.get('change') else '')))
 print('| пара | итог | семейство · матч · тик · вердикт · изменение |\n|---|---|---|')
 for f, c, v in rows: print('| %s | %s | %s |' % (f, c, v.replace('|', '/')))
 print('\nИтого: ' + ', '.join('%s %d' % (k, tot[k]) for k in ('пройдена', 'провалена', 'непригодна')))

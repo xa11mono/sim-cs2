@@ -1,0 +1,18 @@
+{
+ "family": "defsilent",
+ "match": 13,
+ "at": 3675,
+ "observer": "T",
+ "ticks": 636,
+ "change": "скрытый дефуз: CT1",
+ "aa": "A = A",
+ "first": {
+  "P": 635,
+  "K": -1,
+  "D": -1
+ },
+ "legal_from": {
+  "tick": 4311
+ },
+ "verdict": "чисто: различия только после законного входа"
+}
