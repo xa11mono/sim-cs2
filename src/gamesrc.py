@@ -46,9 +46,9 @@ def order():
     return L
 
 
-R7_WASM = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'tools', 'r7', 'kernels', 'dist', 'sim_r7_kernels.wasm')
+R7_WASM = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'tools', 'r7', 'kernels', 'wasm', 'sim_r7_kernels.wasm')
 def r7_wasm_in(b):
-    """(Р7, 27.11) байты ядер Rust (WASM, tools/r7/kernels/dist — собранный файл в git; воспроизводимость сборки — задание ПК r7) — base64
+    """(Р7, 27.11) байты ядер Rust (WASM, tools/r7/kernels/wasm — собранный файл в git; воспроизводимость сборки — задание ПК r7) — base64
     на место метки "@@R7WASM@@" (engine/map/geometry3d.js); одна строка — номера строк файла те же"""
     m = b'"@@R7WASM@@"'
     if m not in b: return b

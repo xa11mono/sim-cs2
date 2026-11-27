@@ -444,7 +444,7 @@ if(typeof module !== "undefined" && module.exports) module.exports = {zInflate: 
   m3BoxTri: m3BoxTri, m3Cell: m3Cell, m3Game: m3Game, m3Radar: m3Radar};
 
 // ---------- (Р7, 27.11) ядра Rust: загрузка и режимы ----------
-// Одна библиотека tools/r7/kernels (Rust) → WASM: байты вставляет сборка на место метки (src/gamesrc.py, файл tools/r7/kernels/dist/*.wasm,
+// Одна библиотека tools/r7/kernels (Rust) → WASM: байты вставляет сборка на место метки (src/gamesrc.py, файл tools/r7/kernels/wasm/*.wasm,
 // его воспроизводимость — задание ПК r7). Ядро подключается в конце загрузки (coreLoadEnd → r7Start): расчёты загрузки (прострелы, граф)
 // остаются на TS — ядро там не принято (передача геометрии дороже выигрыша; замеры — rebuild/R6_R7.md). Режим R7.mode:
 //   "speed"  — отвечает ядро (луч m3Cast, путь zoneDijkstra);
