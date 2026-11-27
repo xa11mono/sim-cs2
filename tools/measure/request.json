@@ -1,3 +1,215 @@
-{"par": 8, "jobs": [
-  {"label": "b2_mir_a5", "ref": "d71ba75743497183374dc3762db1de5484583fbc", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29]}
-]}
+{
+ "_": "ПК 351 (27.11): база отпечатков после изоляции (A, Chromium + Node — воспроизводимость), этап B, этап D+F (обязан совпасть с B бит в бит), вопрос 17 — записи двух откатов + контроль Codex (эко: данные гранат при прежнем плане; знание: 67759ee)",
+ "par": 8,
+ "resume": true,
+ "fp": [
+  {
+   "label": "r51_A_anc",
+   "ref": "fe0873af5157bcd7d35129a4cfda58b2739a2844",
+   "map": "ancient",
+   "matches": [
+    3,
+    7,
+    11,
+    13,
+    17,
+    19,
+    23,
+    29
+   ],
+   "trace": false,
+   "engine": "chromium"
+  },
+  {
+   "label": "r51_A_mir",
+   "ref": "fe0873af5157bcd7d35129a4cfda58b2739a2844",
+   "map": "mirage",
+   "matches": [
+    3,
+    7,
+    11,
+    13,
+    17,
+    19,
+    23,
+    29
+   ],
+   "trace": false,
+   "engine": "chromium"
+  },
+  {
+   "label": "r51_Apk_anc",
+   "ref": "fe0873af5157bcd7d35129a4cfda58b2739a2844",
+   "map": "ancient",
+   "matches": [
+    3,
+    7,
+    11,
+    13,
+    17,
+    19,
+    23,
+    29
+   ],
+   "trace": false,
+   "engine": "node",
+   "variant": "pack"
+  },
+  {
+   "label": "r51_Apk_mir",
+   "ref": "fe0873af5157bcd7d35129a4cfda58b2739a2844",
+   "map": "mirage",
+   "matches": [
+    3,
+    7,
+    11,
+    13,
+    17,
+    19,
+    23,
+    29
+   ],
+   "trace": false,
+   "engine": "node",
+   "variant": "pack"
+  },
+  {
+   "label": "r51_B_anc",
+   "ref": "e35ab0b8c7db028232568f4fc6ef33931ae5ed86",
+   "map": "ancient",
+   "matches": [
+    3,
+    7,
+    11,
+    13,
+    17,
+    19,
+    23,
+    29
+   ],
+   "trace": false,
+   "engine": "chromium"
+  },
+  {
+   "label": "r51_B_mir",
+   "ref": "e35ab0b8c7db028232568f4fc6ef33931ae5ed86",
+   "map": "mirage",
+   "matches": [
+    3,
+    7,
+    11,
+    13,
+    17,
+    19,
+    23,
+    29
+   ],
+   "trace": false,
+   "engine": "chromium"
+  },
+  {
+   "label": "r51_D_anc",
+   "ref": "cfc72e71d56d9a6f8762f50bc7e29d116a0f8b1a",
+   "map": "ancient",
+   "matches": [
+    3,
+    7,
+    11,
+    13,
+    17,
+    19,
+    23,
+    29
+   ],
+   "trace": false,
+   "engine": "chromium"
+  },
+  {
+   "label": "r51_D_mir",
+   "ref": "cfc72e71d56d9a6f8762f50bc7e29d116a0f8b1a",
+   "map": "mirage",
+   "matches": [
+    3,
+    7,
+    11,
+    13,
+    17,
+    19,
+    23,
+    29
+   ],
+   "trace": false,
+   "engine": "chromium"
+  }
+ ],
+ "rec": [
+  {
+   "label": "q17_eco_base_mir",
+   "ref": "ac357f6f5ef25cd20734b0e8c92a35fd5d707dbe",
+   "map": "mirage"
+  },
+  {
+   "label": "q17_eco_var_mir",
+   "ref": "458f975bbf8029c8de91bb9976504fba631d66da",
+   "map": "mirage"
+  },
+  {
+   "label": "q17_eco_base_anc",
+   "ref": "ac357f6f5ef25cd20734b0e8c92a35fd5d707dbe",
+   "map": "ancient"
+  },
+  {
+   "label": "q17_eco_var_anc",
+   "ref": "458f975bbf8029c8de91bb9976504fba631d66da",
+   "map": "ancient"
+  },
+  {
+   "label": "q17_know_base_anc",
+   "ref": "e6ebc94f8f451344bb2f2473f5ad43ea0cfd37fe",
+   "map": "ancient"
+  },
+  {
+   "label": "q17_know_var_anc",
+   "ref": "a3c3c2ec80fbfd6d5cfbe0b4f2f268a79b44570c",
+   "map": "ancient"
+  },
+  {
+   "label": "q17_know_base_mir",
+   "ref": "e6ebc94f8f451344bb2f2473f5ad43ea0cfd37fe",
+   "map": "mirage"
+  },
+  {
+   "label": "q17_know_var_mir",
+   "ref": "a3c3c2ec80fbfd6d5cfbe0b4f2f268a79b44570c",
+   "map": "mirage"
+  },
+  {
+   "label": "q17_eco_ctrl_mir",
+   "ref": "7c7e648915204da4994d492914ac59ed8bf4ca4a",
+   "map": "mirage"
+  },
+  {
+   "label": "q17_eco_ctrl_anc",
+   "ref": "7c7e648915204da4994d492914ac59ed8bf4ca4a",
+   "map": "ancient"
+  },
+  {
+   "label": "q17_know_peek_anc",
+   "ref": "67759eeed194a679227cc16b710752f8e51a49a9",
+   "map": "ancient"
+  },
+  {
+   "label": "q17_know_peek_mir",
+   "ref": "67759eeed194a679227cc16b710752f8e51a49a9",
+   "map": "mirage"
+  }
+ ],
+ "require_runtime": {
+  "platform": "win32",
+  "arch": "x64",
+  "node": "v24.21.0",
+  "node_v8": "13.6.233.17-node.53",
+  "playwright": "1.63.0",
+  "chromium": "153.0.8010.12"
+ }
+}
