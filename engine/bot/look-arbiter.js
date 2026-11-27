@@ -181,7 +181,7 @@ function lookReasonSet(b, kind){ b.lookReason = kind; }
 function lookApply(b, R){
   b._lookLvl = R.lvl; b.lookReason = R.kind;
   if(LOOKDBG.on) b._ldArb = R.C ? R.C.map(function(c){ return {lvl: c.lvl, kind: c.kind, sc: c.sc, pt: c.pt}; }) : null;
-  if(DLOG.on) lookTrace(b, R);
+  if(DLOG && DLOG.on) lookTrace(b, R);
   return R.pt;
 }
 // (Р3.3, 27.11) след взгляда у хозяина: варианты (вид, уровень, вес), отсев (почему не выбран: уровень ниже / вес меньше / нет точки), выбор,

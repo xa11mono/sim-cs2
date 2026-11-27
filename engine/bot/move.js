@@ -23,7 +23,7 @@ var MOVE = {run: 0, burn: null};   // выход moveSpeedTick: скорость
 function movePlace(b, x, y, vis){ b.baseX = x; b.baseY = y; if(vis){ moveSetX(b, x); moveSetY(b, y); } }
 function moveWaitPop(b, until, key, why){ b._waitPopUntil = until; if(key !== undefined) b._waitPopKey = key; b._moveWhy = why; }
 // (Р3.2 ход ш.2) idx — и номер точки пути (было: movePath(…); b.pathIdx = 0 у вызывающих). Порядок записей прежний: путь, причина, номер
-function movePath(b, p, why, idx){ if(DLOG.on) moveTrace(b, p, why); b.path = p; b._moveWhy = why; if(idx !== undefined) b.pathIdx = idx; }
+function movePath(b, p, why, idx){ if(DLOG && DLOG.on) moveTrace(b, p, why); b.path = p; b._moveWhy = why; if(idx !== undefined) b.pathIdx = idx; }
 // (Р3.3, 27.11) след хода у хозяина: заявка (кто ставит путь и почему), исполнение (путь из N точек / снят), перезапись (чей путь заменён).
 // Только при включённом следе и только смена причины или пути; игру не меняет (DLOG вне состояния)
 function moveTrace(b, p, why){
