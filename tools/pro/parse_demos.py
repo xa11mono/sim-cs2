@@ -22,12 +22,17 @@
 Пересобрать всё заново: python parse_demos.py --force
 Дописать к готовым демкам урон, ослепления, все выстрелы и снимки боя (этап 4 аудита):
     python parse_demos.py "C:\\путь\\к\\папке" --events
+Для подготовки другой карты и метаданных исходника:
+    python parse_demos.py <папка_демок> --map=<карта> --evidence
 Что получилось и что не получилось — demo_export/_log.txt.
 """
 import os
 import sys
 import glob
 import time
+import hashlib
+import json
+from importlib.metadata import version
 
 try:
     import pandas as pd
@@ -59,6 +64,20 @@ EVENTS = {
     "player_hurt": {"player": ["X", "Y", "team_num"]},
     "player_blind": {"player": ["X", "Y", "team_num"]},
 }
+EVIDENCE_EVENTS = {
+    "player_jump": {"player": ["X", "Y", "Z", "yaw", "pitch", "team_num"]},
+    "bomb_beginplant": {}, "bomb_begindefuse": {}, "item_pickup": {}, "item_purchase": {},
+}
+EVIDENCE_PROPS = ["armor_value", "has_helmet", "has_defuser", "inventory", "is_ducking",
+                  "is_scoped", "velocity_X", "velocity_Y", "velocity_Z", "ground_entity",
+                  "balance", "current_equip_value", "round_start_equip_value", "freeze_end_equip_value"]
+
+
+def file_sha256(path):
+    with open(path, 'rb') as file:
+        return hashlib.file_digest(file, 'sha256').hexdigest()
+
+
 # (этап 4 аудита) для разбора перестрелок по тикам: все выстрелы (без прореживания «один в 0,5 с») с точным тиком,
 # скоростью и взглядом стрелка; и позиции/здоровье/скорость всех игроков каждые FIGHT_EVERY тиков вокруг стрельбы и урона
 FULL_EVENTS = {
@@ -74,16 +93,16 @@ def already_done(name, out_dir):
     return os.path.exists(os.path.join(out_dir, f"{name}_ticks.csv.gz"))
 
 
-def parse_sampled_ticks(p, max_tick):
+def parse_sampled_ticks(p, max_tick, props=TICK_PROPS_FULL):
     """быстрый путь: просим у demoparser2 сразу только каждый SAMPLE_EVERY-й тик
     (на больших демках в разы быстрее полного разбора). Не все версии
     demoparser2 поддерживают список тиков — если упадёт, вызывающий код сам
     откатится на parse_ticks(TICK_PROPS_FULL) без ticks="""
     wanted = list(range(0, max_tick + 1, SAMPLE_EVERY))
-    return p.parse_ticks(TICK_PROPS_FULL, ticks=wanted)
+    return p.parse_ticks(props, ticks=wanted)
 
 
-def parse_one(path, out_dir, log):
+def parse_one(path, out_dir, log, map_filter="ancient", evidence=False):
     name = os.path.splitext(os.path.basename(path))[0]
     print(f"== {name}")
     t_start = time.time()
@@ -96,10 +115,19 @@ def parse_one(path, out_dir, log):
         hdr = {}
         map_name = "?"
     print(f"   карта: {map_name}")
-    if "ancient" not in str(map_name).lower():
-        print("   это не Ancient — пропускаю (переименуй проверку в скрипте, если нужно)")
-        log.append(f"{name}: пропущена (карта {map_name}, не Ancient)")
+    if str(map_name).lower().removeprefix('de_') != map_filter:
+        print(f"   ожидается карта {map_filter} — пропускаю")
+        log.append(f"{name}: пропущена (карта {map_name}, ожидалась {map_filter})")
         return
+    props = list(TICK_PROPS_FULL)
+    if evidence:
+        for prop in EVIDENCE_PROPS:
+            try:
+                probe = p.parse_ticks([prop], ticks=[0])
+                if prop in probe.columns:
+                    props.append(prop)
+            except Exception as exc:
+                print(f"   {prop}: не поддержано ({exc})")
 
     # быстрый путь — сразу только нужные тики; если demoparser2 не умеет
     # (старая версия без параметра ticks=, или другая ошибка) — старый путь:
@@ -108,13 +136,13 @@ def parse_one(path, out_dir, log):
     try:
         max_tick = int(hdr.get("playback_ticks") or 0)
         if max_tick > 0:
-            df = parse_sampled_ticks(p, max_tick)
+            df = parse_sampled_ticks(p, max_tick, props)
     except Exception as e:
         print(f"   выборочный разбор тиков не сработал ({e}); беру полный путь")
         df = None
     if df is None or len(df) == 0:
         try:
-            df = p.parse_ticks(TICK_PROPS_FULL)
+            df = p.parse_ticks(props)
         except Exception as e:
             print(f"   полный набор полей не поддержан ({e}); беру минимальный")
             df = p.parse_ticks(TICK_PROPS_MIN)
@@ -133,7 +161,16 @@ def parse_one(path, out_dir, log):
     df.to_csv(os.path.join(out_dir, f"{name}_ticks.csv.gz"), index=False, compression="gzip")
     print(f"   позиции: {len(df)} строк")
 
-    parse_events(p, name, out_dir, warmup_end)
+    parse_events(p, name, out_dir, warmup_end, evidence=evidence)
+    if evidence:
+        with open(os.path.join(out_dir, f"{name}_source.json"), "w", encoding="utf-8") as meta:
+            json.dump({
+                "map": map_name, "demoSha256": file_sha256(path),
+                "ticksSha256": file_sha256(os.path.join(out_dir, f"{name}_ticks.csv.gz")),
+                "parser": {"name": "demoparser2", "version": version("demoparser2")},
+                "sampleEveryTicks": SAMPLE_EVERY, "tickRateHz": hdr.get("tick_rate"),
+                "mapGeometryRevision": None, "header": hdr,
+            }, meta, ensure_ascii=False, indent=2)
     parse_full(p, name, out_dir, warmup_end)
 
     dt = time.time() - t_start
@@ -141,8 +178,9 @@ def parse_one(path, out_dir, log):
     log.append(f"{name}: готово, {len(df)} тиков, {dt:.0f} с")
 
 
-def parse_events(p, name, out_dir, warmup_end, only_missing=False):
-    for ev, extra in EVENTS.items():
+def parse_events(p, name, out_dir, warmup_end, only_missing=False, evidence=False):
+    event_specs = {**EVENTS, **EVIDENCE_EVENTS} if evidence else EVENTS
+    for ev, extra in event_specs.items():
         if only_missing and os.path.exists(os.path.join(out_dir, f"{name}_{ev}.csv.gz")):
             continue
         try:
@@ -247,6 +285,8 @@ def events_only(dem, out_dir):
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     force = "--force" in sys.argv
+    map_filter = next((a.partition('=')[2] for a in sys.argv[1:] if a.startswith('--map=')), "ancient")
+    evidence = "--evidence" in sys.argv
     folder = args[0] if args else os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     demos = sorted(glob.glob(os.path.join(folder, "*.dem")))
     if not demos:
@@ -266,7 +306,7 @@ def main():
             skipped += 1
             continue
         try:
-            parse_one(d, out_dir, log)
+            parse_one(d, out_dir, log, map_filter, evidence)
         except Exception as e:
             print(f"   ошибка: {e}")
             log.append(f"{name}: ОШИБКА — {e}")

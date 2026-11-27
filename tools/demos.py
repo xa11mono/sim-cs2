@@ -60,12 +60,17 @@ def site_of(bx, by=None):
     return _SITE[0](bx, by)
 
 
-def rounds_of(demo):
+def rounds_of(demo, *, tables=None):
     """[{rid, demo, num, t0, t1, tplant, site, plantXY, planter}] — t в тиках, t0 = конец freeze time"""
-    fe = event(demo, 'round_freeze_end').sort_values('tick')
+    def read(kind):
+        if tables is None:
+            return event(demo, kind)
+        return tables.get(kind, pd.DataFrame(columns=['tick', 'total_rounds_played']))
+
+    fe = read('round_freeze_end').sort_values('tick')
     fe = fe.drop_duplicates('total_rounds_played', keep='last')
-    re_ = event(demo, 'round_end')
-    pl = event(demo, 'bomb_planted')
+    re_ = read('round_end')
+    pl = read('bomb_planted')
     starts = fe.tick.values
     out = []
     for k, (t0, num) in enumerate(zip(fe.tick.values, fe.total_rounds_played.values)):

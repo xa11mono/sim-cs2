@@ -10,6 +10,12 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import demos, mapdir  # noqa: E402
 CELL, MIN_N, MIN_DEMOS = 40, 10, 8
+MIN_SUSTAIN_TICKS = 32
+
+
+def stacked(upper, lower):
+    """Legacy geometric boost proxy. It cannot establish physical contact."""
+    return 50 <= upper[2] - lower[2] <= 80 and np.hypot(upper[0] - lower[0], upper[1] - lower[1]) <= 8
 
 
 def main():
@@ -22,16 +28,16 @@ def main():
             for i in range(len(P)):
                 for j in range(len(P)):
                     a, b = P[i], P[j]
-                    if i != j and a[1] == b[1] and np.hypot(a[2] - b[2], a[3] - b[3]) <= 8 and 50 <= a[4] - b[4] <= 80:
+                    if i != j and a[1] == b[1] and stacked(a[2:], b[2:]):
                         k = (a[0], b[0]); seen.add(k)
                         if k in op: op[k]['t1'] = tk; op[k]['dz'].append(a[4] - b[4])
                         else:
                             st = max([t for t in r0 if t <= tk] or [tk])
                             op[k] = dict(t0=tk, t1=tk, x=a[2], y=a[3], side=a[1], dm=dm, dz=[a[4] - b[4]], rt=(tk - st) / 64)
             for k in list(op):
-                if k not in seen and tk - op[k]['t1'] > 32: EV.append(op.pop(k))
+                if k not in seen and tk - op[k]['t1'] > MIN_SUSTAIN_TICKS: EV.append(op.pop(k))
         EV.extend(op.values())
-    EV = [e for e in EV if e['t1'] - e['t0'] >= 32]
+    EV = [e for e in EV if e['t1'] - e['t0'] >= MIN_SUSTAIN_TICKS]
     G = collections.defaultdict(list)
     for e in EV: G[(round(e['x'] / CELL), round(e['y'] / CELL), e['side'])].append(e)
     out = []
