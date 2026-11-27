@@ -53,7 +53,7 @@ function zoneDijkstra(fromId, toId, team, ctx){
   if(!visited[toId]){
     if(S.relax != null){ relax(S.relax); S.relax = null; }   // прошлый поиск остановился на своей цели, не раскрыв её переходы
     while(heap.size()){
-      var u = heap.pop().id;
+      var u = heap.popId();
       if(visited[u]) continue;
       visited[u] = true;
       if(u===toId){ S.relax = u; break; }

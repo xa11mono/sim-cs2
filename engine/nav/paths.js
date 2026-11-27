@@ -261,23 +261,26 @@ function rebuildNav(){
 // Binary min-heap priority queue — with ~2000 nav-area nodes (vs. ~60 hand
 // zones before), the old "sort the whole array every pop" approach gets
 // noticeably slow; a heap keeps each push/pop at O(log n).
+// (Р6, 27.11) куча поиска пути — два параллельных массива (номер, цена) вместо объекта {id, d} на каждую вставку: то же сравнение (цена <)
+// и те же перестановки — порядок извлечения тот же, бит в бит; без выделения памяти на вставку (сборщик мусора — 6,7 % тика Ancient)
 function makeHeap(){
-  var h = [];
-  function less(i,j){ return h[i].d < h[j].d; }
-  function up(i){ while(i>0){ var p=(i-1)>>1; if(!less(i,p)) break; var t=h[p];h[p]=h[i];h[i]=t; i=p; } }
+  var I = [], D = [];
+  function less(i,j){ return D[i] < D[j]; }
+  function sw(a,b){ var t=I[a]; I[a]=I[b]; I[b]=t; var u=D[a]; D[a]=D[b]; D[b]=u; }
+  function up(i){ while(i>0){ var p=(i-1)>>1; if(!less(i,p)) break; sw(p,i); i=p; } }
   function down(i){
     for(;;){
       var l=2*i+1, r=2*i+2, s=i;
-      if(l<h.length && less(l,s)) s=l;
-      if(r<h.length && less(r,s)) s=r;
+      if(l<I.length && less(l,s)) s=l;
+      if(r<I.length && less(r,s)) s=r;
       if(s===i) break;
-      var t=h[s];h[s]=h[i];h[i]=t; i=s;
+      sw(s,i); i=s;
     }
   }
   return {
-    push: function(id,d){ h.push({id:id,d:d}); up(h.length-1); },
-    pop: function(){ if(!h.length) return null; var top=h[0], last=h.pop(); if(h.length){ h[0]=last; down(0); } return top; },
-    size: function(){ return h.length; }
+    push: function(id,d){ I.push(id); D.push(d); up(I.length-1); },
+    popId: function(){ if(!I.length) return null; var top=I[0], li=I.pop(), ld=D.pop(); if(I.length){ I[0]=li; D[0]=ld; down(0); } return top; },
+    size: function(){ return I.length; }
   };
 }
 // (v259, В1) сторона карты у каждого куска навмеша: доля пути от спавна T к спавну CT (0 — у T, 1 — у CT).
@@ -287,7 +290,7 @@ var ROUTE_ENEMY_SIDE = 1.6, ROUTE_SIDE_LINE = 0.55, _zoneSide = null;
 function zoneSideMap(){
   if(_zoneSide) return _zoneSide;
   var sssp = function(from){ var dist = {}, vis = {}; dist[from] = 0; var h = makeHeap(); h.push(from, 0);
-    while(h.size()){ var u = h.pop().id; if(vis[u]) continue; vis[u] = true; var c = zoneCentroid(zonesById[u]);
+    while(h.size()){ var u = h.popId(); if(vis[u]) continue; vis[u] = true; var c = zoneCentroid(zonesById[u]);
       (zoneGraph[u]||[]).forEach(function(e){ if(vis[e.to]) return; var a = dist[u] + dist2(c, e.mid) + 40; if(dist[e.to] === undefined || a < dist[e.to]){ dist[e.to] = a; h.push(e.to, a); } }); }
     return dist; };
   var zt = zoneOf(T_SPAWN.x, T_SPAWN.y, 0), zc = zoneOf(CT_SPAWN.x, CT_SPAWN.y, 0);

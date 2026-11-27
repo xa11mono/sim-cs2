@@ -91,6 +91,7 @@ function matchBegin(n, keepProfile, pause){
   // (Р3.4, 25.11) и первый матч страницы, если до него игра уже делала шаги по часам страницы (кадры до остановки инструментом, ≈1,2 с:
   // предрасчёт подсказок броска и др.) — состояние перед матчем не должно зависеть от часов страницы и нагрузки браузера
   if((MATCH_DIRTY || tick > 0) && typeof mkMatchClean === "function") mkMatchClean();
+  m3MatchRelease();   // (Р6) ленивые плоскости геометрии прошлого матча — освободить (ответ тот же, engine/map/geometry3d.js)
   MATCH_DIRTY = true;
   if(typeof WARM !== "undefined" && WARM.on){ WARM = {on:false}; }   // кнопку «пропустить разминку» прячет кадр (app, warmSkipSync)   // (v306) новый матч / перемотка — разминка кончилась
   if(pause) clockPause(true);

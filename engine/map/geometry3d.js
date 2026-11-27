@@ -404,6 +404,10 @@ function m3BoxPlanes(pl, ax, ay, az, dx, dy, dz, r){
   return [t0, pl[e], pl[e+1], pl[e+2]];
 }
 // плоскости треугольника k (без опоры кубика) — из хранилища, первый раз — m3TriPlanes; null — вырожденный
+// (Р6, 27.11) память между матчами: ленивые плоскости треугольников и блоков (nTriPl, nHullPl) — ответ функции от неизменяемой геометрии;
+// новый матч начинает с пустых — куча возвращается к уровню после загрузки (Ancient: ~91 тыс. записей ≈ 100 МБ к 20 000 тикам, растёт до числа
+// треугольников). Игра та же: m3TriPl / m3HullPl считают заново то же число (проверка — отпечатки, rebuild/R6_SPEED.md)
+function m3MatchRelease(){ var M = typeof M3 !== "undefined" ? M3 : null; if(M && M.nTriPl){ M.nTriPl.clear(); M.nHullPl.length = 0; } }
 function m3TriPl(M, k){ var p = M.nTriPl.get(k); if(p === undefined){ p = m3TriPlanes(M.tri, k*9); M.nTriPl.set(k, p); } return p; }
 // треугольник (вершины T[o..o+8]) как пластина: плоскость с двух сторон, рёбра, охват → как m3BoxPlanes
 function m3BoxTri(T, o, ax, ay, az, dx, dy, dz, r){ var pl = m3TriPlanes(T, o); return pl ? m3BoxPlanes(pl, ax, ay, az, dx, dy, dz, r) : null; }
