@@ -21,8 +21,10 @@ function cmd(m) {   // команда — coreCmd ядра (tools/node/core_buil
   return LSOUT.length ? out.replace(/}$/, ',"ls":' + JSON.stringify(LSOUT) + '}') : out;
 }
 http.createServer((req, res) => {
-  if (req.method === 'POST' && req.url === '/cmd') { let b = ''; req.on('data', d => b += d); req.on('end', () => {
-    try { const out = cmd(JSON.parse(b)); res.writeHead(200, { 'content-type': 'application/json' }); res.end(out); }
+  // тело — байтами, раскодировка один раз: склейка строкой (b += кусок) рвала многобайтовый символ на границе кусков — снимок со словами по-русски
+  // приходил в ядро испорченным (ui_state_check: PRO_LINEUPS «мо��отов» в локальном режиме)
+  if (req.method === 'POST' && req.url === '/cmd') { const parts = []; req.on('data', d => parts.push(d)); req.on('end', () => {
+    try { const out = cmd(JSON.parse(Buffer.concat(parts).toString('utf8'))); res.writeHead(200, { 'content-type': 'application/json' }); res.end(out); }
     catch (e) { res.writeHead(500); res.end(String(e && e.stack || e)); } }); return; }
   if (req.url === '/' || req.url.startsWith('/?') || req.url.startsWith('/index.html')) { res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }); res.end(page); return; }
   res.writeHead(404); res.end();
