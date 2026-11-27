@@ -2,6 +2,9 @@
 """Сборка набора карты из исходных файлов (v318, этап 2 из 3 подготовки к 7 картам).
 
 python3 tools/map/map_build.py <карта> [--only шаг,шаг] [--from шаг]
+python3 tools/map/map_build.py <карта> --prepare <каталог> [--demo-dir <каталог>] [--demo <имя> ...]
+python3 tools/map/map_build.py <карта> --check-prepared <каталог> [--demo-dir <каталог>]
+python3 tools/map/map_build.py <карта> --package <файл.simmap> [--strict]
 
 Вход — папка data/maps/<карта>/: исходники карты (.txt с pos_x/pos_y/scale, .nav, радар, радар Simple Radar, demos/)
 и рецепт _build.json (в объект MAP не попадает). Выход — файлы набора рядом с исходниками (map.json, radar.png,
@@ -395,6 +398,14 @@ def main():
     R = mapdir.recipe(name)
     if not R:
         sys.exit('нет рецепта data/maps/%s/_build.json' % name)
+    if '--package' in args:
+        if len(args) not in (3, 4) or args[1] != '--package' or args[3:] not in ([], ['--strict']):
+            sys.exit('map_build.py <map> --package <file.simmap> [--strict]')
+        script = os.path.join(mapdir.ROOT, 'tools', 'map-pack', 'pack.mjs')
+        sys.exit(subprocess.call(['node', script, name, *args[2:]]))
+    if any(a.split('=', 1)[0] in ('--prepare', '--check-prepared') for a in args[1:]):
+        cmd = [sys.executable, mapdir.tool('demos_bake.py'), '--map', name, *args[1:]]
+        sys.exit(subprocess.call(cmd, cwd=mapdir.ROOT))
     steps = R.get('steps', [])
     if '--only' in args:
         want = args[args.index('--only') + 1].split(',')

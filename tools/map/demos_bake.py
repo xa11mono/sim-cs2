@@ -2,6 +2,9 @@
 """Всё из демок про для набора карты (v318): шаг demos в tools/map_build.py.
 
 python3 tools/map/demos_bake.py --map <карта> [--only скрипт,скрипт] [--assemble]
+python3 tools/map/demos_bake.py --map <карта> --prepare <каталог>
+python3 tools/map/demos_bake.py --map <карта> --check-prepared <каталог>
+--prepare / --check-prepared работают с данными исследования вне игрового набора.
 
 По порядку (каждый — отдельный bake-скрипт с --map; промежуточное — в <pro_dir>, у новых карт data/maps/<карта>/pro/):
   pro.py                   — сэмплы «где стоят и куда смотрят» (pro_samples.csv.gz)
@@ -162,6 +165,10 @@ def write_tactics(PRO):
 
 
 def main():
+    if any(a.split('=', 1)[0] in ('--prepare', '--check-prepared') for a in sys.argv[1:]):
+        from demo_evidence import main as prepare
+        prepare()
+        return
     PRO = mapdir.pro_dir(MAPNAME)
     if '--assemble' not in sys.argv:
         only = sys.argv[sys.argv.index('--only') + 1].split(',') if '--only' in sys.argv else None

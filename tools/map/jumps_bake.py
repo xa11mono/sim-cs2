@@ -20,6 +20,17 @@ import demos as D  # noqa: E402
 JUMP_DZ, CELL, MIN_SHARE, MIN_MATCHES = 25, 40, 0.03, 8   # проектные числа (порог отбора)
 
 
+
+def vertical_return(ticks, xyz):
+    """Legacy check-jump proxy, applied to four successive measurements."""
+    span = ticks[3] - ticks[0]
+    if span <= 0 or span > 48:
+        return False
+    start, lift, _, end = xyz
+    speed = np.hypot(end[0] - start[0], end[1] - start[1]) / (span / 64)
+    return lift[2] - start[2] > JUMP_DZ and abs(end[2] - start[2]) < 8 and speed < 80
+
+
 def main():
     cl = defaultdict(lambda: {'n': 0, 'm': set(), 'x': 0.0, 'y': 0.0, 'side': defaultdict(int)})
     rounds = 0
@@ -40,10 +51,8 @@ def main():
             g = g.sort_values('tick')
             Z, X, Y, T, S = g.Z.values, g.X.values, g.Y.values, g.tick.values, g.team_num.values
             for i in range(1, len(Z) - 2):
-                if T[i + 2] - T[i - 1] > 48:
-                    continue
-                h = np.hypot(X[i + 2] - X[i - 1], Y[i + 2] - Y[i - 1]) / ((T[i + 2] - T[i - 1]) / 64)
-                if Z[i] - Z[i - 1] > JUMP_DZ and abs(Z[i + 2] - Z[i - 1]) < 8 and h < 80:
+                window = slice(i - 1, i + 3)
+                if vertical_return(T[window], zip(X[window], Y[window], Z[window])):
                     x, y = D.tr(np.array([X[i]]), np.array([Y[i]]))
                     k = (round(float(x[0]) / CELL), round(float(y[0]) / CELL))
                     c = cl[k]
