@@ -1,0 +1,9 @@
+[q] ошибка: page.evaluate: ReferenceError: __ev is not defined
+    at eval (eval at evaluate (:311:30), <anonymous>:1:7)
+    at UtilityScript.evaluate (<anonymous>:313:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)
+    at p.evaluate (C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\progress.js:25:14)
+    at async Object.stopFrames (C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\dv_state.js:58:32)
+    at async C:\actions-runner\_work\sim-cs2\sim-cs2\src\q.js:10:34
+
+[guard] {"name": "fp r42_off_mir.html m7", "engine": "chromium", "rc": 1, "ok": false, "secs": 2.2030000000086147, "t_start": 1795759175.450994, "t_end": 1795759177.6603165, "peak_mb": 462, "procs_max": 0, "stopped": null, "orphans_killed": 0, "job": true, "par_cap": 8, "running_with": 0, "mem_total_mb": 15977, "mem_avail_mb_after": 9486, "retry": true, "par_req": 8, "par_seen_max": 1, "par_seen_avg": 1.0, "group_limit_mb": 0, "stop_kind": null, "tick_last": null, "progress_reports": 0, "tick_gap_max_s": 0, "cpu_s": null, "page_state": "closing", "attempt": 3}
