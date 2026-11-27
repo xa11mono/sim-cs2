@@ -284,7 +284,7 @@
    "snap": true
   },
   "BAIT_MAX": {
-   "decl": "bomb.js:163",
+   "decl": "bomb.js:169",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -429,8 +429,7 @@
    "r": {
     "bomb": 1,
     "modes": 1,
-    "replay-play": 1,
-    "save-retake": 1
+    "replay-play": 1
    },
    "snap": true
   },
@@ -571,6 +570,7 @@
     "lurker": 4,
     "position": 1,
     "reach": 49,
+    "save-retake": 3,
     "self": 1,
     "sites-spots": 5,
     "smoke-react": 1,
@@ -884,7 +884,7 @@
    "snap": "нет: UI"
   },
   "COVER_CANDS": {
-   "decl": "fight.js:465",
+   "decl": "fight.js:466",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -1574,7 +1574,7 @@
    "snap": true
   },
   "DEFUSE_HEAR": {
-   "decl": "bomb.js:122",
+   "decl": "bomb.js:128",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -1595,7 +1595,7 @@
    "snap": true
   },
   "DEFUSE_KEEP": {
-   "decl": "bomb.js:130",
+   "decl": "bomb.js:136",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -1618,7 +1618,7 @@
    "snap": true
   },
   "DEFUSE_NEAR": {
-   "decl": "bomb.js:130",
+   "decl": "bomb.js:136",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -1628,7 +1628,7 @@
    "snap": true
   },
   "DEFUSE_R": {
-   "decl": "bomb.js:123",
+   "decl": "bomb.js:129",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -1783,7 +1783,7 @@
     "assist": 34,
     "belief": 2,
     "bomb": 16,
-    "brain-ct": 30,
+    "brain-ct": 29,
     "brain-ct-players": 21,
     "brain-t": 18,
     "brain-t-phases": 33,
@@ -1824,7 +1824,7 @@
     "problem-watch": 7,
     "reach": 8,
     "roles": 34,
-    "save-retake": 44,
+    "save-retake": 40,
     "self": 41,
     "shoot": 31,
     "sites-spots": 17,
@@ -1929,7 +1929,7 @@
    "snap": true
   },
   "ESC_MAX_SEC": {
-   "decl": "bomb.js:129",
+   "decl": "bomb.js:135",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -2351,7 +2351,7 @@
    "snap": true
   },
   "FLEE_DMG_STEP": {
-   "decl": "bomb.js:41",
+   "decl": "bomb.js:46",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -2361,7 +2361,7 @@
    "snap": true
   },
   "FLEE_MOVE": {
-   "decl": "bomb.js:41",
+   "decl": "bomb.js:46",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -2371,7 +2371,7 @@
    "snap": true
   },
   "FLEE_SPARE": {
-   "decl": "bomb.js:41",
+   "decl": "bomb.js:46",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -2381,7 +2381,7 @@
    "snap": true
   },
   "FLEE_SPOT": {
-   "decl": "bomb.js:41",
+   "decl": "bomb.js:46",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -3375,7 +3375,7 @@
    "snap": true
   },
   "KILL_NEAR_R": {
-   "decl": "events.js:220",
+   "decl": "events.js:221",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -3385,7 +3385,7 @@
    "snap": true
   },
   "KILL_SITE_ON": {
-   "decl": "events.js:220",
+   "decl": "events.js:221",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -3395,7 +3395,7 @@
    "snap": true
   },
   "KILL_SITE_R": {
-   "decl": "events.js:220",
+   "decl": "events.js:221",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -3406,7 +3406,7 @@
    "snap": true
   },
   "KILL_SITE_SHARE": {
-   "decl": "events.js:220",
+   "decl": "events.js:221",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -3494,6 +3494,7 @@
    "w": {},
    "m": {},
    "r": {
+    "brain-ct": 1,
     "events": 17,
     "knowledge": 13,
     "voice": 1
@@ -3554,7 +3555,7 @@
    "snap": true
   },
   "KNOW_AGE": {
-   "decl": "events.js:332",
+   "decl": "events.js:333",
    "init": "ArrayExpression",
    "w": {},
    "m": {},
@@ -3564,7 +3565,7 @@
    "snap": true
   },
   "KNOW_CORPSE_R": {
-   "decl": "events.js:381",
+   "decl": "events.js:382",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -4023,7 +4024,7 @@
    "snap": true
   },
   "LOWHP_MATE_PATH": {
-   "decl": "fight.js:498",
+   "decl": "fight.js:499",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -4033,7 +4034,7 @@
    "snap": true
   },
   "LOW_HP": {
-   "decl": "fight.js:497",
+   "decl": "fight.js:498",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -4597,7 +4598,7 @@
    "snap": true
   },
   "MOVE_STOP": {
-   "decl": "move.js:129",
+   "decl": "move.js:130",
    "init": "ArrayExpression",
    "w": {},
    "m": {},
@@ -6310,6 +6311,7 @@
    "r": {
     "events": 2,
     "pro-positions": 8,
+    "save-retake": 1,
     "sites-spots": 12
    },
    "snap": true
@@ -6895,7 +6897,7 @@
    "snap": true
   },
   "RETAKE_STOP": {
-   "decl": "events.js:395",
+   "decl": "events.js:396",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -6905,7 +6907,7 @@
    "snap": true
   },
   "RETAKE_V": {
-   "decl": "events.js:395",
+   "decl": "events.js:396",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -6915,7 +6917,7 @@
    "snap": true
   },
   "RL_PATH_FREE": {
-   "decl": "fight.js:437",
+   "decl": "fight.js:438",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -6925,7 +6927,7 @@
    "snap": true
   },
   "RL_PEEK_R": {
-   "decl": "fight.js:437",
+   "decl": "fight.js:438",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -6935,7 +6937,7 @@
    "snap": true
   },
   "RL_THREAT_W": {
-   "decl": "fight.js:472",
+   "decl": "fight.js:473",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -7263,7 +7265,7 @@
    "snap": "нет: UI"
   },
   "RT_GAP": {
-   "decl": "save-retake.js:205",
+   "decl": "save-retake.js:219",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -7274,7 +7276,7 @@
    "snap": true
   },
   "RT_WAIT": {
-   "decl": "save-retake.js:205",
+   "decl": "save-retake.js:219",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -7511,7 +7513,7 @@
    "snap": true
   },
   "SETUP_REG": {
-   "decl": "events.js:279",
+   "decl": "events.js:280",
    "init": "Literal",
    "w": {
     "setupRegions · events": 1
@@ -7626,7 +7628,7 @@
     "position": 2,
     "reach": 7,
     "roles": 9,
-    "save-retake": 5,
+    "save-retake": 8,
     "self": 3,
     "sites-spots": 10,
     "smoke": 2,
@@ -8289,7 +8291,7 @@
    "snap": true
   },
   "TEAMK": {
-   "decl": "events.js:419",
+   "decl": "events.js:420",
    "init": "ObjectExpression",
    "w": {},
    "m": {
@@ -8784,7 +8786,7 @@
    "snap": true
   },
   "UTIL_AT_ENTRY": {
-   "decl": "bomb.js:131",
+   "decl": "bomb.js:137",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -8794,7 +8796,7 @@
    "snap": true
   },
   "UTIL_MIN_LEFT": {
-   "decl": "bomb.js:131",
+   "decl": "bomb.js:137",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -8804,7 +8806,7 @@
    "snap": true
   },
   "UTIL_WAIT": {
-   "decl": "bomb.js:131",
+   "decl": "bomb.js:137",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -8814,7 +8816,7 @@
    "snap": true
   },
   "UTIL_WAIT_RUSH": {
-   "decl": "bomb.js:131",
+   "decl": "bomb.js:137",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -9815,7 +9817,7 @@
    "snap": "нет: STATIC"
   },
   "_rtw": {
-   "decl": "save-retake.js:206",
+   "decl": "save-retake.js:220",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -9931,7 +9933,8 @@
     "belief": 3,
     "intel": 4,
     "look-threat": 2,
-    "reach": 4
+    "reach": 4,
+    "save-retake": 1
    },
    "snap": true
   },
@@ -9971,7 +9974,7 @@
    "snap": true
   },
   "bomb": {
-   "decl": "bomb.js:85",
+   "decl": "bomb.js:90",
    "init": "Literal",
    "w": {
     "resetBomb · bomb": 1,
@@ -9982,7 +9985,6 @@
     "bombPathLen · bomb": 1,
     "bombTick · bomb": 15,
     "checkRoundEnd · round": 1,
-    "ctBombPos · save-retake": 2,
     "dropBomb · bomb": 4,
     "dvTick · modes": 8,
     "rpWorldWith · modes": 1,
@@ -9993,25 +9995,25 @@
    "r": {
     "assist": 5,
     "belief": 2,
-    "bomb": 92,
-    "brain-ct": 35,
-    "brain-ct-players": 12,
+    "bomb": 84,
+    "brain-ct": 6,
+    "brain-ct-players": 6,
     "brain-t": 79,
     "brain-t-phases": 5,
     "brain-t-postplant": 25,
     "contact": 20,
-    "ct-early": 10,
+    "ct-early": 4,
     "ct-setup": 12,
-    "decide": 30,
+    "decide": 22,
     "draw": 14,
     "draw-bots": 2,
     "draw-fx": 26,
     "economy": 3,
     "endgame": 18,
     "engagements": 4,
-    "events": 29,
+    "events": 41,
     "exec-sync": 8,
-    "fight": 9,
+    "fight": 7,
     "fight-state": 31,
     "igl": 8,
     "intel": 22,
@@ -10024,7 +10026,7 @@
     "look-peek": 5,
     "lurker": 12,
     "modes": 15,
-    "move": 14,
+    "move": 12,
     "nav-zones": 3,
     "observer": 31,
     "plan": 4,
@@ -10033,7 +10035,7 @@
     "replay": 23,
     "roles": 9,
     "round": 10,
-    "save-retake": 80,
+    "save-retake": 22,
     "scoreboard": 7,
     "self": 7,
     "shoot": 2,
@@ -10059,7 +10061,7 @@
     "assist": 7,
     "belief": 4,
     "bomb": 14,
-    "brain-ct": 9,
+    "brain-ct": 8,
     "brain-t": 8,
     "brain-t-postplant": 6,
     "contact": 16,
@@ -12258,7 +12260,7 @@
     "economy": 7,
     "endgame": 30,
     "engagements": 34,
-    "events": 37,
+    "events": 39,
     "exec-sync": 22,
     "fight": 80,
     "fight-state": 35,
@@ -12293,7 +12295,7 @@
     "roles": 15,
     "round": 12,
     "sandbox": 1,
-    "save-retake": 25,
+    "save-retake": 24,
     "scoreboard": 3,
     "self": 25,
     "shoot": 38,
@@ -12981,14 +12983,14 @@
   },
   "_avoidPeekAt": {
    "w": [
-    "events.js:475 knowAvoidPeek"
+    "events.js:484 knowAvoidPeek"
    ],
    "lit": [],
    "r": 4
   },
   "_avoidPeekUntil": {
    "w": [
-    "events.js:475 knowAvoidPeek"
+    "events.js:484 knowAvoidPeek"
    ],
    "lit": [],
    "r": 2
@@ -13052,8 +13054,8 @@
   },
   "_burning": {
    "w": [
-    "move.js:166 moveSpeedTick",
-    "move.js:191 moveSpeedTick"
+    "move.js:167 moveSpeedTick",
+    "move.js:192 moveSpeedTick"
    ],
    "lit": [],
    "r": 3
@@ -13129,7 +13131,7 @@
   },
   "_covLog": {
    "w": [
-    "fight.js:660 fightSetCovLog"
+    "fight.js:661 fightSetCovLog"
    ],
    "lit": [],
    "r": 3
@@ -13143,7 +13145,7 @@
   },
   "_covT": {
    "w": [
-    "fight.js:661 fightSetCovT"
+    "fight.js:662 fightSetCovT"
    ],
    "lit": [],
    "r": 5
@@ -13155,15 +13157,15 @@
   },
   "_defuseCont": {
    "w": [
-    "bomb.js:146 defuseContTick"
+    "bomb.js:152 defuseContTick"
    ],
    "lit": [],
    "r": 2
   },
   "_defuseHeard": {
    "w": [
-    "bomb.js:137 defuseSound",
-    "bomb.js:93 resetBomb"
+    "bomb.js:143 defuseSound",
+    "bomb.js:98 resetBomb"
    ],
    "lit": [],
    "r": 8
@@ -13184,21 +13186,21 @@
   },
   "_djErr": {
    "w": [
-    "bomb.js:313 bombTick"
+    "bomb.js:319 bombTick"
    ],
    "lit": [],
    "r": 0
   },
   "_djLog": {
    "w": [
-    "bomb.js:314 bombTick"
+    "bomb.js:320 bombTick"
    ],
    "lit": [],
    "r": 0
   },
   "_djT": {
    "w": [
-    "bomb.js:311 bombTick"
+    "bomb.js:317 bombTick"
    ],
    "lit": [],
    "r": 0
@@ -13247,31 +13249,31 @@
   },
   "_dwOnT": {
    "w": [
-    "fight.js:643 dangerWalk",
-    "fight.js:653 dangerWalk"
+    "fight.js:644 dangerWalk",
+    "fight.js:654 dangerWalk"
    ],
    "lit": [],
    "r": 3
   },
   "_dwTick": {
    "w": [
-    "fight.js:615 dangerWalk",
-    "fight.js:616 dangerWalk"
+    "fight.js:616 dangerWalk",
+    "fight.js:617 dangerWalk"
    ],
    "lit": [],
    "r": 4
   },
   "_dwVal": {
    "w": [
-    "fight.js:642 dangerWalk",
-    "fight.js:653 dangerWalk"
+    "fight.js:643 dangerWalk",
+    "fight.js:654 dangerWalk"
    ],
    "lit": [],
    "r": 8
   },
   "_dwWhy": {
    "w": [
-    "fight.js:653 dangerWalk"
+    "fight.js:654 dangerWalk"
    ],
    "lit": [],
    "r": 1
@@ -13367,8 +13369,8 @@
   },
   "_entryWait": {
    "w": [
-    "move.js:155 moveSpeedTick",
-    "move.js:157 moveSpeedTick"
+    "move.js:156 moveSpeedTick",
+    "move.js:158 moveSpeedTick"
    ],
    "lit": [],
    "r": 7
@@ -13398,16 +13400,16 @@
   },
   "_fakePlantAt": {
    "w": [
-    "bomb.js:224 bombTick",
-    "bomb.js:231 bombTick",
-    "bomb.js:257 bombTick"
+    "bomb.js:230 bombTick",
+    "bomb.js:237 bombTick",
+    "bomb.js:263 bombTick"
    ],
    "lit": [],
    "r": 0
   },
   "_fakePlanted": {
    "w": [
-    "bomb.js:257 bombTick"
+    "bomb.js:263 bombTick"
    ],
    "lit": [],
    "r": 0
@@ -13429,7 +13431,7 @@
   },
   "_fc": {
    "w": [
-    "fight.js:662 fightSetFc"
+    "fight.js:663 fightSetFc"
    ],
    "lit": [
     "weapons-bots.js:82"
@@ -13544,14 +13546,14 @@
   },
   "_fireExit": {
    "w": [
-    "move.js:217 moveSetFireExit"
+    "move.js:218 moveSetFireExit"
    ],
    "lit": [],
    "r": 10
   },
   "_fireExitFire": {
    "w": [
-    "move.js:218 moveSetFireExitFire"
+    "move.js:219 moveSetFireExitFire"
    ],
    "lit": [],
    "r": 2
@@ -13593,14 +13595,14 @@
   },
   "_flee": {
    "w": [
-    "bomb.js:346 bombSetFlee"
+    "bomb.js:352 bombSetFlee"
    ],
    "lit": [],
    "r": 3
   },
   "_fleeLog": {
    "w": [
-    "bomb.js:82 bombFleePoint"
+    "bomb.js:87 bombFleePoint"
    ],
    "lit": [],
    "r": 2
@@ -14112,10 +14114,10 @@
   },
   "_lowHpNext": {
    "w": [
-    "fight.js:516 lowHpBack",
-    "fight.js:543 lowHpBack",
-    "fight.js:562 lowHpBack",
-    "fight.js:583 lowHpBack"
+    "fight.js:517 lowHpBack",
+    "fight.js:544 lowHpBack",
+    "fight.js:563 lowHpBack",
+    "fight.js:584 lowHpBack"
    ],
    "lit": [],
    "r": 5
@@ -14294,8 +14296,8 @@
   },
   "_nearBombT": {
    "w": [
-    "save-retake.js:457 retakeDefGo",
-    "save-retake.js:458 retakeDefGo"
+    "save-retake.js:479 retakeDefGo",
+    "save-retake.js:480 retakeDefGo"
    ],
    "lit": [],
    "r": 4
@@ -14330,8 +14332,8 @@
   "_noPlantUntil": {
    "w": [
     "bomb.js:15 bombActAbort",
-    "bomb.js:224 bombTick",
-    "bomb.js:231 bombTick"
+    "bomb.js:230 bombTick",
+    "bomb.js:237 bombTick"
    ],
    "lit": [],
    "r": 1
@@ -14562,8 +14564,8 @@
   "_plantAbort": {
    "w": [
     "bomb.js:15 bombActAbort",
-    "bomb.js:224 bombTick",
-    "bomb.js:231 bombTick"
+    "bomb.js:230 bombTick",
+    "bomb.js:237 bombTick"
    ],
    "lit": [],
    "r": 1
@@ -14674,7 +14676,7 @@
   },
   "_prV": {
    "w": [
-    "bomb.js:225 bombTick"
+    "bomb.js:231 bombTick"
    ],
    "lit": [],
    "r": 0
@@ -14848,7 +14850,7 @@
   },
   "_rlCoverT": {
    "w": [
-    "fight.js:475 coverForReload"
+    "fight.js:476 coverForReload"
    ],
    "lit": [],
    "r": 5
@@ -14920,7 +14922,7 @@
   },
   "_runWhy": {
    "w": [
-    "move.js:123 moveWalkTick"
+    "move.js:124 moveWalkTick"
    ],
    "lit": [],
    "r": 3
@@ -14934,7 +14936,7 @@
   },
   "_saveSpot": {
    "w": [
-    "save-retake.js:479 retakeSetSaveSpot"
+    "save-retake.js:501 retakeSetSaveSpot"
    ],
    "lit": [],
    "r": 19
@@ -15201,14 +15203,14 @@
   },
   "_stopPlantUntil": {
    "w": [
-    "bomb.js:347 bombSetStopPlantUntil"
+    "bomb.js:353 bombSetStopPlantUntil"
    ],
    "lit": [],
    "r": 5
   },
   "_stopWhy": {
    "w": [
-    "move.js:219 moveSetStopWhy"
+    "move.js:220 moveSetStopWhy"
    ],
    "lit": [],
    "r": 5
@@ -15416,7 +15418,7 @@
   },
   "_walkWhy": {
    "w": [
-    "move.js:123 moveWalkTick"
+    "move.js:124 moveWalkTick"
    ],
    "lit": [],
    "r": 3
@@ -15439,7 +15441,7 @@
   "alive": {
    "w": [
     "damage.js:248 damageSetAlive",
-    "events.js:249 knowKill",
+    "events.js:250 knowKill",
     "knowledge.js:285 knowRoundStart",
     "scoreboard.js:212 plCardUpdate"
    ],
@@ -15606,11 +15608,11 @@
    "w": [
     "levels.js:111 jumpFaceWait",
     "levels.js:217 ladderTick",
-    "move.js:207 moveSpeedTick",
-    "move.js:209 moveSpeedTick",
+    "move.js:208 moveSpeedTick",
     "move.js:210 moveSpeedTick",
     "move.js:211 moveSpeedTick",
     "move.js:212 moveSpeedTick",
+    "move.js:213 moveSpeedTick",
     "move.js:37 moveSpeed",
     "tick-step.js:117 stepBot",
     "tick-step.js:240 stepBot",
@@ -15654,14 +15656,14 @@
   "defuseCooldownUntil": {
    "w": [
     "bomb.js:14 bombActAbort",
-    "bomb.js:293 bombTick"
+    "bomb.js:299 bombTick"
    ],
    "lit": [],
    "r": 1
   },
   "defuseUntil": {
    "w": [
-    "bomb.js:334 bombTick"
+    "bomb.js:340 bombTick"
    ],
    "lit": [],
    "r": 2
@@ -15669,10 +15671,10 @@
   "defusing": {
    "w": [
     "bomb.js:19 bombActReset",
-    "bomb.js:293 bombTick",
-    "bomb.js:295 bombTick",
-    "bomb.js:334 bombTick",
-    "bomb.js:93 resetBomb"
+    "bomb.js:299 bombTick",
+    "bomb.js:301 bombTick",
+    "bomb.js:340 bombTick",
+    "bomb.js:98 resetBomb"
    ],
    "lit": [],
    "r": 54
@@ -15763,16 +15765,16 @@
   },
   "fakeHoldUntil": {
    "w": [
-    "bomb.js:329 bombTick",
-    "bomb.js:93 resetBomb"
+    "bomb.js:335 bombTick",
+    "bomb.js:98 resetBomb"
    ],
    "lit": [],
    "r": 5
   },
   "fakeUntil": {
    "w": [
-    "bomb.js:329 bombTick",
-    "bomb.js:93 resetBomb"
+    "bomb.js:335 bombTick",
+    "bomb.js:98 resetBomb"
    ],
    "lit": [],
    "r": 1
@@ -15931,7 +15933,7 @@
   },
   "log": {
    "w": [
-    "move.js:156 moveSpeedTick"
+    "move.js:157 moveSpeedTick"
    ],
    "lit": [],
    "r": 0
@@ -16045,8 +16047,8 @@
     "levels.js:30 fireRepath",
     "levels.js:385 navFollowFloor",
     "levels.js:424 navFollowFloor",
-    "move.js:179 moveSpeedTick",
-    "move.js:186 moveSpeedTick",
+    "move.js:180 moveSpeedTick",
+    "move.js:187 moveSpeedTick",
     "move.js:26 movePath",
     "tick-step.js:255 stepBot",
     "tick-step.js:329 stepBot",
@@ -16069,8 +16071,8 @@
     "levels.js:30 fireRepath",
     "levels.js:385 navFollowFloor",
     "levels.js:424 navFollowFloor",
-    "move.js:179 moveSpeedTick",
-    "move.js:186 moveSpeedTick",
+    "move.js:180 moveSpeedTick",
+    "move.js:187 moveSpeedTick",
     "move.js:26 movePath",
     "move.js:36 movePathIdx",
     "tick-step.js:180 stepBot",
@@ -16113,7 +16115,7 @@
   },
   "plantUntil": {
    "w": [
-    "bomb.js:249 bombTick"
+    "bomb.js:255 bombTick"
    ],
    "lit": [],
    "r": 1
@@ -16121,11 +16123,11 @@
   "planting": {
    "w": [
     "bomb.js:19 bombActReset",
-    "bomb.js:224 bombTick",
-    "bomb.js:231 bombTick",
-    "bomb.js:236 bombTick",
-    "bomb.js:249 bombTick",
-    "bomb.js:93 resetBomb"
+    "bomb.js:230 bombTick",
+    "bomb.js:237 bombTick",
+    "bomb.js:242 bombTick",
+    "bomb.js:255 bombTick",
+    "bomb.js:98 resetBomb"
    ],
    "lit": [],
    "r": 69
@@ -16231,7 +16233,7 @@
   },
   "retakeRole": {
    "w": [
-    "save-retake.js:480 retakeSetRetakeRole"
+    "save-retake.js:502 retakeSetRetakeRole"
    ],
    "lit": [],
    "r": 2
@@ -16433,7 +16435,7 @@
     "round.js:3",
     "weapons-bots.js:82"
    ],
-   "r": 561
+   "r": 562
   },
   "textContent": {
    "w": [
@@ -16497,8 +16499,8 @@
   },
   "walking": {
    "w": [
-    "move.js:123 moveWalkTick",
-    "move.js:187 moveSpeedTick",
+    "move.js:124 moveWalkTick",
+    "move.js:188 moveSpeedTick",
     "move.js:38 moveWalk",
     "tick-step.js:257 stepBot"
    ],
@@ -16533,7 +16535,7 @@
   },
   "x": {
    "w": [
-    "move.js:220 moveSetX"
+    "move.js:221 moveSetX"
    ],
    "lit": [
     "weapons-bots.js:82"
@@ -16542,7 +16544,7 @@
   },
   "y": {
    "w": [
-    "move.js:221 moveSetY"
+    "move.js:222 moveSetY"
    ],
    "lit": [
     "weapons-bots.js:82"

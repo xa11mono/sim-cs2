@@ -27,7 +27,9 @@ EV(`globalThis.MK_SIG = function(obs){
   var D = {b: {}};
   own.forEach(function(b){
     P.b[b.id] = [b.hp, b.alive, (b._visible || []).map(function(e){ return [e.id, e.x, e.y, e.z, e.crouching, e.alive, e.weapon && e.weapon.key]; }),
-      b.heardSound ? [b.heardSound.kind, b.heardSound.x, b.heardSound.y, b.heardSound.tick] : null];
+      b.heardSound ? [b.heardSound.kind, b.heardSound.x, b.heardSound.y, b.heardSound.tick] : null,
+      // лежащая / заложенная бомба в поле зрения этого бота (то же зрение, что у датчика knowTeamLook)
+      bomb && (bomb.state === 'dropped' || bomb.state === 'planted') && b.alive && tick >= (b.blindUntil||0) && DM.hypot(bomb.x-b.x, bomb.y-b.y) <= KNOW.lookRange && inFov(b, bomb.x, bomb.y) && hasVision(b.x, b.y, bomb.x, bomb.y) ? [bomb.x, bomb.y] : null];
     K.b[b.id] = [SR.dig(b.know, true), SR.dig(b.lastIntel, true)];
     var po = b.post, pa = b.path, nt = b.nadeTask;
     D.b[b.id] = [b.x, b.y, b.z, po ? [po.tag, po.x, po.y] : null, pa && pa.length ? pt(pa[pa.length - 1]) : null, b.lookReason, b.facing, nt ? [nt.kind || nt.type, nt.x, nt.y] : null,
@@ -46,6 +48,13 @@ const FAMILIES = {
     if(!C.length) return null; var q = walk(C[0]), a = {x: bomb.x, y: bomb.y};
     bomb.x = q.x; bomb.y = q.y; var ar = navAt(q.x, q.y, bomb.z); if(ar) bomb.z = navFloorZ(ar, q.x, q.y);
     return 'C4 ' + Math.round(a.x) + ',' + Math.round(a.y) + ' → ' + Math.round(q.x) + ',' + Math.round(q.y) + ' (' + bomb.site + ')'; })()`,
+  // ПОЛОЖИТЕЛЬНАЯ: C4 переносится в точку планта того же сайта, которую сейчас видит кто-то из CT — знание CT обязано отреагировать
+  c4show: `(function(){ if(!bomb || bomb.state !== 'planted') return null;
+    var cts = bots.filter(function(o){ return o.alive && o.team === 'CT' && tick >= (o.blindUntil||0); });
+    var seen = function(q){ return cts.some(function(o){ return DM.hypot(o.x-q.x, o.y-q.y) <= KNOW.lookRange && inFov(o, q.x, q.y) && hasVision(o.x, o.y, q.x, q.y); }); };
+    var C = sitePlantPro(bomb.site).map(function(q){ return walk(q); }).filter(function(q){ return DM.hypot(q.x-bomb.x, q.y-bomb.y) > 120 && seen(q); });
+    if(!C.length) return null; var q = C[0], a = {x: bomb.x, y: bomb.y}; bomb.x = q.x; bomb.y = q.y; var ar = navAt(q.x, q.y, bomb.z); if(ar) bomb.z = navFloorZ(ar, q.x, q.y);
+    return 'C4 на виду у CT: ' + Math.round(a.x) + ',' + Math.round(a.y) + ' → ' + Math.round(q.x) + ',' + Math.round(q.y); })()`,
   // скрытые HP врагов наблюдателя (не меньше 1): у видимых тоже — HP не виден
   hp: `(function(){ var E = bots.filter(function(o){ return o.alive && o.team !== '${OBS}'; }); if(!E.length) return null;
     E.forEach(function(o){ o.hp = o.hp > 50 ? 27 : 100; }); return 'HP врагов: ' + E.map(function(o){ return o.id + '=' + o.hp; }).join(' '); })()`,
@@ -87,5 +96,7 @@ const det = (i, sel) => { const x = sel(a.out[i]), y = sel(b.out[i]); const bs =
 if (leakK) res.leak_K = det(tk, s => s.K);
 if (leakD) res.leak_D = det(td, s => s.D);
 if (tp >= 0) res.legal_from = det(tp, s => s.P);
+if (A.positive) { res.verdict = tp < 0 ? 'ПОЛОЖИТЕЛЬНАЯ не проверена: законный вход не изменился (изменение не на виду)' : (leakK || leakD) ? 'УТЕЧКА: знание / решение раньше законного входа' :
+  (tk >= tp ? 'положительная пройдена: законный вход на тике ' + tp + ' → знание отреагировало на тике ' + tk + (td >= 0 ? ', решение — ' + td : ', решение то же (другой перевес)') : 'ПОЛОЖИТЕЛЬНАЯ НЕ ПРОЙДЕНА: законный вход изменился, знание — нет'); console.log(JSON.stringify(res, null, 1)); process.exit(0); }
 res.verdict = (leakK || leakD) ? 'УТЕЧКА: знание / решение изменились раньше законных входов' : (tp < 0 ? 'нет различий за окно (изменение не дошло до наблюдателя)' : 'чисто: различия только после законного входа');
 console.log(JSON.stringify(res, null, 1));

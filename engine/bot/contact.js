@@ -76,7 +76,7 @@ function contactCritical(b, C){
   if(bomb && bomb.state === "planted"){
     var left = bombTimeLeftTicks()/TICK_HZ;
     if(b.team === "CT" && !(teamTac.CT && teamTac.CT.saving)){ var need = defuseEta(b) + 1.5; if(left - need < 3) return true; }
-    if(bombDamageAt(b.x, b.y) >= b.hp*0.6 && left < 10) return true;   // в зоне взрыва и мало времени — бежит, не воюет
+    var BK = bombKnownFor(b); if(BK && bombDamageAt(b.x, b.y, BK) >= b.hp*0.6 && left < 10) return true;   // (изоляция) CT — по знанию   // в зоне взрыва и мало времени — бежит, не воюет
   }
   return false;
 }

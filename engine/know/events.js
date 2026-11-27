@@ -203,7 +203,8 @@ function knowPlantShift(K, site){
       var w = h.weight*(1 - keep)*0.848; toBomb += w; h.weight -= w; });
     // (владелец 18.11: «чинить механику целиком») «у бомбы» — не точка бомбы, а места, где про стоят после планта при такой бомбе (MAP.postplant,
     // доли про); нет данных — точка сайта, как было. Та же раскладка, что у сдвига после смерти на сайте (knowShiftPut)
-    var bp = bomb && bomb.state === "planted" ? {x: bomb.x, y: bomb.y} : S, PZ = typeof ppProZone === "function" ? ppProZone(bp, site) : null;
+    // (изоляция, 27.11; аудит C4-C) зовут только знания CT: точка — с радара команды (видели бомбу на этом сайте), иначе точка сайта; не истина
+    var kp = teamAgent("CT").know.bombPt, bp = kp && !kp.gone && kp.site === site ? {x: kp.x, y: kp.y} : S, PZ = typeof ppProZone === "function" ? ppProZone(bp, site) : null;
     knowShiftPut(B, toBomb, z, S, PZ ? PZ.spots.map(function(p){ return {x: p.x, y: p.y, zone: knowZoneAt(p.x, p.y), w: p.share}; }).filter(function(p){ return p.zone; }) : null, 0);
     knowNorm(B.hyps); knowTrim(B); }
 }
@@ -428,6 +429,14 @@ function knowTeamLook(A){
   if(tick % KNOW.lookEvery) return;
   var sees = function(hx, hy){ return mates.some(function(m){ return DM.hypot(hx-m.x, hy-m.y) <= KNOW.lookRange && inFov(m, hx, hy) && hasVision(m.x, m.y, hx, hy); }); };
   var anyVis = []; mates.forEach(function(m){ (m._visible || []).forEach(function(e){ anyVis.push(e); }); });
+  // (изоляция, 27.11) бомба на радаре CT: лежащую или заложенную бомбу, которую видит кто-то из команды, CS2 показывает на радаре всем
+  // (`rebuild/after_r8/ISOLATION.md`, источники); видели место, а бомбы там нет — знание «нет на месте» (а не по истине задним числом)
+  if(A.team === "CT" && bomb && (bomb.state === "dropped" || bomb.state === "planted") && sees(bomb.x, bomb.y)){
+    var P0 = K.bombPt;
+    if(bomb.state === "planted" && (!P0 || P0.state !== "planted")) voiceLog("CT", "bombseen", "CT", "бомба " + calloutName(bomb.x, bomb.y).replace(/^на /, "") + "!");
+    K.bombPt = {x: bomb.x, y: bomb.y, z: bomb.z, state: bomb.state, site: bomb.state === "planted" ? bomb.site : null, tick: tick, gone: 0};
+    if(bomb.state === "planted" && (!K.plantSite || K.plantGuess)){ K.plantSite = bomb.site; K.plantGuess = false; }
+  } else if(A.team === "CT" && K.bombPt && !K.bombPt.gone && sees(K.bombPt.x, K.bombPt.y)) K.bombPt.gone = tick;
   (K.spots || []).forEach(function(p){
     if(!p.open || !sees(p.x, p.y)) return;
     if(!anyVis.some(function(e){ return DM.hypot(e.x-p.x, e.y-p.y) < 120; })) p.open = false;

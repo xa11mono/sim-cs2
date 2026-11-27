@@ -81,7 +81,7 @@ function flankPost(b, F, planted){
   // с последней его зоны на сайт (вход CT), без захода на сторону T
   if(CF.end === "site"){
     var rr = CF.route[fk] || [], lastZ = rr.length ? zonePoint(rr[rr.length-1], g.ctEntry) : null;
-    var ptsS = [{p: lastZ || g.ctEntry, look: SITES[F.site], tag: "flank0"}, {p: planted && bomb ? walk({x:bomb.x, y:bomb.y}) : g.anchor, look: g.tEntry, tag: "flank1"}];
+    var ptsS = [{p: lastZ || g.ctEntry, look: SITES[F.site], tag: "flank0"}, {p: planted && ctBombPos() ? walk(ctBombPos()) : g.anchor, look: g.tEntry, tag: "flank1"}];
     if(F.stage >= ptsS.length) return false;
     var PS = ptsS[F.stage]; setPost(b, PS.p, PS.look, true, PS.tag);
     if(b.atPost && b.post && b.post.tag === PS.tag){ if(!F.arr) F.arr = tick; if(tick - F.arr > 40){ F.stage++; F.arr = 0; } }
@@ -90,7 +90,7 @@ function flankPost(b, F, planted){
   var pts = [
     {p: (fst && zonePoint(fst, g.tStage)) || GEO.tMid,  look: g.tStage, tag: "flank0"},
     {p: g.tStage,  look: g.tEntry, tag: "flank1"},
-    {p: g.tEntry,  look: planted && bomb ? {x:bomb.x, y:bomb.y} : SITES[F.site], tag: "flank2"}
+    {p: g.tEntry,  look: (planted && ctBombPos()) || SITES[F.site], tag: "flank2"}   // (изоляция, 27.11; аудит № 9) бомба — по знанию CT
   ];
   // уже заложили, а он ещё даже не на стороне T — смысла обходить нет, ретейк
   if(planted && F.stage === 0) return false;

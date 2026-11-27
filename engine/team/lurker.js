@@ -97,8 +97,8 @@ function lurkerBrain(b, tt, other){
     return;
   }
   if(tt.phase === "postplant"){
-    var R = bomb && bomb.retake;
-    if(GEO[tt.site] && GEO[tt.site].ctEntry){ R = {approaches:[GEO[tt.site].ctEntry]}; }
+    // (изоляция, 27.11) заход CT — по данным карты (вход CT на сайт), не по плану ретейка CT (bomb.retake — внутренний план другой стороны)
+    var R = GEO[tt.site] && GEO[tt.site].ctEntry ? {approaches:[GEO[tt.site].ctEntry]} : null;
     if(R && R.approaches && R.approaches.length){
       var a = R.approaches[0];
       // за точкой сбора CT, со стороны их спавна — в спину ретейку

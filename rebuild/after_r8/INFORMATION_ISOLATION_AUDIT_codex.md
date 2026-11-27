@@ -142,7 +142,7 @@
 | Срез | Что в нём |
 |---|---|
 | Фактический прогон 194, `b87b20fe03ccefec608f1fe2a553ff1537db39bb` | `pc-results/194:request.json`, метки n30, 16 матчей на карту. От него до `ac357f6f5ef25cd20734b0e8c92a35fd5d707dbe` изменены план, документы и аналитический скрипт. Игровые файлы и данные карт в этих двух коммитах совпадают. |
-| Изолированный шаг `458f975bbf8029c8de91bb9976504fba631d66da` | `src/game/130_tactics_match_adapt.js`: `tEquipProfile / lowPlanFactors / chooseTactic` меняют допустимый пул и веса при малом оружии, убирают старое приведение доли рашей. `src/game/140_named_spots_ct_setup.js rememberRound` сохраняет `lowPlan/tEarly`. `src/game/400_nades_physics_damage.js applyDamage` записывает `_diedT/_killerTeam` для исторического контекста. |
+| Изолированный шаг `458f975bbf8029c8de91bb9976504fba631d66da` | `engine/team/tactics.js`: `tEquipProfile / lowPlanFactors / chooseTactic` меняют допустимый пул и веса при малом оружии, убирают старое приведение доли рашей. `src/game/140_named_spots_ct_setup.js rememberRound` сохраняет `lowPlan/tEarly`. `src/game/400_nades_physics_damage.js applyDamage` записывает `_diedT/_killerTeam` для исторического контекста. |
 | Фактический прогон 195, `1bdb9610b97052f72a53895be1924f1728ec68f4` | `pc-results/195:request.json`, метки n31, те же 16 матчей на карту. Поверх шага изменены `data/maps/{ancient,mirage}/nadeguess.json` и описание. Разница 194/195 включает обе причины. |
 | Откат `cf00903bfded280b394644b085504438f00200a3` | Снимает эко-план, его поля истории и записи смерти. Одновременно вносит самостоятельную правку «отбой колла при последнем T». `nadeguess.json` этим коммитом не возвращён. Сравнение «до и после отката» тоже смешивает факторы. |
 

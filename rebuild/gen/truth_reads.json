@@ -4,7 +4,7 @@
   {
    "file": "bomb.js",
    "fn": "resetBomb",
-   "line": 81,
+   "line": 95,
    "props": [
     "tRole"
    ],
@@ -14,7 +14,7 @@
   {
    "file": "bomb.js",
    "fn": "bombTick",
-   "line": 246,
+   "line": 261,
    "props": [
     "x",
     "y"
@@ -25,7 +25,7 @@
   {
    "file": "bomb.js",
    "fn": "bombTick",
-   "line": 267,
+   "line": 282,
    "props": [
     "baseX",
     "baseY",
@@ -37,7 +37,7 @@
   {
    "file": "bomb.js",
    "fn": "bombTick",
-   "line": 299,
+   "line": 314,
    "props": [
     "baseX",
     "baseY",
@@ -49,7 +49,7 @@
   {
    "file": "tactics.js",
    "fn": "timeoutCheck",
-   "line": 102,
+   "line": 103,
    "props": [
     "x",
     "y",
@@ -61,7 +61,7 @@
   {
    "file": "tactics.js",
    "fn": "coachPlan",
-   "line": 192,
+   "line": 193,
    "props": [
     "primary",
     "tRole"
@@ -72,7 +72,7 @@
   {
    "file": "tactics.js",
    "fn": "chooseTactic",
-   "line": 325,
+   "line": 326,
    "props": [
     "tRole"
    ],
@@ -250,17 +250,6 @@
    "perception": false
   },
   {
-   "file": "brain-ct.js",
-   "fn": "ctBrainBombDown",
-   "line": 77,
-   "props": [
-    "x",
-    "y"
-   ],
-   "kind": "враг",
-   "perception": false
-  },
-  {
    "file": "exec-sync.js",
    "fn": "fireSmokeTick",
    "line": 246,
@@ -356,7 +345,7 @@
   {
    "file": "decide.js",
    "fn": "nadeBrains",
-   "line": 71,
+   "line": 72,
    "props": [
     "nadeTask",
     "nades",
@@ -370,7 +359,7 @@
   {
    "file": "decide.js",
    "fn": "nadeBrains",
-   "line": 72,
+   "line": 73,
    "props": [
     "nadeTask",
     "nades",
@@ -379,6 +368,21 @@
    ],
    "kind": "к разбору",
    "perception": false
+  },
+  {
+   "file": "items.js",
+   "fn": "itemPickupTick",
+   "line": 104,
+   "props": [
+    "kit",
+    "nades",
+    "secondary",
+    "weapon",
+    "x",
+    "y"
+   ],
+   "kind": "к разбору",
+   "perception": true
   },
   {
    "file": "sound.js",
@@ -404,8 +408,8 @@
   },
   {
    "file": "fight-state.js",
-   "fn": "decideAction",
-   "line": 96,
+   "fn": "decideActionR",
+   "line": 99,
    "props": [
     "x",
     "y",
@@ -446,9 +450,19 @@
    "perception": false
   },
   {
+   "file": "round.js",
+   "fn": "startHalf",
+   "line": 27,
+   "props": [
+    "secondary"
+   ],
+   "kind": "к разбору",
+   "perception": false
+  },
+  {
    "file": "move.js",
    "fn": "moveSpeedTick",
-   "line": 129,
+   "line": 154,
    "props": [
     "x",
     "y"
@@ -459,7 +473,7 @@
   {
    "file": "move.js",
    "fn": "moveSpeedTick",
-   "line": 130,
+   "line": 155,
    "props": [
     "tRole"
    ],
@@ -467,9 +481,9 @@
    "perception": false
   },
   {
-   "file": "tick.js",
+   "file": "tick-jump.js",
    "fn": "jumpCheckTick",
-   "line": 186,
+   "line": 119,
    "props": [
     "crouching",
     "facing",
@@ -481,109 +495,9 @@
    "perception": false
   },
   {
-   "file": "save-retake.js",
-   "fn": "ctBombPos",
-   "line": 137,
-   "props": [
-    "bomb.x,y"
-   ],
-   "kind": "бомба",
-   "perception": false
-  },
-  {
-   "file": "save-retake.js",
-   "fn": "gTag",
-   "line": 203,
-   "props": [
-    "bomb.x,y"
-   ],
-   "kind": "бомба",
-   "perception": false
-  },
-  {
-   "file": "save-retake.js",
-   "fn": "updateRetake",
-   "line": 265,
-   "props": [
-    "bomb.x,y"
-   ],
-   "kind": "бомба",
-   "perception": false
-  },
-  {
-   "file": "save-retake.js",
-   "fn": "retakeEntryPick",
-   "line": 335,
-   "props": [
-    "bomb.x,y"
-   ],
-   "kind": "бомба",
-   "perception": false
-  },
-  {
-   "file": "save-retake.js",
-   "fn": "retakePost",
-   "line": 422,
-   "props": [
-    "bomb.x,y"
-   ],
-   "kind": "бомба",
-   "perception": false
-  },
-  {
-   "file": "save-retake.js",
-   "fn": "retakeDefGo",
-   "line": 456,
-   "props": [
-    "bomb.x,y"
-   ],
-   "kind": "бомба",
-   "perception": false
-  },
-  {
-   "file": "ct-early.js",
-   "fn": "flankPost",
-   "line": 84,
-   "props": [
-    "bomb.x,y"
-   ],
-   "kind": "бомба",
-   "perception": false
-  },
-  {
-   "file": "brain-ct.js",
-   "fn": "ctBrainBombDown",
-   "line": 77,
-   "props": [
-    "bomb.x,y"
-   ],
-   "kind": "бомба",
-   "perception": false
-  },
-  {
-   "file": "brain-ct-players.js",
-   "fn": "ctBrainPlayers",
-   "line": 12,
-   "props": [
-    "bomb.x,y"
-   ],
-   "kind": "бомба",
-   "perception": false
-  },
-  {
-   "file": "fight.js",
-   "fn": "ninjaOk",
-   "line": 420,
-   "props": [
-    "bomb.x,y"
-   ],
-   "kind": "бомба",
-   "perception": false
-  },
-  {
    "file": "brain-t-postplant.js",
    "fn": "tBrainPostplant",
-   "line": 18,
+   "line": 19,
    "props": [
     "teamBot.z"
    ],
@@ -613,7 +527,7 @@
   {
    "file": "throw.js",
    "fn": "nadeOwnerOk",
-   "line": 419,
+   "line": 434,
    "props": [
     "teamBot.post"
    ],
@@ -645,7 +559,27 @@
    "fn": "ambushTick",
    "line": 334,
    "props": [
-    "teamBot.x,y,→ambPassing,→applyDamage"
+    "teamBot.x,y,→ambPassing,→applyDamage,→knowSound"
+   ],
+   "kind": "teamBot",
+   "perception": false
+  },
+  {
+   "file": "round.js",
+   "fn": "swapSides",
+   "line": 62,
+   "props": [
+    "teamBot.→damageSetDeaths,→damageSetKills,→setupSetMistakes"
+   ],
+   "kind": "teamBot",
+   "perception": false
+  },
+  {
+   "file": "round.js",
+   "fn": "swapSides",
+   "line": 62,
+   "props": [
+    "teamBot.→damageSetDeaths,→damageSetKills,→setupSetMistakes"
    ],
    "kind": "teamBot",
    "perception": false

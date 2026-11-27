@@ -3586,7 +3586,7 @@
   },
   {
    "file": "app.js",
-   "line": 387,
+   "line": 391,
    "what": "requestAnimationFrame",
    "el": "—",
    "ev": "requestAnimationFrame",
@@ -3632,7 +3632,7 @@
   },
   {
    "file": "app.js",
-   "line": 392,
+   "line": 396,
    "what": "событие",
    "el": "d",
    "ev": "toggle",
@@ -3648,7 +3648,7 @@
   },
   {
    "file": "app.js",
-   "line": 393,
+   "line": 397,
    "what": "событие",
    "el": "document",
    "ev": "mousedown",
@@ -3664,7 +3664,7 @@
   },
   {
    "file": "app.js",
-   "line": 394,
+   "line": 398,
    "what": "событие",
    "el": "document",
    "ev": "keydown",
@@ -3682,7 +3682,7 @@
   },
   {
    "file": "app.js",
-   "line": 396,
+   "line": 400,
    "what": "событие",
    "el": "#btnPause",
    "ev": "click",
@@ -3698,7 +3698,7 @@
   },
   {
    "file": "app.js",
-   "line": 402,
+   "line": 406,
    "what": "событие",
    "el": "#btnExportProject",
    "ev": "click",
@@ -3714,7 +3714,7 @@
   },
   {
    "file": "app.js",
-   "line": 425,
+   "line": 429,
    "what": "событие",
    "el": "#btnRestartRound",
    "ev": "click",
@@ -4205,8 +4205,8 @@
    "var": "DEMOV",
    "class": "показ",
    "read_by_core": [
-    "bomb.js:248",
-    "bomb.js:333",
+    "bomb.js:254",
+    "bomb.js:339",
     "damage.js:135",
     "damage.js:135",
     "shoot.js:68",
@@ -4375,8 +4375,8 @@
    "class": "показ",
    "read_by_core": [
     "round.js:157",
-    "move.js:121",
     "move.js:122",
+    "move.js:123",
     "tick-step.js:29",
     "modes.js:139",
     "modes.js:139",

@@ -10,17 +10,17 @@ function ctBrainPlayers(K){
       // бомбы и от живых T, откуда их не видно; каждый — своё ближайшее такое место
       if(!b._saveSpot){ retakeSetSaveSpot(b, pickSaveSpot(b)); }
       if(b.post && taskProp(b.post.tag, "pickupTask") && taskAlive(b)) return;   // (v334, М63) по пути на сейв подбирает оружие — не перебивать
-      setPost(b, b._saveSpot, {x:bomb.x, y:bomb.y}, true, "save"); // взгляд — на угол, из-за которого придут от бомбы
+      setPost(b, b._saveSpot, ctBombPos(), true, "save"); // взгляд — на угол, из-за которого придут от бомбы (изоляция: где бомба — по знанию CT; не знают — без взгляда)
       return;
     }
     if(K.ct.bombDown && K.ct.bombWatch.id === b.id){ // (v262, К5) держит выбитую бомбу и при колле
-      setPost(b, K.ct.bombWatch.pt, {x:bomb.x, y:bomb.y}, true, "bombwatch"); return; }
+      setPost(b, K.ct.bombWatch.pt, K.ct.bombDown, true, "bombwatch"); return; }   // (изоляция) на точку, где бомбу видели
     if(!K.ct.saving && ctLandPunish(b)) return;   // (v547) и на ретейке («CT выбивают всех, по кому есть инфа» — владелец 10.11); терпит ли ретейк — отклонение (setPost)   // (v343) услышал приземление одного рядом — выходит на него
     if(K.ct.flank && !K.ct.flank.dead && K.ct.flank.id === b.id && !K.ct.saving && flankPost(b, K.ct.flank, K.planted)) return;
     // (35) ретейк 2 на 3+ — AWP не несут в почти проигранный ретейк: снайпер сейвит
     if(K.planted && b.primary === "AWP" && K.cts.length === 2 && aliveCount("T") >= 3 && saveWorth("CT")){
       if(!b._saveSpot){ retakeSetSaveSpot(b, pickSaveSpot(b)); voiceLog("CT", "awpsave"+b.id, b.id, "2 на "+aliveCount("T")+" — сейвлю AWP"); }
-      setPost(b, b._saveSpot, {x:bomb.x, y:bomb.y}, true, "save"); return;
+      setPost(b, b._saveSpot, ctBombPos(), true, "save"); return;
     }
     if(K.planted){ retakePost(b, K.cts); return; }
     if(ctEarlyPeek(b, K.ct)) return;

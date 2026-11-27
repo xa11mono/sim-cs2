@@ -417,7 +417,8 @@ function safeRotate(b, dest, site){
 function ninjaOk(){
   var ts = bots.filter(function(o){ return o.team === "T" && o.alive; }); if(!ts.length) return false;
   var BL = kvLast("CT");
-  return ts.every(function(t){ var lo = BL[t.id]; return lo && tick - lo.tick < 8*TICK_HZ && DM.hypot(lo.x-bomb.x, lo.y-bomb.y) > 700; });
+  var BP = ctBombPos(); if(!BP) return false;   // (изоляция, 27.11; аудит № 11) где бомба — по знанию CT (видели или оценка по сайту); не знают — не о чем судить
+  return ts.every(function(t){ var lo = BL[t.id]; return lo && tick - lo.tick < 8*TICK_HZ && DM.hypot(lo.x-BP.x, lo.y-BP.y) > 700; });
 }
 // ---- (7) перезарядка за укрытием ----
 function exposedTo(b, maxD, maxAge, anyLos){

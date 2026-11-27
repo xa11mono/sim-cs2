@@ -229,21 +229,21 @@ function nadeBrains(){
   });
   // CT ретейк: перед заходом — флешка на сайт
   if(bomb && bomb.state === "planted" && !(teamTac.CT && teamTac.CT.saving) && !nadeFlags.retakeFlash && bomb.retake && bomb.retake.phase === "go"){
-    var gs = GEO[bomb.site];
+    var BPr = ctBombPos(), gs = BPr && GEO[BPr.site];   // (изоляция, 27.11; аудит C4-C) бомба и сайт — по знанию CT
     // заходим — флешка на бомбу с точки сбора, смок на подход T (отрезать подмогу)
     var fl = cts.filter(function(b){ return b.nades.flash > 0; })[0];
-    if(fl){ nadeFlags.retakeFlash = true; assignNade(fl, "flash", {x:bomb.x, y:bomb.y}, "ретейк", {bkey:"CT.retake.flash."+bomb.site}); }
+    if(fl && BPr){ nadeFlags.retakeFlash = true; assignNade(fl, "flash", {x:BPr.x, y:BPr.y}, "ретейк", {bkey:"CT.retake.flash."+BPr.site}); }
     var smr = cts.filter(function(b){ return b !== fl && b.nades.smoke > 0; })[0];
-    if(smr && !nadeFlags.retakeSmoke){ nadeFlags.retakeSmoke = true; if(retakeCutUseful()) assignNade(smr, "smoke", gs.tEntry, "отрезать вход T", {bkey:"CT.retake.smoke."+bomb.site}); }
+    if(smr && gs && !nadeFlags.retakeSmoke){ nadeFlags.retakeSmoke = true; if(retakeCutUseful()) assignNade(smr, "smoke", gs.tEntry, "отрезать вход T", {bkey:"CT.retake.smoke."+BPr.site}); }
   }
 }
 // смок "отрезать вход T" на ретейке нужен, только если кто-то из T может
 // прийти на подмогу снаружи; если все T по инфе уже на сайте — смок пустой
 function retakeCutUseful(){
-  if(!bomb) return true;
+  var BP = ctBombPos(); if(!BP) return true;   // (изоляция) бомба — по знанию CT
   var ts = bots.filter(function(o){ return o.alive && o.team === "T"; });
   var L = kvLast("CT"), outside = 0, known = 0;
-  ts.forEach(function(t){ var e = L[t.id]; if(!e || tick - e.tick > 12*TICK_HZ){ outside++; return; } known++; if(DM.hypot(e.x-bomb.x, e.y-bomb.y) > 650) outside++; });
+  ts.forEach(function(t){ var e = L[t.id]; if(!e || tick - e.tick > 12*TICK_HZ){ outside++; return; } known++; if(DM.hypot(e.x-BP.x, e.y-BP.y) > 650) outside++; });
   return outside > 0;
 }
 // (15.11, перестройка, фаза 3 — канал гранат, шаг 1) задачу гранаты бота (nadeTask, очередь nadeQueue) пишут только файлы гранат 360–420;

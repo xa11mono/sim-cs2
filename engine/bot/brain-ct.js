@@ -59,7 +59,7 @@ function ctBrain(){
   // только через 20 с) фланг — по колу и раскладу: колл сменил сайт, бомба стоит на другом сайте или флангер остался один — фланг отменяется
   // (дальше — обычные решения: ротация на колл, клатч)
   if(K.ct.flank && !K.ct.flank.dead){ var fWhy = K.cts.length <= 1 ? "остался один" : (K.ct.call && K.ct.call.site !== K.ct.flank.site) ? "колл сменился на " + K.ct.call.site :
-      (K.planted0 && bomb && bomb.site && bomb.site !== K.ct.flank.site) ? "бомба на " + bomb.site : null;
+      (K.planted0 && ctBombSite() && ctBombSite() !== K.ct.flank.site) ? "бомба на " + ctBombSite() : null;   // (изоляция) сайт — по знанию CT
     if(fWhy){ K.ct.flank.dead = true; voiceLog("CT", "flankoff", K.ct.flank.id, "фланг отменяю — " + fWhy); } }
   ctBrainFlank(K);
   K.planted = bomb.state === "planted";
@@ -74,25 +74,29 @@ function ctBrain(){
 // часть ctBrain (Р3.2 команда, разрезание в прежнем порядке) — операторы строк 46–66 исходного ctBrain
 function ctBrainBombDown(K){
   K.ct.bombDown = null;
-  var deathDrop = bomb.state === "dropped" && bots.some(function(o){ return o.team === "T" && !o.alive && DM.hypot(o.x-bomb.x, o.y-bomb.y) < 20; });
-  if(!deathDrop) K.ct.bombWatch = null;
+  // (изоляция, 27.11; аудит Codex № 1–2) лежащая бомба — по знанию команды: её видел кто-то из CT (радар, датчик knowTeamLook) — место и
+  // время; подняли за стеной — знание остаётся, пока кто-то не увидит место пустым. Раньше — по истине (мёртвый T у бомбы, точное место)
+  var P = teamAgent("CT").know.bombPt, down = P && !P.gone && P.state === "dropped" && !(bomb && bomb.state === "planted");
+  if(!down) K.ct.bombWatch = null;
   else {
+    var bp = {x: P.x, y: P.y};
     if(K.ct.bombWatch && K.ct.bombWatch.id && !K.cts.some(function(o){ return o.id === K.ct.bombWatch.id; })) K.ct.bombWatch.id = null; // держащий погиб — знание остаётся
     if(!K.ct.bombWatch){
-      var seer = K.cts.filter(function(o){ return DM.hypot(o.x-bomb.x, o.y-bomb.y) < 1000 && hasVision(o.x, o.y, bomb.x, bomb.y); })
-        .sort(function(a, c){ return DM.hypot(a.x-bomb.x, a.y-bomb.y) - DM.hypot(c.x-bomb.x, c.y-bomb.y); })[0];
-      if(seer){ K.ct.bombWatch = {id:null, pt:null};
-        voiceLog("CT", "bombw", seer.id, "бомба лежит "+calloutName(bomb.x, bomb.y).replace(/^на /, "")+", держим"); }
+      // колл — от своего, кто сейчас видит это место (позиции своих и известная точка — не истина о бомбе)
+      var seer = K.cts.filter(function(o){ return DM.hypot(o.x-bp.x, o.y-bp.y) <= KNOW.lookRange && inFov(o, bp.x, bp.y) && hasVision(o.x, o.y, bp.x, bp.y); })
+        .sort(function(a, c){ return DM.hypot(a.x-bp.x, a.y-bp.y) - DM.hypot(c.x-bp.x, c.y-bp.y); })[0] || K.cts[0];
+      K.ct.bombWatch = {id:null, pt:null};
+      if(seer) voiceLog("CT", "bombw", seer.id, "бомба лежит "+calloutName(bp.x, bp.y).replace(/^на /, "")+", держим");
     }
     if(K.ct.bombWatch && !K.ct.bombWatch.id && K.cts.length >= 2){
       // держит ближайший к бомбе — с укрытия рядом с собой, откуда её видно (если он далеко — у бомбы)
-      var bw = K.cts.slice().sort(function(a, c){ return DM.hypot(a.x-bomb.x, a.y-bomb.y) - DM.hypot(c.x-bomb.x, c.y-bomb.y); })[0];
-      var bwNear = DM.hypot(bw.x-bomb.x, bw.y-bomb.y) < 450;
-      var bwp = pickSpots("bombwatch"+Math.round(bomb.x/30)+","+Math.round(bomb.y/30)+(bwNear ? "" : "f"), bwNear ? {x:bw.x, y:bw.y} : {x:bomb.x, y:bomb.y}, 2,
-        {team: "CT", rMin:bwNear ? 0 : 150, rMax:bwNear ? 200 : 450, minGap:40, must:[{x:bomb.x, y:bomb.y}], hideFrom:[GEO.A.tStage, GEO.B.tStage]})[0] || {x:bw.x, y:bw.y};
+      var bw = K.cts.slice().sort(function(a, c){ return DM.hypot(a.x-bp.x, a.y-bp.y) - DM.hypot(c.x-bp.x, c.y-bp.y); })[0];
+      var bwNear = DM.hypot(bw.x-bp.x, bw.y-bp.y) < 450;
+      var bwp = pickSpots("bombwatch"+Math.round(bp.x/30)+","+Math.round(bp.y/30)+(bwNear ? "" : "f"), bwNear ? {x:bw.x, y:bw.y} : bp, 2,
+        {team: "CT", rMin:bwNear ? 0 : 150, rMax:bwNear ? 200 : 450, minGap:40, must:[bp], hideFrom:[GEO.A.tStage, GEO.B.tStage]})[0] || {x:bw.x, y:bw.y};
       K.ct.bombWatch.id = bw.id; K.ct.bombWatch.pt = bwp;
     }
-    if(K.ct.bombWatch) K.ct.bombDown = {x:bomb.x, y:bomb.y};
+    if(K.ct.bombWatch) K.ct.bombDown = bp;
   }
 }
 

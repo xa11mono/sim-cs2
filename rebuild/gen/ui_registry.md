@@ -8,8 +8,8 @@
 | app.js:276 | WK.w | error | меняет игру | showFatal |  | нет автотеста |
 | app.js:340 | — | requestAnimationFrame | меняет игру | frame |  | автотест |
 | app.js:379 | #btnFreshMatch | click | меняет игру | freshMatch, logEvent, seriesNew, warmStart |  | автотест |
-| app.js:387 | — | requestAnimationFrame | меняет игру | frame |  | автотест |
-| app.js:425 | #btnRestartRound | click | меняет игру | draw, logEvent, resetRound |  | автотест |
+| app.js:391 | — | requestAnimationFrame | меняет игру | frame |  | автотест |
+| app.js:429 | #btnRestartRound | click | меняет игру | draw, logEvent, resetRound |  | автотест |
 | demo.js:37 | DV_PANEL_EL | click | меняет игру | dvRender, dvStart, dvStop |  | нет автотеста |
 | demo.js:57 | — | setInterval | меняет игру | dvRender |  | нет автотеста |
 | demo.js:58 | #btnDemoView | click | меняет игру | dvToggle |  | автотест |
@@ -103,11 +103,11 @@
 | app.js:187 | document | ev | только показ |  |  | нет автотеста |
 | app.js:202 | — | setTimeout | только показ |  |  | нет автотеста |
 | app.js:380 | — | setInterval | только показ |  |  | нет автотеста |
-| app.js:392 | d | toggle | только показ |  |  | нет автотеста |
-| app.js:393 | document | mousedown | только показ |  |  | нет автотеста |
-| app.js:394 | document | keydown Escape | только показ |  |  | нет автотеста |
-| app.js:396 | #btnPause | click | только показ |  |  | автотест |
-| app.js:402 | #btnExportProject | click | только показ |  |  | нет автотеста |
+| app.js:396 | d | toggle | только показ |  |  | нет автотеста |
+| app.js:397 | document | mousedown | только показ |  |  | нет автотеста |
+| app.js:398 | document | keydown Escape | только показ |  |  | нет автотеста |
+| app.js:400 | #btnPause | click | только показ |  |  | автотест |
+| app.js:406 | #btnExportProject | click | только показ |  |  | нет автотеста |
 | fx.js:16 | window | resize | только показ |  |  | автотест |
 | killfeed.js:77 | — | setTimeout | только показ |  |  | нет автотеста |
 | lineup-editor.js:64 | #warn | keydown | только показ |  |  | нет автотеста |

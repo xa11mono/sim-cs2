@@ -12,7 +12,7 @@ function pickSaveSpot(b){
     if(insideSolidWall(c.x, c.y)) return;
     // (v381, М134: по замеру v381 после правки ухода T от бомбы от взрыва гибли только CT на сейве — один в 923 px, где проверки урона
     // не было, второй не успел дойти) сейв — там, куда взрыв не достаёт (на любом расстоянии) и куда успеть дойти до взрыва
-    if(bomb.state === "planted" && bombDamageAt(c.x, c.y) > 0) return;
+    if(bomb.state === "planted" && bombDamageAt(c.x, c.y, bombKnownFor(b)) > 0) return;   // (изоляция) взрыв — от точки по знанию CT
     if(bomb.state === "planted" && DM.hypot(c.x-b.baseX, c.y-b.baseY)*1.3/SPEED > bombTimeLeftTicks()/TICK_HZ - 1) return;   // 1,3 — путь длиннее прямой: проектное число
     var dT = Infinity, seen = false;
     ts.forEach(function(t){ dT = Math.min(dT, DM.hypot(c.x-t.x, c.y-t.y)); if(hasLOS(c.x,c.y,t.x,t.y)) seen = true; });
@@ -132,24 +132,38 @@ function pathLenTo(b, x, y){
   p.forEach(function(q){ L += DM.hypot(q[0]-px, q[1]-py); px = q[0]; py = q[1]; });
   return L;
 }
-// где бомба по мнению CT: пока её никто не видел и не подошёл — по писку
-// примерно (±140px в начале, к концу таймера писк частый — почти точно)
-function ctBombPos(){
-  if(!bomb || bomb.state !== "planted") return {x:bomb.x, y:bomb.y};
-  if(!bomb.ctSeen){
-    var seen = bots.some(function(o){ return o.alive && o.team === "CT" && (DM.hypot(o.x-bomb.x, o.y-bomb.y) < 300 || (DM.hypot(o.x-bomb.x, o.y-bomb.y) < 1100 && hasVision(o.x, o.y, bomb.x, bomb.y))); });
-    if(seen){ bomb.ctSeen = tick; voiceLog("CT", "bombseen", "CT", "бомба "+calloutName(bomb.x, bomb.y).replace(/^на /, "")+"!"); }
-  }
-  if(bomb.ctSeen) return {x:bomb.x, y:bomb.y};
-  if(!bomb.ctNoise){ var a = hashRand(bomb.plantTick*7 + 3)*Math.PI*2, r = 60 + hashRand(bomb.plantTick*11 + 5)*80; bomb.ctNoise = {dx:DM.cos(a)*r, dy:DM.sin(a)*r}; }
-  var k = Math.max(0.15, bombTimeLeftTicks()/BOMB_TICKS);
-  return walk({x: bomb.x + bomb.ctNoise.dx*k, y: bomb.y + bomb.ctNoise.dy*k});
+// (изоляция, 27.11; аудит Codex № 1–11, C4-A…C) где бомба по знанию CT — одно место для всех решений CT (сейв, ретейк, дефуз, ниндзя,
+// взгляд, гранаты): видели (радар команды, датчик knowTeamLook) — точка и время; знают сайт (колл, звук планта, вывод «там не слышали»,
+// увиденная бомба) — оценка по местам планта про на этом сайте (данные карты MAP.pro.plants, доли); сайт неизвестен — сайт с большим весом
+// гипотез команды о T (знание, не истина); ничего — null (плана ретейка ещё нет). Истинное место бомбы не читается; «заложена» — публичное (HUD)
+function ctBombSite(){
+  var K = teamAgent("CT").know, cts = bots.filter(function(o){ return o.alive && o.team === "CT" && o.know; });
+  if(K.bombPt && !K.bombPt.gone && K.bombPt.site) return K.bombPt.site;
+  var sure = cts.filter(function(o){ return o.know.plantSite && !o.know.plantGuess; })[0]; if(sure) return sure.know.plantSite;
+  if(K.plantSite) return K.plantSite;
+  var g = cts.filter(function(o){ return o.know.plantSite; })[0]; if(g) return g.know.plantSite;
+  var B = belief.CT || {}, m = {}; Object.keys(SITES).forEach(function(X){ m[X] = 0; });
+  Object.keys(B).forEach(function(eid){ var P = B[eid]; for(var i = 0; i < P.length; i++){ if(!P[i] || !BZ.cent[i]) continue; var X = knowNearestSite(BZ.cent[i].x, BZ.cent[i].y); if(X in m) m[X] += P[i]; } });
+  var best = null; Object.keys(m).forEach(function(X){ if(m[X] > 0 && (!best || m[X] > m[best])) best = X; });
+  return best;
 }
+function ctBombKnow(){
+  var P = teamAgent("CT").know.bombPt;
+  if(P && !P.gone) return {x: P.x, y: P.y, z: P.z, site: P.site, exact: true, state: P.state};
+  if(!bomb || bomb.state !== "planted") return null;
+  var site = ctBombSite(); if(!site) return null;
+  var PP = sitePlantPro(site), sx = 0, sy = 0, sw = 0;
+  PP.forEach(function(q){ var w = q.share || 1; sx += q.x*w; sy += q.y*w; sw += w; });
+  var c = sw ? walk({x: sx/sw, y: sy/sw}) : {x: SITES[site].x, y: SITES[site].y};
+  return {x: c.x, y: c.y, z: null, site: site, exact: false, state: "planted"};
+}
+// точка для расчётов (путь, укрытие, урон) — по знанию; знания нет — null
+function ctBombPos(){ return ctBombKnow(); }
 function computeApproaches(){
-  var bp = ctBombPos();
+  var bp = ctBombPos(), site = bp.site;
   // (v348, владелец: kyousuke на сборе ретейка «не в сейв позиции — вышел бы кто-то из Apps, его бы убили») точка сбора укрыта не
   // только от бомбы, но и от входов T на этот сайт (данные карты: pos.entries, GEO.tEntry)
-  var tIn = (bomb && bomb.site && GEO[bomb.site] ? [GEO[bomb.site].tEntry].concat(entryPts(bomb.site) || []) : []).filter(function(q){ return q && q.x != null; });
+  var tIn = (site && GEO[site] ? [GEO[site].tEntry].concat(entryPts(site) || []) : []).filter(function(q){ return q && q.x != null; });
   // с запасом: укрыты и точки вокруг (14 ед. карты, проектное) — иначе край укрытия: шаг в сторону, и тебя видно
   var hidden1 = function(x, y){ return !hasLOS(x, y, bp.x, bp.y) && !tIn.some(function(q){ return hasLOS(x, y, q.x, q.y); }); };
   var hidden = function(x, y){ return hidden1(x, y) && [[14,0],[-14,0],[0,14],[0,-14]].every(function(o){ return insideSolidWall(x+o[0], y+o[1]) || hidden1(x+o[0], y+o[1]); }); };
@@ -177,9 +191,9 @@ function computeApproaches(){
   });
   // сначала — названные точки сбора (Temple, CT Lane, Back Halls, 90…),
   // если от них бомбу не видно (укрытие) и они не дальше ~650
-  if(POS[bomb.site]){
+  if(POS[site]){
     var named = [];
-    POS[bomb.site].ctRetake.forEach(function(n){
+    POS[site].ctRetake.forEach(function(n){
       var zp = zonePoint(n, bp); if(!zp) return;
       var d = DM.hypot(zp.x-bp.x, zp.y-bp.y); if(d < 180 || d > 650) return;
       var sp = pickSpots("rt:"+n, zp, 1, {team: "CT", rMax:110, minGap:40, hideFrom:[bp].concat(tIn)})[0] || zp;
@@ -193,7 +207,7 @@ function computeApproaches(){
       out = named.slice(0, 3);
     }
   }
-  if(!out.length){ var gs = GEO[bomb.site]; out.push({x:gs.ctEntry.x, y:gs.ctEntry.y, sec:0}); }
+  if(!out.length){ var gs = GEO[site]; out.push({x:gs.ctEntry.x, y:gs.ctEntry.y, sec:0}); }
   return out;
 }
 // (v347, отметка владельца: kyousuke у бомбы, а пишется «сбор на ретейк») точка сбора ближе 300 ед. к бомбе — «у бомбы»: тот же
@@ -201,14 +215,20 @@ function computeApproaches(){
 // (v359, владелец: «когда игрок один, у него тоже "ждёт своих на ретейк"») один живой CT своих не ждёт — «ретейк в одиночку: подход»
 function gTag(b, R){ var i = R.assign[b.id]||0, a = R.approaches[i];
   if(bots.filter(function(o){ return o.team === "CT" && o.alive && !o._saveSpot; }).length <= 1) return "gatherSolo"+i;
-  return (a && bomb && DM.hypot(a.x-bomb.x, a.y-bomb.y) < 300 ? "gatherSite" : "gather")+i; }
+  var bp = ctBombPos(); return (a && bp && DM.hypot(a.x-bp.x, a.y-bp.y) < 300 ? "gatherSite" : "gather")+i; }
 var RT_WAIT = 3, RT_GAP = 400;   // RT_GAP, ед.: второй CT от первого при заходе у про — медиана 411 (322 ретейка Mirage)
 var _rtw = 0;   // с — у про второй заходит через ~3 с после первого (комментарий «need» ниже; демки)
 function updateRetake(cts){
-  var R = bomb.retake;
+  // (изоляция, 27.11) план — по знанию CT о бомбе (ctBombKnow): не знают ни сайта, ни гипотезы — плана нет; знание уточнилось (оценка →
+  // увидели, другой сайт) — точки сбора заново, назначения и фаза сохраняются (аудит Codex № 7)
+  var kn = ctBombKnow(); if(!kn) return;
+  var kv = kn.site + (kn.exact ? "@" + kn.x + "," + kn.y : ""), R = bomb.retake;
+  if(R && R.kv !== kv){ R.approaches = computeApproaches(); R.kv = kv;
+    Object.keys(R.assign).forEach(function(id){ if(R.assign[id] >= R.approaches.length) delete R.assign[id]; });
+    logEvent("CT: ретейк — уточнили, где бомба (" + kn.site + (kn.exact ? ", видели" : ", оценка") + "): точки сбора заново"); }
   if(!R){
-    R = bomb.retake = {approaches: computeApproaches(), assign:{}, phase:"gather", goTick:-1};
-    logEvent("CT: ретейк "+bomb.site+" — "+R.approaches.length+" точк"+(R.approaches.length===1?"а":"и")+" сбора"+
+    R = bomb.retake = {approaches: computeApproaches(), assign:{}, phase:"gather", goTick:-1, kv: kv};
+    logEvent("CT: ретейк "+kn.site+" — "+R.approaches.length+" точк"+(R.approaches.length===1?"а":"и")+" сбора"+
       (R.approaches.some(function(a){ return a.name; }) ? " ("+R.approaches.map(function(a){ return a.name || "укрытие"; }).join(", ")+")" : ""));
   }
   // роли: дефузер — с китом и ближе всех; фланг — самый дальний от основной точки,
@@ -263,7 +283,7 @@ function updateRetake(cts){
     // (док 6, п.9: р5 CT убили троих на сайте, стояли в 36–220 от бомбы — и ушли на точки сбора за 200–390, потом обратно; у про от смерти
     // последнего T у бомбы до конца дефуза — 6,6 с, медиана) точка сбора — чтобы зайти вместе, а не по одному; кто уже ближе к бомбе, чем его
     // точка сбора, — уже зашёл: он «на месте»
-    var atAp = function(b, a){ return a && (DM.hypot(a.x-b.baseX, a.y-b.baseY) < 70 || DM.hypot(b.baseX-bomb.x, b.baseY-bomb.y) < DM.hypot(a.x-bomb.x, a.y-bomb.y)); };
+    var atAp = function(b, a){ return a && (DM.hypot(a.x-b.baseX, a.y-b.baseY) < 70 || DM.hypot(b.baseX-kn.x, b.baseY-kn.y) < DM.hypot(a.x-kn.x, a.y-kn.y)); };
     var ready = alive.filter(function(b){ return atAp(b, R.approaches[R.assign[b.id]]); }).length;
     // (v583a, владелец 17.11: «сделай нормальный ретейк — посмотри, как ретейкают про»; 322 ретейка Mirage, CT ≥ 2: когда первый у бомбы, второй
     // от него — медиана 411 ед., заходят с одной стороны (разница 21°, зажим 15 %), а стоял ли первый перед заходом ≥ 2 с — 7 %: про не ждут
@@ -332,8 +352,9 @@ function updateRetake(cts){
 // первый входящий: не дефузер, из основной точки захода, ближе всех к бомбе. (00_PLAN, ответы владельца 3 и 7А, 05.11) выбирается до
 // флешки: флешку кидает не он — «под флешку выходит не тот, кто кидает» (раньше оба — ближайший к бомбе, обычно один и тот же бот)
 function retakeEntryPick(R, alive, def){
+  var bp = ctBombPos();   // (изоляция, 27.11) где бомба — по знанию CT
   var ents = alive.filter(function(b){ return b !== def; });
-  ents.sort(function(a, c){ return ((R.assign[a.id] === 0 ? 0 : 300) + DM.hypot(a.x-bomb.x, a.y-bomb.y)) - ((R.assign[c.id] === 0 ? 0 : 300) + DM.hypot(c.x-bomb.x, c.y-bomb.y)); });
+  ents.sort(function(a, c){ return ((R.assign[a.id] === 0 ? 0 : 300) + DM.hypot(a.x-bp.x, a.y-bp.y)) - ((R.assign[c.id] === 0 ? 0 : 300) + DM.hypot(c.x-bp.x, c.y-bp.y)); });
   R.entryId = ents[0] ? ents[0].id : "-";
   if(ents[0]) voiceLog("CT", "rtentry", ents[0].id, "захожу первым, "+(def ? def.id+" дефузит за мной" : "прикрывайте"));
 }
@@ -349,11 +370,11 @@ function retakeUtil(R, alive){
   var tgt = bp, L = kvLast("CT"), bestA = Infinity;
   for(var id in L){ var e = L[id]; if(tick - e.tick > 10*TICK_HZ) continue; if(DM.hypot(e.x-bp.x, e.y-bp.y) > 650) continue;
     var dd = DM.hypot(e.x-fl.x, e.y-fl.y); if(dd < bestA){ bestA = dd; tgt = {x:e.x, y:e.y}; } }
-  if(!assignNade(fl, "flash", tgt, "ретейк", {bkey:"CT.retake.flash."+bomb.site, now:true, range:900}).ok) return null;
+  if(!assignNade(fl, "flash", tgt, "ретейк", {bkey:"CT.retake.flash."+bp.site, now:true, range:900}).ok) return null;
   nadeFlags.retakeFlash = true;
-  var gs = GEO[bomb.site];
+  var gs = GEO[bp.site];
   var smr = alive.filter(function(b){ return b !== fl && b.nades && b.nades.smoke > 0; })[0];
-  if(smr && !nadeFlags.retakeSmoke && retakeCutUseful()){ nadeFlags.retakeSmoke = true; assignNade(smr, "smoke", gs.tEntry, "отрезать вход T", {bkey:"CT.retake.smoke."+bomb.site, now:true}); }
+  if(smr && !nadeFlags.retakeSmoke && retakeCutUseful()){ nadeFlags.retakeSmoke = true; assignNade(smr, "smoke", gs.tEntry, "отрезать вход T", {bkey:"CT.retake.smoke."+bp.site, now:true}); }
   if(!nadeFlags.retakeAwpSmoke){
     var BLr = kvLast("CT"), awpT = null;
     for(var eidR in BLr){ var loR = BLr[eidR]; if(loR.src !== "spotted" || tick - loR.tick > 10*TICK_HZ) continue; var eR = bots.filter(function(o){ return o.id === eidR; })[0];
@@ -411,7 +432,7 @@ function retakePost(b, cts){
       // (v370) заходить первым некому (один или первый погиб) — сам чистит сайт, как первый, а не стоит у бомбы
       var entB = R.entryId && R.entryId !== b.id && bots.filter(function(o){ return o.id === R.entryId && o.alive; })[0];
       if(!entB) return retakeClear(b, R, cts, a, bp);
-      var dsp = pickSpots("retakeD"+bomb.site+"_"+(R.assign[b.id]||0), bp, 1, {team: "CT", rMin:120, rMax:320, minGap:60, must:[bp], see:[a]})[0];
+      var dsp = pickSpots("retakeD"+bp.site+"_"+(R.assign[b.id]||0), bp, 1, {team: "CT", rMin:120, rMax:320, minGap:60, must:[bp], see:[a]})[0];
       setPost(b, dsp || a, bp, true, "retakeCover"); return;
     }
     setPost(b, bp, null, true, "defuse"); return;
@@ -420,8 +441,8 @@ function retakePost(b, cts){
   if(R.goTick >= 0 && !R.allDead){
     if(!R.delay){
       R.delay = {}; var dm = 0;
-      R.approaches.forEach(function(ap){ dm = Math.max(dm, DM.hypot(ap.x-bomb.x, ap.y-bomb.y)); });
-      R.approaches.forEach(function(ap, i){ R.delay[i] = Math.min(2.5*TICK_HZ, Math.max(0, (dm - DM.hypot(ap.x-bomb.x, ap.y-bomb.y))/SPEED*TICK_HZ)); });
+      R.approaches.forEach(function(ap){ dm = Math.max(dm, DM.hypot(ap.x-bp.x, ap.y-bp.y)); });
+      R.approaches.forEach(function(ap, i){ R.delay[i] = Math.min(2.5*TICK_HZ, Math.max(0, (dm - DM.hypot(ap.x-bp.x, ap.y-bp.y))/SPEED*TICK_HZ)); });
     }
     var dl = R.delay[R.assign[b.id]||0] || 0;
     if(tick - R.goTick < dl){ setPost(b, a, bp, true, gTag(b, R), 0); return; }
@@ -441,11 +462,12 @@ function retakeKitFor(b, bp){
 function retakeClear(b, R, cts, a, bp){
   // прикрытие/фланг — места с видом на бомбу, со своей стороны захода
   var others = cts.filter(function(c){ return c.retakeRole !== "defuser" && !c.defusing && R.assign[c.id] === R.assign[b.id]; });
-  var spots = pickSpots("retake"+bomb.site+"_"+(R.assign[b.id]||0), bp, others.length, {team: "CT", rMin:80, rMax:300, minGap:90, must:[bp], see:[a]});
+  var spots = pickSpots("retake"+bp.site+"_"+(R.assign[b.id]||0), bp, others.length, {team: "CT", rMin:80, rMax:300, minGap:90, must:[bp], see:[a]});
   var oi = Math.max(0, others.indexOf(b));
   setPost(b, spots[oi] || bp, bp, true, (b.id === R.entryId) ? "retakeEntry" : "retake");
 }
 function retakeDefGo(b, R, cts){
+  var bp = ctBombPos();   // (изоляция, 27.11) где бомба — по знанию CT
   var secsLeft = bombTimeLeftTicks()/TICK_HZ;
   var late2 = secsLeft - (defuseEta(b) + 1) < 2.5;
   if(late2) return true;
@@ -454,15 +476,15 @@ function retakeDefGo(b, R, cts){
   // от бомбы (> 600). Иначе сначала чистит сайт (retakeClear). Числа 1,5 с и 600 — проектные
   var solo = cts.filter(function(o){ return !o._saveSpot; }).length <= 1, oneT = aliveCount("T") <= 1;
   if(solo || oneT){
-    if(DM.hypot(b.x-bomb.x, b.y-bomb.y) < 320 && !b._sawEnemy && tick - (b._lastSawT||-1e9) > 1.5*TICK_HZ){ if((b._nearBombT = b._nearBombT || tick) && tick - b._nearBombT > 1.5*TICK_HZ) return true; }
+    if(DM.hypot(b.x-bp.x, b.y-bp.y) < 320 && !b._sawEnemy && tick - (b._lastSawT||-1e9) > 1.5*TICK_HZ){ if((b._nearBombT = b._nearBombT || tick) && tick - b._nearBombT > 1.5*TICK_HZ) return true; }
     else b._nearBombT = 0;
-    var BLd = kvLast("CT"), farT = Object.keys(BLd).some(function(e){ var q = BLd[e]; return q && tick - q.tick <= 5*TICK_HZ && bots.some(function(o){ return o.id === e && o.alive; }) && DM.hypot(q.x-bomb.x, q.y-bomb.y) > 600; });
+    var BLd = kvLast("CT"), farT = Object.keys(BLd).some(function(e){ var q = BLd[e]; return q && tick - q.tick <= 5*TICK_HZ && bots.some(function(o){ return o.id === e && o.alive; }) && DM.hypot(q.x-bp.x, q.y-bp.y) > 600; });
     if(oneT && farT) return true;
     if(solo) return false;
   }
   var ent = R.entryId && bots.filter(function(o){ return o.id === R.entryId; })[0];
   if(!ent || !ent.alive || ent.hp <= LOW_HP) return true;
-  if(DM.hypot(ent.x-bomb.x, ent.y-bomb.y) < 280) return true;
+  if(DM.hypot(ent.x-bp.x, ent.y-bp.y) < 280) return true;
   return tick - R.goTick > 2.5*TICK_HZ;
 }
 // (17.11, перестройка) перенесено из 630 (файл показа) — решения сейва команды

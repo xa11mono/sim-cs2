@@ -100,13 +100,14 @@ function moveRunWhy(bot){
        ((m._sawEnemy && (m.contactStreak||0) >= 20) || tick - (m.lastShotTick||-1e9) < 2*TICK_HZ || tick - (m._shotAtT||-1e9) < 2*TICK_HZ) && DM.hypot(m.x-bot.baseX, m.y-bot.baseY) < 900 && DM.hypot(m.x-bot.post.x, m.y-bot.post.y) < 600; })) return "свой рядом уже в бою";
   // (v257, К3) ретейк: шагом — только если шагом успевает дойти до бомбы и дефузнуть (та же мерка, что у ниндзя-дефуза)
   if(bot.team === "CT" && bomb && bomb.state === "planted" && bot.post && taskProp(bot.post.tag, "retakeMove")){
-    var dB = DM.hypot(bomb.x-bot.baseX, bomb.y-bot.baseY);
+    var BK = bombKnownFor(bot), dB = BK ? DM.hypot(BK.x-bot.baseX, BK.y-bot.baseY) : Infinity;   // (изоляция) по знанию CT
     if(bombTimeLeftTicks()/TICK_HZ <= dB/(SPEED*WALK_SPEED_FRAC) + (bot.kit ? 5 : 10) + 1.5) return "на шифте не успеть к дефузу";
   }
   // (v438, док владельца 27.10: NiKo за 3,5 с до взрыва шёл шифтом и погиб от бомбы) в зоне смертельного взрыва (урон ≥ HP, BOMB_DMG) —
   // шагом, только если шагом успевает выйти из неё до взрыва (+1 с — проектное число); иначе бегом. Любая сторона, любая задача
-  if(bomb && bomb.state === "planted" && bombDamageAt(bot.baseX, bot.baseY) >= bot.hp){
-    var rKill = BOMB_DMG.sigma*Math.sqrt(2*DM.log(BOMB_DMG.max/Math.max(1, bot.hp))), dOut = Math.max(0, rKill - bombPathLen(bot.baseX, bot.baseY));
+  var BKd = bomb && bomb.state === "planted" ? bombKnownFor(bot) : null;   // (изоляция) T — своя бомба, CT — по знанию
+  if(BKd && bombDamageAt(bot.baseX, bot.baseY, BKd) >= bot.hp){
+    var rKill = BOMB_DMG.sigma*Math.sqrt(2*DM.log(BOMB_DMG.max/Math.max(1, bot.hp))), dOut = Math.max(0, rKill - bombPathLen(bot.baseX, bot.baseY, BKd));
     if(bombTimeLeftTicks()/TICK_HZ <= dOut/(SPEED*WALK_SPEED_FRAC) + 1) return "на шифте не выйти из взрыва";
   }
   return null;

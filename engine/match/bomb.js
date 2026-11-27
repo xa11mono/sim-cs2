@@ -17,16 +17,21 @@ function bombActAbort(bot, why, text){
 }
 // сброс планта / дефуза (смерть, новый раунд, разминка) — те же две записи, что были у вызывающих
 function bombActReset(b){ b.planting = false; b.defusing = false; }
-function bombPathLen(x, y){
-  if(!bomb) return Infinity;
-  var C = bomb._pathC || (bomb._pathC = {}), k = Math.round(x/8)+","+Math.round(y/8);
-  if(C[k] != null) return C[k];
+// (изоляция, 27.11) где бомба для решений бота: T — своя бомба (знают всей командой); CT — по знанию команды (ctBombPos: увидели / оценка
+// по сайту), не знают — null. Физика (урон взрыва, радиус дефуза) — от настоящей бомбы, без этого посредника
+function bombKnownFor(b){ return !bomb ? null : (b && b.team === "CT") ? ctBombPos() : bomb; }
+// src — откуда считать (по умолчанию настоящая бомба: физика урона); для решений CT — точка знания (bombKnownFor)
+function bombPathLen(x, y, src){
+  var S = src || bomb; if(!S) return Infinity;
+  var own = S === bomb, C = own ? (bomb._pathC || (bomb._pathC = {})) : null, k = Math.round(x/8)+","+Math.round(y/8);
+  if(own && C[k] != null) return C[k];
   var L = Infinity;
-  if(DM.hypot(x-bomb.x, y-bomb.y) < BOMB_DMG.reach){ var pts = pathPts(bomb.x, bomb.y, x, y, bomb.z); if(pts.length) L = polyLen(pts); }
-  return (C[k] = L);
+  if(DM.hypot(x-S.x, y-S.y) < BOMB_DMG.reach){ var pts = pathPts(S.x, S.y, x, y, S.z); if(pts.length) L = polyLen(pts); }
+  if(own) C[k] = L;
+  return L;
 }
-function bombDamageAt(x, y){
-  var L = bombPathLen(x, y); if(!isFinite(L)) return 0;
+function bombDamageAt(x, y, src){
+  var L = bombPathLen(x, y, src); if(!isFinite(L)) return 0;
   return Math.round(BOMB_DMG.max * DM.exp(-L*L/(2*BOMB_DMG.sigma*BOMB_DMG.sigma)));
 }
 // куда бежать от бомбы: раньше все T бежали в свою точку сбора (tStage), даже
@@ -116,7 +121,8 @@ function defuseEta(b, from){
   // (Г3, 04.11, разбор отметок п.32: роль дефузера CT4 ↔ CT2 каждые 0,5 с) время — по кратчайшему пути навмеша: путь команды (обход мест,
   // где ждут врага) меняется вместе со знанием и прыгал между двумя маршрутами (Kitchen ↔ Apartments) — оценка «кто раньше» скакала
   // (00_PLAN п.3б) путь — с высотой бота и бомбы (pathPts без высоты брал этаж наугад: оценка у стоящего бота 9,9 → 16,7 с, м11 р8)
-  var f = from || b, L = polyLen(pathPts(f.x, f.y, bomb.x, bomb.y, f.z, bomb.z));
+  var T = bombKnownFor(b); if(!T) return Infinity;   // (изоляция) цель — по знанию CT (ctBombPos); не знают где — не оценить
+  var f = from || b, L = polyLen(pathPts(f.x, f.y, T.x, T.y, f.z, T.z));
   return L/SPEED + (b.kit ? DEFUSE_KIT_TICKS : DEFUSE_TICKS)/TICK_HZ;
 }
 var DEFUSE_HEAR = 700;
@@ -151,10 +157,10 @@ function defuseContTick(){
 // Не успевают — бегут сразу (тогда фейк их и ловит). Агрессивный — иногда сразу
 // T может успеть к бомбе за время дефуза (по знанию CT): свежая инфа (≤ 8 с) — путь до бомбы бегом короче дефуза; нет свежей инфы — может
 function ctDefuseThreat(dTicks){
-  var BL = kvLast("CT");
+  var BL = kvLast("CT"), BP = ctBombPos(); if(!BP) return true;   // (изоляция) бомба — по знанию CT
   return bots.some(function(t){ if(t.team !== "T" || !t.alive) return false; var e = BL[t.id];
     if(!e || tick - e.tick > 8*TICK_HZ) return true;
-    return polyLen(pathPts(e.x, e.y, bomb.x, bomb.y, e.z, bomb.z))/SPEED*TICK_HZ < dTicks; });
+    return polyLen(pathPts(e.x, e.y, BP.x, BP.y, e.z, BP.z))/SPEED*TICK_HZ < dTicks; });
 }
 // (тактика 30.10, задание владельца: «T не должны на звук дефуза выходить всей командой; один проверяет / провоцирует, остальные
 // поддерживают; не пикать на каждый звук»; PRO_PLAY 6ж) ответ: "all" — все на бомбу (дефуз идёт дальше первого звука — настоящий, или
