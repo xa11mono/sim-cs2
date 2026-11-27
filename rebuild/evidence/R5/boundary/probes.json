@@ -1,0 +1,5 @@
+{"_": "Отрицательные пробы проверки границы показ → игра (tools/rebuild/frame_contract.js --check), v641a 27.11; после пробы файл возвращён",
+ "probes": [
+  {"what": "лишняя запись поля игрока в функции с совпадением имени: view/hud/timeout.js tsCam + `bots[0].x = 1`", "expect": "ошибка", "got": "ОШИБКА границы показ → игра: timeout.js tsCam .x; timeout.js tsCam bots"},
+  {"what": "новая функция показа пишет игру: view/hud/fx.js probeW(){ bots[0].alive = false; roundState = \"live\"; }", "expect": "ошибка", "got": "ОШИБКА границы показ → игра: fx.js probeW .alive; fx.js probeW bots; fx.js probeW roundState"},
+  {"what": "без проб", "expect": "проходит", "got": "граница показ → игра: прямых записей в игру 0 (известных 0); совпадений имени с выражением 23"}]}
