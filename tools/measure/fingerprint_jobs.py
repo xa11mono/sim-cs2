@@ -173,19 +173,26 @@ def run(jobs, pool, root, here, sims, resolve, build, versions, archive=None):
         outdir.mkdir(parents=True, exist_ok=True)
         procguard.atomic_write(outdir / 'versions.json', json.dumps(versions, ensure_ascii=False).encode('utf-8'))
         actual = runtime_identity(versions, engine)
+        # (Р5.5 / Р5.6, 27.11) вид сборки: pack — ядро без карты + пакет .simmap (Node); all-maps — автономный HTML всех карт; variant-b — движок + пакеты файлами
+        variant = j.get('variant')
+        if variant not in (None, 'pack', 'all-maps', 'variant-b') or (variant == 'pack') != (engine == 'node' and variant == 'pack') or (variant in ('all-maps', 'variant-b') and engine == 'node'):
+            raise ValueError('Invalid fp variant for engine: ' + label)
         launcher = 'tools/node/core_run.js' if engine == 'node' else 'src/q.js'
         launch_hash = digest((root / launcher).read_text(encoding='utf-8'))
-        sim = sims / (label + ('.core.js' if engine == 'node' else '.html'))
-        plan = {'engine': engine, 'map': game_map, 'label': label, 'dir': outdir, 'phased': bool(j.get('phase')),
+        sim = sims / (label + ('_vb' if variant == 'variant-b' else '.core.js' if engine == 'node' else '.html'))
+        vargs = ['--pack=' + str(sims / (label + '.simmap'))] if variant == 'pack' else []
+        venv = {'SIM_QUERY': '?map=' + game_map} if variant in ('all-maps', 'variant-b') else {}
+        if variant == 'variant-b': venv['SIM_SERVE'] = str(sim)
+        plan = {'engine': engine, 'map': game_map, 'label': label, 'dir': outdir, 'phased': bool(j.get('phase')), 'variant': variant,
                 'count': len(matches), 'resumed': 0, 'pending': [], 'ref': ref, 'sim': sim, 'fields': fields, 'all_out': []}
         for m in matches:
             out, err, guard = [str(outdir / (name % m)) for name in ('fp_%d.json', 'err_%d.txt', 'guard_%d.json')]
             plan['all_out'].append(out)
             code = fingerprint_code(template, fields_code, m, fields, trace)
             codefile = out[:-5] + '.code.js'
-            meta = dict(sha=ref, map=game_map, engine=engine, fields=fields, match=m, code=digest(code), q=launch_hash, runtime=actual)
-            t = {'name': 'fp %s m%d' % (sim.name, m), 'cmd': ['node', str(root / launcher), str(sim), '@' + codefile],
-                 'cwd': root, 'env': dict(os.environ, SIM_BROWSER=engine), 'out': out, 'err': err, 'guard': guard,
+            meta = dict(sha=ref, map=game_map, engine=engine, fields=fields, match=m, code=digest(code), q=launch_hash, runtime=actual, variant=variant)
+            t = {'name': 'fp %s m%d' % (sim.name, m), 'cmd': ['node', str(root / launcher), str(sim), '@' + codefile] + vargs,
+                 'cwd': root, 'env': dict(os.environ, SIM_BROWSER=engine, **venv), 'out': out, 'err': err, 'guard': guard,
                  'engine': engine, 'valid': lambda path, m=m: fingerprint(path, m), 'est_key': engine + ':' + game_map,
                  'save': {'dir': os.path.join(procguard.DONE, label, 'm%d' % m), 'meta': meta, 'files': [out, err, guard]},
                  'code': code, 'codefile': codefile}
@@ -203,7 +210,7 @@ def run(jobs, pool, root, here, sims, resolve, build, versions, archive=None):
         if plan['phased'] and (pool.q or pool.run or pool.retry):
             pool.wait_all()
         if plan['pending']:
-            build(plan['ref'], plan['map'], plan['sim'], plan['engine'] == 'node')
+            build(plan['ref'], plan['map'], plan['sim'], plan['engine'] == 'node', variant=plan['variant'])
             for t in plan['pending']:
                 Path(t['codefile']).write_text(t['code'], encoding='utf-8')
                 pool.q.append(t)

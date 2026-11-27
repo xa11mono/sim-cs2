@@ -63,19 +63,27 @@ def resolve_ref(ref):
     return REFS[ref]
 
 
-def build(ref, mapname, out, core=False, worker=False):   # (Р5.2) worker — страница со встроенным ядром для режима Worker (src/build.py --worker)
+def build(ref, mapname, out, core=False, worker=False, variant=None):   # (Р5.2) worker — страница со встроенным ядром для режима Worker (src/build.py --worker)
+    # (Р5.5 / Р5.6, 27.11) variant: pack — ядро без карты (core_build.py --pack) + пакет карты рядом (<имя>.simmap, tools/map-pack/pack.mjs);
+    # all-maps — автономный HTML всех карт; variant-b — папка out: движок + пакеты файлами (src/build_variants.py)
     sha = resolve_ref(ref)
-    key = (sha, mapname, core, worker)
+    key = (sha, mapname, core, worker, variant)
     cached = BUILT.get(key)
-    if cached and os.path.isfile(cached):
+    if cached and os.path.isfile(cached) and variant is None:
         if os.path.abspath(cached) != os.path.abspath(out):
             shutil.copyfile(cached, out)
         return sha
     tmp = tempfile.mkdtemp(prefix='simbuild_')
     try:
         sh(['git', '-c', 'core.autocrlf=false', 'worktree', 'add', '--quiet', '--detach', '--force', tmp, sha], cwd=ROOT)
-        builder = ('tools', 'node', 'core_build.py') if core else ('src', 'build.py')
-        sh([PY, os.path.join(tmp, *builder), '--map', mapname] + (['--worker'] if worker else []) + [out], cwd=tmp)
+        if variant == 'pack':
+            sh([PY, os.path.join(tmp, 'tools', 'node', 'core_build.py'), '--pack', '--map', mapname, out], cwd=tmp)
+            sh(['node', os.path.join(tmp, 'tools', 'map-pack', 'pack.mjs'), mapname, out[:-len('.core.js')] + '.simmap'], cwd=tmp)
+        elif variant in ('all-maps', 'variant-b'):
+            sh([PY, os.path.join(tmp, 'src', 'build_variants.py'), '--' + variant, out], cwd=tmp)
+        else:
+            builder = ('tools', 'node', 'core_build.py') if core else ('src', 'build.py')
+            sh([PY, os.path.join(tmp, *builder), '--map', mapname] + (['--worker'] if worker else []) + [out], cwd=tmp)
     finally:
         subprocess.run(['git', 'worktree', 'remove', '--force', tmp], cwd=ROOT)
     BUILT[key] = out
