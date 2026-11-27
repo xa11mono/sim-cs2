@@ -156,15 +156,6 @@ function reachStepOne(R, clearList){
       var tv = D[u] + DM.hypot(cu.x-cv.x, cu.y-cv.y)/SPEED*TICK_HZ; if(tv < D[v]) D[v] = tv; }
   }
   for(var i2=0;i2<n;i2++) if(R[i2] > tick && !fixed[i2]) R[i2] = D[i2];
-  return;
-  for(var it=0; it<3; it++){
-    for(var i=0;i<R.length;i++){
-      var nb = BZ.nbr[i], ci = BZ.cent[i]; if(!ci) continue;
-      for(var k=0;k<nb.length;k++){ var j = nb[k], cj = BZ.cent[j]; if(!cj) continue;
-        var t = R[j] + DM.hypot(ci.x-cj.x, ci.y-cj.y)/SPEED*TICK_HZ;
-        if(t < R[i]) R[i] = t; }
-    }
-  }
 }
 function beliefMassNear(team, eid, x, y, r){
   var P = belief[team] && belief[team][eid]; if(!P) return 0;
