@@ -1,0 +1,4 @@
+код 0
+
+   Compiling sim_r7_kernels v0.1.0 (C:\actions-runner\_work\sim-cs2\sim-cs2\tools\r7\kernels)
+    Finished `release` profile [optimized] target(s) in 4.82s

@@ -1,0 +1,9 @@
+код 0
+cargo 1.97.0 (c980f4866 2026-06-30)
+
+info: syncing channel updates for 1.97.0-x86_64-pc-windows-gnu
+info: latest update on 2026-07-09 for version 1.97.0 (2d8144b78 2026-07-07)
+info: downloading 5 components
+warn: the missing active toolchain `1.97.0-x86_64-pc-windows-gnu` has been auto-installed
+warn: this might cause rustup commands to take longer time to finish than expected
+info: you may opt out with `RUSTUP_AUTO_INSTALL=0` or `rustup set auto-install disable`
