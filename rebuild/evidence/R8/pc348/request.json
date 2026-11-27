@@ -1,0 +1,135 @@
+{
+ "par": 8,
+ "resume": true,
+ "fp": [
+  {
+   "label": "r49_off_anc",
+   "ref": "457df246121d57ea55c0061da6626c2b887c5309",
+   "map": "ancient",
+   "matches": [
+    3,
+    7,
+    11,
+    13,
+    17,
+    19,
+    23,
+    29
+   ],
+   "trace": false,
+   "engine": "chromium"
+  },
+  {
+   "label": "r49_off_mir",
+   "ref": "457df246121d57ea55c0061da6626c2b887c5309",
+   "map": "mirage",
+   "matches": [
+    3,
+    7,
+    11,
+    13,
+    17,
+    19,
+    23,
+    29
+   ],
+   "trace": false,
+   "engine": "chromium"
+  },
+  {
+   "label": "r49_pk_anc",
+   "ref": "457df246121d57ea55c0061da6626c2b887c5309",
+   "map": "ancient",
+   "matches": [
+    3,
+    7,
+    11,
+    13,
+    17,
+    19,
+    23,
+    29
+   ],
+   "trace": false,
+   "engine": "node",
+   "variant": "pack"
+  },
+  {
+   "label": "r49_pk_mir",
+   "ref": "457df246121d57ea55c0061da6626c2b887c5309",
+   "map": "mirage",
+   "matches": [
+    3,
+    7,
+    11,
+    13,
+    17,
+    19,
+    23,
+    29
+   ],
+   "trace": false,
+   "engine": "node",
+   "variant": "pack"
+  },
+  {
+   "label": "r49_am_anc",
+   "ref": "457df246121d57ea55c0061da6626c2b887c5309",
+   "map": "ancient",
+   "matches": [
+    3,
+    7,
+    11,
+    13,
+    17,
+    19,
+    23,
+    29
+   ],
+   "trace": false,
+   "engine": "chromium",
+   "variant": "all-maps"
+  },
+  {
+   "label": "r49_am_mir",
+   "ref": "457df246121d57ea55c0061da6626c2b887c5309",
+   "map": "mirage",
+   "matches": [
+    3,
+    7,
+    11,
+    13,
+    17,
+    19,
+    23,
+    29
+   ],
+   "trace": false,
+   "engine": "chromium",
+   "variant": "all-maps"
+  }
+ ],
+ "marks": [
+  {
+   "label": "r49_marks"
+  }
+ ],
+ "r7": [
+  {
+   "label": "r49_r7",
+   "ref": "457df246121d57ea55c0061da6626c2b887c5309",
+   "maps": [],
+   "engines": [
+    "chromium"
+   ]
+  }
+ ],
+ "require_runtime": {
+  "platform": "win32",
+  "arch": "x64",
+  "node": "v24.21.0",
+  "node_v8": "13.6.233.17-node.53",
+  "playwright": "1.63.0",
+  "chromium": "153.0.8010.12"
+ }
+}

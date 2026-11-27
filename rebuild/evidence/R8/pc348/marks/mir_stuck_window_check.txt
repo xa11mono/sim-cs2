@@ -1,0 +1,42 @@
+код 0
+{
+  "schema": 2,
+  "integrity": "verified",
+  "compatibility": "target-not-provided",
+  "replay": "not-run",
+  "identity": {
+    "match": 3,
+    "round": 11,
+    "map": "mirage",
+    "tick": 62402
+  },
+  "snapshots": {
+    "before": {
+      "match": 3,
+      "round": 11,
+      "tick": 61440,
+      "tickHz": 64,
+      "compressed": true
+    }
+  },
+  "notes": [
+    "Отсутствует identity.gameVersion",
+    "Отсутствует identity.buildHash",
+    "Отсутствует identity.mapHash",
+    "Отсутствует identity.dmath",
+    "Отсутствует identity.seed",
+    "Отсутствует identity.tickHz",
+    "Отсутствует identity.settingsHash",
+    "Отсутствует identity.memoryHash",
+    "Отсутствует identity.environmentId",
+    "Отсутствует owner.text",
+    "Отсутствует owner.expected",
+    "Отсутствует owner.item",
+    "Отсутствует снимок: moment",
+    "Отсутствует сводка наблюдений в момент отметки",
+    "Отсутствует причинный след Р3",
+    "Отсутствует кадр",
+    "Отсутствует журнал диагностических событий"
+  ]
+}
+

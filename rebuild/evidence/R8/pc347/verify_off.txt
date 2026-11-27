@@ -1,0 +1,5 @@
+pk {"off": 14, "on": 0, "rec": 0, "onoff": 0}
+pk mirage/17: след выкл ≠ эталон Р2
+pk mirage/29: след выкл ≠ эталон Р2
+am {"off": 16, "on": 0, "rec": 0, "onoff": 0}
+vb {"off": 16, "on": 0, "rec": 0, "onoff": 0}
