@@ -4774,9 +4774,9 @@
    "field": "_overV",
    "class": "показ",
    "read_by_core": [
-    "levels.js:512",
-    "levels.js:512",
-    "levels.js:512"
+    "levels.js:515",
+    "levels.js:515",
+    "levels.js:515"
    ]
   },
   {
@@ -4811,9 +4811,9 @@
    "field": "_underV",
    "class": "показ",
    "read_by_core": [
-    "levels.js:511",
-    "levels.js:511",
-    "levels.js:511"
+    "levels.js:514",
+    "levels.js:514",
+    "levels.js:514"
    ]
   },
   {

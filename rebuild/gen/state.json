@@ -311,7 +311,7 @@
     "fight": 2,
     "fight-state": 2,
     "fov": 1,
-    "intel": 2,
+    "intel": 1,
     "lurker": 1,
     "position": 2,
     "pro-positions": 1,
@@ -569,7 +569,7 @@
     "look-threat": 29,
     "lurker": 4,
     "position": 1,
-    "reach": 49,
+    "reach": 46,
     "save-retake": 3,
     "self": 1,
     "sites-spots": 5,
@@ -1790,28 +1790,28 @@
     "contact": 37,
     "ct-early": 21,
     "ct-setup": 14,
-    "damage": 20,
+    "damage": 21,
     "decide": 29,
     "economy": 1,
     "endgame": 28,
-    "engagements": 11,
+    "engagements": 12,
     "events": 35,
     "exec-sync": 8,
     "fight": 60,
-    "fight-state": 17,
+    "fight-state": 18,
     "flight": 8,
-    "fov": 4,
+    "fov": 5,
     "geometry3d": 3,
     "igl": 17,
-    "intel": 23,
+    "intel": 24,
     "items": 20,
     "knowledge": 14,
     "levels": 39,
     "lineups": 14,
-    "look": 53,
+    "look": 55,
     "look-arbiter": 28,
-    "look-peek": 50,
-    "look-threat": 15,
+    "look-peek": 54,
+    "look-threat": 16,
     "lurker": 20,
     "modes": 13,
     "move": 23,
@@ -1821,12 +1821,12 @@
     "plan": 5,
     "position": 38,
     "problem-watch": 7,
-    "reach": 8,
+    "reach": 7,
     "roles": 34,
     "save-retake": 40,
     "self": 41,
-    "shoot": 31,
-    "sites-spots": 17,
+    "shoot": 33,
+    "sites-spots": 18,
     "smoke": 7,
     "smoke-react": 23,
     "sound": 28,
@@ -1836,8 +1836,8 @@
     "tick": 5,
     "tick-jump": 16,
     "tick-keys": 2,
-    "tick-step": 26,
-    "turn": 7,
+    "tick-step": 29,
+    "turn": 9,
     "vision": 6,
     "voice": 2,
     "weapons-bots": 4,
@@ -2040,7 +2040,7 @@
    "snap": true
   },
   "FALL_G": {
-   "decl": "levels.js:377",
+   "decl": "levels.js:380",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -2174,7 +2174,7 @@
    "snap": true
   },
   "FIRE_BODY": {
-   "decl": "levels.js:565",
+   "decl": "levels.js:568",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -2195,7 +2195,7 @@
    "snap": true
   },
   "FIRE_DZ": {
-   "decl": "levels.js:569",
+   "decl": "levels.js:572",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -2390,7 +2390,7 @@
    "snap": true
   },
   "FLOOR_HEAD": {
-   "decl": "levels.js:494",
+   "decl": "levels.js:497",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -2802,7 +2802,7 @@
    "snap": "нет: UI"
   },
   "HGT_NEAR": {
-   "decl": "levels.js:487",
+   "decl": "levels.js:490",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -2848,7 +2848,7 @@
    "snap": "нет: UI"
   },
   "HGT_TOP": {
-   "decl": "levels.js:482",
+   "decl": "levels.js:485",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -5327,7 +5327,7 @@
    "snap": true
   },
   "NAV_GAP_TOL": {
-   "decl": "levels.js:313",
+   "decl": "levels.js:316",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -5458,7 +5458,7 @@
    "snap": true
   },
   "NAV_NEAR_DIRS": {
-   "decl": "levels.js:297",
+   "decl": "levels.js:300",
    "init": "ArrayExpression",
    "w": {},
    "m": {},
@@ -5468,7 +5468,7 @@
    "snap": true
   },
   "NAV_OFF_R": {
-   "decl": "levels.js:430",
+   "decl": "levels.js:433",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -5498,7 +5498,7 @@
    "snap": true
   },
   "NAV_STEP_TOL": {
-   "decl": "levels.js:313",
+   "decl": "levels.js:316",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -5510,7 +5510,7 @@
    "snap": true
   },
   "NAV_UNLINKED": {
-   "decl": "levels.js:518",
+   "decl": "levels.js:521",
    "init": "ArrayExpression",
    "w": {},
    "m": {
@@ -7671,7 +7671,7 @@
    "w": {},
    "m": {},
    "r": {
-    "look": 14,
+    "look": 11,
     "look-arbiter": 1
    },
    "snap": "нет: STATIC"
@@ -7933,7 +7933,7 @@
     "plan": 1,
     "position": 1,
     "problem-watch": 1,
-    "reach": 3,
+    "reach": 2,
     "save-retake": 7,
     "self": 1,
     "shoot": 4,
@@ -8042,7 +8042,7 @@
    "snap": true
   },
   "STEP_BODY_Z": {
-   "decl": "levels.js:536",
+   "decl": "levels.js:539",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -8052,7 +8052,7 @@
    "snap": true
   },
   "STEP_UP_Z": {
-   "decl": "levels.js:536",
+   "decl": "levels.js:539",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -8425,7 +8425,7 @@
     "position": 6,
     "pro-positions": 1,
     "problem-watch": 11,
-    "reach": 3,
+    "reach": 2,
     "replay": 16,
     "replay-play": 8,
     "roles": 8,
@@ -12270,14 +12270,14 @@
     "fov": 9,
     "highlights": 4,
     "igl": 35,
-    "intel": 45,
+    "intel": 44,
     "items": 36,
     "journal": 3,
     "killfeed": 1,
     "knowledge": 15,
     "levels": 30,
     "lineups": 14,
-    "look": 48,
+    "look": 46,
     "look-arbiter": 23,
     "look-debug": 22,
     "look-peek": 26,
@@ -12928,23 +12928,23 @@
   },
   "_apBest": {
    "w": [
-    "task.js:559 updatePost",
-    "task.js:560 updatePost"
+    "task.js:562 updatePost",
+    "task.js:563 updatePost"
    ],
    "lit": [],
    "r": 3
   },
   "_apId": {
    "w": [
-    "task.js:559 updatePost"
+    "task.js:562 updatePost"
    ],
    "lit": [],
    "r": 2
   },
   "_apT": {
    "w": [
-    "task.js:559 updatePost",
-    "task.js:560 updatePost"
+    "task.js:562 updatePost",
+    "task.js:563 updatePost"
    ],
    "lit": [],
    "r": 3
@@ -12965,7 +12965,7 @@
   },
   "_area": {
    "w": [
-    "levels.js:583 navSetArea"
+    "levels.js:586 navSetArea"
    ],
    "lit": [],
    "r": 14
@@ -13080,7 +13080,7 @@
   },
   "_climb": {
    "w": [
-    "levels.js:584 navSetClimb"
+    "levels.js:587 navSetClimb"
    ],
    "lit": [],
    "r": 14
@@ -13182,7 +13182,7 @@
   },
   "_detour": {
    "w": [
-    "task.js:581 taskSetDetour"
+    "task.js:584 taskSetDetour"
    ],
    "lit": [],
    "r": 7
@@ -13419,7 +13419,7 @@
   },
   "_fall": {
    "w": [
-    "levels.js:585 navSetFall"
+    "levels.js:588 navSetFall"
    ],
    "lit": [],
    "r": 2
@@ -13513,7 +13513,7 @@
   },
   "_fillLock": {
    "w": [
-    "task.js:582 taskSetFillLock"
+    "task.js:585 taskSetFillLock"
    ],
    "lit": [],
    "r": 2
@@ -13619,16 +13619,16 @@
   },
   "_flx": {
    "w": [
-    "levels.js:381 navFollowFloor",
-    "levels.js:388 navFollowFloor"
+    "levels.js:384 navFollowFloor",
+    "levels.js:391 navFollowFloor"
    ],
    "lit": [],
    "r": 3
   },
   "_fly": {
    "w": [
-    "levels.js:381 navFollowFloor",
-    "levels.js:388 navFollowFloor"
+    "levels.js:384 navFollowFloor",
+    "levels.js:391 navFollowFloor"
    ],
    "lit": [],
    "r": 3
@@ -13670,17 +13670,17 @@
   },
   "_gl": {
    "w": [
-    "look.js:375 smoothLookFilter",
-    "look.js:399 smoothLookFilter",
-    "look.js:401 smoothLookFilter"
+    "look.js:378 smoothLookFilter",
+    "look.js:402 smoothLookFilter",
+    "look.js:404 smoothLookFilter"
    ],
    "lit": [],
    "r": 12
   },
   "_glNext": {
    "w": [
-    "look.js:376 smoothLookFilter",
-    "look.js:385 smoothLookFilter"
+    "look.js:379 smoothLookFilter",
+    "look.js:388 smoothLookFilter"
    ],
    "lit": [],
    "r": 5
@@ -13912,8 +13912,8 @@
   },
   "_jnw": {
    "w": [
-    "levels.js:229 ladderTick",
-    "levels.js:263 ladderTick"
+    "levels.js:232 ladderTick",
+    "levels.js:266 ladderTick"
    ],
    "lit": [],
    "r": 4
@@ -13928,7 +13928,7 @@
   "_jumpPrep": {
    "w": [
     "levels.js:104 jumpFaceWait",
-    "levels.js:269 ladderTick"
+    "levels.js:272 ladderTick"
    ],
    "lit": [],
    "r": 3
@@ -14008,7 +14008,7 @@
   },
   "_landAt": {
    "w": [
-    "levels.js:586 navSetLandAt"
+    "levels.js:589 navSetLandAt"
    ],
    "lit": [],
    "r": 3
@@ -14067,7 +14067,7 @@
   },
   "_lkC": {
    "w": [
-    "look.js:459 lookSetLkC"
+    "look.js:462 lookSetLkC"
    ],
    "lit": [],
    "r": 11
@@ -14082,14 +14082,14 @@
   },
   "_lkPt": {
    "w": [
-    "look.js:460 lookSetLkPt"
+    "look.js:463 lookSetLkPt"
    ],
    "lit": [],
    "r": 17
   },
   "_lkTop": {
    "w": [
-    "look.js:461 lookSetLkTop"
+    "look.js:464 lookSetLkTop"
    ],
    "lit": [],
    "r": 1
@@ -14103,7 +14103,7 @@
   },
   "_lkZ": {
    "w": [
-    "look.js:462 lookSetLkZ"
+    "look.js:465 lookSetLkZ"
    ],
    "lit": [],
    "r": 4
@@ -14270,14 +14270,14 @@
   },
   "_nadeNo": {
    "w": [
-    "throw.js:695 nadeSetNadeNo"
+    "throw.js:696 nadeSetNadeNo"
    ],
    "lit": [],
    "r": 5
   },
   "_nadeT": {
    "w": [
-    "throw.js:696 nadeSetNadeT"
+    "throw.js:697 nadeSetNadeT"
    ],
    "lit": [],
    "r": 3
@@ -14457,8 +14457,8 @@
   },
   "_overV": {
    "w": [
-    "levels.js:505 floorViewReset",
-    "levels.js:512 floorViewTick"
+    "levels.js:508 floorViewReset",
+    "levels.js:515 floorViewTick"
    ],
    "lit": [],
    "r": 5
@@ -14728,7 +14728,7 @@
   },
   "_probeLock": {
    "w": [
-    "task.js:583 taskSetProbeLock"
+    "task.js:586 taskSetProbeLock"
    ],
    "lit": [],
    "r": 1
@@ -14812,7 +14812,7 @@
   },
   "_rearNext": {
    "w": [
-    "look.js:395 smoothLookFilter"
+    "look.js:398 smoothLookFilter"
    ],
    "lit": [],
    "r": 2
@@ -15049,18 +15049,18 @@
   "_sl": {
    "w": [
     "look.js:357 slNew",
-    "look.js:407 smoothLookFilter",
-    "look.js:413 smoothLookFilter",
+    "look.js:410 smoothLookFilter",
     "look.js:416 smoothLookFilter",
     "look.js:419 smoothLookFilter",
-    "look.js:422 smoothLookFilter"
+    "look.js:422 smoothLookFilter",
+    "look.js:425 smoothLookFilter"
    ],
    "lit": [],
    "r": 10
   },
   "_slAtPrev": {
    "w": [
-    "look.js:408 smoothLookFilter"
+    "look.js:411 smoothLookFilter"
    ],
    "lit": [],
    "r": 2
@@ -15288,15 +15288,15 @@
   },
   "_tradeLock": {
    "w": [
-    "intel.js:409 tradeEnd"
+    "intel.js:412 tradeEnd"
    ],
    "lit": [],
    "r": 4
   },
   "_tradeUntil": {
    "w": [
-    "intel.js:406 tradeAlertSet",
-    "intel.js:409 tradeEnd"
+    "intel.js:409 tradeAlertSet",
+    "intel.js:412 tradeEnd"
    ],
    "lit": [],
    "r": 3
@@ -15317,8 +15317,8 @@
   },
   "_underV": {
    "w": [
-    "levels.js:505 floorViewReset",
-    "levels.js:511 floorViewTick"
+    "levels.js:508 floorViewReset",
+    "levels.js:514 floorViewTick"
    ],
    "lit": [],
    "r": 5
@@ -15428,7 +15428,7 @@
   },
   "_zoomTick": {
    "w": [
-    "task.js:569 updatePost"
+    "task.js:572 updatePost"
    ],
    "lit": [],
    "r": 2
@@ -15479,16 +15479,16 @@
   },
   "atPost": {
    "w": [
-    "task.js:584 taskSetAtPost"
+    "task.js:587 taskSetAtPost"
    ],
    "lit": [],
    "r": 59
   },
   "baseX": {
    "w": [
-    "levels.js:208 ladderTick",
-    "levels.js:212 ladderTick",
-    "levels.js:216 ladderTick",
+    "levels.js:211 ladderTick",
+    "levels.js:215 ladderTick",
+    "levels.js:219 ladderTick",
     "modes.js:128 sbPlace",
     "modes.js:182 dvPlace",
     "modes.js:28 warmSpawn",
@@ -15515,9 +15515,9 @@
   },
   "baseY": {
    "w": [
-    "levels.js:208 ladderTick",
-    "levels.js:212 ladderTick",
-    "levels.js:216 ladderTick",
+    "levels.js:211 ladderTick",
+    "levels.js:215 ladderTick",
+    "levels.js:219 ladderTick",
     "modes.js:128 sbPlace",
     "modes.js:182 dvPlace",
     "modes.js:28 warmSpawn",
@@ -15604,7 +15604,7 @@
   "curSpeed": {
    "w": [
     "levels.js:111 jumpFaceWait",
-    "levels.js:217 ladderTick",
+    "levels.js:220 ladderTick",
     "move.js:208 moveSpeedTick",
     "move.js:210 moveSpeedTick",
     "move.js:211 moveSpeedTick",
@@ -15863,7 +15863,7 @@
     "round.js:3",
     "weapons-bots.js:82"
    ],
-   "r": 636
+   "r": 634
   },
   "kills": {
    "w": [
@@ -16009,7 +16009,7 @@
   },
   "nades": {
    "w": [
-    "throw.js:697 nadeSetNades"
+    "throw.js:698 nadeSetNades"
    ],
    "lit": [
     "round.js:3"
@@ -16041,10 +16041,10 @@
   },
   "path": {
    "w": [
-    "levels.js:218 ladderTick",
+    "levels.js:221 ladderTick",
     "levels.js:30 fireRepath",
-    "levels.js:385 navFollowFloor",
-    "levels.js:424 navFollowFloor",
+    "levels.js:388 navFollowFloor",
+    "levels.js:427 navFollowFloor",
     "move.js:180 moveSpeedTick",
     "move.js:187 moveSpeedTick",
     "move.js:26 movePath",
@@ -16062,13 +16062,13 @@
   },
   "pathIdx": {
    "w": [
-    "levels.js:218 ladderTick",
-    "levels.js:233 ladderTick",
-    "levels.js:241 ladderTick",
-    "levels.js:276 ladderTick",
+    "levels.js:221 ladderTick",
+    "levels.js:236 ladderTick",
+    "levels.js:244 ladderTick",
+    "levels.js:279 ladderTick",
     "levels.js:30 fireRepath",
-    "levels.js:385 navFollowFloor",
-    "levels.js:424 navFollowFloor",
+    "levels.js:388 navFollowFloor",
+    "levels.js:427 navFollowFloor",
     "move.js:180 moveSpeedTick",
     "move.js:187 moveSpeedTick",
     "move.js:26 movePath",
@@ -16137,7 +16137,7 @@
     "task.js:537 placeResetPost"
    ],
    "lit": [],
-   "r": 520
+   "r": 518
   },
   "pp": {
    "w": [
@@ -16338,7 +16338,7 @@
   },
   "setupLook": {
    "w": [
-    "task.js:585 taskSetSetupLook"
+    "task.js:588 taskSetSetupLook"
    ],
    "lit": [],
    "r": 0
@@ -16452,7 +16452,7 @@
   },
   "throwUntil": {
    "w": [
-    "throw.js:700 nadeSetThrowUntil"
+    "throw.js:701 nadeSetThrowUntil"
    ],
    "lit": [],
    "r": 10
@@ -16565,13 +16565,13 @@
   },
   "z": {
    "w": [
-    "levels.js:587 navSetZ"
+    "levels.js:590 navSetZ"
    ],
    "lit": [
     "fight.js:223",
     "weapons-bots.js:82"
    ],
-   "r": 285
+   "r": 282
   }
  },
  "hidden": {

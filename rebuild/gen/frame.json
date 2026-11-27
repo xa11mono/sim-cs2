@@ -1229,6 +1229,7 @@
   "DM": {
    "from": "dmath.ts",
    "via": [
+    "_angOff",
     "allLineups",
     "areaHas",
     "buildWaypointPath",
@@ -1239,8 +1240,7 @@
     "hasLOS",
     "m3Line",
     "navMapPoint",
-    "plantBlock",
-    "visFloorAt"
+    "plantBlock"
    ]
   },
   "FIRE_BODY": {
