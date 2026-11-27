@@ -20,22 +20,28 @@ function pointInPoly(px,py,points){
 // (v321) участки навмеша под точкой — по сетке; где пол в два этажа (Mirage: Underpass под Short), берётся участок,
 // ближайший по высоте к z (бот знает свою высоту — bot.z); иначе, как раньше, первый по порядку
 var NAV_GRID = null, NAV_GRID_C = 64;
+// (Р6 К-4, опыт 27.11) рамки участков (x0, y0, x1, y1 по номеру в NAVAREAS) и та же сетка с числовым ключом — строятся вместе с NAV_GRID;
+// точка вне рамки — pointInPoly дал бы false (луч не пересекает ни одной стороны), проверка та же, бит в бит
+var NAV_BB = null, NAV_GRID_N = null, NAV_GRID_OF = null;
 function navGridBuild(){
-  NAV_GRID = {};
+  NAV_GRID = {}; NAV_BB = new Float64Array(NAVAREAS.length*4); NAV_GRID_N = new Map(); NAV_GRID_OF = NAV_GRID;
   NAVAREAS.forEach(function(zn, idx){
     var x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
     zn.points.forEach(function(p){ if(p.x < x0) x0 = p.x; if(p.y < y0) y0 = p.y; if(p.x > x1) x1 = p.x; if(p.y > y1) y1 = p.y; });
+    NAV_BB[idx*4] = x0; NAV_BB[idx*4+1] = y0; NAV_BB[idx*4+2] = x1; NAV_BB[idx*4+3] = y1;
     for(var gx = Math.floor(x0/NAV_GRID_C); gx <= Math.floor(x1/NAV_GRID_C); gx++)
-      for(var gy = Math.floor(y0/NAV_GRID_C); gy <= Math.floor(y1/NAV_GRID_C); gy++){ var k = gx+","+gy; (NAV_GRID[k] || (NAV_GRID[k] = [])).push(idx); }
+      for(var gy = Math.floor(y0/NAV_GRID_C); gy <= Math.floor(y1/NAV_GRID_C); gy++){ var k = gx+","+gy; (NAV_GRID[k] || (NAV_GRID[k] = [])).push(idx); NAV_GRID_N.set((gx + 32768)*65536 + gy + 32768, NAV_GRID[k]); }
   });
 }
+// клетка сетки по точке (числовой ключ); сетку перестроили (NAV_GRID = null / новый объект) — рамки и ключи строятся заново
+function navCell(x, y){ if(!NAV_GRID || NAV_GRID_OF !== NAV_GRID) navGridBuild(); return NAV_GRID_N.get((Math.floor(x/NAV_GRID_C) + 32768)*65536 + Math.floor(y/NAV_GRID_C) + 32768); }
+function navIn(ix, x, y){ var o = ix*4; return !(x < NAV_BB[o] || x > NAV_BB[o+2] || y < NAV_BB[o+1] || y > NAV_BB[o+3]) && pointInPoly(x, y, NAVAREAS[ix].points); }
 function navAt(x, y, z){
-  if(!NAV_GRID) navGridBuild();
-  var L = NAV_GRID[Math.floor(x/NAV_GRID_C)+","+Math.floor(y/NAV_GRID_C)]; if(!L) return null;
+  var L = navCell(x, y); if(!L) return null;
   var first = null, best = null, bd = Infinity;
   for(var i=0;i<L.length;i++){
     var zn = NAVAREAS[L[i]];
-    if(NAV_BLOCKED[zn.id] || !pointInPoly(x,y,zn.points)) continue;
+    if(NAV_BLOCKED[zn.id] || !navIn(L[i], x, y)) continue;
     if(!first) first = zn;
     if(z == null) break;
     var d = Math.abs(zn.z - z); if(d < bd){ bd = d; best = zn; }
@@ -47,10 +53,9 @@ function navAt(x, y, z){
 // у точек поста высоты нет (места про, раскладки — по радару), и путь вёл на пол бота рядом с ящиком. Под точкой несколько этажей
 // (больше ступеньки, 18 ед.) — null: «не знаю», как раньше (пол на уровне бота)
 function navOnlyZ(x, y){
-  if(!NAV_GRID) navGridBuild();
-  var L = NAV_GRID[Math.floor(x/NAV_GRID_C)+","+Math.floor(y/NAV_GRID_C)]; if(!L) return null;
+  var L = navCell(x, y); if(!L) return null;
   var lo = null, hi = -Infinity;
-  for(var i=0;i<L.length;i++){ var zn = NAVAREAS[L[i]]; if(NAV_BLOCKED[zn.id] || !pointInPoly(x, y, zn.points)) continue; if(!lo || zn.z < lo.z) lo = zn; hi = Math.max(hi, zn.z); }
+  for(var i=0;i<L.length;i++){ var zn = NAVAREAS[L[i]]; if(NAV_BLOCKED[zn.id] || !navIn(L[i], x, y)) continue; if(!lo || zn.z < lo.z) lo = zn; hi = Math.max(hi, zn.z); }
   return lo && hi - lo.z <= 18 ? navFloorZ(lo, x, y) : null;
 }
 function zoneOf(x,y,z){
