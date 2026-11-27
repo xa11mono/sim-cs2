@@ -534,7 +534,7 @@
 
 ## `_saveSpot`
 
-- **хозяин** `retakeSetSaveSpot · save-retake` — 1 (стр. 502)
+- **хозяин** `retakeSetSaveSpot · save-retake` — 1 (стр. 505)
 
 ## `_sawEnemy`
 
@@ -693,7 +693,7 @@
 
 ## `retakeRole`
 
-- **хозяин** `retakeSetRetakeRole · save-retake` — 1 (стр. 503)
+- **хозяин** `retakeSetRetakeRole · save-retake` — 1 (стр. 506)
 
 ## `roamCheckStart`
 
