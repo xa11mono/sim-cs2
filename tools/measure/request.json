@@ -1,3 +1,48 @@
-{"par": 8, "jobs": [
-  {"label": "b2_mir_a5", "ref": "d71ba75743497183374dc3762db1de5484583fbc", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29]}
-]}
+{
+ "par": 8,
+ "resume": true,
+ "fp": [
+  {
+   "label": "r50_iso_anc",
+   "ref": "8ddcba99b246e499fdcc90bb2b93b361860ce5aa",
+   "map": "ancient",
+   "matches": [
+    3,
+    7,
+    11,
+    13,
+    17,
+    19,
+    23,
+    29
+   ],
+   "trace": false,
+   "engine": "chromium"
+  },
+  {
+   "label": "r50_iso_mir",
+   "ref": "8ddcba99b246e499fdcc90bb2b93b361860ce5aa",
+   "map": "mirage",
+   "matches": [
+    3,
+    7,
+    11,
+    13,
+    17,
+    19,
+    23,
+    29
+   ],
+   "trace": false,
+   "engine": "chromium"
+  }
+ ],
+ "require_runtime": {
+  "platform": "win32",
+  "arch": "x64",
+  "node": "v24.21.0",
+  "node_v8": "13.6.233.17-node.53",
+  "playwright": "1.63.0",
+  "chromium": "153.0.8010.12"
+ }
+}
