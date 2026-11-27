@@ -49,8 +49,9 @@ function flankClaim(b, eid, take){
 function flankAssist(b){
   // (v521, отметка владельца 10.11: sh1ro шёл в обход, враг сдвинулся на 40 px — с точки обхода его больше не видно, sh1ro стоял, пока zont1x не убили)
   // точка обхода, откуда врага уже не видно, — пересматривается сразу (не через 3 с), не чаще раза в 0,5 с
-  var FL = b.post && b.post.tag === "repos:flank" && b._flankE ? teamBot(b._flankE) : null;
-  var flStale = FL && FL.alive && tick - (b._flankT || 0) >= 32 && !hasLOS(b.post.x, b.post.y, FL.x, FL.y, b.z, FL.z);
+  // (изоляция, 27.11; аудит № 13) где враг сейчас — по знанию команды (последнее известное: радар, колл, слух — kvLast), а не истинное место
+  var FL = b.post && b.post.tag === "repos:flank" && b._flankE ? kvLast(b.team)[b._flankE] : null;
+  var flStale = FL && tick - (b._flankT || 0) >= 32 && !hasLOS(b.post.x, b.post.y, FL.x, FL.y, b.z, FL.z);
   if(b.hp <= LOW_HP || (b._fcFlank && tick < b._fcFlank && !flStale)) return false;
   if(b.team === "CT" && b.post && taskProp(b.post.tag, "holdsSite")) return false;   // держит сайт — не бросает
   // (отметка владельца 18.11, м1 р1 т1912: мидер ушёл с мида заходить на одного T, замеченного на A; владелец: «когда только выход начался либо
@@ -62,7 +63,8 @@ function flankAssist(b){
   bots.forEach(function(m){
     if(mate || m === b || !m.alive || m.team !== b.team || !m._sawEnemy || (m.contactStreak||0) < 20) return;
     var d = DM.hypot(m.x-b.x, m.y-b.y); if(d <= (300) || d > 900) return;
-    var e = m._nearestEnemyBot; if(!e || !e.alive) return; mate = m; E = e; });
+    // (изоляция, 27.11; аудит № 13) враг, которого напарник ВИДИТ сейчас (радар команды CS2 показывает его всем), — не «ближайший» по движку
+    var e = m._nearestEnemyBot; if(!e || !e.alive || (m._visible || []).indexOf(e) < 0) return; mate = m; E = e; });
   if(!mate) return false;
   if(!flankClaim(b, E.id)) return false;
   b._fcFlank = tick + 3*TICK_HZ;

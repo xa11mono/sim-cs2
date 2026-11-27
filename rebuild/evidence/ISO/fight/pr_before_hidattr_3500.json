@@ -1,0 +1,13 @@
+{
+ "family": "hidattr",
+ "match": 3,
+ "probe": true,
+ "want": "fclost",
+ "at": 3570,
+ "observer": "CT",
+ "change": "поза и ствол (скрыто): T0=AWP присел T1=AWP присел T3=AWP присел",
+ "aa": "A = A",
+ "probed": "CT2:duelEval+duelOdds+ninjaOk CT4:duelContext+ninjaOk",
+ "diff": [],
+ "verdict": "чисто: ответы те же"
+}

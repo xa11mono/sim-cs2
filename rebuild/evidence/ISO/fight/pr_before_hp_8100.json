@@ -1,0 +1,20 @@
+{
+ "family": "hp",
+ "match": 3,
+ "probe": true,
+ "want": "nearest",
+ "at": 8124,
+ "observer": "CT",
+ "change": "HP врагов: T0=27 T1=27 T2=27 T3=27 T4=27",
+ "aa": "A = A",
+ "probed": "CT0:duelContext+ninjaOk CT1:ninjaOk CT2:ninjaOk CT4:ninjaOk",
+ "diff": [
+  {
+   "bot": "CT0",
+   "fn": "duelContext",
+   "A": "{\"trade\":1,\"up\":false,\"forced\":false,\"hurtFoe\":false,\"awpLine\":false,\"flashed\":false}",
+   "B": "{\"trade\":1,\"up\":false,\"forced\":false,\"hurtFoe\":true,\"awpLine\":false,\"flashed\":false}"
+  }
+ ],
+ "verdict": "УТЕЧКА: ответ функции решения изменился при тех же законных входах"
+}

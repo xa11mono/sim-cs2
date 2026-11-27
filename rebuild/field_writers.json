@@ -931,9 +931,6 @@
   "_smokePush": [
    "endgame · smokeEdgeTick"
   ],
-  "_smokeShot": [
-   "smoke-react · smokeSpamTick"
-  ],
   "_smokeWait": [
    "endgame · smokeEdgeTick"
   ],

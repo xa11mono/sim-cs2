@@ -1,0 +1,20 @@
+{
+ "family": "blindvis",
+ "match": 3,
+ "probe": true,
+ "want": "nearest",
+ "at": 6610,
+ "observer": "CT",
+ "change": "ослеплены 2 с (видимые): T1 T3",
+ "aa": "A = A",
+ "probed": "CT0:ninjaOk CT1:ninjaOk CT2:duelContext+ninjaOk CT3:ninjaOk CT4:ninjaOk",
+ "diff": [
+  {
+   "bot": "CT2",
+   "fn": "duelContext",
+   "A": "{\"trade\":4,\"up\":false,\"forced\":false,\"hurtFoe\":false,\"awpLine\":false,\"flashed\":false}",
+   "B": "{\"trade\":4,\"up\":false,\"forced\":false,\"hurtFoe\":false,\"awpLine\":false,\"flashed\":true}"
+  }
+ ],
+ "verdict": "УТЕЧКА: ответ функции решения изменился при тех же законных входах"
+}

@@ -71,6 +71,28 @@ const FAMILIES = {
   blind: `(function(){ var own = bots.filter(function(o){ return o.alive && o.team === '${OBS}'; });
     var E = bots.filter(function(o){ return o.alive && o.team !== '${OBS}' && !own.some(function(m){ return (m._visible || []).indexOf(o) >= 0; }); }); if(!E.length) return null;
     E.forEach(function(o){ o.blindUntil = tick + 2*TICK_HZ; }); return 'ослеплены 2 с: ' + E.map(function(o){ return o.id; }).join(' '); })()`,
+  // скрытый остаток ослепления у врагов, которых наблюдатели видят (видно тело и ствол, не таймер ослепления)
+  blindvis: `(function(){ var own = bots.filter(function(o){ return o.alive && o.team === '${OBS}'; });
+    var E = bots.filter(function(o){ return o.alive && o.team !== '${OBS}' && own.some(function(m){ return (m._visible || []).indexOf(o) >= 0; }); }); if(!E.length) return null;
+    E.forEach(function(o){ o.blindUntil = tick + 2*TICK_HZ; }); return 'ослеплены 2 с (видимые): ' + E.map(function(o){ return o.id; }).join(' '); })()`,
+  // положительные (законное знание команды; с --probe --positive ответ обязан измениться):
+  // команда попала по каждому врагу на 80 (teamIntel.hurt — оценка по своим попаданиям)
+  hurtknown: `(function(){ var E = bots.filter(function(o){ return o.alive && o.team !== '${OBS}'; }); if(!E.length) return null;
+    var HT = teamIntel['${OBS}'].hurt || (teamIntel['${OBS}'].hurt = {}); E.forEach(function(o){ HT[o.id] = {hp: 20, dmg: 80, tick: tick, by: null}; });
+    return 'команда попала по ' + E.map(function(o){ return o.id; }).join(' ') + ' на 80'; })()`,
+  // своя флешка хлопнула на глазах у команды: враги ослеплены по оценке ещё 2 с (teamIntel.flashed)
+  flashknown: `(function(){ var E = bots.filter(function(o){ return o.alive && o.team !== '${OBS}'; }); if(!E.length) return null;
+    var TF = teamIntel['${OBS}'].flashed || (teamIntel['${OBS}'].flashed = {}); E.forEach(function(o){ TF[o.id] = tick + 2*TICK_HZ; });
+    return 'видели, как флешка ослепила ' + E.map(function(o){ return o.id; }).join(' '); })()`,
+  // в снимке увиденного у бота другой ствол врага перестрелки (видел AWP / AK)
+  seenwpn: `(function(){ var r = []; bots.forEach(function(b){ var F = b._fc; if(!b.alive || b.team !== '${OBS}' || !F || !F.e || (b._visible || []).indexOf(F.e) >= 0) return;
+    var B = b.know && b.know.enemies[F.e.id]; if(!B || !B.seen) return; B.seen.weapon = B.seen.weapon === 'AWP' ? 'AK' : 'AWP'; r.push(b.id + ' помнит у ' + F.e.id + ' ' + B.seen.weapon); });
+    return r.length ? r.join(', ') : null; })()`,
+  // скрытые поза и оружие в руках у врагов, которых наблюдатели сейчас не видят (видели раньше — знание прежнее)
+  hidattr: `(function(){ var own = bots.filter(function(o){ return o.alive && o.team === '${OBS}'; });
+    var E = bots.filter(function(o){ return o.alive && o.team !== '${OBS}' && !own.some(function(m){ return (m._visible || []).indexOf(o) >= 0; }); }); if(!E.length) return null;
+    E.forEach(function(o){ o.crouching = !o.crouching; o.weapon = WEAPONS[o.weapon && o.weapon.key === 'AWP' ? 'AK' : 'AWP']; });
+    return 'поза и ствол (скрыто): ' + E.map(function(o){ return o.id + '=' + o.weapon.key + (o.crouching ? ' присел' : ''); }).join(' '); })()`,
   // скрытый основной слот у врага с пистолетом в руках (видимо только оружие в руках)
   slot: `(function(){ var E = bots.filter(function(o){ return o.alive && o.team !== '${OBS}' && o.weapon && o.weapon.key !== o.primary; }); if(!E.length) return null;
     E.forEach(function(o){ o.primary = o.primary === 'AK' || o.primary === 'M4' ? null : (o.team === 'T' ? 'AK' : 'M4'); });
@@ -89,6 +111,32 @@ function run(mutate) {
   const desc = mutate ? EV(FAMILIES[FAM]) : 'нет';
   const out = []; for (let i = 0; i < N; i++) { EV('stepTick(); 1'); out.push(JSON.parse(EV('MK_SIG("' + OBS + '")'))); if (EV('roundState') !== 'live') break; }
   return { desc, out };
+}
+// (27.11) проба (--probe): тот же тик, те же законные входы P — ответы функций решения до и после скрытого изменения (без хода игры; как пробы
+// аудита Codex в VM). Различие ответа при равных P — утечка в этой функции. Точка — первый тик от --at, где у наблюдателя есть случай
+// (--want: nearest — видит врага; fclost — перестрелка, врага сейчас не видит; any). Функции, которых нет в сборке, — по её версии
+const PROBE = `(function(obs){ var R = {}; bots.forEach(function(b){ if(!b.alive || b.team !== obs) return; var o = {};
+    if(b._nearestEnemyBot) o.duelContext = duelContext(b, [], 0);
+    var F = b._fc; if(F && F.e){ o.duelEval = duelEval(b, F, null); var FE = typeof duelFoe === 'function' ? duelFoe(b, F.e) : F.e;
+      o.duelOdds = FE ? duelOdds(b, FE, FE.x, FE.y) : null; }
+    if(typeof ninjaOk === 'function' && b.team === 'CT') try { o.ninjaOk = ninjaOk(b); } catch(e) { o.ninjaOk = 'ошибка'; }
+    R[b.id] = o; }); return JSON.stringify(R); })`;
+const WANT = { nearest: `bots.some(function(b){ return b.alive && b.team === '${OBS}' && b._nearestEnemyBot; })`,
+  fclost: `bots.some(function(b){ return b.alive && b.team === '${OBS}' && b._fc && b._fc.e && b._fc.e.alive && (b._visible || []).indexOf(b._fc.e) < 0; })`, any: 'true' };
+if (A.probe) {
+  const w = WANT[A.want || 'nearest']; EV(`var __n = 0; while(!(roundState === 'live' && (${w})) && __n++ < 200000) stepTick(); globalThis.__MK_S = mkSnapshot(); 1`);
+  const tP = EV('tick'), sig = () => JSON.parse(EV('MK_SIG("' + OBS + '")')).P, pr = () => JSON.parse(EV(PROBE + '("' + OBS + '")'));
+  EV('mkRestore(__MK_S); 1'); const P0 = sig(), R0 = pr(); EV('mkRestore(__MK_S); 1'); const R0b = pr();
+  EV('mkRestore(__MK_S); 1'); const desc = EV(FAMILIES[FAM]), P1 = sig(), R1 = pr();
+  const res = { family: FAM, match: M, probe: true, want: A.want || 'nearest', at: tP, observer: OBS, change: desc, aa: JSON.stringify(R0) === JSON.stringify(R0b) ? 'A = A' : 'A ≠ A' };
+  if (desc === null) res.verdict = 'пара не годится: изменение невозможно в этой точке';
+  else if (JSON.stringify(P0) !== JSON.stringify(P1)) res.verdict = 'пара не годится: изменение задело законный вход';
+  else { const d = []; for (const id of Object.keys(R0)) for (const f of Object.keys(Object.assign({}, R0[id], R1[id] || {})))
+      if (JSON.stringify(R0[id][f]) !== JSON.stringify((R1[id] || {})[f])) d.push({ bot: id, fn: f, A: JSON.stringify(R0[id][f]).slice(0, 200), B: JSON.stringify((R1[id] || {})[f]).slice(0, 200) });
+    res.probed = Object.keys(R0).map(id => id + ':' + Object.keys(R0[id]).join('+')).join(' ');
+    res.diff = d; res.verdict = A.positive ? (d.length ? 'положительная пройдена: законное знание изменило ответ' : 'ПОЛОЖИТЕЛЬНАЯ не пройдена: законное знание не изменило ответ') :
+      d.length ? 'УТЕЧКА: ответ функции решения изменился при тех же законных входах' : (res.probed.indexOf(':d') < 0 && res.probed.indexOf(':n') < 0 ? 'пробовать нечего в этой точке' : 'чисто: ответы те же'); }
+  console.log(JSON.stringify(res, null, 1)); process.exit(0);
 }
 const a = run(false), a2 = run(false), b = run(true);
 const eq = (x, y) => JSON.stringify(x) === JSON.stringify(y);

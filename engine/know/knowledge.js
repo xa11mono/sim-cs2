@@ -300,7 +300,10 @@ function knowVision(b){
                 weapon: e.weapon && e.weapon.key};
     var was = B && B.visible;
     if(!B){ B = K.enemies[e.id] = {id: e.id, side: e.team}; }
-    B.last = last; B.visible = true; B.mine = !!own[e.id];   // (v432) visible — видит команда (радар), mine — сам (колл «вижу» — только своё)
+    B.last = last; B.visible = true; B.mine = !!own[e.id];
+    // (изоляция, аудит Codex F-B, 27.11) снимок увиденного: место, высота, ствол в руках (видно / колл); поза — только своими глазами. Его читает
+    // перестрелка после потери зрения (duelFoe, fight.js) вместо живого объекта врага
+    B.seen = {x: e.x, y: e.y, z: e.z, weapon: e.weapon && e.weapon.key, crouching: own[e.id] ? !!e.crouching : !!(B.seen && B.seen.crouching), tick: tick};   // (v432) visible — видит команда (радар), mine — сам (колл «вижу» — только своё)
     B.hyps = [{type: "held", zone: last.zone, x: last.x, y: last.y, weight: 1}];
     if(e.planting && !K.planted) K.plantSeen = knowNearestSite(e.x, e.y);
     if(!was) knowTrace(b, e.id, "увидел (" + knowZoneName(last.zone) + ")");

@@ -1,0 +1,13 @@
+{
+ "family": "hp",
+ "match": 3,
+ "probe": true,
+ "want": "nearest",
+ "at": 8518,
+ "observer": "CT",
+ "change": "HP врагов: T0=27 T1=27 T2=27 T3=27 T4=27",
+ "aa": "A = A",
+ "probed": "CT0:ninjaOk CT1:ninjaOk CT2:ninjaOk CT3:duelContext+ninjaOk CT4:ninjaOk",
+ "diff": [],
+ "verdict": "чисто: ответы те же"
+}

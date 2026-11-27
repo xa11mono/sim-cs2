@@ -60,6 +60,12 @@ function detonate(n){ var _ev = simEvIn("detonate", arguments);
       if(!b.alive) return;
       var d = n.z != null ? DM.hypot3(b.x-n.x, b.y-n.y, (n.z - visFloorAt(b.x, b.y, b.z) - VIS_EYE.stand)/(MAP.pxUnits || 2.5)) : DM.hypot(b.x-n.x, b.y-n.y);   // (v519) в 3D
       var dirK = flashDirK(b, n); if(!dirK) return;
+      // (изоляция, аудит Codex F-A, 27.11) команда бросившего знает «ослеплён», только если видела врага в момент хлопка: оценка — по
+      // видимому взгляду и расстоянию (та же формула, без скрытого «успел отвернуться»), до тика конца оценки. Настоящий остаток — нет
+      var FT = n.thrower && n.thrower.team !== b.team ? n.thrower.team : null;
+      if(FT && bots.some(function(m){ return m.alive && m.team === FT && (m._visible || []).indexOf(b) >= 0; })){
+        var sK = BAL.flashMax * dirK * Math.max(0, 1 - d/1100);
+        if(sK > 0.35){ var TF = teamIntel[FT].flashed || (teamIntel[FT].flashed = {}); TF[b.id] = Math.max(TF[b.id] || 0, tick + Math.round(sK*TICK_HZ)); } }
       // враг, который видел/слышал летящую флешку, может успеть отвернуться —
       // тем вероятнее, чем выше навык (раньше флешка слепила "по учебнику" всегда)
       // (этап 3, P2-2) свой отворачивается наверняка (×0,18 ниже), только если дослушал колл «флешу!» до хлопка;

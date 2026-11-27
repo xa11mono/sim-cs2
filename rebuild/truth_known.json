@@ -46,11 +46,6 @@
    "why": "убит T — флешки у своих T рядом (ветка victim.team === \"T\")",
    "n": 1
   },
-  "smoke-react:smokeSpamTick:x,y": {
-   "class": "движок",
-   "why": "прострел смока: куда целится — решение (P.pt); враг на линии стрельбы за дымом — попадание пули (tryShoot по тому, кто на линии), а не выбор цели",
-   "n": 1
-  },
   "smoke-react:smokeShiftOnDetonate:lookTarget,post,x,y,z": {
    "class": "свои",
    "why": "элемент — действующий: держал угол, который закрыл чужой смок, сам меняет позицию",
@@ -171,11 +166,6 @@
    "why": "слух: источник звука сверху / снизу — высота источника (модель слуха)",
    "n": 1
   },
-  "contact:contactTick:teamBot.→duelOdds": {
-   "class": "восприятие",
-   "why": "оценка дуэли с врагом контакта: оружие и присед врага (duelOdds) — видны в контакте; место — из контакта (C.x, C.y). Допущение: контакт свежий — Р3-К4 (проверить, что всегда видел)",
-   "n": 1
-  },
   "throw:nadeOwnerOk:teamBot.post": {
    "class": "свои",
    "why": "бросающий своей команды (F.by)",
@@ -184,11 +174,6 @@
   "lineups:tSoloThrower:teamBot.nades,tRole,x,y": {
    "class": "свои",
    "why": "свой T-бросающий",
-   "n": 1
-  },
-  "assist:flankAssist:teamBot.x,y,z": {
-   "class": "истина",
-   "why": "обход: видно ли врага с точки обхода — по истинному месту врага (FL.x / y / z), а не по знанию — Р3-К4",
    "n": 1
   },
   "assist:ambushTick:teamBot.x,y,→ambPassing,→applyDamage,→knowSound": {

@@ -168,19 +168,8 @@
   },
   {
    "file": "smoke-react.js",
-   "fn": "smokeSpamTick",
-   "line": 113,
-   "props": [
-    "x",
-    "y"
-   ],
-   "kind": "враг",
-   "perception": false
-  },
-  {
-   "file": "smoke-react.js",
    "fn": "smokeShiftOnDetonate",
-   "line": 203,
+   "line": 200,
    "props": [
     "lookTarget",
     "post",
@@ -398,7 +387,7 @@
   {
    "file": "assist.js",
    "fn": "ambFoes",
-   "line": 212,
+   "line": 214,
    "props": [
     "x",
     "y"
@@ -505,16 +494,6 @@
    "perception": false
   },
   {
-   "file": "contact.js",
-   "fn": "contactTick",
-   "line": 189,
-   "props": [
-    "teamBot.→duelOdds"
-   ],
-   "kind": "teamBot",
-   "perception": false
-  },
-  {
    "file": "throw.js",
    "fn": "nadeOwnerOk",
    "line": 434,
@@ -536,18 +515,8 @@
   },
   {
    "file": "assist.js",
-   "fn": "flankAssist",
-   "line": 52,
-   "props": [
-    "teamBot.x,y,z"
-   ],
-   "kind": "teamBot",
-   "perception": false
-  },
-  {
-   "file": "assist.js",
    "fn": "ambushTick",
-   "line": 334,
+   "line": 336,
    "props": [
     "teamBot.x,y,→ambPassing,→applyDamage,→knowSound"
    ],

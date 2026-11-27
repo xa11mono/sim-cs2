@@ -1,0 +1,26 @@
+{
+ "family": "hidattr",
+ "match": 3,
+ "probe": true,
+ "want": "fclost",
+ "at": 8127,
+ "observer": "CT",
+ "change": "поза и ствол (скрыто): T0=AWP присел T1=AWP присел T2=AWP присел T3=AWP присел T4=AWP присел",
+ "aa": "A = A",
+ "probed": "CT0:duelEval+duelOdds+ninjaOk CT1:ninjaOk CT2:ninjaOk CT4:ninjaOk",
+ "diff": [
+  {
+   "bot": "CT0",
+   "fn": "duelEval",
+   "A": "{\"sees\":false,\"mine\":1.8903150525087515,\"theirs\":1.5,\"ret\":null,\"ammoOk\":true,\"win\":true,\"trapped\":true,\"bal\":0.6896551724137931}",
+   "B": "{\"sees\":false,\"mine\":1.8903150525087515,\"theirs\":4.390243902439025,\"ret\":null,\"ammoOk\":true,\"win\":true,\"trapped\":true,\"bal\":0.7500000000000001}"
+  },
+  {
+   "bot": "CT0",
+   "fn": "duelOdds",
+   "A": "{\"mine\":{\"t\":0.8401400233372228,\"shots\":12},\"theirs\":0.675,\"ammoOk\":true,\"ok\":true}",
+   "B": "{\"mine\":{\"t\":0.8401400233372228,\"shots\":12},\"theirs\":1.4634146341463414,\"ammoOk\":true,\"ok\":false}"
+  }
+ ],
+ "verdict": "УТЕЧКА: ответ функции решения изменился при тех же законных входах"
+}

@@ -186,7 +186,7 @@ function contactTick(b){
       // размен с ним сейчас не проигрышный (та же оценка, что повторный пик в бою — 470 duelOdds) — тоже преимущество
       // (22.11, Ж23, м271222 р6: karrigan до контакта получил «преимущество» по оценке дуэли с настоящим оружием врага, которого только слышал)
       // оценка дуэли — довод только после СВОЕЙ перестрелки с ним (видел его и оружие); до контакта это знание, которого нет
-      || (fought && !!(function(){ var eo = C.id ? teamBot(C.id) : null, o = eo ? duelOdds(b, eo, C.x, C.y) : null; return o && o.ok; })());                         // (дуэли 06.11) ранил его больше, чем получил, — добить
+      || (fought && !!(function(){ var eo = C.id ? duelFoe(b, teamBot(C.id)) : null, o = eo ? duelOdds(b, eo, C.x, C.y) : null; return o && o.ok; })());                         // (дуэли 06.11) ранил его больше, чем получил, — добить
     if(!adv && !C.own) adv = !!nadeAskFlash(b, look, "флешу под пик "+b.id+" ("+calloutName(look.x, look.y)+")", undefined, nadeOwnerOf(b, C.id || null));
     if(!adv) swing = false;
   }

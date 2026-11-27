@@ -100,26 +100,23 @@ function smokeSpamTick(){
       P = b._spam = {pt:BF, s:null, blind:true, seen:true, bursts:SMK.burstsMin, shot:0, nextBurst:tick + (b.reactionTicks||12), until:b.blindUntil}; }
     if(P){
       if(tick < P.nextBurst) return;
-      // стреляем: если на линии за дымом реально кто-то есть — настоящий выстрел
-      // (с пониженной точностью), иначе — очередь "по памяти" в дым
+      // (изоляция, аудит Codex F-C, 27.11) очередь — в точку намерения P.pt (где враг по знанию: видел, слышал, колл); попадёт ли пуля в того,
+      // кто на линии, решает физика пули (blindBullet → bulletLineHit). Было: поиск настоящего тела на линии и прицельный tryShoot по нему —
+      // выбор цели и отмена очереди по истине
       if(tick < (b.nextShotTick||0)) return;
       // (v528, владелец 10.11: «с AWP смок на ходу не простреливают — остановиться и выстрелить, и то редко; вдали он обычно стоит») снайперка
       // (оружие с прицелом, scopeTicks) в дым стреляет только с точной скорости (≤ 34 % — та же граница, что у разброса, shotSpread): на ходу
       // не стреляет, стоит — стреляет. Ради прострела не останавливается (как часто останавливаться — владелец: редко; числа нет)
       // (v555) звук дефуза / планта — стреляет и с AWP на ходу (дефуз важнее точности; в дыму всё равно не видно)
       if(b.weapon.scopeTicks && b.curSpeed > 0.34*SPEED*weaponSpeedMul(b) && !P.urgent) return;
-      var aim = DM.atan2(P.pt.y-b.y, P.pt.x-b.x), foe = null;
+      var aim = DM.atan2(P.pt.y-b.y, P.pt.x-b.x);
       if(b.facing !== undefined && _angOff(aim, b.facing) > 0.2 && !P.blind) return;   // сначала довести прицел (слепой не видит прицела — как есть)
-      if(!P.blind) bots.forEach(function(e){ if(foe || !e.alive || e.team === b.team) return; var d = DM.hypot(e.x-b.x, e.y-b.y); if(d > 900) return;
-        if(_angOff(DM.atan2(e.y-b.y, e.x-b.x), aim) > 0.12 || !hasLOS(b.x, b.y, e.x, e.y, b.z) || !smokeBlocks(b.x, b.y, e.x, e.y)) return; foe = e; });
       // (отметка владельца 18.11, м5 р2 т6916, CT1 на Catwalk: «на радаре стреляет в пол») цель прямо под краем Catwalk — линия от глаз к
       // её груди упирается в бортик края через 32 ед. (3D-геометрия, bulletClip3), до смока пуля не долетает. Живой игрок так не простреливает:
       // упёрся — прострел снят (слепой не видит, куда стреляет, — как есть)
-      if(!foe && !P.blind){ var cl0 = bulletClip3(b, P.pt.x, P.pt.y, P.pt), sm0 = P.s || smokes.filter(function(s){ return segHitsCircle(b.x, b.y, P.pt.x, P.pt.y, s.x, s.y, smokeRadiusNow(s)); })[0];
+      if(!P.blind){ var cl0 = bulletClip3(b, P.pt.x, P.pt.y, P.pt), sm0 = P.s || smokes.filter(function(s){ return segHitsCircle(b.x, b.y, P.pt.x, P.pt.y, s.x, s.y, smokeRadiusNow(s)); })[0];
         if(cl0.wall && (!sm0 || DM.hypot(cl0.x-b.x, cl0.y-b.y) < DM.hypot(sm0.x-b.x, sm0.y-b.y) - smokeRadiusNow(sm0))){ b._spam = null; return; } }
-      var fired = false;
-      if(foe){ var a0 = b.ammo; b._smokeShot = true; tryShoot(b, foe, DM.hypot(foe.x-b.x, foe.y-b.y)); b._smokeShot = false; fired = b.ammo !== a0; if(fired) smokeHoleFlight(b, {x: foe.x, y: foe.y, z: foe.z}); }
-      else fired = blindBullet(b, P.blind ? {x:P.pt.x, y:P.pt.y, z:P.pt.z, spread:BLIND_SPREAD} : P.pt);
+      var fired = blindBullet(b, P.blind ? {x:P.pt.x, y:P.pt.y, z:P.pt.z, spread:BLIND_SPREAD} : P.pt);
       if(fired && ++P.shot >= SMK.bullets){ P.shot = 0; P.bursts--; P.nextBurst = tick + (P.urgent ? 0 : SMK.burstGap); if(P.bursts <= 0) b._spam = null; }   // (v555) на дефуз — без пауз
       return;
     }
