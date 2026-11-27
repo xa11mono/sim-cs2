@@ -21,17 +21,24 @@ function zoneDijkstra(fromId, toId, team, ctx){
   var key = fromId + "|" + (team||"") + (ctx.quiet ? "|q" : "") + "|" + (fx0 ? fx0.x + "," + fx0.y : "") + "|" + (fireOn ? fires.map(function(f){ return f.x + "," + f.y + "," + f.born; }).join(";") : "") + "|" +
             KP.map(function(q){ return q.x + "," + q.y + "," + q.w; }).join(";");
   var DJ = ZDJ.tick === tick && ZDJ.m === matchNum && ZDJ.graph === zoneGraph ? ZDJ.s : (ZDJ.tick = tick, ZDJ.m = matchNum, ZDJ.graph = zoneGraph, ZDJ.s = {});
+  // (Р6 К-1 п. 2, опыт 27.11) поиск на плотных массивах: номер участка (ZIX), расстояния Float64Array, «раскрыт» / «есть расстояние» Uint8Array,
+  // предок и точка входа — массивы по номеру; куча — та же (те же значения и порядок вставки), значение участка — как его положили в кучу
+  var X = zixFor(zoneGraph), ix = function(id){ var k = X.idx.get(String(id)); return k === undefined ? zixAdd(X, id) : k; };
+  var f0 = ix(fromId), toI = ix(toId), N = X.n + 64;
   var S = DJ[key];
-  if(!S){ S = DJ[key] = {dist: {}, prev: {}, visited: {}, entry: {}, heap: makeHeap(), relax: null}; S.dist[fromId] = 0; if(fx0) S.entry[fromId] = fx0; S.heap.push(fromId, 0); }
-  var dist = S.dist, prev = S.prev, visited = S.visited, entry = S.entry, heap = S.heap;
-  var relax = function(u){
+  if(!S){ S = DJ[key] = {dist: new Float64Array(N), has: new Uint8Array(N), vis: new Uint8Array(N), prev: [], entry: [], order: [], heap: makeHeap(), relax: null, n: N};
+    S.dist[f0] = 0; S.has[f0] = 1; if(fx0) S.entry[f0] = fx0; S.heap.push(fromId, 0); }
+  if(S.n < X.n) zixGrow(S, X.n + 64);
+  var dist = S.dist, has = S.has, vis = S.vis, prev = S.prev, entry = S.entry, heap = S.heap;
+  var relax = function(u, ui){
     // (v406, владелец 22.10: «зачем все идут в одну точку, а не прямо вниз» — спавн T → T Ramp) длина — от точки, через которую в участок
     // вошли (середина перехода; у начала — сама точка старта, ctx.from), а не от центра участка: по центрам мелко нарезанная
     // рампа «стоила» дороже бордюра того же пути. Переход между участками — ROUTE_PORTAL (было 40 — проектное число)
-    var fromCentroid = entry[u] || zoneCentroid(zonesById[u]);
-    var EL = zoneGraph[u] || [], nKP = KP.length;
-    for(var ei = 0; ei < EL.length; ei++){ var edge = EL[ei];
-      if(visited[edge.to]) continue;
+    var fromCentroid = entry[ui] || zoneCentroid(zonesById[u]);
+    var EL = zoneGraph[u] || [], nKP = KP.length, TI = zixEdges(X, u, EL);
+    if(X.n > S.n){ zixGrow(S, X.n + 64); dist = S.dist; has = S.has; vis = S.vis; }   // новый участок (граф поменяли на месте) — массивы шире
+    for(var ei = 0; ei < EL.length; ei++){ var edge = EL[ei], ti = TI[ei];
+      if(vis[ti]) continue;
       var w = dist2(fromCentroid, edge.mid) + ROUTE_PORTAL + navJumpCost(zonesById[u], edge, ctx.quiet); // small fixed cost per portal crossing
       if(side && side[edge.to] !== undefined && side[edge.to] < ROUTE_SIDE_LINE) w *= ROUTE_ENEMY_SIDE;   // (v259) CT — по своей стороне
       // (v438, док владельца 27.10: «боты часто идут в молик») переход в горящем огне — дороже на FIRE_DETOUR: путь обходит молотов, если обход
@@ -44,34 +51,42 @@ function zoneDijkstra(fromId, toId, team, ctx){
         for(var kq = 0; kq < nKP; kq++){ var kqp = KP[kq];
           if(mxx < kqp.x - KR || mnx > kqp.x + KR || mxy < kqp.y - KR || mny > kqp.y + KR) continue;
           w += knownSegCost(fromCentroid, edge.mid, kqp); } }
-      var alt = dist[u] + w;
-      if(dist[edge.to]===undefined || alt<dist[edge.to]){
-        dist[edge.to] = alt; prev[edge.to] = u; entry[edge.to] = edge.mid; heap.push(edge.to, alt);
+      var alt = dist[ui] + w;
+      if(!has[ti] || alt<dist[ti]){
+        dist[ti] = alt; has[ti] = 1; prev[ti] = u; entry[ti] = edge.mid; heap.push(edge.to, alt);
       }
     }
   };
-  if(!visited[toId]){
-    if(S.relax != null){ relax(S.relax); S.relax = null; }   // прошлый поиск остановился на своей цели, не раскрыв её переходы
+  if(!vis[toI]){
+    if(S.relax != null){ relax(S.relax, ix(S.relax)); S.relax = null; }   // прошлый поиск остановился на своей цели, не раскрыв её переходы
     while(heap.size()){
-      var u = heap.pop().id;
-      if(visited[u]) continue;
-      visited[u] = true;
-      if(u===toId){ S.relax = u; break; }
-      relax(u);
+      var u = heap.pop().id, ui = ix(u);
+      if(vis[ui]) continue;
+      vis[ui] = 1; S.order.push(u);
+      if(ui===toI){ S.relax = u; break; }
+      relax(u, ui);
     }
   }
-  if(dist[toId]===undefined){
+  if(!has[toI]){
     if(!ctx.nearest) return null;
-    // (v375) цель недостижима — ближайший к ней участок, до которого путь есть (см. buildWaypointPath)
-    var tc = zoneCentroid(zonesById[toId]), bestN = null, bd = Infinity;
-    Object.keys(visited).forEach(function(k){ var c = zoneCentroid(zonesById[k]); if(!c) return; var d = DM.hypot(c.x-tc.x, c.y-tc.y); if(d < bd){ bd = d; bestN = k; } });
+    // (v375) цель недостижима — ближайший к ней участок, до которого путь есть (см. buildWaypointPath); порядок перебора — как у ключей
+    // объекта «раскрытые» (числовые по возрастанию, затем остальные по порядку раскрытия)
+    var tc = zoneCentroid(zonesById[toId]), bestN = null, bd = Infinity, VO = {}; S.order.forEach(function(k){ VO[k] = true; });
+    Object.keys(VO).forEach(function(k){ var c = zoneCentroid(zonesById[k]); if(!c) return; var d = DM.hypot(c.x-tc.x, c.y-tc.y); if(d < bd){ bd = d; bestN = k; } });
     if(bestN == null) return null; toId = isNaN(+bestN) ? bestN : +bestN;
   }
   var path=[toId], cur=toId;
-  while(cur!==fromId){ cur=prev[cur]; if(cur===undefined) return null; path.push(cur); }
+  while(cur!==fromId){ var ci = X.idx.get(String(cur)); cur = ci === undefined ? undefined : prev[ci]; if(cur===undefined) return null; path.push(cur); }
   path.reverse();
   return path;
 }
+// номера участков графа: idx (строка id → номер), рёбра участка → номера концов (по ссылке на список рёбер — список заменили, номера заново)
+var ZIX = {graph: null};
+function zixFor(G){ if(ZIX.graph !== G){ ZIX = {graph: G, idx: new Map(), n: 0, E: new Map()}; Object.keys(G).forEach(function(k){ zixAdd(ZIX, k); (G[k] || []).forEach(function(e){ zixAdd(ZIX, e.to); }); }); } return ZIX; }
+function zixAdd(X, id){ var k = String(id), i = X.idx.get(k); if(i === undefined){ i = X.n++; X.idx.set(k, i); } return i; }
+function zixEdges(X, u, EL){ var k = String(u), e = X.E.get(k); if(e && e.L === EL && e.n === EL.length) return e.T;
+  var T = new Int32Array(EL.length); for(var i = 0; i < EL.length; i++) T[i] = zixAdd(X, EL[i].to); X.E.set(k, {L: EL, n: EL.length, T: T}); return T; }
+function zixGrow(S, n){ var d = new Float64Array(n); d.set(S.dist); S.dist = d; var h = new Uint8Array(n); h.set(S.has); S.has = h; var v = new Uint8Array(n); v.set(S.vis); S.vis = v; S.n = n; }
 
 // ---------- funnel / string-pull (Simple Stupid Funnel Algorithm) ----------
 // Turns the crude "walk through every portal midpoint" zigzag into a taut
