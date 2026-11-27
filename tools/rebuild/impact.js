@@ -4,10 +4,11 @@
 // переменных) → сцены, где выполняются читатели этих переменных. Игру не меняет; читает git и исходник.
 // Запуск: node tools/rebuild/impact.js [<база>..<конец> | <коммит>]  (по умолчанию HEAD~1..HEAD; без коммита: --work — рабочее дерево против HEAD)
 //         [--json] — машинный ответ (для L1: tools/rebuild/l1.js)
+//         [--both] — Машинный ответ и Markdown одного анализа
 'use strict';
 const fs = require('fs'), path = require('path'), cp = require('child_process');
 const acorn = require('acorn'), walk = require('acorn-walk'), GS = require('./game_src.js'), ROOT = GS.ROOT;
-const A = process.argv.slice(2), JSONOUT = A.includes('--json'), WORK = A.includes('--work');
+const A = process.argv.slice(2), JSONOUT = A.includes('--json'), BOTH = A.includes('--both'), WORK = A.includes('--work');
 const spec = A.find(x => !x.startsWith('--')) || 'HEAD~1..HEAD';
 const [BASE, TIP] = WORK ? ['HEAD', null] : spec.includes('..') ? spec.split('..') : [spec + '~1', spec];
 const git = (args) => cp.execFileSync('git', args, { cwd: ROOT, encoding: 'utf8', maxBuffer: 1 << 28 });
@@ -80,7 +81,8 @@ function main() {
     written: [...written], mechanics_changed: mechChanged, mechanics_reading: mechReaders, scenes, scenes_total: SC ? Object.keys(SC.scenes).length : 0, scene_map: SC ? SC.built : null };
   if (JSONOUT) { console.log(JSON.stringify(res)); return; }
   const L = []; L.push('# Анализ влияния: ' + res.range, '');
-  if (!files.length) { L.push('Файлы игры не менялись — механики и сцены не задеты.'); console.log(L.join('\n')); return; }
+  const emit = () => console.log(BOTH ? JSON.stringify({ impact: res, markdown: L.join('\n') + '\n' }) : L.join('\n'));
+  if (!files.length) { L.push('Файлы игры не менялись — механики и сцены не задеты.'); emit(); return; }
   L.push('**Изменены файлы игры:** ' + files.join(', '), '', '**Изменённые функции (' + res.changed_functions.length + '):** ' + (res.changed_functions.join(', ') || '—'));
   if (topVars.size) L.push('', '**Изменены объявления вне функций:** ' + [...topVars].join(', '));
   L.push('', '**Механики изменённых файлов:**', ...mechChanged.map(m => '- ' + m));
@@ -91,6 +93,6 @@ function main() {
   else { L.push('', '**Сцены реестра, где выполняются изменённые функции (' + scenes.length + ' из ' + res.scenes_total + '; карта сцен — ' + (SC.built.at || '?') + '):**');
     scenes.forEach(s => L.push('- ' + s.id + ' (' + s.file + ') — ' + (s.functions.length ? s.functions.slice(0, 6).join(', ') + (s.functions.length > 6 ? ', …' : '') : 'читатели изменённых переменных: ' + s.readers_of_changed_vars.join(', '))));
     if (!scenes.length) L.push('- ни одна сцена не выполняет изменённые функции'); }
-  console.log(L.join('\n'));
+  emit();
 }
 main();

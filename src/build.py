@@ -2,36 +2,84 @@
 # python3 src/build.py [--map ancient] [куда]  → dist/sim.html (с тестовым входом window.__ev для замеров)
 # v255: на место метки @@BUILD@@ вставляется «Отметить момент» (src/marks_build.py)
 # v317: на место метки @@MAP@@ — набор выбранной карты из data/maps/<карта>/ (src/mapset.py)
-import sys, os
-HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
+# L1_MULTI_MAP_V1: --map-output MAP HTML (повторяемый)
+import argparse
+import os
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+from gamesrc import bundle_modules, game_source
+from mapset import inject_map, map_arg
 from marks_build import inject
-from mapset import map_arg, inject_map
-from gamesrc import game_source   # v377: исходник игры — склейка src/game/*
-WORKER = '--worker' in sys.argv; sys.argv = [x for x in sys.argv if x != '--worker']   # (Р5.2) ядро симуляции внутрь страницы — для режима Worker
-name, args = map_arg(sys.argv[1:])
-out = args[0] if args else os.path.join(HERE, '..', 'dist', 'sim.html')   # (Р4.3) артефакты сборки — dist/
-os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
-s = inject_map(inject(game_source()), name)
-open(out, 'w', encoding='utf-8').write(s)
-from gamesrc import bundle_modules; bundle_modules(out)   # (17.11, перестройка — модули) каналы-модули — esbuild
-from syntaxcheck import check; check(out)   # (v461) битая страница — сборка падает сразу
-if WORKER:   # (Р5.2, 26.11) ядро той же карты (tools/node/core_build.py) — текстом в странице; страница с ?worker=1 запускает его в Worker
-    import tempfile, subprocess as _sp
-    _core = os.path.join(tempfile.mkdtemp(), 'core.js')
-    _sp.run([sys.executable, os.path.join(HERE, '..', 'tools', 'node', 'core_build.py'), '--map', name, _core], check=True, capture_output=True)
-    _txt = open(_core, encoding='utf-8').read().replace('</script', '<\\/script')
-    _s = open(out, encoding='utf-8').read(); _i = _s.index('<script')
-    open(out, 'w', encoding='utf-8').write(_s[:_i] + '<script type="text/plain" id="simCore">' + _txt + '</script>\n' + _s[_i:])
-    print('режим Worker: ядро %d КБ внутри страницы' % (len(_txt) // 1024))
-# (15.11, перестройка, фаза 2) проверка владения полей бота (rebuild/owners.json, tools/rebuild/gen_maps.js --check): страницу не меняет.
-# До переноса канала — предупреждения; перенесённый канал (enforce) — сборка падает. Нет node или acorn — проверка пропущена (с надписью).
-import subprocess, shutil
-_gm = os.path.join(HERE, '..', 'tools', 'rebuild', 'gen_maps.js')
-_env = dict(os.environ); _env['NODE_PATH'] = os.pathsep.join(filter(None, [_env.get('NODE_PATH'), os.path.join(HERE, '..', 'tools', 'rebuild', 'node_modules'), '/opt/node-tools/node_modules', '/opt/npm-tools/node_modules']))   # (17.11) — и пакеты сборки модулей (ставятся сами)
-if not shutil.which('node'): print('проверка владения полей пропущена: нет node')
-else:
-    _r = subprocess.run(['node', '-e', 'require("acorn");require("acorn-walk")'], env=_env, capture_output=True)
-    if _r.returncode: print('проверка владения полей пропущена: нет acorn / acorn-walk (npm i acorn acorn-walk или NODE_PATH)')
+from syntaxcheck import check
+
+HERE = Path(__file__).resolve().parent
+
+
+def build_page(template, name, out, worker):
+    out = Path(out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(inject_map(template, name), encoding='utf-8')
+    bundle_modules(str(out))
+    check(str(out))
+    if worker:
+        import tempfile
+        with tempfile.TemporaryDirectory() as temp:
+            core = Path(temp) / 'core.js'
+            subprocess.run(
+                [sys.executable, str(HERE.parent / 'tools/node/core_build.py'), '--map', name, str(core)],
+                check=True, capture_output=True,
+            )
+            text = core.read_text(encoding='utf-8').replace('</script', '<\\/script')
+        html = out.read_text(encoding='utf-8')
+        start = html.index('<script')
+        out.write_text(html[:start] + '<script type="text/plain" id="simCore">' + text + '</script>\n' + html[start:],
+                       encoding='utf-8')
+        print('режим Worker: ядро %d КБ внутри страницы' % (len(text) // 1024))
+
+
+def check_ownership(required=False):
+    # Проверка анализирует общий исходник и реестры, без чтения HTML и данных карты.
+    tools = HERE.parent / 'tools' / 'rebuild'
+    env = dict(os.environ)
+    env['NODE_PATH'] = os.pathsep.join(filter(None, [
+        env.get('NODE_PATH'), str(tools / 'node_modules'), '/opt/node-tools/node_modules', '/opt/npm-tools/node_modules',
+    ]))
+    if not shutil.which('node'):
+        missing = 'нет node'
+    elif subprocess.run(['node', '-e', 'require("acorn");require("acorn-walk")'], env=env, capture_output=True).returncode:
+        missing = 'нет acorn / acorn-walk (npm i acorn acorn-walk или NODE_PATH)'
     else:
-        _r = subprocess.run(['node', _gm, '--check'], env=_env)
-        if _r.returncode: sys.exit('сборка остановлена: поле перенесённого канала пишут мимо хозяина (rebuild/owners.json)')
+        if subprocess.run(['node', str(tools / 'gen_maps.js'), '--check'], env=env).returncode:
+            sys.exit('сборка остановлена: поле перенесённого канала пишут мимо хозяина (rebuild/owners.json)')
+        return
+    if required:
+        sys.exit('проверка владения полей невозможна: ' + missing)
+    print('проверка владения полей пропущена: ' + missing)
+
+
+def main(argv):
+    if '--map-output' in argv:
+        parser = argparse.ArgumentParser(description='Сборка карт из одной неизменяемой рабочей копии')
+        parser.add_argument('--map-output', action='append', nargs=2, metavar=('MAP', 'HTML'), required=True)
+        args = parser.parse_args(argv)
+        outputs = [Path(out).resolve() for _, out in args.map_output]
+        if len(set(outputs)) != len(outputs):
+            parser.error('Для каждой карты нужен отдельный путь HTML')
+        template = inject(game_source())
+        for name, out in args.map_output:
+            build_page(template, name, out, worker=False)
+        check_ownership(required=True)
+        return
+
+    worker = '--worker' in argv
+    name, args = map_arg([arg for arg in argv if arg != '--worker'])
+    out = args[0] if args else HERE.parent / 'dist' / 'sim.html'
+    build_page(inject(game_source()), name, out, worker)
+    check_ownership()
+
+
+if __name__ == '__main__':
+    main(sys.argv[1:])
