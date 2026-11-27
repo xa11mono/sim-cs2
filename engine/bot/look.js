@@ -366,6 +366,9 @@ function lookRearThreat(b){
   threatEntrances(b.team, {x:b.x, y:b.y}, 400).forEach(function(e){ if(e.w >= LOOK.claimMin && _angOff(DM.atan2(e.pt.y-b.y, e.pt.x-b.x), hd) > SL.glMax && (!best || e.w > best.w)) best = {pt:e.pt, w:e.w}; });
   return best;
 }
+function nextGlanceTick(b){
+  return tick + SL.glEvery[0] + Math.floor(hashRand(tick*13 + b.id.charCodeAt(b.id.length-1)*7)*(SL.glEvery[1]-SL.glEvery[0]));
+}
 function smoothLookFilter(b, look, urgent){
   var moving = b.curSpeed > 60*SPD_K && b.heading !== undefined;
   // (18.11, владелец: «чередовать») стоя с поручённым углом — мельком на второй угол (lookAssigned) по тем же часам, что на ходу
@@ -373,7 +376,7 @@ function smoothLookFilter(b, look, urgent){
     if(b._gl && tick < b._gl.until){ look = b._gl.pt; lookReasonSet(b, "glance"); }
     else if(tick >= (b._glNext||0)){
       if(b._glNext) { b._gl = {pt:{x:b._lkAltPt.x, y:b._lkAltPt.y}, until: tick + SL.glDur}; look = b._gl.pt; lookReasonSet(b, "glance"); }
-      b._glNext = tick + SL.glEvery[0] + Math.floor(hashRand(tick*13 + b.id.charCodeAt(b.id.length-1)*7)*(SL.glEvery[1]-SL.glEvery[0]));
+      b._glNext = nextGlanceTick(b);
     }
   }
   // на бегу без цели — изредка короткий взгляд на опасный угол сбоку
@@ -382,7 +385,7 @@ function smoothLookFilter(b, look, urgent){
     // второго тика удержание принимало точку за угол плана и держало после конца взгляда
     if(b._gl && tick < b._gl.until && (tick & 3 || lookVisible(b, b._gl.pt))){ look = b._gl.pt; lookReasonSet(b, "glance"); }   // скрылась за стеной — мельком кончился
     else if(tick >= (b._glNext||0)){
-      b._glNext = tick + SL.glEvery[0] + Math.floor(hashRand(tick*13 + b.id.charCodeAt(b.id.length-1)*7)*(SL.glEvery[1]-SL.glEvery[0]));
+      b._glNext = nextGlanceTick(b);
       var best = null, bs = SL.glSc;
       (typeof lookCands === "function" ? lookCands(b) : []).forEach(function(c){
         if(!c || !c.pt) return;

@@ -217,6 +217,9 @@ function knownRole(o){
   var r = setupRegionAt(h.x, h.y);
   return r === "A" ? "anchorA" : r === "B" ? "anchorB" : r === "mid" ? "mid" : null;
 }
+function intelTradeMiss(bot){
+  return BAL.execErr && bot.prof && hashRand(tick*29 + bot.id.charCodeAt(1)*11) < (1-prof(bot, "disc"))*0.12;
+}
 function intelDeath(victim, killer, side){
   if(!victim || roundState !== "live") return;
   // (v519, пак 09.11 п.10; А-38: «убили мид, убили двоих опорников A, а опорник другого сайта до сих пор стоит» — «T у другого сайта» считался
@@ -294,7 +297,7 @@ function intelDeath(victim, killer, side){
     traders.forEach(function(T, k){
       var o = T.b;
       if(teamSaving(o.team)) return;   // (v247) команда сейвит — не меняем
-      if(BAL.execErr && o.prof && hashRand(tick*29 + o.id.charCodeAt(1)*11) < (1-prof(o, "disc"))*0.12){ noteMistake(o, "не разменял "+victim.id); return; }
+      if(intelTradeMiss(o)){ noteMistake(o, "не разменял "+victim.id); return; }
       // выходит НЕ в ту же точку, где умер тиммейт (туда у убийцы уже стоит
       // прицел), а под другим углом — чтобы тому пришлось доводить прицел
       var swAll = pickSpots("tradeR"+tick+o.id, {x:victim.x, y:victim.y}, 5, {team: side, rMax:170, minGap:30, see:[kp]}), swC = swAll.filter(function(q){ return !spotTaken(o, q); });   // (v370) не в одну точку с напарником
@@ -375,7 +378,7 @@ function intelDeath(victim, killer, side){
     // размен уже взял ближайший — остальные не лезут в тот же прострелянный угол
     if(traders.length){ knowAvoidPeek(b, {x:victim.x, y:victim.y}, 8); return; }
     // "меня убили отсюда" — ближние тиммейты смотрят туда и идут разменивать
-    if(BAL.execErr && b.prof && hashRand(tick*29 + b.id.charCodeAt(1)*11) < (1-prof(b, "disc"))*0.12){ noteMistake(b, "не разменял "+victim.id); return; }
+    if(intelTradeMiss(b)){ noteMistake(b, "не разменял "+victim.id); return; }
     // стрелка не видели и он не рядом — это не трейд, а второй пик в тот же
     // прострелянный угол: не лезть туда же ~8с (держать, ждать, обходить)
     if(!saw || (killer && DM.hypot(killer.x-b.x, killer.y-b.y) > 650)){
