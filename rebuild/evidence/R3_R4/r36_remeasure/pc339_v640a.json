@@ -1,0 +1,254 @@
+{
+ "anc": {
+  "matches": 8,
+  "totals": {
+   "stall": 300,
+   "stall.block": 247,
+   "stall.geom": 0,
+   "stall.free": 53,
+   "stall.path": 0,
+   "stall.ep": 208,
+   "danger": 108,
+   "danger.flashKnown": 4,
+   "nav": 26,
+   "kills": 1104
+  },
+  "share_of_stall": {
+   "stall.block": 0.823,
+   "stall.geom": 0.0,
+   "stall.free": 0.177,
+   "stall.path": 0.0
+  },
+  "stall_per_episode": 1.442,
+  "dangerBy": {
+   "взрыв": 20,
+   "флешка без реакции": 75,
+   "стоит в огне": 13
+  },
+  "danger_flash_without_knowledge": 71,
+  "per_match": [
+   {
+    "match": 11,
+    "finished": true,
+    "stall": 15,
+    "stall.block": 10,
+    "stall.geom": 0,
+    "stall.free": 5,
+    "stall.path": 0,
+    "stall.ep": 15,
+    "danger": 9,
+    "danger.flashKnown": 0
+   },
+   {
+    "match": 13,
+    "finished": true,
+    "stall": 26,
+    "stall.block": 20,
+    "stall.geom": 0,
+    "stall.free": 6,
+    "stall.path": 0,
+    "stall.ep": 25,
+    "danger": 18,
+    "danger.flashKnown": 1
+   },
+   {
+    "match": 17,
+    "finished": true,
+    "stall": 28,
+    "stall.block": 15,
+    "stall.geom": 0,
+    "stall.free": 13,
+    "stall.path": 0,
+    "stall.ep": 27,
+    "danger": 15,
+    "danger.flashKnown": 1
+   },
+   {
+    "match": 19,
+    "finished": true,
+    "stall": 25,
+    "stall.block": 22,
+    "stall.geom": 0,
+    "stall.free": 3,
+    "stall.path": 0,
+    "stall.ep": 24,
+    "danger": 14,
+    "danger.flashKnown": 0
+   },
+   {
+    "match": 23,
+    "finished": true,
+    "stall": 12,
+    "stall.block": 12,
+    "stall.geom": 0,
+    "stall.free": 0,
+    "stall.path": 0,
+    "stall.ep": 11,
+    "danger": 10,
+    "danger.flashKnown": 0
+   },
+   {
+    "match": 29,
+    "finished": true,
+    "stall": 32,
+    "stall.block": 21,
+    "stall.geom": 0,
+    "stall.free": 11,
+    "stall.path": 0,
+    "stall.ep": 31,
+    "danger": 21,
+    "danger.flashKnown": 2
+   },
+   {
+    "match": 3,
+    "finished": true,
+    "stall": 118,
+    "stall.block": 113,
+    "stall.geom": 0,
+    "stall.free": 5,
+    "stall.path": 0,
+    "stall.ep": 31,
+    "danger": 9,
+    "danger.flashKnown": 0
+   },
+   {
+    "match": 7,
+    "finished": true,
+    "stall": 44,
+    "stall.block": 34,
+    "stall.geom": 0,
+    "stall.free": 10,
+    "stall.path": 0,
+    "stall.ep": 44,
+    "danger": 12,
+    "danger.flashKnown": 0
+   }
+  ]
+ },
+ "mir": {
+  "matches": 8,
+  "totals": {
+   "stall": 215,
+   "stall.block": 140,
+   "stall.geom": 6,
+   "stall.free": 68,
+   "stall.path": 1,
+   "stall.ep": 206,
+   "danger": 81,
+   "danger.flashKnown": 7,
+   "nav": 310,
+   "kills": 1196
+  },
+  "share_of_stall": {
+   "stall.block": 0.651,
+   "stall.geom": 0.028,
+   "stall.free": 0.316,
+   "stall.path": 0.005
+  },
+  "stall_per_episode": 1.044,
+  "dangerBy": {
+   "флешка без реакции": 43,
+   "стоит в огне": 16,
+   "взрыв": 22
+  },
+  "danger_flash_without_knowledge": 36,
+  "per_match": [
+   {
+    "match": 11,
+    "finished": true,
+    "stall": 18,
+    "stall.block": 15,
+    "stall.geom": 0,
+    "stall.free": 3,
+    "stall.path": 0,
+    "stall.ep": 18,
+    "danger": 9,
+    "danger.flashKnown": 2
+   },
+   {
+    "match": 13,
+    "finished": true,
+    "stall": 25,
+    "stall.block": 16,
+    "stall.geom": 2,
+    "stall.free": 7,
+    "stall.path": 0,
+    "stall.ep": 25,
+    "danger": 11,
+    "danger.flashKnown": 0
+   },
+   {
+    "match": 17,
+    "finished": true,
+    "stall": 23,
+    "stall.block": 17,
+    "stall.geom": 0,
+    "stall.free": 6,
+    "stall.path": 0,
+    "stall.ep": 23,
+    "danger": 6,
+    "danger.flashKnown": 0
+   },
+   {
+    "match": 19,
+    "finished": true,
+    "stall": 28,
+    "stall.block": 22,
+    "stall.geom": 0,
+    "stall.free": 6,
+    "stall.path": 0,
+    "stall.ep": 26,
+    "danger": 10,
+    "danger.flashKnown": 1
+   },
+   {
+    "match": 23,
+    "finished": true,
+    "stall": 29,
+    "stall.block": 16,
+    "stall.geom": 2,
+    "stall.free": 10,
+    "stall.path": 1,
+    "stall.ep": 28,
+    "danger": 7,
+    "danger.flashKnown": 0
+   },
+   {
+    "match": 29,
+    "finished": true,
+    "stall": 39,
+    "stall.block": 21,
+    "stall.geom": 0,
+    "stall.free": 18,
+    "stall.path": 0,
+    "stall.ep": 36,
+    "danger": 12,
+    "danger.flashKnown": 0
+   },
+   {
+    "match": 3,
+    "finished": true,
+    "stall": 33,
+    "stall.block": 23,
+    "stall.geom": 2,
+    "stall.free": 8,
+    "stall.path": 0,
+    "stall.ep": 31,
+    "danger": 12,
+    "danger.flashKnown": 2
+   },
+   {
+    "match": 7,
+    "finished": true,
+    "stall": 20,
+    "stall.block": 10,
+    "stall.geom": 0,
+    "stall.free": 10,
+    "stall.path": 0,
+    "stall.ep": 19,
+    "danger": 14,
+    "danger.flashKnown": 2
+   }
+  ]
+ }
+}
