@@ -1,0 +1,10 @@
+{
+ "family": "defrem",
+ "match": 3,
+ "at": 26867,
+ "observer": "T",
+ "ticks": 416,
+ "change": null,
+ "aa": "A = A",
+ "verdict": "пара не годится: изменение невозможно в этой точке"
+}

@@ -1,0 +1,13 @@
+{
+ "family": "blindvis",
+ "match": 3,
+ "probe": true,
+ "want": "nearest",
+ "at": 5654,
+ "observer": "CT",
+ "change": "ослеплены 2 с (видимые): T3",
+ "aa": "A = A",
+ "probed": "CT1:ninjaOk CT2:ninjaOk CT4:duelContext+duelEval+duelOdds+ninjaOk",
+ "diff": [],
+ "verdict": "чисто: ответы те же"
+}

@@ -1,0 +1,26 @@
+{
+ "family": "seenwpn",
+ "match": 3,
+ "probe": true,
+ "want": "fclost",
+ "at": 1826,
+ "observer": "CT",
+ "change": "CT0 помнит у T4 AWP",
+ "aa": "A = A",
+ "probed": "CT0:duelEval+duelOdds+ninjaOk CT1:duelContext+duelEval+duelOdds+ninjaOk CT2:ninjaOk CT3:ninjaOk CT4:ninjaOk",
+ "diff": [
+  {
+   "bot": "CT0",
+   "fn": "duelEval",
+   "A": "{\"sees\":false,\"mine\":2.76,\"theirs\":2.1,\"ret\":null,\"ammoOk\":true,\"win\":true,\"trapped\":true,\"bal\":1}",
+   "B": "{\"sees\":false,\"mine\":2.76,\"theirs\":4.390243902439025,\"ret\":null,\"ammoOk\":true,\"win\":true,\"trapped\":true,\"bal\":1}"
+  },
+  {
+   "bot": "CT0",
+   "fn": "duelOdds",
+   "A": "{\"mine\":{\"t\":2.76,\"shots\":23},\"theirs\":2.1,\"ammoOk\":true,\"ok\":true}",
+   "B": "{\"mine\":{\"t\":2.76,\"shots\":23},\"theirs\":4.390243902439025,\"ammoOk\":true,\"ok\":true}"
+  }
+ ],
+ "verdict": "положительная пройдена: законное знание изменило ответ"
+}

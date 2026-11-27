@@ -1,0 +1,13 @@
+{
+ "family": "c4move",
+ "match": 3,
+ "probe": true,
+ "want": "c4hidden",
+ "at": 12178,
+ "observer": "CT",
+ "change": "C4 1455,829 → 1625,846 (B)",
+ "aa": "A = A",
+ "probed": "CT0:ninjaOk+ctBombPos+ctBombSite+ppLayer+defuseEta",
+ "diff": [],
+ "verdict": "чисто: ответы те же"
+}

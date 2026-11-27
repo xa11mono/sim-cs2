@@ -1,0 +1,11 @@
+{
+ "family": "c4move",
+ "match": 29,
+ "probe": true,
+ "want": "c4hidden",
+ "at": 17509,
+ "observer": "CT",
+ "change": null,
+ "aa": "A = A",
+ "verdict": "пара не годится: изменение невозможно в этой точке"
+}

@@ -1,0 +1,13 @@
+{
+ "family": "defflag",
+ "match": 3,
+ "probe": true,
+ "want": "planted",
+ "at": 3673,
+ "observer": "T",
+ "change": "скрытый флаг дефуза: CT0",
+ "aa": "A = A",
+ "probed": "T0:tDefuseKnow+tDefusePt+taskSlackSec T1:tDefuseKnow+tDefusePt+taskSlackSec T2:tDefuseKnow+tDefusePt+taskSlackSec T3:tDefuseKnow+tDefusePt+taskSlackSec",
+ "diff": [],
+ "verdict": "чисто: ответы те же"
+}

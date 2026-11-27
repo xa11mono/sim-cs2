@@ -1,0 +1,20 @@
+{
+ "family": "hurtknown",
+ "match": 3,
+ "probe": true,
+ "want": "nearest",
+ "at": 2623,
+ "observer": "CT",
+ "change": "команда попала по T0 T1 T2 T3 T4 на 80",
+ "aa": "A = A",
+ "probed": "CT0:ninjaOk CT1:ninjaOk CT2:duelContext+ninjaOk CT3:ninjaOk CT4:ninjaOk",
+ "diff": [
+  {
+   "bot": "CT2",
+   "fn": "duelContext",
+   "A": "{\"trade\":0,\"up\":false,\"forced\":false,\"hurtFoe\":false,\"awpLine\":false,\"flashHyp\":false}",
+   "B": "{\"trade\":0,\"up\":false,\"forced\":false,\"hurtFoe\":true,\"awpLine\":false,\"flashHyp\":false}"
+  }
+ ],
+ "verdict": "положительная пройдена: законное знание изменило ответ"
+}
