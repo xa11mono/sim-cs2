@@ -290,6 +290,34 @@ def main():
         out = r0out(j); core = os.path.join(sims, j['label'] + '.core.js'); build(j['ref'], j.get('map', 'ancient'), core, True)
         r0sh(['node', os.path.join(ROOT, 'tools', 'node', 'mass_run.js'), core, '--matches=' + ','.join(str(m) for m in j.get('matches', [3, 7, 11, 13, 17, 19, 23, 29])),
               '--threads=%d' % j.get('threads', 4), '--out=' + os.path.join(out, 'mass.json')] + (['--check'] if j.get('check') else []), out, 'mass')
+    # (Р7, 27.11) ядра Rust (tools/r7/kernels этой ветки исполнителя): {"r7": [{"label","ref","maps"?,"match"?,"ticks"?,"speed_ticks"?,"repeat"?,"engines"?}]}
+    # сборка WASM и N-API (набор Rust — ~/.simcs2_rust, как в «rust»); на каждой карте: «тень» (каждый луч и поиск пути — JS и ядро, бит в бит)
+    # N-API и WASM; скорость в Node (js / napi / wasm попеременно); в странице каждого движка — js / wasm, хэш игры
+    for j in req.get('r7', []):
+        out = r0out(j); home = os.path.join(os.path.expanduser('~'), '.simcs2_rust'); env = dict(os.environ)
+        env['RUSTUP_HOME'] = os.path.join(home, 'rustup'); env['CARGO_HOME'] = os.path.join(home, 'cargo')
+        bindir = os.path.join(env['CARGO_HOME'], 'bin'); env['PATH'] = bindir + os.pathsep + env.get('PATH', '')
+        cargo = os.path.join(bindir, 'cargo.exe' if os.name == 'nt' else 'cargo')
+        if not os.path.exists(cargo): cargo = shutil.which('cargo') or cargo
+        r0sh([os.path.join(bindir, 'rustup.exe' if os.name == 'nt' else 'rustup'), 'target', 'add', 'wasm32-unknown-unknown'], out, 'rustup_wasm', env=env)
+        r0sh([cargo, '--version'], out, 'cargo_version', env=env)
+        kd = os.path.join(ROOT, 'tools', 'r7', 'kernels'); man = os.path.join(kd, 'Cargo.toml')
+        ok_w = r0sh([cargo, 'build', '--release', '--manifest-path', man, '--target', 'wasm32-unknown-unknown', '--lib'], out, 'build_wasm', env=env) == 0
+        ok_n = r0sh([cargo, 'build', '--release', '--manifest-path', man, '--features', 'napi', '--target-dir', os.path.join(kd, 'target-napi')], out, 'build_napi', env=env) == 0
+        if not (ok_w and ok_n): continue
+        home2 = os.path.join(os.path.expanduser('~'), '.simcs2_node'); npx = os.path.join(home2, 'node_modules', '.bin', 'playwright.cmd' if os.name == 'nt' else 'playwright')
+        engines = j.get('engines', ['chromium', 'firefox', 'webkit']); r0sh([npx, 'install'] + [e for e in engines if e != 'chromium'], out, 'install', cwd=home2)
+        run = os.path.join(kd, 'js', 'run.js'); page = os.path.join(kd, 'js', 'page_run.js')
+        for mp in j.get('maps', ['ancient', 'mirage']):
+            core = os.path.join(sims, j['label'] + '_' + mp + '.core.js'); build(j['ref'], mp, core, True)
+            sim = os.path.join(sims, j['label'] + '_' + mp + '.html'); build(j['ref'], mp, sim)
+            m, T, ST = str(j.get('match', 3)), str(j.get('ticks', 15040)), str(j.get('speed_ticks', 6000))
+            for be in ('napi', 'wasm'): r0sh(['node', run, core, m, T, be, 'shadow'], out, 'shadow_%s_%s' % (mp, be))
+            for r in range(int(j.get('repeat', 3))):
+                for be in ('js', 'napi', 'wasm'): r0sh(['node', run, core, m, ST, be, 'speed'], out, 'speed_%s_%s_%d' % (mp, be, r))
+            for e in engines:
+                r0sh(['node', page, sim, m, ST, e, 'wasm', 'shadow', '1'], out, 'page_shadow_%s_%s' % (mp, e))
+                for be in ('js', 'wasm'): r0sh(['node', page, sim, m, ST, e, be, 'speed', '3'], out, 'page_speed_%s_%s_%s' % (mp, e, be))
     # Р0.6 инварианты: {"inv": [{"label","ref","map","matches"?,"ticks"?,"special"?}]}
     # Р2.2 / Р2.6 dmath в движках: {"dmath": [{"label","engines"?}]} → runs/<label>/page_<движок>.json (хэши dmath страницы и Node этой машины)
     for j in req.get('dmath', []):
