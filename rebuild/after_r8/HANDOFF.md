@@ -13,7 +13,7 @@
 
 ## Что сделать по результатам ПК 351 (`pc-results/<N>`, скачать: `git fetch origin pc-results/<N>`)
 1. A: `r51_A_*` (Chromium) побайтно = `r51_Apk_*` (Node) — воспроизводимость; это новая база отпечатков после изоляции (старая R2 —
-   `rebuild/evidence/R2/fp_cloud_chromium158` — не трогается). Положить в `rebuild/evidence/ISO/fp_base_fe0873af/`.
+   `rebuild/evidence/R2/fp_cloud_chromium158` — не трогается). Положить в папку доказательств изоляции (rebuild/evidence/ISO, подпапка fp_base_fe0873af — создать).
 2. D+F: `r51_D_*` = `r51_B_*` 16 / 16 (бит в бит) — иначе `tools/measure/diverge.js` на первом расходящемся матче.
 3. B: изменение поведения намеренное — разбор эпизодов (не сравнивать счётчики разошедшихся матчей напрямую).
 4. Вопрос 17: записи `q17_*` (rec) — разбор по эпизодам `stall.block / geom / free / path`, `stall.ep`, по фазам (`rebuild/R3_6_REVIEW.md`,
