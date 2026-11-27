@@ -1,0 +1,7 @@
+#!/bin/sh
+# (Р8 п. 6, 27.11) L1 после каждого коммита — в фоне (tools/rebuild/l1.js): отчёт .git/sim-l1/<коммит>.md, строка итога — .git/sim-l1/log.txt.
+# Коммит не ждёт L1. SIM_NO_L1=1 — не запускать (например, серия служебных коммитов).
+[ -n "$SIM_NO_L1" ] && exit 0
+top="$(git rev-parse --show-toplevel)"; d="$(git rev-parse --git-common-dir)/sim-l1"; mkdir -p "$d"
+nohup node "$top/tools/rebuild/l1.js" "$(git rev-parse HEAD)" > "$d/last_run.txt" 2>&1 &
+exit 0

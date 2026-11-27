@@ -1,0 +1,4 @@
+#!/bin/sh
+# (Р8 п. 6, 27.11) L0 перед каждым коммитом: tools/rebuild/l0.js. Включение — node tools/sim.js hooks (git config core.hooksPath .githooks).
+# Коммит только документов / списков без файлов игры и инструментов — L0 всё равно идёт (проверка устройства читает и списки).
+exec node "$(git rev-parse --show-toplevel)/tools/rebuild/l0.js"

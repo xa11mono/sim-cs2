@@ -1,0 +1,20 @@
+код 0
+{
+ "browser": "firefox",
+ "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:155.0) Gecko/20100101 Firefox/155.0",
+ "sec": 30,
+ "frames": 1349,
+ "fps": 45,
+ "ticks": 1917,
+ "worker_on": true,
+ "bytes_avg": 174151,
+ "bytes_max": 402492,
+ "enc_ms_avg": 1.29,
+ "dec_ms_avg": 1.29,
+ "apply_ms_avg": 1.23,
+ "page_ms_max": 12,
+ "long_by_transfer": 0,
+ "long_tasks_all": 0,
+ "errors": []
+}
+

@@ -1,0 +1,3 @@
+код 0
+{"sim":"r45_r7_mirage.html","engine":"firefox","mode":"shadow","mode_set":"shadow","match":3,"ticks":6000,"ms_mean":4.7303,"ms_min":4.7303,"ms_max":4.7303,"hash":[2663964698],"n":1935946,"bad":[0],"first":"null","page_errors":[]}
+

@@ -311,11 +311,10 @@ def main():
         r0sh([os.path.join(bindir, 'rustup.exe' if os.name == 'nt' else 'rustup'), 'target', 'add', 'wasm32-unknown-unknown'], out, 'rustup_wasm', env=env)
         r0sh([cargo, '--version'], out, 'cargo_version', env=env)
         kd = os.path.join(ROOT, 'tools', 'r7', 'kernels'); man = os.path.join(kd, 'Cargo.toml')
+        # (ПК 344: файл сравнения не попал в публикацию без ошибки в журнале) сравнение — выводом шага в wasm_sha256.txt (текст публикуется всегда)
         if r0sh([cargo, 'build', '--release', '--manifest-path', man, '--target', 'wasm32-unknown-unknown', '--lib'], out, 'build_wasm', env=env) == 0:
-            import hashlib
-            hs = {k: hashlib.sha256(open(f, 'rb').read()).hexdigest() for k, f in (('built', os.path.join(kd, 'target', 'wasm32-unknown-unknown', 'release', 'sim_r7_kernels.wasm')),
-                                                                                  ('git', os.path.join(kd, 'wasm', 'sim_r7_kernels.wasm')))}
-            hs['same'] = hs['built'] == hs['git']; json.dump(hs, open(os.path.join(out, 'wasm_sha256.json'), 'w'))
+            r0sh([PY, '-c', 'import hashlib,sys; a,b = [hashlib.sha256(open(f, "rb").read()).hexdigest() for f in sys.argv[1:3]]; print("built", a); print("git  ", b); print("same", a == b)',
+                  os.path.join(kd, 'target', 'wasm32-unknown-unknown', 'release', 'sim_r7_kernels.wasm'), os.path.join(kd, 'wasm', 'sim_r7_kernels.wasm')], out, 'wasm_sha256')
         home2 = os.path.join(os.path.expanduser('~'), '.simcs2_node'); npx = os.path.join(home2, 'node_modules', '.bin', 'playwright.cmd' if os.name == 'nt' else 'playwright')
         engines = j.get('engines', ['chromium', 'firefox', 'webkit']); r0sh([npx, 'install'] + [e for e in engines if e != 'chromium'], out, 'install', cwd=home2)
         run = os.path.join(kd, 'js', 'run.js'); page = os.path.join(kd, 'js', 'page_run.js')
@@ -329,6 +328,16 @@ def main():
             for e in engines:
                 r0sh(['node', page, sim, m, ST, e, 'shadow', '1'], out, 'page_shadow_%s_%s' % (mp, e))
                 for md in ('ts', 'speed'): r0sh(['node', page, sim, m, ST, e, md, '3'], out, 'page_speed_%s_%s_%s' % (mp, e, md))
+    # (Р8 п. 18, 27.11) отметки реестра на этой машине: {"marks": [{"label"}]} — для каждой записи rebuild/scenarios.json: пакет v2 (mark convert
+    # со снимком «до»), mark.md (mark open), проверка пакета (mark check) → runs/<label>/<id>.md, <id>_check.txt
+    for j in req.get('marks', []):
+        out = r0out(j); sim_js = os.path.join(ROOT, 'tools', 'sim.js'); reg = os.path.join(ROOT, 'rebuild', 'scenarios.json')
+        for sc in json.load(open(reg, encoding='utf-8')):
+            d = os.path.join(tempfile.mkdtemp(prefix='mark_'), sc['id'])
+            if r0sh(['node', sim_js, 'mark', 'convert', reg, d, '--scenario=' + sc['id'], '--pre=' + os.path.join(ROOT, sc['pre'])], out, sc['id'] + '_convert') != 0: continue
+            p = subprocess.run(['node', sim_js, 'mark', 'open', d], cwd=ROOT, capture_output=True, text=True, encoding='utf-8')
+            open(os.path.join(out, sc['id'] + '.md'), 'w', encoding='utf-8').write(p.stdout if p.returncode == 0 else 'код %s\n%s' % (p.returncode, p.stderr[-3000:]))
+            r0sh(['node', sim_js, 'mark', 'check', d], out, sc['id'] + '_check')
     # Р0.6 инварианты: {"inv": [{"label","ref","map","matches"?,"ticks"?,"special"?}]}
     # Р2.2 / Р2.6 dmath в движках: {"dmath": [{"label","engines"?}]} → runs/<label>/page_<движок>.json (хэши dmath страницы и Node этой машины)
     for j in req.get('dmath', []):
