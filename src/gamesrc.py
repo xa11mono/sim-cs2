@@ -46,12 +46,20 @@ def order():
     return L
 
 
+R7_WASM = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'tools', 'r7', 'kernels', 'dist', 'sim_r7_kernels.wasm')
+def r7_wasm_in(b):
+    """(Р7, 27.11) байты ядер Rust (WASM, tools/r7/kernels/dist — собранный файл в git; воспроизводимость сборки — задание ПК r7) — base64
+    на место метки "@@R7WASM@@" (engine/map/geometry3d.js); одна строка — номера строк файла те же"""
+    m = b'"@@R7WASM@@"'
+    if m not in b: return b
+    import base64
+    return b.replace(m, b'"' + base64.b64encode(open(R7_WASM, 'rb').read()) + b'"', 1)
 def read_game_file(f):
     """(Р1.1) Текст файла игры, как его видит браузер: .ts — без типов (tools/rebuild/game_src.js: типы заменены пробелами, строки и
     позиции те же); остальное — как есть. Байты — для склейки (game_source), как раньше."""
     p = f if os.path.isabs(f) else game_path(f)
     if not p.endswith('.ts'):
-        return open(p, 'rb').read()
+        return r7_wasm_in(open(p, 'rb').read())
     import subprocess
     r = subprocess.run(['node', os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'tools', 'rebuild', 'game_src.js'), 'strip', p],
                        capture_output=True)

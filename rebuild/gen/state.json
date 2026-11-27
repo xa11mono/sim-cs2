@@ -1817,7 +1817,7 @@
     "modes": 13,
     "move": 23,
     "navmesh": 4,
-    "path-search": 12,
+    "path-search": 13,
     "paths": 12,
     "plan": 5,
     "position": 38,
@@ -2180,7 +2180,8 @@
    "w": {},
    "m": {},
    "r": {
-    "levels": 2
+    "levels": 2,
+    "path-search": 1
    },
    "snap": true
   },
@@ -2190,7 +2191,7 @@
    "w": {},
    "m": {},
    "r": {
-    "path-search": 2
+    "path-search": 3
    },
    "snap": true
   },
@@ -2200,7 +2201,8 @@
    "w": {},
    "m": {},
    "r": {
-    "levels": 1
+    "levels": 1,
+    "path-search": 1
    },
    "snap": true
   },
@@ -3504,6 +3506,7 @@
    "w": {},
    "m": {},
    "r": {
+    "path-search": 1,
     "paths": 1
    },
    "snap": true
@@ -3514,6 +3517,7 @@
    "w": {},
    "m": {},
    "r": {
+    "path-search": 1,
     "paths": 1
    },
    "snap": true
@@ -3524,7 +3528,7 @@
    "w": {},
    "m": {},
    "r": {
-    "path-search": 2,
+    "path-search": 4,
     "paths": 1
    },
    "snap": true
@@ -3789,7 +3793,7 @@
    "snap": true
   },
   "LANE_W": {
-   "decl": "path-search.js:156",
+   "decl": "path-search.js:161",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -4216,7 +4220,7 @@
    "snap": "нет: STATIC"
   },
   "M3_SKIN": {
-   "decl": "geometry3d.js:342",
+   "decl": "geometry3d.js:348",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -4226,7 +4230,7 @@
    "snap": true
   },
   "M3_SOLID": {
-   "decl": "geometry3d.js:289",
+   "decl": "geometry3d.js:295",
    "init": "Literal",
    "w": {
     "m3SolidGrid · geometry3d": 1,
@@ -4239,7 +4243,7 @@
    "snap": "нет: STATIC"
   },
   "M3_TRIPL_MAX": {
-   "decl": "geometry3d.js:414",
+   "decl": "geometry3d.js:420",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -5271,7 +5275,7 @@
    "snap": true
   },
   "NAV_DROP_STEP": {
-   "decl": "path-search.js:167",
+   "decl": "path-search.js:172",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -6729,6 +6733,56 @@
    },
    "snap": true
   },
+  "R7": {
+   "decl": "geometry3d.js:455",
+   "init": "ObjectExpression",
+   "w": {},
+   "m": {
+    "r7CastK · geometry3d": 1,
+    "r7GeoUp · geometry3d": 3,
+    "r7Mode · geometry3d": 4,
+    "r7Same · geometry3d": 3,
+    "r7Start · geometry3d": 2
+   },
+   "r": {
+    "geometry3d": 29,
+    "path-search": 4
+   },
+   "snap": true
+  },
+  "R7P": {
+   "decl": "path-search.js:336",
+   "init": "ObjectExpression",
+   "w": {},
+   "m": {
+    "r7Path · path-search": 2,
+    "r7PathUp · path-search": 6
+   },
+   "r": {
+    "path-search": 23
+   },
+   "snap": true
+  },
+  "R7_KIND": {
+   "decl": "geometry3d.js:456",
+   "init": "ObjectExpression",
+   "w": {},
+   "m": {},
+   "r": {
+    "geometry3d": 1
+   },
+   "snap": true
+  },
+  "R7_WASM": {
+   "decl": "geometry3d.js:454",
+   "init": "Literal",
+   "w": {},
+   "m": {},
+   "r": {
+    "geometry3d": 2
+   },
+   "snap": true
+  },
   "RC_HALF": {
    "decl": "modes.js:11",
    "init": "Literal",
@@ -7046,7 +7100,7 @@
    "w": {},
    "m": {},
    "r": {
-    "path-search": 1
+    "path-search": 2
    },
    "snap": true
   },
@@ -7056,7 +7110,7 @@
    "w": {},
    "m": {},
    "r": {
-    "path-search": 1
+    "path-search": 2
    },
    "snap": true
   },
@@ -7066,7 +7120,7 @@
    "w": {},
    "m": {},
    "r": {
-    "path-search": 1
+    "path-search": 2
    },
    "snap": true
   },
@@ -7249,7 +7303,7 @@
    "snap": true
   },
   "RUN_MATCH": {
-   "decl": "round.js:259",
+   "decl": "round.js:260",
    "init": "Literal",
    "w": {
     "runMatch · round": 2
@@ -7263,7 +7317,7 @@
    "snap": "нет: STATIC"
   },
   "RUN_MATCH_SUB": {
-   "decl": "round.js:260",
+   "decl": "round.js:261",
    "init": "Literal",
    "w": {
     "runMatch · round": 1
@@ -9291,7 +9345,7 @@
    "snap": "нет: UI"
   },
   "WPM": {
-   "decl": "path-search.js:195",
+   "decl": "path-search.js:200",
    "init": "ObjectExpression",
    "w": {},
    "m": {
@@ -9349,10 +9403,11 @@
    "init": "ObjectExpression",
    "w": {},
    "m": {
-    "zoneDijkstra · path-search": 4
+    "r7Path · path-search": 4,
+    "zoneDijkstraTS · path-search": 4
    },
    "r": {
-    "path-search": 8
+    "path-search": 16
    },
    "snap": "нет: EXTRA_STATIC"
   },
@@ -10445,7 +10500,7 @@
     "d3Draw2D · view3d": 2,
     "rpWorldDraw · replay-play": 2,
     "strafeKeysTick · tick-keys": 1,
-    "zoneDijkstra · path-search": 1
+    "zoneDijkstraTS · path-search": 1
    },
    "m": {
     "(верх файла) · map-cover": 8,
@@ -10488,7 +10543,7 @@
     "map-wallbang": 15,
     "map-walls": 37,
     "observer": 24,
-    "path-search": 13,
+    "path-search": 19,
     "replay-play": 3,
     "tick-keys": 10,
     "turn": 5,
@@ -10579,7 +10634,7 @@
     "look-arbiter": 1,
     "modes": 1,
     "observer": 1,
-    "path-search": 5,
+    "path-search": 8,
     "replay": 2,
     "round": 1,
     "self": 1,
@@ -10962,7 +11017,7 @@
     "look-arbiter": 1,
     "lurker": 7,
     "observer": 6,
-    "path-search": 4,
+    "path-search": 6,
     "paths": 2,
     "plan": 4,
     "position": 3,
@@ -12215,7 +12270,7 @@
     "move": 17,
     "nav-zones": 4,
     "observer": 31,
-    "path-search": 3,
+    "path-search": 5,
     "paths": 2,
     "plan": 6,
     "position": 14,
@@ -12518,7 +12573,7 @@
     "fight-state": 1,
     "levels": 6,
     "navmesh": 1,
-    "path-search": 9,
+    "path-search": 18,
     "paths": 17,
     "position": 1,
     "save-retake": 3,
@@ -12730,7 +12785,7 @@
    },
    "r": {
     "draw-map": 2,
-    "path-search": 7,
+    "path-search": 8,
     "paths": 9,
     "vision": 2,
     "walls-heights-cover": 2

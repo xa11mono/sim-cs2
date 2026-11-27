@@ -208,7 +208,13 @@ function m3SegHull(M, h, ax, ay, az, dx, dy, dz){   // → [t входа, ном
 // 1) столбики (клетка 5 ед.): идём по клеткам линии, в каждой — z линии от входа до выхода против отрезков клетки; ни одного
 // пересечения — свободно (столбики пишутся с запасом). 2) Есть пересечение — точная проверка: треугольники и выпуклые блоки
 // «корзины» 4×4 клеток против всего отрезка. first: false — только «есть ли преграда», true — первое попадание с нормалью
+// (Р7, 27.11) луч считает ядро Rust (tools/r7/kernels, WASM — в странице, Worker и Node одно и то же), бит в бит с эталоном m3CastTS
+// (тело прежнее, остаётся); виды sight / nade / sky — ядро, иной вид или иная геометрия — эталон. Режимы — r7Mode
 function m3Cast(M, ax, ay, az, bx, by, bz, kind, first){
+  if(R7.mode !== "ts" && M === R7.M){ var k = R7_KIND[kind]; if(k !== undefined) return r7Cast(M, k, ax, ay, az, bx, by, bz, kind, first); }
+  return m3CastTS(M, ax, ay, az, bx, by, bz, kind, first);
+}
+function m3CastTS(M, ax, ay, az, bx, by, bz, kind, first){
   var C = m3Col(M, kind), st = C.st, LO = C.lo, HI = C.hi, W = M.W, flag = kind === "nade" ? 2 : 1;
   var cx = ax / M.cell, cy = ay / M.cell, ex = bx / M.cell, ey = by / M.cell;
   var k2 = M.unit / M.cell, wax = M.X0 + ax * k2, way = M.Y0 - ay * k2, wdx = (bx - ax) * k2, wdy = -(by - ay) * k2, wdz = bz - az;
@@ -436,3 +442,65 @@ function m3TriPlanes(T, o){
 if(typeof module !== "undefined" && module.exports) module.exports = {zInflate: zInflate, m3Load: m3Load, m3Line: m3Line, m3Hit: m3Hit,
   m3Floors: m3Floors, m3FloorKinds: m3FloorKinds, m3FloorAt: m3FloorAt, m3NadeTrace: m3NadeTrace, m3BoxPlanes: m3BoxPlanes,
   m3BoxTri: m3BoxTri, m3Cell: m3Cell, m3Game: m3Game, m3Radar: m3Radar};
+
+// ---------- (Р7, 27.11) ядра Rust: загрузка и режимы ----------
+// Одна библиотека tools/r7/kernels (Rust) → WASM: байты вставляет сборка на место метки (src/gamesrc.py, файл tools/r7/kernels/dist/*.wasm,
+// его воспроизводимость — задание ПК r7). Ядро подключается в конце загрузки (coreLoadEnd → r7Start): расчёты загрузки (прострелы, граф)
+// остаются на TS — ядро там не принято (передача геометрии дороже выигрыша; замеры — rebuild/R6_R7.md). Режим R7.mode:
+//   "speed"  — отвечает ядро (луч m3Cast, путь zoneDijkstra);
+//   "shadow" — считают и ядро, и эталон на TS, игра идёт по эталону, расхождения — R7.bad / R7.first (проверка Э2 в любой среде);
+//   "ts"     — только эталон (временный переключатель этапа Р7; среда без WebAssembly — тоже он).
+// Вне состояния игры: ядро — функция данных карты и запроса; его память (метки обхода, продолжение поиска пути) повторяет кэши JS.
+var R7_WASM = "@@R7WASM@@";
+var R7 = {mode: "ts", K: null, M: null, out: null, n: 0, bad: 0, first: null};
+var R7_KIND = {sight: 0, nade: 1, sky: 2};
+function r7Start(){
+  if(R7.K || typeof WebAssembly === "undefined" || R7_WASM.length < 64) return;
+  var s = atob(R7_WASM), u = new Uint8Array(s.length);
+  for(var i = 0; i < s.length; i++) u[i] = s.charCodeAt(i);
+  R7.K = new WebAssembly.Instance(new WebAssembly.Module(u), {}).exports;
+  R7.mode = "speed";
+  r7GeoUp(m3());
+}
+// режим ("speed" | "shadow" | "ts"): команда инструментов и страницы (?r7=ts|shadow); счётчики расхождений — заново
+function r7Mode(m){ if(m !== "ts" && !R7.K) return R7.mode; R7.mode = m; R7.bad = 0; R7.first = null; R7.n = 0; return R7.mode; }
+function r7Put(u8){ var K = R7.K, p = K.r7_alloc(u8.byteLength); new Uint8Array(K.memory.buffer, p, u8.byteLength).set(u8); return p; }
+function r7Set(f, a){ var u8 = new Uint8Array(a.buffer, a.byteOffset, a.byteLength), p = r7Put(u8); R7.K.r7_geo_set(f, p, u8.byteLength); R7.K.r7_free(p, u8.byteLength); }
+function r7Flat(L){ var off = new Uint32Array(L.length + 1), n = 0, i, j, o = 0; for(i = 0; i < L.length; i++){ off[i] = n; n += L[i].length; } off[L.length] = n;
+  var v = new Uint32Array(n); for(i = 0; i < L.length; i++) for(j = 0; j < L[i].length; j++) v[o++] = L[i][j]; return [off, v]; }
+// геометрия карты — в ядро один раз (столбики всех видов, укрытия — те же ленивые данные, что строит m3Col / m3SolidFill)
+function r7GeoUp(M){
+  var K = R7.K; R7.M = null; if(!K || !M) return;
+  m3Col(M, "sight"); m3Col(M, "nade"); m3Col(M, "sky"); if(!M.fill) m3SolidFill(M);
+  K.r7_geo_init(M.W, M.cell, M.unit, M.X0, M.Y0, M.B, M.BN);
+  var bt = r7Flat(M.bTri), bh = r7Flat(M.bHull);
+  r7Set(0, M.tri); r7Set(1, M.triFlag); r7Set(2, M.triZ); r7Set(3, bt[0]); r7Set(4, bt[1]); r7Set(5, bh[0]); r7Set(6, bh[1]);
+  r7Set(7, M.hullP); r7Set(8, M.hullOff); r7Set(9, M.hullFlag); r7Set(19, M.hullBox);
+  [M.sight, M.nade, M.sky].forEach(function(c, k){ r7Set(10 + 3*k, c.st); r7Set(11 + 3*k, c.lo); r7Set(12 + 3*k, c.hi); });
+  var F = M.fill || [], fv = [F.length];
+  F.forEach(function(f){ fv.push.apply(fv, f.box); fv.push(f.p.length); f.p.forEach(function(q){ fv.push(q[0], q[1], q[2], q[3]); }); });
+  var a = new Float64Array(fv), p = r7Put(new Uint8Array(a.buffer)); K.r7_geo_fill(p, a.length); K.r7_free(p, a.byteLength);
+  K.r7_geo_ready(); R7.out = null; R7.M = M;
+}
+function r7CastK(M, k, ax, ay, az, bx, by, bz, first){
+  var K = R7.K, v = K.r7_cast(k, ax, ay, az, bx, by, bz, first ? 1 : 0), o, r;
+  if(v === 0) return null;
+  if(!R7.out || R7.out.buffer !== K.memory.buffer) R7.out = new Float64Array(K.memory.buffer, K.r7_out(), 7);
+  o = R7.out; if(v === 1) return {t: o[1]};
+  if(v === 2){ r = {t: o[1], tri: o[2]}; if(first){ r.nx = o[4]; r.ny = o[5]; r.nz = o[6]; r.mat = M.mats[M.triMat[o[2]]]; } return r; }
+  if(v === 3){ r = {t: o[1], hull: o[2], plane: o[3]}; if(first){ r.nx = o[4]; r.ny = o[5]; r.nz = o[6]; r.mat = M.mats[M.hullMat[o[2]]]; } return r; }
+  r = {t: o[1], fill: o[2]}; if(first){ r.nx = 0; r.ny = 0; r.nz = 1; r.mat = "wood"; } return r;
+}
+function r7Cast(M, k, ax, ay, az, bx, by, bz, kind, first){
+  if(R7.mode === "speed") return r7CastK(M, k, ax, ay, az, bx, by, bz, first);
+  var a = m3CastTS(M, ax, ay, az, bx, by, bz, kind, first), b = r7CastK(M, k, ax, ay, az, bx, by, bz, first);
+  r7Same(a, b, ["cast", ax, ay, az, bx, by, bz, kind, first]); return a;
+}
+// сверка ответов (режим shadow): биты чисел (−0, NaN), ключи и их порядок, типы
+function r7Eq(a, b){
+  if(a === null || b === null || typeof a !== "object" || typeof b !== "object") return Object.is(a, b);
+  var ka = Object.keys(a), kb = Object.keys(b); if(ka.length !== kb.length) return false;
+  for(var i = 0; i < ka.length; i++) if(ka[i] !== kb[i] || !r7Eq(a[ka[i]], b[kb[i]])) return false;
+  return true;
+}
+function r7Same(a, b, q){ R7.n++; if(r7Eq(a, b)) return; R7.bad++; if(!R7.first) R7.first = {q: q, ts: a, kernel: b}; }

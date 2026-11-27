@@ -31,7 +31,11 @@ pub fn graph_set(v: &[f64]) {
     for _ in 0..n { let ne = v[o+5] as usize; let e0 = edges.len();
         nodes.push(Node { cx: v[o], cy: v[o+1], has_c: v[o+2] != 0.0, num_key: v[o+3], side: v[o+4], e0, e1: e0 + ne }); o += 6;
         for _ in 0..ne { edges.push(Edge { to: v[o] as usize, mx: v[o+1], my: v[o+2], z: v[o+3], jq: v[o+4], jf: v[o+5] }); o += 6; } }
-    unsafe { G = Some(Graph { nodes, edges, portal: v[1], side_line: v[2], enemy_side: v[3], kr: v[4], kdet: v[5], kclose: v[6], fire_dz: v[7], fire_detour: v[8] }); CACHE = None; }
+    // память продолжения поиска — не сбрасывается: её срок задаёт JS (номер в запросе — то же правило, что у ZDJ: тик, матч, граф); связь,
+    // убранная посреди тика (navUnlinkBlocked), меняет граф, а начатые поиски продолжаются по новому — как в JS. Другое число участков — сброс
+    #[allow(static_mut_refs)]
+    unsafe { let same_n = G.as_ref().map_or(false, |g0| g0.nodes.len() == nodes.len()); if !same_n { CACHE = None; }
+        G = Some(Graph { nodes, edges, portal: v[1], side_line: v[2], enemy_side: v[3], kr: v[4], kdet: v[5], kclose: v[6], fire_dz: v[7], fire_detour: v[8] }); }
 }
 // knownSegCost (engine/nav/paths.js) дословно
 fn known_seg_cost(g: &Graph, ax: f64, ay: f64, bx: f64, by: f64, qx: f64, qy: f64, qw: f64) -> f64 {
@@ -47,7 +51,7 @@ fn known_seg_cost(g: &Graph, ax: f64, ay: f64, bx: f64, by: f64, qx: f64, qy: f6
 #[inline] fn jmin(a: f64, b: f64) -> f64 { if a.is_nan() || b.is_nan() { f64::NAN } else if a < b { a } else if b < a { b } else if a == 0.0 && (a.is_sign_negative() || b.is_sign_negative()) { -0.0 } else { a } }
 #[inline] fn jmax(a: f64, b: f64) -> f64 { if a.is_nan() || b.is_nan() { f64::NAN } else if a > b { a } else if b > a { b } else if a == 0.0 && (a.is_sign_positive() || b.is_sign_positive()) { 0.0 } else { a } }
 
-// запрос: [тик, матч, от, к, CT (сторона), тихо, есть точка старта, x, y, ближайший, огонь, число мест, места (x, y, w)…]
+// запрос: [номер памяти поиска (JS: сменился ZDJ — новый номер), 0, от, к, CT (сторона), тихо, есть точка старта, x, y, ближайший, огонь, число мест, места (x, y, w)…]
 // ответ (OUTP): [код (1 — путь, 0 — нет пути, −1 — не моё: огонь), длина, номера участков пути…, (ближайший — номер цели)]
 #[allow(static_mut_refs)]
 pub fn query(q: &[f64]) -> usize {
@@ -58,7 +62,7 @@ pub fn query(q: &[f64]) -> usize {
     // огонь: число, затем (x, y, z или NaN, радиус сейчас + тело) — радиус считает JS (fireRadiusNow + FIRE_BODY), проверка — fireTouches
     let fo = 12 + nkp*3; let nf = if q.len() > fo { q[fo] as usize } else { 0 }; let fr = if nf > 0 { &q[fo+1..fo+1+nf*4] } else { &q[0..0] }; let fire_on = q[10] != 0.0 && nf > 0;
     if from == to { out.push(1.0); out.push(1.0); out.push(from as f64); return 3 }
-    // ключ — то же, что ключ ZDJ в JS: начало, сторона, тихо, точка старта, места врагов, огонь; тик и матч — сброс памяти
+    // ключ — то же, что ключ ZDJ в JS: начало, сторона, тихо, точка старта, места врагов, огонь; номер памяти (q[0]) сменился — сброс
     let mut key: Vec<u64> = vec![from as u64, ct as u64, quiet as u64, fx.is_some() as u64]; if let Some((x, y)) = fx { key.push(x.to_bits()); key.push(y.to_bits()); }
     for v in kp { key.push(v.to_bits()); }
     if fire_on { key.push(u64::MAX); for v in fr { key.push(v.to_bits()); } }

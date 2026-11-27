@@ -1,6 +1,11 @@
 // [хозяева: buildWaypointPath, funnel, hasLOS, zoneDijkstra] (Р3.2, канал «ход») параметры поиска — явный контекст ctx {from, toPt, fire, nearest, quiet} (был: свойства функции zoneDijkstra.*,
 // их задавал и сбрасывал buildWaypointPath0); без ctx — как в покое (всё выключено)
+// (Р7, 27.11) поиск считает ядро Rust (tools/r7/kernels, r7Path), бит в бит с эталоном zoneDijkstraTS (тело прежнее, остаётся). Режимы — r7Mode
 function zoneDijkstra(fromId, toId, team, ctx){
+  if(R7.mode !== "ts" && fromId !== toId){ var r = r7Path(fromId, toId, team, ctx); if(r !== undefined) return r; }
+  return zoneDijkstraTS(fromId, toId, team, ctx);
+}
+function zoneDijkstraTS(fromId, toId, team, ctx){
   ctx = ctx || {};
   if(fromId===toId) return [fromId];
   var side = team === "CT" ? zoneSideMap() : null;
@@ -321,4 +326,51 @@ function distToSeg(px,py, s){
   var t = len2 < 1e-9 ? 0 : Math.max(0, Math.min(1, ((px-x1)*dx+(py-y1)*dy)/len2));
   var cx = x1+t*dx, cy = y1+t*dy;
   return DM.hypot(px-cx, py-cy);
+}
+
+// ---------- (Р7, 27.11) ядро пути ----------
+// Граф в ядре: участки (ключи zoneGraph и концы рёбер) по номерам, центр (zoneCentroid), сторона CT (zoneSideMap), цена прыжка (navJumpCost).
+// Перезагрузка — когда граф сменился (rebuildNav) или изменился на месте (navUnlinkBlocked, возврат снимка mkGraphTo: другой массив рёбер или
+// его длина у участка). Память продолжения поиска в ядре живёт столько же, сколько ZDJ в JS (тот же тик, матч, граф): номер R7P.gen меняется,
+// когда сменилась бы ZDJ.s, — поиски одного тика продолжаются и после изменения графа, как в эталоне
+var R7P = {g: null, arr: null, len: null, ix: null, ids: null, vals: null, s: null, gen: 0};
+function r7PathUp(){
+  var K = R7.K, keys = Object.keys(zoneGraph), ix = new Map(), ids = [], vals = [], side = zoneSideMap();
+  function add(id){ var k = String(id), i = ix.get(k); if(i === undefined){ i = ids.length; ix.set(k, i); ids.push(k); vals.push(id); } return i; }
+  keys.forEach(function(k){ add(isNaN(+k) ? k : +k); (zoneGraph[k] || []).forEach(function(e){ add(e.to); }); });
+  var f = [ids.length, ROUTE_PORTAL, ROUTE_SIDE_LINE, ROUTE_ENEMY_SIDE, KNOWN_PATH_R, KNOWN_DETOUR, KNOWN_CLOSE_K, FIRE_DZ, FIRE_DETOUR];
+  ids.forEach(function(k){ var z = zonesById[k], c = z ? zoneCentroid(z) : null, num = /^(0|[1-9][0-9]*)$/.test(k) && +k < 4294967295 ? +k : -1, sd = side[k];
+    var EL = zoneGraph[k] || []; f.push(c ? c.x : 0, c ? c.y : 0, c ? 1 : 0, num, sd === undefined ? NaN : sd === null ? 0 : +sd, EL.length);
+    EL.forEach(function(e){ f.push(add(e.to), e.mid.x, e.mid.y, e.z == null ? NaN : e.z, navJumpCost(z, e, true), navJumpCost(z, e, false)); }); });
+  var a = new Float64Array(f), p = r7Put(new Uint8Array(a.buffer)); K.r7_path_graph(p, a.length); K.r7_free(p, a.byteLength);
+  R7P.g = zoneGraph; R7P.arr = ids.map(function(k){ return zoneGraph[k]; }); R7P.len = R7P.arr.map(function(E){ return E ? E.length : -1; });
+  R7P.ix = ix; R7P.ids = ids; R7P.vals = vals;
+}
+function r7PathStale(){
+  if(R7P.g !== zoneGraph) return true;
+  for(var i = 0; i < R7P.ids.length; i++){ var E = zoneGraph[R7P.ids[i]]; if(E !== R7P.arr[i] || (E ? E.length : -1) !== R7P.len[i]) return true; }
+  return false;
+}
+// ответ ядра или undefined (не его запрос: участка нет в графе ядра)
+function r7Path(fromId, toId, team, ctx){
+  var c = ctx || {};
+  var DJ = ZDJ.tick === tick && ZDJ.m === matchNum && ZDJ.graph === zoneGraph ? ZDJ.s : (ZDJ.tick = tick, ZDJ.m = matchNum, ZDJ.graph = zoneGraph, ZDJ.s = {});
+  if(DJ !== R7P.s){ R7P.s = DJ; R7P.gen++; }
+  if(!R7P.g || r7PathStale()) r7PathUp();
+  var fi = R7P.ix.get(String(fromId)), ti = R7P.ix.get(String(toId));
+  if(fi === undefined || ti === undefined || fi === ti) return undefined;
+  var fireOn = !!(c.fire && fires.length), tp0 = c.toPt;
+  var KP = c.fire && team ? knownPathSpots(team).filter(function(q){ return !tp0 || DM.hypot(q.x-tp0.x, q.y-tp0.y) > KNOWN_PATH_R; }) : [];
+  var nf = fireOn ? fires.length : 0, q = new Float64Array(13 + KP.length*3 + nf*4), fx = c.from, fo = 12 + KP.length*3, i;
+  q[0] = R7P.gen; q[1] = 0; q[2] = fi; q[3] = ti; q[4] = team === "CT" ? 1 : 0; q[5] = c.quiet ? 1 : 0; q[6] = fx ? 1 : 0; q[7] = fx ? fx.x : 0; q[8] = fx ? fx.y : 0;
+  q[9] = c.nearest ? 1 : 0; q[10] = fireOn ? 1 : 0; q[11] = KP.length;
+  for(i = 0; i < KP.length; i++){ q[12+i*3] = KP[i].x; q[13+i*3] = KP[i].y; q[14+i*3] = KP[i].w; }
+  q[fo] = nf; for(i = 0; i < nf; i++){ var F = fires[i]; q[fo+1+i*4] = F.x; q[fo+2+i*4] = F.y; q[fo+3+i*4] = F.z == null ? NaN : F.z; q[fo+4+i*4] = fireRadiusNow(F) + FIRE_BODY; }
+  var K = R7.K, p = r7Put(new Uint8Array(q.buffer)), n = K.r7_path_query(p, q.length); K.r7_free(p, q.byteLength);
+  var o = new Float64Array(K.memory.buffer, K.r7_path_out(), n), r = null;
+  if(o[0] === -1) return undefined;
+  if(o[0] === 1){ var m = o[1], last = o[2 + m - 1]; r = new Array(m); for(i = 0; i < m; i++) r[i] = R7P.vals[o[2 + i]]; r[0] = fromId;
+    r[m - 1] = last === ti ? toId : (isNaN(+R7P.ids[last]) ? R7P.ids[last] : +R7P.ids[last]); if(m === 1) r[0] = fromId; }
+  if(R7.mode === "shadow"){ var a = zoneDijkstraTS(fromId, toId, team, ctx); r7Same(a, r, ["path", fromId, toId, team]); return a; }
+  return r;
 }

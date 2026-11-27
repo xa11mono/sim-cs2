@@ -1573,6 +1573,29 @@
     "builtinAllowed"
    ]
   },
+  "R7": {
+   "from": "geometry3d.js",
+   "via": [
+    "buildWaypointPath",
+    "hasLOS",
+    "m3Line",
+    "visParts"
+   ]
+  },
+  "R7P": {
+   "from": "path-search.js",
+   "via": [
+    "buildWaypointPath"
+   ]
+  },
+  "R7_KIND": {
+   "from": "geometry3d.js",
+   "via": [
+    "hasLOS",
+    "m3Line",
+    "visParts"
+   ]
+  },
   "ROUTE_ENEMY_SIDE": {
    "from": "paths.js",
    "via": [
