@@ -27,7 +27,8 @@ def all_maps(out):
             '<div id="pick" style="font:16px sans-serif;margin:40px">Карта: %s</div>\n%s'
             '<script>(function(){ var M = %s, q = /[?&]map=([a-z0-9_-]+)/.exec(location.search), sel = q && M.indexOf(q[1]) >= 0 ? q[1] : null;\n'
             '  function open(m){ var t = document.getElementById("page-" + m).textContent.split("</scr@@SIMCS2_SC@@ipt").join("</script").split("<!@@SIMCS2_C@@--").join("<!--"); document.open(); document.write(t); document.close(); }\n'
-            '  if(sel) open(sel); else document.querySelectorAll("#pick button").forEach(function(b){ b.onclick = function(){ open(b.dataset.m); }; }); })();</script>\n'
+            '  // (Р8 п. 17, 27.11) открыть — после разбора документа: во время разбора document.open() не действует, страница карты дописывалась под выбор карты\n'
+            '  if(sel) addEventListener("load", function(){ open(sel); }); else document.querySelectorAll("#pick button").forEach(function(b){ b.onclick = function(){ open(b.dataset.m); }; }); })();</script>\n'
             '</body></html>\n') % (' '.join('<button data-m="%s">%s</button>' % (m, names[m]) for m in MAPS), blocks, json.dumps(MAPS))
     open(out, 'w', encoding='utf-8').write(html)
     print('%s: %d КБ, карт %d (%s)' % (out, len(html) // 1024, len(MAPS), ', '.join(MAPS)))
