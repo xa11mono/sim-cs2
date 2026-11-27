@@ -408,7 +408,11 @@ function m3BoxPlanes(pl, ax, ay, az, dx, dy, dz, r){
 // новый матч начинает с пустых — куча возвращается к уровню после загрузки (Ancient: ~91 тыс. записей ≈ 100 МБ к 20 000 тикам, растёт до числа
 // треугольников). Игра та же: m3TriPl / m3HullPl считают заново то же число (проверка — отпечатки, rebuild/R6_SPEED.md)
 function m3MatchRelease(){ var M = typeof M3 !== "undefined" ? M3 : null; if(M && M.nTriPl){ M.nTriPl.clear(); M.nHullPl.length = 0; } }
-function m3TriPl(M, k){ var p = M.nTriPl.get(k); if(p === undefined){ p = m3TriPlanes(M.tri, k*9); M.nTriPl.set(k, p); } return p; }
+// (Р6 К-10б, 27.11) рост памяти внутри матча: запись — 44 числа (~0,4 КБ), у Ancient к концу матча ~449 тыс. записей; хранилище ограничено
+// M3_TRIPL_MAX записями (полное — очищается, как PATHQ). Плоскости — функция неизменного треугольника, пересчёт даёт те же биты: на игру
+// предел не влияет (проектное число размера памяти, не поведения; отпечатки — rebuild/R6_R7.md)
+var M3_TRIPL_MAX = 65536;
+function m3TriPl(M, k){ var p = M.nTriPl.get(k); if(p === undefined){ p = m3TriPlanes(M.tri, k*9); if(M.nTriPl.size >= M3_TRIPL_MAX) M.nTriPl.clear(); M.nTriPl.set(k, p); } return p; }
 // треугольник (вершины T[o..o+8]) как пластина: плоскость с двух сторон, рёбра, охват → как m3BoxPlanes
 function m3BoxTri(T, o, ax, ay, az, dx, dy, dz, r){ var pl = m3TriPlanes(T, o); return pl ? m3BoxPlanes(pl, ax, ay, az, dx, dy, dz, r) : null; }
 function m3TriPlanes(T, o){

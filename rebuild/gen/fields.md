@@ -152,18 +152,18 @@
 
 ## `walking`
 
-- **хозяин** `moveWalk · move` — 1 (стр. 29)
-- **хозяин** `moveWalkTick · move` — 1 (стр. 114)
-- **хозяин** `moveSpeedTick · move` — 1 (стр. 178)
+- **хозяин** `moveWalk · move` — 1 (стр. 38)
+- **хозяин** `moveWalkTick · move` — 1 (стр. 123)
+- **хозяин** `moveSpeedTick · move` — 1 (стр. 187)
 - **хозяин** `stepBot · tick-step` — 1 (стр. 257)
 
 ## `curSpeed`
 
-- **хозяин** `moveSpeedTick · move` — 5 (стр. 198, 200, 201, 202, 203)
+- **хозяин** `moveSpeedTick · move` — 5 (стр. 207, 209, 210, 211, 212)
 - **хозяин** `stepBot · tick-step` — 5 (стр. 90, 117, 240, 255, 257)
 - **хозяин** `jumpFaceWait · levels` — 1 (стр. 111)
 - **хозяин** `ladderTick · levels` — 1 (стр. 217)
-- **хозяин** `moveSpeed · move` — 1 (стр. 28)
+- **хозяин** `moveSpeed · move` — 1 (стр. 37)
 
 ## `post`
 
@@ -238,7 +238,7 @@
 
 - **хозяин** `stepBot · tick-step` — 5 (стр. 255, 329, 368, 390, 405)
 - **хозяин** `navFollowFloor · levels` — 2 (стр. 385, 424)
-- **хозяин** `moveSpeedTick · move` — 2 (стр. 170, 177)
+- **хозяин** `moveSpeedTick · move` — 2 (стр. 179, 186)
 - **хозяин** `fireRepath · levels` — 1 (стр. 30)
 - **хозяин** `ladderTick · levels` — 1 (стр. 218)
 - **хозяин** `movePath · move` — 1 (стр. 26)
@@ -325,10 +325,10 @@
 - **хозяин** `stepBot · tick-step` — 8 (стр. 180, 255, 260, 327, 329, 368, 390, 405)
 - **хозяин** `ladderTick · levels` — 4 (стр. 218, 233, 241, 276)
 - **хозяин** `navFollowFloor · levels` — 2 (стр. 385, 424)
-- **хозяин** `moveSpeedTick · move` — 2 (стр. 170, 177)
+- **хозяин** `moveSpeedTick · move` — 2 (стр. 179, 186)
 - **хозяин** `fireRepath · levels` — 1 (стр. 30)
 - **хозяин** `movePath · move` — 1 (стр. 26)
-- **хозяин** `movePathIdx · move` — 1 (стр. 27)
+- **хозяин** `movePathIdx · move` — 1 (стр. 36)
 - **хозяин** `navSnap · tick` — 1 (стр. 66)
 
 ## `_aimFix`
@@ -401,11 +401,11 @@
 
 ## `_fireExit`
 
-- **хозяин** `moveSetFireExit · move` — 1 (стр. 208)
+- **хозяин** `moveSetFireExit · move` — 1 (стр. 217)
 
 ## `_fireExitFire`
 
-- **хозяин** `moveSetFireExitFire · move` — 1 (стр. 209)
+- **хозяин** `moveSetFireExitFire · move` — 1 (стр. 218)
 
 ## `_fireIn`
 
@@ -558,7 +558,7 @@
 
 ## `_stopWhy`
 
-- **хозяин** `moveSetStopWhy · move` — 1 (стр. 210)
+- **хозяин** `moveSetStopWhy · move` — 1 (стр. 219)
 
 ## `_tagUntil`
 
@@ -757,13 +757,13 @@
 
 ## `x`
 
-- **хозяин** `moveSetX · move` — 1 (стр. 211)
+- **хозяин** `moveSetX · move` — 1 (стр. 220)
 
 не бот (то же имя у другого объекта — в проверку владения не идёт): `applyZoneLayerToData · zones` (37 p), `resnapSpawns · zone-danger` (255 sp), `dropBomb · bomb` (105 bomb), `bombTick · bomb` (212 bomb; 237 bomb), `saveOppProfile · tactics` (55 o), `habitAdd · ct-setup` (447 c), `tIglReplan · igl` (104 ctrR; 124 ctr), `knowSources · knowledge` (345 q), `knowApply · events` (71 h), `knowKill · events` (269 B.hyps[0]), `knowRetakeDrift · events` (410 h), `infoGo · ct-early` (357 I), `endgameBrain · endgame` (85 ST), `contactTick · contact` (131 K), `exuScan · exec-sync` (54 it), `nadeSolve · throw` (44 r), `updateNadeTask1 · throw` (598 t), `nadesTick · damage` (214 n), `bombPassTick · sound` (86 bomb), `dvTick · modes` (175 bomb), `probTick · problem-watch` (62 s; 70 s), `(верх файла) · lineup-editor` (188 z.points[zsDrag]), `d3Corpse · view3d` (173 C), `(верх файла) · view3d-frame` (296 d), `rpDraw · replay-play` (31 P.cam), `tsCam · timeout` (230 P.cam)
 
 ## `y`
 
-- **хозяин** `moveSetY · move` — 1 (стр. 212)
+- **хозяин** `moveSetY · move` — 1 (стр. 221)
 
 не бот (то же имя у другого объекта — в проверку владения не идёт): `applyZoneLayerToData · zones` (37 p), `resnapSpawns · zone-danger` (255 sp), `dropBomb · bomb` (105 bomb), `bombTick · bomb` (212 bomb; 237 bomb), `saveOppProfile · tactics` (55 o), `habitAdd · ct-setup` (447 c), `tIglReplan · igl` (104 ctrR; 124 ctr), `knowSources · knowledge` (345 q), `knowApply · events` (71 h), `knowRetakeDrift · events` (410 h), `infoGo · ct-early` (357 I), `endgameBrain · endgame` (85 ST), `contactTick · contact` (131 K), `exuScan · exec-sync` (54 it), `nadeSolve · throw` (44 r), `updateNadeTask1 · throw` (598 t), `nadesTick · damage` (214 n), `bombPassTick · sound` (86 bomb), `dvTick · modes` (175 bomb), `probTick · problem-watch` (62 s; 70 s), `(верх файла) · lineup-editor` (188 z.points[zsDrag]), `(верх файла) · view3d-frame` (296 d), `rpDraw · replay-play` (31 P.cam), `tsCam · timeout` (230 P.cam)
 

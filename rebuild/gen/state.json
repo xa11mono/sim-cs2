@@ -1747,6 +1747,8 @@
     "app": 2,
     "knowledge": 2,
     "lineups": 2,
+    "look-arbiter": 2,
+    "move": 2,
     "sites-spots": 1,
     "trace": 9
    },
@@ -3220,7 +3222,7 @@
    "snap": true
   },
   "JUMP_TURN_R": {
-   "decl": "look-arbiter.js:204",
+   "decl": "look-arbiter.js:215",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -3736,7 +3738,7 @@
    "snap": true
   },
   "LAND_HOLD": {
-   "decl": "look-arbiter.js:205",
+   "decl": "look-arbiter.js:216",
    "init": "ArrayExpression",
    "w": {},
    "m": {},
@@ -3996,7 +3998,7 @@
    "snap": true
   },
   "LOOK_WALL_CLOSE": {
-   "decl": "look-arbiter.js:242",
+   "decl": "look-arbiter.js:253",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -4235,6 +4237,16 @@
     "geometry3d": 2
    },
    "snap": "нет: STATIC"
+  },
+  "M3_TRIPL_MAX": {
+   "decl": "geometry3d.js:414",
+   "init": "Literal",
+   "w": {},
+   "m": {},
+   "r": {
+    "geometry3d": 1
+   },
+   "snap": true
   },
   "MANUAL_WALLS": {
    "decl": "walls-heights-cover.js:8",
@@ -4581,7 +4593,7 @@
    "snap": true
   },
   "MOVE_STOP": {
-   "decl": "move.js:120",
+   "decl": "move.js:129",
    "init": "ArrayExpression",
    "w": {},
    "m": {},
@@ -12973,8 +12985,8 @@
   },
   "_burning": {
    "w": [
-    "move.js:157 moveSpeedTick",
-    "move.js:182 moveSpeedTick"
+    "move.js:166 moveSpeedTick",
+    "move.js:191 moveSpeedTick"
    ],
    "lit": [],
    "r": 3
@@ -13288,8 +13300,8 @@
   },
   "_entryWait": {
    "w": [
-    "move.js:146 moveSpeedTick",
-    "move.js:148 moveSpeedTick"
+    "move.js:155 moveSpeedTick",
+    "move.js:157 moveSpeedTick"
    ],
    "lit": [],
    "r": 7
@@ -13465,14 +13477,14 @@
   },
   "_fireExit": {
    "w": [
-    "move.js:208 moveSetFireExit"
+    "move.js:217 moveSetFireExit"
    ],
    "lit": [],
    "r": 10
   },
   "_fireExitFire": {
    "w": [
-    "move.js:209 moveSetFireExitFire"
+    "move.js:218 moveSetFireExitFire"
    ],
    "lit": [],
    "r": 2
@@ -13917,7 +13929,7 @@
   },
   "_land": {
    "w": [
-    "look-arbiter.js:206 landLook"
+    "look-arbiter.js:217 landLook"
    ],
    "lit": [],
    "r": 2
@@ -14103,7 +14115,7 @@
   },
   "_lvc": {
    "w": [
-    "look-arbiter.js:238 lookVisible"
+    "look-arbiter.js:249 lookVisible"
    ],
    "lit": [],
    "r": 2
@@ -14163,8 +14175,8 @@
    "w": [
     "move.js:24 moveWaitPop",
     "move.js:26 movePath",
-    "move.js:28 moveSpeed",
-    "move.js:29 moveWalk"
+    "move.js:37 moveSpeed",
+    "move.js:38 moveWalk"
    ],
    "lit": [],
    "r": 4
@@ -14841,7 +14853,7 @@
   },
   "_runWhy": {
    "w": [
-    "move.js:114 moveWalkTick"
+    "move.js:123 moveWalkTick"
    ],
    "lit": [],
    "r": 3
@@ -15129,7 +15141,7 @@
   },
   "_stopWhy": {
    "w": [
-    "move.js:210 moveSetStopWhy"
+    "move.js:219 moveSetStopWhy"
    ],
    "lit": [],
    "r": 5
@@ -15337,7 +15349,7 @@
   },
   "_walkWhy": {
    "w": [
-    "move.js:114 moveWalkTick"
+    "move.js:123 moveWalkTick"
    ],
    "lit": [],
    "r": 3
@@ -15527,12 +15539,12 @@
    "w": [
     "levels.js:111 jumpFaceWait",
     "levels.js:217 ladderTick",
-    "move.js:198 moveSpeedTick",
-    "move.js:200 moveSpeedTick",
-    "move.js:201 moveSpeedTick",
-    "move.js:202 moveSpeedTick",
-    "move.js:203 moveSpeedTick",
-    "move.js:28 moveSpeed",
+    "move.js:207 moveSpeedTick",
+    "move.js:209 moveSpeedTick",
+    "move.js:210 moveSpeedTick",
+    "move.js:211 moveSpeedTick",
+    "move.js:212 moveSpeedTick",
+    "move.js:37 moveSpeed",
     "tick-step.js:117 stepBot",
     "tick-step.js:240 stepBot",
     "tick-step.js:255 stepBot",
@@ -15852,7 +15864,7 @@
   },
   "log": {
    "w": [
-    "move.js:147 moveSpeedTick"
+    "move.js:156 moveSpeedTick"
    ],
    "lit": [],
    "r": 0
@@ -15966,8 +15978,8 @@
     "levels.js:30 fireRepath",
     "levels.js:385 navFollowFloor",
     "levels.js:424 navFollowFloor",
-    "move.js:170 moveSpeedTick",
-    "move.js:177 moveSpeedTick",
+    "move.js:179 moveSpeedTick",
+    "move.js:186 moveSpeedTick",
     "move.js:26 movePath",
     "tick-step.js:255 stepBot",
     "tick-step.js:329 stepBot",
@@ -15990,10 +16002,10 @@
     "levels.js:30 fireRepath",
     "levels.js:385 navFollowFloor",
     "levels.js:424 navFollowFloor",
-    "move.js:170 moveSpeedTick",
-    "move.js:177 moveSpeedTick",
+    "move.js:179 moveSpeedTick",
+    "move.js:186 moveSpeedTick",
     "move.js:26 movePath",
-    "move.js:27 movePathIdx",
+    "move.js:36 movePathIdx",
     "tick-step.js:180 stepBot",
     "tick-step.js:255 stepBot",
     "tick-step.js:260 stepBot",
@@ -16418,9 +16430,9 @@
   },
   "walking": {
    "w": [
-    "move.js:114 moveWalkTick",
-    "move.js:178 moveSpeedTick",
-    "move.js:29 moveWalk",
+    "move.js:123 moveWalkTick",
+    "move.js:187 moveSpeedTick",
+    "move.js:38 moveWalk",
     "tick-step.js:257 stepBot"
    ],
    "lit": [
@@ -16454,7 +16466,7 @@
   },
   "x": {
    "w": [
-    "move.js:211 moveSetX"
+    "move.js:220 moveSetX"
    ],
    "lit": [
     "weapons-bots.js:82"
@@ -16463,7 +16475,7 @@
   },
   "y": {
    "w": [
-    "move.js:212 moveSetY"
+    "move.js:221 moveSetY"
    ],
    "lit": [
     "weapons-bots.js:82"

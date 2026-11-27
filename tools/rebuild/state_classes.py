@@ -22,7 +22,7 @@ CODEX = {'временное состояние раунда': 'раунд', 'в
          'генераторы случайных чисел': 'случайность'}
 ROUND_RESET = {'resetRound'}
 MATCH_RESET = {'newMatch', 'freshMatch', 'matchBegin', 'resetMatchMemory', 'startHalf', 'memStart', 'memRestore'}
-# (27.11) сеттеры хозяев полей (moveSetX, engagementSetTs…), которые resetRound зовёт сам, — запись resetRound: с переносом записей в сеттеры
+# (27.11) сеттеры хозяев полей (moveSetX, engagementSetTs, botTrail…), которые resetRound зовёт сам, — запись resetRound: с переносом записей в сеттеры
 # (Р3.2) правило видело только писателя-сеттер, и поля, которые resetRound сбрасывает через сеттер, уходили из «раунд» в «матч»
 def _round_setters():
     import glob
@@ -33,7 +33,7 @@ def _round_setters():
         for j in range(i, len(t)):
             d += {'{': 1, '}': -1}.get(t[j], 0)
             if d == 0: break
-        return set(re.findall(r'\b([a-z][A-Za-z]*Set[A-Z]\w*)\(', t[i:j]))
+        return set(re.findall(r'\b([A-Za-z_$][\w$]*)\(', t[i:j]))   # (27.11) любой вызов: хозяева не только *Set* (botTrail, botPrevX)
     return set()
 ROUND_SETTERS = _round_setters()
 # (Р4.2а) часть файла (показ / режим страницы) — из rebuild/files.json «game» (src/gamesrc.py game_meta), а не номер в имени
