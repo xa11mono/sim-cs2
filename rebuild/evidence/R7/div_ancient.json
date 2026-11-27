@@ -1,0 +1,17 @@
+{
+ "a": "/tmp/claude-0/-home-user-sim-cs2/9cfc6d1d-cba2-5e13-a39b-648281fe4c83/scratchpad/loc/c0b9749a-ancient.html",
+ "b": "/tmp/claude-0/-home-user-sim-cs2/9cfc6d1d-cba2-5e13-a39b-648281fe4c83/scratchpad/loc/b5711b8e-ancient.html",
+ "engines": {
+  "a": "chromium 158.0.8127.36",
+  "b": "chromium 158.0.8127.36"
+ },
+ "match": 7,
+ "every": 64,
+ "startA": "freshMatch(7);",
+ "startB": "freshMatch(7);",
+ "skip": "^(MK.*|BUY_GAIN|D3|D3_CUT|D3_CUTF|D3_ELFS|D3_ELVS|D3_FB|D3_FOV|D3_FP_AIM|D3_FP_HOLD|D3_FP_PEASE|D3_FP_PRATE|D3_FS|D3_HIDE|D3_KZ|D3_LFS|D3_LOW|D3_LVS|D3_NULLCTX|D3_NULLGRAD|D3_OVER_EVERY|D3_OVER_SEC|D3_SOFT|D3_SPAWN_SEC|D3_STYLES|D3_TR_HIT|D3_TR_SHOT|D3_VS|D3_WFS|D3_WVS|DEMOV|DLOG|DLOG_MAX|DLOG_SEC|DV_PANEL_EL|FATAL|FRAME_CATCHUP_MS|HANDLE_TOL_PX|HGT_C|HGT_LEDGE_TXT|HGT_STOPS|HIT_TOL_PX|HUD_K|HUD_KF_SHOWN|HUD_REDUCED|HUD_SB_FRZ|HUD_TW|HUD_TW_ON|KF_DIRTY|KF_FADE|KF_ICON|KF_IMG|KF_LIFE|KF_MOD_T|KPC|LD_URG|LD_WHY|LOG_DIRTY|LU_COL|MAPED|MED_B|MED_B_HINTS|MED_C|MED_C_HINTS|MED_H|MED_H_HINTS|MED_W|MED_W_HINTS|MINI|MOVE_STOP|NADE_ICON|NADE_ICON_FILL|NADE_IMG|NADE_SOLVE_MS|NAV_BOUNDARY_VERTS_RAW|NAV_VERTEX_PICK_TOL|OBC|OBS|OBS_BOUNDS|OBS_K|OBS_NEAR_CALM|OBS_OFF|OBS_PLAN_MIN|OBS_ST|OBS_TR|OBS_WIDE_MAX|PLAYER_PHOTO|PL_ANIM_MS|PL_ICON|PL_KILL|PL_MONEY|PL_SEEN|PL_SIL|PL_SKULL|R7|R7P|RC_HALF|RP|RP_BF|RP_EL|RP_K|RP_LANG|RP_MODES|RP_NB|RP_RU|RP_SAY|RP_SNAPS|RUN_MATCH|RUN_MATCH_SUB|SANDBOX|SB_PANEL_EL|SHOW_Q|SIM_SHOW|SND|SND_CAP|SND_DATA|SND_GUN|SND_MAX|SND_R|TD_BUY|TD_STYLE|TEAMDBG|TS|TS_K|TS_LAYS|TS_LINE|TS_SAY|TS_SEQ|VOICE_DIRTY|VT|VT_PICK_R|WARM|WHY_LOOK|WHY_POST|WK|WK_IDLE_MS|WK_STAT|WK_VIEW|WPM|WSK_EL|ZDJ|alignPanel|bannerTimer|btnNavReset|btnNavWarpClear|btnNavWarpUndo|btnZoneDelete|btnZoneFinish|camDragOrig|camDragStart|camDragging|cardTimer|chkAlign|chkCover|chkHeights|chkLineups|chkLookDbg|chkNavWarp|chkTeamDbg|chkVis|chkWallbang|chkZoneAlign|chkZoneEdit|chkZoneVertexEdit|covTip|ctx|cv|econClosed|frameWrapR|hgtTip|hoverZoneId|img|imgFailed|imgReady|inNavDx|inNavDy|inNavScale|inZlDx|inZlDy|inZlScale|killfeed|lineupPanel|lookDbgEl|luBuiltinOpen|luDrag|luHover|luPending|luSel|navDragOrig|navDragStart|navDragging|navRebuildTimer|navWarpCountEl|navWarpHint|navWarpPanel|navWarpPending|nowTs|plSelected|selectedZoneId|showCalls|showDanger|showLos|showNavmesh|showPoints|showPortals|showSound|showTracers|showWalls|showWhy|showZones|soundPings|teamDbgEl|tracers|view|wbTip|wrap|zlDragOrig|zlDragStart|zlDragging|zoneAlignPanel|zoneDrawCur|zoneDrawPts|zoneDrawing|zoneEditCountEl|zoneEditHint|zoneEditPanel|zoneKindSelect|zoneMoveOrig|zoneMoveStart|zoneMoving|zoneNameInput|zoneNameInput2|zoneNamePanel|zoneNameSel|zoneScaleBaseDist|zoneScaleCenter|zoneScaling|zoneVertexDragging|zoneVertexIdx|zsDrag|zsRebuildTimer)$|^(R7|R7P|R7_WASM|R7_KIND|M3_TRIPL_MAX)$",
+ "skipField": "^(_hitFx|_visFacing)$",
+ "found": false,
+ "checkedTo": 15040,
+ "seconds": 108
+}
