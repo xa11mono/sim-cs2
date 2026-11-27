@@ -208,7 +208,26 @@ function m3SegHull(M, h, ax, ay, az, dx, dy, dz){   // → [t входа, ном
 // 1) столбики (клетка 5 ед.): идём по клеткам линии, в каждой — z линии от входа до выхода против отрезков клетки; ни одного
 // пересечения — свободно (столбики пишутся с запасом). 2) Есть пересечение — точная проверка: треугольники и выпуклые блоки
 // «корзины» 4×4 клеток против всего отрезка. first: false — только «есть ли преграда», true — первое попадание с нормалью
+// (Р6 К-2, опыт 27.11) память лучей: m3Cast — чистая функция неизменной геометрии M и аргументов (кроме счётчика M.bStamp — его попадание
+// в память увеличивает так же); ключ — биты аргументов, сравнение — бит в бит; ответ — новая копия, как у расчёта
+var M3_CAST_N = 8192, M3_CAST_A = new Float64Array(M3_CAST_N*6), M3_CAST_U = new Uint32Array(M3_CAST_A.buffer), M3_CAST_K = new Int32Array(M3_CAST_N).fill(-1),
+  M3_CAST_M = new Array(M3_CAST_N), M3_CAST_R = new Array(M3_CAST_N), M3_CAST_H = new Float64Array(6), M3_CAST_HU = new Uint32Array(M3_CAST_H.buffer), M3_CAST_ST = [0, 0];
 function m3Cast(M, ax, ay, az, bx, by, bz, kind, first){
+  var H = M3_CAST_H, HU = M3_CAST_HU; H[0] = ax; H[1] = ay; H[2] = az; H[3] = bx; H[4] = by; H[5] = bz;
+  var kn = kind === "sight" ? 1 : kind === "nade" ? 2 : kind === "sky" ? 3 : 0; if(!kn) return m3Cast0(M, ax, ay, az, bx, by, bz, kind, first);
+  var kc = kn*2 + (first ? 1 : 0), h = kc * 0x9E3779B1 | 0;
+  for(var q = 0; q < 12; q++){ h = Math.imul(h ^ HU[q], 0x85EBCA6B); h ^= h >>> 13; }
+  var s = (h >>> 0) & (M3_CAST_N - 1), o = s*12;
+  if(M3_CAST_K[s] === kc && M3_CAST_M[s] === M){
+    var U = M3_CAST_U, eq = true; for(q = 0; q < 12; q++) if(U[o + q] !== HU[q]){ eq = false; break; }
+    if(eq){ var stamp = ++M.bStamp; if(stamp > 4e9){ M.bSeen.fill(0); M.bStamp = 1; } M3_CAST_ST[0]++; var r = M3_CAST_R[s]; return r ? Object.assign({}, r) : r; }
+  }
+  M3_CAST_ST[1]++;
+  var res = m3Cast0(M, ax, ay, az, bx, by, bz, kind, first);
+  for(q = 0; q < 12; q++) M3_CAST_U[o + q] = HU[q]; M3_CAST_K[s] = kc; M3_CAST_M[s] = M; M3_CAST_R[s] = res ? Object.assign({}, res) : res;
+  return res;
+}
+function m3Cast0(M, ax, ay, az, bx, by, bz, kind, first){
   var C = m3Col(M, kind), st = C.st, LO = C.lo, HI = C.hi, W = M.W, flag = kind === "nade" ? 2 : 1;
   var cx = ax / M.cell, cy = ay / M.cell, ex = bx / M.cell, ey = by / M.cell;
   var k2 = M.unit / M.cell, wax = M.X0 + ax * k2, way = M.Y0 - ay * k2, wdx = (bx - ax) * k2, wdy = -(by - ay) * k2, wdz = bz - az;
