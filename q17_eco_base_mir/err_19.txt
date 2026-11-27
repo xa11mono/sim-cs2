@@ -1,0 +1,11 @@
+[q] ошибка: page.evaluate: ReferenceError: clockPause is not defined
+    at eval (eval at window.__ev (file:///C:/actions-runner/_work/sim-cs2/sim-cs2/tools/measure/runs/_sims/q17_eco_base_mir.html:36118:34), <anonymous>:1:57)
+    at window.__ev (file:///C:/actions-runner/_work/sim-cs2/sim-cs2/tools/measure/runs/_sims/q17_eco_base_mir.html:37120:34)
+    at eval (eval at evaluate (:311:30), <anonymous>:1:7)
+    at UtilityScript.evaluate (<anonymous>:313:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)
+    at p.evaluate (C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\progress.js:25:14)
+    at async Object.stopFrames (C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\dv_state.js:58:32)
+    at async C:\actions-runner\_work\sim-cs2\sim-cs2\src\q.js:16:34
+
+[guard] {"name": "rec q17_eco_base_mir m19", "engine": "chromium", "rc": 1, "ok": false, "secs": 2.1410000000032596, "t_start": 1795822343.1806648, "t_end": 1795822345.3236644, "peak_mb": 416, "procs_max": 0, "stopped": null, "orphans_killed": 0, "job": true, "par_cap": 8, "running_with": 0, "mem_total_mb": 15977, "mem_avail_mb_after": 11079, "retry": true, "par_req": 8, "par_seen_max": 1, "par_seen_avg": 1.0, "group_limit_mb": 0, "stop_kind": null, "tick_last": null, "progress_reports": 0, "tick_gap_max_s": 0, "cpu_s": null, "page_state": "closing", "attempt": 3}
