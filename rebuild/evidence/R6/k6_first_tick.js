@@ -2,6 +2,8 @@
 // (roundState стал "live") и первый тик закупки (стал "freeze"); сравнение с медианой и 95-м процентилем обычных тиков.
 // node rebuild/evidence/R6/k6_first_tick.js <core.js> <матч> <тиков>
 const [core, m, T] = process.argv.slice(2); const EV = require('../../../tools/node/core_run.js').load(core);
+// R7=napi | wasm — с ядрами Rust (tools/r7/kernels: луч, путь, граната), как в игре с ядрами
+if (process.env.R7) require('../../../tools/r7/kernels/js/bridge.js').attach(EV, { backend: process.env.R7, mode: 'speed' });
 let last = 0, prevState = null; const all = [], live = [], freeze = [], at = [];
 globalThis.__k6 = t => { const now = Number(process.hrtime.bigint()) / 1e6, st = EV('roundState'); if (last) { const d = now - last; all.push(d); at.push(d);
   if (st === 'live' && prevState !== 'live') live.push(at.length - 1); if (st === 'freeze' && prevState !== 'freeze') freeze.push(at.length - 1); }
