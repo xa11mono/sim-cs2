@@ -149,6 +149,9 @@ function ctBombSite(){
 }
 function ctBombKnow(){
   var P = teamAgent("CT").know.bombPt;
+  // (изоляция, 27.11; ПК 350, м19 обеих карт — падение retakeUtil: GEO[undefined]) видели бомбу лежащей, а потом объявлен плант (публично) —
+  // та точка устарела: бомбу подняли и заложили; дальше — по сайту, как без точки
+  if(P && P.state !== "planted" && bomb && bomb.state === "planted") P = null;
   if(P && !P.gone) return {x: P.x, y: P.y, z: P.z, site: P.site, exact: true, state: P.state};
   if(!bomb || bomb.state !== "planted") return null;
   var site = ctBombSite(); if(!site) return null;

@@ -7265,7 +7265,7 @@
    "snap": "нет: UI"
   },
   "RT_GAP": {
-   "decl": "save-retake.js:219",
+   "decl": "save-retake.js:222",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -7276,7 +7276,7 @@
    "snap": true
   },
   "RT_WAIT": {
-   "decl": "save-retake.js:219",
+   "decl": "save-retake.js:222",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -9820,7 +9820,7 @@
    "snap": "нет: STATIC"
   },
   "_rtw": {
-   "decl": "save-retake.js:220",
+   "decl": "save-retake.js:223",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -10038,7 +10038,7 @@
     "replay": 23,
     "roles": 9,
     "round": 10,
-    "save-retake": 22,
+    "save-retake": 24,
     "scoreboard": 7,
     "self": 7,
     "shoot": 2,
@@ -14298,8 +14298,8 @@
   },
   "_nearBombT": {
    "w": [
-    "save-retake.js:479 retakeDefGo",
-    "save-retake.js:480 retakeDefGo"
+    "save-retake.js:482 retakeDefGo",
+    "save-retake.js:483 retakeDefGo"
    ],
    "lit": [],
    "r": 4
@@ -14938,7 +14938,7 @@
   },
   "_saveSpot": {
    "w": [
-    "save-retake.js:501 retakeSetSaveSpot"
+    "save-retake.js:504 retakeSetSaveSpot"
    ],
    "lit": [],
    "r": 19
@@ -16233,7 +16233,7 @@
   },
   "retakeRole": {
    "w": [
-    "save-retake.js:502 retakeSetRetakeRole"
+    "save-retake.js:505 retakeSetRetakeRole"
    ],
    "lit": [],
    "r": 2
