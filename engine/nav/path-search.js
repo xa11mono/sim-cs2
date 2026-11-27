@@ -1,5 +1,6 @@
 // [хозяева: buildWaypointPath, funnel, hasLOS, zoneDijkstra] (Р3.2, канал «ход») параметры поиска — явный контекст ctx {from, toPt, fire, nearest, quiet} (был: свойства функции zoneDijkstra.*,
 // их задавал и сбрасывал buildWaypointPath0); без ctx — как в покое (всё выключено)
+var ZDJX = {m: -1, graph: null, s: new Map()}, ZDJX_N = 2048, ZDJX_ST = [0, 0];
 function zoneDijkstra(fromId, toId, team, ctx){
   ctx = ctx || {};
   if(fromId===toId) return [fromId];
@@ -21,8 +22,13 @@ function zoneDijkstra(fromId, toId, team, ctx){
   var key = fromId + "|" + (team||"") + (ctx.quiet ? "|q" : "") + "|" + (fx0 ? fx0.x + "," + fx0.y : "") + "|" + (fireOn ? fires.map(function(f){ return f.x + "," + f.y + "," + f.born; }).join(";") : "") + "|" +
             KP.map(function(q){ return q.x + "," + q.y + "," + q.w; }).join(";");
   var DJ = ZDJ.tick === tick && ZDJ.m === matchNum && ZDJ.graph === zoneGraph ? ZDJ.s : (ZDJ.tick = tick, ZDJ.m = matchNum, ZDJ.graph = zoneGraph, ZDJ.s = {});
+  // (Р6 К-1, опыт 27.11) без огня поиск зависит только от ключа (начало, сторона, тишина, точка старта, места врагов по знанию) и графа —
+  // не от тика: продолжается и в следующих тиках, пока тот же матч и граф; хранится ZDJX_N последних ключей
+  if(!fireOn && ZDJX.m === matchNum && ZDJX.graph === zoneGraph){ var SX = ZDJX.s.get(key); if(SX && !DJ[key]){ DJ[key] = SX; ZDJX_ST[0]++; } }
+  else if(!fireOn){ ZDJX.m = matchNum; ZDJX.graph = zoneGraph; ZDJX.s = new Map(); }
   var S = DJ[key];
-  if(!S){ S = DJ[key] = {dist: {}, prev: {}, visited: {}, entry: {}, heap: makeHeap(), relax: null}; S.dist[fromId] = 0; if(fx0) S.entry[fromId] = fx0; S.heap.push(fromId, 0); }
+  if(!S){ S = DJ[key] = {dist: {}, prev: {}, visited: {}, entry: {}, heap: makeHeap(), relax: null}; S.dist[fromId] = 0; if(fx0) S.entry[fromId] = fx0; S.heap.push(fromId, 0); ZDJX_ST[1]++;
+    if(!fireOn){ ZDJX.s.set(key, S); if(ZDJX.s.size > ZDJX_N) ZDJX.s.delete(ZDJX.s.keys().next().value); } }
   var dist = S.dist, prev = S.prev, visited = S.visited, entry = S.entry, heap = S.heap;
   var relax = function(u){
     // (v406, владелец 22.10: «зачем все идут в одну точку, а не прямо вниз» — спавн T → T Ramp) длина — от точки, через которую в участок
