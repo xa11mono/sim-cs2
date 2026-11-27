@@ -1,0 +1,10 @@
+{
+ "family": "c4show",
+ "match": 11,
+ "at": 4950,
+ "observer": "CT",
+ "ticks": 1,
+ "change": null,
+ "aa": "A = A",
+ "verdict": "пара не годится: изменение невозможно в этой точке"
+}

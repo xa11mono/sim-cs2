@@ -1,0 +1,25 @@
+{
+ "family": "blind",
+ "match": 3,
+ "at": 1700,
+ "observer": "CT",
+ "ticks": 900,
+ "change": "ослеплены 2 с: T0 T1 T2 T3 T4",
+ "aa": "A = A",
+ "first": {
+  "P": 44,
+  "K": 44,
+  "D": 44
+ },
+ "legal_from": {
+  "tick": 1745,
+  "bots": [
+   {
+    "id": "CT1",
+    "A": "[100,true,[],null,null]",
+    "B": "[100,true,[[\"T4\",1350.2309561194681,1313.4357230180444,-170.5632335545537,false,true,\"GLOCK\",null,false]],null,null]"
+   }
+  ]
+ },
+ "verdict": "чисто: различия только после законного входа"
+}

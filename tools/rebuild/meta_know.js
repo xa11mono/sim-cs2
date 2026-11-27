@@ -30,7 +30,8 @@ EV(`globalThis.MK_SIG = function(obs){
   var K = {team: SR.dig(teamIntel[obs], false), agent: (typeof TEAMK !== 'undefined' && TEAMK[obs] && TEAMK[obs].know) ? SR.dig(TEAMK[obs].know, false) : 0, b: {}};
   var D = {b: {}};
   own.forEach(function(b){
-    P.b[b.id] = [b.hp, b.alive, (b._visible || []).map(function(e){ return [e.id, e.x, e.y, e.z, e.crouching, e.alive, e.weapon && e.weapon.key,
+    // своё снаряжение (основное, пистолет) — законный вход: подобрал под ногами — физика, а не решение
+    P.b[b.id] = [b.hp, b.alive, b.primary || null, b.secondary || null, (b._visible || []).map(function(e){ return [e.id, e.x, e.y, e.z, e.crouching, e.alive, e.weapon && e.weapon.key,
       typeof seenPrimary === 'function' ? seenPrimary(e, b) : null, !!(bomb && bomb.carrier === e && (typeof backSeen !== 'function' || (KNOW.seeC4Back && backSeen(b, e))))]; }),
       b.heardSound ? [b.heardSound.kind, b.heardSound.x, b.heardSound.y, b.heardSound.tick] : null,
       // лежащая / заложенная бомба в поле зрения этого бота (то же зрение, что у датчика knowTeamLook)
@@ -66,6 +67,10 @@ const FAMILIES = {
     if(ts.some(function(t){ return DM.hypot(t.x-bomb.x, t.y-bomb.y) < DEFUSE_HEAR; })) return null;
     var c = bots.filter(function(o){ return o.alive && o.team === 'CT' && !o.defusing && !ts.some(function(t){ return (t._visible || []).indexOf(o) >= 0; }); })[0]; if(!c) return null;
     c.defusing = true; c.defuseUntil = tick + DEFUSE_TICKS; return 'скрытый дефуз: ' + c.id; })()`,
+  // для проб: скрытый флаг «дефузит» у CT, которого не видит ни один T (звук начала дефуза — событие, флагом не испускается)
+  defflag: `(function(){ if(!bomb || bomb.state !== 'planted') return null;
+    var c = bots.filter(function(o){ return o.alive && o.team === 'CT' && !o.defusing && !bots.some(function(t){ return t.alive && t.team === 'T' && (t._visible || []).indexOf(o) >= 0; }); })[0]; if(!c) return null;
+    c.defusing = true; c.defuseUntil = tick + DEFUSE_TICKS; return 'скрытый флаг дефуза: ' + c.id; })()`,
   // скрытый остаток дефуза: CT дефузит (это слышно в обоих мирах), другое истинное время окончания — знание T не должно зависеть от него
   defrem: `(function(){ var c = bots.filter(function(o){ return o.alive && o.team === 'CT' && o.defusing; })[0]; if(!c || !c.defuseUntil) return null;
     c.defuseUntil += 2*TICK_HZ; return 'остаток дефуза ' + c.id + ' +2 с'; })()`,
@@ -136,8 +141,18 @@ const PROBE = `(function(obs){ var R = {}; bots.forEach(function(b){ if(!b.alive
     var F = b._fc; if(F && F.e){ o.duelEval = duelEval(b, F, null); var FE = typeof duelFoe === 'function' ? duelFoe(b, F.e) : F.e;
       o.duelOdds = FE ? duelOdds(b, FE, FE.x, FE.y) : null; }
     if(typeof ninjaOk === 'function' && b.team === 'CT') try { o.ninjaOk = ninjaOk(b); } catch(e) { o.ninjaOk = 'ошибка'; }
+    // знание и решения о бомбе / дефузе (чистые функции; в старых сборках их нет — пропуск)
+    if(bomb && bomb.state === 'planted'){
+      if(b.team === 'CT'){ if(typeof ctBombPos === 'function') o.ctBombPos = ctBombPos(); if(typeof ctBombSite === 'function') o.ctBombSite = ctBombSite();
+        if(typeof ppLayer === 'function') o.ppLayer = ppLayer('CT'); if(typeof defuseEta === 'function') o.defuseEta = defuseEta(b); }
+      else { if(typeof tDefuseKnow === 'function') o.tDefuseKnow = tDefuseKnow(bots.filter(function(q){ return q.alive && q.team === 'T'; }));
+        if(typeof tDefusePt === 'function') o.tDefusePt = tDefusePt(b); if(typeof taskSlackSec === 'function') o.taskSlackSec = taskSlackSec(b); } }
     R[b.id] = o; }); return JSON.stringify(R); })`;
 const WANT = { nearest: `bots.some(function(b){ return b.alive && b.team === '${OBS}' && b._nearestEnemyBot; })`,
+  // бомба заложена, и её не видит ни один CT (дальше 700 и без линии) — пара c4move возможна
+  c4hidden: `bomb && bomb.state === 'planted' && bots.filter(function(o){ return o.alive && o.team === 'CT'; }).every(function(o){ return DM.hypot(o.x-bomb.x, o.y-bomb.y) > 700 && !hasVision(o.x, o.y, bomb.x, bomb.y); })`,
+  // бомба заложена, есть CT, которого не видит ни один T (для defflag)
+  planted: `bomb && bomb.state === 'planted' && bots.some(function(o){ return o.alive && o.team === 'CT' && !o.defusing && !bots.some(function(t){ return t.alive && t.team === 'T' && (t._visible || []).indexOf(o) >= 0; }); })`,
   fclost: `bots.some(function(b){ return b.alive && b.team === '${OBS}' && b._fc && b._fc.e && b._fc.e.alive && (b._visible || []).indexOf(b._fc.e) < 0; })`, any: 'true' };
 if (A.probe) {
   const w = WANT[A.want || 'nearest']; EV(`var __n = 0; while(!(roundState === 'live' && (${w})) && __n++ < 200000) stepTick(); globalThis.__MK_S = mkSnapshot(); 1`);
@@ -151,7 +166,7 @@ if (A.probe) {
       if (JSON.stringify(R0[id][f]) !== JSON.stringify((R1[id] || {})[f])) d.push({ bot: id, fn: f, A: JSON.stringify(R0[id][f]).slice(0, 200), B: JSON.stringify((R1[id] || {})[f]).slice(0, 200) });
     res.probed = Object.keys(R0).map(id => id + ':' + Object.keys(R0[id]).join('+')).join(' ');
     res.diff = d; res.verdict = A.positive ? (d.length ? 'положительная пройдена: законное знание изменило ответ' : 'ПОЛОЖИТЕЛЬНАЯ не пройдена: законное знание не изменило ответ') :
-      d.length ? 'УТЕЧКА: ответ функции решения изменился при тех же законных входах' : (res.probed.indexOf(':d') < 0 && res.probed.indexOf(':n') < 0 ? 'пробовать нечего в этой точке' : 'чисто: ответы те же'); }
+      d.length ? 'УТЕЧКА: ответ функции решения изменился при тех же законных входах' : (!/:[a-zA-Z]/.test(res.probed) ? 'пробовать нечего в этой точке' : 'чисто: ответы те же'); }
   console.log(JSON.stringify(res, null, 1)); process.exit(0);
 }
 const a = run(false), a2 = run(false), b = run(true);

@@ -1,0 +1,25 @@
+{
+ "family": "gunseen",
+ "match": 3,
+ "at": 1700,
+ "observer": "CT",
+ "ticks": 900,
+ "change": "АК на виду у CT0",
+ "aa": "A = A",
+ "first": {
+  "P": 0,
+  "K": 55,
+  "D": 0
+ },
+ "legal_from": {
+  "tick": 1701,
+  "bots": [
+   {
+    "id": "CT1",
+    "A": "[100,true,null,\"USP\",[],null,null]",
+    "B": "[100,true,\"AK\",\"USP\",[],null,null]"
+   }
+  ]
+ },
+ "verdict": "положительная пройдена: законный вход на тике 0 → знание отреагировало на тике 55, решение — 0"
+}

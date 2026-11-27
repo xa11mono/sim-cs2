@@ -1,0 +1,10 @@
+{
+ "family": "defsilent",
+ "match": 3,
+ "at": 38323,
+ "observer": "T",
+ "ticks": 636,
+ "change": null,
+ "aa": "A = A",
+ "verdict": "пара не годится: изменение невозможно в этой точке"
+}

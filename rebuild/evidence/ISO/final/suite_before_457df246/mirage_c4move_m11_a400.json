@@ -1,0 +1,10 @@
+{
+ "family": "c4move",
+ "match": 11,
+ "at": 3354,
+ "observer": "CT",
+ "ticks": 228,
+ "change": null,
+ "aa": "A = A",
+ "verdict": "пара не годится: изменение невозможно в этой точке"
+}
