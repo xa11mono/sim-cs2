@@ -1,0 +1,15 @@
+[q] ошибка: page.evaluate: TypeError: Cannot read properties of undefined (reading 'tEntry')
+    at retakeUtil (file:///C:/actions-runner/_work/sim-cs2/sim-cs2/tools/measure/runs/_sims/r50_iso_mir.html:35387:33)
+    at updateRetake (file:///C:/actions-runner/_work/sim-cs2/sim-cs2/tools/measure/runs/_sims/r50_iso_mir.html:35303:48)
+    at ctBrainSave (file:///C:/actions-runner/_work/sim-cs2/sim-cs2/tools/measure/runs/_sims/r50_iso_mir.html:41222:34)
+    at ctBrain (file:///C:/actions-runner/_work/sim-cs2/sim-cs2/tools/measure/runs/_sims/r50_iso_mir.html:40839:3)
+    at teamBrains (file:///C:/actions-runner/_work/sim-cs2/sim-cs2/tools/measure/runs/_sims/r50_iso_mir.html:42002:3)
+    at teamBrains (file:///C:/actions-runner/_work/sim-cs2/sim-cs2/tools/measure/runs/_sims/r50_iso_mir.html:52216:17)
+    at stepTick (file:///C:/actions-runner/_work/sim-cs2/sim-cs2/tools/measure/runs/_sims/r50_iso_mir.html:5791:5)
+    at stepTick (eval at window.__ev (file:///C:/actions-runner/_work/sim-cs2/sim-cs2/tools/measure/runs/_sims/r50_iso_mir.html:62633:10), <anonymous>:1:163)
+    at eval (eval at window.__ev (file:///C:/actions-runner/_work/sim-cs2/sim-cs2/tools/measure/runs/_sims/r50_iso_mir.html:62633:10), <anonymous>:19:3)
+    at window.__ev (file:///C:/actions-runner/_work/sim-cs2/sim-cs2/tools/measure/runs/_sims/r50_iso_mir.html:63709:10)
+    at p.evaluate (C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\progress.js:25:14)
+    at C:\actions-runner\_work\sim-cs2\sim-cs2\src\q.js:18:22
+
+[guard] {"name": "fp r50_iso_mir.html m19", "engine": "chromium", "rc": 1, "ok": false, "secs": 231.2960000000021, "t_start": 1795808693.0816348, "t_end": 1795808924.3768363, "peak_mb": 1120, "procs_max": 6, "stopped": null, "orphans_killed": 0, "job": true, "par_cap": 8, "running_with": 0, "mem_total_mb": 15977, "mem_avail_mb_after": 10552, "retry": true, "par_req": 8, "par_seen_max": 1, "par_seen_avg": 1.0, "group_limit_mb": 0, "stop_kind": null, "tick_last": 114560, "progress_reports": 179, "tick_gap_max_s": 21.3, "cpu_s": 235.3, "page_state": "closing", "attempt": 3}

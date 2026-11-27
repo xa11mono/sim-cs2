@@ -1,0 +1,19 @@
+r50_pk_mir.core.js:20344
+    assignNade(smr, "smoke", gs.tEntry, "отрезать вход T", { bkey: "CT.retake.smoke." + bp.site, now: true });
+                                ^
+
+TypeError: Cannot read properties of undefined (reading 'tEntry')
+    at retakeUtil (r50_pk_mir.core.js:20344:33)
+    at updateRetake (r50_pk_mir.core.js:20260:48)
+    at ctBrainSave (r50_pk_mir.core.js:26179:34)
+    at ctBrain (r50_pk_mir.core.js:25796:3)
+    at teamBrains (r50_pk_mir.core.js:26959:3)
+    at teamBrains (r50_pk_mir.core.js:29802:17)
+    at stepTick (r50_pk_mir.core.js:4704:5)
+    at eval (eval at globalThis.__ev (r50_pk_mir.core.js:36964:10), <anonymous>:19:3)
+    at globalThis.__ev (r50_pk_mir.core.js:36964:10)
+    at C:\actions-runner\_work\sim-cs2\sim-cs2\tools\node\core_run.js:16:113
+
+Node.js v24.21.0
+
+[guard] {"name": "fp r50_pk_mir.core.js m19", "engine": "node", "rc": 1, "ok": false, "secs": 258.01599999997416, "t_start": 1795809139.089837, "t_end": 1795809397.1056457, "peak_mb": 886, "procs_max": 2, "stopped": null, "orphans_killed": 0, "job": true, "par_cap": 8, "running_with": 0, "mem_total_mb": 15977, "mem_avail_mb_after": 10570, "retry": true, "par_req": 8, "par_seen_max": 1, "par_seen_avg": 1.0, "group_limit_mb": 0, "stop_kind": null, "tick_last": null, "progress_reports": 0, "tick_gap_max_s": 0, "cpu_s": 275.5, "page_state": null, "attempt": 3}
