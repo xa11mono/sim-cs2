@@ -156,11 +156,14 @@ function knifeEnemyDist(b){
 var KNIFE_REACH = 20, KNIFE_GAP = 64, KNIFE_STAB = 55, KNIFE_BACK = 180, KNIFE_GO = 300;   // проектные: ед. карты, тики, урон (слова владельца: 2 спереди, 1 в спину)
 function knifeDefuseTick(b){
   if(b.team !== "T" || !bomb || bomb.state !== "planted" || tick - (b._defuseHeard || -9999) >= TICK_HZ || b._sawEnemy || b.planting) return false;
-  var D = bots.filter(function(o){ return o.alive && o.defusing; })[0]; if(!D) return false;
-  var d = DM.hypot(D.x-b.x, D.y-b.y); if(d > KNIFE_GO) return false;
+  // (изоляция, 27.11; аудит C4-D) решение идти с ножом и куда — по знанию этого T (видит дефузера или слышит звук дефуза: tDefusePt);
+  // сам удар — физика: того, кто реально дефузит в досягаемости ножа
+  var P = tDefusePt(b); if(!P) return false;
+  var d = DM.hypot(P.x-b.x, P.y-b.y); if(d > KNIFE_GO) return false;
   if(!(b.ammo <= 0 || b._reloading || !b._spam || d <= 3*KNIFE_REACH)) return false;
-  equipmentSetKnife(b, true); b._knDef = D.id;   // точку «к нему» даёт задача «сбить дефуз» (tBrain, brain-t); очередь в дым снимает её хозяин (smoke-react)
+  equipmentSetKnife(b, true); b._knDef = P.id || "heard";   // точку «к нему» даёт задача «сбить дефуз» (tBrain, brain-t); очередь в дым снимает её хозяин (smoke-react)
   if(d > KNIFE_REACH) return true;
+  var D = bots.filter(function(o){ return o.alive && o.defusing && DM.hypot(o.x-b.x, o.y-b.y) <= KNIFE_REACH; })[0]; if(!D) return true;
   if(tick < (b._stabT || 0)) return true;
   knifeSetStabT(b, tick + KNIFE_GAP);
   var back = D.facing !== undefined && _angOff(DM.atan2(b.y-D.y, b.x-D.x), D.facing) > 2*Math.PI/3;

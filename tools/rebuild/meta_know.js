@@ -55,6 +55,15 @@ const FAMILIES = {
     var C = sitePlantPro(bomb.site).map(function(q){ return walk(q); }).filter(function(q){ return DM.hypot(q.x-bomb.x, q.y-bomb.y) > 120 && seen(q); });
     if(!C.length) return null; var q = C[0], a = {x: bomb.x, y: bomb.y}; bomb.x = q.x; bomb.y = q.y; var ar = navAt(q.x, q.y, bomb.z); if(ar) bomb.z = navFloorZ(ar, q.x, q.y);
     return 'C4 на виду у CT: ' + Math.round(a.x) + ',' + Math.round(a.y) + ' → ' + Math.round(q.x) + ',' + Math.round(q.y); })()`,
+  // скрытый дефуз: CT «дефузит» без звука, все T дальше радиуса звука дефуза (DEFUSE_HEAR) и не видят его — знание T не должно измениться
+  defsilent: `(function(){ if(!bomb || bomb.state !== 'planted') return null;
+    var ts = bots.filter(function(o){ return o.alive && o.team === 'T'; });
+    if(ts.some(function(t){ return DM.hypot(t.x-bomb.x, t.y-bomb.y) < DEFUSE_HEAR; })) return null;
+    var c = bots.filter(function(o){ return o.alive && o.team === 'CT' && !o.defusing && !ts.some(function(t){ return (t._visible || []).indexOf(o) >= 0; }); })[0]; if(!c) return null;
+    c.defusing = true; c.defuseUntil = tick + DEFUSE_TICKS; return 'скрытый дефуз: ' + c.id; })()`,
+  // скрытый остаток дефуза: CT дефузит (это слышно в обоих мирах), другое истинное время окончания — знание T не должно зависеть от него
+  defrem: `(function(){ var c = bots.filter(function(o){ return o.alive && o.team === 'CT' && o.defusing; })[0]; if(!c || !c.defuseUntil) return null;
+    c.defuseUntil += 2*TICK_HZ; return 'остаток дефуза ' + c.id + ' +2 с'; })()`,
   // скрытые HP врагов наблюдателя (не меньше 1): у видимых тоже — HP не виден
   hp: `(function(){ var E = bots.filter(function(o){ return o.alive && o.team !== '${OBS}'; }); if(!E.length) return null;
     E.forEach(function(o){ o.hp = o.hp > 50 ? 27 : 100; }); return 'HP врагов: ' + E.map(function(o){ return o.id + '=' + o.hp; }).join(' '); })()`,
@@ -71,7 +80,8 @@ if (!FAMILIES[FAM]) { console.error('нет семейства ' + FAM + '; ес
 // точка снимка: тик или «plant» (первый тик после планта в матче, не раньше --after)
 EV('freshMatch(' + M + '); 1');
 const at = A.at || '3000';
-if (at === 'plant') EV(`var __n = 0; while(!(bomb && bomb.state === 'planted' && roundState === 'live') && __n++ < 400000) stepTick(); for(var __k = 0; __k < ${+(A.after || 64)}; __k++) stepTick(); 1`);
+if (at === 'defuse') EV(`var __n = 0; while(!bots.some(function(o){ return o.alive && o.team === 'CT' && o.defusing && o.defuseUntil > tick + 64; }) && __n++ < 600000) stepTick(); for(var __k = 0; __k < ${+(A.after || 4)}; __k++) stepTick(); 1`);
+else if (at === 'plant') EV(`var __n = 0; while(!(bomb && bomb.state === 'planted' && roundState === 'live') && __n++ < 400000) stepTick(); for(var __k = 0; __k < ${+(A.after || 64)}; __k++) stepTick(); 1`);
 else EV('while(tick < ' + (+at) + ') stepTick(); 1');
 EV('globalThis.__MK_S = mkSnapshot(); 1'); const t0 = EV('tick');   // снимок — в области игры (объект со ссылками; mkRestore копирует сам)
 function run(mutate) {

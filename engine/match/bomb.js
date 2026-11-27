@@ -167,13 +167,29 @@ function ctDefuseThreat(dTicks){
 // ждать нельзя: не успеем, если он настоящий), "bait" — один выглядывает проверить (байт-пик), остальные держат места; false — не выходим.
 // Было: true / false, на true шли все в 1100 ед.; «горячий» T шёл без раздумий по монетке (0,25 × агрессия) — снято
 var BAIT_MAX = 2;   // байт-пиков за раунд — проектное число (6ж: «сколько раз байтят — не расписано»)
+// (изоляция, 27.11; аудит C4-D) что знают T о дефузе — одно место для решений T (уход, сейв, антидефуз, нож, гранаты): слышали звук дефуза
+// или им сказали «дефузят!» (знание бота know.defuseT — knowHearing / knowCall; звук — модель проекта defuseSound / defuseContTick, радиус
+// DEFUSE_HEAR) — в пределах секунды, как у проверки гранат на дефуз; или видят дефузящего CT. start — первый услышанный звук начала этой
+// попытки (_defuseHeard). Истинное defusing / defuseUntil дефузера не читается
+function tDefuseKnow(ts){
+  var seen = null, last = -1e9, start = -1e9;
+  ts.forEach(function(t){ (t._visible || []).forEach(function(e){ if(!seen && e.alive && e.defusing) seen = e; });
+    var d = t.know && t.know.defuseT; if(d !== undefined && d > last) last = d;
+    if(t._defuseHeard != null && t._defuseHeard > start) start = t._defuseHeard; });
+  return {on: !!seen || tick - last <= TICK_HZ, seen: seen, last: last, start: start};
+}
+// где сбивать дефуз по знанию этого T: видимый дефузер — его место; иначе — откуда слышен звук дефуза (≤ 1 с); нет — null
+function tDefusePt(b){
+  var V = (b._visible || []).filter(function(e){ return e.alive && e.defusing; })[0]; if(V) return {x: V.x, y: V.y, z: V.z, id: V.id};
+  var H = b.heardSound; return H && H.kind === "defuse" && tick - H.tick <= TICK_HZ ? {x: H.x, y: H.y, z: H.z, id: null} : null;
+}
 function tDefuseGo(tt, ts){
   var heard = ts.filter(function(b){ return tick - (b._defuseHeard||-9999) < 110; });
   if(!heard.length) return false;
   var h0 = Math.max.apply(null, heard.map(function(b){ return b._defuseHeard; }));
   var cont = ts.some(function(b){ return (b._defuseCont||-9999) > h0 + 36; });
   if(cont){ if(tt._dfRead !== h0){ tt._dfRead = h0; voiceLog("T", "dfreal"+h0, heard[0].id, "дефуз не прекращается — настоящий, все на бомбу!"); } return "all"; }
-  var kitGuess = teamEco.CT.roundType === "full" ? DEFUSE_KIT_TICKS : DEFUSE_TICKS;
+  var kitGuess = DEFUSE_KIT_TICKS;   // (изоляция, 27.11; аудит C4-D) кита у врага игрок не видит — худший случай (было: истинный тип закупа CT)
   var near = heard.slice().sort(function(a, c){ return pathLenTo(a, bomb.x, bomb.y) - pathLenTo(c, bomb.x, bomb.y); })[0];
   var travel = pathLenTo(near, bomb.x, bomb.y)/SPEED*TICK_HZ;
   var canWait = travel + 60 < kitGuess && bombTimeLeftTicks() > kitGuess + 40;

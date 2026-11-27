@@ -44,7 +44,7 @@ function nadeUseTick(b){
     opts.forEach(function(o){ o.sc = o.w*(1 + o.pts.filter(function(p){ return known.some(function(k){ return DM.hypot(k.x-p.x, k.y-p.y) < 300; }); }).length); });
     opts.forEach(function(o){ if(!plan || o.sc > plan.sc) plan = o; });
     why = "иду в бой — "+calloutName(b.post.x, b.post.y).replace(/^на /, "");
-  } else if(bomb.state === "planted" && b.team === "T" && (bots.some(function(o){ return o.defusing; }) || known.some(function(k){ return DM.hypot(k.x-bomb.x, k.y-bomb.y) < 700; }))){
+  } else if(bomb.state === "planted" && b.team === "T" && (tDefuseKnow([b]).on || known.some(function(k){ return DM.hypot(k.x-bomb.x, k.y-bomb.y) < 700; }))){
     if(have("molly")) plan = {t:"molly", pts:[{x:bomb.x, y:bomb.y}]}; else if(have("he")) plan = {t:"he", pts:[{x:bomb.x, y:bomb.y}]};
     why = "на бомбу — их слышно у неё";
   } else if(known.length && (b.atPost || b.state === "hold")){

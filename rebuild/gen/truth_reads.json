@@ -14,7 +14,7 @@
   {
    "file": "bomb.js",
    "fn": "bombTick",
-   "line": 261,
+   "line": 277,
    "props": [
     "x",
     "y"
@@ -25,7 +25,7 @@
   {
    "file": "bomb.js",
    "fn": "bombTick",
-   "line": 282,
+   "line": 298,
    "props": [
     "baseX",
     "baseY",
@@ -37,7 +37,7 @@
   {
    "file": "bomb.js",
    "fn": "bombTick",
-   "line": 314,
+   "line": 330,
    "props": [
     "baseX",
     "baseY",
@@ -492,16 +492,6 @@
     "z"
    ],
    "kind": "враг",
-   "perception": false
-  },
-  {
-   "file": "brain-t-postplant.js",
-   "fn": "tBrainPostplant",
-   "line": 19,
-   "props": [
-    "teamBot.z"
-   ],
-   "kind": "teamBot",
    "perception": false
   },
   {
