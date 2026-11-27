@@ -368,7 +368,10 @@ function postViewPoint(pt, look){
 var OWN_LINE_GAP = 150, OWN_LINE_RINGS = [90, 130, 170, 210, 260, 310];   // (v570) проектные числа: «своя линия» ≈ 150 px (375 ед.), искать — до ~310 (рядом с сайтом)
 // (v570, прогон 221: со «своей линией» Ancient «в зоне взрыва» 8 → 24 — сейв CT и бегущие от бомбы T: раздвигание сдвигало их точку, в том
 // числе к бомбе, в радиус взрыва) раздвигание не ставит туда, где взрыв опаснее, чем в точке задачи (бомба стоит)
-function spreadBlast(x0, y0, x1, y1){ return !!(bomb && bomb.state === "planted") && bombDamageAt(x1, y1) > bombDamageAt(x0, y0); }
+// (изоляция, 27.11; найдено метаморфной парой c4move, Mirage м13) урон взрыва — от бомбы по знанию бота (bombKnownFor: T — своя, CT — ctBombPos),
+// а не от настоящей: было — раздвигание поста CT уводило точку от невидимой бомбы
+function spreadBlast(b, x0, y0, x1, y1){ var BK = bomb && bomb.state === "planted" ? bombKnownFor(b) : null;
+  return !!BK && bombDamageAt(x1, y1, BK) > bombDamageAt(x0, y0, BK); }
 var SPREAD_RINGS = [80, 110, 145, 180];   // (v570) проектные числа: шаг ≈ «личное место» 70 + 10; дальше 180 — уже другое место, а не «рядом»
 var SPREAD_DIRS = [Math.PI/2, -Math.PI/2, Math.PI*0.75, -Math.PI*0.75, Math.PI/4, -Math.PI/4, Math.PI, 0];
 // (v570) точка, которую задача дала посту (до раздвигания и сдвига к виду): «тот же ли пост» сверять с ней, а не со сдвинутым местом —
@@ -442,7 +445,7 @@ function setPostDo(b, pt, look, hold, tag, spreadIdx){
       var nx = xa + DM.cos(la1+da)*r, ny = ya + DM.sin(la1+da)*r;
       if(insideSolidWall(nx, ny) || segCrossesManualWalls(xa, ya, nx, ny) || !navAt(nx, ny) || spotTaken(b, {x:nx, y:ny}, "line") || spotTaken(b, {x:nx, y:ny}, "post")) return false;
       if(r > OWN_LINE_RINGS[0] && zA != null && zoneIdAt(nx, ny) !== zA) return false;
-      if(spreadBlast(xa, ya, nx, ny)) return false;
+      if(spreadBlast(b, xa, ya, nx, ny)) return false;
       if(!hasLOS(xa, ya, nx, ny)) return false;
       if(losA && !hasLOS(nx, ny, look.x, look.y)) return false;
       x = nx; y = ny; got = true; return true; }); });
@@ -456,7 +459,7 @@ function setPostDo(b, pt, look, hold, tag, spreadIdx){
     var la = look ? DM.atan2(look.y-y, look.x-x) : 0, x0 = x, y0 = y, losPost = look && hasLOS(x0, y0, look.x, look.y);
     SPREAD_RINGS.some(function(r){ return SPREAD_DIRS.some(function(da){
       var nx = x0 + DM.cos(la+da)*r, ny = y0 + DM.sin(la+da)*r;
-      if(insideSolidWall(nx, ny) || segCrossesManualWalls(x0, y0, nx, ny) || !navAt(nx, ny) || spotTaken(b, {x:nx, y:ny}) || spreadBlast(x0, y0, nx, ny)) return false;
+      if(insideSolidWall(nx, ny) || segCrossesManualWalls(x0, y0, nx, ny) || !navAt(nx, ny) || spotTaken(b, {x:nx, y:ny}) || spreadBlast(b, x0, y0, nx, ny)) return false;
       if(r > SPOT_PERSONAL+10 && !hasLOS(x0, y0, nx, ny)) return false;   // дальше одного шага — та же комната, а не за углом
       if(losPost && !hasLOS(nx, ny, look.x, look.y)) return false;   // (v520) раздвигание не отнимает обзор поста
       x = nx; y = ny; return true; }); });

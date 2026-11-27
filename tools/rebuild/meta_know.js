@@ -24,7 +24,8 @@ EV(`globalThis.MK_SIG = function(obs){
   var P = {pub: [tick, roundNum, roundState, JSON.stringify(score), bomb ? (bomb.state === 'planted' ? 'planted' : bomb.state === 'exploded' || bomb.state === 'defused' ? bomb.state : 'not') : null,
     bots.filter(function(b){ return b.alive && b.team === 'CT'; }).length, bots.filter(function(b){ return b.alive && b.team === 'T'; }).length], b: {},
     // оружие на полу на виду у наблюдателей (тот же взгляд, что датчик knowTeamLook: дальность взгляда, конус, линия)
-    items: (typeof groundWeapons !== 'undefined' ? groundWeapons : []).filter(function(G){ return own.some(function(m){ return m.alive && DM.hypot(G.x-m.x, G.y-m.y) <= KNOW.lookRange && inFov(m, G.x, G.y) && hasVision(m.x, m.y, G.x, G.y); }); })
+    // и под ногами (≤ 38 px — радиус подбора weaponPickupTick: предмет под ногами виден и поднимается)
+    items: (typeof groundWeapons !== 'undefined' ? groundWeapons : []).filter(function(G){ return own.some(function(m){ return m.alive && (DM.hypot(G.x-m.baseX, G.y-m.baseY) <= 38 || DM.hypot(G.x-m.x, G.y-m.y) <= KNOW.lookRange && inFov(m, G.x, G.y) && hasVision(m.x, m.y, G.x, G.y)); }); })
       .map(function(G){ return [G.key, G.x, G.y]; })};
   var K = {team: SR.dig(teamIntel[obs], false), agent: (typeof TEAMK !== 'undefined' && TEAMK[obs] && TEAMK[obs].know) ? SR.dig(TEAMK[obs].know, false) : 0, b: {}};
   var D = {b: {}};

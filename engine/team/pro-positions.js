@@ -11,7 +11,9 @@
 var PP = {grids:{}, zc:null};
 function ppLayer(team){
   if(!team) return null;
-  if(bomb && bomb.state === "planted" && bomb.site) return team + "|post" + bomb.site;
+  // (изоляция, 27.11) после планта — места про у сайта бомбы: T знают свой, CT — по знанию (ctBombSite); не знают — слой по времени
+  var bs = bomb && bomb.state === "planted" ? (team === "CT" ? ctBombSite() : bomb.site) : null;
+  if(bs) return team + "|post" + bs;
   var sec = (tick - roundStartTick)/TICK_HZ;
   return team + "|" + (sec < 20 ? "early" : sec < 50 ? "setup" : "late");
 }

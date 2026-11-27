@@ -4,7 +4,7 @@
   {
    "file": "bomb.js",
    "fn": "resetBomb",
-   "line": 95,
+   "line": 97,
    "props": [
     "tRole"
    ],
@@ -14,7 +14,7 @@
   {
    "file": "bomb.js",
    "fn": "bombTick",
-   "line": 277,
+   "line": 279,
    "props": [
     "x",
     "y"
@@ -25,7 +25,7 @@
   {
    "file": "bomb.js",
    "fn": "bombTick",
-   "line": 298,
+   "line": 300,
    "props": [
     "baseX",
     "baseY",
@@ -37,7 +37,7 @@
   {
    "file": "bomb.js",
    "fn": "bombTick",
-   "line": 330,
+   "line": 332,
    "props": [
     "baseX",
     "baseY",
@@ -437,6 +437,386 @@
     "z"
    ],
    "kind": "враг",
+   "perception": false
+  },
+  {
+   "file": "bomb.js",
+   "fn": "dropBomb",
+   "line": 111,
+   "props": [
+    "bomb.carrier,x,y"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "bomb.js",
+   "fn": "defuseSees",
+   "line": 134,
+   "props": [
+    "bomb.x,y,z"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "bomb.js",
+   "fn": "defuseSound",
+   "line": 145,
+   "props": [
+    "bomb.x,y"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "bomb.js",
+   "fn": "bombTick",
+   "line": 234,
+   "props": [
+    "bomb.carrier,site,x,y,z"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "intel.js",
+   "fn": "teamInfoTick",
+   "line": 82,
+   "props": [
+    "bomb.carrier"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "intel.js",
+   "fn": "intelDeath",
+   "line": 340,
+   "props": [
+    "bomb.carrier"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "events.js",
+   "fn": "knowPlant",
+   "line": 168,
+   "props": [
+    "bomb.site"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "events.js",
+   "fn": "knowBombSeen",
+   "line": 240,
+   "props": [
+    "bomb.site,x,y"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "events.js",
+   "fn": "knowRetakeDrift",
+   "line": 402,
+   "props": [
+    "bomb.x,y,z"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "events.js",
+   "fn": "knowTeamLook",
+   "line": 442,
+   "props": [
+    "bomb.site,x,y,z"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "look-peek.js",
+   "fn": "pieBusy",
+   "line": 111,
+   "props": [
+    "bomb.carrier"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "look-arbiter.js",
+   "fn": "lookAngleCand",
+   "line": 150,
+   "props": [
+    "bomb.site"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "smoke-react.js",
+   "fn": "smokeSpamTick",
+   "line": 144,
+   "props": [
+    "bomb.x,y"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "roles.js",
+   "fn": "tFallbackTick",
+   "line": 32,
+   "props": [
+    "bomb.carrier"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "pro-positions.js",
+   "fn": "ppLayer",
+   "line": 15,
+   "props": [
+    "bomb.site"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "endgame.js",
+   "fn": "endgameBrain",
+   "line": 107,
+   "props": [
+    "bomb.carrier"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "endgame.js",
+   "fn": "smokePushReason",
+   "line": 213,
+   "props": [
+    "bomb.carrier"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "contact.js",
+   "fn": "contactTick",
+   "line": 199,
+   "props": [
+    "bomb.carrier"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "exec-sync.js",
+   "fn": "smokeLineTick",
+   "line": 221,
+   "props": [
+    "bomb.carrier"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "lineups.js",
+   "fn": "tSoloThrower",
+   "line": 78,
+   "props": [
+    "bomb.carrier"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "lineups.js",
+   "fn": "lineupTick",
+   "line": 110,
+   "props": [
+    "bomb.carrier,site"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "self.js",
+   "fn": "selfPlantSmoke",
+   "line": 113,
+   "props": [
+    "bomb.carrier"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "self.js",
+   "fn": "nadeReact",
+   "line": 256,
+   "props": [
+    "bomb.carrier"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "decide.js",
+   "fn": "nadeUseTick",
+   "line": 47,
+   "props": [
+    "bomb.x,y"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "decide.js",
+   "fn": "nadeBrains",
+   "line": 133,
+   "props": [
+    "bomb.carrier,site,x,y"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "journal.js",
+   "fn": "bombBeepTick",
+   "line": 153,
+   "props": [
+    "bomb.x,y"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "items.js",
+   "fn": "knifeTick",
+   "line": 177,
+   "props": [
+    "bomb.carrier"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "items.js",
+   "fn": "weaponPickupTick",
+   "line": 259,
+   "props": [
+    "bomb.carrier"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "sound.js",
+   "fn": "bombPassTick",
+   "line": 71,
+   "props": [
+    "bomb.carrier,x,y"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "sound.js",
+   "fn": "finishPush",
+   "line": 95,
+   "props": [
+    "bomb.carrier"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "fight.js",
+   "fn": "lowHpBack",
+   "line": 524,
+   "props": [
+    "bomb.carrier"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "assist.js",
+   "fn": "ambushTick",
+   "line": 254,
+   "props": [
+    "bomb.carrier"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "fight-state.js",
+   "fn": "decideActionR",
+   "line": 75,
+   "props": [
+    "bomb.carrier"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "engagements.js",
+   "fn": "engDecide",
+   "line": 131,
+   "props": [
+    "bomb.carrier"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "round.js",
+   "fn": "checkRoundEnd",
+   "line": 140,
+   "props": [
+    "bomb.site,x,y"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "move.js",
+   "fn": "moveWalkWhy",
+   "line": 77,
+   "props": [
+    "bomb.carrier"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "modes.js",
+   "fn": "dvTick",
+   "line": 175,
+   "props": [
+    "bomb.carrier,site,x,y"
+   ],
+   "kind": "бомба",
+   "perception": false
+  },
+  {
+   "file": "modes.js",
+   "fn": "rpWorldWith",
+   "line": 252,
+   "props": [
+    "bomb.carrier"
+   ],
+   "kind": "бомба",
    "perception": false
   },
   {

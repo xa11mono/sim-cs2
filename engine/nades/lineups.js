@@ -109,7 +109,7 @@ function lineupTick(){
     else if(L.team === "T" && L.trigger === "exec") go = (tt.phase === "execute" || preExecNow(tt) || preExecWalk(tt)) && siteOk(tt.site);
     else if(L.team === "T" && L.trigger === "postplant") go = bomb.state === "planted" && siteOk(bomb.site);
     else if(L.team === "CT" && L.trigger === "call") go = ct && ct.call && ct.call.count >= 2 && siteOk(ct.call.site);
-    else if(L.team === "CT" && L.trigger === "retake") go = bomb.state === "planted" && siteOk(bomb.site);
+    else if(L.team === "CT" && L.trigger === "retake") go = bomb.state === "planted" && siteOk(ctBombSite());   // (изоляция) сайт — по знанию CT
     // (v294) флешки T на сетапе из лайнапов про — только если команда ждёт врага у точки: про кидают их под пик, а боты — по часам
     // (рвались рядом с врагом в 50 % против 88 % у про)
     if(go && L.pro && L.team === "T" && L.trigger === "setup" && L.type === "flash" && !nadeWorth("T", L.to)) go = false;

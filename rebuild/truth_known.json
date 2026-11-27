@@ -175,6 +175,196 @@
    "class": "свои",
    "why": "носитель бомбы T: тиммейт T рядом для размена",
    "n": 1
+  },
+  "bomb:dropBomb:bomb.carrier,x,y": {
+   "class": "движок",
+   "why": "бомба выпадает у погибшего носителя — физика предмета",
+   "n": 1
+  },
+  "bomb:defuseSees:bomb.x,y,z": {
+   "class": "движок",
+   "why": "исполнение дефуза: видна ли бомба с места дефузящего (3D-проверка), а не решение по истине врага",
+   "n": 1
+  },
+  "bomb:defuseSound:bomb.x,y": {
+   "class": "движок",
+   "why": "испускание звука дефуза — слышат T в радиусе DEFUSE_HEAR от бомбы (физика звука); знание — через knowHear",
+   "n": 1
+  },
+  "bomb:bombTick:bomb.carrier,site,x,y,z": {
+   "class": "движок",
+   "why": "таймер, плант, дефуз, взрыв — механика бомбы",
+   "n": 1
+  },
+  "intel:teamInfoTick:bomb.carrier": {
+   "class": "восприятие",
+   "why": "колл «бомба у X» — C4 видна на спине носителя, когда видна его спина (backSeen, KNOW.seeC4Back)",
+   "n": 1
+  },
+  "intel:intelDeath:bomb.carrier": {
+   "class": "свои",
+   "why": "T: свой носитель (o — союзник погибшего T) не идёт на размен",
+   "n": 1
+  },
+  "events:knowPlant:bomb.site": {
+   "class": "свои",
+   "why": "T знают сайт своего планта; CT — по увиденному / услышанному (ветка CT читает знание)",
+   "n": 1
+  },
+  "events:knowBombSeen:bomb.site,x,y": {
+   "class": "восприятие",
+   "why": "датчик: бомбу видно бойцу (дальность взгляда, конус, линия)",
+   "n": 1
+  },
+  "events:knowRetakeDrift:bomb.x,y,z": {
+   "class": "свои",
+   "why": "T: прогноз ретейка CT к своей бомбе (b.team === T)",
+   "n": 1
+  },
+  "events:knowTeamLook:bomb.site,x,y,z": {
+   "class": "восприятие",
+   "why": "датчик радара CT: лежащую / заложенную бомбу видит кто-то из CT",
+   "n": 1
+  },
+  "look-peek:pieBusy:bomb.carrier": {
+   "class": "свои",
+   "why": "носитель — сам бот (bomb.carrier === b)",
+   "n": 1
+  },
+  "look-arbiter:lookAngleCand:bomb.site": {
+   "class": "восприятие",
+   "why": "фейк-дефуз: CT стоит у самой бомбы (кандидат у бомбы, bomb.js), сайт ему виден",
+   "n": 1
+  },
+  "smoke-react:smokeSpamTick:bomb.x,y": {
+   "class": "свои",
+   "why": "ветка T: своя бомба, звук дефуза за смоком",
+   "n": 1
+  },
+  "roles:tFallbackTick:bomb.carrier": {
+   "class": "свои",
+   "why": "T: носитель — свой",
+   "n": 1
+  },
+  "pro-positions:ppLayer:bomb.site": {
+   "class": "свои",
+   "why": "T — свой сайт; CT — по знанию (ctBombSite)",
+   "n": 1
+  },
+  "endgame:endgameBrain:bomb.carrier": {
+   "class": "свои",
+   "why": "T: свой носитель ставит",
+   "n": 1
+  },
+  "endgame:smokePushReason:bomb.carrier": {
+   "class": "свои",
+   "why": "носитель — сам бот",
+   "n": 1
+  },
+  "contact:contactTick:bomb.carrier": {
+   "class": "свои",
+   "why": "носитель — сам бот",
+   "n": 1
+  },
+  "exec-sync:smokeLineTick:bomb.carrier": {
+   "class": "свои",
+   "why": "T: свой носитель",
+   "n": 1
+  },
+  "lineups:tSoloThrower:bomb.carrier": {
+   "class": "свои",
+   "why": "T: свой носитель не кидает",
+   "n": 1
+  },
+  "lineups:lineupTick:bomb.carrier,site": {
+   "class": "свои",
+   "why": "T: свой сайт (постплант) и свой носитель; ретейк CT — по знанию (ctBombSite)",
+   "n": 1
+  },
+  "self:selfPlantSmoke:bomb.carrier": {
+   "class": "свои",
+   "why": "T: свой носитель",
+   "n": 1
+  },
+  "self:nadeReact:bomb.carrier": {
+   "class": "свои",
+   "why": "носитель — сам бот",
+   "n": 1
+  },
+  "decide:nadeUseTick:bomb.x,y": {
+   "class": "свои",
+   "why": "ветка T: своя бомба (молотов на дефуз)",
+   "n": 1
+  },
+  "decide:nadeBrains:bomb.carrier,site,x,y": {
+   "class": "свои",
+   "why": "T: свой носитель, свой сайт, своя бомба",
+   "n": 1
+  },
+  "journal:bombBeepTick:bomb.x,y": {
+   "class": "движок",
+   "why": "писк бомбы — звук / показ; боты его не слышат (ISOLATION.md)",
+   "n": 1
+  },
+  "items:knifeTick:bomb.carrier": {
+   "class": "свои",
+   "why": "носитель — сам бот",
+   "n": 1
+  },
+  "items:weaponPickupTick:bomb.carrier": {
+   "class": "свои",
+   "why": "носитель — сам бот",
+   "n": 1
+  },
+  "sound:bombPassTick:bomb.carrier,x,y": {
+   "class": "свои",
+   "why": "T: передача бомбы своему",
+   "n": 1
+  },
+  "sound:finishPush:bomb.carrier": {
+   "class": "свои",
+   "why": "носитель — сам бот",
+   "n": 1
+  },
+  "fight:lowHpBack:bomb.carrier": {
+   "class": "свои",
+   "why": "носитель — сам бот",
+   "n": 1
+  },
+  "assist:ambushTick:bomb.carrier": {
+   "class": "свои",
+   "why": "носитель — сам бот",
+   "n": 1
+  },
+  "fight-state:decideActionR:bomb.carrier": {
+   "class": "свои",
+   "why": "носитель — сам бот",
+   "n": 1
+  },
+  "engagements:engDecide:bomb.carrier": {
+   "class": "свои",
+   "why": "носитель — сам бот",
+   "n": 1
+  },
+  "round:checkRoundEnd:bomb.site,x,y": {
+   "class": "движок",
+   "why": "конец раунда: взрыв бомбы, урон",
+   "n": 1
+  },
+  "move:moveWalkWhy:bomb.carrier": {
+   "class": "свои",
+   "why": "носитель — сам бот",
+   "n": 1
+  },
+  "modes:dvTick:bomb.carrier,site,x,y": {
+   "class": "движок",
+   "why": "раунд из демки (режим)",
+   "n": 1
+  },
+  "modes:rpWorldWith:bomb.carrier": {
+   "class": "движок",
+   "why": "повтор (режим)",
+   "n": 1
   }
  }
 }

@@ -44,7 +44,8 @@ function moveSoundEmit(bot, soundRadius, kind, label){
 // и дефузнуть (запас 1,5 с). Кто идёт шагом в этом раунде — жребий на раунд и бота (решение не дёргается каждый тик)
 function defuseWalk(bot){
   if(!(bomb && bomb.state === "planted" && bot.team === "CT" && bot.post && taskProp(bot.post.tag, "defuseTask"))) return false;
-  var d = DM.hypot(bomb.x-bot.baseX, bomb.y-bot.baseY); if(d >= 120) return false;
+  var BK = bombKnownFor(bot); if(!BK) return false;   // (изоляция) бомба — по знанию CT
+  var d = DM.hypot(BK.x-bot.baseX, BK.y-bot.baseY); if(d >= 120) return false;
   if(bombTimeLeftTicks()/TICK_HZ <= d/(SPEED*WALK_SPEED_FRAC) + (bot.kit ? 5 : 10) + 1.5) return false;
   var u = hashRand(roundNum*389 + matchNum*71 + bot.id.charCodeAt(bot.id.length-1)*13);
   return u < (d < 60 ? 0.77 : 0.34);

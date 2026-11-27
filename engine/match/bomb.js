@@ -58,6 +58,8 @@ function bombSightLen(b, bp){
 }
 function bombFleePoint(b){
   if(!bomb || bomb.state !== "planted") return null;
+  // (изоляция, 27.11) откуда уходить — от бомбы по знанию (T — своя, CT — ctBombPos), не от настоящей
+  var BK = bombKnownFor(b); if(!BK) return null;
   var F = b._flee;
   // (док 6, п.16: zont1x р11 — точку ухода посчитали, когда он был на TV (House), а уходить пришлось с T Ramp: 1305 ед. через всю карту вместо 154)
   // точка держится, пока боец рядом с местом, откуда её считали (FLEE_MOVE — проектное число); ушёл дальше — считается заново
@@ -68,17 +70,17 @@ function bombFleePoint(b){
   // Было: ближайшая точка, где урон ≤ HP − 30 (при 100 HP — соглашался на 70). Путь — не через сам взрыв, подальше от известного врага
   var R = BOMB_DMG.sigma, best = null, bs = Infinity, leftS = bombTimeLeftTicks()/TICK_HZ, v = SPEED*weaponSpeedMul(b);
   if(!BZ.ids.length) beliefBuild();
-  var dNow = DM.hypot(b.x-bomb.x, b.y-bomb.y);
+  var dNow = DM.hypot(b.x-BK.x, b.y-BK.y);
   BZ.cent.forEach(function(c, i){
     if(!c) return;
-    if(DM.hypot(c.x-bomb.x, c.y-bomb.y) > BOMB_DMG.reach + 100) return;
+    if(DM.hypot(c.x-BK.x, c.y-BK.y) > BOMB_DMG.reach + 100) return;
     var q = walk(c), dq = 0;
-    [[0, 0], [FLEE_SPOT, 0], [-FLEE_SPOT, 0], [0, FLEE_SPOT], [0, -FLEE_SPOT]].forEach(function(o){ dq = Math.max(dq, bombDamageAt(q.x + o[0], q.y + o[1])); });
+    [[0, 0], [FLEE_SPOT, 0], [-FLEE_SPOT, 0], [0, FLEE_SPOT], [0, -FLEE_SPOT]].forEach(function(o){ dq = Math.max(dq, bombDamageAt(q.x + o[0], q.y + o[1], BK)); });
     var pts = pathPts(b.x, b.y, q.x, q.y, b.z);
     if(pts.length < 1) return;
     var L = polyLen(pts); if(L/v > leftS - FLEE_SPARE) return;   // не успеваю — не вариант
     var minD = Infinity;
-    for(var k=1;k<pts.length;k++){ var dd = distToSeg(bomb.x, bomb.y, [pts[k-1][0], pts[k-1][1], pts[k][0], pts[k][1]]); if(dd < minD) minD = dd; }
+    for(var k=1;k<pts.length;k++){ var dd = distToSeg(BK.x, BK.y, [pts[k-1][0], pts[k-1][1], pts[k][0], pts[k][1]]); if(dd < minD) minD = dd; }
     // старт уже внутри радиуса — путь неизбежно начинается в нём; штрафуем только если путь уходит к бомбе ближе, чем бот стоит сейчас
     var sc = Math.round(dq/FLEE_DMG_STEP)*1e5 + L + (minD < Math.min(R*0.75, dNow - 30) ? 900 : 0) + 600*beliefZoneKnownB(b, i);
     if(sc < bs){ bs = sc; best = q; }

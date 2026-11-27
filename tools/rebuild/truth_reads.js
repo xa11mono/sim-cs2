@@ -59,9 +59,11 @@ function bombReads(BR) {
   const out = [];
   for (const f of SRC.gameFiles().filter(f => /\.(js|ts)$/.test(f))) { if (!DEC(f)) continue; let ast;
     try { ast = acorn.parse(SRC.readGame(f), { ecmaVersion: 'latest', allowReturnOutsideFunction: true, locations: true }); } catch (e) { continue; }
-    walk.simple(ast, { FunctionDeclaration(fd) { const fn = fd.id.name; if (BR(fn) !== 'CT') return;
+    // (изоляция, 27.11) не только мозг CT: общие функции (место, бегство от взрыва, слои мест про, раскидки) тоже решают за CT — пропуск
+    // этих мест нашла метаморфная пара c4move (раздвигание поста от настоящей бомбы). Исключены только функции мозга T (своя бомба)
+    walk.simple(ast, { FunctionDeclaration(fd) { const fn = fd.id.name; if (BR(fn) === 'T') return;
       const props = new Set(); let line = 0;
-      walk.simple(fd.body, { MemberExpression(m) { if (m.object.type === 'Identifier' && m.object.name === 'bomb' && !m.computed && /^(x|y|z|carrier)$/.test(m.property.name)) { props.add(m.property.name); line = line || m.loc.start.line; } } });
+      walk.simple(fd.body, { MemberExpression(m) { if (m.object.type === 'Identifier' && m.object.name === 'bomb' && !m.computed && /^(x|y|z|carrier|site)$/.test(m.property.name)) { props.add(m.property.name); line = line || m.loc.start.line; } } });
       if (props.size) out.push({ file: f, fn: fn, line, props: ['bomb.' + [...props].sort().join(',')], kind: 'бомба', perception: false }); } });
   }
   return out;

@@ -167,16 +167,16 @@
 
 ## `post`
 
-- **хозяин** `setPostDo · task` — 1 (стр. 467)
-- **хозяин** `clearPostDo · task` — 1 (стр. 520)
-- **хозяин** `placeResetPost · task` — 1 (стр. 529)
+- **хозяин** `setPostDo · task` — 1 (стр. 470)
+- **хозяин** `clearPostDo · task` — 1 (стр. 523)
+- **хозяин** `placeResetPost · task` — 1 (стр. 532)
 
 ## `_task`
 
 - **хозяин** `routeTick · task` — 1 (стр. 66)
-- **хозяин** `setPostDo · task` — 1 (стр. 422)
-- **хозяин** `clearPostDo · task` — 1 (стр. 520)
-- **хозяин** `placeResetTask · task` — 1 (стр. 530)
+- **хозяин** `setPostDo · task` — 1 (стр. 425)
+- **хозяин** `clearPostDo · task` — 1 (стр. 523)
+- **хозяин** `placeResetTask · task` — 1 (стр. 533)
 
 ## `_reposUntil`
 
@@ -208,7 +208,7 @@
 - **хозяин** `fightStateDo · fight-state` — 1 (стр. 4)
 - **хозяин** `fightReset · fight-state` — 1 (стр. 13)
 
-не бот (то же имя у другого объекта — в проверку владения не идёт): `dropBomb · bomb` (110 bomb), `bombTick · bomb` (259 bomb; 300 bomb; 317 bomb), `exuThrown · exec-sync` (70 it), `exuLanded · exec-sync` (82 it), `exuFail · exec-sync` (86 it), `exuReassign · exec-sync` (137 it), `exuTick · exec-sync` (149 it; 151 it; 155 it), `bombPassTick · sound` (86 bomb), `checkRoundEnd · round` (140 bomb), `dvTick · modes` (175 bomb; 176 bomb), `mapEdQueueSave · map-walls` (66 S; 67 S), `mapEdSaveNow · map-walls` (74 S; 81 S; 82 S)
+не бот (то же имя у другого объекта — в проверку владения не идёт): `dropBomb · bomb` (112 bomb), `bombTick · bomb` (261 bomb; 302 bomb; 319 bomb), `exuThrown · exec-sync` (70 it), `exuLanded · exec-sync` (82 it), `exuFail · exec-sync` (86 it), `exuReassign · exec-sync` (137 it), `exuTick · exec-sync` (149 it; 151 it; 155 it), `bombPassTick · sound` (86 bomb), `checkRoundEnd · round` (140 bomb), `dvTick · modes` (175 bomb; 176 bomb), `mapEdQueueSave · map-walls` (66 S; 67 S), `mapEdSaveNow · map-walls` (74 S; 81 S; 82 S)
 
 ## `nadeTask`
 
@@ -232,7 +232,7 @@
 
 ## `crouching`
 
-- **хозяин** `placeStance · task` — 1 (стр. 528)
+- **хозяин** `placeStance · task` — 1 (стр. 531)
 
 ## `path`
 
@@ -242,7 +242,7 @@
 - **хозяин** `fireRepath · levels` — 1 (стр. 30)
 - **хозяин** `ladderTick · levels` — 1 (стр. 218)
 - **хозяин** `movePath · move` — 1 (стр. 26)
-- **хозяин** `navSnap · tick` — 1 (стр. 66)
+- **хозяин** `navSnap · tick` — 1 (стр. 67)
 
 не бот (то же имя у другого объекта — в проверку владения не идёт): `hgtCache · map-heights` (16 HGT_C)
 
@@ -270,22 +270,22 @@
 
 ## `planting`
 
-- **хозяин** `bombTick · bomb` — 4 (стр. 246, 253, 258, 271)
+- **хозяин** `bombTick · bomb` — 4 (стр. 248, 255, 260, 273)
 - **хозяин** `bombActReset · bomb` — 1 (стр. 19)
-- **хозяин** `resetBomb · bomb` — 1 (стр. 98)
+- **хозяин** `resetBomb · bomb` — 1 (стр. 100)
 
 ## `defusing`
 
-- **хозяин** `bombTick · bomb` — 3 (стр. 315, 317, 356)
+- **хозяин** `bombTick · bomb` — 3 (стр. 317, 319, 358)
 - **хозяин** `bombActReset · bomb` — 1 (стр. 19)
-- **хозяин** `resetBomb · bomb` — 1 (стр. 98)
+- **хозяин** `resetBomb · bomb` — 1 (стр. 100)
 
 ## `_route`
 
 - **хозяин** `routeTick · task` — 2 (стр. 58, 65)
 - **хозяин** `routeDrop · task` — 2 (стр. 280, 281)
 - **хозяин** `startRoute · task` — 1 (стр. 52)
-- **хозяин** `setPostDo · task` — 1 (стр. 386)
+- **хозяин** `setPostDo · task` — 1 (стр. 389)
 
 ## `_routeDone`
 
@@ -300,7 +300,7 @@
 - **хозяин** `warmTick · modes` — 2 (стр. 96, 99)
 - **хозяин** `resetRound · round` — 1 (стр. 214)
 - **хозяин** `movePlace · move` — 1 (стр. 23)
-- **хозяин** `navSnap · tick` — 1 (стр. 66)
+- **хозяин** `navSnap · tick` — 1 (стр. 67)
 - **хозяин** `strafeKeysTick · tick-keys` — 1 (стр. 53)
 - **хозяин** `warmSpawn · modes` — 1 (стр. 28)
 - **хозяин** `sbPlace · modes` — 1 (стр. 128)
@@ -314,7 +314,7 @@
 - **хозяин** `warmTick · modes` — 2 (стр. 96, 99)
 - **хозяин** `resetRound · round` — 1 (стр. 214)
 - **хозяин** `movePlace · move` — 1 (стр. 23)
-- **хозяин** `navSnap · tick` — 1 (стр. 66)
+- **хозяин** `navSnap · tick` — 1 (стр. 67)
 - **хозяин** `strafeKeysTick · tick-keys` — 1 (стр. 53)
 - **хозяин** `warmSpawn · modes` — 1 (стр. 28)
 - **хозяин** `sbPlace · modes` — 1 (стр. 128)
@@ -329,7 +329,7 @@
 - **хозяин** `fireRepath · levels` — 1 (стр. 30)
 - **хозяин** `movePath · move` — 1 (стр. 26)
 - **хозяин** `movePathIdx · move` — 1 (стр. 36)
-- **хозяин** `navSnap · tick` — 1 (стр. 66)
+- **хозяин** `navSnap · tick` — 1 (стр. 67)
 
 ## `_aimFix`
 
@@ -373,7 +373,7 @@
 
 ## `_detour`
 
-- **хозяин** `taskSetDetour · task` — 1 (стр. 573)
+- **хозяин** `taskSetDetour · task` — 1 (стр. 576)
 
 ## `_dmgBy`
 
@@ -397,7 +397,7 @@
 
 ## `_fillLock`
 
-- **хозяин** `taskSetFillLock · task` — 1 (стр. 574)
+- **хозяин** `taskSetFillLock · task` — 1 (стр. 577)
 
 ## `_fireExit`
 
@@ -413,7 +413,7 @@
 
 ## `_flee`
 
-- **хозяин** `bombSetFlee · bomb` — 1 (стр. 368)
+- **хозяин** `bombSetFlee · bomb` — 1 (стр. 370)
 
 ## `_heDone`
 
@@ -518,7 +518,7 @@
 
 ## `_probeLock`
 
-- **хозяин** `taskSetProbeLock · task` — 1 (стр. 575)
+- **хозяин** `taskSetProbeLock · task` — 1 (стр. 578)
 
 ## `_reloading`
 
@@ -554,7 +554,7 @@
 
 ## `_stopPlantUntil`
 
-- **хозяин** `bombSetStopPlantUntil · bomb` — 1 (стр. 369)
+- **хозяин** `bombSetStopPlantUntil · bomb` — 1 (стр. 371)
 
 ## `_stopWhy`
 
@@ -593,7 +593,7 @@
 
 ## `atPost`
 
-- **хозяин** `taskSetAtPost · task` — 1 (стр. 576)
+- **хозяин** `taskSetAtPost · task` — 1 (стр. 579)
 
 ## `blindUntil`
 
@@ -737,7 +737,7 @@
 
 ## `setupLook`
 
-- **хозяин** `taskSetSetupLook · task` — 1 (стр. 577)
+- **хозяин** `taskSetSetupLook · task` — 1 (стр. 580)
 
 ## `stateSince`
 
@@ -759,16 +759,16 @@
 
 - **хозяин** `moveSetX · move` — 1 (стр. 221)
 
-не бот (то же имя у другого объекта — в проверку владения не идёт): `applyZoneLayerToData · zones` (37 p), `resnapSpawns · zone-danger` (255 sp), `dropBomb · bomb` (110 bomb), `bombTick · bomb` (234 bomb; 259 bomb), `saveOppProfile · tactics` (55 o), `habitAdd · ct-setup` (452 c), `tIglReplan · igl` (104 ctrR; 124 ctr), `knowSources · knowledge` (371 q), `knowApply · events` (71 h), `knowKill · events` (270 B.hyps[0]), `knowRetakeDrift · events` (411 h), `infoGo · ct-early` (357 I), `endgameBrain · endgame` (85 ST), `contactTick · contact` (131 K), `exuScan · exec-sync` (54 it), `nadeSolve · throw` (44 r), `updateNadeTask1 · throw` (598 t), `nadesTick · damage` (223 n), `bombPassTick · sound` (86 bomb), `dvTick · modes` (175 bomb), `probTick · problem-watch` (62 s; 70 s), `(верх файла) · lineup-editor` (188 z.points[zsDrag]), `d3Corpse · view3d` (173 C), `(верх файла) · view3d-frame` (296 d), `rpDraw · replay-play` (31 P.cam), `tsCam · timeout` (230 P.cam)
+не бот (то же имя у другого объекта — в проверку владения не идёт): `applyZoneLayerToData · zones` (37 p), `resnapSpawns · zone-danger` (255 sp), `dropBomb · bomb` (112 bomb), `bombTick · bomb` (236 bomb; 261 bomb), `saveOppProfile · tactics` (55 o), `habitAdd · ct-setup` (452 c), `tIglReplan · igl` (104 ctrR; 124 ctr), `knowSources · knowledge` (371 q), `knowApply · events` (71 h), `knowKill · events` (270 B.hyps[0]), `knowRetakeDrift · events` (411 h), `infoGo · ct-early` (357 I), `endgameBrain · endgame` (85 ST), `contactTick · contact` (131 K), `exuScan · exec-sync` (54 it), `nadeSolve · throw` (44 r), `updateNadeTask1 · throw` (598 t), `nadesTick · damage` (223 n), `bombPassTick · sound` (86 bomb), `dvTick · modes` (175 bomb), `probTick · problem-watch` (62 s; 70 s), `(верх файла) · lineup-editor` (188 z.points[zsDrag]), `d3Corpse · view3d` (173 C), `(верх файла) · view3d-frame` (296 d), `rpDraw · replay-play` (31 P.cam), `tsCam · timeout` (230 P.cam)
 
 ## `y`
 
 - **хозяин** `moveSetY · move` — 1 (стр. 222)
 
-не бот (то же имя у другого объекта — в проверку владения не идёт): `applyZoneLayerToData · zones` (37 p), `resnapSpawns · zone-danger` (255 sp), `dropBomb · bomb` (110 bomb), `bombTick · bomb` (234 bomb; 259 bomb), `saveOppProfile · tactics` (55 o), `habitAdd · ct-setup` (452 c), `tIglReplan · igl` (104 ctrR; 124 ctr), `knowSources · knowledge` (371 q), `knowApply · events` (71 h), `knowRetakeDrift · events` (411 h), `infoGo · ct-early` (357 I), `endgameBrain · endgame` (85 ST), `contactTick · contact` (131 K), `exuScan · exec-sync` (54 it), `nadeSolve · throw` (44 r), `updateNadeTask1 · throw` (598 t), `nadesTick · damage` (223 n), `bombPassTick · sound` (86 bomb), `dvTick · modes` (175 bomb), `probTick · problem-watch` (62 s; 70 s), `(верх файла) · lineup-editor` (188 z.points[zsDrag]), `(верх файла) · view3d-frame` (296 d), `rpDraw · replay-play` (31 P.cam), `tsCam · timeout` (230 P.cam)
+не бот (то же имя у другого объекта — в проверку владения не идёт): `applyZoneLayerToData · zones` (37 p), `resnapSpawns · zone-danger` (255 sp), `dropBomb · bomb` (112 bomb), `bombTick · bomb` (236 bomb; 261 bomb), `saveOppProfile · tactics` (55 o), `habitAdd · ct-setup` (452 c), `tIglReplan · igl` (104 ctrR; 124 ctr), `knowSources · knowledge` (371 q), `knowApply · events` (71 h), `knowRetakeDrift · events` (411 h), `infoGo · ct-early` (357 I), `endgameBrain · endgame` (85 ST), `contactTick · contact` (131 K), `exuScan · exec-sync` (54 it), `nadeSolve · throw` (44 r), `updateNadeTask1 · throw` (598 t), `nadesTick · damage` (223 n), `bombPassTick · sound` (86 bomb), `dvTick · modes` (175 bomb), `probTick · problem-watch` (62 s; 70 s), `(верх файла) · lineup-editor` (188 z.points[zsDrag]), `(верх файла) · view3d-frame` (296 d), `rpDraw · replay-play` (31 P.cam), `tsCam · timeout` (230 P.cam)
 
 ## `z`
 
 - **хозяин** `navSetZ · levels` — 1 (стр. 587)
 
-не бот (то же имя у другого объекта — в проверку владения не идёт): `applyNavTransform · zones` (241 q), `bombTick · bomb` (259 bomb), `hurtReactTick · contact` (369 q), `teamNadePlan · plan` (90 w), `nadesTick · damage` (223 n)
+не бот (то же имя у другого объекта — в проверку владения не идёт): `applyNavTransform · zones` (241 q), `bombTick · bomb` (261 bomb), `hurtReactTick · contact` (369 q), `teamNadePlan · plan` (90 w), `nadesTick · damage` (223 n)

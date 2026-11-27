@@ -4209,8 +4209,8 @@
    "var": "DEMOV",
    "class": "показ",
    "read_by_core": [
-    "bomb.js:270",
-    "bomb.js:355",
+    "bomb.js:272",
+    "bomb.js:357",
     "damage.js:144",
     "damage.js:144",
     "shoot.js:68",
