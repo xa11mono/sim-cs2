@@ -343,7 +343,7 @@
   {
    "file": "sound.js",
    "fn": "bombPassTick",
-   "line": 72,
+   "line": 71,
    "props": [
     "hp",
     "tRole"
@@ -682,7 +682,7 @@
   {
    "file": "decide.js",
    "fn": "nadeBrains",
-   "line": 133,
+   "line": 135,
    "props": [
     "bomb.carrier,site,x,y"
    ],
@@ -722,7 +722,7 @@
   {
    "file": "sound.js",
    "fn": "bombPassTick",
-   "line": 71,
+   "line": 70,
    "props": [
     "bomb.carrier,x,y"
    ],
@@ -732,7 +732,7 @@
   {
    "file": "sound.js",
    "fn": "finishPush",
-   "line": 95,
+   "line": 94,
    "props": [
     "bomb.carrier"
    ],
@@ -742,7 +742,7 @@
   {
    "file": "fight.js",
    "fn": "lowHpBack",
-   "line": 523,
+   "line": 522,
    "props": [
     "bomb.carrier"
    ],
@@ -822,7 +822,7 @@
   {
    "file": "knowledge.js",
    "fn": "hearReal",
-   "line": 85,
+   "line": 89,
    "props": [
     "teamBot.z"
    ],

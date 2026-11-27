@@ -147,7 +147,7 @@ function awpSmokeTick(){
     if(tick < awpSmokeCd[team]) return;
     var BL = kvLast(team);
     for(var eid in BL){ var lo = BL[eid]; if(lo.src !== "spotted" || tick - lo.tick > 8*TICK_HZ) continue;
-      var e = bots.filter(function(o){ return o.id === eid; })[0]; if(!e || !e.alive || e.primary !== "AWP") continue;
+      var e = bots.filter(function(o){ return o.id === eid; })[0]; if(!e || !e.alive || !teamSawGun(team, eid, "AWP")) continue;   // (изоляция) AWP — видели
       var ap = {x:lo.x, y:lo.y};
       var th = bots.filter(function(b){ return b.alive && b.team === team && b.nades && b.nades.smoke > 0 && !b.nadeTask && !b._sawEnemy && b.post &&
         DM.hypot(b.post.x-ap.x, b.post.y-ap.y) > 300 && DM.hypot(b.post.x-ap.x, b.post.y-ap.y) < 1500 && hasLOS(b.post.x, b.post.y, ap.x, ap.y); })

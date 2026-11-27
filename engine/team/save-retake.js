@@ -379,7 +379,7 @@ function retakeUtil(R, alive){
   if(!nadeFlags.retakeAwpSmoke){
     var BLr = kvLast("CT"), awpT = null;
     for(var eidR in BLr){ var loR = BLr[eidR]; if(loR.src !== "spotted" || tick - loR.tick > 10*TICK_HZ) continue; var eR = bots.filter(function(o){ return o.id === eidR; })[0];
-      if(eR && eR.alive && eR.primary === "AWP" && DM.hypot(loR.x-bp.x, loR.y-bp.y) < 1000){ awpT = loR; break; } }
+      if(eR && eR.alive && teamSawGun("CT", eidR, "AWP") && DM.hypot(loR.x-bp.x, loR.y-bp.y) < 1000){ awpT = loR; break; } }   // (изоляция) AWP — видели
     if(awpT){
       var ap0 = R.approaches[0] || bp;
       var smA = alive.filter(function(b){ return b !== fl && b.nades && b.nades.smoke > 0 && !b.nadeTask; })[0];

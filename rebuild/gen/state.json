@@ -3352,7 +3352,7 @@
    "snap": true
   },
   "KG": {
-   "decl": "knowledge.js:108",
+   "decl": "knowledge.js:112",
    "init": "Literal",
    "w": {
     "knowGraph · knowledge": 1
@@ -3575,7 +3575,7 @@
    "snap": true
   },
   "KNOW_LOG": {
-   "decl": "knowledge.js:60",
+   "decl": "knowledge.js:64",
    "init": "ArrayExpression",
    "w": {},
    "m": {
@@ -3597,7 +3597,7 @@
    "snap": true
   },
   "KNOW_POSITIONS": {
-   "decl": "knowledge.js:58",
+   "decl": "knowledge.js:62",
    "init": "MemberExpression",
    "w": {},
    "m": {},
@@ -3611,7 +3611,7 @@
    "snap": true
   },
   "KNOW_SAY": {
-   "decl": "knowledge.js:53",
+   "decl": "knowledge.js:57",
    "init": "ObjectExpression",
    "w": {},
    "m": {},
@@ -3621,7 +3621,7 @@
    "snap": true
   },
   "KNOW_SPOTS": {
-   "decl": "knowledge.js:283",
+   "decl": "knowledge.js:287",
    "init": "ObjectExpression",
    "w": {},
    "m": {
@@ -3633,7 +3633,7 @@
    "snap": true
   },
   "KNOW_TRACE": {
-   "decl": "knowledge.js:59",
+   "decl": "knowledge.js:63",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -5142,7 +5142,7 @@
    "snap": "нет: STATIC"
   },
   "NAVZ_FLOOR": {
-   "decl": "knowledge.js:140",
+   "decl": "knowledge.js:144",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -5152,7 +5152,7 @@
    "snap": true
   },
   "NAVZ_NEAR": {
-   "decl": "knowledge.js:140",
+   "decl": "knowledge.js:144",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -5532,7 +5532,7 @@
    "snap": true
   },
   "NAV_ZONE": {
-   "decl": "knowledge.js:140",
+   "decl": "knowledge.js:144",
    "init": "Literal",
    "w": {
     "navZoneBuild · knowledge": 2,
@@ -5574,7 +5574,7 @@
    "snap": true
   },
   "NOTICE_P": {
-   "decl": "knowledge.js:67",
+   "decl": "knowledge.js:71",
    "init": "ObjectExpression",
    "w": {},
    "m": {},
@@ -5584,7 +5584,7 @@
    "snap": true
   },
   "NOTICE_WIN": {
-   "decl": "knowledge.js:67",
+   "decl": "knowledge.js:71",
    "init": "BinaryExpression",
    "w": {},
    "m": {},
@@ -10088,7 +10088,7 @@
     "items": 9,
     "journal": 2,
     "killfeed": 2,
-    "knowledge": 3,
+    "knowledge": 4,
     "levels": 2,
     "lineups": 11,
     "look": 8,
@@ -14358,7 +14358,7 @@
   },
   "_notice": {
    "w": [
-    "knowledge.js:70 noticeShooter"
+    "knowledge.js:74 noticeShooter"
    ],
    "lit": [],
    "r": 4
@@ -15437,7 +15437,7 @@
    "w": [
     "damage.js:257 damageSetAlive",
     "events.js:250 knowKill",
-    "knowledge.js:304 knowRoundStart",
+    "knowledge.js:308 knowRoundStart",
     "scoreboard.js:212 plCardUpdate"
    ],
    "lit": [
@@ -15708,8 +15708,8 @@
   },
   "ears": {
    "w": [
-    "knowledge.js:300 knowRoundStart",
-    "knowledge.js:358 knowHearing"
+    "knowledge.js:304 knowRoundStart",
+    "knowledge.js:362 knowHearing"
    ],
    "lit": [],
    "r": 3
@@ -15806,8 +15806,8 @@
   },
   "heardSound": {
    "w": [
-    "knowledge.js:100 knowHear",
-    "knowledge.js:102 knowSound"
+    "knowledge.js:104 knowHear",
+    "knowledge.js:106 knowSound"
    ],
    "lit": [
     "weapons-bots.js:82"
@@ -15892,14 +15892,14 @@
   },
   "know": {
    "w": [
-    "knowledge.js:298 knowRoundStart"
+    "knowledge.js:302 knowRoundStart"
    ],
    "lit": [],
-   "r": 35
+   "r": 38
   },
   "lastIntel": {
    "w": [
-    "knowledge.js:104 knowIntel"
+    "knowledge.js:108 knowIntel"
    ],
    "lit": [
     "weapons-bots.js:82"
@@ -16437,7 +16437,7 @@
     "round.js:3",
     "weapons-bots.js:82"
    ],
-   "r": 570
+   "r": 571
   },
   "textContent": {
    "w": [
@@ -16531,14 +16531,14 @@
   },
   "weight": {
    "w": [
-    "knowledge.js:242 knowBuild"
+    "knowledge.js:246 knowBuild"
    ],
    "lit": [],
    "r": 2
   },
   "windows": {
    "w": [
-    "knowledge.js:242 knowBuild"
+    "knowledge.js:246 knowBuild"
    ],
    "lit": [],
    "r": 1

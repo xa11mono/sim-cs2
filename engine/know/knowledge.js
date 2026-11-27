@@ -46,6 +46,10 @@ function backSeen(o, e){
   if(_angOff(DM.atan2(o.y-e.y, o.x-e.x), e.facing) < Math.PI/2) return false;
   return !!visParts(o.x, o.y, o.crouching, e.x, e.y, e.crouching, true, o.z, e.z, boostLift(o), boostLift(e)).body;
 }
+// (изоляция, 27.11) видела ли команда у врага eid это оружие (в руках или на спине — снимок know.enemies[].seen: свой глаз, колл, радар
+// с коллом). Одно место для «у них AWP вон там» (смок на AWP, ретейк). Было: скрытый слот e.primary живого объекта
+function teamSawGun(team, eid, key){ return bots.some(function(b){ var B = b.team === team && b.know && b.know.enemies && b.know.enemies[eid], S = B && B.seen;
+  return !!S && (S.weapon === key || S.primary === key); }); }
 // основное оружие врага, которое видит наблюдатель o: в руках — всегда (когда виден); убранное — если видно на спине (KNOW.seePrimaryBack)
 function seenPrimary(e, o){ var h = e.weapon && WEAPONS[e.weapon.key];
   if(h && h.slot === "primary") return e.weapon.key;
