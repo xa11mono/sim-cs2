@@ -220,7 +220,7 @@ function stepBot(bot, dtSec, maxDelta, ARRIVE_RADIUS, BRAKE_RADIUS, TURN_RATE, S
         var desiredHeading = dist > 0.01 ? DM.atan2(dy,dx) : (bot.heading!==undefined ? bot.heading : 0);
         if(bot.heading === undefined) moveSetHeading(bot, desiredHeading);
         var da = desiredHeading - bot.heading;
-        da = ((da + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI; // shortest signed angle
+        da = DM.wrapPi(da); // shortest signed angle
         // при отходе разворачиваемся сразу, а не плавной дугой: иначе бот по
         // инерции ещё несколько шагов бежал туда же, куда бежал — то есть на врага
         var maxTurn = TURN_RATE * dtSec * (bot.state === "retreat" ? 5 : 1);
@@ -236,7 +236,7 @@ function stepBot(bot, dtSec, maxDelta, ARRIVE_RADIUS, BRAKE_RADIUS, TURN_RATE, S
         } else {
           // (10) крутой поворот: сбросить скорость, а не бежать дугой по старому
           // направлению в угол стены (там бот тёрся и "залипал")
-          var daLeft = Math.abs(((desiredHeading - bot.heading + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
+          var daLeft = Math.abs(DM.wrapPi(desiredHeading - bot.heading));
           if(daLeft > 0.5){ var cs = Math.max(0.3, 1 - (daLeft-0.5)/1.6); step *= cs; bot.curSpeed = Math.min(bot.curSpeed, Math.max(bot.curSpeed*0.9, runSpeed*cs)); }
           moveX = DM.cos(bot.heading) * step;
           moveY = DM.sin(bot.heading) * step;
@@ -341,7 +341,7 @@ function stepBot(bot, dtSec, maxDelta, ARRIVE_RADIUS, BRAKE_RADIUS, TURN_RATE, S
           // (v575, В140) поправка — порцией: ход ушёл от взгляда больше чем на 3° — доворот до конца (≤ 0,6°); мелкие сдвиги хода (шаги по навмешу)
           // прицел не тянут. Было: доворот каждый тик — на бегу прицел неподвижен 36 % (у про 52 %)
           var mvA = pathAheadDir(bot, MOVE_LOOK_AHEAD); if(mvA === null) mvA = DM.atan2(bot.baseY-startY, bot.baseX-startX);   // (v583a, Д8) по пути, не за качанием
-          var mvD = ((mvA - bot.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI;
+          var mvD = DM.wrapPi(mvA - bot.facing);
           if(Math.abs(mvD) >= 0.05) lookSetAimFix(bot, true); else if(Math.abs(mvD) <= 0.01) lookSetAimFix(bot, false);
           if(bot._aimFix){ var mvStep = TURN_RATE * dtSec; lookTurnBy(bot, Math.max(-mvStep, Math.min(mvStep, mvD)), "move"); }   // (В147) не рукой: у про на бегу взгляд идёт по ходу ровно (мерка формы run_lookoff; рукой — разница 10 → 65 %)
         }

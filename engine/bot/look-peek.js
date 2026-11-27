@@ -31,7 +31,7 @@ function lookOnMate(b, p){
     if(zf === undefined) zf = lookPtFloor(b, p); var atP = mateOnLevel(o, zf), onL = atP || mateOnLevel(o, b.z);
     if(run && o.curSpeed > 60*SPD_K && o.heading !== undefined && DM.cos(o.heading - b.heading) > 0.5) return false;
     var dm = DM.hypot(o.x-b.x, o.y-b.y); if(dm < 20) return false;
-    var off = Math.abs(((DM.atan2(o.y-b.y, o.x-b.x)-ap+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
+    var off = Math.abs(DM.wrapPi(DM.atan2(o.y-b.y, o.x-b.x)-ap));
     // свой ближе точки на той же линии (смотрит ему в спину) или стоит у самой
     // точки и смотрит туда же (держит этот угол сам)
     return (onL && off < 0.2 && dm < dp + 40 && dm > 60) || (atP && DM.hypot(o.x-p.x, o.y-p.y) < 90 && dm < dp + 150); });
@@ -59,7 +59,7 @@ function openDirLook(b){
     (ZONE_SAMPLES[BZ.ids[j]] || (BZ.cent[j] ? [BZ.cent[j]] : [])).forEach(function(q){ var d = DM.hypot(q.x-b.x, q.y-b.y);
       if(d < 120 || d > 900 || !ahead(q) || !hasLOS(b.x, b.y, q.x, q.y, b.z) || lookOnMate(b, q)) return;
       var sc = beliefZoneKnownB(b, j) + (reachPossible(b.team, j) ? 0.35 : 0) + d/3000;
-      if(postA !== null){ var off = Math.abs(((DM.atan2(q.y-b.y, q.x-b.x)-postA+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI); sc += 0.15*DM.cos(off); }
+      if(postA !== null){ var off = Math.abs(DM.wrapPi(DM.atan2(q.y-b.y, q.x-b.x)-postA)); sc += 0.15*DM.cos(off); }
       cands.push({p:q, sc:sc}); }); };
   if(zi >= 0){ addZ(zi); (BZ.nbr[zi]||[]).forEach(function(j){ addZ(j); (BZ.nbr[j]||[]).forEach(addZ); }); }
   cands.sort(function(a, c){ return c.sc - a.sc; });
@@ -75,7 +75,7 @@ function holdRelevant(b, pt){
   if(!(b.atPost && b.post && b.post.hold && b.post.look)) return true;
   if(DM.hypot(pt.x-b.x, pt.y-b.y) <= 550) return true;
   var wantA = DM.atan2(b.post.look.y-b.y, b.post.look.x-b.x), srcA = DM.atan2(pt.y-b.y, pt.x-b.x);
-  return Math.abs(((srcA-wantA+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI) <= 1.15;
+  return Math.abs(DM.wrapPi(srcA-wantA)) <= 1.15;
 }
 // ================= ПИКИ ДО КОНТАКТА (v135) =================
 // Угол впереди по пути: последняя видимая точка пути, за которой путь уходит
@@ -160,7 +160,7 @@ function prePeekDecide(b, C, zB){
     if(bestQ) dirs.push({pt:bestQ, a:DM.atan2(bestQ.y-C.beyond.y, bestQ.x-C.beyond.x), w:bj, d:bdq}); };
   addD(zB); (BZ.nbr[zB]||[]).forEach(function(j){ addD(j); (BZ.nbr[j]||[]).forEach(addD); });
   dirs.sort(function(a, c){ return a.d - c.d; });
-  var second = dirs.slice(1).filter(function(x){ return Math.abs(((x.a-dirs[0].a+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI) > 0.9; })[0];
+  var second = dirs.slice(1).filter(function(x){ return Math.abs(DM.wrapPi(x.a-dirs[0].a)) > 0.9; })[0];
   if(second){
     var cm = mates[0];
     if(cm){ cm._coverDir = {pt:second.pt, until: tick + 4*TICK_HZ}; voiceLog(b.team, "cov"+b.id+key, b.id, "беру "+calloutName(dirs[0].pt.x, dirs[0].pt.y)+", "+cm.id+" — смотри "+calloutName(second.pt.x, second.pt.y)); }

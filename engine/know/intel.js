@@ -300,7 +300,7 @@ function intelDeath(victim, killer, side){
       var swAll = pickSpots("tradeR"+tick+o.id, {x:victim.x, y:victim.y}, 5, {team: side, rMax:170, minGap:30, see:[kp]}), swC = swAll.filter(function(q){ return !spotTaken(o, q); });   // (v370) не в одну точку с напарником
       if(!swC.length) swC = swAll;
       var aV = DM.atan2(victim.y-kp.y, victim.x-kp.x), sw = null, sBest = -1;
-      swC.forEach(function(q){ var da = Math.abs(((DM.atan2(q.y-kp.y, q.x-kp.x)-aV+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
+      swC.forEach(function(q){ var da = Math.abs(DM.wrapPi(DM.atan2(q.y-kp.y, q.x-kp.x)-aV));
         var sc = Math.min(da, 0.8) - DM.hypot(q.x-o.x, q.y-o.y)/1500; if(sc > sBest){ sBest = sc; sw = q; } });
       sw = sw || {x:victim.x, y:victim.y};
       if(!setPost(o, sw, kp, true, "tradeR").ok) return;   // (v378) занят задачей важнее размена (бомба, сейв) — арбитр места

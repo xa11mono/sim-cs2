@@ -88,7 +88,7 @@ function tryShoot(shooter, target, dist){ var _ev = simEvIn("tryShoot", argument
   var effReaction = shooter.reactionTicks;
   if(cs <= 1){
     var hAim = DM.atan2(target.y-shooter.y, target.x-shooter.x);
-    var hD = shooter.facing === undefined ? Math.PI : Math.abs(((hAim - shooter.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
+    var hD = shooter.facing === undefined ? Math.PI : Math.abs(DM.wrapPi(hAim - shooter.facing));
     // раздел 14: реакция. Кто уже целился в эту точку (держит угол ИЛИ заходит
     // с прицелом на типичный угол) — реагирует быстрее; кто смотрел в сторону —
     // медленнее (плюс разворот прицела). И "преимущество пикающего": у того, кто
@@ -161,7 +161,7 @@ function tryShoot(shooter, target, dist){ var _ev = simEvIn("tryShoot", argument
   var aimD = 0;
   if(shooter.facing !== undefined){
     var aimA = DM.atan2(target.y-shooter.y, target.x-shooter.x);
-    aimD = Math.abs(((aimA - shooter.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
+    aimD = Math.abs(DM.wrapPi(aimA - shooter.facing));
     if(aimD > Math.min(AIM_FIRE_CONE, Math.max(0.05, 2.5*bA))){ fireReady(shooter, target, 0); return simEvOut(_ev); }
   }
   // (v263, Б1) свой на линии огня — не стреляет, как настоящий игрок: пуля попала бы в него

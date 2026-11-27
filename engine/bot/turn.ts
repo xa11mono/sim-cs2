@@ -42,7 +42,7 @@ function lookTick(): void{
       var want = DM.atan2(look.y-b.y, look.x-b.x);
       if(b.facing === undefined) b.facing = want;
       var dd = want - b.facing;
-      dd = ((dd + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI;
+      dd = DM.wrapPi(dd);
       // (В147) точка та же, что тиком раньше (не враг на виду — он двигается сам), рука не занята (не рывок и не пауза после него) — тело сдвинулось
       // (качание A/D на месте, шаг мимо угла) или точка ползёт: взгляд поворачивается ровно на этот сдвиг, рывок руки — только на остаток
       // (новое намерение, доводка). Было: каждый сдвиг тела на 2° — рывок, пауза, доводка: стоя 30 мелких поворотов в минуту против 9 у про,
@@ -63,7 +63,7 @@ function lookTick(): void{
         // рывок довезёт: рывок прерывается (человек доводит руку к новой цели), а не довозится до конца — было: CT3 вёл прицел на 183°,
         // враг на 347°, рука ещё 20 тиков уводила взгляд от врага
         if(b._sawEnemy && b._hand && tick < b._hand.t0 + b._hand.T){ var rem = 0; b._hand.segs.forEach(function(g){ rem += g.A*(1 - (g.s || 0)); });
-          if(_angOff(b.facing + rem, want) > HAND_FIGHT){ b._hand = null; dd = want - b.facing; dd = ((dd + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI; } }
+          if(_angOff(b.facing + rem, want) > HAND_FIGHT){ b._hand = null; dd = want - b.facing; dd = DM.wrapPi(dd); } }
         var hA = b._hand && b._hand.f && tick < b._hand.t0 + b._hand.T + b._hand.gap;
         if(Math.abs(dd) >= HAND_FIGHT || hA){ lookSetAimFix(b, true); handTurn(b, dd, "f"); if(b._hand) b._hand.f = true; }
         else {

@@ -386,7 +386,7 @@ function smoothLookFilter(b, look, urgent){
       var best = null, bs = SL.glSc;
       (typeof lookCands === "function" ? lookCands(b) : []).forEach(function(c){
         if(!c || !c.pt) return;
-        var a = DM.atan2(c.pt.y-b.y, c.pt.x-b.x), d = Math.abs(((a-lookHeading(b)+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
+        var a = DM.atan2(c.pt.y-b.y, c.pt.x-b.x), d = Math.abs(DM.wrapPi(a-lookHeading(b)));
         if(d < SL.glMin || d > SL.glMax) return;
         if(c.sc > bs){ bs = c.sc; best = c.pt; } });
       // (К3, владелец 18.11: «T должны понимать, что их могут обходить») идёт последним (своих за спиной нет) — мельком и назад, на вход сзади,
@@ -431,7 +431,7 @@ function smoothLookFilter(b, look, urgent){
     slNew(b, look); return look;
   }
   var aS = DM.atan2(S.pt.y-b.y, S.pt.x-b.x);
-  var dA = Math.abs(((aN-aS+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
+  var dA = Math.abs(DM.wrapPi(aN-aS));
   // (В147) стоя, без срочности, держимая точка не уточняется до конца срока удержания: точка плана осмотра «гуляет» на 1–5° при пересчёте, и
   // рука доворачивала на каждый сдвиг — у ботов стоя 34 мелких поворота в минуту против 9 у про (tools/measure/motion/turn_rate.py)
   if(dA < SL.refine && !moving && !urgent){ if(tick - S.since < slHold(b, S, false)) return S.pt; S.pt = {x:look.x, y:look.y}; S.since = tick; S.hold = null; return look; }   // уточнил — новый срок

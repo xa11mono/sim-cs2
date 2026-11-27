@@ -353,7 +353,7 @@ function findCover(b, foe){
     if(d < 40 || d > 420) return;
     if(DM.hypot(c.x-foe.x, c.y-foe.y) <= dFoe + 20) return;
     var ca = DM.atan2(c.y-b.baseY, c.x-b.baseX);
-    var dA = Math.abs(((ca - fa + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
+    var dA = Math.abs(DM.wrapPi(ca - fa));
     if(dA < 1.3) return;
     C.push({x:c.x, y:c.y, z:z.z, d:d});
   });
