@@ -12,12 +12,12 @@ function antiEco(team){
 }
 // (13) инфа о закупе врага по первым контактам: увидели — запомнили, с чем он.
 // Двое+ с пистолетами → эко; хоть одна винтовка/AWP → закуп (эко-оценка снимается)
-function buyReadSee(team, eid){
+function buyReadSee(team, eid, by){
   var e = bots.filter(function(o){ return o.id === eid; })[0]; if(!e || !e.alive) return;
   var TI = teamIntel[team], R = TI.buy || (TI.buy = {seen:{}, n:0, pistols:0, rifles:0, smg:0, read:null});
-  // (изоляция, аудит Codex P-C, 27.11) видимое основное (seenPrimary: в руках, на спине — по KNOW.seeOnBack); не видно — «пистолет» до тех
-  // пор, пока этого же врага не увидят с основным. Было: скрытый слот e.primary всегда
-  var k = seenPrimary(e), W = k && WEAPONS[k];
+  // (изоляция, аудит Codex P-C, 27.11) видимое тому, кто увидел (by), основное (seenPrimary: в руках; на спине — если видна спина); не видно —
+  // «пистолет» до тех пор, пока этого же врага не увидят с основным. Было: скрытый слот e.primary всегда
+  var k = seenPrimary(e, bots.filter(function(o){ return o.id === by; })[0]), W = k && WEAPONS[k];
   if(R.seen[eid] && !(k && R.seen[eid] === "pistol")) return;
   // (v293, владелец 14.10) пистолетка — у всех пистолеты, это не эко: оценку закупа по оружию не делаем
   if(teamEco[team] && teamEco[team].roundType === "pistol") return;

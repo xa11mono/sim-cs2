@@ -393,8 +393,7 @@
     "fight": 1,
     "items": 1,
     "levels": 1,
-    "shoot": 3,
-    "smoke-react": 1
+    "shoot": 3
    },
    "snap": true
   },
@@ -1806,7 +1805,7 @@
     "igl": 17,
     "intel": 23,
     "items": 20,
-    "knowledge": 13,
+    "knowledge": 14,
     "levels": 39,
     "lineups": 14,
     "look": 53,
@@ -1829,7 +1828,7 @@
     "shoot": 31,
     "sites-spots": 17,
     "smoke": 7,
-    "smoke-react": 25,
+    "smoke-react": 23,
     "sound": 28,
     "tactics": 1,
     "task": 31,
@@ -2327,16 +2326,6 @@
    "m": {},
    "r": {
     "plan": 3
-   },
-   "snap": true
-  },
-  "FLASH_DODGE_UNAWARE": {
-   "decl": "damage.js:142",
-   "init": "Literal",
-   "w": {},
-   "m": {},
-   "r": {
-    "damage": 2
    },
    "snap": true
   },
@@ -3042,7 +3031,7 @@
    "snap": true
   },
   "HURT_SND_GAP": {
-   "decl": "damage.js:143",
+   "decl": "damage.js:142",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -3363,7 +3352,7 @@
    "snap": true
   },
   "KG": {
-   "decl": "knowledge.js:98",
+   "decl": "knowledge.js:108",
    "init": "Literal",
    "w": {
     "knowGraph · knowledge": 1
@@ -3586,7 +3575,7 @@
    "snap": true
   },
   "KNOW_LOG": {
-   "decl": "knowledge.js:50",
+   "decl": "knowledge.js:60",
    "init": "ArrayExpression",
    "w": {},
    "m": {
@@ -3608,7 +3597,7 @@
    "snap": true
   },
   "KNOW_POSITIONS": {
-   "decl": "knowledge.js:48",
+   "decl": "knowledge.js:58",
    "init": "MemberExpression",
    "w": {},
    "m": {},
@@ -3622,7 +3611,7 @@
    "snap": true
   },
   "KNOW_SAY": {
-   "decl": "knowledge.js:43",
+   "decl": "knowledge.js:53",
    "init": "ObjectExpression",
    "w": {},
    "m": {},
@@ -3632,7 +3621,7 @@
    "snap": true
   },
   "KNOW_SPOTS": {
-   "decl": "knowledge.js:273",
+   "decl": "knowledge.js:283",
    "init": "ObjectExpression",
    "w": {},
    "m": {
@@ -3644,7 +3633,7 @@
    "snap": true
   },
   "KNOW_TRACE": {
-   "decl": "knowledge.js:49",
+   "decl": "knowledge.js:59",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -5153,7 +5142,7 @@
    "snap": "нет: STATIC"
   },
   "NAVZ_FLOOR": {
-   "decl": "knowledge.js:130",
+   "decl": "knowledge.js:140",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -5163,7 +5152,7 @@
    "snap": true
   },
   "NAVZ_NEAR": {
-   "decl": "knowledge.js:130",
+   "decl": "knowledge.js:140",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -5543,7 +5532,7 @@
    "snap": true
   },
   "NAV_ZONE": {
-   "decl": "knowledge.js:130",
+   "decl": "knowledge.js:140",
    "init": "Literal",
    "w": {
     "navZoneBuild · knowledge": 2,
@@ -5585,7 +5574,7 @@
    "snap": true
   },
   "NOTICE_P": {
-   "decl": "knowledge.js:57",
+   "decl": "knowledge.js:67",
    "init": "ObjectExpression",
    "w": {},
    "m": {},
@@ -5595,7 +5584,7 @@
    "snap": true
   },
   "NOTICE_WIN": {
-   "decl": "knowledge.js:57",
+   "decl": "knowledge.js:67",
    "init": "BinaryExpression",
    "w": {},
    "m": {},
@@ -8043,7 +8032,7 @@
    "snap": true
   },
   "STATE_LABEL": {
-   "decl": "shoot.js:387",
+   "decl": "shoot.js:391",
    "init": "ObjectExpression",
    "w": {},
    "m": {},
@@ -8583,7 +8572,7 @@
    "snap": true
   },
   "TRADE_R": {
-   "decl": "shoot.js:391",
+   "decl": "shoot.js:395",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -10099,7 +10088,7 @@
     "items": 9,
     "journal": 2,
     "killfeed": 2,
-    "knowledge": 2,
+    "knowledge": 3,
     "levels": 2,
     "lineups": 11,
     "look": 8,
@@ -10124,7 +10113,7 @@
     "sandbox": 5,
     "save-retake": 11,
     "scoreboard": 6,
-    "self": 19,
+    "self": 20,
     "shoot": 4,
     "sites-spots": 1,
     "smoke": 1,
@@ -12862,7 +12851,7 @@
   },
   "_actS": {
    "w": [
-    "fight-state.js:174 decideActionR"
+    "fight-state.js:175 decideActionR"
    ],
    "lit": [],
    "r": 2
@@ -13032,7 +13021,7 @@
   },
   "_blindBy": {
    "w": [
-    "damage.js:254 damageSetBlindBy"
+    "damage.js:253 damageSetBlindBy"
    ],
    "lit": [],
    "r": 4
@@ -13220,7 +13209,7 @@
   },
   "_dmgBy": {
    "w": [
-    "damage.js:255 damageSetDmgBy"
+    "damage.js:254 damageSetDmgBy"
    ],
    "lit": [],
    "r": 3
@@ -13397,7 +13386,7 @@
   },
   "_exposedUntil": {
    "w": [
-    "shoot.js:321 tryShoot"
+    "shoot.js:325 tryShoot"
    ],
    "lit": [],
    "r": 1
@@ -13516,7 +13505,7 @@
   },
   "_ffFrac": {
    "w": [
-    "damage.js:151 applyDamage"
+    "damage.js:150 applyDamage"
    ],
    "lit": [],
    "r": 2
@@ -13573,7 +13562,7 @@
   },
   "_fireIn": {
    "w": [
-    "damage.js:256 damageSetFireIn"
+    "damage.js:255 damageSetFireIn"
    ],
    "lit": [],
    "r": 10
@@ -13720,7 +13709,7 @@
   "_heDone": {
    "w": [
     "self.js:293 nadeSetHeDone",
-    "smoke-react.js:190 smokeHeTick"
+    "smoke-react.js:189 smokeHeTick"
    ],
    "lit": [],
    "r": 0
@@ -13771,14 +13760,14 @@
   },
   "_hitIn": {
    "w": [
-    "damage.js:155 applyDamage"
+    "damage.js:154 applyDamage"
    ],
    "lit": [],
    "r": 7
   },
   "_hitOut": {
    "w": [
-    "damage.js:156 applyDamage"
+    "damage.js:155 applyDamage"
    ],
    "lit": [],
    "r": 5
@@ -13813,7 +13802,7 @@
   },
   "_hs": {
    "w": [
-    "fight-state.js:335 shiftHold"
+    "fight-state.js:336 shiftHold"
    ],
    "lit": [],
    "r": 10
@@ -13850,28 +13839,28 @@
   },
   "_hurtFrom": {
    "w": [
-    "damage.js:159 applyDamage"
+    "damage.js:158 applyDamage"
    ],
    "lit": [],
    "r": 2
   },
   "_hurtSndT": {
    "w": [
-    "damage.js:164 applyDamage"
+    "damage.js:163 applyDamage"
    ],
    "lit": [],
    "r": 2
   },
   "_hurtSrc": {
    "w": [
-    "damage.js:159 applyDamage"
+    "damage.js:158 applyDamage"
    ],
    "lit": [],
    "r": 3
   },
   "_hurtT": {
    "w": [
-    "damage.js:159 applyDamage"
+    "damage.js:158 applyDamage"
    ],
    "lit": [],
    "r": 6
@@ -13959,21 +13948,21 @@
   },
   "_killHow": {
    "w": [
-    "damage.js:181 applyDamage"
+    "damage.js:180 applyDamage"
    ],
    "lit": [],
    "r": 1
   },
   "_killHowT": {
    "w": [
-    "damage.js:173 applyDamage"
+    "damage.js:172 applyDamage"
    ],
    "lit": [],
    "r": 0
   },
   "_killer": {
    "w": [
-    "damage.js:167 applyDamage"
+    "damage.js:166 applyDamage"
    ],
    "lit": [],
    "r": 1
@@ -14368,7 +14357,7 @@
   },
   "_notice": {
    "w": [
-    "knowledge.js:60 noticeShooter"
+    "knowledge.js:70 noticeShooter"
    ],
    "lit": [],
    "r": 4
@@ -14841,7 +14830,7 @@
   },
   "_repeeked": {
    "w": [
-    "fight-state.js:278 afterKillReact"
+    "fight-state.js:279 afterKillReact"
    ],
    "lit": [],
    "r": 2
@@ -15128,22 +15117,22 @@
   },
   "_spam": {
    "w": [
-    "smoke-react.js:102 smokeSpamTick",
-    "smoke-react.js:106 smokeSpamTick",
-    "smoke-react.js:124 smokeSpamTick",
-    "smoke-react.js:126 smokeSpamTick",
-    "smoke-react.js:136 smokeSpamTick",
-    "smoke-react.js:149 smokeSpamTick",
-    "smoke-react.js:159 smokeSpamTick",
-    "smoke-react.js:177 smokeSpamTick",
-    "smoke-react.js:95 smokeSpamTick"
+    "smoke-react.js:101 smokeSpamTick",
+    "smoke-react.js:105 smokeSpamTick",
+    "smoke-react.js:123 smokeSpamTick",
+    "smoke-react.js:125 smokeSpamTick",
+    "smoke-react.js:135 smokeSpamTick",
+    "smoke-react.js:148 smokeSpamTick",
+    "smoke-react.js:158 smokeSpamTick",
+    "smoke-react.js:176 smokeSpamTick",
+    "smoke-react.js:94 smokeSpamTick"
    ],
    "lit": [],
    "r": 19
   },
   "_spamDone": {
    "w": [
-    "smoke-react.js:166 smokeSpamTick"
+    "smoke-react.js:165 smokeSpamTick"
    ],
    "lit": [],
    "r": 2
@@ -15238,7 +15227,7 @@
   },
   "_tagUntil": {
    "w": [
-    "shoot.js:419 shotSetTagUntil"
+    "shoot.js:423 shotSetTagUntil"
    ],
    "lit": [],
    "r": 2
@@ -15445,9 +15434,9 @@
   },
   "alive": {
    "w": [
-    "damage.js:258 damageSetAlive",
+    "damage.js:257 damageSetAlive",
     "events.js:250 knowKill",
-    "knowledge.js:294 knowRoundStart",
+    "knowledge.js:304 knowRoundStart",
     "scoreboard.js:212 plCardUpdate"
    ],
    "lit": [
@@ -15458,14 +15447,14 @@
   },
   "ammo": {
    "w": [
-    "shoot.js:420 shotSetAmmo"
+    "shoot.js:424 shotSetAmmo"
    ],
    "lit": [],
    "r": 28
   },
   "armor": {
    "w": [
-    "damage.js:259 damageSetArmor"
+    "damage.js:258 damageSetArmor"
    ],
    "lit": [
     "round.js:3",
@@ -15475,7 +15464,7 @@
   },
   "armorHp": {
    "w": [
-    "damage.js:260 damageSetArmorHp"
+    "damage.js:259 damageSetArmorHp"
    ],
    "lit": [],
    "r": 12
@@ -15554,14 +15543,14 @@
   },
   "blindUntil": {
    "w": [
-    "damage.js:261 damageSetBlindUntil"
+    "damage.js:260 damageSetBlindUntil"
    ],
    "lit": [],
    "r": 25
   },
   "burstCount": {
    "w": [
-    "shoot.js:421 shotSetBurstCount"
+    "shoot.js:425 shotSetBurstCount"
    ],
    "lit": [
     "weapons-bots.js:82"
@@ -15644,7 +15633,7 @@
   },
   "deaths": {
    "w": [
-    "damage.js:262 damageSetDeaths"
+    "damage.js:261 damageSetDeaths"
    ],
    "lit": [
     "weapons-bots.js:82"
@@ -15718,8 +15707,8 @@
   },
   "ears": {
    "w": [
-    "knowledge.js:290 knowRoundStart",
-    "knowledge.js:347 knowHearing"
+    "knowledge.js:300 knowRoundStart",
+    "knowledge.js:358 knowHearing"
    ],
    "lit": [],
    "r": 3
@@ -15816,8 +15805,8 @@
   },
   "heardSound": {
    "w": [
-    "knowledge.js:90 knowHear",
-    "knowledge.js:92 knowSound"
+    "knowledge.js:100 knowHear",
+    "knowledge.js:102 knowSound"
    ],
    "lit": [
     "weapons-bots.js:82"
@@ -15826,7 +15815,7 @@
   },
   "helmet": {
    "w": [
-    "damage.js:263 damageSetHelmet",
+    "damage.js:262 damageSetHelmet",
     "economy.js:283 buyFullKit"
    ],
    "lit": [
@@ -15850,7 +15839,7 @@
     "engagements.js:157 engDecide",
     "fight-state.js:13 fightReset",
     "fight-state.js:14 fightHoldOff",
-    "fight-state.js:189 leaveHold"
+    "fight-state.js:190 leaveHold"
    ],
    "lit": [
     "weapons-bots.js:82"
@@ -15859,7 +15848,7 @@
   },
   "hp": {
    "w": [
-    "damage.js:264 damageSetHp"
+    "damage.js:263 damageSetHp"
    ],
    "lit": [
     "weapons-bots.js:82"
@@ -15873,11 +15862,11 @@
     "round.js:3",
     "weapons-bots.js:82"
    ],
-   "r": 637
+   "r": 636
   },
   "kills": {
    "w": [
-    "damage.js:265 damageSetKills"
+    "damage.js:264 damageSetKills"
    ],
    "lit": [
     "weapons-bots.js:82"
@@ -15902,14 +15891,14 @@
   },
   "know": {
    "w": [
-    "knowledge.js:288 knowRoundStart"
+    "knowledge.js:298 knowRoundStart"
    ],
    "lit": [],
    "r": 35
   },
   "lastIntel": {
    "w": [
-    "knowledge.js:94 knowIntel"
+    "knowledge.js:104 knowIntel"
    ],
    "lit": [
     "weapons-bots.js:82"
@@ -15918,7 +15907,7 @@
   },
   "lastShotTick": {
    "w": [
-    "shoot.js:422 shotSetLastShotTick"
+    "shoot.js:426 shotSetLastShotTick"
    ],
    "lit": [
     "weapons-bots.js:82"
@@ -16028,12 +16017,12 @@
   },
   "nextShotTick": {
    "w": [
-    "shoot.js:423 shotSetNextShotTick"
+    "shoot.js:427 shotSetNextShotTick"
    ],
    "lit": [
     "weapons-bots.js:82"
    ],
-   "r": 9
+   "r": 10
   },
   "onLadder": {
    "w": [],
@@ -16307,14 +16296,14 @@
   },
   "roundDmg": {
    "w": [
-    "damage.js:266 damageSetRoundDmg"
+    "damage.js:265 damageSetRoundDmg"
    ],
    "lit": [],
    "r": 1
   },
   "roundKills": {
    "w": [
-    "damage.js:267 damageSetRoundKills"
+    "damage.js:266 damageSetRoundKills"
    ],
    "lit": [
     "weapons-bots.js:82"
@@ -16541,14 +16530,14 @@
   },
   "weight": {
    "w": [
-    "knowledge.js:232 knowBuild"
+    "knowledge.js:242 knowBuild"
    ],
    "lit": [],
    "r": 2
   },
   "windows": {
    "w": [
-    "knowledge.js:232 knowBuild"
+    "knowledge.js:242 knowBuild"
    ],
    "lit": [],
    "r": 1
@@ -16561,7 +16550,7 @@
     "fight.js:223",
     "weapons-bots.js:82"
    ],
-   "r": 740
+   "r": 737
   },
   "y": {
    "w": [
@@ -16571,7 +16560,7 @@
     "fight.js:223",
     "weapons-bots.js:82"
    ],
-   "r": 740
+   "r": 737
   },
   "z": {
    "w": [
@@ -16581,7 +16570,7 @@
     "fight.js:223",
     "weapons-bots.js:82"
    ],
-   "r": 286
+   "r": 285
   }
  },
  "hidden": {

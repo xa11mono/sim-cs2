@@ -32,14 +32,24 @@ var KNOW = {
   memSec:      20,    // с: сколько бот помнит услышанное сам
   srcApart:    150,   // px: звуки ближе — один источник (knowSources; проектное число переделки)
   srcSec:      3,     // с: за сколько считать источники (проектное число переделки)
-  // (изоляция, 27.11) видно ли на модели врага то, что у него на спине: убранное основное оружие и C4 носителя. В CS:GO — да (IMFDB, bo3.gg);
-  // в CS2 — заметки к обновлению 09.2023 «обновлены позиции оружия в кобуре» (Steam), модели AFK-игроков с C4 на спине (Dot Esports).
-  // Своими глазами в CS2 не проверено — rebuild/after_r8/ISOLATION.md, проверка владельца; false — видно только оружие в руках
-  seeOnBack:   true
+  // (изоляция, 27.11) что видно на спине модели врага — по отдельности. Убранное основное оружие: в CS:GO видно (IMFDB); в CS2 — заметки к
+  // обновлению 09.2023 «обновлены позиции оружия в кобуре» (Steam). C4 носителя: в CS:GO видна (bo3.gg); в CS2 — косвенно (Dot Esports, модели
+  // AFK-игроков с C4 на спине). Своими глазами в CS2 не проверено — rebuild/after_r8/ISOLATION.md, проверка владельца; false — не видно
+  seePrimaryBack: true,
+  seeC4Back:      true
 };
-// оружие врага, которое видно, когда его видят: в руках; основное — и убранное, если видно на спине (KNOW.seeOnBack)
-function seenPrimary(e){ var h = e.weapon && WEAPONS[e.weapon.key];
-  return h && h.slot === "primary" ? e.weapon.key : (KNOW.seeOnBack && e.primary && WEAPONS[e.primary] ? e.primary : null); }
+// (изоляция, 27.11) спина врага на виду у наблюдателя o: видно его тело (visParts — та же 3D-проверка, что зрение, engSee; одна голова над
+// укрытием спину не показывает) и o не перед ним — в задней полуплоскости его взгляда (угол между взглядом врага и направлением на o ≥ 90°:
+// спереди спину закрывает сам корпус — геометрия, а не подобранное число). Направление взгляда врага видно, когда виден он сам
+function backSeen(o, e){
+  if(!o || !e || e.facing === undefined) return false;
+  if(_angOff(DM.atan2(o.y-e.y, o.x-e.x), e.facing) < Math.PI/2) return false;
+  return !!visParts(o.x, o.y, o.crouching, e.x, e.y, e.crouching, true, o.z, e.z, boostLift(o), boostLift(e)).body;
+}
+// основное оружие врага, которое видит наблюдатель o: в руках — всегда (когда виден); убранное — если видно на спине (KNOW.seePrimaryBack)
+function seenPrimary(e, o){ var h = e.weapon && WEAPONS[e.weapon.key];
+  if(h && h.slot === "primary") return e.weapon.key;
+  return KNOW.seePrimaryBack && e.primary && WEAPONS[e.primary] && backSeen(o, e) ? e.primary : null; }
 var KNOW_SAY = {steps:"шаги", water:"всплески в воде", shots:"стрельбу", hit:"что стреляют по мне", reload:"перезарядку", nade:"бросок гранаты", plant:"плант", defuse:"дефуз"};
 // позиции про из 88 демок Ancient (tools/map/positions_bake.py в ветке rebuild-v238; поля: сторона, тип, x, y,
 // доля раундов, spread, варианты места [x, y, доля]); n / byP / byW — в скольких раундах там стояли все / каждый
@@ -315,7 +325,8 @@ function knowVision(b){
     B.last = last; B.visible = true; B.mine = !!own[e.id];
     // (изоляция, аудит Codex F-B, 27.11) снимок увиденного: место, высота (радар), ствол (свой глаз / колл); поза — только своими глазами. Его читает
     // перестрелка после потери зрения (duelFoe, fight.js) вместо живого объекта врага
-    B.seen = {x: e.x, y: e.y, z: e.z, weapon: e.weapon && e.weapon.key, primary: seenPrimary(e), crouching: own[e.id] ? !!e.crouching : !!(B.seen && B.seen.crouching), tick: tick};   // (v432) visible — видит команда (радар), mine — сам (колл «вижу» — только своё)
+    var oS = own[e.id] ? b : bots.filter(function(m){ return m.alive && m.team === b.team && (m._visible || []).indexOf(e) >= 0; })[0];   // кто видит (свой глаз / колл)
+    B.seen = {x: e.x, y: e.y, z: e.z, weapon: e.weapon && e.weapon.key, primary: seenPrimary(e, oS) || (B.seen && B.seen.primary) || null, crouching: own[e.id] ? !!e.crouching : !!(B.seen && B.seen.crouching), tick: tick};   // (v432) visible — видит команда (радар), mine — сам (колл «вижу» — только своё)
     B.hyps = [{type: "held", zone: last.zone, x: last.x, y: last.y, weight: 1}];
     if(mineE && e.planting && !K.planted) K.plantSeen = knowNearestSite(e.x, e.y);
     if(!was) knowTrace(b, e.id, "увидел (" + knowZoneName(last.zone) + ")");

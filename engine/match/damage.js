@@ -60,15 +60,15 @@ function detonate(n){ var _ev = simEvIn("detonate", arguments);
       if(!b.alive) return;
       var d = n.z != null ? DM.hypot3(b.x-n.x, b.y-n.y, (n.z - visFloorAt(b.x, b.y, b.z) - VIS_EYE.stand)/(MAP.pxUnits || 2.5)) : DM.hypot(b.x-n.x, b.y-n.y);   // (v519) в 3D
       var dirK = flashDirK(b, n); if(!dirK) return;
-      // (изоляция, аудит Codex F-A, 27.11) команда бросившего предполагает «ослеплён», только если видела врага в момент хлопка: гипотеза, а не
-      // факт — срок по видимому взгляду и расстоянию (та же формула), вероятность — что не успел отвернуться: видел ли он бросок, команда не
-      // знает, берётся вероятность увернуться неготового (FLASH_DODGE_UNAWARE — то же число, что у физики ниже; знал — увернуться легче, так что
-      // это верхняя оценка). Настоящий остаток ослепления — нет
+      // (изоляция, аудит Codex F-A, 27.11) команда бросившего предполагает «вероятно ослеплён», только если видела врага в момент хлопка:
+      // ГИПОТЕЗА, а не факт (hyp) — срок по видимому взгляду и расстоянию (та же формула). Успел ли он отвернуться, команда не знает, и уверенности
+      // в числах нет (вероятность увернуться в физике — свойство ослепляемого, не знание наблюдателя; источника для уверенности наблюдателя нет),
+      // поэтому числа уверенности нет. Настоящий остаток ослепления — нет
       var FT = n.thrower && n.thrower.team !== b.team ? n.thrower.team : null;
       if(FT && bots.some(function(m){ return m.alive && m.team === FT && (m._visible || []).indexOf(b) >= 0; })){
         var sK = BAL.flashMax * dirK * Math.max(0, 1 - d/1100);
         if(sK > 0.35){ var TF = teamIntel[FT].flashed || (teamIntel[FT].flashed = {}), TF0 = TF[b.id], uK = tick + Math.round(sK*TICK_HZ);
-          TF[b.id] = {until: Math.max(TF0 && TF0.until > tick ? TF0.until : 0, uK), p: 1 - FLASH_DODGE_UNAWARE}; } }
+          TF[b.id] = {until: Math.max(TF0 && TF0.until > tick ? TF0.until : 0, uK), hyp: true}; } }
       // враг, который видел/слышал летящую флешку, может успеть отвернуться —
       // тем вероятнее, чем выше навык (раньше флешка слепила "по учебнику" всегда)
       // (этап 3, P2-2) свой отворачивается наверняка (×0,18 ниже), только если дослушал колл «флешу!» до хлопка;
@@ -77,7 +77,7 @@ function detonate(n){ var _ev = simEvIn("detonate", arguments);
       if(!warned){
         // увернуться можно, только если знал о флешке (видел/слышал бросок);
         // поп-флешка из-за стены почти всегда застаёт врасплох
-        var pD = ((n.aware && n.aware[b.id]) ? 0.5 + 0.3*prof(b, "disc") + 0.1*(b.skill-0.8)/0.4 : FLASH_DODGE_UNAWARE);
+        var pD = ((n.aware && n.aware[b.id]) ? 0.5 + 0.3*prof(b, "disc") + 0.1*(b.skill-0.8)/0.4 : 0.3);
         var dodge = hashRand(tick*29 + b.id.charCodeAt(0)*13 + b.id.length*7) < pD;
         if(dodge){ dirK *= 0.3; if(dirK > 0.1) logEvent(b.id+" отвернулся от флешки"); }
       }
@@ -139,7 +139,6 @@ function armorSoak(b, raw, ratio, src){
   if(b.armorHp <= 0){ damageSetArmor(b, false); damageSetHelmet(b, false); }
   return Math.max(0, h);
 }
-var FLASH_DODGE_UNAWARE = 0.3;   // вероятность увернуться от флешки, если не видел и не слышал бросок (проектное число, было в коде физики литералом)
 var HURT_SND_GAP = 32;   // (v546) тиков (0,5 с) — проектное число
 function applyDamage(att, b, dmg, src, o){ var _ev = simEvIn("applyDamage", arguments);
   if(DEMOV.on && !DEMOV.allow) return simEvOut(_ev, false);   // (v571) раунд из демки: урон — только смерти демки (demo)

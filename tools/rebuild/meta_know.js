@@ -30,7 +30,7 @@ EV(`globalThis.MK_SIG = function(obs){
   var D = {b: {}};
   own.forEach(function(b){
     P.b[b.id] = [b.hp, b.alive, (b._visible || []).map(function(e){ return [e.id, e.x, e.y, e.z, e.crouching, e.alive, e.weapon && e.weapon.key,
-      typeof seenPrimary === 'function' ? seenPrimary(e) : null, KNOW.seeOnBack !== false && bomb && bomb.carrier === e]; }),
+      typeof seenPrimary === 'function' ? seenPrimary(e, b) : null, !!(bomb && bomb.carrier === e && (typeof backSeen !== 'function' || (KNOW.seeC4Back && backSeen(b, e))))]; }),
       b.heardSound ? [b.heardSound.kind, b.heardSound.x, b.heardSound.y, b.heardSound.tick] : null,
       // лежащая / заложенная бомба в поле зрения этого бота (то же зрение, что у датчика knowTeamLook)
       bomb && (bomb.state === 'dropped' || bomb.state === 'planted') && b.alive && tick >= (b.blindUntil||0) && DM.hypot(bomb.x-b.x, bomb.y-b.y) <= KNOW.lookRange && inFov(b, bomb.x, bomb.y) && hasVision(b.x, b.y, bomb.x, bomb.y) ? [bomb.x, bomb.y] : null];
@@ -86,7 +86,7 @@ const FAMILIES = {
     return 'команда попала по ' + E.map(function(o){ return o.id; }).join(' ') + ' на 80'; })()`,
   // своя флешка хлопнула на глазах у команды: враги ослеплены по оценке ещё 2 с (teamIntel.flashed)
   flashknown: `(function(){ var E = bots.filter(function(o){ return o.alive && o.team !== '${OBS}'; }); if(!E.length) return null;
-    var TF = teamIntel['${OBS}'].flashed || (teamIntel['${OBS}'].flashed = {}); E.forEach(function(o){ TF[o.id] = {until: tick + 2*TICK_HZ, p: 0.7}; });
+    var TF = teamIntel['${OBS}'].flashed || (teamIntel['${OBS}'].flashed = {}); E.forEach(function(o){ TF[o.id] = {until: tick + 2*TICK_HZ, hyp: true}; });
     return 'видели, как флешка ослепила ' + E.map(function(o){ return o.id; }).join(' '); })()`,
   // в снимке увиденного у бота другой ствол врага перестрелки (видел AWP / AK)
   seenwpn: `(function(){ var r = []; bots.forEach(function(b){ var F = b._fc; if(!b.alive || b.team !== '${OBS}' || !F || !F.e || (b._visible || []).indexOf(F.e) >= 0) return;

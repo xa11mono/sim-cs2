@@ -4211,8 +4211,8 @@
    "read_by_core": [
     "bomb.js:270",
     "bomb.js:355",
-    "damage.js:145",
-    "damage.js:145",
+    "damage.js:144",
+    "damage.js:144",
     "shoot.js:68",
     "round.js:158",
     "tick-step.js:30",
@@ -4250,8 +4250,8 @@
    "class": "диагностика",
    "read_by_core": [
     "sites-spots.js:234",
-    "knowledge.js:93",
-    "knowledge.js:95",
+    "knowledge.js:103",
+    "knowledge.js:105",
     "look-arbiter.js:184",
     "look-arbiter.js:184",
     "lineups.js:252",
@@ -4278,15 +4278,15 @@
    "var": "KNOW_LOG",
    "class": "диагностика",
    "read_by_core": [
-    "knowledge.js:261"
+    "knowledge.js:271"
    ]
   },
   {
    "var": "KNOW_TRACE",
    "class": "диагностика",
    "read_by_core": [
-    "knowledge.js:259",
-    "knowledge.js:259"
+    "knowledge.js:269",
+    "knowledge.js:269"
    ]
   },
   {
@@ -4464,10 +4464,10 @@
    "class": "показ",
    "read_by_core": [
     "damage.js:114",
-    "damage.js:230",
-    "damage.js:249",
-    "damage.js:249",
-    "damage.js:249",
+    "damage.js:229",
+    "damage.js:248",
+    "damage.js:248",
+    "damage.js:248",
     "decide.js:260",
     "round.js:103",
     "modes.js:244"
@@ -4483,7 +4483,7 @@
     "journal.js:115",
     "items.js:53",
     "shoot.js:303",
-    "shoot.js:363",
+    "shoot.js:367",
     "tick-jump.js:10",
     "tick-step.js:145",
     "src/snapshot.js:174",
@@ -4518,9 +4518,9 @@
     "smoke-react.js:82",
     "smoke-react.js:82",
     "smoke-react.js:82",
-    "shoot.js:363",
-    "shoot.js:383",
-    "shoot.js:383",
+    "shoot.js:367",
+    "shoot.js:387",
+    "shoot.js:387",
     "round.js:103",
     "round.js:225",
     "modes.js:244",

@@ -367,7 +367,7 @@ function fightCycleTick(b, dtSec, busy){
       if(wl > 0.5){ var wx = F.ax + wdx/wl*PEEK_WIDE_EXTRA/PX_UNITS, wy = F.ay + wdy/wl*PEEK_WIDE_EXTRA/PX_UNITS;
         if(!stepBlocked(F.ax, F.ay, wx, wy, b) && navNearLevel(wx, wy, 0, b.z) && !inFire(wx, wy, b.z)){ F.ax = wx; F.ay = wy; } else F.pk = "mid"; } else F.pk = "mid"; }
     // (ответ 4) против AWP (оружие врага видно) — сначала плечо: выстрелил — выглядывает целиком, пока он перезаряжается; нет — через паузу про
-    if(FE && ((FE.weapon && FE.weapon.key === "AWP") || (FE === F.e ? seenPrimary(FE) : FE.primary) === "AWP")){ var shp = fightShoulderPt(b, FE, F.cx, F.cy, F.ax, F.ay); if(shp) F.sh = {x:shp.x, y:shp.y, t0:0, shot:F.e.lastShotTick || -1, done:false}; }
+    if(FE && ((FE.weapon && FE.weapon.key === "AWP") || (FE === F.e ? seenPrimary(FE, b) : FE.primary) === "AWP")){ var shp = fightShoulderPt(b, FE, F.cx, F.cy, F.ax, F.ay); if(shp) F.sh = {x:shp.x, y:shp.y, t0:0, shot:F.e.lastShotTick || -1, done:false}; }
   }
   // (отметка владельца 18.11 №7) уходит из-под линии по задаче (escape: укрытие на перезарядку, отход раненого) — ноги ведёт путь задачи (tick,
   // fcSwingGo), цикл свою точку укрытия не тянет: было — путь к укрытию и цикл к своему гасили друг друга, бот стоял на открытом

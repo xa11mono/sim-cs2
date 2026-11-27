@@ -302,15 +302,19 @@ function tryShoot(shooter, target, dist){ var _ev = simEvIn("tryShoot", argument
     shotSetTagUntil(target, tick + 16); // попали — на ~0.25с замедлен
     target._hitFx = {t:nowTs, head:headshot};
     if(headshot && burstIdx === 0 && (shooter._place||0) > 0.8 && target.hp <= dmg && hashRand(seedS+29) < 0.5) logEvent(shooter.id+": прицел стоял на угле — хэдшот с первой пули по "+target.id);
-    soundEv("sndBody", headshot ? (target.helmet ? "hshelm" : "hs") : (target.armor ? "kevlar" : "body"), target.x, target.y);
+    var hitSnd = headshot ? (target.helmet ? "hshelm" : "hs") : (target.armor ? "kevlar" : "body");
+    soundEv("sndBody", hitSnd, target.x, target.y);
     var killed = applyDamage(shooter, target, base * mult, "bullet", {armorRatio: armored ? w.armorPen : null, wkey:w.key, hs:headshot, reward:w.killReward||300, mods:{blind: shooter.blindUntil > tick, smoke: smokeBlocks(shooter.x, shooter.y, target.x, target.y), noscope: noscope},
       note:(headshot?" (в голову)":"")+" (дист. "+Math.round(dist)+", +$"+(w.killReward||300)+")"});
     if(!killed){
       var HT = teamIntel[shooter.team].hurt || (teamIntel[shooter.team].hurt = {});
-      // (изоляция, аудит Codex F-A, 27.11) команда знает не настоящее HP, а сколько сама попала: урон попадания — по оружию, дистанции
-      // и месту попадания, броня — по звуку попадания (sndBody выше: «kevlar» / «body», шлем — «hshelm»); оценка HP = 100 − попадания
-      // команды за раунд (падение, урон чужих гранат и остаток брони ей неизвестны). Было: точное target.hp в teamIntel.hurt и в войсе
-      var prevH = HT[target.id], dmgK = (prevH ? prevH.dmg : 0) + dmg, hpK = Math.max(1, 100 - dmgK);
+      // (изоляция, аудит Codex F-A, 27.11) команда знает не настоящее HP и не точный урон, а то, что слышно и видно: было попадание и какого
+      // вида — по звуку попадания (hitSnd: в голову со шлемом / без, в тело в броне / без брони); в какую часть тела (грудь, живот, ноги) и
+      // сколько точно сняло — не слышно. Урон попадания — наименьший для этого вида по таблице оружия (известна игрокам; множители частей
+      // тела и брони — те же, что в расчёте урона выше: голова ×4, живот ×1,25, грудь ×1, ноги ×0,75 без брони), поэтому 100 − сумма — верхняя
+      // граница HP: настоящий урон не меньше, падение, чужие гранаты и износ брони её только понижают. Было: точное target.hp
+      var dmgLo = Math.round(base * (hitSnd === "hshelm" ? 4*w.armorPen : hitSnd === "hs" ? 4 : hitSnd === "kevlar" ? Math.min(0.75, w.armorPen) : 0.75));
+      var prevH = HT[target.id], dmgK = (prevH ? prevH.dmg : 0) + dmgLo, hpK = Math.max(1, 100 - dmgK);
       HT[target.id] = {hp:hpK, dmg:dmgK, tick:tick, by:shooter.id};
       if(hpK <= 40 && (!prevH || prevH.hp > 40)) voiceLog(shooter.team, "hurt"+target.id, shooter.id, "тапнул "+target.id+" на "+dmgK);
     }
@@ -390,7 +394,7 @@ var STATE_LABEL = {patrol:"патруль", hold:"держит угол", engage
 // смерти своего (tools/map/trade_bake.py → src/data/trades.json, 92 демки). Одно число на «есть ли кому разменять»
 var TRADE_R = 272;
 function duelContext(bot, enemiesSeen, alliesNear){
-  var o = {trade:0, up:false, forced:false, hurtFoe:false, awpLine:false, flashedP:0};
+  var o = {trade:0, up:false, forced:false, hurtFoe:false, awpLine:false, flashHyp:false};
   bots.forEach(function(m){ if(m !== bot && m.alive && m.team === bot.team && nearP(m.x, m.y, m.z, bot.x, bot.y, bot.z, TRADE_R)) o.trade++; });
   var my = aliveCount(bot.team), their = aliveCount(bot.team === "CT" ? "T" : "CT");
   o.up = my > their;
@@ -405,12 +409,12 @@ function duelContext(bot, enemiesSeen, alliesNear){
   if(e){
     var HT = teamIntel[bot.team] && teamIntel[bot.team].hurt, hk = HT && HT[e.id];
     // (изоляция, F-A) «ранен» — по попаданиям команды (teamIntel.hurt: 100 − свои попадания — верхняя граница HP: падение, чужие гранаты и
-    // износ брони её только понижают); «вероятно ослеплён» — гипотеза с вероятностью по своей флешке, хлопнувшей на глазах у команды
-    // (teamIntel.flashed, damage.js), а не настоящий остаток ослепления
+    // износ брони её только понижают); «вероятно ослеплён» — гипотеза по своей флешке, хлопнувшей на глазах у команды (teamIntel.flashed,
+    // damage.js), а не настоящий остаток ослепления
     var FL = teamIntel[bot.team] && teamIntel[bot.team].flashed;
     o.hurtFoe = !!(hk && hk.hp <= 40 && tick - hk.tick < 8*TICK_HZ);
     o.awpLine = !!(e.weapon && e.weapon.key === "AWP");
-    var fe = FL && FL[e.id]; o.flashedP = fe && tick < fe.until ? fe.p : 0;   // гипотеза с вероятностью, не факт
+    var fe = FL && FL[e.id]; o.flashHyp = !!(fe && tick < fe.until);   // гипотеза «вероятно ослеплён», не факт
   }
   return o;
 }

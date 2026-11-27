@@ -23,7 +23,7 @@ function commSend(team, sig, by){ intelPush(team, sig); }
 function resetTeamIntel(){ if(typeof lkpReset === "function") lkpReset(); teamIntel = { CT:{sig:[], carrier:null, lastCall:{}}, T:{sig:[], carrier:null, lastCall:{}} }; }
 resetTeamIntel();
 function intelPush(team, sig){ sig.tick = tick; teamIntel[team].sig.push(sig); if(typeof beliefObserve === "function") beliefObserve(team, sig);
-  if(sig.type === "spotted" && sig.id && sig.id !== "?") buyReadSee(team, sig.id);
+  if(sig.type === "spotted" && sig.id && sig.id !== "?") buyReadSee(team, sig.id, sig.by);
   if((sig.type === "spotted" || sig.type === "sound") && sig.id && sig.id !== "?") lkpSet(team, sig.id, sig.x, sig.y, sig.type); }
 // ---- последняя известная позиция (ЛИП) каждого врага ----
 // Инфа не "испаряется" через несколько секунд: где врага последний раз видели/
@@ -78,8 +78,8 @@ function teamInfoTick(){
         // сам видит — знает сразу (lastIntel), команда — через колл
         commSend(b.team, {type:"spotted", x:e.x, y:e.y, z:e.z, id:e.id, by:b.id, conf:1}, b.id);   // (18.11) z — этаж, где его видели (взгляд «по ходу его движения», 270)
         if(e.curSpeed < 30 && bomb.state !== "planted") habitAdd(e.id, e.x, e.y, 0.125); }
-      // (изоляция, P-C) носитель — по C4 на спине, если она видна на модели (KNOW.seeOnBack, источники — ISOLATION.md)
-      if(KNOW.seeOnBack && bomb && bomb.state === "carried" && bomb.carrier === e){
+      // (изоляция, P-C) носитель — по C4 на спине, если она видна на модели (KNOW.seeC4Back, источники — ISOLATION.md) и спина на виду (backSeen)
+      if(KNOW.seeC4Back && bomb && bomb.state === "carried" && bomb.carrier === e && backSeen(b, e)){
         var prevCar = teamIntel[b.team].carrier;
         if(!prevCar || tick - prevCar.tick > 5*64)
           voiceLog(b.team, "bomb", b.id, "бомба у "+e.id+" "+calloutName(e.x, e.y)+"!");

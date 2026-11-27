@@ -136,7 +136,7 @@
   {
    "file": "smoke-react.js",
    "fn": "smokeShiftOnDetonate",
-   "line": 206,
+   "line": 205,
    "props": [
     "lookTarget",
     "post",
@@ -365,7 +365,7 @@
   {
    "file": "fight-state.js",
    "fn": "decideActionR",
-   "line": 100,
+   "line": 101,
    "props": [
     "x",
     "y",
@@ -442,7 +442,7 @@
   {
    "file": "knowledge.js",
    "fn": "hearReal",
-   "line": 75,
+   "line": 85,
    "props": [
     "teamBot.z"
    ],

@@ -60,8 +60,9 @@ function decideActionR(bot, nearestDist, alliesNear, enemiesSeen){ var RS = [];
   if(!dv.forced){
     if(dv.trade === 0 && !dv.hurtFoe){ RS.push("dv.trade === 0 && !dv.hurtFoe"); engageScore -= 0.18; retreatScore += 0.10; holdScore += 0.04; }
     if(dv.up){ RS.push("dv.up"); engageScore += 0.08; }
-    // (изоляция, F-A) «вероятно ослеплён» — гипотеза: штраф за AWP на линии ослабляется на её вероятность, а не снимается целиком
-    if(dv.awpLine && dv.flashedP < 1){ var kF = 1 - dv.flashedP; RS.push("dv.awpLine × (1 − dv.flashedP)"); engageScore -= 0.12*kF; holdScore += 0.05*kF; }
+    // (изоляция, F-A) AWP на линии — штраф выходу; снят, если по гипотезе он ослеплён своей флешкой (команда видела хлопок у него на виду) —
+    // действие по гипотезе, как у про (выглянуть на AWP после своей флешки), а не по настоящему остатку ослепления
+    if(dv.awpLine && !dv.flashHyp){ RS.push("dv.awpLine && !dv.flashHyp"); engageScore -= 0.12; holdScore += 0.05; }
     // по демкам первым в раунде у T гибнет энтри (22%), лёркер — 13%, AWP — 4%;
     // у ботов было: лёркер 25%, AWP 9%, энтри 9%. Лёркер играет от инфы и
     // тайминга, а не от дуэлей; AWP T в дефолте — не первая жертва
