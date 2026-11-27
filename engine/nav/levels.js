@@ -192,6 +192,9 @@ function navDropTo(a, b){
   return (zoneGraph[a.id] || []).some(function(e){ var m = navArea(e.to); return m && Math.abs(m.z - a.z) <= 18 && ok(m); });
 }
 // true — бот в этот тик на лестнице (обычный шаг не делается)
+function navLinkEndMatchesHeight(waypointZ, endZ){
+  return Math.abs(waypointZ - endZ) < 1;
+}
 function ladderTick(bot){
   var C = bot._climb;
   if(C){
@@ -224,7 +227,7 @@ function ladderTick(bot){
   // (время полёта — медиана из демок, приземление — со звуком); дальше — сначала к точке отталкивания
   // (v551) путь идёт через подъём из демок (точки вставил buildWaypointPath): следующая точка — его верх — этот подъём, а не ближайший (ladderFor)
   var CU = wp && CLIMB_AT[navGapKey(wp[0], wp[1])];
-  if(CU && Math.abs(wp[2] - CU.hi.z) < 1){
+  if(CU && navLinkEndMatchesHeight(wp[2], CU.hi.z)){
     var dC = DM.hypot(CU.lo.x - bot.baseX, CU.lo.y - bot.baseY);
     if(dC > GAP_NEAR){ var JWc = bot._jnw; if(!JWc || tick - JWc.last > 2) JWc = bot._jnw = {t0: tick, last: tick}; JWc.last = tick;
       if(dC > LADDER_NEAR || tick - JWc.t0 < JUMP_NEAR_WAIT){ bot.path.splice(bot.pathIdx, 0, [CU.lo.x, CU.lo.y, CU.lo.z]); return false; } }
@@ -234,7 +237,7 @@ function ladderTick(bot){
     return ladderTick(bot);
   }
   var G = wp && NAV_GAP_AT[navGapKey(wp[0], wp[1])];
-  if(G && Math.abs(wp[2] - G.b.z) < 1){
+  if(G && navLinkEndMatchesHeight(wp[2], G.b.z)){
     if(DM.hypot(G.a.x - bot.baseX, G.a.y - bot.baseY) > GAP_NEAR){ bot.path.splice(bot.pathIdx, 0, [G.a.x, G.a.y, G.a.z]); return false; }
     if(jumpFaceWait(bot, G.yaw0*Math.PI/180, G.b)) return true;
     navSetClimb(bot, {t0: tick, dur: Math.max(8, Math.round(G.sec*TICK_HZ)), from: {x: bot.baseX, y: bot.baseY, z: bot.z}, to: G.b, mid: null, jump: true, gap: true, G: G, a0: bot.facing});
