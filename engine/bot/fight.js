@@ -494,9 +494,7 @@ function coverForReload(b, from){
         if(T.some(function(f){ return rlSeen(s, sz, f); })) return false; }
       return true; }), qz, T);
   if(!sp) return false;
-  taskKeep(b, 0, "fight");
-  setPost(b, sp, from[0], true, "repos:rlcover");
-  if(!b.post || b.post.tag !== "repos:rlcover") return false;
+  if(!setPostRenew(b, "fight", sp, from[0], true, "repos:rlcover").ok || !b.post || b.post.tag !== "repos:rlcover") return false;   // (этап B, М2)
   taskKeep(b, tick + 3*TICK_HZ, "fight");
   logEvent(b.id+": уходит за укрытие перезарядиться");
   return true;

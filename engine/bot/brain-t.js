@@ -412,15 +412,23 @@ function tBrainBomb(K){
       // пробы) прикрывает: встаёт на линии сборщик→бомба в 150 px от бомбы (как напарник пробы) и смотрит туда же
       var FC = K.tt.fetchCover;
       if(!FC || FC.round !== roundNum || FC.fid !== K.fetcher.id || FC.bx !== bomb.x || FC.by !== bomb.y){
-        var cands = K.ts.filter(function(o){ return o !== K.fetcher && o.alive && o.tRole !== "lurker" && !o.planting && DM.hypot(o.x-K.fetcher.x, o.y-K.fetcher.y) < 500; })
+        // (этап B, Б-3, М1) прикрывающий — только тот, кого арбитр места пустит (taskCanSet): у занятого задачей важнее — не он
+        var cands = K.ts.filter(function(o){ return o !== K.fetcher && o.alive && o.tRole !== "lurker" && !o.planting && DM.hypot(o.x-K.fetcher.x, o.y-K.fetcher.y) < 500 && taskCanSet(o, "fetchCover"); })
           .sort(function(a, c){ return DM.hypot(a.x-K.fetcher.x, a.y-K.fetcher.y) - DM.hypot(c.x-K.fetcher.x, c.y-K.fetcher.y); });
         var lnF = DM.hypot(K.fetcher.x-bomb.x, K.fetcher.y-bomb.y) || 1, backF = Math.min(150, lnF*0.6);
         FC = K.tt.fetchCover = {round: roundNum, fid: K.fetcher.id, bx: bomb.x, by: bomb.y, id: cands[0] ? cands[0].id : null,
           pt: walk({x: bomb.x + (K.fetcher.x-bomb.x)/lnF*backF, y: bomb.y + (K.fetcher.y-bomb.y)/lnF*backF})};
       }
       var cov = FC.id ? K.ts.filter(function(o){ return o.id === FC.id && o.alive; })[0] : null;
-      if(cov && cov._probe && cov._probe.round === roundNum){ lurkSetProbe(cov, null); taskSetProbeLock(cov, 0); } // прикрывающий — тоже не проба
-      if(cov && !cov._sawEnemy && !tradeGoing(cov)){ setPost(cov, FC.pt, {x:bomb.x, y:bomb.y}, true, "fetchCover"); taskSetProbeLock(cov, tick); }
+      // (этап B, Б-3, М1) прикрывающему отказал арбитр (стала важнее другая задача) — он не придёт: назначение снимается, сборщик идёт один
+      // (как без кандидата). Занят перестрелкой / разменом — заявки нет, сборщик ждёт у точки прикрытия, пока тот освободится (как было)
+      if(cov && !cov._sawEnemy && !tradeGoing(cov)){
+        if(!taskCanSet(cov, "fetchCover")){ FC.id = null; cov = null; }
+        else {
+          if(cov._probe && cov._probe.round === roundNum){ lurkSetProbe(cov, null); taskSetProbeLock(cov, 0); } // прикрывающий — тоже не проба
+          if(setPost(cov, FC.pt, {x:bomb.x, y:bomb.y}, true, "fetchCover").ok) taskSetProbeLock(cov, tick); else { FC.id = null; cov = null; }
+        }
+      }
       // к бомбе — когда прикрывающий рядом (350 px — «рядом свой» в замерах); до того сборщик идёт к точке прикрытия.
       // Нет прикрывающего (рядом никого) — идёт один, как раньше
       var withCov = !cov || DM.hypot(cov.x-K.fetcher.x, cov.y-K.fetcher.y) <= 350;

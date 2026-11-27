@@ -373,8 +373,9 @@ function retakeUtil(R, alive){
   if(!assignNade(fl, "flash", tgt, "ретейк", {bkey:"CT.retake.flash."+bp.site, now:true, range:900}).ok) return null;
   nadeFlags.retakeFlash = true;
   var gs = GEO[bp.site];
-  var smr = alive.filter(function(b){ return b !== fl && b.nades && b.nades.smoke > 0; })[0];
-  if(smr && !nadeFlags.retakeSmoke && retakeCutUseful()){ nadeFlags.retakeSmoke = true; assignNade(smr, "smoke", gs.tEntry, "отрезать вход T", {bkey:"CT.retake.smoke."+bp.site, now:true}); }
+  // (этап B, М4) смок «отрезать вход» — у свободного от гранаты (как смок на AWP ниже); флаг «смок был» — только если заказ принят
+  var smr = alive.filter(function(b){ return b !== fl && b.nades && b.nades.smoke > 0 && !b.nadeTask; })[0];
+  if(smr && !nadeFlags.retakeSmoke && retakeCutUseful() && assignNade(smr, "smoke", gs.tEntry, "отрезать вход T", {bkey:"CT.retake.smoke."+bp.site, now:true}).ok) nadeFlags.retakeSmoke = true;
   if(!nadeFlags.retakeAwpSmoke){
     var BLr = kvLast("CT"), awpT = null;
     for(var eidR in BLr){ var loR = BLr[eidR]; if(loR.src !== "spotted" || tick - loR.tick > 10*TICK_HZ) continue; var eR = bots.filter(function(o){ return o.id === eidR; })[0];

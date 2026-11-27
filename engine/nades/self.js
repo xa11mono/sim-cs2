@@ -66,7 +66,7 @@ function nadeCombos(){
         var b = cands[ci];
         var t = order.filter(function(tp){ return b.nades[tp]>0 && !typesUsed[tp]; })[0];
         if(!t) continue;
-        assignNade(b, t, {x:s.x, y:s.y}, "комбо по "+eid, {now:true, eid:eid});
+        if(!assignNade(b, t, {x:s.x, y:s.y}, "комбо по "+eid, {now:true, eid:eid}).ok) continue;   // (этап B, М4) отказ — следующий кандидат
         typesUsed[t] = true; thrown++;
       }
       if(thrown >= 2){

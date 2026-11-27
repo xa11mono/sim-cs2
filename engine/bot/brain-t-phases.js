@@ -299,7 +299,8 @@ function tBrainExecute(K){
       // носитель ждёт его в пределах того же времени ожидания / ESC_MAX_SEC (раньше бой снимал сопровождение сразу)
       var esc = BE ? cm.filter(function(o){ return o.id === BE.id && !o.planting; })[0] : null;
       if(!esc && !cm.some(function(o){ return ready(o) && nearP(o.x, o.y, o.z, carrier.x, carrier.y, carrier.z, TRADE_R); }) && cLeft >= cWalk){
-        esc = cm.filter(function(o){ return !o._sawEnemy && !o.planting && !o.nadeTask && !tradeGoing(o) && !(tick < taskKeepUntil(o, "repos")) && DM.hypot(o.x-ppt.x, o.y-ppt.y) > 350; })
+        // (этап B, М1) сопровождающий — тот, кого арбитр места пустит (taskCanSet)
+        esc = cm.filter(function(o){ return !o._sawEnemy && !o.planting && !o.nadeTask && !tradeGoing(o) && !(tick < taskKeepUntil(o, "repos")) && DM.hypot(o.x-ppt.x, o.y-ppt.y) > 350 && taskCanSet(o, "bombEscort"); })
           .sort(function(a, c){ return DM.hypot(a.x-carrier.x, a.y-carrier.y) - DM.hypot(c.x-carrier.x, c.y-carrier.y); })[0] || null;
         // (v342, отметка владельца: magixx с бомбой ждал у B «сопровождение» с A — через всю карту) сопровождающий — не дальше
         // ESC_MAX_SEC бега до носителя; иначе носитель идёт ставить сам
@@ -319,8 +320,13 @@ function tBrainExecute(K){
         if(BE.far || tick - BE.since > escW*TICK_HZ) esc = null; }
       if(esc && cLeft >= cWalk){
         var lnE = DM.hypot(ppt.x-carrier.x, ppt.y-carrier.y) || 1, ePt = walk({x: carrier.x + (ppt.x-carrier.x)/lnE*Math.min(90, lnE), y: carrier.y + (ppt.y-carrier.y)/lnE*Math.min(90, lnE)});
-        if(!(esc.post && esc.post.tag === "bombEscort" && DM.hypot(postSrc(esc).x-ePt.x, postSrc(esc).y-ePt.y) < 80)) setPost(esc, ePt, K.g.ctEntry, true, "bombEscort");
+        // (этап B, М1) сопровождающему отказал арбитр — он не придёт: назначение снимается, носитель идёт ставить (как без сопровождающего)
+        var escOk = true;
+        if(!(esc.post && esc.post.tag === "bombEscort" && DM.hypot(postSrc(esc).x-ePt.x, postSrc(esc).y-ePt.y) < 80)) escOk = setPost(esc, ePt, K.g.ctEntry, true, "bombEscort").ok;
         else postKeep(esc);
+        if(!escOk){ K.tt.bombEsc = null; esc = null; }
+      }
+      if(esc && cLeft >= cWalk){
         taskSetProbeLock(esc, tick);
         if(nearP(esc.x, esc.y, esc.z, carrier.x, carrier.y, carrier.z, TRADE_R)) setPost(carrier, ppt, K.g.ctEntry, true, "plantspot");   // (v532) напарник рядом — по пути
         else if(carrier.post && carrier.post.tag === "bombWait") postKeep(carrier);

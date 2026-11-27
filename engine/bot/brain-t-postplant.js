@@ -37,7 +37,9 @@ function tBrainPostplant(K){
     if(K.tt._defLate){
       if(TK.on) K.tt._defLateSeen = tick;
       if(tick - (K.tt._defLateSeen || K.tt._defLate) > 2*TICK_HZ) K.tt._defLate = null;
-      else { K.ts.forEach(function(b){ if(!b._saveSpot) retakeSetSaveSpot(b, pickSaveSpotT(b)); if(!b.planting) setPost(b, b._saveSpot, null, true, "save"); }); return true; }
+      // (этап B, М5) решение «сейв» — того же хозяина, что «сбить дефуз»: свою прежнюю задачу (antidefuse, уровень выше) он снимает сам, как для
+      // flee выше, — иначе арбитр отклонял сейв, и бот до 1,5 с шёл к бомбе
+      else { K.ts.forEach(function(b){ if(!b._saveSpot) retakeSetSaveSpot(b, pickSaveSpotT(b)); if(b.post && b.post.tag === "antidefuse") clearPost(b); if(!b.planting) setPost(b, b._saveSpot, null, true, "save"); }); return true; }
     }
     var antiDef = [], dfGo = false;
     defuseContTick();
@@ -72,7 +74,7 @@ function tBrainPostplant(K){
       if(dfz && late.length === antiDef.length && late.length && !K.tt._defLate){
         K.tt._defLate = tick;
         voiceLog("T", "deflate", late[0].id, "не успеваем на дефуз — сейв");
-        late.forEach(function(b){ if(!b._saveSpot) retakeSetSaveSpot(b, pickSaveSpotT(b)); setPost(b, b._saveSpot, null, true, "save"); bombSetStopPlantUntil(b, 0); });
+        late.forEach(function(b){ if(!b._saveSpot) retakeSetSaveSpot(b, pickSaveSpotT(b)); if(b.post && b.post.tag === "antidefuse") clearPost(b); setPost(b, b._saveSpot, null, true, "save"); bombSetStopPlantUntil(b, 0); });   // (этап B, М5)
         antiDef = [];
       } else if(dfz) antiDef = antiDef.filter(function(b){ return late.indexOf(b) < 0; });
       var spA = pickSpots("antidef"+Math.round(bpA.x/30)+","+Math.round(bpA.y/30), bpA, 4, {team: "T", rMin:50, rMax:300, minGap:45, must:[bpA]});

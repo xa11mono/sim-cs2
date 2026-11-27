@@ -25,8 +25,8 @@ function sites() {
   for (const f of SRC.gameFiles().filter(f => /\.(js|ts)$/.test(f))) { let ast; const t = SRC.readGame(f).replace(/@@[A-Z_]+@@/g, m => '0'.padEnd(m.length, ' '));
     for (const [a, b] of [['', ''], ['', '\n})();'], ['(function(){\n', ''], ['(function(){\n', '\n})();']]) { try { ast = acorn.parse(a + t + b, { ecmaVersion: 'latest', allowReturnOutsideFunction: true, locations: true }); break; } catch (e) {} }
     if (!ast) continue;
-    walk.simple(ast, { CallExpression(n) { if (n.callee.type !== 'Identifier' || !/^(setPost|taskCanSet|stagePost)$/.test(n.callee.name)) return;
-      const a = n.arguments[n.callee.name === 'taskCanSet' ? 1 : 4]; if (!a) return;   // stagePost без тега — свой тег внутри
+    walk.simple(ast, { CallExpression(n) { if (n.callee.type !== 'Identifier' || !/^(setPost|setPostRenew|taskCanSet|stagePost)$/.test(n.callee.name)) return;
+      const a = n.arguments[n.callee.name === 'taskCanSet' ? 1 : n.callee.name === 'setPostRenew' ? 5 : 4]; if (!a) return;   // setPostRenew(b, why, pt, look, hold, tag)   // stagePost без тега — свой тег внутри
       const v = lit(a); if (v == null) { dyn.push(f + ':' + n.loc.start.line); return; }
       [].concat(v).forEach(x => { (K[x] = K[x] || new Set()).add(f); }); } }); }
   return { K, dyn };

@@ -232,9 +232,10 @@ function nadeBrains(){
     var BPr = ctBombPos(), gs = BPr && GEO[BPr.site];   // (изоляция, 27.11; аудит C4-C) бомба и сайт — по знанию CT
     // заходим — флешка на бомбу с точки сбора, смок на подход T (отрезать подмогу)
     var fl = cts.filter(function(b){ return b.nades.flash > 0; })[0];
-    if(fl && BPr){ nadeFlags.retakeFlash = true; assignNade(fl, "flash", {x:BPr.x, y:BPr.y}, "ретейк", {bkey:"CT.retake.flash."+BPr.site}); }
-    var smr = cts.filter(function(b){ return b !== fl && b.nades.smoke > 0; })[0];
-    if(smr && gs && !nadeFlags.retakeSmoke){ nadeFlags.retakeSmoke = true; if(retakeCutUseful()) assignNade(smr, "smoke", gs.tEntry, "отрезать вход T", {bkey:"CT.retake.smoke."+BPr.site}); }
+    // (этап B, М4) флаги «флешка / смок ретейка были» — только при принятом заказе (было — до заказа: отказ = гранаты в этом раунде не будет)
+    if(fl && BPr && assignNade(fl, "flash", {x:BPr.x, y:BPr.y}, "ретейк", {bkey:"CT.retake.flash."+BPr.site}).ok) nadeFlags.retakeFlash = true;
+    var smr = cts.filter(function(b){ return b !== fl && b.nades.smoke > 0 && !b.nadeTask; })[0];
+    if(smr && gs && !nadeFlags.retakeSmoke && retakeCutUseful() && assignNade(smr, "smoke", gs.tEntry, "отрезать вход T", {bkey:"CT.retake.smoke."+BPr.site}).ok) nadeFlags.retakeSmoke = true;
   }
 }
 // смок "отрезать вход T" на ретейке нужен, только если кто-то из T может

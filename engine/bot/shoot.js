@@ -335,10 +335,10 @@ function tryShoot(shooter, target, dist){ var _ev = simEvIn("tryShoot", argument
         var ap = alt[hashRand(tick + shooter.id.charCodeAt(0)) < 0.5 ? 0 : Math.min(1, alt.length-1)];
         if(ap && DM.hypot(ap.x-shooter.post.x, ap.y-shooter.post.y) > 40){
           var lk = shooter.post.look;
-          taskKeep(shooter, 0, "shoot");
-          setPost(shooter, ap, lk, true, "repos"); leaveHold(shooter);
-          taskKeep(shooter, tick + 5*TICK_HZ, "shoot");
-          logEvent(shooter.id+": после килла меняет позицию");
+          // (этап B, М2 / М3) отказ арбитра — бот остаётся на удержании (было: leaveHold, срок 5 с и запись — без условия)
+          if(setPostRenew(shooter, "shoot", ap, lk, true, "repos").ok && shooter.post && shooter.post.tag === "repos"){ leaveHold(shooter);
+            taskKeep(shooter, tick + 5*TICK_HZ, "shoot");
+            logEvent(shooter.id+": после килла меняет позицию"); }
         }
       }
     }

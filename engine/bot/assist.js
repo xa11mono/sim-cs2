@@ -170,7 +170,7 @@ function updateReload(b){
       if(exE.length && !coverForReload(b, exE) && !(b._rlCoverT && tick - b._rlCoverT < 3*TICK_HZ && b.post && b.post.tag === "repos:rlcover")){
         var ea = DM.atan2(exE[0].y-b.y, exE[0].x-b.x), sgn = hashRand(tick + b.id.charCodeAt(1)) < 0.5 ? 1 : -1;
         var sq = walk({x: b.x + DM.cos(ea + sgn*Math.PI/2)*50, y: b.y + DM.sin(ea + sgn*Math.PI/2)*50});
-        if(sq && !stepBlocked(b.x, b.y, sq.x, sq.y, b)){ taskKeep(b, 0, "assist"); setPost(b, sq, exE[0], true, "repos:rlcover"); if(b.post && b.post.tag === "repos:rlcover") taskKeep(b, tick + Math.round(w.reload*TICK_HZ), "assist"); }
+        if(sq && !stepBlocked(b.x, b.y, sq.x, sq.y, b)){ if(setPostRenew(b, "assist", sq, exE[0], true, "repos:rlcover").ok && b.post && b.post.tag === "repos:rlcover") taskKeep(b, tick + Math.round(w.reload*TICK_HZ), "assist"); }
       }
     }
     reloadSetReloading(b, true); reloadSetReloadUntil(b, tick + Math.round(w.reload*TICK_HZ));

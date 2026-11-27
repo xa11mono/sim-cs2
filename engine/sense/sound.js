@@ -55,9 +55,8 @@ function reloadPeek(b){
   if(hashRand(tick*43 + (b.id.charCodeAt(b.id.length-1)||0)*3) > (0.35 + 0.5*prof(b, "aggr"))*(downN ? 0.5 : 1)) return false;
   var sp = pickSpots("rlpeek"+tick+b.id, {x:b.x, y:b.y}, 2, {rMax:140, minGap:40, see:[{x:R.x, y:R.y}]})[0];
   if(!sp) return false;
-  taskKeep(b, 0, "sound"); taskSetProbeLock(b, 0);
-  setPost(b, sp, {x:R.x, y:R.y}, true, "repos:reload");
-  if(!b.post || b.post.tag !== "repos:reload") return false;
+  taskSetProbeLock(b, 0);
+  if(!setPostRenew(b, "sound", sp, {x:R.x, y:R.y}, true, "repos:reload").ok || !b.post || b.post.tag !== "repos:reload") return false;   // (этап B, М2)
   taskKeep(b, Math.min(R.until + 32, tick + 3*TICK_HZ), "sound");
   logEvent(b.id+": пикает на перезарядку "+R.id);
   return true;

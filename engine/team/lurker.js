@@ -54,8 +54,9 @@ function lurkerBrain(b, tt, other){
     if(SO){
       if(b._sawEnemy || ROUND_TIME_SEC - (simTime - roundStartTime) <= EXU_LATE){ b._lurkSolo = null; }   // бой — свой контакт (contact); мало времени — к своим
       else { var si = Math.min(SO.i, SO.route.length-1), lk = si < SO.route.length-1 ? SO.route[si+1] : GEO[tt.site].ctEntry;
-        routeDrop(b); setPost(b, SO.route[si], lk, true, si === SO.route.length-1 ? "lurkRot" : "lurk"+si);
-        if(b.atPost){ if(!SO.t) SO.t = tick; if(tick - SO.t > LURK_CHECK*TICK_HZ && si < SO.route.length-1){ SO.i = si+1; SO.t = 0; } }
+        routeDrop(b); var okSO = setPost(b, SO.route[si], lk, true, si === SO.route.length-1 ? "lurkRot" : "lurk"+si).ok && !!b.post && /^lurk/.test(b.post.tag);
+        // (этап B, М3) точка маршрута засчитывается, только когда стоит на своём посту лёрка, а не на чужом
+        if(okSO && b.atPost){ if(!SO.t) SO.t = tick; if(tick - SO.t > LURK_CHECK*TICK_HZ && si < SO.route.length-1){ SO.i = si+1; SO.t = 0; } }
         return; }
     }
     // не стоит столбом весь сетап: чередует укрытие и короткий выгляд на
@@ -64,8 +65,8 @@ function lurkerBrain(b, tt, other){
     var peek = walk({x: LP.stage.x + (LP.entry.x-LP.stage.x)*0.6, y: LP.stage.y + (LP.entry.y-LP.stage.y)*0.6});
     if(b._lurkPh === undefined){ lurkSetLurkPh(b, 0); lurkSetLurkArr(b, 0); }
     var atPeek = b._lurkPh === 1;
-    setPost(b, atPeek ? peek : hide, LP.entry, true, atPeek ? "lurkPeek" : "lurkStage"+other);
-    if(b.atPost){
+    var okLP = setPost(b, atPeek ? peek : hide, LP.entry, true, atPeek ? "lurkPeek" : "lurkStage"+other).ok && !!b.post && /^lurk/.test(b.post.tag);
+    if(okLP && b.atPost){   // (этап B, М3) смена «укрытие / выгляд» — по своему посту
       if(!b._lurkArr) lurkSetLurkArr(b, tick);
       if(tick - b._lurkArr > (atPeek ? 160 : 320)){ lurkSetLurkPh(b, 1 - b._lurkPh); lurkSetLurkArr(b, 0); }
     }
@@ -89,8 +90,8 @@ function lurkerBrain(b, tt, other){
     }
     var LG = b._lurkGo, i = Math.min(LG.i, LG.route.length-1);
     var look = i < LG.route.length-1 ? LG.route[i+1] : site;
-    setPost(b, LG.route[i], look, true, "lurk"+i);
-    if(b.atPost){
+    var okLG = setPost(b, LG.route[i], look, true, "lurk"+i).ok && !!b.post && /^lurk/.test(b.post.tag);
+    if(okLG && b.atPost){   // (этап B, М3) точка маршрута — по своему посту
       if(!LG.t) LG.t = tick;
       if(tick - LG.t > LURK_CHECK*TICK_HZ && i < LG.route.length-1){ LG.i = i+1; LG.t = 0; }
     }
@@ -185,7 +186,8 @@ function tProbes(tt, ts){
           var uFp = {x: to.x + (look.x-to.x)*0.3, y: to.y + (look.y-to.y)*0.3};
           var uFl = ts.filter(function(o){ return o !== pb && !o.nadeTask && o.nades && o.nades.flash > 0 && DM.hypot(o.x-pb.x, o.y-pb.y) < 500; })[0];
           var uSm = ts.filter(function(o){ return !o.nadeTask && o.nades && o.nades.smoke > 0 && DM.hypot(o.x-pb.x, o.y-pb.y) < 600; })[0];
-          if(uFl && (P.needUtil || P.n === 1 || hashRand(tick + 3) < 0.6)){ assignNade(uFl, "flash", uFp, "под пробу", {now:true, forC: nadeOwnerOf(pb)}); P.util = "flash"; }
+          // (этап B, М4) флешка под пробу засчитана, только если заказ принят; иначе — запасной смок, как без флешки
+          if(uFl && (P.needUtil || P.n === 1 || hashRand(tick + 3) < 0.6) && assignNade(uFl, "flash", uFp, "под пробу", {now:true, forC: nadeOwnerOf(pb)}).ok) P.util = "flash";
           else if(uSm && (key === "M" || P.needUtil)){ var smP = {x: to.x + (look.x-to.x)*0.5, y: to.y + (look.y-to.y)*0.5}; if(assignNade(uSm, "smoke", smP, "смок под пробу", {now:true, forC: nadeOwnerOf(pb)}).ok) P.util = "smoke"; }
         }
         // со второго раза — глубже, за фрагом, но только парой (есть кому
@@ -209,7 +211,13 @@ function tProbes(tt, ts){
       return;
     }
     // выход вперёд / на вход
-    setPost(pb, P.pt, look, true, "probe"+key);
+    // (этап B, М3) проба не принята арбитром (у бота задача важнее) — фазы пробы не идут по чужому посту, напарнику пост не даётся, чужую
+    // задачу не снимаем: проба откладывается так же, как по окончании (повтор — через тот же срок)
+    // сброс пробы — одно место для отказа и для окончания (свою пробу с поста снимает только окончание)
+    var probeOff = function(){ P.prD = null; P.prT = 0; P.prBest = 0;
+      P.ph = 0; P.cleared = false; P.at = 0; P.saw = 0; P.until = tick + (6 + 3*hashRand(tick + pb.id.charCodeAt(1)))*TICK_HZ;
+      taskSetProbeLock(pb, 0); };
+    if(!setPost(pb, P.pt, look, true, "probe"+key).ok || !(pb.post && /^probe/.test(pb.post.tag))){ probeOff(); return; }
     // (v521, отметка владельца 10.11: у TN1R «перебивают путь shift и probeA» — личная перестановка и проба одного уровня сменяли друг друга
     // каждые 1,5 с) проба по решению IGL заменяет личную перестановку этого бота в этом раунде: одна задача, а не две
     if(pb.post && /^probe/.test(pb.post.tag)) pb._shift = null;
@@ -255,9 +263,7 @@ function tProbes(tt, ts){
     // (v519, пак 09.11 п.13; Р-30: «почти дошёл — пусть идёт дальше») (владелец 18.11: «пробы не надо отменять за какое-то время») проба
     // снимается не по сроку, а когда бот не идёт к точке (застрял / стоит) — общее «идёт ли» taskWalkOn (task)
     if((pb.atPost && tick - (P.at || (P.at = tick)) > stay) || (!pb.atPost && !taskWalkOn(pb, P.pt, P))){
-      P.prD = null; P.prT = 0; P.prBest = 0;
-      P.ph = 0; P.cleared = false; P.at = 0; P.saw = 0; P.until = tick + (6 + 3*hashRand(tick + pb.id.charCodeAt(1)))*TICK_HZ;
-      taskSetProbeLock(pb, 0); clearPost(pb); // вернётся на пост группы со следующего тика
+      probeOff(); if(pb.post && /^probe/.test(pb.post.tag)) clearPost(pb); // вернётся на пост группы со следующего тика (снимает только свою пробу)
     }
     if(!pb.atPost) P.at = 0;
   });

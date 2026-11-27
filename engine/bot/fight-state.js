@@ -289,9 +289,8 @@ function afterKillReact(sh, tg, w){
     var alt = pickSpots("awpr"+tick+sh.id, here, 4, {rMin:100, rMax:260, minGap:60, see:seeA, hideFrom:others, cross:{from:here, pt:vp}});
     var ap = alt.filter(function(q){ return DM.hypot(q.x-here.x, q.y-here.y) > 90; })[0];
     if(!ap) return false;
-    taskKeep(sh, 0, "afterkill"); taskSetProbeLock(sh, 0);
-    setPost(sh, ap, vp, true, "repos");
-    if(!sh.post || sh.post.tag !== "repos") return false; // пост перебит (размен/лайнап) — не уходит
+    taskSetProbeLock(sh, 0);
+    if(!setPostRenew(sh, "afterkill", ap, vp, true, "repos").ok || !sh.post || sh.post.tag !== "repos") return false;   // (этап B, М2) отказ / перебит // пост перебит (размен/лайнап) — не уходит
     leaveHold(sh);
     taskKeep(sh, tick + Math.round((5 + 2*pd)*TICK_HZ), "afterkill");
     logEvent(sh.id+" (AWP): после фрага уходит с угла — новый угол, держит "+calloutName(vp.x, vp.y));
@@ -307,9 +306,7 @@ function afterKillReact(sh, tg, w){
   if(mates >= 1 && roundGoal(sh.team) !== "keepGuns" && pa >= 0.75 && pr >= 0.7 && sh.hp > 60 && foes700.length >= 1 && foes700.length <= 2 && hashRand(tick*41 + sh.id.charCodeAt(1)*3) < pa*0.6){
     var sw = pickSpots("swing"+tick+sh.id, vp, 3, {rMax:140, minGap:40})[0] || vp;
     var nf = foesNear.slice().sort(function(a, c){ return DM.hypot(a.x-vp.x, a.y-vp.y) - DM.hypot(c.x-vp.x, c.y-vp.y); })[0];
-    taskKeep(sh, 0, "afterkill");
-    setPost(sh, sw, {x:nf.x, y:nf.y}, true, "repos:swing");
-    if(!sh.post || sh.post.tag !== "repos:swing") return false;
+    if(!setPostRenew(sh, "afterkill", sw, {x:nf.x, y:nf.y}, true, "repos:swing").ok || !sh.post || sh.post.tag !== "repos:swing") return false;   // (этап B, М2)
     leaveHold(sh);
     taskKeep(sh, tick + 3*TICK_HZ, "afterkill");
     logEvent(sh.id+": агрессивно добирает после фрага — выходит за вторым");

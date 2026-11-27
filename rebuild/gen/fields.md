@@ -167,16 +167,16 @@
 
 ## `post`
 
-- **хозяин** `setPostDo · task` — 1 (стр. 470)
-- **хозяин** `clearPostDo · task` — 1 (стр. 523)
-- **хозяин** `placeResetPost · task` — 1 (стр. 532)
+- **хозяин** `setPostDo · task` — 1 (стр. 475)
+- **хозяин** `clearPostDo · task` — 1 (стр. 528)
+- **хозяин** `placeResetPost · task` — 1 (стр. 537)
 
 ## `_task`
 
 - **хозяин** `routeTick · task` — 1 (стр. 66)
-- **хозяин** `setPostDo · task` — 1 (стр. 425)
-- **хозяин** `clearPostDo · task` — 1 (стр. 523)
-- **хозяин** `placeResetTask · task` — 1 (стр. 533)
+- **хозяин** `setPostDo · task` — 1 (стр. 430)
+- **хозяин** `clearPostDo · task` — 1 (стр. 528)
+- **хозяин** `placeResetTask · task` — 1 (стр. 538)
 
 ## `_reposUntil`
 
@@ -208,7 +208,7 @@
 - **хозяин** `fightStateDo · fight-state` — 1 (стр. 4)
 - **хозяин** `fightReset · fight-state` — 1 (стр. 13)
 
-не бот (то же имя у другого объекта — в проверку владения не идёт): `dropBomb · bomb` (112 bomb), `bombTick · bomb` (261 bomb; 302 bomb; 319 bomb), `exuThrown · exec-sync` (70 it), `exuLanded · exec-sync` (82 it), `exuFail · exec-sync` (86 it), `exuReassign · exec-sync` (137 it), `exuTick · exec-sync` (149 it; 151 it; 155 it), `bombPassTick · sound` (86 bomb), `checkRoundEnd · round` (140 bomb), `dvTick · modes` (175 bomb; 176 bomb), `mapEdQueueSave · map-walls` (66 S; 67 S), `mapEdSaveNow · map-walls` (74 S; 81 S; 82 S)
+не бот (то же имя у другого объекта — в проверку владения не идёт): `dropBomb · bomb` (112 bomb), `bombTick · bomb` (261 bomb; 302 bomb; 319 bomb), `exuThrown · exec-sync` (70 it), `exuLanded · exec-sync` (82 it), `exuFail · exec-sync` (86 it), `exuReassign · exec-sync` (137 it), `exuTick · exec-sync` (149 it; 151 it; 155 it), `bombPassTick · sound` (85 bomb), `checkRoundEnd · round` (140 bomb), `dvTick · modes` (175 bomb; 176 bomb), `mapEdQueueSave · map-walls` (66 S; 67 S), `mapEdSaveNow · map-walls` (74 S; 81 S; 82 S)
 
 ## `nadeTask`
 
@@ -218,8 +218,8 @@
 - **хозяин** `(верх файла) · smoke` — 1 (стр. 37)
 - **хозяин** `nadeAskFlash · plan` — 1 (стр. 235)
 - **хозяин** `assignNadeDo · throw` — 1 (стр. 414)
-- **хозяин** `nadeTaskEnd · decide` — 1 (стр. 254)
-- **хозяин** `resetNades · decide` — 1 (стр. 262)
+- **хозяин** `nadeTaskEnd · decide` — 1 (стр. 255)
+- **хозяин** `resetNades · decide` — 1 (стр. 263)
 
 ## `holding`
 
@@ -232,7 +232,7 @@
 
 ## `crouching`
 
-- **хозяин** `placeStance · task` — 1 (стр. 531)
+- **хозяин** `placeStance · task` — 1 (стр. 536)
 
 ## `path`
 
@@ -285,7 +285,7 @@
 - **хозяин** `routeTick · task` — 2 (стр. 58, 65)
 - **хозяин** `routeDrop · task` — 2 (стр. 280, 281)
 - **хозяин** `startRoute · task` — 1 (стр. 52)
-- **хозяин** `setPostDo · task` — 1 (стр. 389)
+- **хозяин** `setPostDo · task` — 1 (стр. 394)
 
 ## `_routeDone`
 
@@ -345,7 +345,7 @@
 
 ## `_blind`
 
-- **хозяин** `soundSetBlind · sound` — 1 (стр. 229)
+- **хозяин** `soundSetBlind · sound` — 1 (стр. 228)
 
 ## `_blindBy`
 
@@ -365,15 +365,15 @@
 
 ## `_covLog`
 
-- **хозяин** `fightSetCovLog · fight` — 1 (стр. 670)
+- **хозяин** `fightSetCovLog · fight` — 1 (стр. 668)
 
 ## `_covT`
 
-- **хозяин** `fightSetCovT · fight` — 1 (стр. 671)
+- **хозяин** `fightSetCovT · fight` — 1 (стр. 669)
 
 ## `_detour`
 
-- **хозяин** `taskSetDetour · task` — 1 (стр. 576)
+- **хозяин** `taskSetDetour · task` — 1 (стр. 581)
 
 ## `_dmgBy`
 
@@ -393,11 +393,11 @@
 
 ## `_fc`
 
-- **хозяин** `fightSetFc · fight` — 1 (стр. 672)
+- **хозяин** `fightSetFc · fight` — 1 (стр. 670)
 
 ## `_fillLock`
 
-- **хозяин** `taskSetFillLock · task` — 1 (стр. 577)
+- **хозяин** `taskSetFillLock · task` — 1 (стр. 582)
 
 ## `_fireExit`
 
@@ -426,15 +426,15 @@
 
 ## `_holdLog`
 
-- **хозяин** `holdSetHoldLog · ct-early` — 1 (стр. 447)
+- **хозяин** `holdSetHoldLog · ct-early` — 1 (стр. 450)
 
 ## `_huntArrive`
 
-- **хозяин** `huntSetHuntArrive · brain-t-postplant` — 1 (стр. 234)
+- **хозяин** `huntSetHuntArrive · brain-t-postplant` — 1 (стр. 236)
 
 ## `_huntIdx`
 
-- **хозяин** `huntSetHuntIdx · brain-t-postplant` — 1 (стр. 235)
+- **хозяин** `huntSetHuntIdx · brain-t-postplant` — 1 (стр. 237)
 
 ## `_jc`
 
@@ -470,15 +470,15 @@
 
 ## `_lurkArr`
 
-- **хозяин** `lurkSetLurkArr · lurker` — 1 (стр. 416)
+- **хозяин** `lurkSetLurkArr · lurker` — 1 (стр. 422)
 
 ## `_lurkIdx`
 
-- **хозяин** `lurkSetLurkIdx · lurker` — 1 (стр. 417)
+- **хозяин** `lurkSetLurkIdx · lurker` — 1 (стр. 423)
 
 ## `_lurkPh`
 
-- **хозяин** `lurkSetLurkPh · lurker` — 1 (стр. 418)
+- **хозяин** `lurkSetLurkPh · lurker` — 1 (стр. 424)
 
 ## `_mistakes`
 
@@ -486,11 +486,11 @@
 
 ## `_nadeNo`
 
-- **хозяин** `nadeSetNadeNo · throw` — 1 (стр. 694)
+- **хозяин** `nadeSetNadeNo · throw` — 1 (стр. 695)
 
 ## `_nadeT`
 
-- **хозяин** `nadeSetNadeT · throw` — 1 (стр. 695)
+- **хозяин** `nadeSetNadeT · throw` — 1 (стр. 696)
 
 ## `_nearestEnemyBot`
 
@@ -502,7 +502,7 @@
 
 ## `_onPistol`
 
-- **хозяин** `soundSetOnPistol · sound` — 1 (стр. 231)
+- **хозяин** `soundSetOnPistol · sound` — 1 (стр. 230)
 
 ## `_prevOffX`
 
@@ -514,11 +514,11 @@
 
 ## `_probe`
 
-- **хозяин** `lurkSetProbe · lurker` — 1 (стр. 419)
+- **хозяин** `lurkSetProbe · lurker` — 1 (стр. 425)
 
 ## `_probeLock`
 
-- **хозяин** `taskSetProbeLock · task` — 1 (стр. 578)
+- **хозяин** `taskSetProbeLock · task` — 1 (стр. 583)
 
 ## `_reloading`
 
@@ -534,7 +534,7 @@
 
 ## `_saveSpot`
 
-- **хозяин** `retakeSetSaveSpot · save-retake` — 1 (стр. 501)
+- **хозяин** `retakeSetSaveSpot · save-retake` — 1 (стр. 502)
 
 ## `_sawEnemy`
 
@@ -593,7 +593,7 @@
 
 ## `atPost`
 
-- **хозяин** `taskSetAtPost · task` — 1 (стр. 579)
+- **хозяин** `taskSetAtPost · task` — 1 (стр. 584)
 
 ## `blindUntil`
 
@@ -665,11 +665,11 @@
 
 ## `nadeQueue`
 
-- **хозяин** `nadeSetNadeQueue · decide` — 1 (стр. 267)
+- **хозяин** `nadeSetNadeQueue · decide` — 1 (стр. 268)
 
 ## `nades`
 
-- **хозяин** `nadeSetNades · throw` — 1 (стр. 696)
+- **хозяин** `nadeSetNades · throw` — 1 (стр. 697)
 
 ## `nextShotTick`
 
@@ -693,7 +693,7 @@
 
 ## `retakeRole`
 
-- **хозяин** `retakeSetRetakeRole · save-retake` — 1 (стр. 502)
+- **хозяин** `retakeSetRetakeRole · save-retake` — 1 (стр. 503)
 
 ## `roamCheckStart`
 
@@ -737,7 +737,7 @@
 
 ## `setupLook`
 
-- **хозяин** `taskSetSetupLook · task` — 1 (стр. 580)
+- **хозяин** `taskSetSetupLook · task` — 1 (стр. 585)
 
 ## `stateSince`
 
@@ -749,7 +749,7 @@
 
 ## `throwUntil`
 
-- **хозяин** `nadeSetThrowUntil · throw` — 1 (стр. 699)
+- **хозяин** `nadeSetThrowUntil · throw` — 1 (стр. 700)
 
 ## `weapon`
 
@@ -759,13 +759,13 @@
 
 - **хозяин** `moveSetX · move` — 1 (стр. 221)
 
-не бот (то же имя у другого объекта — в проверку владения не идёт): `applyZoneLayerToData · zones` (37 p), `resnapSpawns · zone-danger` (255 sp), `dropBomb · bomb` (112 bomb), `bombTick · bomb` (236 bomb; 261 bomb), `saveOppProfile · tactics` (55 o), `habitAdd · ct-setup` (452 c), `tIglReplan · igl` (104 ctrR; 124 ctr), `knowSources · knowledge` (371 q), `knowApply · events` (71 h), `knowKill · events` (270 B.hyps[0]), `knowRetakeDrift · events` (411 h), `infoGo · ct-early` (357 I), `endgameBrain · endgame` (85 ST), `contactTick · contact` (131 K), `exuScan · exec-sync` (54 it), `nadeSolve · throw` (44 r), `updateNadeTask1 · throw` (598 t), `nadesTick · damage` (223 n), `bombPassTick · sound` (86 bomb), `dvTick · modes` (175 bomb), `probTick · problem-watch` (62 s; 70 s), `(верх файла) · lineup-editor` (188 z.points[zsDrag]), `d3Corpse · view3d` (173 C), `(верх файла) · view3d-frame` (296 d), `rpDraw · replay-play` (31 P.cam), `tsCam · timeout` (230 P.cam)
+не бот (то же имя у другого объекта — в проверку владения не идёт): `applyZoneLayerToData · zones` (37 p), `resnapSpawns · zone-danger` (255 sp), `dropBomb · bomb` (112 bomb), `bombTick · bomb` (236 bomb; 261 bomb), `saveOppProfile · tactics` (55 o), `habitAdd · ct-setup` (452 c), `tIglReplan · igl` (104 ctrR; 124 ctr), `knowSources · knowledge` (371 q), `knowApply · events` (71 h), `knowKill · events` (270 B.hyps[0]), `knowRetakeDrift · events` (411 h), `infoGo · ct-early` (360 I), `endgameBrain · endgame` (85 ST), `contactTick · contact` (131 K), `exuScan · exec-sync` (54 it), `nadeSolve · throw` (44 r), `updateNadeTask1 · throw` (598 t), `nadesTick · damage` (223 n), `bombPassTick · sound` (85 bomb), `dvTick · modes` (175 bomb), `probTick · problem-watch` (62 s; 70 s), `(верх файла) · lineup-editor` (188 z.points[zsDrag]), `d3Corpse · view3d` (173 C), `(верх файла) · view3d-frame` (296 d), `rpDraw · replay-play` (31 P.cam), `tsCam · timeout` (230 P.cam)
 
 ## `y`
 
 - **хозяин** `moveSetY · move` — 1 (стр. 222)
 
-не бот (то же имя у другого объекта — в проверку владения не идёт): `applyZoneLayerToData · zones` (37 p), `resnapSpawns · zone-danger` (255 sp), `dropBomb · bomb` (112 bomb), `bombTick · bomb` (236 bomb; 261 bomb), `saveOppProfile · tactics` (55 o), `habitAdd · ct-setup` (452 c), `tIglReplan · igl` (104 ctrR; 124 ctr), `knowSources · knowledge` (371 q), `knowApply · events` (71 h), `knowRetakeDrift · events` (411 h), `infoGo · ct-early` (357 I), `endgameBrain · endgame` (85 ST), `contactTick · contact` (131 K), `exuScan · exec-sync` (54 it), `nadeSolve · throw` (44 r), `updateNadeTask1 · throw` (598 t), `nadesTick · damage` (223 n), `bombPassTick · sound` (86 bomb), `dvTick · modes` (175 bomb), `probTick · problem-watch` (62 s; 70 s), `(верх файла) · lineup-editor` (188 z.points[zsDrag]), `(верх файла) · view3d-frame` (296 d), `rpDraw · replay-play` (31 P.cam), `tsCam · timeout` (230 P.cam)
+не бот (то же имя у другого объекта — в проверку владения не идёт): `applyZoneLayerToData · zones` (37 p), `resnapSpawns · zone-danger` (255 sp), `dropBomb · bomb` (112 bomb), `bombTick · bomb` (236 bomb; 261 bomb), `saveOppProfile · tactics` (55 o), `habitAdd · ct-setup` (452 c), `tIglReplan · igl` (104 ctrR; 124 ctr), `knowSources · knowledge` (371 q), `knowApply · events` (71 h), `knowRetakeDrift · events` (411 h), `infoGo · ct-early` (360 I), `endgameBrain · endgame` (85 ST), `contactTick · contact` (131 K), `exuScan · exec-sync` (54 it), `nadeSolve · throw` (44 r), `updateNadeTask1 · throw` (598 t), `nadesTick · damage` (223 n), `bombPassTick · sound` (85 bomb), `dvTick · modes` (175 bomb), `probTick · problem-watch` (62 s; 70 s), `(верх файла) · lineup-editor` (188 z.points[zsDrag]), `(верх файла) · view3d-frame` (296 d), `rpDraw · replay-play` (31 P.cam), `tsCam · timeout` (230 P.cam)
 
 ## `z`
 

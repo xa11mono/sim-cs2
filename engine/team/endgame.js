@@ -261,8 +261,8 @@ function smokeEdgeTick(){
       }
       // ждёт у дыма, за ним враг — HE в дым: и урон, и дыра, через которую видно
       if(b.nades && b.nades.he > 0 && !b.nadeTask && !W.heDone && tick - W.start > 20){
-        W.heDone = true; assignNade(b, "he", {x:W.S.x, y:W.S.y}, "HE в смок — разогнать", {now:true});
-        voiceLog(b.team, "hesm"+b.id, b.id, "кидаю HE в смок — разгоню и посмотрю");
+        if(assignNade(b, "he", {x:W.S.x, y:W.S.y}, "HE в смок — разогнать", {now:true}).ok){ W.heDone = true;   // (этап B, М4) только принятый заказ
+          voiceLog(b.team, "hesm"+b.id, b.id, "кидаю HE в смок — разгоню и посмотрю"); }
       }
       // (v378) задача важнее ожидания (арбитр места) — ожидание снимается: бот идёт по той задаче, а не «пушит срочно»
       if(!setPost(b, W.edge, {x:W.S.x, y:W.S.y}, true, "smokeWait").ok){ b._smokeWait = null; logEvent(b.id+": ожидание у смока снято — задача важнее"); }

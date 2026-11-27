@@ -430,7 +430,7 @@ if (CHECK) {
 // ---- (Р-7, 26.11) ответ хозяина не прочитан: вызов setPost / assignNade из решений (часть decide) как отдельная инструкция — отказ
 // хозяина вызывающий не видит. Известные места — rebuild/unread_results.json (файл · функция → число; читать ответ = менять поведение, после
 // Р8); новое место или больше прежнего — ошибка; стало меньше — подсказка обновить список
-{ const MUST = new Set(["setPost", "assignNade"]), U = {};
+{ const MUST = new Set(["setPost", "setPostRenew", "assignNade"]), U = {};   // (этап B) setPostRenew — та же заявка хозяину места
   for (const { ast, off } of asts) walk.fullAncestor(ast, (n, _s, anc) => {
     if (n.type !== "CallExpression" || n.callee.type !== "Identifier" || !MUST.has(n.callee.name)) return;
     const par = anc[anc.length - 2], g = anc[anc.length - 3];

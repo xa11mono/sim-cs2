@@ -365,7 +365,7 @@
    "snap": true
   },
   "BLIND_FIRE_R": {
-   "decl": "sound.js:168",
+   "decl": "sound.js:167",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -636,7 +636,7 @@
    "snap": true
   },
   "CLEARZ": {
-   "decl": "lurker.js:286",
+   "decl": "lurker.js:292",
    "init": "ObjectExpression",
    "w": {
     "clearzReset · lurker": 1
@@ -659,7 +659,7 @@
    "snap": true
   },
   "CLEAR_HEARD_SEC": {
-   "decl": "lurker.js:356",
+   "decl": "lurker.js:362",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -750,7 +750,7 @@
    "snap": true
   },
   "CLR_POS_SEC": {
-   "decl": "lurker.js:318",
+   "decl": "lurker.js:324",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -1723,7 +1723,7 @@
    "snap": true
   },
   "DETOUR_MAX": {
-   "decl": "task.js:305",
+   "decl": "task.js:310",
    "init": "ObjectExpression",
    "w": {},
    "m": {},
@@ -3041,7 +3041,7 @@
    "snap": true
   },
   "INFO_BEHIND": {
-   "decl": "ct-early.js:345",
+   "decl": "ct-early.js:348",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -3051,7 +3051,7 @@
    "snap": true
   },
   "INFO_EVERY": {
-   "decl": "ct-early.js:341",
+   "decl": "ct-early.js:344",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -3061,7 +3061,7 @@
    "snap": true
   },
   "INFO_GO": {
-   "decl": "ct-early.js:341",
+   "decl": "ct-early.js:344",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -3071,7 +3071,7 @@
    "snap": true
   },
   "INFO_MAX": {
-   "decl": "ct-early.js:341",
+   "decl": "ct-early.js:344",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -3081,7 +3081,7 @@
    "snap": true
   },
   "INFO_MIN_R": {
-   "decl": "ct-early.js:342",
+   "decl": "ct-early.js:345",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -3091,7 +3091,7 @@
    "snap": true
   },
   "INFO_PAR": {
-   "decl": "ct-early.js:341",
+   "decl": "ct-early.js:344",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -3101,7 +3101,7 @@
    "snap": true
   },
   "INFO_QUIET": {
-   "decl": "ct-early.js:341",
+   "decl": "ct-early.js:344",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -3112,7 +3112,7 @@
    "snap": true
   },
   "INFO_R": {
-   "decl": "ct-early.js:341",
+   "decl": "ct-early.js:344",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -3122,7 +3122,7 @@
    "snap": true
   },
   "INFO_START": {
-   "decl": "ct-early.js:342",
+   "decl": "ct-early.js:345",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -3133,7 +3133,7 @@
    "snap": true
   },
   "INFO_W": {
-   "decl": "ct-early.js:342",
+   "decl": "ct-early.js:345",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -3143,7 +3143,7 @@
    "snap": true
   },
   "INFO_WAIT": {
-   "decl": "ct-early.js:342",
+   "decl": "ct-early.js:345",
    "init": "ArrayExpression",
    "w": {},
    "m": {},
@@ -4024,7 +4024,7 @@
    "snap": true
   },
   "LOWHP_MATE_PATH": {
-   "decl": "fight.js:508",
+   "decl": "fight.js:506",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -4034,7 +4034,7 @@
    "snap": true
   },
   "LOW_HP": {
-   "decl": "fight.js:507",
+   "decl": "fight.js:505",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -4995,7 +4995,7 @@
    "snap": true
   },
   "NADE_SPOT_R": {
-   "decl": "throw.js:674",
+   "decl": "throw.js:675",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -5821,7 +5821,7 @@
    "snap": true
   },
   "OWN_LINE_GAP": {
-   "decl": "task.js:368",
+   "decl": "task.js:373",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -5832,7 +5832,7 @@
    "snap": true
   },
   "OWN_LINE_RINGS": {
-   "decl": "task.js:368",
+   "decl": "task.js:373",
    "init": "ArrayExpression",
    "w": {},
    "m": {},
@@ -6217,7 +6217,7 @@
    "snap": true
   },
   "POSCLR": {
-   "decl": "lurker.js:292",
+   "decl": "lurker.js:298",
    "init": "ObjectExpression",
    "w": {
     "matchBegin · round": 1
@@ -6245,7 +6245,7 @@
    "snap": true
   },
   "POST_ARRIVE": {
-   "decl": "task.js:352",
+   "decl": "task.js:357",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -6255,7 +6255,7 @@
    "snap": true
   },
   "POST_DWELL": {
-   "decl": "task.js:348",
+   "decl": "task.js:353",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -6265,7 +6265,7 @@
    "snap": true
   },
   "POST_VIEW": {
-   "decl": "task.js:354",
+   "decl": "task.js:359",
    "init": "ObjectExpression",
    "w": {},
    "m": {
@@ -6277,7 +6277,7 @@
    "snap": true
   },
   "POST_VIEW_R": {
-   "decl": "task.js:354",
+   "decl": "task.js:359",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -7527,7 +7527,7 @@
    "snap": true
   },
   "SHIFT_TO": {
-   "decl": "lurker.js:118",
+   "decl": "lurker.js:119",
    "init": "MemberExpression",
    "w": {},
    "m": {},
@@ -7641,7 +7641,7 @@
    "snap": true
   },
   "SITE_AWAY": {
-   "decl": "lurker.js:374",
+   "decl": "lurker.js:380",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -7651,7 +7651,7 @@
    "snap": true
   },
   "SITE_SEEN_SEC": {
-   "decl": "lurker.js:374",
+   "decl": "lurker.js:380",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -7990,7 +7990,7 @@
    "snap": true
   },
   "SPREAD_DIRS": {
-   "decl": "task.js:376",
+   "decl": "task.js:381",
    "init": "ArrayExpression",
    "w": {},
    "m": {},
@@ -8000,7 +8000,7 @@
    "snap": true
   },
   "SPREAD_RINGS": {
-   "decl": "task.js:375",
+   "decl": "task.js:380",
    "init": "ArrayExpression",
    "w": {},
    "m": {},
@@ -8225,7 +8225,7 @@
    "snap": true
   },
   "TASK_STUCK_SEC": {
-   "decl": "task.js:483",
+   "decl": "task.js:488",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -8235,7 +8235,7 @@
    "snap": true
   },
   "TDEATHS": {
-   "decl": "lurker.js:121",
+   "decl": "lurker.js:122",
    "init": "ObjectExpression",
    "w": {
     "tDeathAdd · lurker": 1
@@ -9782,7 +9782,7 @@
    "snap": true
   },
   "_POSL": {
-   "decl": "lurker.js:293",
+   "decl": "lurker.js:299",
    "init": "ObjectExpression",
    "w": {},
    "m": {
@@ -9900,7 +9900,7 @@
    "snap": true
   },
   "awpSmokeCd": {
-   "decl": "sound.js:144",
+   "decl": "sound.js:143",
    "init": "ObjectExpression",
    "w": {
     "matchBegin · round": 1
@@ -12188,7 +12188,8 @@
     "chooseCtSetup · ct-setup": 1,
     "chooseTactic · tactics": 1,
     "endgameBrain · endgame": 2,
-    "intelDeath · intel": 1
+    "intelDeath · intel": 1,
+    "midCoverPost · ct-early": 1
    },
    "r": {
     "assist": 4,
@@ -12196,7 +12197,7 @@
     "brain-ct": 1,
     "brain-t": 1,
     "contact": 12,
-    "ct-early": 1,
+    "ct-early": 2,
     "ct-setup": 6,
     "decide": 6,
     "draw-bots": 1,
@@ -12858,7 +12859,7 @@
   },
   "_adSpot": {
    "w": [
-    "brain-t-postplant.js:85 tBrainPostplant"
+    "brain-t-postplant.js:87 tBrainPostplant"
    ],
    "lit": [],
    "r": 7
@@ -12872,15 +12873,15 @@
   },
   "_aft": {
    "w": [
-    "task.js:513 afterTaskPick",
-    "task.js:518 afterTaskPick"
+    "task.js:518 afterTaskPick",
+    "task.js:523 afterTaskPick"
    ],
    "lit": [],
    "r": 3
   },
   "_aftSaid": {
    "w": [
-    "task.js:519 afterTaskPick"
+    "task.js:524 afterTaskPick"
    ],
    "lit": [],
    "r": 2
@@ -12927,23 +12928,23 @@
   },
   "_apBest": {
    "w": [
-    "task.js:554 updatePost",
-    "task.js:555 updatePost"
+    "task.js:559 updatePost",
+    "task.js:560 updatePost"
    ],
    "lit": [],
    "r": 3
   },
   "_apId": {
    "w": [
-    "task.js:554 updatePost"
+    "task.js:559 updatePost"
    ],
    "lit": [],
    "r": 2
   },
   "_apT": {
    "w": [
-    "task.js:554 updatePost",
-    "task.js:555 updatePost"
+    "task.js:559 updatePost",
+    "task.js:560 updatePost"
    ],
    "lit": [],
    "r": 3
@@ -13014,7 +13015,7 @@
   },
   "_blind": {
    "w": [
-    "sound.js:229 soundSetBlind"
+    "sound.js:228 soundSetBlind"
    ],
    "lit": [],
    "r": 14
@@ -13086,14 +13087,14 @@
   },
   "_clr": {
    "w": [
-    "brain-t-phases.js:421 tBrainExecute"
+    "brain-t-phases.js:427 tBrainExecute"
    ],
    "lit": [],
    "r": 2
   },
   "_clutch": {
    "w": [
-    "ct-early.js:222 ctClutch"
+    "ct-early.js:223 ctClutch"
    ],
    "lit": [],
    "r": 2
@@ -13133,7 +13134,7 @@
   },
   "_covLog": {
    "w": [
-    "fight.js:670 fightSetCovLog"
+    "fight.js:668 fightSetCovLog"
    ],
    "lit": [],
    "r": 3
@@ -13147,7 +13148,7 @@
   },
   "_covT": {
    "w": [
-    "fight.js:671 fightSetCovT"
+    "fight.js:669 fightSetCovT"
    ],
    "lit": [],
    "r": 5
@@ -13181,7 +13182,7 @@
   },
   "_detour": {
    "w": [
-    "task.js:576 taskSetDetour"
+    "task.js:581 taskSetDetour"
    ],
    "lit": [],
    "r": 7
@@ -13251,31 +13252,31 @@
   },
   "_dwOnT": {
    "w": [
-    "fight.js:653 dangerWalk",
-    "fight.js:663 dangerWalk"
+    "fight.js:651 dangerWalk",
+    "fight.js:661 dangerWalk"
    ],
    "lit": [],
    "r": 3
   },
   "_dwTick": {
    "w": [
-    "fight.js:625 dangerWalk",
-    "fight.js:626 dangerWalk"
+    "fight.js:623 dangerWalk",
+    "fight.js:624 dangerWalk"
    ],
    "lit": [],
    "r": 4
   },
   "_dwVal": {
    "w": [
-    "fight.js:652 dangerWalk",
-    "fight.js:663 dangerWalk"
+    "fight.js:650 dangerWalk",
+    "fight.js:661 dangerWalk"
    ],
    "lit": [],
    "r": 8
   },
   "_dwWhy": {
    "w": [
-    "fight.js:663 dangerWalk"
+    "fight.js:661 dangerWalk"
    ],
    "lit": [],
    "r": 1
@@ -13433,7 +13434,7 @@
   },
   "_fc": {
    "w": [
-    "fight.js:672 fightSetFc"
+    "fight.js:670 fightSetFc"
    ],
    "lit": [
     "weapons-bots.js:82"
@@ -13512,21 +13513,21 @@
   },
   "_fillLock": {
    "w": [
-    "task.js:577 taskSetFillLock"
+    "task.js:582 taskSetFillLock"
    ],
    "lit": [],
    "r": 2
   },
   "_finId": {
    "w": [
-    "sound.js:118 finishPush"
+    "sound.js:117 finishPush"
    ],
    "lit": [],
    "r": 1
   },
   "_finNext": {
    "w": [
-    "sound.js:98 finishPush"
+    "sound.js:97 finishPush"
    ],
    "lit": [],
    "r": 2
@@ -13541,7 +13542,7 @@
   },
   "_fireAcc": {
    "w": [
-    "decide.js:262 resetNades"
+    "decide.js:263 resetNades"
    ],
    "lit": [],
    "r": 1
@@ -13686,7 +13687,7 @@
   },
   "_hTask": {
    "w": [
-    "position.js:407 holdGroup"
+    "position.js:406 holdGroup"
    ],
    "lit": [],
    "r": 12
@@ -13781,7 +13782,7 @@
   },
   "_holdLog": {
    "w": [
-    "ct-early.js:447 holdSetHoldLog"
+    "ct-early.js:450 holdSetHoldLog"
    ],
    "lit": [],
    "r": 4
@@ -13802,30 +13803,30 @@
   },
   "_hs": {
    "w": [
-    "fight-state.js:336 shiftHold"
+    "fight-state.js:333 shiftHold"
    ],
    "lit": [],
    "r": 10
   },
   "_huntArrive": {
    "w": [
-    "brain-t-postplant.js:234 huntSetHuntArrive"
+    "brain-t-postplant.js:236 huntSetHuntArrive"
    ],
    "lit": [],
    "r": 3
   },
   "_huntIdx": {
    "w": [
-    "brain-t-postplant.js:235 huntSetHuntIdx"
+    "brain-t-postplant.js:237 huntSetHuntIdx"
    ],
    "lit": [],
    "r": 4
   },
   "_huntStart": {
    "w": [
-    "brain-t-postplant.js:150 tBrainPostplant",
     "brain-t-postplant.js:152 tBrainPostplant",
-    "brain-t-postplant.js:155 tBrainPostplant"
+    "brain-t-postplant.js:154 tBrainPostplant",
+    "brain-t-postplant.js:157 tBrainPostplant"
    ],
    "lit": [],
    "r": 4
@@ -13937,7 +13938,7 @@
     "task.js:282 taskKeep"
    ],
    "lit": [],
-   "r": 1
+   "r": 2
   },
   "_keys": {
    "w": [
@@ -14116,10 +14117,10 @@
   },
   "_lowHpNext": {
    "w": [
-    "fight.js:526 lowHpBack",
-    "fight.js:553 lowHpBack",
-    "fight.js:572 lowHpBack",
-    "fight.js:593 lowHpBack"
+    "fight.js:524 lowHpBack",
+    "fight.js:551 lowHpBack",
+    "fight.js:570 lowHpBack",
+    "fight.js:591 lowHpBack"
    ],
    "lit": [],
    "r": 5
@@ -14143,28 +14144,28 @@
   },
   "_lurkArr": {
    "w": [
-    "lurker.js:416 lurkSetLurkArr"
+    "lurker.js:422 lurkSetLurkArr"
    ],
    "lit": [],
    "r": 3
   },
   "_lurkGo": {
    "w": [
-    "lurker.js:87 lurkerBrain"
+    "lurker.js:88 lurkerBrain"
    ],
    "lit": [],
    "r": 5
   },
   "_lurkIdx": {
    "w": [
-    "lurker.js:417 lurkSetLurkIdx"
+    "lurker.js:423 lurkSetLurkIdx"
    ],
    "lit": [],
    "r": 1
   },
   "_lurkPh": {
    "w": [
-    "lurker.js:418 lurkSetLurkPh"
+    "lurker.js:424 lurkSetLurkPh"
    ],
    "lit": [],
    "r": 4
@@ -14214,8 +14215,8 @@
   },
   "_midCover": {
    "w": [
-    "ct-early.js:311 midCoverPost",
-    "ct-early.js:323 midCoverPost"
+    "ct-early.js:313 midCoverPost",
+    "ct-early.js:326 midCoverPost"
    ],
    "lit": [],
    "r": 4
@@ -14262,21 +14263,21 @@
   "_nadeCd": {
    "w": [
     "decide.js:216 nadeBrains",
-    "decide.js:262 resetNades"
+    "decide.js:263 resetNades"
    ],
    "lit": [],
    "r": 3
   },
   "_nadeNo": {
    "w": [
-    "throw.js:694 nadeSetNadeNo"
+    "throw.js:695 nadeSetNadeNo"
    ],
    "lit": [],
    "r": 5
   },
   "_nadeT": {
    "w": [
-    "throw.js:695 nadeSetNadeT"
+    "throw.js:696 nadeSetNadeT"
    ],
    "lit": [],
    "r": 3
@@ -14291,15 +14292,15 @@
   },
   "_nadeWhy": {
    "w": [
-    "decide.js:258 nadeCancel"
+    "decide.js:259 nadeCancel"
    ],
    "lit": [],
    "r": 1
   },
   "_nearBombT": {
    "w": [
-    "save-retake.js:479 retakeDefGo",
-    "save-retake.js:480 retakeDefGo"
+    "save-retake.js:480 retakeDefGo",
+    "save-retake.js:481 retakeDefGo"
    ],
    "lit": [],
    "r": 4
@@ -14449,7 +14450,7 @@
   },
   "_onPistol": {
    "w": [
-    "sound.js:231 soundSetOnPistol"
+    "sound.js:230 soundSetOnPistol"
    ],
    "lit": [],
    "r": 6
@@ -14464,7 +14465,7 @@
   },
   "_passTried": {
    "w": [
-    "sound.js:84 bombPassTick"
+    "sound.js:83 bombPassTick"
    ],
    "lit": [],
    "r": 0
@@ -14589,7 +14590,7 @@
   },
   "_postSets": {
    "w": [
-    "task.js:469 setPostDo"
+    "task.js:474 setPostDo"
    ],
    "lit": [],
    "r": 5
@@ -14638,7 +14639,7 @@
   },
   "_ppSaid": {
    "w": [
-    "brain-t-postplant.js:192 tBrainPostplant"
+    "brain-t-postplant.js:194 tBrainPostplant"
    ],
    "lit": [],
    "r": 2
@@ -14720,14 +14721,14 @@
   },
   "_probe": {
    "w": [
-    "lurker.js:419 lurkSetProbe"
+    "lurker.js:425 lurkSetProbe"
    ],
    "lit": [],
    "r": 7
   },
   "_probeLock": {
    "w": [
-    "task.js:578 taskSetProbeLock"
+    "task.js:583 taskSetProbeLock"
    ],
    "lit": [],
    "r": 1
@@ -14840,7 +14841,7 @@
     "task.js:282 taskKeep"
    ],
    "lit": [],
-   "r": 2
+   "r": 3
   },
   "_retreatNade": {
    "w": [
@@ -14896,7 +14897,7 @@
    "w": [
     "task.js:280 routeDrop",
     "task.js:281 routeDrop",
-    "task.js:389 setPostDo",
+    "task.js:394 setPostDo",
     "task.js:52 startRoute",
     "task.js:58 routeTick",
     "task.js:65 routeTick"
@@ -14938,7 +14939,7 @@
   },
   "_saveSpot": {
    "w": [
-    "save-retake.js:501 retakeSetSaveSpot"
+    "save-retake.js:502 retakeSetSaveSpot"
    ],
    "lit": [],
    "r": 19
@@ -15153,7 +15154,7 @@
   },
   "_stanceWhy": {
    "w": [
-    "task.js:531 placeStance"
+    "task.js:536 placeStance"
    ],
    "lit": [],
    "r": 1
@@ -15234,8 +15235,8 @@
   },
   "_takeAt": {
    "w": [
-    "brain-t-phases.js:442 tBrainExecute",
-    "brain-t-phases.js:452 tBrainExecute"
+    "brain-t-phases.js:448 tBrainExecute",
+    "brain-t-phases.js:458 tBrainExecute"
    ],
    "lit": [],
    "r": 3
@@ -15249,9 +15250,9 @@
   },
   "_task": {
    "w": [
-    "task.js:425 setPostDo",
-    "task.js:523 clearPostDo",
-    "task.js:533 placeResetTask",
+    "task.js:430 setPostDo",
+    "task.js:528 clearPostDo",
+    "task.js:538 placeResetTask",
     "task.js:66 routeTick"
    ],
    "lit": [],
@@ -15427,7 +15428,7 @@
   },
   "_zoomTick": {
    "w": [
-    "task.js:564 updatePost"
+    "task.js:569 updatePost"
    ],
    "lit": [],
    "r": 2
@@ -15478,7 +15479,7 @@
   },
   "atPost": {
    "w": [
-    "task.js:579 taskSetAtPost"
+    "task.js:584 taskSetAtPost"
    ],
    "lit": [],
    "r": 59
@@ -15592,7 +15593,7 @@
   },
   "crouching": {
    "w": [
-    "task.js:531 placeStance"
+    "task.js:536 placeStance"
    ],
    "lit": [
     "fight.js:223",
@@ -15937,8 +15938,8 @@
   },
   "look": {
    "w": [
-    "task.js:431 setPostDo",
-    "task.js:468 setPostDo"
+    "task.js:436 setPostDo",
+    "task.js:473 setPostDo"
    ],
    "lit": [],
    "r": 0
@@ -15983,15 +15984,15 @@
   },
   "nadeQueue": {
    "w": [
-    "decide.js:267 nadeSetNadeQueue"
+    "decide.js:268 nadeSetNadeQueue"
    ],
    "lit": [],
    "r": 13
   },
   "nadeTask": {
    "w": [
-    "decide.js:254 nadeTaskEnd",
-    "decide.js:262 resetNades",
+    "decide.js:255 nadeTaskEnd",
+    "decide.js:263 resetNades",
     "exec-sync.js:128 exuReassign",
     "exec-sync.js:131 exuReassign",
     "exec-sync.js:132 exuReassign",
@@ -16004,11 +16005,11 @@
     "throw.js:458 nadeQueueNext"
    ],
    "lit": [],
-   "r": 88
+   "r": 90
   },
   "nades": {
    "w": [
-    "throw.js:696 nadeSetNades"
+    "throw.js:697 nadeSetNades"
    ],
    "lit": [
     "round.js:3"
@@ -16131,12 +16132,12 @@
   },
   "post": {
    "w": [
-    "task.js:470 setPostDo",
-    "task.js:523 clearPostDo",
-    "task.js:532 placeResetPost"
+    "task.js:475 setPostDo",
+    "task.js:528 clearPostDo",
+    "task.js:537 placeResetPost"
    ],
    "lit": [],
-   "r": 506
+   "r": 520
   },
   "pp": {
    "w": [
@@ -16148,7 +16149,7 @@
   "ppAlt": {
    "w": [
     "position.js:374 ppProGroup",
-    "position.js:377 ppProGroup"
+    "position.js:376 ppProGroup"
    ],
    "lit": [],
    "r": 0
@@ -16178,7 +16179,7 @@
   },
   "pro": {
    "w": [
-    "task.js:471 setPostDo"
+    "task.js:476 setPostDo"
    ],
    "lit": [],
    "r": 0
@@ -16233,7 +16234,7 @@
   },
   "retakeRole": {
    "w": [
-    "save-retake.js:502 retakeSetRetakeRole"
+    "save-retake.js:503 retakeSetRetakeRole"
    ],
    "lit": [],
    "r": 2
@@ -16337,7 +16338,7 @@
   },
   "setupLook": {
    "w": [
-    "task.js:580 taskSetSetupLook"
+    "task.js:585 taskSetSetupLook"
    ],
    "lit": [],
    "r": 0
@@ -16407,8 +16408,8 @@
   "t": {
    "w": [
     "items.js:250 weaponPickupTick",
-    "task.js:347 postKeep",
-    "task.js:426 setPostDo"
+    "task.js:352 postKeep",
+    "task.js:431 setPostDo"
    ],
    "lit": [],
    "r": 3
@@ -16422,7 +16423,7 @@
   },
   "tag": {
    "w": [
-    "task.js:426 setPostDo"
+    "task.js:431 setPostDo"
    ],
    "lit": [],
    "r": 0
@@ -16451,7 +16452,7 @@
   },
   "throwUntil": {
    "w": [
-    "throw.js:699 nadeSetThrowUntil"
+    "throw.js:700 nadeSetThrowUntil"
    ],
    "lit": [],
    "r": 10

@@ -742,7 +742,7 @@
   {
    "file": "fight.js",
    "fn": "lowHpBack",
-   "line": 524,
+   "line": 523,
    "props": [
     "bomb.carrier"
    ],

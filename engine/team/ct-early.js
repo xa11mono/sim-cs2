@@ -171,6 +171,8 @@ function ctEarlyPeek(b, ct){
     var from = b.tRole === "mid" ? (midSide ? GEO.ctMid : b.post) : g.tEntry;
     E.pt = pickSpots("early"+k+b.tRole, from, 1, {team: "CT", rMax:220, minGap:40, see:[stg]})[0];
     if(!E.pt){ E.st = 2; return false; }
+    // (этап B, М3) арбитр места не пустит ранний пик (задача важнее) — пик не начинается: ни колла, ни флешки под него; решится позже
+    if(!taskCanSet(b, "earlyPeek")){ E.pt = null; return false; }
     E.st = 1;
     voiceLog("CT", "early"+b.id, b.id, "выгляну за инфой "+calloutName(E.pt.x, E.pt.y));
     // (00_PLAN п.14, владелец 05.11) под ранний пик — сначала «накиньте флешку» (plan: nadeAskFlash); некому — флешка себе (если есть и не эко у соперника)
@@ -207,8 +209,7 @@ function ctEarlyPeek(b, ct){
       return false;
     }
   }
-  setPost(b, E.pt, stg, true, "earlyPeek");
-  return true;
+  return setPost(b, E.pt, stg, true, "earlyPeek").ok;   // (этап B, М3) отказ — остальной мозг CT работает (было: true без условия)
 }
 // ---- клатч CT до планта ----
 // Раньше последний CT оставался "ротатором/опорником по роли": колл то
@@ -290,6 +291,7 @@ function midCoverPick(cts){
   var best = null, bd = 1e9;
   cts.forEach(function(o){
     if(o.tRole === "mid" || o.planting || o.defusing || o._sawEnemy) return;
+    if(!taskCanSet(o, "midcover")) return;   // (этап B, М1) занятого задачей важнее арбитр не пустит — не он
     var k = DM.hypot(o.x-SITES.A.x, o.y-SITES.A.y) < DM.hypot(o.x-SITES.B.x, o.y-SITES.B.y) ? "A" : "B";
     // опорник уходит с сайта, только если на сайте остаётся ещё кто-то
     if(/^anchor/.test(o.tRole) && cts.filter(function(q){ return q !== o && DM.hypot(q.x-SITES[k].x, q.y-SITES[k].y) < 600; }).length === 0) return;
@@ -312,7 +314,8 @@ function midCoverPost(b, cts){
     voiceLog("CT", "midcover"+roundNum, b.id, "минус мид — я ближе всех, беру мид");
   }
   var far = DM.hypot(b.x-M2.pt.x, b.y-M2.pt.y) > 220;
-  setPost(b, M2.pt, GEO.ctMidLook, true, far ? "midcover:go" : "midcover");
+  // (этап B, М1) отказал арбитр — мид берёт другой (выбор снимается), этот бот играет свою роль
+  if(!setPost(b, M2.pt, GEO.ctMidLook, true, far ? "midcover:go" : "midcover").ok){ teamTac.CT._mcv = null; return false; }
   return true;
   var rotAlive = cts.some(function(o){ return o.tRole === "rotator"; });
   if(!(b.tRole === "rotator" || (b.tRole === "roamer" && !rotAlive))) return false;
