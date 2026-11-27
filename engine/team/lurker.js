@@ -337,8 +337,9 @@ function tClearCalls(){
     }
     var wb = who && ts.filter(function(b){ return b.id === who; })[0]; if(!wb) return;
     // сам сейчас видит врага — ему не до коллов; враг в зоне виден своим — не пусто
-    if(bots.some(function(e){ return e.team === "CT" && e.alive && DM.hypot(e.x-wb.x, e.y-wb.y) < 900 && hasVision(wb.x, wb.y, e.x, e.y); })) return;
-    if(bots.some(function(e){ return e.team === "CT" && e.alive && zoneIdAt(e.x, e.y) === zid && ts.some(function(b){ return hasVision(b.x, b.y, e.x, e.y); }); })) return;
+    // (изоляция, аудит Codex P-A, 27.11) «видит» — единый кадр зрения (_visible: 3D, дым, конус), а не линия до настоящего места каждого CT
+    if((wb._visible || []).some(function(e){ return e.alive && e.team === "CT"; })) return;
+    if(ts.some(function(b){ return (b._visible || []).some(function(e){ return e.alive && e.team === "CT" && zoneIdAt(e.x, e.y) === zid; }); })) return;
     if(markClear("T", p.x, p.y, wb.id, ps.length > 0)) CLEARZ.T[zid].round = roundNum;
   });
 }

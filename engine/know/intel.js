@@ -222,22 +222,27 @@ function intelDeath(victim, killer, side){
   // (v519, пак 09.11 п.10; А-38: «убили мид, убили двоих опорников A, а опорник другого сайта до сих пор стоит» — «T у другого сайта» считался
   // по последней позиции уже убитого) смерть видна в киллфиде всем: убитый стирается из памяти команды сразу, одно место, а не в каждом читателе
   ["CT", "T"].forEach(function(t){ if(beliefLast[t]) delete beliefLast[t][victim.id]; });
+  // (изоляция, аудит Codex P-D, 27.11) убитый видел убийцу — только по единому кадру зрения (видит сейчас или видел ≤ 0,125 с назад, seenRecently),
+  // а не по линии до настоящего места без конуса и дыма. Было: hasVision(victim → killer)
+  var saw = !!killer && ((victim._visible || []).indexOf(killer) >= 0 || seenRecently(victim, killer));
+  // (изоляция, M-B) RMEM.awp — общий список: свою AWP (CT) команда знает всегда, T — только если убийцу видел убитый или кто-то из T (seenT;
+  // киллфид показывает оружие, а не место)
+  var kSeen = !!killer && (saw || bots.some(function(o){ return o.alive && o.team === victim.team && (o._visible || []).indexOf(killer) >= 0; }));
   if(killer){
     var secR = (tick - roundStartTick)/TICK_HZ;
-    if(killer.team === "CT" && killer.weapon && killer.weapon.key === "AWP") RMEM.awp.push({x:killer.x, y:killer.y, round:roundNum});
-    if(killer.team === "CT" && victim.team === "T" && secR < 30 && tSideZone(killer.x, killer.y))
+    if(killer.team === "CT" && killer.weapon && killer.weapon.key === "AWP") RMEM.awp.push({x:killer.x, y:killer.y, round:roundNum, seenT:kSeen});
+    if(killer.team === "CT" && victim.team === "T" && kSeen && secR < 30 && tSideZone(killer.x, killer.y))
       RMEM.aggro.push({x:killer.x, y:killer.y, round:roundNum, id:killer.id});
     if(victim.team === "CT" && victim.tRole === "mid" && secR < 30) RMEM.midDeath.push({round:roundNum});
     ["awp","aggro","midDeath"].forEach(function(k){ if(RMEM[k].length > 12) RMEM[k].shift(); });
   }
-  var saw = killer && hasVision(victim.x, victim.y, killer.x, killer.y);
   intelPush(victim.team, {type:"died", x:victim.x, y:victim.y, id:victim.id, conf:1, kid: killer ? killer.id : null, kx: saw ? killer.x : null, ky: saw ? killer.y : null});   // кто убил — видно в киллфиде
   if(saw) intelPush(victim.team, {type:"spotted", x:killer.x, y:killer.y, id:killer.id, by:victim.id, conf:1});
   // (00_PLAN, аудит 2.2, 05.11) не видел, кто убил, — «убили откуда-то с …» говорит в войс сам погибший (voice: teamDeath, с задержкой фразы),
   // а не мгновенно в память команды (было: intelPush «sound» ±90 px в тик смерти — раньше, чем это можно сказать)
   var place = calloutName(victim.x, victim.y);
   var mine = aliveCount(victim.team), theirs = aliveCount(victim.team === "CT" ? "T" : "CT");
-  voiceLog(victim.team, "die"+victim.id, victim.id, "минус"+(killer ? (saw ? ", снял "+killer.id+" "+calloutName(killer.x, killer.y, true) : ", стреляли "+calloutName(killer.x, killer.y, true)) : " "+place)+
+  voiceLog(victim.team, "die"+victim.id, victim.id, "минус"+(killer ? (saw ? ", снял "+killer.id+" "+calloutName(killer.x, killer.y, true) : ", не видел кто") : " "+place)+
     (mine > 0 ? ". "+mine+" на "+theirs : ". Все, их "+theirs));   // (v323) последний погибший — без «нас 0»
   if(mine === 1 && theirs >= 2){
     var last = bots.filter(function(o){ return o.team === victim.team && o.alive; })[0];
@@ -264,7 +269,8 @@ function intelDeath(victim, killer, side){
       TTd._dl.forEach(function(e){ if(e.t === "T" && !e.traded && tick - e.tick < 3*TICK_HZ && (e.kid === victim.id || DM.hypot(e.x-victim.x, e.y-victim.y) < 600)) e.traded = true; });
     }
   }
-  if((victim.curSpeed||0) < 40 && !(bomb && bomb.state === "planted")) habitAdd(victim.id, victim.x, victim.y, 1);
+  // (изоляция, M-B) место погибшего знает команда убийцы (убийца его видел); смерть без убийцы-врага (бомба, падение) — места не знают
+  if(killer && killer.team !== victim.team && (victim.curSpeed||0) < 40 && !(bomb && bomb.state === "planted")) habitAdd(victim.id, victim.x, victim.y, 1);
   // ---- размен как рефлекс (про-уровень: тиммейт умер рядом — ближайший
   // сразу выходит на убийцу, пока тот перезаряжается/меняет позицию; это
   // срывает бота с тактики на ~3.5с). Разменивают 1–2 ближайших ПО ПУТИ.

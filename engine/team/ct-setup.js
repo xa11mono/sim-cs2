@@ -98,8 +98,8 @@ function ctShareW(S){
 var CTSET_DBG = null;
 function chooseCtSetup(){
   var last = roundHist.slice(-4), lost = {A:0, B:0};
-  last.forEach(function(r){ if(r.planted && r.winner === "T") lost[r.site]++; });
-  var execs = roundHist.slice(-3).map(function(r){ return r.execSec; }).filter(function(x){ return x != null; });
+  last.forEach(function(r){ if(r.planted && r.winner === "T" && r.ctSite) lost[r.ctSite]++; });   // (изоляция, M-A) взгляд CT
+  var execs = roundHist.slice(-3).map(function(r){ return r.ctExecSec; }).filter(function(x){ return x != null; });
   var avgExec = execs.length ? execs.reduce(function(a,x){ return a+x; }, 0)/execs.length : 45;
   var why = {};
   var weights = CT_SETUPS.map(function(S){
@@ -424,8 +424,13 @@ function rememberRound(winner){
   ctRead.push({A: tt.seenCT.A, B: tt.seenCT.B});
   var cs = teamTac.CT && teamTac.CT.setup;
   if(cs){ var CM = ctSetupMem[cs.id] || (ctSetupMem[cs.id] = {n:0, w:0}); CM.n++; CM.w += winner === "CT" ? 1 : Math.min(RND_PART.max, (planted ? 0 : RND_PART.plant) + deadT*RND_PART.kill); }
+  // (изоляция, аудит Codex M-A, 27.11) итог раунда — два взгляда: T — свой план (site, execSec, закуп type); CT — что знала команда CT (ctSite —
+  // сайт по знанию CT в конце раунда, ctBombSite: видели бомбу / колл / звук планта / гипотезы; ctExecSec — когда команда CT впервые узнала о
+  // T на сайте, teamAgent("CT").know.siteT). Было: CT читали внутренний план T (tt.site, tt.execStart)
+  var KC = teamAgent("CT").know, ctS = ctBombSite();
   roundHist.push({site: tt.site, planted: !!(bomb && bomb.plantTick && bomb.plantTick >= roundStartTick), winner: winner,
-                  execSec: tt.execStart != null ? (tt.execStart - roundStartTick)/TICK_HZ : null, type: teamEco.T && teamEco.T.roundType});   // (v560, В95) закуп T — темп раунда меряется от него
+                  execSec: tt.execStart != null ? (tt.execStart - roundStartTick)/TICK_HZ : null, type: teamEco.T && teamEco.T.roundType,   // (v560, В95) закуп T — темп раунда меряется от него
+                  ctSite: ctS || null, ctExecSec: KC && KC.siteT != null ? (KC.siteT - roundStartTick)/TICK_HZ : null});
 }
 // ---- любимые углы CT (для T) ----
 // ошибки исполнения — в лог не каждую (чтобы не засорять), но видно, что они есть

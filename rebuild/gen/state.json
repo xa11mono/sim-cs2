@@ -117,7 +117,7 @@
    "snap": true
   },
   "AMB_AWAY": {
-   "decl": "assist.js:205",
+   "decl": "assist.js:206",
    "init": "BinaryExpression",
    "w": {},
    "m": {},
@@ -127,7 +127,7 @@
    "snap": true
   },
   "AMB_HEAR": {
-   "decl": "assist.js:205",
+   "decl": "assist.js:206",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -137,7 +137,7 @@
    "snap": true
   },
   "AMB_MIN": {
-   "decl": "assist.js:205",
+   "decl": "assist.js:206",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -147,7 +147,7 @@
    "snap": true
   },
   "AMB_PASS": {
-   "decl": "assist.js:205",
+   "decl": "assist.js:206",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -157,7 +157,7 @@
    "snap": true
   },
   "AMB_R": {
-   "decl": "assist.js:205",
+   "decl": "assist.js:206",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -167,7 +167,7 @@
    "snap": true
   },
   "AMB_SHOOT": {
-   "decl": "assist.js:205",
+   "decl": "assist.js:206",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -223,7 +223,7 @@
    "snap": true
   },
   "ARMOR_REBUY": {
-   "decl": "economy.js:232",
+   "decl": "economy.js:233",
    "init": "ObjectExpression",
    "w": {},
    "m": {},
@@ -501,7 +501,7 @@
    "snap": true
   },
   "BUY_SHOW": {
-   "decl": "economy.js:439",
+   "decl": "economy.js:440",
    "init": "ObjectExpression",
    "w": {
     "buyShowStart · scoreboard": 1
@@ -515,7 +515,7 @@
    "snap": true
   },
   "BUY_SHOW_FIRST": {
-   "decl": "economy.js:439",
+   "decl": "economy.js:440",
    "init": "ArrayExpression",
    "w": {},
    "m": {},
@@ -525,7 +525,7 @@
    "snap": true
   },
   "BUY_SHOW_GAP": {
-   "decl": "economy.js:439",
+   "decl": "economy.js:440",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -659,7 +659,7 @@
    "snap": true
   },
   "CLEAR_HEARD_SEC": {
-   "decl": "lurker.js:355",
+   "decl": "lurker.js:356",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -1794,8 +1794,8 @@
     "decide": 29,
     "economy": 1,
     "endgame": 28,
-    "engagements": 12,
-    "events": 34,
+    "engagements": 11,
+    "events": 35,
     "exec-sync": 8,
     "fight": 60,
     "fight-state": 17,
@@ -1812,7 +1812,7 @@
     "look-arbiter": 28,
     "look-peek": 50,
     "look-threat": 15,
-    "lurker": 21,
+    "lurker": 20,
     "modes": 13,
     "move": 23,
     "navmesh": 4,
@@ -2430,7 +2430,7 @@
    "snap": true
   },
   "FORCE_MIN": {
-   "decl": "economy.js:152",
+   "decl": "economy.js:153",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -2440,7 +2440,7 @@
    "snap": true
   },
   "FORCE_SHARE": {
-   "decl": "economy.js:152",
+   "decl": "economy.js:153",
    "init": "ObjectExpression",
    "w": {},
    "m": {},
@@ -2482,7 +2482,7 @@
    "snap": "нет: UI"
   },
   "FREEZE_FX": {
-   "decl": "economy.js:199",
+   "decl": "economy.js:200",
    "init": "ArrayExpression",
    "w": {
     "freezeFxReset · round": 1,
@@ -2602,7 +2602,7 @@
    "snap": true
   },
   "GOAL_NAME": {
-   "decl": "economy.js:126",
+   "decl": "economy.js:127",
    "init": "ObjectExpression",
    "w": {},
    "m": {},
@@ -2746,7 +2746,7 @@
    "snap": true
   },
   "HE_DODGE_FULL": {
-   "decl": "self.js:180",
+   "decl": "self.js:183",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -2756,7 +2756,7 @@
    "snap": true
   },
   "HE_DODGE_MIN": {
-   "decl": "self.js:180",
+   "decl": "self.js:183",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -3352,7 +3352,7 @@
    "snap": true
   },
   "KG": {
-   "decl": "knowledge.js:89",
+   "decl": "knowledge.js:91",
    "init": "Literal",
    "w": {
     "knowGraph · knowledge": 1
@@ -3400,7 +3400,7 @@
    "m": {},
    "r": {
     "ct-early": 1,
-    "events": 2
+    "events": 3
    },
    "snap": true
   },
@@ -3620,7 +3620,7 @@
    "snap": true
   },
   "KNOW_SPOTS": {
-   "decl": "knowledge.js:264",
+   "decl": "knowledge.js:266",
    "init": "ObjectExpression",
    "w": {},
    "m": {
@@ -5045,7 +5045,7 @@
    "snap": true
   },
   "NADE_USE_GAP": {
-   "decl": "self.js:283",
+   "decl": "self.js:286",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -5089,7 +5089,7 @@
    "snap": true
   },
   "NADE_WORTH": {
-   "decl": "self.js:92",
+   "decl": "self.js:95",
    "init": "ObjectExpression",
    "w": {},
    "m": {},
@@ -5141,7 +5141,7 @@
    "snap": "нет: STATIC"
   },
   "NAVZ_FLOOR": {
-   "decl": "knowledge.js:121",
+   "decl": "knowledge.js:123",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -5151,7 +5151,7 @@
    "snap": true
   },
   "NAVZ_NEAR": {
-   "decl": "knowledge.js:121",
+   "decl": "knowledge.js:123",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -5531,7 +5531,7 @@
    "snap": true
   },
   "NAV_ZONE": {
-   "decl": "knowledge.js:121",
+   "decl": "knowledge.js:123",
    "init": "Literal",
    "w": {
     "navZoneBuild · knowledge": 2,
@@ -7476,7 +7476,7 @@
    "snap": true
   },
   "SELF": {
-   "decl": "self.js:81",
+   "decl": "self.js:84",
    "init": "ObjectExpression",
    "w": {},
    "m": {},
@@ -7486,7 +7486,7 @@
    "snap": true
   },
   "SELL_SEC": {
-   "decl": "economy.js:202",
+   "decl": "economy.js:203",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -7613,7 +7613,7 @@
     "decide": 4,
     "draw-fx": 1,
     "endgame": 11,
-    "events": 7,
+    "events": 10,
     "fight": 5,
     "igl": 27,
     "intel": 2,
@@ -7640,7 +7640,7 @@
    "snap": true
   },
   "SITE_AWAY": {
-   "decl": "lurker.js:373",
+   "decl": "lurker.js:374",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -7650,7 +7650,7 @@
    "snap": true
   },
   "SITE_SEEN_SEC": {
-   "decl": "lurker.js:373",
+   "decl": "lurker.js:374",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -7971,7 +7971,7 @@
    "snap": true
   },
   "SPRAY_PATTERN": {
-   "decl": "assist.js:181",
+   "decl": "assist.js:182",
    "init": "ArrayExpression",
    "w": {},
    "m": {},
@@ -8387,7 +8387,7 @@
     "brain-t-postplant": 11,
     "contact": 27,
     "ct-early": 22,
-    "ct-setup": 7,
+    "ct-setup": 8,
     "damage": 4,
     "decide": 9,
     "demo": 2,
@@ -9261,7 +9261,8 @@
     "brain-ct": 3,
     "damage": 2,
     "draw-layers": 4,
-    "economy": 40,
+    "economy": 39,
+    "engagements": 2,
     "fight": 1,
     "items": 14,
     "killfeed": 2,
@@ -9271,7 +9272,7 @@
     "round": 1,
     "save-retake": 1,
     "scoreboard": 4,
-    "self": 1,
+    "self": 2,
     "sound": 4,
     "walls-heights-cover": 1,
     "weapons-bots": 7
@@ -9867,7 +9868,7 @@
    "snap": "нет: UI"
   },
   "aggrObs": {
-   "decl": "ct-setup.js:438",
+   "decl": "ct-setup.js:443",
    "init": "ObjectExpression",
    "w": {
     "loadOppProfile · tactics": 1,
@@ -10011,7 +10012,7 @@
     "economy": 3,
     "endgame": 18,
     "engagements": 4,
-    "events": 41,
+    "events": 43,
     "exec-sync": 8,
     "fight": 7,
     "fight-state": 31,
@@ -10075,13 +10076,13 @@
     "draw-map": 4,
     "economy": 12,
     "endgame": 11,
-    "engagements": 8,
-    "events": 8,
+    "engagements": 7,
+    "events": 10,
     "exec-sync": 8,
     "fight": 8,
     "fight-state": 8,
     "igl": 8,
-    "intel": 10,
+    "intel": 11,
     "items": 9,
     "journal": 2,
     "killfeed": 2,
@@ -10093,7 +10094,7 @@
     "look-debug": 5,
     "look-peek": 3,
     "look-threat": 3,
-    "lurker": 9,
+    "lurker": 7,
     "modes": 11,
     "move": 3,
     "observer": 15,
@@ -10712,6 +10713,7 @@
     "decide": 1,
     "draw-layers": 1,
     "economy": 1,
+    "events": 2,
     "items": 10,
     "modes": 1,
     "replay": 1,
@@ -11145,7 +11147,7 @@
    "snap": true
   },
   "nadeReactCd": {
-   "decl": "self.js:174",
+   "decl": "self.js:177",
    "init": "ObjectExpression",
    "w": {
     "nadeReactReset · self": 1
@@ -11606,7 +11608,7 @@
    "snap": true
   },
   "roundStartTick": {
-   "decl": "ct-setup.js:454",
+   "decl": "ct-setup.js:459",
    "init": "Literal",
    "w": {
     "matchBegin · round": 1,
@@ -11622,7 +11624,7 @@
     "brain-t-phases": 2,
     "contact": 1,
     "ct-early": 5,
-    "ct-setup": 5,
+    "ct-setup": 6,
     "decide": 2,
     "events": 4,
     "fight": 2,
@@ -12258,7 +12260,7 @@
     "economy": 7,
     "endgame": 30,
     "engagements": 34,
-    "events": 39,
+    "events": 41,
     "exec-sync": 22,
     "fight": 80,
     "fight-state": 35,
@@ -12907,16 +12909,16 @@
   },
   "_amb": {
    "w": [
-    "assist.js:240 ambEnd",
-    "assist.js:247 ambushStartBack",
-    "assist.js:270 ambushTick"
+    "assist.js:241 ambEnd",
+    "assist.js:248 ambushStartBack",
+    "assist.js:271 ambushTick"
    ],
    "lit": [],
    "r": 11
   },
   "_ammoFor": {
    "w": [
-    "assist.js:350 reloadSetAmmoFor"
+    "assist.js:351 reloadSetAmmoFor"
    ],
    "lit": [],
    "r": 2
@@ -12974,21 +12976,21 @@
   },
   "_assistVoice": {
    "w": [
-    "assist.js:137 assistPeek"
+    "assist.js:138 assistPeek"
    ],
    "lit": [],
    "r": 3
   },
   "_avoidPeekAt": {
    "w": [
-    "events.js:484 knowAvoidPeek"
+    "events.js:499 knowAvoidPeek"
    ],
    "lit": [],
    "r": 4
   },
   "_avoidPeekUntil": {
    "w": [
-    "events.js:484 knowAvoidPeek"
+    "events.js:499 knowAvoidPeek"
    ],
    "lit": [],
    "r": 2
@@ -13045,7 +13047,7 @@
   },
   "_bought": {
    "w": [
-    "economy.js:226 buyItem"
+    "economy.js:227 buyItem"
    ],
    "lit": [],
    "r": 5
@@ -13212,7 +13214,7 @@
   },
   "_drawUntil": {
    "w": [
-    "items.js:333 equipmentSetDrawUntil"
+    "items.js:335 equipmentSetDrawUntil"
    ],
    "lit": [],
    "r": 3
@@ -13226,14 +13228,14 @@
   },
   "_dumpCd": {
    "w": [
-    "self.js:212 nadeReact"
+    "self.js:215 nadeReact"
    ],
    "lit": [],
    "r": 2
   },
   "_dumpVoice": {
    "w": [
-    "self.js:213 nadeReact"
+    "self.js:216 nadeReact"
    ],
    "lit": [],
    "r": 2
@@ -13630,14 +13632,14 @@
   },
   "_fpT": {
    "w": [
-    "items.js:291 weaponPickupTick"
+    "items.js:292 weaponPickupTick"
    ],
    "lit": [],
    "r": 2
   },
   "_fpV": {
    "w": [
-    "items.js:294 weaponPickupTick"
+    "items.js:295 weaponPickupTick"
    ],
    "lit": [],
    "r": 3
@@ -13651,7 +13653,7 @@
   },
   "_fullKit": {
    "w": [
-    "economy.js:306 buyFullKit"
+    "economy.js:307 buyFullKit"
    ],
    "lit": [],
    "r": 2
@@ -13697,14 +13699,14 @@
   },
   "_heDodgeLog": {
    "w": [
-    "self.js:196 heDodgeTick"
+    "self.js:199 heDodgeTick"
    ],
    "lit": [],
    "r": 3
   },
   "_heDone": {
    "w": [
-    "self.js:290 nadeSetHeDone",
+    "self.js:293 nadeSetHeDone",
     "smoke-react.js:184 smokeHeTick"
    ],
    "lit": [],
@@ -13885,7 +13887,7 @@
   },
   "_intelPre": {
    "w": [
-    "engagements.js:96 engDecide"
+    "engagements.js:99 engDecide"
    ],
    "lit": [],
    "r": 2
@@ -13980,7 +13982,7 @@
   },
   "_knife": {
    "w": [
-    "items.js:334 equipmentSetKnife"
+    "items.js:336 equipmentSetKnife"
    ],
    "lit": [
     "round.js:3"
@@ -14017,8 +14019,8 @@
   },
   "_lastSawT": {
    "w": [
-    "engagements.js:54 engSee",
-    "engagements.js:55 engSee"
+    "engagements.js:57 engSee",
+    "engagements.js:58 engSee"
    ],
    "lit": [],
    "r": 7
@@ -14139,7 +14141,7 @@
   },
   "_lurkArr": {
    "w": [
-    "lurker.js:415 lurkSetLurkArr"
+    "lurker.js:416 lurkSetLurkArr"
    ],
    "lit": [],
    "r": 3
@@ -14153,14 +14155,14 @@
   },
   "_lurkIdx": {
    "w": [
-    "lurker.js:416 lurkSetLurkIdx"
+    "lurker.js:417 lurkSetLurkIdx"
    ],
    "lit": [],
    "r": 1
   },
   "_lurkPh": {
    "w": [
-    "lurker.js:417 lurkSetLurkPh"
+    "lurker.js:418 lurkSetLurkPh"
    ],
    "lit": [],
    "r": 4
@@ -14226,7 +14228,7 @@
   },
   "_mistakes": {
    "w": [
-    "ct-setup.js:458 setupSetMistakes"
+    "ct-setup.js:463 setupSetMistakes"
    ],
    "lit": [],
    "r": 3
@@ -14302,7 +14304,7 @@
   },
   "_nearestEnemyBot": {
    "w": [
-    "engagements.js:270 engagementSetNearestEnemyBot"
+    "engagements.js:274 engagementSetNearestEnemyBot"
    ],
    "lit": [],
    "r": 22
@@ -14310,12 +14312,12 @@
   "_nearestEnemyDist": {
    "w": [
     "engagements.js:26 engSee",
-    "engagements.js:54 engSee",
-    "engagements.js:55 engSee",
-    "engagements.js:72 engTarget"
+    "engagements.js:57 engSee",
+    "engagements.js:58 engSee",
+    "engagements.js:75 engTarget"
    ],
    "lit": [],
-   "r": 6
+   "r": 4
   },
   "_netStuck": {
    "w": [
@@ -14474,7 +14476,7 @@
   },
   "_pdT": {
    "w": [
-    "items.js:326 weaponPickupTick"
+    "items.js:328 weaponPickupTick"
    ],
    "lit": [],
    "r": 2
@@ -14488,7 +14490,7 @@
   },
   "_pickBan": {
    "w": [
-    "items.js:251 weaponPickupTick"
+    "items.js:252 weaponPickupTick"
    ],
    "lit": [],
    "r": 2
@@ -14496,49 +14498,49 @@
   "_pickGo": {
    "w": [
     "items.js:232 weaponPickupTick",
-    "items.js:236 weaponPickupTick",
-    "items.js:251 weaponPickupTick",
-    "items.js:257 weaponPickupTick",
-    "items.js:269 weaponPickupTick",
-    "items.js:293 weaponPickupTick",
-    "items.js:328 weaponPickupTick"
+    "items.js:237 weaponPickupTick",
+    "items.js:252 weaponPickupTick",
+    "items.js:258 weaponPickupTick",
+    "items.js:270 weaponPickupTick",
+    "items.js:294 weaponPickupTick",
+    "items.js:330 weaponPickupTick"
    ],
    "lit": [],
    "r": 10
   },
   "_pickIgnore": {
    "w": [
-    "items.js:251 weaponPickupTick"
+    "items.js:252 weaponPickupTick"
    ],
    "lit": [],
    "r": 9
   },
   "_pickSave": {
    "w": [
-    "items.js:328 weaponPickupTick"
+    "items.js:330 weaponPickupTick"
    ],
    "lit": [],
    "r": 3
   },
   "_pickSeen": {
    "w": [
-    "items.js:246 weaponPickupTick"
+    "items.js:247 weaponPickupTick"
    ],
    "lit": [],
    "r": 2
   },
   "_pickSince": {
    "w": [
-    "items.js:246 weaponPickupTick",
-    "items.js:249 weaponPickupTick",
-    "items.js:251 weaponPickupTick"
+    "items.js:247 weaponPickupTick",
+    "items.js:250 weaponPickupTick",
+    "items.js:252 weaponPickupTick"
    ],
    "lit": [],
    "r": 5
   },
   "_pickT": {
    "w": [
-    "items.js:242 weaponPickupTick"
+    "items.js:243 weaponPickupTick"
    ],
    "lit": [],
    "r": 7
@@ -14716,7 +14718,7 @@
   },
   "_probe": {
    "w": [
-    "lurker.js:418 lurkSetProbe"
+    "lurker.js:419 lurkSetProbe"
    ],
    "lit": [],
    "r": 7
@@ -14819,7 +14821,7 @@
   },
   "_reloading": {
    "w": [
-    "assist.js:351 reloadSetReloading"
+    "assist.js:352 reloadSetReloading"
    ],
    "lit": [],
    "r": 27
@@ -14911,9 +14913,9 @@
   },
   "_rtChk": {
    "w": [
-    "engagements.js:196 engRetreatCheck",
     "engagements.js:200 engRetreatCheck",
-    "engagements.js:206 engRetreatCheck"
+    "engagements.js:204 engRetreatCheck",
+    "engagements.js:210 engRetreatCheck"
    ],
    "lit": [],
    "r": 6
@@ -14941,7 +14943,7 @@
   },
   "_sawEnemy": {
    "w": [
-    "engagements.js:271 engagementSetSawEnemy"
+    "engagements.js:275 engagementSetSawEnemy"
    ],
    "lit": [],
    "r": 101
@@ -14985,30 +14987,30 @@
   },
   "_secAmmo": {
    "w": [
-    "items.js:335 equipmentSetSecAmmo"
+    "items.js:337 equipmentSetSecAmmo"
    ],
    "lit": [],
    "r": 3
   },
   "_seenAt": {
    "w": [
-    "engagements.js:52 engSee",
-    "engagements.js:53 engSee"
+    "engagements.js:55 engSee",
+    "engagements.js:56 engSee"
    ],
    "lit": [],
    "r": 2
   },
   "_selfDone": {
    "w": [
-    "self.js:128 selfExitFlash"
+    "self.js:131 selfExitFlash"
    ],
    "lit": [],
    "r": 6
   },
   "_selfFlashCd": {
    "w": [
-    "self.js:264 nadeReact",
-    "self.js:266 nadeReact"
+    "self.js:267 nadeReact",
+    "self.js:269 nadeReact"
    ],
    "lit": [],
    "r": 3
@@ -15079,8 +15081,8 @@
   },
   "_smkParts": {
    "w": [
-    "engagements.js:44 engSee",
-    "engagements.js:45 engSee"
+    "engagements.js:47 engSee",
+    "engagements.js:48 engSee"
    ],
    "lit": [],
    "r": 1
@@ -15135,7 +15137,7 @@
   },
   "_stabT": {
    "w": [
-    "assist.js:353 knifeSetStabT"
+    "assist.js:354 knifeSetStabT"
    ],
    "lit": [],
    "r": 3
@@ -15262,7 +15264,7 @@
   },
   "_tgt": {
    "w": [
-    "engagements.js:80 engTarget"
+    "engagements.js:83 engTarget"
    ],
    "lit": [],
    "r": 2
@@ -15283,15 +15285,15 @@
   },
   "_tradeLock": {
    "w": [
-    "intel.js:402 tradeEnd"
+    "intel.js:408 tradeEnd"
    ],
    "lit": [],
    "r": 4
   },
   "_tradeUntil": {
    "w": [
-    "intel.js:399 tradeAlertSet",
-    "intel.js:402 tradeEnd"
+    "intel.js:405 tradeAlertSet",
+    "intel.js:408 tradeEnd"
    ],
    "lit": [],
    "r": 3
@@ -15305,7 +15307,7 @@
   },
   "_ts": {
    "w": [
-    "engagements.js:272 engagementSetTs"
+    "engagements.js:276 engagementSetTs"
    ],
    "lit": [],
    "r": 9
@@ -15365,7 +15367,7 @@
     "engagements.js:26 engSee"
    ],
    "lit": [],
-   "r": 39
+   "r": 42
   },
   "_wIdx": {
    "w": [
@@ -15432,7 +15434,7 @@
    "w": [
     "damage.js:254 damageSetAlive",
     "events.js:250 knowKill",
-    "knowledge.js:285 knowRoundStart",
+    "knowledge.js:287 knowRoundStart",
     "scoreboard.js:212 plCardUpdate"
    ],
    "lit": [
@@ -15572,7 +15574,7 @@
   },
   "contactStreak": {
    "w": [
-    "engagements.js:274 engagementSetContactStreak"
+    "engagements.js:278 engagementSetContactStreak"
    ],
    "lit": [
     "weapons-bots.js:82"
@@ -15638,7 +15640,7 @@
   },
   "decisionTick": {
    "w": [
-    "engagements.js:275 engagementSetDecisionTick"
+    "engagements.js:279 engagementSetDecisionTick"
    ],
    "lit": [
     "weapons-bots.js:82"
@@ -15703,8 +15705,8 @@
   },
   "ears": {
    "w": [
-    "knowledge.js:281 knowRoundStart",
-    "knowledge.js:335 knowHearing"
+    "knowledge.js:283 knowRoundStart",
+    "knowledge.js:340 knowHearing"
    ],
    "lit": [],
    "r": 3
@@ -15773,7 +15775,7 @@
   },
   "forcedRetreat": {
    "w": [
-    "engagements.js:276 engagementSetForcedRetreat"
+    "engagements.js:280 engagementSetForcedRetreat"
    ],
    "lit": [],
    "r": 3
@@ -15801,8 +15803,8 @@
   },
   "heardSound": {
    "w": [
-    "knowledge.js:81 knowHear",
-    "knowledge.js:83 knowSound"
+    "knowledge.js:83 knowHear",
+    "knowledge.js:85 knowSound"
    ],
    "lit": [
     "weapons-bots.js:82"
@@ -15812,7 +15814,7 @@
   "helmet": {
    "w": [
     "damage.js:259 damageSetHelmet",
-    "economy.js:282 buyFullKit"
+    "economy.js:283 buyFullKit"
    ],
    "lit": [
     "round.js:3",
@@ -15822,7 +15824,7 @@
   },
   "holdSinceTick": {
    "w": [
-    "engagements.js:277 engagementSetHoldSinceTick"
+    "engagements.js:281 engagementSetHoldSinceTick"
    ],
    "lit": [
     "weapons-bots.js:82"
@@ -15831,8 +15833,8 @@
   },
   "holding": {
    "w": [
-    "engagements.js:133 engDecide",
-    "engagements.js:153 engDecide",
+    "engagements.js:136 engDecide",
+    "engagements.js:157 engDecide",
     "fight-state.js:13 fightReset",
     "fight-state.js:14 fightHoldOff",
     "fight-state.js:188 leaveHold"
@@ -15876,9 +15878,9 @@
   },
   "kit": {
    "w": [
-    "economy.js:263 buyFullKit",
-    "economy.js:283 buyFullKit",
-    "items.js:336 equipmentSetKit"
+    "economy.js:264 buyFullKit",
+    "economy.js:284 buyFullKit",
+    "items.js:338 equipmentSetKit"
    ],
    "lit": [
     "round.js:3"
@@ -15887,14 +15889,14 @@
   },
   "know": {
    "w": [
-    "knowledge.js:279 knowRoundStart"
+    "knowledge.js:281 knowRoundStart"
    ],
    "lit": [],
    "r": 35
   },
   "lastIntel": {
    "w": [
-    "knowledge.js:85 knowIntel"
+    "knowledge.js:87 knowIntel"
    ],
    "lit": [
     "weapons-bots.js:82"
@@ -15963,7 +15965,7 @@
   },
   "money": {
    "w": [
-    "economy.js:442 economySetMoney"
+    "economy.js:443 economySetMoney"
    ],
    "lit": [
     "weapons-bots.js:82"
@@ -16099,7 +16101,7 @@
   },
   "pickTick": {
    "w": [
-    "engagements.js:278 engagementSetPickTick"
+    "engagements.js:282 engagementSetPickTick"
    ],
    "lit": [
     "weapons-bots.js:82"
@@ -16132,7 +16134,7 @@
     "task.js:529 placeResetPost"
    ],
    "lit": [],
-   "r": 504
+   "r": 506
   },
   "pp": {
    "w": [
@@ -16158,7 +16160,7 @@
   },
   "primary": {
    "w": [
-    "items.js:337 equipmentSetPrimary"
+    "items.js:339 equipmentSetPrimary"
    ],
    "lit": [
     "round.js:3",
@@ -16221,7 +16223,7 @@
   },
   "reloadUntil": {
    "w": [
-    "assist.js:352 reloadSetReloadUntil"
+    "assist.js:353 reloadSetReloadUntil"
    ],
    "lit": [],
    "r": 5
@@ -16322,7 +16324,7 @@
   },
   "secondary": {
    "w": [
-    "items.js:338 equipmentSetSecondary"
+    "items.js:340 equipmentSetSecondary"
    ],
    "lit": [
     "round.js:3",
@@ -16387,7 +16389,7 @@
   },
   "stateSince": {
    "w": [
-    "engagements.js:279 engagementSetStateSince"
+    "engagements.js:283 engagementSetStateSince"
    ],
    "lit": [],
    "r": 2
@@ -16401,7 +16403,7 @@
   },
   "t": {
    "w": [
-    "items.js:249 weaponPickupTick",
+    "items.js:250 weaponPickupTick",
     "task.js:347 postKeep",
     "task.js:423 setPostDo"
    ],
@@ -16431,7 +16433,7 @@
     "round.js:3",
     "weapons-bots.js:82"
    ],
-   "r": 565
+   "r": 569
   },
   "textContent": {
    "w": [
@@ -16469,7 +16471,7 @@
   },
   "top": {
    "w": [
-    "economy.js:281 buyFullKit"
+    "economy.js:282 buyFullKit"
    ],
    "lit": [],
    "r": 0
@@ -16514,25 +16516,25 @@
   },
   "weapon": {
    "w": [
-    "items.js:339 equipmentSetWeapon"
+    "items.js:341 equipmentSetWeapon"
    ],
    "lit": [
     "fight.js:223",
     "round.js:3",
     "weapons-bots.js:82"
    ],
-   "r": 70
+   "r": 68
   },
   "weight": {
    "w": [
-    "knowledge.js:223 knowBuild"
+    "knowledge.js:225 knowBuild"
    ],
    "lit": [],
    "r": 2
   },
   "windows": {
    "w": [
-    "knowledge.js:223 knowBuild"
+    "knowledge.js:225 knowBuild"
    ],
    "lit": [],
    "r": 1
@@ -16545,7 +16547,7 @@
     "fight.js:223",
     "weapons-bots.js:82"
    ],
-   "r": 740
+   "r": 736
   },
   "y": {
    "w": [
@@ -16555,18 +16557,17 @@
     "fight.js:223",
     "weapons-bots.js:82"
    ],
-   "r": 740
+   "r": 736
   },
   "z": {
    "w": [
-    "knowledge.js:67 hearReal",
     "levels.js:587 navSetZ"
    ],
    "lit": [
     "fight.js:223",
     "weapons-bots.js:82"
    ],
-   "r": 283
+   "r": 285
   }
  },
  "hidden": {

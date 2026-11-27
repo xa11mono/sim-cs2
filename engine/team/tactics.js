@@ -169,7 +169,7 @@ function coachPlan(side){
         log: "заготовка «"+ex.name+"»"+(prof ? " (против них заходила: "+Math.round(EM.w)+" из "+Math.round(EM.n)+")" : "")}); }
   } else {
     var H = roundHist.slice(-5), by = {A: 0, B: 0}, lost = {A: 0, B: 0};
-    H.forEach(function(r){ if(r.site) by[r.site]++; if(r.site && r.planted && r.winner === "T") lost[r.site]++; });
+    H.forEach(function(r){ if(r.ctSite) by[r.ctSite]++; if(r.ctSite && r.planted && r.winner === "T") lost[r.ctSite]++; });   // (изоляция, M-A) взгляд CT
     var top = by.A >= by.B ? "A" : "B";
     if(H.length >= 3 && by[top] >= 3){ P.stack = top; P.site = top; P.facts.push({k: "tSite", S: top, n: by[top], of: H.length, log: "T ходят на "+top+" ("+by[top]+" из "+H.length+") — больше людей на "+top}); }
     P.avoid = ctSetupHist.slice(-2).filter(function(id, i, a){ return a.indexOf(id) === i; });

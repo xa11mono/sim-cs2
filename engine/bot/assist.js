@@ -91,7 +91,7 @@ function assistEdgeSpot(b, E){
     if(!navAt(x, y) || insideSolidWall(x, y) || segCrossesManualWalls(b.x, b.y, x, y)) return false;
     var fz = visFloorAt(x, y, b.z); if(b.z != null && Math.abs(fz - b.z) > JUMP_UP) return false;   // свой ярус: не спрыгивать к врагу
     if(spotTaken(b, {x:x, y:y}) || smokeBlocks(x, y, E.x, E.y)) return false;
-    var vp = visParts(x, y, false, E.x, E.y, E.crouching, undefined, fz, E.z); if(!vp.head && !vp.body) return false;
+    var vp = visParts(x, y, false, E.x, E.y, false, undefined, fz, E.z); if(!vp.head && !vp.body) return false;
     best = {x:x, y:y, z:fz}; return true; }); });
   return best;
 }
@@ -118,7 +118,8 @@ function assistPeek(b){
   // (v570, отметка владельца м1 р3 28,7 с: «другие не давят, хотя слышат пистолет и чего-то ждут») — было: линия на врага по плоской карте
   // (hasVision без высоты): T4 в 20–70 ед. от T3 на верхнем ярусе «видел» CT внизу, только поворачивался — а из-за уступа врага не видно,
   // и на помощь не выходил 6 с. Теперь — видно ли хоть часть врага с моей высоты (visParts, как в бою)
-  var vpE = visParts(b.x, b.y, b.crouching, E.x, E.y, E.crouching, undefined, b.z, E.z);
+  // (изоляция, аудит Codex P-E, 27.11) враг союзника — точка радара (место, этаж); поза по радару не видна — считается стоящим (было: E.crouching)
+  var vpE = visParts(b.x, b.y, b.crouching, E.x, E.y, false, undefined, b.z, E.z);
   if((vpE.head || vpE.body) && !smokeBlocks(b.x, b.y, E.x, E.y)){ knowSound(b, {x:E.x, y:E.y, tick:tick, team:E.team, src:E.id, kind:"call"}); knowIntel(b, {x:E.x, y:E.y, tick:tick, src:"call"}); return false; }
   var ep = {x:E.x, y:E.y};
   var sp = pickSpots("assist"+tick+b.id, {x:mate.x, y:mate.y}, 3, {rMax: 140, minGap:24, must:[ep]})

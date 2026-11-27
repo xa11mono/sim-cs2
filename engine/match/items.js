@@ -233,7 +233,8 @@ function weaponPickupTick(){
   bots.forEach(function(b){
     if(!b.alive || b.planting || b.defusing) return;
     // оружие уже подобрал кто-то другой — пост "за оружием" снять (иначе стоял на пустом месте)
-    if(b.post && b.post.tag === "pickup" && !groundWeapons.some(function(G){ return DM.hypot(G.x-b.post.x, G.y-b.post.y) < 40; })){ clearPost(b); b._pickGo = null; }
+    // (изоляция, I-A) что его там нет — видно, только когда место на виду
+    if(b.post && b.post.tag === "pickup" && !groundWeapons.some(function(G){ return DM.hypot(G.x-b.post.x, G.y-b.post.y) < 40; }) && hasLOS(b.x, b.y, b.post.x, b.post.y, b.z)){ clearPost(b); b._pickGo = null; }
     // идёт за оружием — держим блок каждый тик: раньше блок жил 1 тик, и через
     // тик пост роли и "за оружием" перебивали друг друга (путь пересчитывался)
     else if(b.post && b.post.tag === "pickup" && b.state === "patrol" && !b._sawEnemy){
@@ -254,7 +255,7 @@ function weaponPickupTick(){
     // (v378) за оружием шёл, но задача важнее его увела (арбитр места) — помнит, где лежит, и вернётся, когда та кончится
     else if(b._pickGo && b._pickGo.round === roundNum && !(b.post && b.post.tag === "pickup")){
       var PG = b._pickGo;
-      if(!groundWeapons.some(function(G){ return DM.hypot(G.x-PG.x, G.y-PG.y) < 40; })) b._pickGo = null;
+      if(!groundWeapons.some(function(G){ return DM.hypot(G.x-PG.x, G.y-PG.y) < 40; }) && hasLOS(b.x, b.y, PG.x, PG.y, b.z)) b._pickGo = null;   // (изоляция, I-A) пусто — когда видно
       else if(b.state === "patrol" && !b._sawEnemy && !(bomb.state === "carried" && bomb.carrier === b) && pickDetour(b, PG) && setPost(b, {x:PG.x, y:PG.y}, null, true, "pickup").ok){
         logEvent(b.id+": возвращаюсь за оружием"); return; }
     }
@@ -314,6 +315,7 @@ function weaponPickupTick(){
     var best = null, bd = 420;
     groundWeapons.forEach(function(G){
       if(b._pickIgnore && b._pickIgnore.round === roundNum && DM.hypot(G.x-b._pickIgnore.x, G.y-b._pickIgnore.y) < 40) return;
+      if(!itemKnown(b.team, G)) return;   // (изоляция, I-A) идёт только за тем, о чём команда знает (видели / своё)
       if(pickValue(b, G.key) < cur + (1) && !(G.key === "AWP" && awpAllowed(b) && pickValue(b, G.key) > cur)) return; // своя AWP — за второй не ходит (раньше шёл и стоял над ней)
       // то же правило, что при подборе: AWP с винтовкой в руках берёт только снайпер/мидер
       // (раньше шёл к AWP, а поднять "не имел права" — и стоял над ней)

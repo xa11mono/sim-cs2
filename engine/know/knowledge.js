@@ -62,9 +62,11 @@ function noticeShooter(b, src){
 function ignoredShooter(b, id){ var e = id && b._notice && b._notice[id]; return !!e && !e.ok && tick - e.t <= NOTICE_WIN; }
 // звук дошёл до игрока o: v166 кладёт его в o.heardSound, знание — в o.ears (одно место на «услышал»)
 function hearReal(o, s){
-  if(roundState === "live"){ var sb = s.src ? teamBot(s.src) : null;   // (v358) этаж слышно (сверху / снизу) — высота источника
-    (o.ears || (o.ears = [])).push({x:s.x, y:s.y, z: sb ? sb.z : null, tick:tick, team:s.team, kind:s.kind, occl:!!s.occl});
-    if(s.z == null && sb) s.z = sb.z; }   // (v469) и в «что услышал» — этаж звука (реакция на контакт: видно ли то место со своего этажа)
+  // (v358) этаж слышно (сверху / снизу) — высота источника звука. (изоляция, аудит Codex P-D, 27.11) высота — из самого звука (s.z), а если её
+  // нет — источника в момент звука (тот же тик); пакет звука общий для всех слушателей — не меняется (копия). Было: живой teamBot(src).z
+  // всегда, даже когда у звука своя точка (граната — место разрыва), и запись в общий пакет
+  if(roundState === "live"){ if(s.z == null && s.src){ var sb = teamBot(s.src); if(sb) s = Object.assign({}, s, {z: sb.z}); }
+    (o.ears || (o.ears = [])).push({x:s.x, y:s.y, z: s.z != null ? s.z : null, tick:tick, team:s.team, kind:s.kind, occl:!!s.occl}); }
   // (v359, отметка владельца: m0NESY услышал флешку sh1ro из Connector в паре метров, а через 1 с молотов zont1x в 230 ед. —
   // «куда смотреть» перескочило на дальний звук, sh1ro вышел и убил) свежий (≤ 1,5 с) звук того же врага вдвое ближе — главнее
   // нового дальнего: взгляд остаётся на нём (знание получает оба — через ears)
@@ -293,19 +295,22 @@ function knowVision(b){
   var K = b.know, seen = {}, list = [], own = {};
   bots.forEach(function(m){ if(m.alive && m.team === b.team) (m._visible || []).forEach(function(e){ if(e.alive && !seen[e.id]){ seen[e.id] = true; list.push(e); } }); });
   (b._visible || []).forEach(function(e){ own[e.id] = true; });
+  // (изоляция, аудит Codex P-E, 27.11) видит кто-то из команды — радар (место, движение точки) и колл союзника «вижу» (в этой модели доставлен
+  // сразу, как commSend «spotted»): ствол в руках называют. Поза и «закладывает» — только своими глазами (колл «плантит» идёт войсом — voice.js,
+  // плант увиденный своими: K.plantSeen). Было: всё из живого объекта врага, которого видит союзник
   list.forEach(function(e){
-    var B = K.enemies[e.id];
-    var last = {x: e.x, y: e.y, zone: knowZoneAt(e.x, e.y, e.z), tick: tick, stance: e.crouching ? "crouch" : "stand",
+    var B = K.enemies[e.id], mineE = !!own[e.id], PL = B && B.last;
+    var last = {x: e.x, y: e.y, zone: knowZoneAt(e.x, e.y, e.z), tick: tick, stance: mineE ? (e.crouching ? "crouch" : "stand") : (PL && PL.stance) || "stand",
                 source: "vision", vx: (e.x - (e.px === undefined ? e.x : e.px))*TICK_HZ, vy: (e.y - (e.py === undefined ? e.y : e.py))*TICK_HZ,
                 weapon: e.weapon && e.weapon.key};
     var was = B && B.visible;
     if(!B){ B = K.enemies[e.id] = {id: e.id, side: e.team}; }
     B.last = last; B.visible = true; B.mine = !!own[e.id];
-    // (изоляция, аудит Codex F-B, 27.11) снимок увиденного: место, высота, ствол в руках (видно / колл); поза — только своими глазами. Его читает
+    // (изоляция, аудит Codex F-B, 27.11) снимок увиденного: место, высота (радар), ствол (свой глаз / колл); поза — только своими глазами. Его читает
     // перестрелка после потери зрения (duelFoe, fight.js) вместо живого объекта врага
     B.seen = {x: e.x, y: e.y, z: e.z, weapon: e.weapon && e.weapon.key, crouching: own[e.id] ? !!e.crouching : !!(B.seen && B.seen.crouching), tick: tick};   // (v432) visible — видит команда (радар), mine — сам (колл «вижу» — только своё)
     B.hyps = [{type: "held", zone: last.zone, x: last.x, y: last.y, weight: 1}];
-    if(e.planting && !K.planted) K.plantSeen = knowNearestSite(e.x, e.y);
+    if(mineE && e.planting && !K.planted) K.plantSeen = knowNearestSite(e.x, e.y);
     if(!was) knowTrace(b, e.id, "увидел (" + knowZoneName(last.zone) + ")");
   });
   for(var id in K.enemies){

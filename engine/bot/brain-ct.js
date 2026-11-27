@@ -403,7 +403,8 @@ function ctBrainSave(K){
     var equip = K.cts.reduce(function(a,b){ return a + (b.primary ? WEAPONS[b.primary].price : 0) + (b.armor ? 650 : 0); }, 0) / Math.max(1, K.cts.length);
     // (v334, М63, отметка владельца: karrigan 1 на 4 с USP не сейвился, хотя рядом на Top Mid лежал АК) сохранить можно и то, что
     // подберёт по пути: лучшее оружие ≤ 450 ед. карты от CT, где врага по инфе нет, — в цену сейва
-    K.cts.forEach(function(b){ var add = 0; groundWeapons.forEach(function(G){ if(DM.hypot(G.x-b.x, G.y-b.y) < 450 && weaponValue(G.key) > weaponValue(b.primary) &&
+    // (изоляция, аудит Codex I-A, 27.11) только известное команде оружие: своё (уронил / погиб свой) или увиденное (know.items); было — любое на полу
+    K.cts.forEach(function(b){ var add = 0; groundWeapons.forEach(function(G){ if(DM.hypot(G.x-b.x, G.y-b.y) < 450 && itemKnown("CT", G) && weaponValue(G.key) > weaponValue(b.primary) &&
       intelEstimate("CT", G.x, G.y, 450, 5*TICK_HZ).n === 0) add = Math.max(add, WEAPONS[G.key].price); }); equip += add/Math.max(1, K.cts.length); });
     var hopeless = (K.cts.length === 1 && tsAlive >= BAL.saveGap) || (K.cts.length <= tsAlive - BAL.saveGap) || needSecs > secs;
     // (v158) у про после взрыва живы 2,1 CT, у ботов было 1,2: сейвят раньше

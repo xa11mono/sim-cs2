@@ -15,10 +15,13 @@ function antiEco(team){
 function buyReadSee(team, eid){
   var e = bots.filter(function(o){ return o.id === eid; })[0]; if(!e || !e.alive) return;
   var TI = teamIntel[team], R = TI.buy || (TI.buy = {seen:{}, n:0, pistols:0, rifles:0, smg:0, read:null});
-  if(R.seen[eid]) return;
+  // (изоляция, аудит Codex P-C, 27.11) видно только оружие в руках (основное за спиной в CS2 источниками не подтверждено — ISOLATION.md):
+  // основное в руках — закуп; пистолет — «пистолет» до тех пор, пока этого же врага не увидят с основным. Было: скрытый слот e.primary
+  var Wh = e.weapon && WEAPONS[e.weapon.key], k = Wh && Wh.slot === "primary" ? e.weapon.key : null, W = k && WEAPONS[k];
+  if(R.seen[eid] && !(k && R.seen[eid] === "pistol")) return;
   // (v293, владелец 14.10) пистолетка — у всех пистолеты, это не эко: оценку закупа по оружию не делаем
   if(teamEco[team] && teamEco[team].roundType === "pistol") return;
-  var k = e.primary || null, W = k && WEAPONS[k];
+  if(R.seen[eid]){ R.pistols--; R.n--; }
   R.seen[eid] = k || "pistol"; R.n++;
   if(!W) R.pistols++; else if(W.price >= 2000) R.rifles++; else R.smg++;
   var prev = R.read;

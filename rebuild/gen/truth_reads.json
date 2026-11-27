@@ -90,42 +90,9 @@
    "perception": false
   },
   {
-   "file": "lurker.js",
-   "fn": "tClearCalls",
-   "line": 323,
-   "props": [
-    "x",
-    "y"
-   ],
-   "kind": "к разбору",
-   "perception": false
-  },
-  {
-   "file": "lurker.js",
-   "fn": "tClearCalls",
-   "line": 340,
-   "props": [
-    "x",
-    "y"
-   ],
-   "kind": "к разбору",
-   "perception": false
-  },
-  {
-   "file": "lurker.js",
-   "fn": "tClearCalls",
-   "line": 341,
-   "props": [
-    "x",
-    "y"
-   ],
-   "kind": "к разбору",
-   "perception": false
-  },
-  {
    "file": "intel.js",
    "fn": "intelDeath",
-   "line": 275,
+   "line": 281,
    "props": [
     "defusing",
     "planting",
@@ -141,7 +108,7 @@
   {
    "file": "intel.js",
    "fn": "intelDeath",
-   "line": 331,
+   "line": 337,
    "props": [
     "defusing",
     "planting",
@@ -156,7 +123,7 @@
   {
    "file": "intel.js",
    "fn": "intelDeath",
-   "line": 359,
+   "line": 365,
    "props": [
     "nades",
     "planting",
@@ -387,7 +354,7 @@
   {
    "file": "assist.js",
    "fn": "ambFoes",
-   "line": 214,
+   "line": 215,
    "props": [
     "x",
     "y"
@@ -408,20 +375,9 @@
    "perception": false
   },
   {
-   "file": "engagements.js",
-   "fn": "engDecide",
-   "line": 140,
-   "props": [
-    "x",
-    "y"
-   ],
-   "kind": "враг",
-   "perception": false
-  },
-  {
    "file": "economy.js",
    "fn": "buyForPlayer",
-   "line": 363,
+   "line": 364,
    "props": [
     "kit"
    ],
@@ -431,7 +387,7 @@
   {
    "file": "economy.js",
    "fn": "buyForPlayer",
-   "line": 364,
+   "line": 365,
    "props": [
     "money"
    ],
@@ -486,7 +442,7 @@
   {
    "file": "knowledge.js",
    "fn": "hearReal",
-   "line": 65,
+   "line": 68,
    "props": [
     "teamBot.z"
    ],
@@ -516,7 +472,7 @@
   {
    "file": "assist.js",
    "fn": "ambushTick",
-   "line": 336,
+   "line": 337,
    "props": [
     "teamBot.x,y,→ambPassing,→applyDamage,→knowSound"
    ],

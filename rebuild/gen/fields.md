@@ -138,7 +138,7 @@
 | `weapon` | 1 | 1 | `equipmentSetWeapon · items` |
 | `x` | 1 | 1 | `moveSetX · move` |
 | `y` | 1 | 1 | `moveSetY · move` |
-| `z` | 2 | 2 | `navSetZ · levels` |
+| `z` | 1 | 1 | `navSetZ · levels` |
 
 ## `facing`
 
@@ -188,20 +188,20 @@
 
 ## `_avoidPeekUntil`
 
-- **хозяин** `knowAvoidPeek · events` — 1 (стр. 484)
+- **хозяин** `knowAvoidPeek · events` — 1 (стр. 499)
 
 ## `_tradeUntil`
 
-- **хозяин** `tradeAlertSet · intel` — 1 (стр. 399)
-- **хозяин** `tradeEnd · intel` — 1 (стр. 402)
+- **хозяин** `tradeAlertSet · intel` — 1 (стр. 405)
+- **хозяин** `tradeEnd · intel` — 1 (стр. 408)
 
-не бот (то же имя у другого объекта — в проверку владения не идёт): `tradeStart · intel` (398 o)
+не бот (то же имя у другого объекта — в проверку владения не идёт): `tradeStart · intel` (404 o)
 
 ## `_tradeLock`
 
-- **хозяин** `tradeEnd · intel` — 1 (стр. 402)
+- **хозяин** `tradeEnd · intel` — 1 (стр. 408)
 
-не бот (то же имя у другого объекта — в проверку владения не идёт): `tradeStart · intel` (398 o)
+не бот (то же имя у другого объекта — в проверку владения не идёт): `tradeStart · intel` (404 o)
 
 ## `state`
 
@@ -223,7 +223,7 @@
 
 ## `holding`
 
-- **хозяин** `engDecide · engagements` — 2 (стр. 133, 153)
+- **хозяин** `engDecide · engagements` — 2 (стр. 136, 157)
 - **хозяин** `fightReset · fight-state` — 1 (стр. 13)
 - **хозяин** `fightHoldOff · fight-state` — 1 (стр. 14)
 - **хозяин** `leaveHold · fight-state` — 1 (стр. 188)
@@ -261,12 +261,12 @@
 
 ## `heardSound`
 
-- **хозяин** `knowHear · knowledge` — 1 (стр. 81)
-- **хозяин** `knowSound · knowledge` — 1 (стр. 83)
+- **хозяин** `knowHear · knowledge` — 1 (стр. 83)
+- **хозяин** `knowSound · knowledge` — 1 (стр. 85)
 
 ## `lastIntel`
 
-- **хозяин** `knowIntel · knowledge` — 1 (стр. 85)
+- **хозяин** `knowIntel · knowledge` — 1 (стр. 87)
 
 ## `planting`
 
@@ -337,7 +337,7 @@
 
 ## `_ammoFor`
 
-- **хозяин** `reloadSetAmmoFor · assist` — 1 (стр. 350)
+- **хозяин** `reloadSetAmmoFor · assist` — 1 (стр. 351)
 
 ## `_area`
 
@@ -381,7 +381,7 @@
 
 ## `_drawUntil`
 
-- **хозяин** `equipmentSetDrawUntil · items` — 1 (стр. 333)
+- **хозяин** `equipmentSetDrawUntil · items` — 1 (стр. 335)
 
 ## `_egC`
 
@@ -418,7 +418,7 @@
 ## `_heDone`
 
 - `smokeHeTick · smoke-react` — 1 (стр. 184)
-- **хозяин** `nadeSetHeDone · self` — 1 (стр. 290)
+- **хозяин** `nadeSetHeDone · self` — 1 (стр. 293)
 
 ## `_hold`
 
@@ -446,7 +446,7 @@
 
 ## `_knife`
 
-- **хозяин** `equipmentSetKnife · items` — 1 (стр. 334)
+- **хозяин** `equipmentSetKnife · items` — 1 (стр. 336)
 
 ## `_landAt`
 
@@ -470,19 +470,19 @@
 
 ## `_lurkArr`
 
-- **хозяин** `lurkSetLurkArr · lurker` — 1 (стр. 415)
+- **хозяин** `lurkSetLurkArr · lurker` — 1 (стр. 416)
 
 ## `_lurkIdx`
 
-- **хозяин** `lurkSetLurkIdx · lurker` — 1 (стр. 416)
+- **хозяин** `lurkSetLurkIdx · lurker` — 1 (стр. 417)
 
 ## `_lurkPh`
 
-- **хозяин** `lurkSetLurkPh · lurker` — 1 (стр. 417)
+- **хозяин** `lurkSetLurkPh · lurker` — 1 (стр. 418)
 
 ## `_mistakes`
 
-- **хозяин** `setupSetMistakes · ct-setup` — 1 (стр. 458)
+- **хозяин** `setupSetMistakes · ct-setup` — 1 (стр. 463)
 
 ## `_nadeNo`
 
@@ -494,7 +494,7 @@
 
 ## `_nearestEnemyBot`
 
-- **хозяин** `engagementSetNearestEnemyBot · engagements` — 1 (стр. 270)
+- **хозяин** `engagementSetNearestEnemyBot · engagements` — 1 (стр. 274)
 
 ## `_offNav`
 
@@ -514,7 +514,7 @@
 
 ## `_probe`
 
-- **хозяин** `lurkSetProbe · lurker` — 1 (стр. 418)
+- **хозяин** `lurkSetProbe · lurker` — 1 (стр. 419)
 
 ## `_probeLock`
 
@@ -522,7 +522,7 @@
 
 ## `_reloading`
 
-- **хозяин** `reloadSetReloading · assist` — 1 (стр. 351)
+- **хозяин** `reloadSetReloading · assist` — 1 (стр. 352)
 
 ## `_roamSoundHandled`
 
@@ -538,15 +538,15 @@
 
 ## `_sawEnemy`
 
-- **хозяин** `engagementSetSawEnemy · engagements` — 1 (стр. 271)
+- **хозяин** `engagementSetSawEnemy · engagements` — 1 (стр. 275)
 
 ## `_secAmmo`
 
-- **хозяин** `equipmentSetSecAmmo · items` — 1 (стр. 335)
+- **хозяин** `equipmentSetSecAmmo · items` — 1 (стр. 337)
 
 ## `_stabT`
 
-- **хозяин** `knifeSetStabT · assist` — 1 (стр. 353)
+- **хозяин** `knifeSetStabT · assist` — 1 (стр. 354)
 
 ## `_stageInfo`
 
@@ -566,7 +566,7 @@
 
 ## `_ts`
 
-- **хозяин** `engagementSetTs · engagements` — 1 (стр. 272)
+- **хозяин** `engagementSetTs · engagements` — 1 (стр. 276)
 
 ## `_unstickT`
 
@@ -574,7 +574,7 @@
 
 ## `alive`
 
-- `knowRoundStart · knowledge` — 1 (стр. 285)
+- `knowRoundStart · knowledge` — 1 (стр. 287)
 - `knowKill · events` — 1 (стр. 250)
 - **хозяин** `damageSetAlive · damage` — 1 (стр. 254)
 - `plCardUpdate · scoreboard` — 1 (стр. 212)
@@ -605,7 +605,7 @@
 
 ## `contactStreak`
 
-- **хозяин** `engagementSetContactStreak · engagements` — 1 (стр. 274)
+- **хозяин** `engagementSetContactStreak · engagements` — 1 (стр. 278)
 
 ## `deaths`
 
@@ -613,11 +613,11 @@
 
 ## `decisionTick`
 
-- **хозяин** `engagementSetDecisionTick · engagements` — 1 (стр. 275)
+- **хозяин** `engagementSetDecisionTick · engagements` — 1 (стр. 279)
 
 ## `forcedRetreat`
 
-- **хозяин** `engagementSetForcedRetreat · engagements` — 1 (стр. 276)
+- **хозяин** `engagementSetForcedRetreat · engagements` — 1 (стр. 280)
 
 ## `heading`
 
@@ -626,11 +626,11 @@
 ## `helmet`
 
 - **хозяин** `damageSetHelmet · damage` — 1 (стр. 259)
-- `buyFullKit · economy` — 1 (стр. 282)
+- `buyFullKit · economy` — 1 (стр. 283)
 
 ## `holdSinceTick`
 
-- **хозяин** `engagementSetHoldSinceTick · engagements` — 1 (стр. 277)
+- **хозяин** `engagementSetHoldSinceTick · engagements` — 1 (стр. 281)
 
 ## `hp`
 
@@ -644,8 +644,8 @@
 
 ## `kit`
 
-- `buyFullKit · economy` — 2 (стр. 263, 283)
-- **хозяин** `equipmentSetKit · items` — 1 (стр. 336)
+- `buyFullKit · economy` — 2 (стр. 264, 284)
+- **хозяин** `equipmentSetKit · items` — 1 (стр. 338)
 
 ## `lastShotTick`
 
@@ -661,7 +661,7 @@
 
 ## `money`
 
-- **хозяин** `economySetMoney · economy` — 1 (стр. 442)
+- **хозяин** `economySetMoney · economy` — 1 (стр. 443)
 
 ## `nadeQueue`
 
@@ -681,15 +681,15 @@
 
 ## `pickTick`
 
-- **хозяин** `engagementSetPickTick · engagements` — 1 (стр. 278)
+- **хозяин** `engagementSetPickTick · engagements` — 1 (стр. 282)
 
 ## `primary`
 
-- **хозяин** `equipmentSetPrimary · items` — 1 (стр. 337)
+- **хозяин** `equipmentSetPrimary · items` — 1 (стр. 339)
 
 ## `reloadUntil`
 
-- **хозяин** `reloadSetReloadUntil · assist` — 1 (стр. 352)
+- **хозяин** `reloadSetReloadUntil · assist` — 1 (стр. 353)
 
 ## `retakeRole`
 
@@ -733,7 +733,7 @@
 
 ## `secondary`
 
-- **хозяин** `equipmentSetSecondary · items` — 1 (стр. 338)
+- **хозяин** `equipmentSetSecondary · items` — 1 (стр. 340)
 
 ## `setupLook`
 
@@ -741,7 +741,7 @@
 
 ## `stateSince`
 
-- **хозяин** `engagementSetStateSince · engagements` — 1 (стр. 279)
+- **хозяин** `engagementSetStateSince · engagements` — 1 (стр. 283)
 
 ## `stuckTicks`
 
@@ -753,23 +753,22 @@
 
 ## `weapon`
 
-- **хозяин** `equipmentSetWeapon · items` — 1 (стр. 339)
+- **хозяин** `equipmentSetWeapon · items` — 1 (стр. 341)
 
 ## `x`
 
 - **хозяин** `moveSetX · move` — 1 (стр. 221)
 
-не бот (то же имя у другого объекта — в проверку владения не идёт): `applyZoneLayerToData · zones` (37 p), `resnapSpawns · zone-danger` (255 sp), `dropBomb · bomb` (110 bomb), `bombTick · bomb` (234 bomb; 259 bomb), `saveOppProfile · tactics` (55 o), `habitAdd · ct-setup` (447 c), `tIglReplan · igl` (104 ctrR; 124 ctr), `knowSources · knowledge` (348 q), `knowApply · events` (71 h), `knowKill · events` (270 B.hyps[0]), `knowRetakeDrift · events` (411 h), `infoGo · ct-early` (357 I), `endgameBrain · endgame` (85 ST), `contactTick · contact` (131 K), `exuScan · exec-sync` (54 it), `nadeSolve · throw` (44 r), `updateNadeTask1 · throw` (598 t), `nadesTick · damage` (220 n), `bombPassTick · sound` (86 bomb), `dvTick · modes` (175 bomb), `probTick · problem-watch` (62 s; 70 s), `(верх файла) · lineup-editor` (188 z.points[zsDrag]), `d3Corpse · view3d` (173 C), `(верх файла) · view3d-frame` (296 d), `rpDraw · replay-play` (31 P.cam), `tsCam · timeout` (230 P.cam)
+не бот (то же имя у другого объекта — в проверку владения не идёт): `applyZoneLayerToData · zones` (37 p), `resnapSpawns · zone-danger` (255 sp), `dropBomb · bomb` (110 bomb), `bombTick · bomb` (234 bomb; 259 bomb), `saveOppProfile · tactics` (55 o), `habitAdd · ct-setup` (452 c), `tIglReplan · igl` (104 ctrR; 124 ctr), `knowSources · knowledge` (353 q), `knowApply · events` (71 h), `knowKill · events` (270 B.hyps[0]), `knowRetakeDrift · events` (411 h), `infoGo · ct-early` (357 I), `endgameBrain · endgame` (85 ST), `contactTick · contact` (131 K), `exuScan · exec-sync` (54 it), `nadeSolve · throw` (44 r), `updateNadeTask1 · throw` (598 t), `nadesTick · damage` (220 n), `bombPassTick · sound` (86 bomb), `dvTick · modes` (175 bomb), `probTick · problem-watch` (62 s; 70 s), `(верх файла) · lineup-editor` (188 z.points[zsDrag]), `d3Corpse · view3d` (173 C), `(верх файла) · view3d-frame` (296 d), `rpDraw · replay-play` (31 P.cam), `tsCam · timeout` (230 P.cam)
 
 ## `y`
 
 - **хозяин** `moveSetY · move` — 1 (стр. 222)
 
-не бот (то же имя у другого объекта — в проверку владения не идёт): `applyZoneLayerToData · zones` (37 p), `resnapSpawns · zone-danger` (255 sp), `dropBomb · bomb` (110 bomb), `bombTick · bomb` (234 bomb; 259 bomb), `saveOppProfile · tactics` (55 o), `habitAdd · ct-setup` (447 c), `tIglReplan · igl` (104 ctrR; 124 ctr), `knowSources · knowledge` (348 q), `knowApply · events` (71 h), `knowRetakeDrift · events` (411 h), `infoGo · ct-early` (357 I), `endgameBrain · endgame` (85 ST), `contactTick · contact` (131 K), `exuScan · exec-sync` (54 it), `nadeSolve · throw` (44 r), `updateNadeTask1 · throw` (598 t), `nadesTick · damage` (220 n), `bombPassTick · sound` (86 bomb), `dvTick · modes` (175 bomb), `probTick · problem-watch` (62 s; 70 s), `(верх файла) · lineup-editor` (188 z.points[zsDrag]), `(верх файла) · view3d-frame` (296 d), `rpDraw · replay-play` (31 P.cam), `tsCam · timeout` (230 P.cam)
+не бот (то же имя у другого объекта — в проверку владения не идёт): `applyZoneLayerToData · zones` (37 p), `resnapSpawns · zone-danger` (255 sp), `dropBomb · bomb` (110 bomb), `bombTick · bomb` (234 bomb; 259 bomb), `saveOppProfile · tactics` (55 o), `habitAdd · ct-setup` (452 c), `tIglReplan · igl` (104 ctrR; 124 ctr), `knowSources · knowledge` (353 q), `knowApply · events` (71 h), `knowRetakeDrift · events` (411 h), `infoGo · ct-early` (357 I), `endgameBrain · endgame` (85 ST), `contactTick · contact` (131 K), `exuScan · exec-sync` (54 it), `nadeSolve · throw` (44 r), `updateNadeTask1 · throw` (598 t), `nadesTick · damage` (220 n), `bombPassTick · sound` (86 bomb), `dvTick · modes` (175 bomb), `probTick · problem-watch` (62 s; 70 s), `(верх файла) · lineup-editor` (188 z.points[zsDrag]), `(верх файла) · view3d-frame` (296 d), `rpDraw · replay-play` (31 P.cam), `tsCam · timeout` (230 P.cam)
 
 ## `z`
 
-- `hearReal · knowledge` — 1 (стр. 67)
 - **хозяин** `navSetZ · levels` — 1 (стр. 587)
 
 не бот (то же имя у другого объекта — в проверку владения не идёт): `applyNavTransform · zones` (241 q), `bombTick · bomb` (259 bomb), `hurtReactTick · contact` (369 q), `teamNadePlan · plan` (90 w), `nadesTick · damage` (220 n)

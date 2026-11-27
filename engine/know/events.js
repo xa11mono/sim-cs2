@@ -423,6 +423,12 @@ function teamAgent(team){
   if(!A || !A.know || A.know.key !== key || A._t > tick){ A = TEAMK[team] = {id: "team" + team, team: team, alive: true, x: 0, y: 0, ears: [], _visible: [], _team: true}; knowRoundStart(A); }
   A._t = tick; return A;
 }
+// (изоляция, аудит Codex I-A, 27.11) оружие на полу известно команде: своё (уронил / погиб свой — радар и войс), выпавшее у врага, которого
+// убил свой (убийца видел, где тот упал, — оружие там), или видел кто-то из команды (know.items, датчик knowTeamLook). Одно правило для сейва
+// CT (ctBrainSave) и подбора (weaponPickupTick); оружие, о котором команда ничего не знает, — не цель
+function itemKnown(team, G){ var IT = teamAgent(team).know.items || {};
+  return !!IT[G.from + "@" + G.t] || bots.some(function(o){ return o.id === G.from && (o.team === team ||
+    (!o.alive && o._killer && bots.some(function(k){ return k.id === o._killer && k.team === team; }))); }); }
 function teamAgents(){ return roundState === "live" ? [teamAgent("CT"), teamAgent("T")] : []; }
 function knowTeamLook(A){
   var K = A.know, mates = bots.filter(function(m){ return m.alive && m.team === A.team && tick >= (m.blindUntil||0); });
@@ -437,6 +443,15 @@ function knowTeamLook(A){
     K.bombPt = {x: bomb.x, y: bomb.y, z: bomb.z, state: bomb.state, site: bomb.state === "planted" ? bomb.site : null, tick: tick, gone: 0};
     if(bomb.state === "planted" && (!K.plantSite || K.plantGuess)){ K.plantSite = bomb.site; K.plantGuess = false; }
   } else if(A.team === "CT" && K.bombPt && !K.bombPt.gone && sees(K.bombPt.x, K.bombPt.y)) K.bombPt.gone = tick;
+  // (изоляция, аудит Codex I-A, 27.11) оружие на полу, которое видел кто-то из команды (что и где лежит); место снова видно, а его нет — забыто.
+  // Своё (уронил или погиб свой) команда знает и так — это у читателя (ctBrainSave)
+  var IT = K.items || (K.items = {}), gid = function(G){ return G.from + "@" + G.t; };
+  groundWeapons.forEach(function(G){ var id = gid(G); if(!IT[id] && sees(G.x, G.y)) IT[id] = {key: G.key, x: G.x, y: G.y, tick: tick}; });
+  for(var iid in IT){ var q = IT[iid]; if(!groundWeapons.some(function(G){ return gid(G) === iid; }) && sees(q.x, q.y)) delete IT[iid]; }
+  // (изоляция, аудит Codex M-A, 27.11) когда команда CT впервые узнала о T на сайте: кто-то из CT увидел T у сайта (KILL_SITE_R — та же мерка
+  // «на сайте», что у смерти CT) или объявлен плант. Темп выхода T в памяти CT (roundHist.ctExecSec) — от этого, а не от плана T
+  if(A.team === "CT" && K.siteT == null && ((bomb && bomb.state === "planted") || anyVis.some(function(e){ return e.alive && e.team === "T" &&
+     ["A", "B"].some(function(X){ return SITES[X] && DM.hypot(e.x-SITES[X].x, e.y-SITES[X].y) <= KILL_SITE_R; }); }))) K.siteT = tick;
   (K.spots || []).forEach(function(p){
     if(!p.open || !sees(p.x, p.y)) return;
     if(!anyVis.some(function(e){ return DM.hypot(e.x-p.x, e.y-p.y) < 120; })) p.open = false;

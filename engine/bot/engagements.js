@@ -24,13 +24,16 @@ function resolveEngagements(){
 function engSee(){
   var pairs = [];
   bots.forEach(function(b){ engagementSetSawEnemy(b, false); b._nearestEnemyDist = Infinity; engagementSetNearestEnemyBot(b, null); b._visible = []; });
+  // (изоляция, аудит Codex P-B, 27.11) дальность, дальше которой зрение не проверяется, — одна для всех: наибольшая дальность оружия (граница
+  // расчёта, а не свойство глаз; своя дальность зрения в CS2 источниками не задана — открытый вопрос, ISOLATION.md). Было: по оружию обоих —
+  // скрытая смена ствола у врага меняла, видит ли его бот
+  var seeR = 0; for(var wk in WEAPONS) seeR = Math.max(seeR, WEAPONS[wk].range || 0);
   bots.forEach(function(ct){
     if(ct.team!=="CT"||!ct.alive) return;
     bots.forEach(function(t){
       if(t.team!=="T"||!t.alive) return;
       var dist = DM.hypot(ct.x-t.x, ct.y-t.y);
-      var maxRange = Math.max(ct.weapon.range, t.weapon.range);
-      if(dist > maxRange) return;
+      if(dist > seeR) return;
       // шаг 5: обзор перекрывает дым; видит только тот, у кого враг в конусе
       // взгляда (или вплотную, или контакт уже идёт), и кто не ослеплён
       // (v241) что каждый видит у другого — в 3D: стены, укрытия, пол/уступы, крыши (visParts: голова / тело)
@@ -137,7 +140,8 @@ function engDecide(){
     if(b.planting || b.defusing) return; // закладывает/дефузит — решение уже принято
     engagementSetDecisionTick(b, tick);
     var alliesNear = bots.filter(function(o){ return o!==b && o.team===b.team && o.alive && nearP(o.x, o.y, o.z, b.x, b.y, b.z, 550); }).length;
-    var enemiesSeen = bots.filter(function(o){ return o.team!==b.team && o.alive && DM.hypot(o.x-b.x,o.y-b.y) <= (b._nearestEnemyDist===Infinity? b.weapon.range : Math.max(b.weapon.range, b._nearestEnemyDist)) && hasVision(b.x,b.y,o.x,o.y) && inFov(b, o.x, o.y); }).length;
+    // (изоляция, P-A) врагов видит — из единого кадра зрения (engSee: 3D, дым, ослепление, конус), а не вторая упрощённая проверка по всем врагам
+    var enemiesSeen = (b._visible || []).filter(function(o){ return o.alive && o.team !== b.team; }).length;
     var AR = decideActionR(b, b._nearestEnemyDist, alliesNear, enemiesSeen), next = AR.state;
     dlog(b, "оценка боя", next + ": " + (AR.why.length ? AR.why.join("; ") : "без поправок"), "_dlogF");   // (Р3.2 бой ш.2) причины — в след (вне состояния игры)
     // гистерезис: в отход и из отхода — не чаще раза в ~1.3с, иначе бот с низким

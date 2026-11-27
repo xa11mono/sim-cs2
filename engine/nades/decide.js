@@ -77,7 +77,7 @@ function nadeBrains(){
   // (10) AWP CT в прошлых раундах стрелял с одной точки — смок на его линию,
   // когда кто-то из T проходит рядом (один раз за раунд, запас смоков на выход не трогаем)
   if(tt.phase === "setup" && !nadeFlags.antiAwp && tick - roundStartTick > 6*TICK_HZ){
-    var aw = rmemRecent(RMEM.awp, 3);
+    var aw = rmemRecent(RMEM.awp, 3).filter(function(q){ return q.seenT; });   // (изоляция, M-B) только AWP, которого T видели
     if(aw.length){
       var A0 = aw[aw.length-1];
       var smA = ts.filter(function(b){ return b.tRole !== "lurker" && b.nades.smoke > 0 && !b.nadeTask && DM.hypot(b.x-A0.x, b.y-A0.y) < 1250 && DM.hypot(b.x-A0.x, b.y-A0.y) > 350; })

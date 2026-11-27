@@ -26,11 +26,6 @@
    "why": "IGL своей команды T",
    "n": 1
   },
-  "lurker:tClearCalls:x,y": {
-   "class": "восприятие",
-   "why": "T проверяет, видит ли кто-то из своих CT (hasVision от своих — модель зрения; без конуса взгляда — как есть) + список своих T; 3 места",
-   "n": 3
-  },
   "intel:intelDeath:defusing,planting,tRole,weapon,x,y,z": {
    "class": "свои",
    "why": "тиммейты убитого (o.team === victim.team) — кто идёт разменивать",
@@ -84,11 +79,6 @@
   "assist:ambFoes:x,y": {
    "class": "восприятие",
    "why": "враги только увиденные (_visible) или услышанные (heardSound — по месту звука)",
-   "n": 1
-  },
-  "engagements:engDecide:x,y": {
-   "class": "восприятие",
-   "why": "сколько врагов видит: hasVision (модель зрения; без конуса — как есть)",
    "n": 1
   },
   "economy:buyForPlayer:kit": {

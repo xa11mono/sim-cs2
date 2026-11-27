@@ -290,13 +290,6 @@
   },
   {
    "file": "knowledge.js",
-   "function": "hearReal",
-   "field": "z",
-   "expression": "s.z = sb.z",
-   "count": 1
-  },
-  {
-   "file": "knowledge.js",
    "function": "knowRoundStart",
    "field": "alive",
    "expression": "K.alive++",

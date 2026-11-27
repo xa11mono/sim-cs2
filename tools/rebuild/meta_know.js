@@ -22,7 +22,10 @@ EV(`globalThis.MK_SIG = function(obs){
   var pt = function(p){ return p ? (Array.isArray(p) ? [p[0], p[1]] : [p.x, p.y]) : null; };
   var own = bots.filter(function(b){ return b.team === obs; });
   var P = {pub: [tick, roundNum, roundState, JSON.stringify(score), bomb ? (bomb.state === 'planted' ? 'planted' : bomb.state === 'exploded' || bomb.state === 'defused' ? bomb.state : 'not') : null,
-    bots.filter(function(b){ return b.alive && b.team === 'CT'; }).length, bots.filter(function(b){ return b.alive && b.team === 'T'; }).length], b: {}};
+    bots.filter(function(b){ return b.alive && b.team === 'CT'; }).length, bots.filter(function(b){ return b.alive && b.team === 'T'; }).length], b: {},
+    // оружие на полу на виду у наблюдателей (тот же взгляд, что датчик knowTeamLook: дальность взгляда, конус, линия)
+    items: (typeof groundWeapons !== 'undefined' ? groundWeapons : []).filter(function(G){ return own.some(function(m){ return m.alive && DM.hypot(G.x-m.x, G.y-m.y) <= KNOW.lookRange && inFov(m, G.x, G.y) && hasVision(m.x, m.y, G.x, G.y); }); })
+      .map(function(G){ return [G.key, G.x, G.y]; })};
   var K = {team: SR.dig(teamIntel[obs], false), agent: (typeof TEAMK !== 'undefined' && TEAMK[obs] && TEAMK[obs].know) ? SR.dig(TEAMK[obs].know, false) : 0, b: {}};
   var D = {b: {}};
   own.forEach(function(b){
@@ -93,6 +96,12 @@ const FAMILIES = {
     var E = bots.filter(function(o){ return o.alive && o.team !== '${OBS}' && !own.some(function(m){ return (m._visible || []).indexOf(o) >= 0; }); }); if(!E.length) return null;
     E.forEach(function(o){ o.crouching = !o.crouching; o.weapon = WEAPONS[o.weapon && o.weapon.key === 'AWP' ? 'AK' : 'AWP']; });
     return 'поза и ствол (скрыто): ' + E.map(function(o){ return o.id + '=' + o.weapon.key + (o.crouching ? ' присел' : ''); }).join(' '); })()`,
+  // АК на полу рядом с CT (≤ 300 ед.), но там, где его никто из CT не видит (не было на виду и не их): польза сейва не должна измениться
+  gunhide: `(function(){ var cts = bots.filter(function(o){ return o.alive && o.team === 'CT'; }); if(!cts.length) return null;
+    var seen = function(q){ return cts.some(function(o){ return hasVision(o.x, o.y, q.x, q.y) && DM.hypot(o.x-q.x, o.y-q.y) < 1500; }); };
+    for(var i = 0; i < cts.length; i++) for(var k = 0; k < 16; k++){ var a = k*Math.PI/8, q = {x: cts[i].x + Math.cos(a)*120, y: cts[i].y + Math.sin(a)*120};
+      if(!insideSolidWall(q.x, q.y) && !seen(q)){ groundWeapons.push({key: 'AK', x: q.x, y: q.y, t: tick, from: 'MK'}); return 'АК на полу у ' + cts[i].id + ' (не на виду)'; } }
+    return null; })()`,
   // скрытый основной слот у врага с пистолетом в руках (видимо только оружие в руках)
   slot: `(function(){ var E = bots.filter(function(o){ return o.alive && o.team !== '${OBS}' && o.weapon && o.weapon.key !== o.primary; }); if(!E.length) return null;
     E.forEach(function(o){ o.primary = o.primary === 'AK' || o.primary === 'M4' ? null : (o.team === 'T' ? 'AK' : 'M4'); });

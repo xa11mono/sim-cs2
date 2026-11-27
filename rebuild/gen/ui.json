@@ -4250,8 +4250,8 @@
    "class": "диагностика",
    "read_by_core": [
     "sites-spots.js:234",
-    "knowledge.js:84",
     "knowledge.js:86",
+    "knowledge.js:88",
     "look-arbiter.js:184",
     "look-arbiter.js:184",
     "lineups.js:252",
@@ -4278,15 +4278,15 @@
    "var": "KNOW_LOG",
    "class": "диагностика",
    "read_by_core": [
-    "knowledge.js:252"
+    "knowledge.js:254"
    ]
   },
   {
    "var": "KNOW_TRACE",
    "class": "диагностика",
    "read_by_core": [
-    "knowledge.js:250",
-    "knowledge.js:250"
+    "knowledge.js:252",
+    "knowledge.js:252"
    ]
   },
   {
