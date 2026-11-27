@@ -40,3 +40,12 @@ refrag.gg, strafe.com, dignitas.gg для дословной сверки.
 [Dignitas / f0rest (CS:GO)](https://dignitas.gg/articles/news/CSGO/14633/improve-your-rotations-a-csgo-guide-with-f0rest) ·
 [csdb](https://csdb.gg/guides/how-to-defuse-cs2/) · [steamanalyst](https://www.steamanalyst.com/guides/cs2-retakes) ·
 [ggrecon](https://www.ggrecon.com/guides/csgo-how-to-defuse/) · [skin.club](https://community.skin.club/en/news/vitality-lead-in-ct-round-wins-after-the-bomb-is-planted)
+
+## Диагностика I-рет-1 (27.11, `tools/measure/retake_phases.js`, v644a, Mirage м3 / 7 / 11 / 13, 25 раундов с плантом)
+От планта до захода (`go`) — 8–17 с почти всегда (4 на 1, м13 р2 — 9,9 с; 3 на 1, м7 р10 — 17,3 с), от захода до первого CT в 625 ед.
+от бомбы — 2–6 с; у про первый CT в 625 ед. через ≈ 5 с (2 на 1). Все условия захода, кроме «время поджимает», требуют, чтобы кто-то
+стоял на точке сбора (`ready ≥ 1`), а точки сбора (`computeApproaches`) выбраны в стороне — укрыты от бомбы и входов T: время уходит на
+путь к точке сбора и обратно к бомбе, а не на ожидание. Направление правки (не сделано, нужны сцены A / B): сбор на ходу — заход, когда
+свои на расстоянии размена по пути к бомбе, без обязательной остановки на точке (у про первый стоял ≥ 2 с только в 7 %); точка сбора —
+только при известной угрозе входа. Проверить: A — перевес CT, первый в пути, команда идёт к точке сбора в сторону от бомбы; B — 2 на 2 /
+3 на 3 при известном кроссфайре T (сбор правилен).
