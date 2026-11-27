@@ -1,0 +1,137 @@
+{
+ "par": 8,
+ "resume": true,
+ "fp": [
+  {
+   "label": "r47_pk_anc",
+   "ref": "3ce71b957f22f006c86c99edf265e578480252cc",
+   "map": "ancient",
+   "matches": [
+    3,
+    7,
+    11,
+    13,
+    17,
+    19,
+    23,
+    29
+   ],
+   "trace": false,
+   "engine": "node",
+   "variant": "pack"
+  },
+  {
+   "label": "r47_pk_mir",
+   "ref": "3ce71b957f22f006c86c99edf265e578480252cc",
+   "map": "mirage",
+   "matches": [
+    3,
+    7,
+    11,
+    13,
+    17,
+    19,
+    23,
+    29
+   ],
+   "trace": false,
+   "engine": "node",
+   "variant": "pack"
+  },
+  {
+   "label": "r47_am_anc",
+   "ref": "3ce71b957f22f006c86c99edf265e578480252cc",
+   "map": "ancient",
+   "matches": [
+    3,
+    7,
+    11,
+    13,
+    17,
+    19,
+    23,
+    29
+   ],
+   "trace": false,
+   "engine": "chromium",
+   "variant": "all-maps"
+  },
+  {
+   "label": "r47_am_mir",
+   "ref": "3ce71b957f22f006c86c99edf265e578480252cc",
+   "map": "mirage",
+   "matches": [
+    3,
+    7,
+    11,
+    13,
+    17,
+    19,
+    23,
+    29
+   ],
+   "trace": false,
+   "engine": "chromium",
+   "variant": "all-maps"
+  },
+  {
+   "label": "r47_vb_anc",
+   "ref": "3ce71b957f22f006c86c99edf265e578480252cc",
+   "map": "ancient",
+   "matches": [
+    3,
+    7,
+    11,
+    13,
+    17,
+    19,
+    23,
+    29
+   ],
+   "trace": false,
+   "engine": "chromium",
+   "variant": "variant-b"
+  },
+  {
+   "label": "r47_vb_mir",
+   "ref": "3ce71b957f22f006c86c99edf265e578480252cc",
+   "map": "mirage",
+   "matches": [
+    3,
+    7,
+    11,
+    13,
+    17,
+    19,
+    23,
+    29
+   ],
+   "trace": false,
+   "engine": "chromium",
+   "variant": "variant-b"
+  }
+ ],
+ "marks": [
+  {
+   "label": "r47_marks"
+  }
+ ],
+ "r7": [
+  {
+   "label": "r47_r7",
+   "ref": "3ce71b957f22f006c86c99edf265e578480252cc",
+   "maps": [],
+   "engines": [
+    "chromium"
+   ]
+  }
+ ],
+ "require_runtime": {
+  "platform": "win32",
+  "arch": "x64",
+  "node": "v24.21.0",
+  "node_v8": "13.6.233.17-node.53",
+  "playwright": "1.63.0",
+  "chromium": "153.0.8010.12"
+ }
+}
