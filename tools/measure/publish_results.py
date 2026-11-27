@@ -37,7 +37,7 @@ try:
         if not os.path.isdir(src): missing.append(j['label']); continue
         os.makedirs(os.path.join(tmp, j['label']))
         for f in sorted(os.listdir(src)):
-            if f.endswith('.png') or f.endswith('.txt'):   # (v459) снимки экрана — как есть
+            if f.endswith(('.png', '.txt', '.md')):   # (v459) снимки экрана — как есть; (Р8, ПК 347) и mark.md отметок
                 shutil.copy(os.path.join(src, f), os.path.join(tmp, j['label'], f)); n += 1
             elif f.endswith('.json'):
                 if PART:

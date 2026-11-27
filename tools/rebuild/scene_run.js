@@ -9,12 +9,19 @@ const acorn = require('acorn'), walk = require('acorn-walk');
 const ROOT = path.resolve(__dirname, '..', '..');
 const REG = () => JSON.parse(fs.readFileSync(path.join(ROOT, 'rebuild', 'scene_registry.json'), 'utf8')).scenes;
 const MARKS = () => JSON.parse(fs.readFileSync(path.join(ROOT, 'rebuild', 'scenarios.json'), 'utf8'));
+// текст файла сцен аудита, в котором выполняется только сцена id: верхние операторы тела файла (функция-обёртка), присваивающие только
+// чужие сцены (R.<другая> = …), вырезаются целиком — сцена бывает и выражением R.x = (function(){…})(), и блоком try { …; R.x = … }; оператор
+// с несколькими сценами, среди которых и эта, остаётся (его сцены выполняются вместе — это видно в ответе); помощники и объявления остаются
 function onlyScene(text, id, ids) {
-  const ast = acorn.parse(text, { ecmaVersion: 'latest', allowReturnOutsideFunction: true }), cut = [];
-  walk.simple(ast, { AssignmentExpression(n) {
-    const l = n.left; if (l.type === 'MemberExpression' && !l.computed && l.object.type === 'Identifier' && l.object.name === 'R' && ids.has(l.property.name) && l.property.name !== id) cut.push([n.right.start, n.right.end]);
-  } });
-  cut.sort((a, b) => b[0] - a[0]); let s = text; cut.forEach(([a, b]) => { s = s.slice(0, a) + 'null' + s.slice(b); }); return s;
+  const ast = acorn.parse(text, { ecmaVersion: 'latest', allowReturnOutsideFunction: true });
+  let body = ast.body; const e0 = body.length === 1 && body[0].type === 'ExpressionStatement' ? body[0].expression : null;
+  if (e0 && e0.type === 'CallExpression' && /Function/.test(e0.callee.type)) body = e0.callee.body.body;
+  const cut = [];
+  for (const st of body) { const got = new Set();
+    walk.simple(st, { AssignmentExpression(n) { const l = n.left;
+      if (l.type === 'MemberExpression' && !l.computed && l.object.type === 'Identifier' && l.object.name === 'R' && ids.has(l.property.name)) got.add(l.property.name); } });
+    if (got.size && !got.has(id)) cut.push([st.start, st.end]); }
+  cut.sort((a, b) => b[0] - a[0]); let s = text; cut.forEach(([a, b]) => { s = s.slice(0, a) + ';' + s.slice(b); }); return s;
 }
 // sims: {mirage, ancient}; cov — собрать покрытие V8 (имена функций с числом вызовов > 0)
 async function runScene(br, id, sims, cov) {

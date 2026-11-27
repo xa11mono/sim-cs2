@@ -313,7 +313,9 @@ def main():
         r0sh([cargo, '--version'], out, 'cargo_version', env=env)
         kd = os.path.join(ROOT, 'tools', 'r7', 'kernels'); man = os.path.join(kd, 'Cargo.toml')
         # (ПК 344: файл сравнения не попал в публикацию без ошибки в журнале) сравнение — выводом шага в wasm_sha256.txt (текст публикуется всегда)
-        if r0sh([cargo, 'build', '--release', '--manifest-path', man, '--target', 'wasm32-unknown-unknown', '--lib'], out, 'build_wasm', env=env) == 0:
+        # (ПК 347: 1.100.0 против 1.97.0 в облаке) компилятор — из tools/r7/kernels/rust-toolchain.toml: rustup читает его от текущей папки
+        r0sh([cargo, '--version'], out, 'cargo_version_kernels', env=env, cwd=kd)
+        if r0sh([cargo, 'build', '--release', '--manifest-path', man, '--target', 'wasm32-unknown-unknown', '--lib'], out, 'build_wasm', env=env, cwd=kd) == 0:
             r0sh([PY, '-c', 'import hashlib,sys; a,b = [hashlib.sha256(open(f, "rb").read()).hexdigest() for f in sys.argv[1:3]]; print("built", a); print("git  ", b); print("same", a == b)',
                   os.path.join(kd, 'target', 'wasm32-unknown-unknown', 'release', 'sim_r7_kernels.wasm'), os.path.join(kd, 'wasm', 'sim_r7_kernels.wasm')], out, 'wasm_sha256')
         home2 = os.path.join(os.path.expanduser('~'), '.simcs2_node'); npx = os.path.join(home2, 'node_modules', '.bin', 'playwright.cmd' if os.name == 'nt' else 'playwright')

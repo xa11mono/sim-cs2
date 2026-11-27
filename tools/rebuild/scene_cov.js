@@ -33,6 +33,15 @@ function gameFunctions() {
     out.scenes[s.id] = { file: s.file, sim: r.sim, functions: fn, result: r.err ? 'ошибка: ' + r.err : r.res };
     console.log(s.id + ': функций игры ' + fn.length + (r.err ? ', ошибка: ' + r.err : ''));
   }
+  // сверка изоляции: ответ сцены в отдельном запуске = ответ в полном прогоне её файла (сцены аудита)
+  for (const f of [...new Set(reg.filter(s => s.file !== 'rebuild/scenarios.json').map(s => s.file))]) {
+    const pg = await br.newPage(); await pg.route(/^https?:/, r => r.abort());
+    let R = null; try { await pg.goto(require('url').pathToFileURL(simOf('ancient')).href); await pg.waitForFunction(() => typeof window.__ev === 'function', null, { timeout: 120000 });
+      await pg.evaluate(() => window.__ev('clockPause(true); 1'));
+      R = JSON.parse(await pg.evaluate(c => { const v = window.__ev(c); return typeof v === 'string' ? v : JSON.stringify(v); }, fs.readFileSync(path.join(ROOT, f), 'utf8'))); } catch (e) {}
+    await pg.close();
+    for (const [id, x] of Object.entries(out.scenes)) if (x.file === f) x.same_as_full_file = !!R && JSON.stringify(R[id]) === JSON.stringify(x.result);
+  }
   await br.close();
   out.built = { at: new Date().toISOString(), sims: sims.map(f => path.basename(f)), sec: Math.round((Date.now() - t0) / 1000), game_functions: G.size };
   fs.writeFileSync(OUT, JSON.stringify(out, null, 0).replace(/\],"/g, '],\n"'));
