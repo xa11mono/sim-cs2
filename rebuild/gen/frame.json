@@ -145,6 +145,12 @@
     "demo"
    ]
   },
+  "DLOG": {
+   "from": "trace.js",
+   "by": [
+    "app"
+   ]
+  },
   "FOV_DEG": {
    "from": "fov.js",
    "by": [
@@ -2861,6 +2867,12 @@
    "from": "modes.js",
    "by": [
     "demo"
+   ]
+  },
+  "DLOG": {
+   "from": "trace.js",
+   "by": [
+    "app"
    ]
   },
   "HGT_OWN": {
