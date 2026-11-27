@@ -63,7 +63,9 @@ def read_source(files, name, revision):
         raise ValueError('demo provenance sidecar does not match tick data')
     declared = info.get('mapGeometryRevision')
     return {'mapEvidence': 'demo_header', 'demoSha256': info['demoSha256'],
-            'demoGeometryRevision': declared, 'geometryMatchesDemo': declared == revision if declared else None,
+            'demoGeometryRevision': declared,
+            'geometryMatchesDemo': False if declared and declared != revision else None,
+            'reportedGeometryRevisionMatches': declared == revision if declared else None,
             'parser': info.get('parser'), 'sampleEveryTicks': info.get('sampleEveryTicks'),
             'tickRateHz': info.get('tickRateHz')}
 
@@ -134,10 +136,17 @@ def sources(folder, demo):
     return {kind: path for kind, path in files.items() if path.is_file()}
 
 
-def build_demo(demo, files, folder, output, geometry, geometry_revision):
+def build_demo(demo, files, folder, output, geometry, geometry_revision, binding=None):
     if 'ticks' not in files or not {'round_end', 'round_freeze_end'} <= files.keys():
         raise ValueError('tick data or required round event tables missing')
     provenance = read_source(files, demos.MAPNAME, geometry_revision)
+    if binding:
+        if provenance['demoSha256'] != binding['rawDemoSha256']:
+            raise ValueError('recording hash does not match the parser export')
+        if provenance['geometryMatchesDemo'] is False and binding['identicalMapVpk']:
+            raise ValueError('parser declaration conflicts with the verified map archives')
+        provenance['geometryMatchesDemo'] = binding['identicalMapVpk']
+        provenance['mapRevisionBinding'] = binding
     tables, records = read_events(files)
     rounds = demos.rounds_of(demo, tables=tables)
     if not rounds:
@@ -183,16 +192,21 @@ def revision(inputs):
     return hashlib.sha256(json_out(dict(sorted(inputs.items()))).encode()).hexdigest()
 
 
+def preparation_path(path):
+    """Keep research outputs away from inputs loaded by src/mapset.py."""
+    root = Path(mapdir.ROOT).resolve()
+    out = path.resolve()
+    runtime = Path(mapdir.MAPS).resolve()
+    if out == root or root.is_relative_to(out) or out.is_relative_to(runtime):
+        raise ValueError('preparation output must be outside data/maps and cannot contain the repository')
+    return out
+
+
 def dry_report(args):
     name = demos.MAPNAME
     if not MAP_ID.fullmatch(name) or not demos._R:
         raise ValueError('required: supported map with _build.json')
-    root = Path(mapdir.ROOT).resolve()
-    out = args.prepare.resolve()
-    runtime = Path(mapdir.MAPS).resolve()
-    # mapset.py reads additional JSON from the runtime map directory.
-    if out == root or root.is_relative_to(out) or out.is_relative_to(runtime):
-        raise ValueError('preparation output must be outside data/maps and cannot contain the repository')
+    out = preparation_path(args.prepare)
     if out.exists() and (not out.is_dir() or any(out.iterdir())):
         raise ValueError('preparation output must be absent or empty')
     folder = (args.demo_dir or Path(demos.DEMOS)).resolve()
@@ -210,7 +224,11 @@ def dry_report(args):
             raise ValueError('site annotations are for another map or geometry revision')
         if not annotations.get('source'):
             raise ValueError('site annotations require provenance')
-    geometry = Geometry(name, annotations.get('sites'))
+    bindings = None
+    if args.revision_bindings:
+        from demo_revision import verify_bindings
+        bindings = verify_bindings(args.revision_bindings, name, key, digest)
+    geometry = Geometry(name, annotations.get('sites'), annotations.get('layout'))
     out.parent.mkdir(parents=True, exist_ok=True)
     with TemporaryDirectory(dir=out.parent, prefix=f'.{out.name}-') as temporary:
         stage = Path(temporary) / 'evidence'
@@ -218,7 +236,8 @@ def dry_report(args):
         completed, rejected = [], []
         for demo in names:
             try:
-                item = build_demo(demo, sources(folder, demo), folder, stage, geometry, key)
+                binding = bindings['demos'].get(demo) if bindings else None
+                item = build_demo(demo, sources(folder, demo), folder, stage, geometry, key, binding)
             except (ValueError, KeyError, OSError, EOFError) as exc:
                 (stage / f'{demo}.jsonl.gz').unlink(missing_ok=True)
                 rejected.append({'demo': demo, 'reason': str(exc)})
@@ -231,6 +250,8 @@ def dry_report(args):
         catalog = {'schemaVersion': VERSION, 'map': name, 'geometryRevision': key, 'geometryInputs': inputs,
                    'siteAnnotations': annotations or None, 'selection': 'explicit' if args.demo else 'recipe_directory',
                    'frameColumns': FRAME, 'demos': completed, 'rejected': rejected}
+        if bindings:
+            catalog['revisionBindings'] = bindings
         if args.rounds_out:
             export_demorounds(stage, catalog, args.rounds_out, folder)
         (stage / 'index.json').write_text(json_out(catalog) + '\n', encoding='utf-8')
@@ -264,13 +285,14 @@ def main():
     modes.add_argument('--check-prepared', type=Path, help='validate a staged catalog, tracks and source binding')
     parser.add_argument('--demo-dir', type=Path, help='use parser exports instead of the recipe directory')
     parser.add_argument('--demo', action='append', help='process just this demo stem; repeatable')
+    parser.add_argument('--revision-bindings', type=Path, help='archived recording and Valve map byte bindings')
     parser.add_argument('--site-areas', type=Path, help='optional reviewed nav-area membership with map/revision')
     parser.add_argument('--rounds-out', action='append', help='export one viewer round, DEMO:NUMBER; repeatable')
     args = parser.parse_args()
     try:
         if args.check_prepared:
             from demo_evidence_check import validate
-            raise SystemExit(validate(demos.MAPNAME, args.check_prepared, args.demo_dir))
+            raise SystemExit(validate(demos.MAPNAME, args.check_prepared, args.demo_dir, args.revision_bindings))
         count = dry_report(args)
     except (ValueError, TypeError, KeyError, OSError, EOFError) as exc:
         parser.exit(1, f'{exc}\n')

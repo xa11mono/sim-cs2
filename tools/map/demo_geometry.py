@@ -18,6 +18,16 @@ def inside(x, y, points):
     return hit
 
 
+def zone_transform(name):
+    """Apply the baseline zone layer from the runtime, without browser overrides."""
+    with open(mapdir.path(name, 'map.json'), encoding='utf-8') as file:
+        layer = json.load(file)['zoneLayer']
+    scale, dx, dy = (layer[k] for k in ('scale', 'dx', 'dy'))
+    if not all(math.isfinite(v) for v in (scale, dx, dy)) or scale <= 0:
+        raise ValueError('invalid zone layer transform')
+    return lambda x, y: (1024 + (x - 1024) * scale + dx, 1024 + (y - 1024) * scale + dy)
+
+
 def floor_z(x, y, points, mean):
     """Interpolate the triangles of a nav polygon when vertex Z is available."""
     if any(p.get('z') is None for p in points):
@@ -37,24 +47,25 @@ def floor_z(x, y, points, mean):
 
 
 class Geometry:
-    def __init__(self, name, site_areas=None):
+    def __init__(self, name, site_areas=None, site_layout=None):
         radar = mapdir.radar(name)
         if not all(math.isfinite(radar[k]) for k in ('pos_x', 'pos_y', 'scale')) or radar['scale'] <= 0:
             raise ValueError('invalid map radar transform')
         self.transform = mapdir.game_to_map(name)
+        self.zone_transform = zone_transform(name)
         with open(mapdir.path(name, 'navmesh.json'), encoding='utf-8') as f:
             nav = json.load(f)
         with open(mapdir.path(name, 'zones.json'), encoding='utf-8') as f:
             zones = json.load(f)
         self.zones = zones.get('navZone', {})
-        self.polygons = {s: ([tuple(p) for p in xy], 'plant_polygon_xy_proxy')
+        self.polygons = {s: ([self.zone_transform(*p) for p in xy], 'plant_polygon_xy_proxy')
                          for s, xy in zones.get('sites', {}).items() if xy}
         # Same site-role convention as the runtime, used only for a projected observation.
         for zone in zones.get('zonemap', {}).get('zones', ()):
             role = zone.get('name', '')
             if role.endswith('site') and len(zone.get('points', ())) >= 3:
                 self.polygons.setdefault(role.removesuffix('site'), (
-                    [(p['x'], p['y']) for p in zone['points']], 'site_zone_xy_proxy'))
+                    [self.zone_transform(p['x'], p['y']) for p in zone['points']], 'site_zone_xy_proxy'))
         self.areas = {a['id']: a for a in nav['areas']}
         if not self.areas or len(self.areas) != len(nav['areas']):
             raise ValueError('missing or duplicate nav areas')
@@ -67,6 +78,7 @@ class Geometry:
                         raise ValueError('ladder references unknown nav area')
                     self.ladders.update(((bottom, top), (top, bottom)))
         self.site_areas = site_areas or {}
+        self.site_layout = site_layout or {}
         if any(not ids or set(ids) - self.areas.keys() for ids in self.site_areas.values()):
             raise ValueError('site annotation references missing nav areas')
         if sum(map(len, self.site_areas.values())) != len(set().union(*self.site_areas.values())):
@@ -101,7 +113,7 @@ class Geometry:
             return 'nav_link'
         return 'unsampled_or_unlinked'
 
-    def site(self, site, xy, candidates, revision_verified):
+    def site(self, site, xy, candidates, revision_verified, world_z=None):
         if not candidates:
             return None
         ids = self.site_areas.get(site)
@@ -116,7 +128,13 @@ class Geometry:
             membership = {a in ids for a, _ in candidates}
             if len(membership) != 1:
                 return None
-            return 'nav_area', membership.pop()
+            belongs = membership.pop()
+            if site in self.site_layout:
+                lo, hi = self.site_layout[site]['heightBoundsWorld']
+                if world_z is None:
+                    return None
+                return 'nav_area_and_trigger_height', belongs and lo <= world_z <= hi
+            return 'nav_area', belongs
         if site not in self.polygons or len(candidates) != 1:
             return None
         points, method = self.polygons[site]

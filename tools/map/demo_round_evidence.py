@@ -66,7 +66,7 @@ def crossings(actors, plant, site, geometry, verified):
         for p in actor['track']:
             if not p[4] or p[0] < plant:
                 continue
-            where = geometry.site(site, p[2], p[3], verified)
+            where = geometry.site(site, p[2], p[3], verified, p[1][2])
             if where is None:
                 earlier = None
                 continue

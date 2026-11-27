@@ -60,6 +60,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   }
   if (options.includes('--strict')) {
     execFileSync(python, ['tools/map/map_check.py', name], { cwd: root, stdio: 'inherit' });
+    execFileSync(python, ['tools/map/map_check.py', name, '--runtime-contract'], { cwd: root, stdio: 'inherit' });
   }
   const source = readLegacyMap(name);
   const bytes = packMap(source);

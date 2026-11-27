@@ -62,13 +62,20 @@ def validate_round(round_info, demo, geometry):
                 raise ValueError(f'{rid}: boost references absent observations')
 
 
-def validate(name, folder, source_dir=None):
+def validate(name, folder, source_dir=None, bindings_file=None):
     index = json.loads((folder / 'index.json').read_text(encoding='utf-8'))
     if index['schemaVersion'] != VERSION or index['map'] != name or tuple(index['frameColumns']) != FRAME:
         raise ValueError('unsupported evidence schema or mismatched map')
     inputs = geometry_inputs(name)
     if inputs != index['geometryInputs'] or revision(inputs) != index['geometryRevision']:
         raise ValueError('map geometry/revision differs; reproject original XYZ and review spatial labels')
+    bindings = index.get('revisionBindings')
+    if bindings_file:
+        from demo_revision import verify_bindings
+        if bindings != verify_bindings(bindings_file, name, index['geometryRevision'], digest):
+            raise ValueError('recording and map archives differ from the staged revision bindings')
+    elif bindings:
+        print('revision binding files were not rechecked; use --revision-bindings')
     geometry = Geometry(name)
     if not index['demos']:
         raise ValueError('no demos in catalog')

@@ -6,11 +6,15 @@ python3 tools/map/map_check.py [карта ...] [--known=файл] — по сп
 недостаток — код 1. Проверка не ослабляется: список известных меняется только правкой файла (с датой и причиной).
 Код возврата 1, если чего-то нет. Строки «нет скрипта» — данных нет ни у одной карты (нужен новый скрипт запекания)."""
 import json, os, sys
+from pathlib import Path
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 MAN = json.load(open(os.path.join(ROOT, 'tools', 'map', 'map_manifest.json'), encoding='utf-8'))
 KNOWN_F = next((a.split('=', 1)[1] for a in sys.argv[1:] if a.startswith('--known=')), None)
 KNOWN = {(g['what'], g['map']) for g in json.load(open(os.path.join(ROOT, KNOWN_F), encoding='utf-8'))['gaps']} if KNOWN_F else set()
 maps = [a for a in sys.argv[1:] if not a.startswith('--')] or sorted(d for d in os.listdir(os.path.join(ROOT, 'data', 'maps')) if os.path.isfile(os.path.join(ROOT, 'data', 'maps', d, 'map.json')))
+if '--runtime-contract' in sys.argv:
+    from map_contract import check_contract
+    sys.exit(1 if check_contract(Path(ROOT), maps, MAN) else 0)
 cache = {}
 def get(m, f, key):
     p = os.path.join(ROOT, 'data', 'maps', m, f)
