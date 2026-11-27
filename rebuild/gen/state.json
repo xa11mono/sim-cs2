@@ -13217,7 +13217,7 @@
   },
   "_drawUntil": {
    "w": [
-    "items.js:335 equipmentSetDrawUntil"
+    "items.js:337 equipmentSetDrawUntil"
    ],
    "lit": [],
    "r": 3
@@ -13542,7 +13542,7 @@
   },
   "_fireAcc": {
    "w": [
-    "decide.js:263 resetNades"
+    "decide.js:265 resetNades"
    ],
    "lit": [],
    "r": 1
@@ -13635,14 +13635,14 @@
   },
   "_fpT": {
    "w": [
-    "items.js:292 weaponPickupTick"
+    "items.js:294 weaponPickupTick"
    ],
    "lit": [],
    "r": 2
   },
   "_fpV": {
    "w": [
-    "items.js:295 weaponPickupTick"
+    "items.js:297 weaponPickupTick"
    ],
    "lit": [],
    "r": 3
@@ -13938,7 +13938,7 @@
     "task.js:282 taskKeep"
    ],
    "lit": [],
-   "r": 2
+   "r": 1
   },
   "_keys": {
    "w": [
@@ -13985,7 +13985,7 @@
   },
   "_knife": {
    "w": [
-    "items.js:336 equipmentSetKnife"
+    "items.js:338 equipmentSetKnife"
    ],
    "lit": [
     "round.js:3"
@@ -14262,8 +14262,8 @@
   },
   "_nadeCd": {
    "w": [
-    "decide.js:216 nadeBrains",
-    "decide.js:263 resetNades"
+    "decide.js:218 nadeBrains",
+    "decide.js:265 resetNades"
    ],
    "lit": [],
    "r": 3
@@ -14292,7 +14292,7 @@
   },
   "_nadeWhy": {
    "w": [
-    "decide.js:259 nadeCancel"
+    "decide.js:261 nadeCancel"
    ],
    "lit": [],
    "r": 1
@@ -14479,7 +14479,7 @@
   },
   "_pdT": {
    "w": [
-    "items.js:328 weaponPickupTick"
+    "items.js:330 weaponPickupTick"
    ],
    "lit": [],
    "r": 2
@@ -14505,8 +14505,8 @@
     "items.js:252 weaponPickupTick",
     "items.js:258 weaponPickupTick",
     "items.js:270 weaponPickupTick",
-    "items.js:294 weaponPickupTick",
-    "items.js:330 weaponPickupTick"
+    "items.js:296 weaponPickupTick",
+    "items.js:332 weaponPickupTick"
    ],
    "lit": [],
    "r": 10
@@ -14520,7 +14520,7 @@
   },
   "_pickSave": {
    "w": [
-    "items.js:330 weaponPickupTick"
+    "items.js:332 weaponPickupTick"
    ],
    "lit": [],
    "r": 3
@@ -14845,8 +14845,8 @@
   },
   "_retreatNade": {
    "w": [
-    "decide.js:227 nadeBrains",
-    "decide.js:228 nadeBrains"
+    "decide.js:229 nadeBrains",
+    "decide.js:230 nadeBrains"
    ],
    "lit": [],
    "r": 3
@@ -14990,7 +14990,7 @@
   },
   "_secAmmo": {
    "w": [
-    "items.js:337 equipmentSetSecAmmo"
+    "items.js:339 equipmentSetSecAmmo"
    ],
    "lit": [],
    "r": 3
@@ -15883,7 +15883,7 @@
    "w": [
     "economy.js:264 buyFullKit",
     "economy.js:284 buyFullKit",
-    "items.js:338 equipmentSetKit"
+    "items.js:340 equipmentSetKit"
    ],
    "lit": [
     "round.js:3"
@@ -15984,15 +15984,15 @@
   },
   "nadeQueue": {
    "w": [
-    "decide.js:268 nadeSetNadeQueue"
+    "decide.js:270 nadeSetNadeQueue"
    ],
    "lit": [],
    "r": 13
   },
   "nadeTask": {
    "w": [
-    "decide.js:255 nadeTaskEnd",
-    "decide.js:263 resetNades",
+    "decide.js:257 nadeTaskEnd",
+    "decide.js:265 resetNades",
     "exec-sync.js:128 exuReassign",
     "exec-sync.js:131 exuReassign",
     "exec-sync.js:132 exuReassign",
@@ -16163,7 +16163,7 @@
   },
   "primary": {
    "w": [
-    "items.js:339 equipmentSetPrimary"
+    "items.js:341 equipmentSetPrimary"
    ],
    "lit": [
     "fight.js:223",
@@ -16328,7 +16328,7 @@
   },
   "secondary": {
    "w": [
-    "items.js:340 equipmentSetSecondary"
+    "items.js:342 equipmentSetSecondary"
    ],
    "lit": [
     "round.js:3",
@@ -16520,7 +16520,7 @@
   },
   "weapon": {
    "w": [
-    "items.js:341 equipmentSetWeapon"
+    "items.js:343 equipmentSetWeapon"
    ],
    "lit": [
     "fight.js:223",

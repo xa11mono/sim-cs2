@@ -283,8 +283,8 @@ function taskKeep(b, until, why){ b._reposUntil = until; b._keepWhy = why; }
 // (этап B, М2, 27.11) заявка новой задачи со сбросом срока прежней (taskKeep(b, 0) перед setPost): при отказе арбитра срок прежней задачи
 // возвращается — было: отказанная заявка стирала срок активной repos:* (задача умирала через TASK_STALE, бот уходил на пост роли). При
 // принятой заявке — то же, что было
-function setPostRenew(b, why, pt, look, hold, tag){ var kU = b._reposUntil, kW = b._keepWhy; taskKeep(b, 0, why);
-  var R = setPost(b, pt, look, hold, tag); if(!R.ok) taskKeep(b, kU, kW); return R; }
+function setPostRenew(b, why, pt, look, hold, tag){ var kU = b._reposUntil; taskKeep(b, 0, why);   // _keepWhy — поле показа, ядро его не читает
+  var R = setPost(b, pt, look, hold, tag); if(!R.ok) taskKeep(b, kU, why + ": отказ — срок прежней задачи"); return R; }
 function taskTagB(tag){ tag = String(tag); var r = /^repos:\w+/.exec(tag); return r ? r[0] : tag.replace(/[:|].*$/, ""); }
 function taskLevel(tag){ tag = String(tag || ""); for(var i=0;i<TASK_LEVEL.length;i++) if(TASK_LEVEL[i].re.test(tag)) return TASK_LEVEL[i].lv; return 1; }
 function taskAlive(b){ var T = b._task; return !!T && T.round === roundNum && (tick - T.t <= TASK_STALE || tick < taskKeepUntil(b, T.tag)); }

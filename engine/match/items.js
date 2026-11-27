@@ -288,7 +288,9 @@ function weaponPickupTick(){
         if(G.key === "AWP" && !awpAllowed(b) && cur >= 5) return;
         if(b._pickIgnore && b._pickIgnore.round === roundNum && DM.hypot(G.x-b._pickIgnore.x, G.y-b._pickIgnore.y) < 40) return;
         var dG = DM.hypot(G.x-b.x, G.y-b.y); if(dG < gd && hasLOS(b.x, b.y, G.x, G.y, b.z)){ gd = dG; gBest = G; } });
-      if(gBest && (b.state !== "patrol" || intelEstimate(b.team, gBest.x, gBest.y, 450, 3*TICK_HZ).n > 0) && pickDetour(b, gBest)){
+      // (этап B, B-10) выйти из боя за оружием — только если арбитр места пустит подбор (было: бой переключался до ответа, при отказе бот
+      // оставался «в патруле с ножом» без поста подбора)
+      if(gBest && (b.state !== "patrol" || intelEstimate(b.team, gBest.x, gBest.y, 450, 3*TICK_HZ).n > 0) && pickDetour(b, gBest) && taskCanSet(b, "pickup")){
         b._fpT = tick;
         if(b.state !== "patrol"){ fightState(b, "patrol", "нож"); fightHoldOff(b, "knife"); engagementSetStateSince(b, tick); }
         if(setPost(b, {x:gBest.x, y:gBest.y}, null, true, "pickup").ok) b._pickGo = {x:gBest.x, y:gBest.y, round:roundNum};

@@ -92,13 +92,15 @@ function nadeBrains(){
   // раздел 12: фейк — смок на вход CT и флешка на фейковый сайт, чтобы звучало
   // и выглядело как настоящий выход
   if(tt.fakeOn && !nadeFlags.fakeNades && tt.phase === "setup"){
-    nadeFlags.fakeNades = true;
     var gf = GEO[tt.tac.fake], fsite = SITES[tt.tac.fake];
     var fakers = ts.filter(function(b){ return b.tRole === "support" || b.tRole === "lurker"; });
     var fs1 = fakers.filter(function(b){ return b.nades.smoke > 0; })[0];
-    if(fs1) assignNade(fs1, "smoke", gf.ctEntry, "фейк-смок", {bkey:"T.fake.smoke."+tt.tac.fake});
+    // (этап B, М4) «гранаты фейка розданы» — когда хоть один заказ принят (или кидать некому); оба отказа — попытка на следующем тике
+    var fkOk = false;
+    if(fs1 && assignNade(fs1, "smoke", gf.ctEntry, "фейк-смок", {bkey:"T.fake.smoke."+tt.tac.fake}).ok) fkOk = true;
     var ff1 = fakers.filter(function(b){ return b !== fs1 && b.nades.flash > 0; })[0] || (fs1 && fs1.nades.flash > 0 ? fs1 : null);
-    if(ff1) assignNade(ff1, "flash", {x:gf.tEntry.x + (fsite.x-gf.tEntry.x)*0.4, y:gf.tEntry.y + (fsite.y-gf.tEntry.y)*0.4}, "фейк-флешка", {bkey:"T.fake.flash."+tt.tac.fake});
+    if(ff1 && assignNade(ff1, "flash", {x:gf.tEntry.x + (fsite.x-gf.tEntry.x)*0.4, y:gf.tEntry.y + (fsite.y-gf.tEntry.y)*0.4}, "фейк-флешка", {bkey:"T.fake.flash."+tt.tac.fake}).ok) fkOk = true;
+    if(fkOk || (!fs1 && !ff1)) nadeFlags.fakeNades = true;
   }
   // T: выход — два смока (вход CT, линия опорника), флешка ПОД ПИК энтри от
   // поддержки (синхронизация двух ботов: энтри ждёт хлопка), молотов на опорника
@@ -121,9 +123,9 @@ function nadeBrains(){
     var ent = byRole(ts, "entry");
     var fx = g.tEntry.x + (site.x-g.tEntry.x)*0.35, fy = g.tEntry.y + (site.y-g.tEntry.y)*0.35;
     var flasher = ts.filter(function(b){ return b !== ent && b.nades.flash > 0 && (b.tRole === "support" || b.tRole === "awp"); })[0];
-    if(ent && flasher){
+    // (этап B, М4) энтри ждёт флешку поддержки (peekFlashPlanned), только если заказ принят; отказ — флешка себе, как без поддержки
+    if(ent && flasher && assignNade(flasher, "flash", {x:fx, y:fy}, "под пик", {now:true, bkey:"T.exec.flash."+tt.site}).ok){
       nadeFlags.peekFlashPlanned = tick;
-      assignNade(flasher, "flash", {x:fx, y:fy}, "под пик", {now:true, bkey:"T.exec.flash."+tt.site});
     } else if(ent && ent.nades.flash > 0){
       assignNade(ent, "flash", {x:fx, y:fy}, "под заход", {bkey:"T.exec.flash."+tt.site}); // некому — сам себе
     }

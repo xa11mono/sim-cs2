@@ -218,8 +218,8 @@
 - **хозяин** `(верх файла) · smoke` — 1 (стр. 37)
 - **хозяин** `nadeAskFlash · plan` — 1 (стр. 235)
 - **хозяин** `assignNadeDo · throw` — 1 (стр. 414)
-- **хозяин** `nadeTaskEnd · decide` — 1 (стр. 255)
-- **хозяин** `resetNades · decide` — 1 (стр. 263)
+- **хозяин** `nadeTaskEnd · decide` — 1 (стр. 257)
+- **хозяин** `resetNades · decide` — 1 (стр. 265)
 
 ## `holding`
 
@@ -381,7 +381,7 @@
 
 ## `_drawUntil`
 
-- **хозяин** `equipmentSetDrawUntil · items` — 1 (стр. 335)
+- **хозяин** `equipmentSetDrawUntil · items` — 1 (стр. 337)
 
 ## `_egC`
 
@@ -446,7 +446,7 @@
 
 ## `_knife`
 
-- **хозяин** `equipmentSetKnife · items` — 1 (стр. 336)
+- **хозяин** `equipmentSetKnife · items` — 1 (стр. 338)
 
 ## `_landAt`
 
@@ -542,7 +542,7 @@
 
 ## `_secAmmo`
 
-- **хозяин** `equipmentSetSecAmmo · items` — 1 (стр. 337)
+- **хозяин** `equipmentSetSecAmmo · items` — 1 (стр. 339)
 
 ## `_stabT`
 
@@ -645,7 +645,7 @@
 ## `kit`
 
 - `buyFullKit · economy` — 2 (стр. 264, 284)
-- **хозяин** `equipmentSetKit · items` — 1 (стр. 338)
+- **хозяин** `equipmentSetKit · items` — 1 (стр. 340)
 
 ## `lastShotTick`
 
@@ -665,7 +665,7 @@
 
 ## `nadeQueue`
 
-- **хозяин** `nadeSetNadeQueue · decide` — 1 (стр. 268)
+- **хозяин** `nadeSetNadeQueue · decide` — 1 (стр. 270)
 
 ## `nades`
 
@@ -685,7 +685,7 @@
 
 ## `primary`
 
-- **хозяин** `equipmentSetPrimary · items` — 1 (стр. 339)
+- **хозяин** `equipmentSetPrimary · items` — 1 (стр. 341)
 
 ## `reloadUntil`
 
@@ -733,7 +733,7 @@
 
 ## `secondary`
 
-- **хозяин** `equipmentSetSecondary · items` — 1 (стр. 340)
+- **хозяин** `equipmentSetSecondary · items` — 1 (стр. 342)
 
 ## `setupLook`
 
@@ -753,7 +753,7 @@
 
 ## `weapon`
 
-- **хозяин** `equipmentSetWeapon · items` — 1 (стр. 341)
+- **хозяин** `equipmentSetWeapon · items` — 1 (стр. 343)
 
 ## `x`
 
