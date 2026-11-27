@@ -1,0 +1,20 @@
+код 0
+{
+ "browser": "webkit",
+ "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Safari/605.1.15",
+ "sec": 30,
+ "frames": 983,
+ "fps": 32.8,
+ "ticks": 1920,
+ "worker_on": true,
+ "bytes_avg": 210261,
+ "bytes_max": 402292,
+ "enc_ms_avg": 1.65,
+ "dec_ms_avg": 1.16,
+ "apply_ms_avg": 1.21,
+ "page_ms_max": 10,
+ "long_by_transfer": 0,
+ "long_tasks_all": 0,
+ "errors": []
+}
+
