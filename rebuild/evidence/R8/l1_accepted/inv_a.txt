@@ -1,0 +1,21 @@
+contact:hold"}}
+I-06: 0
+I-07: 0 | наибольшее по ключу: [["lineup",1281],["anchor",1030],["rotate",916],["stageA",573]]
+I-08: 75 | первый: {"tick":2267,"round":1,"bot":"CT0","data":{"x":599,"y":644,"z":77}}
+I-09: 0
+I-10: 0
+I-11: 1 | первый: {"tick":9412,"round":2,"bot":"T2","data":{"from":[1605,1239],"z":[16.5,7],"why":"не долетит: стена / потолок"}}
+I-12: 0
+I-13: 31 | первый: {"tick":961,"round":1,"bot":null,"data":{"ms":442,"nadeTasks":0}}
+I-14: 0 | наибольшее по ключу: [["x",30],["y",30],["z",30],["baseX",30]]
+I-16: 135 | первый: {"tick":1657,"round":1,"bot":"CT0","data":{"field":"heardSound","src":"T4","kind":"steps","enemy":"T4"}}
+I-17: 0 | наибольшее по ключу: [["contact",458],["repos",255],["stageA",241],["plantspot",205]]
+I-18: 0 | наибольшее по ключу: [["holding",6486]]
+I-19: 0
+I-20: 0
+I-21: 50272 | первый: {"tick":960,"round":1,"bot":"CT0","data":{"facing":3.9605050722101804}}
+I-25: 66 | первый: {"tick":2641,"round":1,"bot":"CT2","data":{"seen":"T2","kind":"steps"}}
+I-26: 0 | наибольшее по ключу: [["runupTick",1281],["html",1030],["ctSetupRole",1007],["updateNadeTask1",637]]
+I-27: 0 | наибольшее по ключу: [["contactSpots",2386],["html",29],["assistPeek",18],["flankSpot",15]]
+I-28: 0
+I-31: 88 | первый: {"tick":2495,"round":1,"bot":"CT2","data":{"want":"backstab","holds":"ambush","lv":9,"by":"ambushTick"}}

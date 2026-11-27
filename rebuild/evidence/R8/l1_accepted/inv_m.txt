@@ -1,0 +1,15 @@
+tick":7854,"round":2,"bot":"CT1","data":{"from":[1010,1040],"z":[-164.09765625,-164.390625],"why":"пауза: подбор броска — в следующем тике"}}
+I-12: 3 | первый: {"tick":7856,"round":2,"bot":"CT1","data":{"n":4,"why":"пауза: подбор броска — в следующем тике"}}
+I-13: 47 | первый: {"tick":961,"round":1,"bot":null,"data":{"ms":472,"nadeTasks":0}}
+I-14: 0 | наибольшее по ключу: [["x",30],["y",30],["z",30],["baseX",30]]
+I-16: 211 | первый: {"tick":1535,"round":1,"bot":"CT0","data":{"field":"heardSound","src":"T4","kind":"steps","enemy":"T4"}}
+I-17: 0 | наибольшее по ключу: [["contact",512],["repos",437],["stageB",375],["tradeR",223]]
+I-18: 0 | наибольшее по ключу: [["holding",6419]]
+I-19: 0
+I-20: 4 | первый: {"tick":2348,"round":1,"bot":"CT1","data":{"t0":2124}}
+I-21: 43045 | первый: {"tick":960,"round":1,"bot":"CT3","data":{"facing":-3.219350492450268}}
+I-25: 127 | первый: {"tick":1774,"round":1,"bot":"T4","data":{"seen":"CT1","kind":"steps"}}
+I-26: 0 | наибольшее по ключу: [["html",2552],["ctSetupRole",2551],["updateNadeTask1",640],["retakePost",616]]
+I-27: 0 | наибольшее по ключу: [["contactSpots",4536],["assistPeek",45],["flankSpot",30],["html",18]]
+I-28: 0
+I-31: 43 | первый: {"tick":3840,"round":1,"bot":"T2","data":{"want":"contact:hold","holds":"repos:finish","lv":9,"by":"contactTick"}}
