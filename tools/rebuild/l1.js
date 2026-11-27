@@ -53,7 +53,9 @@ function save(status) { const sec = Math.round((Date.now() - t0) / 1000);
       const r = await run('node', [path.join(ROOT, 'tools', 'measure', 'diverge.js'), sim['c' + m], sim['c' + m], '--match=3', '--snap-at=3000', '--ticks=6000']);
       return ['I-23 ' + m, r.code, (r.out.trim().split('\n').filter(Boolean).pop() || r.err.trim().split('\n').pop() || '').slice(0, 300)]; })), 2);
     // 3б) ядра Rust = эталон TS (r7Mode shadow): правка эталона без правки ядра (или наоборот) — расхождение
-    const SH = await pool(maps.map(m => async () => { const r = await run('node', [path.join(ROOT, 'src', 'q.js'), sim['c' + m], 'r7Mode("shadow"); freshMatch(3); while(tick < 3000) stepTick(); "сверок " + R7.n + ", расхождений " + R7.bad']);
+    // ядер Rust нет в этой версии (до 951f56d2) — сверка не применима: пометка, а не ошибка (L1 30c52b6d, 27.11)
+    const SH = await pool(maps.map(m => async () => { if (!/function r7Mode\(/.test(fs.readFileSync(sim['c' + m], 'utf8'))) return ['ядро = эталон ' + m, 0, 'в этой версии ядер Rust нет — не применимо'];
+      const r = await run('node', [path.join(ROOT, 'src', 'q.js'), sim['c' + m], 'r7Mode("shadow"); freshMatch(3); while(tick < 3000) stepTick(); "сверок " + R7.n + ", расхождений " + R7.bad']);
       const t = r.code ? 'ошибка' : r.out.trim().split('\n').pop(); return ['ядро = эталон ' + m, /расхождений 0$/.test(t) ? 0 : 1, t]; }), 2);
     INV.push(...SH);
     L.push('', '## Инварианты и ядра (коммит)', ...INV.map(([k, c, t]) => '- ' + k + ': код ' + c + ' — ' + t));
