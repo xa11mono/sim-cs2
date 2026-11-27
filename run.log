@@ -1,0 +1,206 @@
+playwright 1.63.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\r45_r7\env.json
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\r45_wkm_mir\env.json
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\r45_mass_anc\env.json
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\r45_mass_mir\env.json
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\r45_prof_anc\env.json
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\r45_prof_mir\env.json
+guard: память 15977 МБ, свободно 8523; запас 3195, критично 1536; на матч ≤ 6144 МБ, ≤ 90 мин; par ≤ 8; объект задания: да; продолжение: да
+> git fetch --quiet origin 088b1d7564bdd690380455d2ff2560e4bf5f4f76
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_h2ff4trp 088b1d7564bdd690380455d2ff2560e4bf5f4f76
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_h2ff4trp\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\r45_off_anc.html
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+модули: task.js, intel.js, events.js, turn.ts, smoke.js, plan.js, exec-sync.js, levels.js, throw.js, flight.js, lineups.js, damage.js, self.js, decide.js, fight.js, assist.js, shoot.js, fight-state.js, engagements.js, move.js, tick.js, tick-jump.js, tick-keys.js, tick-step.js — ядро отдаёт 304 имён, берёт 741
+Единственный писатель: полей 107, записей в обход 0
+пометок 1736 | полей facing:7 walking:4 curSpeed:5 post:3 _task:4 _reposUntil:1 _waitPopUntil:1 _avoidPeekUntil:1 _tradeUntil:2 _tradeLock:1 state:2 nadeTask:8 holding:4 crouching:1 path:7 phase:1 lookReason:2 _lookLvl:1 heardSound:2 lastIntel:1 planting:3 defusing:3 _route:4 _routeDone:2 baseX:11 baseY:11 pathIdx:8 _aimFix:1 _ammoFor:1 _area:1 _blind:1 _blindBy:1 _boost:1 _climb:1 _contact:1 _covLog:1 _covT:1 _detour:1 _dmgBy:1 _drawUntil:1 _egC:1 _fall:1 _fc:1 _fillLock:1 _fireExit:1 _fireExitFire:1 _fireIn:1 _flee:1 _heDone:2 _hold:1 _holdLog:1 _huntArrive:1 _huntIdx:1 _jc:1 _jump:1 _knife:1 _landAt:1 _lkC:1 _lkPt:1 _lkTop:1 _lkZ:1 _lurkArr:1 _lurkIdx:1 _lurkPh:1 _mistakes:1 _nadeNo:1 _nadeT:1 _nearestEnemyBot:1 _offNav:1 _onPistol:1 _prevOffX:1 _prevOffY:1 _probe:1 _probeLock:1 _reloading:1 _roamSoundHandled:1 _roamSoundLockUntil:1 _saveSpot:1 _sawEnemy:1 _secAmmo:1 _stabT:1 _stageInfo:1 _stopPlantUntil:1 _stopWhy:1 _tagUntil:1 _ts:1 _unstickT:1 alive:4 ammo:1 armor:1 armorHp:1 atPost:1 blindUntil:1 burstCount:1 contactStreak:1 deaths:1 decisionTick:1 forcedRetreat:1 heading:1 helmet:2 holdSinceTick:1 hp:1 kills:1 kit:2 lastShotTick:1 lastStepTick:1 lookTarget:1 money:1 nadeQueue:1 nades:1 nextShotTick:1 onStairs:1 pickTick:1 primary:1 reloadUntil:1 retakeRole:1 roamCheckStart:1 roamCheckUntil:1 roamChecking:1 roamIdx:1 roamLookPt:1 roamPrevPt:1 roamTarget:1 roundDmg:1 roundKills:1 secondary:1 setupLook:1 stateSince:1 stuckTicks:1 throwUntil:1 weapon:1 x:1 y:1 z:2 | функций 1507
+общих переменных 992 из чужих файлов пишут 83
+реестр состояния: строк 1480, не размечено 0
+карточки механик: файлов 101, расхождений 0
+чтения истины врага (решения): мест 55, новых 0; известных нарушений «истина» 13 (BEHAVIOR_BACKLOG, после Р8)
+ответ хозяина не прочитан (Р-7): мест 124
+виды задач (TaskKind): 79 литералом, мест с тегом из данных 20, расхождений 0
+писатели полей бота: полей 455, писателей 580, новых 0
+правила сборки Р-1…Р-17: известных мест Р-1 6, Р-3а 77, Р-3б 15, Р-4 46, Р-5 57, Р-16 0, Р-17 68; новых 0
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_pqtxndka 088b1d7564bdd690380455d2ff2560e4bf5f4f76
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_pqtxndka\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\r45_off_mir.html
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+модули: task.js, intel.js, events.js, turn.ts, smoke.js, plan.js, exec-sync.js, levels.js, throw.js, flight.js, lineups.js, damage.js, self.js, decide.js, fight.js, assist.js, shoot.js, fight-state.js, engagements.js, move.js, tick.js, tick-jump.js, tick-keys.js, tick-step.js — ядро отдаёт 304 имён, берёт 741
+Единственный писатель: полей 107, записей в обход 0
+пометок 1736 | полей facing:7 walking:4 curSpeed:5 post:3 _task:4 _reposUntil:1 _waitPopUntil:1 _avoidPeekUntil:1 _tradeUntil:2 _tradeLock:1 state:2 nadeTask:8 holding:4 crouching:1 path:7 phase:1 lookReason:2 _lookLvl:1 heardSound:2 lastIntel:1 planting:3 defusing:3 _route:4 _routeDone:2 baseX:11 baseY:11 pathIdx:8 _aimFix:1 _ammoFor:1 _area:1 _blind:1 _blindBy:1 _boost:1 _climb:1 _contact:1 _covLog:1 _covT:1 _detour:1 _dmgBy:1 _drawUntil:1 _egC:1 _fall:1 _fc:1 _fillLock:1 _fireExit:1 _fireExitFire:1 _fireIn:1 _flee:1 _heDone:2 _hold:1 _holdLog:1 _huntArrive:1 _huntIdx:1 _jc:1 _jump:1 _knife:1 _landAt:1 _lkC:1 _lkPt:1 _lkTop:1 _lkZ:1 _lurkArr:1 _lurkIdx:1 _lurkPh:1 _mistakes:1 _nadeNo:1 _nadeT:1 _nearestEnemyBot:1 _offNav:1 _onPistol:1 _prevOffX:1 _prevOffY:1 _probe:1 _probeLock:1 _reloading:1 _roamSoundHandled:1 _roamSoundLockUntil:1 _saveSpot:1 _sawEnemy:1 _secAmmo:1 _stabT:1 _stageInfo:1 _stopPlantUntil:1 _stopWhy:1 _tagUntil:1 _ts:1 _unstickT:1 alive:4 ammo:1 armor:1 armorHp:1 atPost:1 blindUntil:1 burstCount:1 contactStreak:1 deaths:1 decisionTick:1 forcedRetreat:1 heading:1 helmet:2 holdSinceTick:1 hp:1 kills:1 kit:2 lastShotTick:1 lastStepTick:1 lookTarget:1 money:1 nadeQueue:1 nades:1 nextShotTick:1 onStairs:1 pickTick:1 primary:1 reloadUntil:1 retakeRole:1 roamCheckStart:1 roamCheckUntil:1 roamChecking:1 roamIdx:1 roamLookPt:1 roamPrevPt:1 roamTarget:1 roundDmg:1 roundKills:1 secondary:1 setupLook:1 stateSince:1 stuckTicks:1 throwUntil:1 weapon:1 x:1 y:1 z:2 | функций 1507
+общих переменных 992 из чужих файлов пишут 83
+реестр состояния: строк 1480, не размечено 0
+карточки механик: файлов 101, расхождений 0
+чтения истины врага (решения): мест 55, новых 0; известных нарушений «истина» 13 (BEHAVIOR_BACKLOG, после Р8)
+ответ хозяина не прочитан (Р-7): мест 124
+виды задач (TaskKind): 79 литералом, мест с тегом из данных 20, расхождений 0
+писатели полей бота: полей 455, писателей 580, новых 0
+правила сборки Р-1…Р-17: известных мест Р-1 6, Р-3а 77, Р-3б 15, Р-4 46, Р-5 57, Р-16 0, Р-17 68; новых 0
+start fp r45_off_anc.html m3 (идёт 1, свободно 8412 МБ)
+start fp r45_off_anc.html m7 (идёт 2, свободно 8410 МБ)
+start fp r45_off_anc.html m11 (идёт 3, свободно 8405 МБ)
+start fp r45_off_anc.html m13 (идёт 4, свободно 8400 МБ)
+start fp r45_off_anc.html m17 (идёт 5, свободно 8396 МБ)
+guard: недопуск fp r45_off_anc.html m19 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:ancient): новое дерево +1000 МБ, резерв для идущих +5000 МБ, свободно 8396 МБ, запас 3195 МБ → остаток 2396 МБ
+mem: свободно 5649 / 15977 МБ; par ≤ 8; очередь 11; идёт 5 (считают тики 0): fp r45_off_anc.html m3 774 МБ / 6 проц. [тиков ещё нет], fp r45_off_anc.html m7 769 МБ / 6 проц. [тиков ещё нет], fp r45_off_anc.html m11 768 МБ / 6 проц. [тиков ещё нет], fp r45_off_anc.html m13 774 МБ / 6 проц. [тиков ещё нет], fp r45_off_anc.html m17 782 МБ / 6 проц. [тиков ещё нет]
+start fp r45_off_anc.html m19 (идёт 6, свободно 5517 МБ)
+start fp r45_off_anc.html m23 (идёт 7, свободно 5516 МБ)
+guard: недопуск fp r45_off_anc.html m29 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:ancient): новое дерево +1000 МБ, резерв для идущих +2000 МБ, свободно 5516 МБ, запас 3195 МБ → остаток 2516 МБ
+mem: свободно 3165 / 15977 МБ; par ≤ 8; очередь 9; идёт 7 (считают тики 7): fp r45_off_anc.html m3 928 МБ / 6 проц. [тик 14080, 0 с назад], fp r45_off_anc.html m7 917 МБ / 6 проц. [тик 17280, 0 с назад], fp r45_off_anc.html m11 989 МБ / 6 проц. [тик 16000, 0 с назад], fp r45_off_anc.html m13 936 МБ / 6 проц. [тик 14080, 0 с назад], fp r45_off_anc.html m17 963 МБ / 6 проц. [тик 16640, 0 с назад], fp r45_off_anc.html m19 1143 МБ / 6 проц. [тик 11520, 0 с назад], fp r45_off_anc.html m23 1040 МБ / 6 проц. [тик 11520, 0 с назад]
+guard: недопуск fp r45_off_anc.html m29 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:ancient): новое дерево +1143 МБ, резерв для идущих +0 МБ, свободно 3162 МБ, запас 3195 МБ → остаток 2019 МБ
+mem: свободно 2545 / 15977 МБ; par ≤ 8; очередь 9; идёт 7 (считают тики 7): fp r45_off_anc.html m3 990 МБ / 6 проц. [тик 24960, 0 с назад], fp r45_off_anc.html m7 1113 МБ / 6 проц. [тик 32000, 2 с назад], fp r45_off_anc.html m11 1089 МБ / 6 проц. [тик 28160, 0 с назад], fp r45_off_anc.html m13 973 МБ / 6 проц. [тик 28800, 0 с назад], fp r45_off_anc.html m17 956 МБ / 6 проц. [тик 29440, 0 с назад], fp r45_off_anc.html m19 1227 МБ / 6 проц. [тик 24960, 2 с назад], fp r45_off_anc.html m23 1225 МБ / 6 проц. [тик 26880, 0 с назад]
+guard: недопуск fp r45_off_anc.html m29 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:ancient): новое дерево +1227 МБ, резерв для идущих +0 МБ, свободно 2549 МБ, запас 3195 МБ → остаток 1322 МБ
+mem: свободно 2241 / 15977 МБ; par ≤ 8; очередь 9; идёт 7 (считают тики 7): fp r45_off_anc.html m3 1042 МБ / 6 проц. [тик 39680, 0 с назад], fp r45_off_anc.html m7 1099 МБ / 6 проц. [тик 41600, 0 с назад], fp r45_off_anc.html m11 1137 МБ / 6 проц. [тик 40320, 0 с назад], fp r45_off_anc.html m13 1079 МБ / 6 проц. [тик 42240, 0 с назад], fp r45_off_anc.html m17 1088 МБ / 6 проц. [тик 44800, 0 с назад], fp r45_off_anc.html m19 1252 МБ / 6 проц. [тик 35200, 0 с назад], fp r45_off_anc.html m23 1234 МБ / 6 проц. [тик 39040, 0 с назад]
+guard: недопуск fp r45_off_anc.html m29 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:ancient): новое дерево +1252 МБ, резерв для идущих +0 МБ, свободно 2228 МБ, запас 3195 МБ → остаток 976 МБ
+mem: свободно 1835 / 15977 МБ; par ≤ 8; очередь 9; идёт 7 (считают тики 7): fp r45_off_anc.html m3 1208 МБ / 6 проц. [тик 53760, 0 с назад], fp r45_off_anc.html m7 1172 МБ / 6 проц. [тик 56960, 0 с назад], fp r45_off_anc.html m11 1196 МБ / 6 проц. [тик 53760, 0 с назад], fp r45_off_anc.html m13 1110 МБ / 6 проц. [тик 53120, 0 с назад], fp r45_off_anc.html m17 1094 МБ / 6 проц. [тик 56320, 0 с назад], fp r45_off_anc.html m19 1333 МБ / 6 проц. [тик 47360, 0 с назад], fp r45_off_anc.html m23 1368 МБ / 6 проц. [тик 49280, 0 с назад]
+guard: недопуск fp r45_off_anc.html m29 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:ancient): новое дерево +1368 МБ, резерв для идущих +0 МБ, свободно 1845 МБ, запас 3195 МБ → остаток 477 МБ
+mem: свободно 2041 / 15977 МБ; par ≤ 8; очередь 9; идёт 7 (считают тики 7): fp r45_off_anc.html m3 1179 МБ / 6 проц. [тик 65920, 0 с назад], fp r45_off_anc.html m7 1031 МБ / 6 проц. [тик 70400, 0 с назад], fp r45_off_anc.html m11 1205 МБ / 6 проц. [тик 65920, 0 с назад], fp r45_off_anc.html m13 1154 МБ / 6 проц. [тик 69120, 0 с назад], fp r45_off_anc.html m17 1045 МБ / 6 проц. [тик 71040, 0 с назад], fp r45_off_anc.html m19 1345 МБ / 6 проц. [тик 64000, 0 с назад], fp r45_off_anc.html m23 1204 МБ / 6 проц. [тик 64640, 0 с назад]
+guard: недопуск fp r45_off_anc.html m29 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:ancient): новое дерево +1345 МБ, резерв для идущих +0 МБ, свободно 2031 МБ, запас 3195 МБ → остаток 686 МБ
+mem: свободно 2377 / 15977 МБ; par ≤ 8; очередь 9; идёт 7 (считают тики 7): fp r45_off_anc.html m3 1240 МБ / 6 проц. [тик 81920, 2 с назад], fp r45_off_anc.html m7 1090 МБ / 6 проц. [тик 84480, 0 с назад], fp r45_off_anc.html m11 1179 МБ / 6 проц. [тик 81280, 0 с назад], fp r45_off_anc.html m13 1208 МБ / 6 проц. [тик 81920, 0 с назад], fp r45_off_anc.html m17 1022 МБ / 6 проц. [тик 86400, 0 с назад], fp r45_off_anc.html m19 1291 МБ / 6 проц. [тик 77440, 0 с назад], fp r45_off_anc.html m23 1265 МБ / 6 проц. [тик 74240, 0 с назад]
+guard: недопуск fp r45_off_anc.html m29 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:ancient): новое дерево +1291 МБ, резерв для идущих +0 МБ, свободно 2371 МБ, запас 3195 МБ → остаток 1080 МБ
+end fp r45_off_anc.html m11: код 0, 223 с, пик 1220 МБ, процессов до 6
+mem: свободно 3229 / 15977 МБ; par ≤ 8; очередь 9; идёт 6 (считают тики 6): fp r45_off_anc.html m3 1089 МБ / 6 проц. [тик 92800, 0 с назад], fp r45_off_anc.html m7 1122 МБ / 6 проц. [тик 97920, 0 с назад], fp r45_off_anc.html m13 1089 МБ / 6 проц. [тик 94720, 0 с назад], fp r45_off_anc.html m17 1192 МБ / 6 проц. [тик 100480, 0 с назад], fp r45_off_anc.html m19 1283 МБ / 6 проц. [тик 92160, 0 с назад], fp r45_off_anc.html m23 1377 МБ / 6 проц. [тик 87680, 0 с назад]
+guard: недопуск fp r45_off_anc.html m29 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:ancient): новое дерево +1377 МБ, резерв для идущих +0 МБ, свободно 3228 МБ, запас 3195 МБ → остаток 1851 МБ
+end fp r45_off_anc.html m23: код 0, 240 с, пик 1481 МБ, процессов до 6
+mem: свободно 4049 / 15977 МБ; par ≤ 8; очередь 9; идёт 5 (считают тики 5): fp r45_off_anc.html m3 1136 МБ / 6 проц. [тик 105600, 0 с назад], fp r45_off_anc.html m7 1231 МБ / 6 проц. [тик 112000, 0 с назад], fp r45_off_anc.html m13 1229 МБ / 6 проц. [тик 110720, 0 с назад], fp r45_off_anc.html m17 1206 МБ / 6 проц. [тик 112640, 0 с назад], fp r45_off_anc.html m19 1283 МБ / 6 проц. [тик 104960, 0 с назад]
+guard: недопуск fp r45_off_anc.html m29 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:ancient): новое дерево +1283 МБ, резерв для идущих +0 МБ, свободно 4049 МБ, запас 3195 МБ → остаток 2766 МБ
+mem: свободно 3946 / 15977 МБ; par ≤ 8; очередь 9; идёт 5 (считают тики 5): fp r45_off_anc.html m3 1143 МБ / 6 проц. [тик 121600, 0 с назад], fp r45_off_anc.html m7 1190 МБ / 6 проц. [тик 131200, 0 с назад], fp r45_off_anc.html m13 1267 МБ / 6 проц. [тик 126080, 0 с назад], fp r45_off_anc.html m17 1308 МБ / 6 проц. [тик 131200, 0 с назад], fp r45_off_anc.html m19 1241 МБ / 6 проц. [тик 120960, 0 с назад]
+guard: недопуск fp r45_off_anc.html m29 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:ancient): новое дерево +1308 МБ, резерв для идущих +0 МБ, свободно 3946 МБ, запас 3195 МБ → остаток 2638 МБ
+end fp r45_off_anc.html m17: код 0, 290 с, пик 1308 МБ, процессов до 6
+start fp r45_off_anc.html m29 (идёт 5, свободно 5059 МБ)
+guard: недопуск fp r45_off_mir.html m3 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:mirage): новое дерево +1000 МБ, резерв для идущих +1267 МБ, свободно 5059 МБ, запас 3195 МБ → остаток 2792 МБ
+start fp r45_off_mir.html m3 (идёт 6, свободно 4438 МБ)
+guard: недопуск fp r45_off_mir.html m7 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:mirage): новое дерево +1000 МБ, резерв для идущих +1000 МБ, свободно 4438 МБ, запас 3195 МБ → остаток 2438 МБ
+end fp r45_off_anc.html m19: код 0, 314 с, пик 1360 МБ, процессов до 6
+mem: свободно 4639 / 15977 МБ; par ≤ 8; очередь 7; идёт 5 (считают тики 5): fp r45_off_anc.html m3 1183 МБ / 6 проц. [тик 138240, 0 с назад], fp r45_off_anc.html m7 1151 МБ / 6 проц. [тик 147200, 0 с назад], fp r45_off_anc.html m13 1302 МБ / 6 проц. [тик 145280, 0 с назад], fp r45_off_anc.html m29 1024 МБ / 6 проц. [тик 11520, 0 с назад], fp r45_off_mir.html m3 921 МБ / 6 проц. [тик 7680, 3 с назад]
+start fp r45_off_mir.html m7 (идёт 6, свободно 4637 МБ)
+guard: недопуск fp r45_off_mir.html m11 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:mirage): новое дерево +1000 МБ, резерв для идущих +1000 МБ, свободно 4637 МБ, запас 3195 МБ → остаток 2637 МБ
+end fp r45_off_anc.html m3: код 0, 336 с, пик 1268 МБ, процессов до 6
+start fp r45_off_mir.html m11 (идёт 6, свободно 4869 МБ)
+guard: недопуск fp r45_off_mir.html m13 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:mirage): новое дерево +1051 МБ, резерв для идущих +1051 МБ, свободно 4869 МБ, запас 3195 МБ → остаток 2767 МБ
+end fp r45_off_anc.html m13: код 0, 343 с, пик 1304 МБ, процессов до 6
+start fp r45_off_mir.html m13 (идёт 6, свободно 6404 МБ)
+start fp r45_off_mir.html m17 (идёт 7, свободно 6401 МБ)
+guard: недопуск fp r45_off_mir.html m19 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:mirage): новое дерево +1051 МБ, резерв для идущих +3153 МБ, свободно 6401 МБ, запас 3195 МБ → остаток 2197 МБ
+end fp r45_off_anc.html m7: код 0, 343 с, пик 1231 МБ, процессов до 6
+mem: свободно 5261 / 15977 МБ; par ≤ 8; очередь 3; идёт 6 (считают тики 6): fp r45_off_anc.html m29 1210 МБ / 6 проц. [тик 22400, 0 с назад], fp r45_off_mir.html m3 1052 МБ / 6 проц. [тик 22400, 0 с назад], fp r45_off_mir.html m7 957 МБ / 6 проц. [тик 10880, 2 с назад], fp r45_off_mir.html m11 900 МБ / 6 проц. [тик 5120, 0 с назад], fp r45_off_mir.html m13 892 МБ / 6 проц. [тик 1280, 2 с назад], fp r45_off_mir.html m17 881 МБ / 6 проц. [тик 1920, 0 с назад]
+start fp r45_off_mir.html m19 (идёт 7, свободно 5249 МБ)
+guard: недопуск fp r45_off_mir.html m23 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:mirage): новое дерево +1052 МБ, резерв для идущих +1052 МБ, свободно 5249 МБ, запас 3195 МБ → остаток 3145 МБ
+start fp r45_off_mir.html m23 (идёт 8, свободно 4448 МБ)
+mem: свободно 3625 / 15977 МБ; par ≤ 8; очередь 1; идёт 8 (считают тики 8): fp r45_off_anc.html m29 1347 МБ / 6 проц. [тик 35840, 0 с назад], fp r45_off_mir.html m3 1055 МБ / 6 проц. [тик 32640, 2 с назад], fp r45_off_mir.html m7 949 МБ / 6 проц. [тик 24960, 0 с назад], fp r45_off_mir.html m11 968 МБ / 6 проц. [тик 16640, 0 с назад], fp r45_off_mir.html m13 981 МБ / 6 проц. [тик 12800, 0 с назад], fp r45_off_mir.html m17 1004 МБ / 6 проц. [тик 12800, 0 с назад], fp r45_off_mir.html m19 980 МБ / 6 проц. [тик 10240, 0 с назад], fp r45_off_mir.html m23 930 МБ / 6 проц. [тик 7680, 0 с назад]
+mem: свободно 3493 / 15977 МБ; par ≤ 8; очередь 1; идёт 8 (считают тики 8): fp r45_off_anc.html m29 1297 МБ / 6 проц. [тик 49920, 0 с назад], fp r45_off_mir.html m3 1070 МБ / 6 проц. [тик 43520, 0 с назад], fp r45_off_mir.html m7 1029 МБ / 6 проц. [тик 33920, 2 с назад], fp r45_off_mir.html m11 1011 МБ / 6 проц. [тик 29440, 0 с назад], fp r45_off_mir.html m13 1030 МБ / 6 проц. [тик 26880, 0 с назад], fp r45_off_mir.html m17 1017 МБ / 6 проц. [тик 25600, 2 с назад], fp r45_off_mir.html m19 951 МБ / 6 проц. [тик 19840, 0 с назад], fp r45_off_mir.html m23 975 МБ / 6 проц. [тик 16640, 0 с назад]
+mem: свободно 3188 / 15977 МБ; par ≤ 8; очередь 1; идёт 8 (считают тики 8): fp r45_off_anc.html m29 1321 МБ / 6 проц. [тик 63360, 2 с назад], fp r45_off_mir.html m3 1089 МБ / 6 проц. [тик 54400, 2 с назад], fp r45_off_mir.html m7 1029 МБ / 6 проц. [тик 46720, 2 с назад], fp r45_off_mir.html m11 1051 МБ / 6 проц. [тик 42240, 0 с назад], fp r45_off_mir.html m13 1047 МБ / 6 проц. [тик 34560, 2 с назад], fp r45_off_mir.html m17 1043 МБ / 6 проц. [тик 37120, 0 с назад], fp r45_off_mir.html m19 975 МБ / 6 проц. [тик 32640, 0 с назад], fp r45_off_mir.html m23 1071 МБ / 6 проц. [тик 28160, 2 с назад]
+mem: свободно 2959 / 15977 МБ; par ≤ 8; очередь 1; идёт 8 (считают тики 8): fp r45_off_anc.html m29 1424 МБ / 6 проц. [тик 78720, 0 с назад], fp r45_off_mir.html m3 1143 МБ / 6 проц. [тик 66560, 0 с назад], fp r45_off_mir.html m7 1031 МБ / 6 проц. [тик 55040, 2 с назад], fp r45_off_mir.html m11 1049 МБ / 6 проц. [тик 51200, 0 с назад], fp r45_off_mir.html m13 1062 МБ / 6 проц. [тик 44800, 2 с назад], fp r45_off_mir.html m17 1049 МБ / 6 проц. [тик 51200, 2 с назад], fp r45_off_mir.html m19 1071 МБ / 6 проц. [тик 46080, 0 с назад], fp r45_off_mir.html m23 1084 МБ / 6 проц. [тик 42880, 0 с назад]
+mem: свободно 2696 / 15977 МБ; par ≤ 8; очередь 1; идёт 8 (считают тики 8): fp r45_off_anc.html m29 1433 МБ / 6 проц. [тик 92800, 0 с назад], fp r45_off_mir.html m3 1150 МБ / 6 проц. [тик 76800, 0 с назад], fp r45_off_mir.html m7 1067 МБ / 6 проц. [тик 64640, 0 с назад], fp r45_off_mir.html m11 1122 МБ / 6 проц. [тик 65280, 0 с назад], fp r45_off_mir.html m13 1050 МБ / 6 проц. [тик 61440, 0 с назад], fp r45_off_mir.html m17 1048 МБ / 6 проц. [тик 58880, 0 с назад], fp r45_off_mir.html m19 1191 МБ / 6 проц. [тик 58880, 0 с назад], fp r45_off_mir.html m23 1089 МБ / 6 проц. [тик 58880, 0 с назад]
+mem: свободно 2697 / 15977 МБ; par ≤ 8; очередь 1; идёт 8 (считают тики 8): fp r45_off_anc.html m29 1453 МБ / 6 проц. [тик 104960, 2 с назад], fp r45_off_mir.html m3 1110 МБ / 6 проц. [тик 88960, 0 с назад], fp r45_off_mir.html m7 1062 МБ / 6 проц. [тик 79360, 0 с назад], fp r45_off_mir.html m11 1089 МБ / 6 проц. [тик 73600, 0 с назад], fp r45_off_mir.html m13 1042 МБ / 6 проц. [тик 76160, 0 с назад], fp r45_off_mir.html m17 1051 МБ / 6 проц. [тик 72320, 0 с назад], fp r45_off_mir.html m19 1263 МБ / 6 проц. [тик 73600, 0 с назад], fp r45_off_mir.html m23 1094 МБ / 6 проц. [тик 65920, 17 с назад]
+mem: свободно 2861 / 15977 МБ; par ≤ 8; очередь 1; идёт 8 (считают тики 8): fp r45_off_anc.html m29 1344 МБ / 6 проц. [тик 120960, 0 с назад], fp r45_off_mir.html m3 1103 МБ / 6 проц. [тик 101760, 2 с назад], fp r45_off_mir.html m7 1071 МБ / 6 проц. [тик 94720, 0 с назад], fp r45_off_mir.html m11 1085 МБ / 6 проц. [тик 87680, 2 с назад], fp r45_off_mir.html m13 1045 МБ / 6 проц. [тик 85760, 0 с назад], fp r45_off_mir.html m17 1053 МБ / 6 проц. [тик 83200, 0 с назад], fp r45_off_mir.html m19 1201 МБ / 6 проц. [тик 88320, 0 с назад], fp r45_off_mir.html m23 1098 МБ / 6 проц. [тик 74880, 0 с назад]
+mem: свободно 2765 / 15977 МБ; par ≤ 8; очередь 1; идёт 8 (считают тики 8): fp r45_off_anc.html m29 1319 МБ / 6 проц. [тик 133120, 0 с назад], fp r45_off_mir.html m3 1107 МБ / 6 проц. [тик 112000, 0 с назад], fp r45_off_mir.html m7 1136 МБ / 6 проц. [тик 108800, 0 с назад], fp r45_off_mir.html m11 1092 МБ / 6 проц. [тик 102400, 0 с назад], fp r45_off_mir.html m13 1065 МБ / 6 проц. [тик 99200, 0 с назад], fp r45_off_mir.html m17 1073 МБ / 6 проц. [тик 96000, 0 с назад], fp r45_off_mir.html m19 1205 МБ / 6 проц. [тик 88320, 32 с назад], fp r45_off_mir.html m23 1102 МБ / 6 проц. [тик 88960, 2 с назад]
+mem: свободно 2694 / 15977 МБ; par ≤ 8; очередь 1; идёт 8 (считают тики 8): fp r45_off_anc.html m29 1358 МБ / 6 проц. [тик 145280, 0 с назад], fp r45_off_mir.html m3 1110 МБ / 6 проц. [тик 123520, 2 с назад], fp r45_off_mir.html m7 1110 МБ / 6 проц. [тик 125440, 0 с назад], fp r45_off_mir.html m11 1082 МБ / 6 проц. [тик 117120, 0 с назад], fp r45_off_mir.html m13 1098 МБ / 6 проц. [тик 109440, 0 с назад], fp r45_off_mir.html m17 1102 МБ / 6 проц. [тик 108160, 2 с назад], fp r45_off_mir.html m19 1209 МБ / 6 проц. [тик 98560, 0 с назад], fp r45_off_mir.html m23 1100 МБ / 6 проц. [тик 101760, 0 с назад]
+end fp r45_off_mir.html m3: код 0, 362 с, пик 1151 МБ, процессов до 6
+guard: недопуск fp r45_off_mir.html m29 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:mirage): новое дерево +1215 МБ, резерв для идущих +0 МБ, свободно 3356 МБ, запас 3195 МБ → остаток 2141 МБ
+end fp r45_off_anc.html m29: код 0, 373 с, пик 1474 МБ, процессов до 6
+end fp r45_off_mir.html m17: код 0, 321 с, пик 1105 МБ, процессов до 6
+start fp r45_off_mir.html m29 (идёт 6, свободно 5145 МБ)
+mem: свободно 4674 / 15977 МБ; par ≤ 8; очередь 0; идёт 6 (считают тики 6): fp r45_off_mir.html m7 1095 МБ / 6 проц. [тик 140160, 2 с назад], fp r45_off_mir.html m11 1100 МБ / 6 проц. [тик 127360, 0 с назад], fp r45_off_mir.html m13 1101 МБ / 6 проц. [тик 123520, 2 с назад], fp r45_off_mir.html m19 1214 МБ / 6 проц. [тик 106240, 0 с назад], fp r45_off_mir.html m23 1141 МБ / 6 проц. [тик 113280, 0 с назад], fp r45_off_mir.html m29 810 МБ / 6 проц. [тик 1280, 0 с назад]
+end fp r45_off_mir.html m13: код 0, 336 с, пик 1102 МБ, процессов до 6
+end fp r45_off_mir.html m23: код 0, 318 с, пик 1141 МБ, процессов до 6
+end fp r45_off_mir.html m11: код 0, 356 с, пик 1128 МБ, процессов до 6
+mem: свободно 6815 / 15977 МБ; par ≤ 8; очередь 0; идёт 3 (считают тики 3): fp r45_off_mir.html m7 1090 МБ / 6 проц. [тик 153600, 0 с назад], fp r45_off_mir.html m19 1190 МБ / 6 проц. [тик 122880, 0 с назад], fp r45_off_mir.html m29 986 МБ / 6 проц. [тик 16640, 0 с назад]
+end fp r45_off_mir.html m7: код 0, 400 с, пик 1139 МБ, процессов до 6
+mem: свободно 7566 / 15977 МБ; par ≤ 8; очередь 0; идёт 2 (считают тики 2): fp r45_off_mir.html m19 1174 МБ / 6 проц. [тик 138240, 0 с назад], fp r45_off_mir.html m29 984 МБ / 6 проц. [тик 32640, 0 с назад]
+end fp r45_off_mir.html m19: код 0, 386 с, пик 1268 МБ, процессов до 6
+mem: свободно 8290 / 15977 МБ; par ≤ 8; очередь 0; идёт 1 (считают тики 1): fp r45_off_mir.html m29 1041 МБ / 6 проц. [тик 50560, 2 с назад]
+mem: свободно 8204 / 15977 МБ; par ≤ 8; очередь 0; идёт 1 (считают тики 1): fp r45_off_mir.html m29 1151 МБ / 6 проц. [тик 67840, 0 с назад]
+mem: свободно 8172 / 15977 МБ; par ≤ 8; очередь 0; идёт 1 (считают тики 1): fp r45_off_mir.html m29 1185 МБ / 6 проц. [тик 87680, 0 с назад]
+mem: свободно 8208 / 15977 МБ; par ≤ 8; очередь 0; идёт 1 (считают тики 1): fp r45_off_mir.html m29 1126 МБ / 6 проц. [тик 106880, 0 с назад]
+mem: свободно 8148 / 15977 МБ; par ≤ 8; очередь 0; идёт 1 (считают тики 1): fp r45_off_mir.html m29 1201 МБ / 6 проц. [тик 124800, 0 с назад]
+mem: свободно 8181 / 15977 МБ; par ≤ 8; очередь 0; идёт 1 (считают тики 1): fp r45_off_mir.html m29 1171 МБ / 6 проц. [тик 140800, 0 с назад]
+mem: свободно 8210 / 15977 МБ; par ≤ 8; очередь 0; идёт 1 (считают тики 1): fp r45_off_mir.html m29 1157 МБ / 6 проц. [тик 158080, 0 с назад]
+mem: свободно 8238 / 15977 МБ; par ≤ 8; очередь 0; идёт 1 (считают тики 1): fp r45_off_mir.html m29 1118 МБ / 6 проц. [тик 171520, 0 с назад]
+end fp r45_off_mir.html m29: код 0, 324 с, пик 1202 МБ, процессов до 6
+tick_0: код 0
+frame_0: код 0
+tick_1: код 0
+frame_1: код 0
+tick_2: код 0
+frame_2: код 0
+memory: код 0
+tick_0: код 0
+frame_0: код 0
+tick_1: код 0
+frame_1: код 0
+tick_2: код 0
+frame_2: код 0
+memory: код 0
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_ca5sqry_ 088b1d7564bdd690380455d2ff2560e4bf5f4f76
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_ca5sqry_\src\build.py --map mirage --worker C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\r45_wkm_mir_wk.html
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+модули: task.js, intel.js, events.js, turn.ts, smoke.js, plan.js, exec-sync.js, levels.js, throw.js, flight.js, lineups.js, damage.js, self.js, decide.js, fight.js, assist.js, shoot.js, fight-state.js, engagements.js, move.js, tick.js, tick-jump.js, tick-keys.js, tick-step.js — ядро отдаёт 304 имён, берёт 741
+Единственный писатель: полей 107, записей в обход 0
+пометок 1736 | полей facing:7 walking:4 curSpeed:5 post:3 _task:4 _reposUntil:1 _waitPopUntil:1 _avoidPeekUntil:1 _tradeUntil:2 _tradeLock:1 state:2 nadeTask:8 holding:4 crouching:1 path:7 phase:1 lookReason:2 _lookLvl:1 heardSound:2 lastIntel:1 planting:3 defusing:3 _route:4 _routeDone:2 baseX:11 baseY:11 pathIdx:8 _aimFix:1 _ammoFor:1 _area:1 _blind:1 _blindBy:1 _boost:1 _climb:1 _contact:1 _covLog:1 _covT:1 _detour:1 _dmgBy:1 _drawUntil:1 _egC:1 _fall:1 _fc:1 _fillLock:1 _fireExit:1 _fireExitFire:1 _fireIn:1 _flee:1 _heDone:2 _hold:1 _holdLog:1 _huntArrive:1 _huntIdx:1 _jc:1 _jump:1 _knife:1 _landAt:1 _lkC:1 _lkPt:1 _lkTop:1 _lkZ:1 _lurkArr:1 _lurkIdx:1 _lurkPh:1 _mistakes:1 _nadeNo:1 _nadeT:1 _nearestEnemyBot:1 _offNav:1 _onPistol:1 _prevOffX:1 _prevOffY:1 _probe:1 _probeLock:1 _reloading:1 _roamSoundHandled:1 _roamSoundLockUntil:1 _saveSpot:1 _sawEnemy:1 _secAmmo:1 _stabT:1 _stageInfo:1 _stopPlantUntil:1 _stopWhy:1 _tagUntil:1 _ts:1 _unstickT:1 alive:4 ammo:1 armor:1 armorHp:1 atPost:1 blindUntil:1 burstCount:1 contactStreak:1 deaths:1 decisionTick:1 forcedRetreat:1 heading:1 helmet:2 holdSinceTick:1 hp:1 kills:1 kit:2 lastShotTick:1 lastStepTick:1 lookTarget:1 money:1 nadeQueue:1 nades:1 nextShotTick:1 onStairs:1 pickTick:1 primary:1 reloadUntil:1 retakeRole:1 roamCheckStart:1 roamCheckUntil:1 roamChecking:1 roamIdx:1 roamLookPt:1 roamPrevPt:1 roamTarget:1 roundDmg:1 roundKills:1 secondary:1 setupLook:1 stateSince:1 stuckTicks:1 throwUntil:1 weapon:1 x:1 y:1 z:2 | функций 1507
+общих переменных 992 из чужих файлов пишут 83
+реестр состояния: строк 1480, не размечено 0
+карточки механик: файлов 101, расхождений 0
+чтения истины врага (решения): мест 55, новых 0; известных нарушений «истина» 13 (BEHAVIOR_BACKLOG, после Р8)
+ответ хозяина не прочитан (Р-7): мест 124
+виды задач (TaskKind): 79 литералом, мест с тегом из данных 20, расхождений 0
+писатели полей бота: полей 455, писателей 580, новых 0
+правила сборки Р-1…Р-17: известных мест Р-1 6, Р-3а 77, Р-3б 15, Р-4 46, Р-5 57, Р-16 0, Р-17 68; новых 0
+режим Worker: ядро 6913 КБ внутри страницы
+install: код 0
+wkm_chromium: код 0
+wkm_firefox: код 0
+wkm_webkit: код 0
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_k9k9kwic 088b1d7564bdd690380455d2ff2560e4bf5f4f76
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_k9k9kwic\tools\node\core_build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\r45_mass_anc.core.js
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+модули: task.js, intel.js, events.js, turn.ts, smoke.js, plan.js, exec-sync.js, levels.js, throw.js, flight.js, lineups.js, damage.js, self.js, decide.js, fight.js, assist.js, shoot.js, fight-state.js, engagements.js, move.js, tick.js, tick-jump.js, tick-keys.js, tick-step.js — ядро отдаёт 301 имён, берёт 731
+C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\r45_mass_anc.core.js: 12888 КБ, файлов ядра 73 (показ и разметка не входят)
+mass: код 0
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_gjp2fsbx 088b1d7564bdd690380455d2ff2560e4bf5f4f76
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_gjp2fsbx\tools\node\core_build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\r45_mass_mir.core.js
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+модули: task.js, intel.js, events.js, turn.ts, smoke.js, plan.js, exec-sync.js, levels.js, throw.js, flight.js, lineups.js, damage.js, self.js, decide.js, fight.js, assist.js, shoot.js, fight-state.js, engagements.js, move.js, tick.js, tick-jump.js, tick-keys.js, tick-step.js — ядро отдаёт 301 имён, берёт 731
+C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\r45_mass_mir.core.js: 6913 КБ, файлов ядра 73 (показ и разметка не входят)
+mass: код 0
+rustup_wasm: код 0
+cargo_version: код 0
+build_wasm: код 0
+install: код 0
+shadow_ancient: код 0
+speed_ancient_ts_0: код 0
+speed_ancient_speed_0: код 0
+speed_ancient_ts_1: код 0
+speed_ancient_speed_1: код 0
+speed_ancient_ts_2: код 0
+speed_ancient_speed_2: код 0
+page_shadow_ancient_chromium: код 0
+page_speed_ancient_chromium_ts: код 0
+page_speed_ancient_chromium_speed: код 0
+page_shadow_ancient_firefox: код 0
+page_speed_ancient_firefox_ts: код 0
+page_speed_ancient_firefox_speed: код 0
+page_shadow_ancient_webkit: код 0
+page_speed_ancient_webkit_ts: код 0
+page_speed_ancient_webkit_speed: код 0
+shadow_mirage: код 0
+speed_mirage_ts_0: код 0
+speed_mirage_speed_0: код 0
+speed_mirage_ts_1: код 0
+speed_mirage_speed_1: код 0
+speed_mirage_ts_2: код 0
+speed_mirage_speed_2: код 0
+page_shadow_mirage_chromium: код 0
+page_speed_mirage_chromium_ts: код 0
+page_speed_mirage_chromium_speed: код 0
+page_shadow_mirage_firefox: код 0
+page_speed_mirage_firefox_ts: код 0
+page_speed_mirage_firefox_speed: код 0
+page_shadow_mirage_webkit: код 0
+page_speed_mirage_webkit_ts: код 0
+page_speed_mirage_webkit_speed: код 0
+all done

@@ -1,0 +1,3 @@
+код 0
+{"core":"r45_r7_mirage.core.js","match":3,"ticks":15040,"mode":"shadow","mode_set":"shadow","ms_per_tick":4.3139,"hash":3917285393,"n":5544750,"bad":0,"first":null}
+

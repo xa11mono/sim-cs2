@@ -1,0 +1,20 @@
+код 0
+{
+ "browser": "chromium",
+ "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+ "sec": 30,
+ "frames": 1636,
+ "fps": 54.5,
+ "ticks": 1920,
+ "worker_on": true,
+ "bytes_avg": 212544,
+ "bytes_max": 402065,
+ "enc_ms_avg": 2.22,
+ "dec_ms_avg": 1.53,
+ "apply_ms_avg": 1.27,
+ "page_ms_max": 8.3,
+ "long_by_transfer": 0,
+ "long_tasks_all": 0,
+ "errors": []
+}
+
