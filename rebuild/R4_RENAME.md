@@ -14,7 +14,7 @@
 | `004_markup.html` | `view/page/markup.html` | `markup` |
 | `005_dmath.ts` | `engine/core/dmath.ts` | `dmath` |
 | `010_map_zones_warp.js` | `engine/map/zones.js` | `zones` |
-| `020_map_navmesh_autowalls.js` | `engine/nav/navmesh.js` | `navmesh` |
+| `020_map_navmesh_autowalls.js` | `engine/nav/navmesh.ts` | `navmesh` |
 | `030_map_walls_heights_cover_wallbang.js` | `engine/map/walls-heights-cover.js` | `walls-heights-cover` |
 | `035_map3d.js` | `engine/map/geometry3d.js` | `geometry3d` |
 | `040_visibility.js` | `engine/sense/vision.js` | `vision` |

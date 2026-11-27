@@ -44,7 +44,32 @@ interface TurnModelBin { pk?: Quartiles; T?: Quartiles; ratio?: Quartiles; gap?:
 interface TurnModelSub { pb?: number; bdeg?: Quartiles; bgap?: Quartiles; p?: number; at?: Quartiles; share?: Quartiles }
 interface TurnModel { bins: number[]; model: { [ctxBin: string]: TurnModelBin | undefined }; sub?: { [ctxBin: string]: TurnModelSub | undefined } }
 /** набор карты (010:5, data/maps/<карта>/) — поля, которые читают файлы .ts */
-interface MapPack { turnmodel?: TurnModel }
+interface MapPack {
+  turnmodel?: TurnModel;
+  navmesh: { areas: NavArea[]; ladders?: {id: number; below: number[]; above: number[]}[] };
+}
+
+/** Unbranded XY at the existing map/navigation calculation boundary. Units are radar px. */
+type NavXY = {[Axis in keyof P2]: number};
+type NavPoint = NavXY & {z?: number};
+interface NavArea { id: number; z: number; points: NavPoint[]; conn: number[] }
+type NavSegment = [NavXY, NavXY];
+type WallSegment = [number, number, number, number];
+interface NavPortal { mid: NavXY; seg: NavSegment }
+interface NavEdge {
+  to: NavArea["id"];
+  mid: NavXY;
+  z: number;
+  left: NavXY;
+  right: NavXY;
+  drop?: number;
+  gap?: unknown;
+}
+type NavGraph = Record<NavArea["id"], NavEdge[] | undefined>;
+declare var NAVAREAS: MapPack["navmesh"]["areas"];
+declare var NAV_BLOCKED: Record<NavArea["id"], boolean | undefined>;
+declare function navFloorZ(a: NavArea, x: number, y: number): number;
+declare function segCrossesManualWalls(x1: number, y1: number, x2: number, y2: number): boolean;
 
 declare var MAP: MapPack;                          // 010:5
 declare var bots: Bot[];                           // 070:74

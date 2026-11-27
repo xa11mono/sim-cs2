@@ -5338,7 +5338,7 @@
    "snap": true
   },
   "NAV_GRID": {
-   "decl": "navmesh.js:22",
+   "decl": "navmesh.ts:22",
    "init": "Literal",
    "w": {
     "navGridBuild · navmesh": 1,
@@ -5361,7 +5361,7 @@
    "snap": true
   },
   "NAV_GRID_C": {
-   "decl": "navmesh.js:22",
+   "decl": "navmesh.ts:22",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -6155,7 +6155,7 @@
    "snap": true
   },
   "PORTAL_MIN_OVERLAP": {
-   "decl": "navmesh.js:96",
+   "decl": "navmesh.ts:96",
    "init": "Literal",
    "w": {
     "rebuildNav · paths": 1
@@ -6167,7 +6167,7 @@
    "snap": true
   },
   "PORTAL_TOL": {
-   "decl": "navmesh.js:96",
+   "decl": "navmesh.ts:96",
    "init": "Literal",
    "w": {
     "rebuildNav · paths": 1
@@ -11488,7 +11488,7 @@
    "snap": true
   },
   "portalCount": {
-   "decl": "navmesh.js:9",
+   "decl": "navmesh.ts:9",
    "init": null,
    "w": {
     "rebuildNav · paths": 2
@@ -11498,7 +11498,7 @@
    "snap": true
   },
   "portalMissing": {
-   "decl": "navmesh.js:9",
+   "decl": "navmesh.ts:9",
    "init": null,
    "w": {
     "rebuildNav · paths": 2
@@ -12413,7 +12413,7 @@
    "snap": true
   },
   "wallSegs": {
-   "decl": "navmesh.js:9",
+   "decl": "navmesh.ts:9",
    "init": null,
    "w": {
     "rebuildNav · paths": 1
@@ -12574,7 +12574,7 @@
    "snap": true
   },
   "zoneGraph": {
-   "decl": "navmesh.js:9",
+   "decl": "navmesh.ts:9",
    "init": null,
    "w": {
     "rebuildNav · paths": 1
@@ -12792,7 +12792,7 @@
    "snap": true
   },
   "zonesById": {
-   "decl": "navmesh.js:9",
+   "decl": "navmesh.ts:9",
    "init": null,
    "w": {
     "rebuildNav · paths": 1
