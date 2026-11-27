@@ -238,7 +238,7 @@ function jumpLook(b){
       if(g && DM.hypot(g.a.x - b.x, g.a.y - b.y) <= JUMP_TURN_R) return cand(g.yaw0*R);
       // (В147) и подъём из демок впереди (CLIMB_AT — путь идёт через его верх): между прыжками цепочки взгляд остаётся на прыжке — у про между
       // прыжками поворот 4,7° (медиана, мерка формы air_between), у ботов был 27–31°: «осмотр углов» (42 %) и «по ходу» (29 %) между прыжками
-      var cu = CLIMB_AT[kk]; if(cu && cu.Y && Math.abs(b.path[i][2] - cu.hi.z) < 1 && DM.hypot(cu.lo.x - b.x, cu.lo.y - b.y) <= JUMP_TURN_R) return cand(cu.Y.yaw0*R); } }
+      var cu = CLIMB_AT[kk]; if(cu && cu.Y && navLinkEndMatchesHeight(b.path[i][2], cu.hi.z) && DM.hypot(cu.lo.x - b.x, cu.lo.y - b.y) <= JUMP_TURN_R) return cand(cu.Y.yaw0*R); } }
   return null;
 }
 // общий шаг после выбора: не в спину своему, не в стену, плавный поворот (на бегу без цели — по ходу)

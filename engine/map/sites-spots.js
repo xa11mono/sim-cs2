@@ -257,7 +257,7 @@ function pickSpots(key, center, count, o){
       var X = o.cross, pt = X.pt;
       if(hasLOS(c.x, c.y, pt.x, pt.y) && DM.hypot(c.x-X.from.x, c.y-X.from.y) > 90){
         var a1 = DM.atan2(c.y-pt.y, c.x-pt.x), a2 = DM.atan2(X.from.y-pt.y, X.from.x-pt.x);
-        var da = Math.abs(((a1-a2+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
+        var da = Math.abs(DM.wrapPi(a1-a2));
         if(da > 0.87 && da < 2.1) sc += 1.5; else if(da > 0.5) sc += 0.6;
       }
     }

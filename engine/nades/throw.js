@@ -676,12 +676,13 @@ var NADE_SPOT_R = 450;
 function nadeThrowSpot(b, t){
   var bl = kvLast(b.team), foes = [];
   for(var e in bl){ var q = bl[e]; if(q && tick - q.tick <= 8*TICK_HZ && bots.some(function(o){ return o.id === e && o.alive; })) foes.push({x:q.x, y:q.y}); }
+  var throwSpotExposed = function(q){ return foes.some(function(f){ return hasLOS(q.x, q.y, f.x, f.y); }); };
   // (v373) кандидаты — места, откуда про кидали в эту точку (MAP.nadelanes), и точки рядом без стены на пути
   // бросок с места про — как у про (долетит ли — решит бросок); своё место — граната долетает по физике (nadeLands, физика гранат 30.10)
   var c = nadeLaneFroms(t.x, t.y).filter(function(q){ return DM.hypot(q.x-b.x, q.y-b.y) <= NADE_SPOT_R && navAt(q.x, q.y); }).map(function(q){ return {x:q.x, y:q.y, lane:true}; })
     .concat(pickSpots("nthr"+b.id+"_"+Math.round(t.x)+","+Math.round(t.y), {x:b.x, y:b.y}, 8, {rMax:NADE_SPOT_R, minGap:40, hideFrom:foes})
-      .filter(function(q){ return DM.hypot(q.x-t.x, q.y-t.y) <= t.range*0.85 && !crossesWall(q.x, q.y, t.x, t.y) && !foes.some(function(f){ return hasLOS(q.x, q.y, f.x, f.y); }) && nadeLands(t.type, q.x, q.y, null, t.x, t.y); }))
-    .filter(function(q){ return (!q.lane || !foes.some(function(f){ return hasLOS(q.x, q.y, f.x, f.y); })) && !luBehind(b, q); });   // (п.12) и не позади по ходу (lineups)
+      .filter(function(q){ return DM.hypot(q.x-t.x, q.y-t.y) <= t.range*0.85 && !crossesWall(q.x, q.y, t.x, t.y) && !throwSpotExposed(q) && nadeLands(t.type, q.x, q.y, null, t.x, t.y); }))
+    .filter(function(q){ return (!q.lane || !throwSpotExposed(q)) && !luBehind(b, q); });   // (п.12) и не позади по ходу (lineups)
   // (Г6, скорость, 04.11) «не на виду у врагов» — до подбора броска (nadeLands — физика полёта): то же условие раньше; подбор и поиски пути
   // (luBehind, pathLenTo) — у того же набора точек, что и раньше: их запомненные пути (pathQ, 0,5 с) читают другие решения — порядок и
   // число этих вызовов менять нельзя (сверка 04.11: ленивый перебор сдвинул выбор лайнапа в м7 Ancient). Фриз точки броска — в пакете 2

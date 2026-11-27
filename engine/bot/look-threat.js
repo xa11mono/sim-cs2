@@ -184,7 +184,7 @@ function proLookAt(team, x, y){
   }
   return best;
 }
-function _angOff(a, ref){ return Math.abs(((a-ref+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI); }
+function _angOff(a, ref){ return Math.abs(DM.wrapPi(a-ref)); }
 // точка прохода между двумя зонами (середина общей границы полигонов)
 function bzPortalPt(za, zb){
   var A = za.points, B = zb.points, sx = 0, sy = 0, n = 0;
