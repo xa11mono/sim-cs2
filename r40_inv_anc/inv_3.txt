@@ -1,0 +1,27 @@
+код 0
+I-01: 0
+I-02: 471 | первый: {"tick":960,"round":1,"bot":"CT0","data":{"post":null,"state":"patrol"}}
+I-03: 558 | первый: {"tick":6831,"round":2,"bot":"T0","data":{"walking":false,"why":"слышал врага рядом"}}
+I-04: 0
+I-05: 371 | первый: {"tick":2943,"round":1,"bot":"T0","data":{"post":"contact:hold"}}
+I-06: 0
+I-07: 0 | наибольшее по ключу: [["endhunt",3582],["anchor",3542],["mid",2526],["lineup",1281]]
+I-08: 88 | первый: {"tick":2267,"round":1,"bot":"CT0","data":{"x":599,"y":644,"z":77}}
+I-09: 0
+I-10: 41 | первый: {"tick":17968,"round":3,"bot":"CT0","data":{"inFiveSec":3}}
+I-11: 1 | первый: {"tick":9412,"round":2,"bot":"T2","data":{"from":[1605,1239],"z":[16.5,7],"why":"не долетит: стена / потолок"}}
+I-12: 0
+I-13: 32 | первый: {"tick":961,"round":1,"bot":null,"data":{"ms":231,"nadeTasks":0}}
+I-14: 0 | наибольшее по ключу: [["x",30],["y",30],["z",30],["baseX",30]]
+I-16: 182 | первый: {"tick":1657,"round":1,"bot":"CT0","data":{"field":"heardSound","src":"T4","kind":"steps","enemy":"T4"}}
+I-17: 0 | наибольшее по ключу: [["contact",458],["repos",315],["stageA",241],["plantspot",205]]
+I-18: 0 | наибольшее по ключу: [["holding",7131]]
+I-19: 0
+I-20: 1 | первый: {"tick":16373,"round":3,"bot":"T0","data":{"t0":16149}}
+I-21: 63510 | первый: {"tick":960,"round":1,"bot":"CT0","data":{"facing":3.9605050722101804}}
+I-25: 90 | первый: {"tick":2641,"round":1,"bot":"CT2","data":{"seen":"T2","kind":"steps"}}
+I-26: 0 | наибольшее по ключу: [["html",3582],["ctSetupRole",2525],["runupTick",1281],["midCoverPost",1168]]
+I-27: 0 | наибольшее по ключу: [["contactSpots",4411],["html",48],["assistPeek",32],["flankSpot",26]]
+I-28: 0
+I-31: 167 | первый: {"tick":2495,"round":1,"bot":"CT2","data":{"want":"backstab","holds":"ambush","lv":9,"by":"ambushTick"}}
+

@@ -1,0 +1,443 @@
+playwright 1.63.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\r40_rec_anc\env.json
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\r40_rec_mir\env.json
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\r40_prof_anc\env.json
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\r40_prof_mir\env.json
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\r40_xb_anc\env.json
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\r40_xb_mir\env.json
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\r40_wkm_mir\env.json
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\r40_mass_anc\env.json
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\r40_mass_mir\env.json
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\r40_inv_anc\env.json
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\r40_inv_mir\env.json
+guard: память 15977 МБ, свободно 9236; запас 3195, критично 1536; на матч ≤ 6144 МБ, ≤ 90 мин; par ≤ 8; объект задания: да; продолжение: да
+> git fetch --quiet origin 94b5a3959d3bbcc63a53e5dad209262fa25f1410
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_78j8_i7x 94b5a3959d3bbcc63a53e5dad209262fa25f1410
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_78j8_i7x\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\r40_off_anc.html
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+модули: task.js, intel.js, events.js, turn.ts, smoke.js, plan.js, exec-sync.js, levels.js, throw.js, flight.js, lineups.js, damage.js, self.js, decide.js, fight.js, assist.js, shoot.js, fight-state.js, engagements.js, move.js, tick.js, tick-jump.js, tick-keys.js, tick-step.js — ядро отдаёт 303 имён, берёт 736
+Единственный писатель: полей 107, записей в обход 0
+пометок 1734 | полей facing:7 walking:4 curSpeed:5 post:3 _task:4 _reposUntil:1 _waitPopUntil:1 _avoidPeekUntil:1 _tradeUntil:2 _tradeLock:1 state:2 nadeTask:8 holding:4 crouching:1 path:7 phase:1 lookReason:2 _lookLvl:1 heardSound:2 lastIntel:1 planting:3 defusing:3 _route:4 _routeDone:2 baseX:11 baseY:11 pathIdx:8 _aimFix:1 _ammoFor:1 _area:1 _blind:1 _blindBy:1 _boost:1 _climb:1 _contact:1 _covLog:1 _covT:1 _detour:1 _dmgBy:1 _drawUntil:1 _egC:1 _fall:1 _fc:1 _fillLock:1 _fireExit:1 _fireExitFire:1 _fireIn:1 _flee:1 _heDone:2 _hold:1 _holdLog:1 _huntArrive:1 _huntIdx:1 _jc:1 _jump:1 _knife:1 _landAt:1 _lkC:1 _lkPt:1 _lkTop:1 _lkZ:1 _lurkArr:1 _lurkIdx:1 _lurkPh:1 _mistakes:1 _nadeNo:1 _nadeT:1 _nearestEnemyBot:1 _offNav:1 _onPistol:1 _prevOffX:1 _prevOffY:1 _probe:1 _probeLock:1 _reloading:1 _roamSoundHandled:1 _roamSoundLockUntil:1 _saveSpot:1 _sawEnemy:1 _secAmmo:1 _stabT:1 _stageInfo:1 _stopPlantUntil:1 _stopWhy:1 _tagUntil:1 _ts:1 _unstickT:1 alive:4 ammo:1 armor:1 armorHp:1 atPost:1 blindUntil:1 burstCount:1 contactStreak:1 deaths:1 decisionTick:1 forcedRetreat:1 heading:1 helmet:2 holdSinceTick:1 hp:1 kills:1 kit:2 lastShotTick:1 lastStepTick:1 lookTarget:1 money:1 nadeQueue:1 nades:1 nextShotTick:1 onStairs:1 pickTick:1 primary:1 reloadUntil:1 retakeRole:1 roamCheckStart:1 roamCheckUntil:1 roamChecking:1 roamIdx:1 roamLookPt:1 roamPrevPt:1 roamTarget:1 roundDmg:1 roundKills:1 secondary:1 setupLook:1 stateSince:1 stuckTicks:1 throwUntil:1 weapon:1 x:1 y:1 z:2 | функций 1475
+общих переменных 987 из чужих файлов пишут 85
+реестр состояния: строк 1475, не размечено 0
+карточки механик: файлов 101, расхождений 0
+чтения истины врага (решения): мест 55, новых 0; известных нарушений «истина» 13 (BEHAVIOR_BACKLOG, после Р8)
+ответ хозяина не прочитан (Р-7): мест 124
+виды задач (TaskKind): 79 литералом, мест с тегом из данных 20, расхождений 0
+писатели полей бота: полей 455, писателей 600, новых 0
+правила сборки Р-1…Р-17: известных мест Р-1 6, Р-3а 77, Р-3б 15, Р-4 46, Р-5 57, Р-16 0, Р-17 68; новых 0
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild__2_2j_nj 94b5a3959d3bbcc63a53e5dad209262fa25f1410
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild__2_2j_nj\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\r40_off_mir.html
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+модули: task.js, intel.js, events.js, turn.ts, smoke.js, plan.js, exec-sync.js, levels.js, throw.js, flight.js, lineups.js, damage.js, self.js, decide.js, fight.js, assist.js, shoot.js, fight-state.js, engagements.js, move.js, tick.js, tick-jump.js, tick-keys.js, tick-step.js — ядро отдаёт 303 имён, берёт 736
+Единственный писатель: полей 107, записей в обход 0
+пометок 1734 | полей facing:7 walking:4 curSpeed:5 post:3 _task:4 _reposUntil:1 _waitPopUntil:1 _avoidPeekUntil:1 _tradeUntil:2 _tradeLock:1 state:2 nadeTask:8 holding:4 crouching:1 path:7 phase:1 lookReason:2 _lookLvl:1 heardSound:2 lastIntel:1 planting:3 defusing:3 _route:4 _routeDone:2 baseX:11 baseY:11 pathIdx:8 _aimFix:1 _ammoFor:1 _area:1 _blind:1 _blindBy:1 _boost:1 _climb:1 _contact:1 _covLog:1 _covT:1 _detour:1 _dmgBy:1 _drawUntil:1 _egC:1 _fall:1 _fc:1 _fillLock:1 _fireExit:1 _fireExitFire:1 _fireIn:1 _flee:1 _heDone:2 _hold:1 _holdLog:1 _huntArrive:1 _huntIdx:1 _jc:1 _jump:1 _knife:1 _landAt:1 _lkC:1 _lkPt:1 _lkTop:1 _lkZ:1 _lurkArr:1 _lurkIdx:1 _lurkPh:1 _mistakes:1 _nadeNo:1 _nadeT:1 _nearestEnemyBot:1 _offNav:1 _onPistol:1 _prevOffX:1 _prevOffY:1 _probe:1 _probeLock:1 _reloading:1 _roamSoundHandled:1 _roamSoundLockUntil:1 _saveSpot:1 _sawEnemy:1 _secAmmo:1 _stabT:1 _stageInfo:1 _stopPlantUntil:1 _stopWhy:1 _tagUntil:1 _ts:1 _unstickT:1 alive:4 ammo:1 armor:1 armorHp:1 atPost:1 blindUntil:1 burstCount:1 contactStreak:1 deaths:1 decisionTick:1 forcedRetreat:1 heading:1 helmet:2 holdSinceTick:1 hp:1 kills:1 kit:2 lastShotTick:1 lastStepTick:1 lookTarget:1 money:1 nadeQueue:1 nades:1 nextShotTick:1 onStairs:1 pickTick:1 primary:1 reloadUntil:1 retakeRole:1 roamCheckStart:1 roamCheckUntil:1 roamChecking:1 roamIdx:1 roamLookPt:1 roamPrevPt:1 roamTarget:1 roundDmg:1 roundKills:1 secondary:1 setupLook:1 stateSince:1 stuckTicks:1 throwUntil:1 weapon:1 x:1 y:1 z:2 | функций 1475
+общих переменных 987 из чужих файлов пишут 85
+реестр состояния: строк 1475, не размечено 0
+карточки механик: файлов 101, расхождений 0
+чтения истины врага (решения): мест 55, новых 0; известных нарушений «истина» 13 (BEHAVIOR_BACKLOG, после Р8)
+ответ хозяина не прочитан (Р-7): мест 124
+виды задач (TaskKind): 79 литералом, мест с тегом из данных 20, расхождений 0
+писатели полей бота: полей 455, писателей 600, новых 0
+правила сборки Р-1…Р-17: известных мест Р-1 6, Р-3а 77, Р-3б 15, Р-4 46, Р-5 57, Р-16 0, Р-17 68; новых 0
+start fp r40_off_anc.html m3 (идёт 1, свободно 9222 МБ)
+start fp r40_off_anc.html m7 (идёт 2, свободно 9216 МБ)
+start fp r40_off_anc.html m11 (идёт 3, свободно 9212 МБ)
+start fp r40_off_anc.html m13 (идёт 4, свободно 9211 МБ)
+start fp r40_off_anc.html m17 (идёт 5, свободно 9211 МБ)
+start fp r40_off_anc.html m19 (идёт 6, свободно 9210 МБ)
+guard: недопуск fp r40_off_anc.html m23 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:ancient): новое дерево +1000 МБ, резерв для идущих +6000 МБ, свободно 9210 МБ, запас 3195 МБ → остаток 2210 МБ
+mem: свободно 6594 / 15977 МБ; par ≤ 8; очередь 10; идёт 6 (считают тики 0): fp r40_off_anc.html m3 641 МБ / 6 проц. [тиков ещё нет], fp r40_off_anc.html m7 641 МБ / 6 проц. [тиков ещё нет], fp r40_off_anc.html m11 642 МБ / 6 проц. [тиков ещё нет], fp r40_off_anc.html m13 643 МБ / 6 проц. [тиков ещё нет], fp r40_off_anc.html m17 663 МБ / 6 проц. [тиков ещё нет], fp r40_off_anc.html m19 643 МБ / 6 проц. [тиков ещё нет]
+start fp r40_off_anc.html m23 (идёт 7, свободно 6535 МБ)
+start fp r40_off_anc.html m29 (идёт 8, свободно 6534 МБ)
+mem: свободно 2608 / 15977 МБ; par ≤ 8; очередь 8; идёт 8 (считают тики 8): fp r40_off_anc.html m3 987 МБ / 6 проц. [тик 8960, 3 с назад], fp r40_off_anc.html m7 998 МБ / 6 проц. [тик 11520, 0 с назад], fp r40_off_anc.html m11 1019 МБ / 6 проц. [тик 8320, 3 с назад], fp r40_off_anc.html m13 1021 МБ / 6 проц. [тик 7680, 3 с назад], fp r40_off_anc.html m17 1038 МБ / 6 проц. [тик 9600, 0 с назад], fp r40_off_anc.html m19 1059 МБ / 6 проц. [тик 8320, 3 с назад], fp r40_off_anc.html m23 1221 МБ / 6 проц. [тик 7680, 0 с назад], fp r40_off_anc.html m29 1151 МБ / 6 проц. [тик 6400, 3 с назад]
+mem: свободно 1580 / 15977 МБ; par ≤ 8; очередь 8; идёт 8 (считают тики 8): fp r40_off_anc.html m3 1097 МБ / 6 проц. [тик 18560, 0 с назад], fp r40_off_anc.html m7 1141 МБ / 6 проц. [тик 25600, 0 с назад], fp r40_off_anc.html m11 1187 МБ / 6 проц. [тик 20480, 3 с назад], fp r40_off_anc.html m13 1228 МБ / 6 проц. [тик 21120, 0 с назад], fp r40_off_anc.html m17 1077 МБ / 6 проц. [тик 23680, 0 с назад], fp r40_off_anc.html m19 1120 МБ / 6 проц. [тик 19200, 0 с назад], fp r40_off_anc.html m23 1454 МБ / 6 проц. [тик 19840, 0 с назад], fp r40_off_anc.html m29 1207 МБ / 6 проц. [тик 16640, 0 с назад]
+guard: параллельность 8 → 7 (мало памяти: свободно 1378 МБ)
+end fp r40_off_anc.html m29: код 1, 70 с, пик 1220 МБ, процессов до 6, СНЯТ: lowmem (свободно 1378 МБ)
+mem: свободно 1290 / 15977 МБ; par ≤ 7; очередь 8; идёт 7 (считают тики 7): fp r40_off_anc.html m3 1245 МБ / 6 проц. [тик 29440, 0 с назад], fp r40_off_anc.html m7 1332 МБ / 6 проц. [тик 33280, 0 с назад], fp r40_off_anc.html m11 1393 МБ / 6 проц. [тик 29440, 0 с назад], fp r40_off_anc.html m13 1415 МБ / 6 проц. [тик 29440, 2 с назад], fp r40_off_anc.html m17 1280 МБ / 6 проц. [тик 31360, 0 с назад], fp r40_off_anc.html m19 1338 МБ / 6 проц. [тик 26880, 0 с назад], fp r40_off_anc.html m23 1451 МБ / 6 проц. [тик 28800, 0 с назад]
+guard: параллельность 7 → 6 (мало памяти: свободно 1291 МБ)
+end fp r40_off_anc.html m23: код 1, 96 с, пик 1465 МБ, процессов до 6, СНЯТ: lowmem (свободно 1291 МБ)
+mem: свободно 1768 / 15977 МБ; par ≤ 6; очередь 8; идёт 6 (считают тики 6): fp r40_off_anc.html m3 1442 МБ / 6 проц. [тик 39680, 0 с назад], fp r40_off_anc.html m7 1389 МБ / 6 проц. [тик 42240, 0 с назад], fp r40_off_anc.html m11 1532 МБ / 6 проц. [тик 40320, 0 с назад], fp r40_off_anc.html m13 1545 МБ / 6 проц. [тик 39040, 0 с назад], fp r40_off_anc.html m17 1340 МБ / 6 проц. [тик 44160, 0 с назад], fp r40_off_anc.html m19 1390 МБ / 6 проц. [тик 35840, 0 с назад]
+guard: параллельность 6 → 5 (мало памяти: свободно 1439 МБ)
+end fp r40_off_anc.html m19: код 1, 138 с, пик 1493 МБ, процессов до 6, СНЯТ: lowmem (свободно 1439 МБ)
+mem: свободно 2336 / 15977 МБ; par ≤ 5; очередь 8; идёт 5 (считают тики 5): fp r40_off_anc.html m3 1512 МБ / 6 проц. [тик 53120, 2 с назад], fp r40_off_anc.html m7 1500 МБ / 6 проц. [тик 56320, 0 с назад], fp r40_off_anc.html m11 1684 МБ / 6 проц. [тик 53120, 2 с назад], fp r40_off_anc.html m13 1639 МБ / 6 проц. [тик 51840, 2 с назад], fp r40_off_anc.html m17 1524 МБ / 6 проц. [тик 53760, 0 с назад]
+mem: свободно 1501 / 15977 МБ; par ≤ 5; очередь 8; идёт 5 (считают тики 5): fp r40_off_anc.html m3 1721 МБ / 6 проц. [тик 63360, 0 с назад], fp r40_off_anc.html m7 1656 МБ / 6 проц. [тик 69760, 0 с назад], fp r40_off_anc.html m11 1751 МБ / 6 проц. [тик 64640, 0 с назад], fp r40_off_anc.html m13 1778 МБ / 6 проц. [тик 63360, 0 с назад], fp r40_off_anc.html m17 1764 МБ / 6 проц. [тик 67200, 0 с назад]
+guard: параллельность 5 → 4 (мало памяти: свободно 1405 МБ)
+end fp r40_off_anc.html m17: код 1, 194 с, пик 1765 МБ, процессов до 6, СНЯТ: lowmem (свободно 1405 МБ)
+mem: свободно 2570 / 15977 МБ; par ≤ 4; очередь 8; идёт 4 (считают тики 4): fp r40_off_anc.html m3 1842 МБ / 6 проц. [тик 77440, 0 с назад], fp r40_off_anc.html m7 1769 МБ / 6 проц. [тик 80640, 0 с назад], fp r40_off_anc.html m11 1870 МБ / 6 проц. [тик 79360, 0 с назад], fp r40_off_anc.html m13 1909 МБ / 6 проц. [тик 78080, 0 с назад]
+mem: свободно 2478 / 15977 МБ; par ≤ 4; очередь 8; идёт 4 (считают тики 4): fp r40_off_anc.html m3 1818 МБ / 6 проц. [тик 91520, 0 с назад], fp r40_off_anc.html m7 1827 МБ / 6 проц. [тик 94080, 0 с назад], fp r40_off_anc.html m11 1915 МБ / 6 проц. [тик 92800, 0 с назад], fp r40_off_anc.html m13 1928 МБ / 6 проц. [тик 89600, 0 с назад]
+end fp r40_off_anc.html m11: код 0, 259 с, пик 1944 МБ, процессов до 6
+guard: недопуск fp r40_off_mir.html m3 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:mirage): новое дерево +1000 МБ, резерв для идущих +0 МБ, свободно 3993 МБ, запас 3195 МБ → остаток 2993 МБ
+mem: свободно 3826 / 15977 МБ; par ≤ 4; очередь 8; идёт 3 (считают тики 3): fp r40_off_anc.html m3 1951 МБ / 6 проц. [тик 100480, 0 с назад], fp r40_off_anc.html m7 1960 МБ / 6 проц. [тик 106880, 0 с назад], fp r40_off_anc.html m13 1944 МБ / 6 проц. [тик 103040, 0 с назад]
+guard: недопуск fp r40_off_mir.html m3 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:mirage): новое дерево +1000 МБ, резерв для идущих +0 МБ, свободно 3895 МБ, запас 3195 МБ → остаток 2895 МБ
+mem: свободно 3825 / 15977 МБ; par ≤ 4; очередь 8; идёт 3 (считают тики 3): fp r40_off_anc.html m3 2000 МБ / 6 проц. [тик 113920, 0 с назад], fp r40_off_anc.html m7 2015 МБ / 6 проц. [тик 121600, 0 с назад], fp r40_off_anc.html m13 2029 МБ / 6 проц. [тик 119040, 0 с назад]
+guard: недопуск fp r40_off_mir.html m3 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:mirage): новое дерево +1000 МБ, резерв для идущих +0 МБ, свободно 3754 МБ, запас 3195 МБ → остаток 2754 МБ
+mem: свободно 3625 / 15977 МБ; par ≤ 4; очередь 8; идёт 3 (считают тики 3): fp r40_off_anc.html m3 2024 МБ / 6 проц. [тик 128640, 0 с назад], fp r40_off_anc.html m7 2088 МБ / 6 проц. [тик 139520, 0 с назад], fp r40_off_anc.html m13 2060 МБ / 6 проц. [тик 132480, 0 с назад]
+guard: недопуск fp r40_off_mir.html m3 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:mirage): новое дерево +1000 МБ, резерв для идущих +0 МБ, свободно 3613 МБ, запас 3195 МБ → остаток 2613 МБ
+mem: свободно 3380 / 15977 МБ; par ≤ 4; очередь 8; идёт 3 (считают тики 3): fp r40_off_anc.html m3 2112 МБ / 6 проц. [тик 144640, 0 с назад], fp r40_off_anc.html m7 2127 МБ / 6 проц. [тик 152960, 0 с назад], fp r40_off_anc.html m13 2192 МБ / 6 проц. [тик 146560, 2 с назад]
+guard: недопуск fp r40_off_mir.html m3 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:mirage): новое дерево +1000 МБ, резерв для идущих +0 МБ, свободно 3339 МБ, запас 3195 МБ → остаток 2339 МБ
+end fp r40_off_anc.html m3: код 0, 390 с, пик 2114 МБ, процессов до 6
+end fp r40_off_anc.html m7: код 0, 390 с, пик 2128 МБ, процессов до 6
+guard: параллельность 4 → 5 (память позволяет: свободно 7222 МБ, резерв идущих +0)
+start fp r40_off_mir.html m3 (идёт 2, свободно 7221 МБ)
+start fp r40_off_mir.html m7 (идёт 3, свободно 7219 МБ)
+start fp r40_off_mir.html m11 (идёт 4, свободно 7214 МБ)
+start fp r40_off_mir.html m13 (идёт 5, свободно 7210 МБ)
+end fp r40_off_anc.html m13: код 0, 396 с, пик 2220 МБ, процессов до 6
+start fp r40_off_mir.html m17 (идёт 5, свободно 7308 МБ)
+mem: свободно 6013 / 15977 МБ; par ≤ 5; очередь 3; идёт 5 (считают тики 5): fp r40_off_mir.html m3 965 МБ / 6 проц. [тик 3200, 2 с назад], fp r40_off_mir.html m7 967 МБ / 6 проц. [тик 5760, 0 с назад], fp r40_off_mir.html m11 984 МБ / 6 проц. [тик 5760, 0 с назад], fp r40_off_mir.html m13 985 МБ / 6 проц. [тик 5120, 0 с назад], fp r40_off_mir.html m17 933 МБ / 6 проц. [тик 2560, 0 с назад]
+mem: свободно 5487 / 15977 МБ; par ≤ 5; очередь 3; идёт 5 (считают тики 5): fp r40_off_mir.html m3 1055 МБ / 6 проц. [тик 13440, 2 с назад], fp r40_off_mir.html m7 1114 МБ / 6 проц. [тик 12800, 0 с назад], fp r40_off_mir.html m11 1107 МБ / 6 проц. [тик 12800, 0 с назад], fp r40_off_mir.html m13 1076 МБ / 6 проц. [тик 13440, 0 с назад], fp r40_off_mir.html m17 1064 МБ / 6 проц. [тик 11520, 0 с назад]
+guard: параллельность 5 → 6 (память позволяет: свободно 5341 МБ, резерв идущих +0)
+start fp r40_off_mir.html m19 (идёт 6, свободно 5341 МБ)
+mem: свободно 4536 / 15977 МБ; par ≤ 6; очередь 2; идёт 6 (считают тики 6): fp r40_off_mir.html m3 1135 МБ / 6 проц. [тик 25600, 0 с назад], fp r40_off_mir.html m7 1148 МБ / 6 проц. [тик 24960, 2 с назад], fp r40_off_mir.html m11 1174 МБ / 6 проц. [тик 25600, 0 с назад], fp r40_off_mir.html m13 1141 МБ / 6 проц. [тик 25600, 0 с назад], fp r40_off_mir.html m17 1167 МБ / 6 проц. [тик 22400, 0 с назад], fp r40_off_mir.html m19 997 МБ / 6 проц. [тик 3200, 0 с назад]
+mem: свободно 4273 / 15977 МБ; par ≤ 6; очередь 2; идёт 6 (считают тики 6): fp r40_off_mir.html m3 1218 МБ / 6 проц. [тик 32640, 2 с назад], fp r40_off_mir.html m7 1161 МБ / 6 проц. [тик 33280, 4 с назад], fp r40_off_mir.html m11 1197 МБ / 6 проц. [тик 38400, 0 с назад], fp r40_off_mir.html m13 1208 МБ / 6 проц. [тик 30720, 0 с назад], fp r40_off_mir.html m17 1169 МБ / 6 проц. [тик 31360, 0 с назад], fp r40_off_mir.html m19 1049 МБ / 6 проц. [тик 10880, 0 с назад]
+mem: свободно 4143 / 15977 МБ; par ≤ 6; очередь 2; идёт 6 (считают тики 6): fp r40_off_mir.html m3 1185 МБ / 6 проц. [тик 42880, 0 с назад], fp r40_off_mir.html m7 1189 МБ / 6 проц. [тик 42240, 2 с назад], fp r40_off_mir.html m11 1240 МБ / 6 проц. [тик 46080, 2 с назад], fp r40_off_mir.html m13 1217 МБ / 6 проц. [тик 40320, 0 с назад], fp r40_off_mir.html m17 1186 МБ / 6 проц. [тик 42880, 0 с назад], fp r40_off_mir.html m19 1132 МБ / 6 проц. [тик 19840, 0 с назад]
+mem: свободно 4053 / 15977 МБ; par ≤ 6; очередь 2; идёт 6 (считают тики 6): fp r40_off_mir.html m3 1215 МБ / 6 проц. [тик 49280, 0 с назад], fp r40_off_mir.html m7 1185 МБ / 6 проц. [тик 48640, 0 с назад], fp r40_off_mir.html m11 1265 МБ / 6 проц. [тик 51840, 2 с назад], fp r40_off_mir.html m13 1216 МБ / 6 проц. [тик 52480, 0 с назад], fp r40_off_mir.html m17 1185 МБ / 6 проц. [тик 52480, 2 с назад], fp r40_off_mir.html m19 1174 МБ / 6 проц. [тик 32000, 4 с назад]
+mem: свободно 3788 / 15977 МБ; par ≤ 6; очередь 2; идёт 6 (считают тики 6): fp r40_off_mir.html m3 1274 МБ / 6 проц. [тик 57600, 0 с назад], fp r40_off_mir.html m7 1238 МБ / 6 проц. [тик 56960, 0 с назад], fp r40_off_mir.html m11 1297 МБ / 6 проц. [тик 64000, 0 с назад], fp r40_off_mir.html m13 1232 МБ / 6 проц. [тик 62080, 0 с назад], fp r40_off_mir.html m17 1261 МБ / 6 проц. [тик 61440, 0 с назад], fp r40_off_mir.html m19 1205 МБ / 6 проц. [тик 40960, 0 с назад]
+mem: свободно 3814 / 15977 МБ; par ≤ 6; очередь 2; идёт 6 (считают тики 6): fp r40_off_mir.html m3 1240 МБ / 6 проц. [тик 66560, 8 с назад], fp r40_off_mir.html m7 1205 МБ / 6 проц. [тик 67200, 0 с назад], fp r40_off_mir.html m11 1264 МБ / 6 проц. [тик 71680, 0 с назад], fp r40_off_mir.html m13 1298 МБ / 6 проц. [тик 70400, 0 с назад], fp r40_off_mir.html m17 1220 МБ / 6 проц. [тик 71680, 0 с назад], fp r40_off_mir.html m19 1261 МБ / 6 проц. [тик 50560, 0 с назад]
+mem: свободно 3805 / 15977 МБ; par ≤ 6; очередь 2; идёт 6 (считают тики 6): fp r40_off_mir.html m3 1240 МБ / 6 проц. [тик 76160, 0 с назад], fp r40_off_mir.html m7 1233 МБ / 6 проц. [тик 76800, 0 с назад], fp r40_off_mir.html m11 1255 МБ / 6 проц. [тик 80000, 2 с назад], fp r40_off_mir.html m13 1235 МБ / 6 проц. [тик 84480, 0 с назад], fp r40_off_mir.html m17 1259 МБ / 6 проц. [тик 80640, 2 с назад], fp r40_off_mir.html m19 1262 МБ / 6 проц. [тик 59520, 2 с назад]
+mem: свободно 3563 / 15977 МБ; par ≤ 6; очередь 2; идёт 6 (считают тики 6): fp r40_off_mir.html m3 1287 МБ / 6 проц. [тик 83840, 0 с назад], fp r40_off_mir.html m7 1310 МБ / 6 проц. [тик 88320, 0 с назад], fp r40_off_mir.html m11 1272 МБ / 6 проц. [тик 88960, 0 с назад], fp r40_off_mir.html m13 1314 МБ / 6 проц. [тик 90240, 0 с назад], fp r40_off_mir.html m17 1273 МБ / 6 проц. [тик 89600, 2 с назад], fp r40_off_mir.html m19 1280 МБ / 6 проц. [тик 68480, 0 с назад]
+mem: свободно 3647 / 15977 МБ; par ≤ 6; очередь 2; идёт 6 (считают тики 6): fp r40_off_mir.html m3 1276 МБ / 6 проц. [тик 94720, 0 с назад], fp r40_off_mir.html m7 1262 МБ / 6 проц. [тик 101120, 0 с назад], fp r40_off_mir.html m11 1284 МБ / 6 проц. [тик 102400, 0 с назад], fp r40_off_mir.html m13 1296 МБ / 6 проц. [тик 101120, 0 с назад], fp r40_off_mir.html m17 1278 МБ / 6 проц. [тик 100480, 0 с назад], fp r40_off_mir.html m19 1260 МБ / 6 проц. [тик 80640, 2 с назад]
+mem: свободно 3541 / 15977 МБ; par ≤ 6; очередь 2; идёт 6 (считают тики 6): fp r40_off_mir.html m3 1328 МБ / 6 проц. [тик 104320, 2 с назад], fp r40_off_mir.html m7 1300 МБ / 6 проц. [тик 111360, 0 с назад], fp r40_off_mir.html m11 1291 МБ / 6 проц. [тик 110080, 2 с назад], fp r40_off_mir.html m13 1306 МБ / 6 проц. [тик 111360, 0 с назад], fp r40_off_mir.html m17 1245 МБ / 6 проц. [тик 108800, 2 с назад], fp r40_off_mir.html m19 1237 МБ / 6 проц. [тик 88320, 19 с назад]
+end fp r40_off_mir.html m17: код 0, 386 с, пик 1303 МБ, процессов до 6
+guard: недопуск fp r40_off_mir.html m23 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:mirage): новое дерево +1334 МБ, резерв для идущих +0 МБ, свободно 4371 МБ, запас 3195 МБ → остаток 3037 МБ
+mem: свободно 4360 / 15977 МБ; par ≤ 6; очередь 2; идёт 5 (считают тики 5): fp r40_off_mir.html m3 1334 МБ / 6 проц. [тик 111360, 0 с назад], fp r40_off_mir.html m7 1311 МБ / 6 проц. [тик 124800, 0 с назад], fp r40_off_mir.html m11 1322 МБ / 6 проц. [тик 122240, 0 с назад], fp r40_off_mir.html m13 1301 МБ / 6 проц. [тик 122880, 0 с назад], fp r40_off_mir.html m19 1272 МБ / 6 проц. [тик 92800, 2 с назад]
+end fp r40_off_mir.html m13: код 0, 414 с, пик 1337 МБ, процессов до 6
+guard: параллельность 6 → 7 (память позволяет: свободно 5415 МБ, резерв идущих +0)
+start fp r40_off_mir.html m23 (идёт 5, свободно 5415 МБ)
+guard: недопуск fp r40_off_mir.html m29 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:mirage): новое дерево +1329 МБ, резерв для идущих +1329 МБ, свободно 5415 МБ, запас 3195 МБ → остаток 2757 МБ
+start fp r40_off_mir.html m29 (идёт 6, свободно 4753 МБ)
+mem: свободно 4304 / 15977 МБ; par ≤ 7; очередь 0; идёт 6 (считают тики 5): fp r40_off_mir.html m3 1318 МБ / 6 проц. [тик 122240, 0 с назад], fp r40_off_mir.html m7 1299 МБ / 6 проц. [тик 134400, 2 с назад], fp r40_off_mir.html m11 1333 МБ / 6 проц. [тик 129920, 0 с назад], fp r40_off_mir.html m19 1304 МБ / 6 проц. [тик 101120, 0 с назад], fp r40_off_mir.html m23 941 МБ / 6 проц. [тик 1920, 2 с назад], fp r40_off_mir.html m29 None МБ / 0 проц. [тиков ещё нет]
+end fp r40_off_mir.html m11: код 0, 454 с, пик 1341 МБ, процессов до 6
+end fp r40_off_mir.html m3: код 0, 458 с, пик 1341 МБ, процессов до 6
+mem: свободно 5754 / 15977 МБ; par ≤ 7; очередь 0; идёт 4 (считают тики 4): fp r40_off_mir.html m7 1335 МБ / 6 проц. [тик 146560, 0 с назад], fp r40_off_mir.html m19 1324 МБ / 6 проц. [тик 109440, 3 с назад], fp r40_off_mir.html m23 1043 МБ / 6 проц. [тик 11520, 3 с назад], fp r40_off_mir.html m29 1076 МБ / 6 проц. [тик 8320, 0 с назад]
+mem: свободно 5076 / 15977 МБ; par ≤ 7; очередь 0; идёт 4 (считают тики 4): fp r40_off_mir.html m7 1334 МБ / 6 проц. [тик 154880, 0 с назад], fp r40_off_mir.html m19 1308 МБ / 6 проц. [тик 119040, 0 с назад], fp r40_off_mir.html m23 1132 МБ / 6 проц. [тик 19840, 0 с назад], fp r40_off_mir.html m29 1175 МБ / 6 проц. [тик 18560, 0 с назад]
+end fp r40_off_mir.html m7: код 0, 512 с, пик 1339 МБ, процессов до 6
+mem: свободно 5968 / 15977 МБ; par ≤ 7; очередь 0; идёт 3 (считают тики 3): fp r40_off_mir.html m19 1297 МБ / 6 проц. [тик 131200, 0 с назад], fp r40_off_mir.html m23 1154 МБ / 6 проц. [тик 33280, 2 с назад], fp r40_off_mir.html m29 1200 МБ / 6 проц. [тик 32640, 0 с назад]
+end fp r40_off_mir.html m19: код 0, 486 с, пик 1346 МБ, процессов до 6
+mem: свободно 6735 / 15977 МБ; par ≤ 7; очередь 0; идёт 2 (считают тики 2): fp r40_off_mir.html m23 1193 МБ / 6 проц. [тик 44160, 0 с назад], fp r40_off_mir.html m29 1268 МБ / 6 проц. [тик 43520, 0 с назад]
+mem: свободно 6830 / 15977 МБ; par ≤ 7; очередь 0; идёт 2 (считают тики 2): fp r40_off_mir.html m23 1208 МБ / 6 проц. [тик 59520, 0 с назад], fp r40_off_mir.html m29 1261 МБ / 6 проц. [тик 58240, 0 с назад]
+mem: свободно 6815 / 15977 МБ; par ≤ 7; очередь 0; идёт 2 (считают тики 2): fp r40_off_mir.html m23 1238 МБ / 6 проц. [тик 66560, 0 с назад], fp r40_off_mir.html m29 1297 МБ / 6 проц. [тик 68480, 2 с назад]
+mem: свободно 7233 / 15977 МБ; par ≤ 7; очередь 0; идёт 2 (считают тики 2): fp r40_off_mir.html m23 1243 МБ / 6 проц. [тик 76800, 0 с назад], fp r40_off_mir.html m29 1251 МБ / 6 проц. [тик 81280, 0 с назад]
+mem: свободно 7147 / 15977 МБ; par ≤ 7; очередь 0; идёт 2 (считают тики 2): fp r40_off_mir.html m23 1255 МБ / 6 проц. [тик 90240, 2 с назад], fp r40_off_mir.html m29 1309 МБ / 6 проц. [тик 94720, 0 с назад]
+mem: свободно 7118 / 15977 МБ; par ≤ 7; очередь 0; идёт 2 (считают тики 2): fp r40_off_mir.html m23 1300 МБ / 6 проц. [тик 103040, 0 с назад], fp r40_off_mir.html m29 1311 МБ / 6 проц. [тик 108160, 0 с назад]
+mem: свободно 7125 / 15977 МБ; par ≤ 7; очередь 0; идёт 2 (считают тики 2): fp r40_off_mir.html m23 1324 МБ / 6 проц. [тик 113920, 0 с назад], fp r40_off_mir.html m29 1343 МБ / 6 проц. [тик 119680, 0 с назад]
+end fp r40_off_mir.html m23: код 0, 331 с, пик 1324 МБ, процессов до 6
+mem: свободно 8033 / 15977 МБ; par ≤ 7; очередь 0; идёт 1 (считают тики 1): fp r40_off_mir.html m29 1327 МБ / 6 проц. [тик 134400, 0 с назад]
+mem: свободно 8033 / 15977 МБ; par ≤ 7; очередь 0; идёт 1 (считают тики 1): fp r40_off_mir.html m29 1302 МБ / 6 проц. [тик 145280, 2 с назад]
+mem: свободно 8011 / 15977 МБ; par ≤ 7; очередь 0; идёт 1 (считают тики 1): fp r40_off_mir.html m29 1383 МБ / 6 проц. [тик 155520, 0 с назад]
+mem: свободно 7988 / 15977 МБ; par ≤ 7; очередь 0; идёт 1 (считают тики 1): fp r40_off_mir.html m29 1371 МБ / 6 проц. [тик 165760, 0 с назад]
+end fp r40_off_mir.html m29: код 0, 466 с, пик 1383 МБ, процессов до 6
+guard: повтор остановленных или упавших матчей: 4 (по одному)
+start fp r40_off_anc.html m29 (идёт 1, свободно 9048 МБ)
+guard: недопуск fp r40_off_anc.html m23 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1000 МБ, резерв для идущих +1000 МБ, свободно 9048 МБ, запас 3195 МБ → остаток 7048 МБ
+mem: свободно 8357 / 15977 МБ; par ≤ 7; очередь 3; идёт 1 (считают тики 1): fp r40_off_anc.html m29 730 МБ / 6 проц. [тик 1280, 2 с назад]
+guard: недопуск fp r40_off_anc.html m23 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1000 МБ, резерв для идущих +0 МБ, свободно 8325 МБ, запас 3195 МБ → остаток 7325 МБ
+mem: свободно 8345 / 15977 МБ; par ≤ 7; очередь 3; идёт 1 (считают тики 1): fp r40_off_anc.html m29 1024 МБ / 6 проц. [тик 14080, 0 с назад]
+guard: недопуск fp r40_off_anc.html m23 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1173 МБ, резерв для идущих +0 МБ, свободно 8123 МБ, запас 3195 МБ → остаток 6950 МБ
+mem: свободно 8108 / 15977 МБ; par ≤ 7; очередь 3; идёт 1 (считают тики 1): fp r40_off_anc.html m29 1257 МБ / 6 проц. [тик 28800, 0 с назад]
+guard: недопуск fp r40_off_anc.html m23 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1339 МБ, резерв для идущих +0 МБ, свободно 7991 МБ, запас 3195 МБ → остаток 6652 МБ
+mem: свободно 7895 / 15977 МБ; par ≤ 7; очередь 3; идёт 1 (считают тики 1): fp r40_off_anc.html m29 1458 МБ / 6 проц. [тик 42240, 0 с назад]
+guard: недопуск fp r40_off_anc.html m23 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1458 МБ, резерв для идущих +0 МБ, свободно 7822 МБ, запас 3195 МБ → остаток 6364 МБ
+mem: свободно 7825 / 15977 МБ; par ≤ 7; очередь 3; идёт 1 (считают тики 1): fp r40_off_anc.html m29 1549 МБ / 6 проц. [тик 56320, 0 с назад]
+guard: недопуск fp r40_off_anc.html m23 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1585 МБ, резерв для идущих +0 МБ, свободно 7644 МБ, запас 3195 МБ → остаток 6059 МБ
+mem: свободно 7663 / 15977 МБ; par ≤ 7; очередь 3; идёт 1 (считают тики 1): fp r40_off_anc.html m29 1698 МБ / 6 проц. [тик 68480, 0 с назад]
+guard: недопуск fp r40_off_anc.html m23 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1764 МБ, резерв для идущих +0 МБ, свободно 7535 МБ, запас 3195 МБ → остаток 5771 МБ
+mem: свободно 7598 / 15977 МБ; par ≤ 7; очередь 3; идёт 1 (считают тики 1): fp r40_off_anc.html m29 1767 МБ / 6 проц. [тик 83200, 0 с назад]
+guard: недопуск fp r40_off_anc.html m23 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1857 МБ, резерв для идущих +0 МБ, свободно 7492 МБ, запас 3195 МБ → остаток 5635 МБ
+mem: свободно 7428 / 15977 МБ; par ≤ 7; очередь 3; идёт 1 (считают тики 1): fp r40_off_anc.html m29 1921 МБ / 6 проц. [тик 96640, 0 с назад]
+guard: недопуск fp r40_off_anc.html m23 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1937 МБ, резерв для идущих +0 МБ, свободно 7403 МБ, запас 3195 МБ → остаток 5466 МБ
+mem: свободно 7412 / 15977 МБ; par ≤ 7; очередь 3; идёт 1 (считают тики 1): fp r40_off_anc.html m29 1923 МБ / 6 проц. [тик 112640, 0 с назад]
+guard: недопуск fp r40_off_anc.html m23 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +2019 МБ, резерв для идущих +0 МБ, свободно 7372 МБ, запас 3195 МБ → остаток 5353 МБ
+mem: свободно 7315 / 15977 МБ; par ≤ 7; очередь 3; идёт 1 (считают тики 1): fp r40_off_anc.html m29 2063 МБ / 6 проц. [тик 126080, 0 с назад]
+guard: недопуск fp r40_off_anc.html m23 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +2031 МБ, резерв для идущих +0 МБ, свободно 7287 МБ, запас 3195 МБ → остаток 5256 МБ
+mem: свободно 7308 / 15977 МБ; par ≤ 7; очередь 3; идёт 1 (считают тики 1): fp r40_off_anc.html m29 2048 МБ / 6 проц. [тик 139520, 0 с назад]
+guard: недопуск fp r40_off_anc.html m23 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +2074 МБ, резерв для идущих +0 МБ, свободно 7208 МБ, запас 3195 МБ → остаток 5134 МБ
+mem: свободно 7219 / 15977 МБ; par ≤ 7; очередь 3; идёт 1 (считают тики 1): fp r40_off_anc.html m29 2152 МБ / 6 проц. [тик 153600, 0 с назад]
+end fp r40_off_anc.html m29: код 0, 355 с, пик 2152 МБ, процессов до 6
+start fp r40_off_anc.html m23 (идёт 1, свободно 9220 МБ)
+guard: недопуск fp r40_off_anc.html m19 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1000 МБ, резерв для идущих +1000 МБ, свободно 9220 МБ, запас 3195 МБ → остаток 7220 МБ
+mem: свободно 8248 / 15977 МБ; par ≤ 7; очередь 2; идёт 1 (считают тики 1): fp r40_off_anc.html m23 1072 МБ / 6 проц. [тик 8960, 0 с назад]
+guard: недопуск fp r40_off_anc.html m19 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1072 МБ, резерв для идущих +0 МБ, свободно 8227 МБ, запас 3195 МБ → остаток 7155 МБ
+mem: свободно 7998 / 15977 МБ; par ≤ 7; очередь 2; идёт 1 (считают тики 1): fp r40_off_anc.html m23 1321 МБ / 6 проц. [тик 25600, 0 с назад]
+guard: недопуск fp r40_off_anc.html m19 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1321 МБ, резерв для идущих +0 МБ, свободно 8000 МБ, запас 3195 МБ → остаток 6679 МБ
+mem: свободно 7837 / 15977 МБ; par ≤ 7; очередь 2; идёт 1 (считают тики 1): fp r40_off_anc.html m23 1447 МБ / 6 проц. [тик 37120, 0 с назад]
+guard: недопуск fp r40_off_anc.html m19 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1447 МБ, резерв для идущих +0 МБ, свободно 7773 МБ, запас 3195 МБ → остаток 6326 МБ
+mem: свободно 7696 / 15977 МБ; par ≤ 7; очередь 2; идёт 1 (считают тики 1): fp r40_off_anc.html m23 1583 МБ / 6 проц. [тик 49280, 0 с назад]
+guard: недопуск fp r40_off_anc.html m19 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1583 МБ, резерв для идущих +0 МБ, свободно 7662 МБ, запас 3195 МБ → остаток 6079 МБ
+mem: свободно 7522 / 15977 МБ; par ≤ 7; очередь 2; идёт 1 (считают тики 1): fp r40_off_anc.html m23 1742 МБ / 6 проц. [тик 64640, 2 с назад]
+guard: недопуск fp r40_off_anc.html m19 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1742 МБ, резерв для идущих +0 МБ, свободно 7492 МБ, запас 3195 МБ → остаток 5750 МБ
+mem: свободно 7598 / 15977 МБ; par ≤ 7; очередь 2; идёт 1 (считают тики 1): fp r40_off_anc.html m23 1782 МБ / 6 проц. [тик 76800, 0 с назад]
+guard: недопуск fp r40_off_anc.html m19 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1782 МБ, резерв для идущих +0 МБ, свободно 7601 МБ, запас 3195 МБ → остаток 5819 МБ
+mem: свободно 7348 / 15977 МБ; par ≤ 7; очередь 2; идёт 1 (считают тики 1): fp r40_off_anc.html m23 1868 МБ / 6 проц. [тик 91520, 0 с назад]
+guard: недопуск fp r40_off_anc.html m19 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1868 МБ, резерв для идущих +0 МБ, свободно 7198 МБ, запас 3195 МБ → остаток 5330 МБ
+end fp r40_off_anc.html m23: код 0, 225 с, пик 2048 МБ, процессов до 6
+start fp r40_off_anc.html m19 (идёт 1, свободно 9152 МБ)
+guard: недопуск fp r40_off_anc.html m17 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1000 МБ, резерв для идущих +1000 МБ, свободно 9152 МБ, запас 3195 МБ → остаток 7152 МБ
+mem: свободно 8341 / 15977 МБ; par ≤ 7; очередь 1; идёт 1 (считают тики 1): fp r40_off_anc.html m19 915 МБ / 6 проц. [тик 7680, 0 с назад]
+guard: недопуск fp r40_off_anc.html m17 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1064 МБ, резерв для идущих +0 МБ, свободно 8168 МБ, запас 3195 МБ → остаток 7104 МБ
+mem: свободно 8077 / 15977 МБ; par ≤ 7; очередь 1; идёт 1 (считают тики 1): fp r40_off_anc.html m19 1123 МБ / 6 проц. [тик 19840, 0 с назад]
+guard: недопуск fp r40_off_anc.html m17 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1191 МБ, резерв для идущих +0 МБ, свободно 7926 МБ, запас 3195 МБ → остаток 6735 МБ
+mem: свободно 7933 / 15977 МБ; par ≤ 7; очередь 1; идёт 1 (считают тики 1): fp r40_off_anc.html m19 1320 МБ / 6 проц. [тик 32640, 0 с назад]
+guard: недопуск fp r40_off_anc.html m17 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1363 МБ, резерв для идущих +0 МБ, свободно 7902 МБ, запас 3195 МБ → остаток 6539 МБ
+mem: свободно 7777 / 15977 МБ; par ≤ 7; очередь 1; идёт 1 (считают тики 1): fp r40_off_anc.html m19 1481 МБ / 6 проц. [тик 42240, 0 с назад]
+guard: недопуск fp r40_off_anc.html m17 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1600 МБ, резерв для идущих +0 МБ, свободно 7661 МБ, запас 3195 МБ → остаток 6061 МБ
+mem: свободно 7629 / 15977 МБ; par ≤ 7; очередь 1; идёт 1 (считают тики 1): fp r40_off_anc.html m19 1661 МБ / 6 проц. [тик 55680, 0 с назад]
+guard: недопуск fp r40_off_anc.html m17 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1677 МБ, резерв для идущих +0 МБ, свободно 7613 МБ, запас 3195 МБ → остаток 5936 МБ
+mem: свободно 7496 / 15977 МБ; par ≤ 7; очередь 1; идёт 1 (считают тики 1): fp r40_off_anc.html m19 1753 МБ / 6 проц. [тик 71040, 2 с назад]
+guard: недопуск fp r40_off_anc.html m17 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1763 МБ, резерв для идущих +0 МБ, свободно 7534 МБ, запас 3195 МБ → остаток 5771 МБ
+mem: свободно 7422 / 15977 МБ; par ≤ 7; очередь 1; идёт 1 (считают тики 1): fp r40_off_anc.html m19 1845 МБ / 6 проц. [тик 85760, 2 с назад]
+guard: недопуск fp r40_off_anc.html m17 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1895 МБ, резерв для идущих +0 МБ, свободно 7418 МБ, запас 3195 МБ → остаток 5523 МБ
+mem: свободно 7373 / 15977 МБ; par ≤ 7; очередь 1; идёт 1 (считают тики 1): fp r40_off_anc.html m19 1926 МБ / 6 проц. [тик 101760, 0 с назад]
+guard: недопуск fp r40_off_anc.html m17 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1905 МБ, резерв для идущих +0 МБ, свободно 7375 МБ, запас 3195 МБ → остаток 5470 МБ
+mem: свободно 7374 / 15977 МБ; par ≤ 7; очередь 1; идёт 1 (считают тики 1): fp r40_off_anc.html m19 1914 МБ / 6 проц. [тик 114560, 0 с назад]
+guard: недопуск fp r40_off_anc.html m17 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1956 МБ, резерв для идущих +0 МБ, свободно 7312 МБ, запас 3195 МБ → остаток 5356 МБ
+mem: свободно 7316 / 15977 МБ; par ≤ 7; очередь 1; идёт 1 (считают тики 1): fp r40_off_anc.html m19 1965 МБ / 6 проц. [тик 131840, 2 с назад]
+end fp r40_off_anc.html m19: код 0, 311 с, пик 2099 МБ, процессов до 6
+start fp r40_off_anc.html m17 (идёт 1, свободно 9185 МБ)
+mem: свободно 8351 / 15977 МБ; par ≤ 7; очередь 0; идёт 1 (считают тики 1): fp r40_off_anc.html m17 914 МБ / 6 проц. [тик 8320, 0 с назад]
+mem: свободно 8177 / 15977 МБ; par ≤ 7; очередь 0; идёт 1 (считают тики 1): fp r40_off_anc.html m17 1086 МБ / 6 проц. [тик 24320, 0 с назад]
+mem: свободно 8049 / 15977 МБ; par ≤ 7; очередь 0; идёт 1 (считают тики 1): fp r40_off_anc.html m17 1247 МБ / 6 проц. [тик 38400, 0 с назад]
+mem: свободно 7842 / 15977 МБ; par ≤ 7; очередь 0; идёт 1 (считают тики 1): fp r40_off_anc.html m17 1449 МБ / 6 проц. [тик 51200, 2 с назад]
+mem: свободно 7717 / 15977 МБ; par ≤ 7; очередь 0; идёт 1 (считают тики 1): fp r40_off_anc.html m17 1632 МБ / 6 проц. [тик 65920, 2 с назад]
+mem: свободно 7621 / 15977 МБ; par ≤ 7; очередь 0; идёт 1 (считают тики 1): fp r40_off_anc.html m17 1729 МБ / 6 проц. [тик 81280, 0 с назад]
+mem: свободно 7480 / 15977 МБ; par ≤ 7; очередь 0; идёт 1 (считают тики 1): fp r40_off_anc.html m17 1800 МБ / 6 проц. [тик 94720, 0 с назад]
+mem: свободно 7398 / 15977 МБ; par ≤ 7; очередь 0; идёт 1 (считают тики 1): fp r40_off_anc.html m17 1963 МБ / 6 проц. [тик 111360, 2 с назад]
+mem: свободно 7360 / 15977 МБ; par ≤ 7; очередь 0; идёт 1 (считают тики 1): fp r40_off_anc.html m17 2000 МБ / 6 проц. [тик 128640, 0 с назад]
+end fp r40_off_anc.html m17: код 0, 283 с, пик 2177 МБ, процессов до 6
+guard: параллельность 7 → 8 (конец фазы: следующая начинает с заданного par)
+start rec r40_rec_anc m3 (идёт 1, свободно 9207 МБ)
+start rec r40_rec_anc m7 (идёт 2, свободно 9207 МБ)
+start rec r40_rec_anc m11 (идёт 3, свободно 9207 МБ)
+start rec r40_rec_anc m13 (идёт 4, свободно 9207 МБ)
+start rec r40_rec_anc m17 (идёт 5, свободно 9207 МБ)
+start rec r40_rec_anc m19 (идёт 6, свободно 9207 МБ)
+guard: недопуск rec r40_rec_anc m23 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:ancient): новое дерево +1000 МБ, резерв для идущих +6000 МБ, свободно 9207 МБ, запас 3195 МБ → остаток 2207 МБ
+mem: свободно 6541 / 15977 МБ; par ≤ 8; очередь 10; идёт 6 (считают тики 0): rec r40_rec_anc m3 646 МБ / 6 проц. [тиков ещё нет], rec r40_rec_anc m7 646 МБ / 6 проц. [тиков ещё нет], rec r40_rec_anc m11 648 МБ / 6 проц. [тиков ещё нет], rec r40_rec_anc m13 649 МБ / 6 проц. [тиков ещё нет], rec r40_rec_anc m17 662 МБ / 6 проц. [тиков ещё нет], rec r40_rec_anc m19 667 МБ / 6 проц. [тиков ещё нет]
+start rec r40_rec_anc m23 (идёт 7, свободно 6503 МБ)
+start rec r40_rec_anc m29 (идёт 8, свободно 6501 МБ)
+mem: свободно 2710 / 15977 МБ; par ≤ 8; очередь 8; идёт 8 (считают тики 8): rec r40_rec_anc m3 997 МБ / 6 проц. [тик 8960, 2 с назад], rec r40_rec_anc m7 1006 МБ / 6 проц. [тик 11520, 0 с назад], rec r40_rec_anc m11 1019 МБ / 6 проц. [тик 8320, 2 с назад], rec r40_rec_anc m13 1036 МБ / 6 проц. [тик 7680, 2 с назад], rec r40_rec_anc m17 1046 МБ / 6 проц. [тик 9600, 0 с назад], rec r40_rec_anc m19 1050 МБ / 6 проц. [тик 8320, 2 с назад], rec r40_rec_anc m23 1237 МБ / 6 проц. [тик 7680, 0 с назад], rec r40_rec_anc m29 1162 МБ / 6 проц. [тик 6400, 0 с назад]
+mem: свободно 1921 / 15977 МБ; par ≤ 8; очередь 8; идёт 8 (считают тики 8): rec r40_rec_anc m3 1116 МБ / 6 проц. [тик 18560, 0 с назад], rec r40_rec_anc m7 1161 МБ / 6 проц. [тик 24960, 0 с назад], rec r40_rec_anc m11 1187 МБ / 6 проц. [тик 20480, 2 с назад], rec r40_rec_anc m13 1246 МБ / 6 проц. [тик 21120, 0 с назад], rec r40_rec_anc m17 1095 МБ / 6 проц. [тик 23680, 0 с назад], rec r40_rec_anc m19 1140 МБ / 6 проц. [тик 19200, 0 с назад], rec r40_rec_anc m23 1423 МБ / 6 проц. [тик 19840, 0 с назад], rec r40_rec_anc m29 1214 МБ / 6 проц. [тик 16000, 0 с назад]
+guard: параллельность 8 → 7 (мало памяти: свободно 973 МБ)
+end rec r40_rec_anc m29: код 1, 82 с, пик 1359 МБ, процессов до 6, СНЯТ: lowmem (свободно 973 МБ)
+mem: свободно 1699 / 15977 МБ; par ≤ 7; очередь 8; идёт 7 (считают тики 7): rec r40_rec_anc m3 1224 МБ / 6 проц. [тик 29440, 0 с назад], rec r40_rec_anc m7 1313 МБ / 6 проц. [тик 32640, 2 с назад], rec r40_rec_anc m11 1414 МБ / 6 проц. [тик 28800, 2 с назад], rec r40_rec_anc m13 1362 МБ / 6 проц. [тик 29440, 2 с назад], rec r40_rec_anc m17 1283 МБ / 6 проц. [тик 31360, 0 с назад], rec r40_rec_anc m19 1352 МБ / 6 проц. [тик 26240, 2 с назад], rec r40_rec_anc m23 1483 МБ / 6 проц. [тик 28160, 0 с назад]
+guard: параллельность 7 → 6 (мало памяти: свободно 1441 МБ)
+end rec r40_rec_anc m23: код 1, 100 с, пик 1505 МБ, процессов до 6, СНЯТ: lowmem (свободно 1441 МБ)
+mem: свободно 2050 / 15977 МБ; par ≤ 6; очередь 8; идёт 6 (считают тики 6): rec r40_rec_anc m3 1450 МБ / 6 проц. [тик 39040, 2 с назад], rec r40_rec_anc m7 1370 МБ / 6 проц. [тик 40960, 0 с назад], rec r40_rec_anc m11 1568 МБ / 6 проц. [тик 39040, 5 с назад], rec r40_rec_anc m13 1554 МБ / 6 проц. [тик 38400, 0 с назад], rec r40_rec_anc m17 1364 МБ / 6 проц. [тик 43520, 0 с назад], rec r40_rec_anc m19 1409 МБ / 6 проц. [тик 35200, 0 с назад]
+guard: параллельность 6 → 5 (мало памяти: свободно 1206 МБ)
+mem: свободно 1206 / 15977 МБ; par ≤ 5; очередь 8; идёт 6 (считают тики 5): rec r40_rec_anc m3 1451 МБ / 6 проц. [тик 52480, 0 с назад], rec r40_rec_anc m7 1556 МБ / 6 проц. [тик 54400, 0 с назад], rec r40_rec_anc m11 1591 МБ / 6 проц. [тик 48000, 0 с назад], rec r40_rec_anc m13 1705 МБ / 6 проц. [тик 49280, 0 с назад], rec r40_rec_anc m17 1592 МБ / 6 проц. [тик 52480, 0 с назад], rec r40_rec_anc m19 1664 МБ / 6 проц. [снят: lowmem]
+end rec r40_rec_anc m19: код 1, 157 с, пик 1664 МБ, процессов до 6, СНЯТ: lowmem (свободно 1206 МБ)
+mem: свободно 1735 / 15977 МБ; par ≤ 5; очередь 8; идёт 5 (считают тики 5): rec r40_rec_anc m3 1754 МБ / 6 проц. [тик 62720, 0 с назад], rec r40_rec_anc m7 1716 МБ / 6 проц. [тик 68480, 0 с назад], rec r40_rec_anc m11 1790 МБ / 6 проц. [тик 63360, 0 с назад], rec r40_rec_anc m13 1783 МБ / 6 проц. [тик 60800, 2 с назад], rec r40_rec_anc m17 1758 МБ / 6 проц. [тик 66560, 0 с назад]
+guard: параллельность 5 → 4 (мало памяти: свободно 1480 МБ)
+end rec r40_rec_anc m17: код 1, 209 с, пик 1822 МБ, процессов до 6, СНЯТ: lowmem (свободно 1480 МБ)
+mem: свободно 3091 / 15977 МБ; par ≤ 4; очередь 8; идёт 4 (считают тики 4): rec r40_rec_anc m3 1785 МБ / 6 проц. [тик 76160, 0 с назад], rec r40_rec_anc m7 1763 МБ / 6 проц. [тик 78720, 0 с назад], rec r40_rec_anc m11 1871 МБ / 6 проц. [тик 76160, 0 с назад], rec r40_rec_anc m13 1822 МБ / 6 проц. [тик 76800, 0 с назад]
+mem: свободно 2560 / 15977 МБ; par ≤ 4; очередь 8; идёт 4 (считают тики 4): rec r40_rec_anc m3 1896 МБ / 6 проц. [тик 88320, 0 с назад], rec r40_rec_anc m7 1909 МБ / 6 проц. [тик 92160, 0 с назад], rec r40_rec_anc m11 2000 МБ / 6 проц. [тик 88320, 0 с назад], rec r40_rec_anc m13 1968 МБ / 6 проц. [тик 87680, 0 с назад]
+end rec r40_rec_anc m11: код 0, 267 с, пик 2056 МБ, процессов до 6
+guard: параллельность 4 → 5 (память позволяет: свободно 4250 МБ, резерв идущих +0)
+start rec r40_rec_mir m3 (идёт 4, свободно 4250 МБ)
+guard: недопуск rec r40_rec_mir m7 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:mirage): новое дерево +1000 МБ, резерв для идущих +1000 МБ, свободно 4250 МБ, запас 3195 МБ → остаток 2250 МБ
+mem: свободно 3569 / 15977 МБ; par ≤ 5; очередь 7; идёт 4 (считают тики 4): rec r40_rec_anc m3 1945 МБ / 6 проц. [тик 99840, 0 с назад], rec r40_rec_anc m7 1952 МБ / 6 проц. [тик 103680, 0 с назад], rec r40_rec_anc m13 2016 МБ / 6 проц. [тик 101760, 0 с назад], rec r40_rec_mir m3 945 МБ / 6 проц. [тик 3200, 2 с назад]
+guard: недопуск rec r40_rec_mir m7 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:mirage): новое дерево +1085 МБ, резерв для идущих +0 МБ, свободно 3220 МБ, запас 3195 МБ → остаток 2135 МБ
+mem: свободно 3140 / 15977 МБ; par ≤ 5; очередь 7; идёт 4 (считают тики 4): rec r40_rec_anc m3 2061 МБ / 6 проц. [тик 112640, 0 с назад], rec r40_rec_anc m7 2075 МБ / 6 проц. [тик 118400, 0 с назад], rec r40_rec_anc m13 2099 МБ / 6 проц. [тик 117120, 0 с назад], rec r40_rec_mir m3 1101 МБ / 6 проц. [тик 13440, 2 с назад]
+guard: недопуск rec r40_rec_mir m7 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:mirage): новое дерево +1136 МБ, резерв для идущих +0 МБ, свободно 3005 МБ, запас 3195 МБ → остаток 1869 МБ
+mem: свободно 2911 / 15977 МБ; par ≤ 5; очередь 7; идёт 4 (считают тики 4): rec r40_rec_anc m3 2072 МБ / 6 проц. [тик 124160, 0 с назад], rec r40_rec_anc m7 2130 МБ / 6 проц. [тик 132480, 0 с назад], rec r40_rec_anc m13 2153 МБ / 6 проц. [тик 126720, 0 с назад], rec r40_rec_mir m3 1201 МБ / 6 проц. [тик 26880, 0 с назад]
+guard: недопуск rec r40_rec_mir m7 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:mirage): новое дерево +1230 МБ, резерв для идущих +0 МБ, свободно 2806 МБ, запас 3195 МБ → остаток 1576 МБ
+mem: свободно 2609 / 15977 МБ; par ≤ 5; очередь 7; идёт 4 (считают тики 4): rec r40_rec_anc m3 2238 МБ / 6 проц. [тик 136960, 0 с назад], rec r40_rec_anc m7 2203 МБ / 6 проц. [тик 147200, 0 с назад], rec r40_rec_anc m13 2190 МБ / 6 проц. [тик 139520, 0 с назад], rec r40_rec_mir m3 1238 МБ / 6 проц. [тик 33280, 0 с назад]
+guard: недопуск rec r40_rec_mir m7 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:mirage): новое дерево +1254 МБ, резерв для идущих +0 МБ, свободно 2465 МБ, запас 3195 МБ → остаток 1211 МБ
+end rec r40_rec_anc m3: код 0, 401 с, пик 2254 МБ, процессов до 6
+end rec r40_rec_anc m7: код 0, 404 с, пик 2277 МБ, процессов до 6
+guard: параллельность 5 → 6 (память позволяет: свободно 6490 МБ, резерв идущих +0)
+start rec r40_rec_mir m7 (идёт 3, свободно 6490 МБ)
+start rec r40_rec_mir m11 (идёт 4, свободно 6490 МБ)
+guard: недопуск rec r40_rec_mir m13 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:mirage): новое дерево +1267 МБ, резерв для идущих +2534 МБ, свободно 6490 МБ, запас 3195 МБ → остаток 2689 МБ
+mem: свободно 5751 / 15977 МБ; par ≤ 6; очередь 5; идёт 4 (считают тики 2): rec r40_rec_anc m13 2292 МБ / 6 проц. [тик 152960, 0 с назад], rec r40_rec_mir m3 1267 МБ / 6 проц. [тик 44800, 0 с назад], rec r40_rec_mir m7 None МБ / 0 проц. [тиков ещё нет], rec r40_rec_mir m11 None МБ / 0 проц. [тиков ещё нет]
+end rec r40_rec_anc m13: код 0, 410 с, пик 2334 МБ, процессов до 6
+start rec r40_rec_mir m13 (идёт 4, свободно 7489 МБ)
+start rec r40_rec_mir m17 (идёт 5, свободно 7485 МБ)
+start rec r40_rec_mir m19 (идёт 6, свободно 7485 МБ)
+mem: свободно 4944 / 15977 МБ; par ≤ 6; очередь 2; идёт 6 (считают тики 6): rec r40_rec_mir m3 1267 МБ / 6 проц. [тик 54400, 0 с назад], rec r40_rec_mir m7 1045 МБ / 6 проц. [тик 8320, 0 с назад], rec r40_rec_mir m11 1068 МБ / 6 проц. [тик 8960, 0 с назад], rec r40_rec_mir m13 1047 МБ / 6 проц. [тик 7680, 2 с назад], rec r40_rec_mir m17 1027 МБ / 6 проц. [тик 6400, 0 с назад], rec r40_rec_mir m19 1034 МБ / 6 проц. [тик 5760, 0 с назад]
+guard: параллельность 6 → 7 (память позволяет: свободно 4641 МБ, резерв идущих +0)
+start rec r40_rec_mir m23 (идёт 7, свободно 4641 МБ)
+mem: свободно 4243 / 15977 МБ; par ≤ 7; очередь 1; идёт 7 (считают тики 6): rec r40_rec_mir m3 1314 МБ / 6 проц. [тик 62720, 2 с назад], rec r40_rec_mir m7 1126 МБ / 6 проц. [тик 17920, 2 с назад], rec r40_rec_mir m11 1142 МБ / 6 проц. [тик 18560, 2 с назад], rec r40_rec_mir m13 1101 МБ / 6 проц. [тик 16640, 2 с назад], rec r40_rec_mir m17 1149 МБ / 6 проц. [тик 18560, 2 с назад], rec r40_rec_mir m19 1108 МБ / 6 проц. [тик 14080, 0 с назад], rec r40_rec_mir m23 None МБ / 0 проц. [тиков ещё нет]
+mem: свободно 3636 / 15977 МБ; par ≤ 7; очередь 1; идёт 7 (считают тики 7): rec r40_rec_mir m3 1311 МБ / 6 проц. [тик 67840, 0 с назад], rec r40_rec_mir m7 1152 МБ / 6 проц. [тик 26880, 0 с назад], rec r40_rec_mir m11 1219 МБ / 6 проц. [тик 29440, 0 с назад], rec r40_rec_mir m13 1171 МБ / 6 проц. [тик 26240, 0 с назад], rec r40_rec_mir m17 1207 МБ / 6 проц. [тик 25600, 2 с назад], rec r40_rec_mir m19 1139 МБ / 6 проц. [тик 22400, 0 с назад], rec r40_rec_mir m23 1049 МБ / 6 проц. [тик 8320, 2 с назад]
+mem: свободно 3431 / 15977 МБ; par ≤ 7; очередь 1; идёт 7 (считают тики 7): rec r40_rec_mir m3 1333 МБ / 6 проц. [тик 77440, 0 с назад], rec r40_rec_mir m7 1187 МБ / 6 проц. [тик 33920, 6 с назад], rec r40_rec_mir m11 1237 МБ / 6 проц. [тик 38400, 4 с назад], rec r40_rec_mir m13 1226 МБ / 6 проц. [тик 30720, 0 с назад], rec r40_rec_mir m17 1222 МБ / 6 проц. [тик 32640, 2 с назад], rec r40_rec_mir m19 1197 МБ / 6 проц. [тик 32000, 9 с назад], rec r40_rec_mir m23 1098 МБ / 6 проц. [тик 14720, 0 с назад]
+mem: свободно 3259 / 15977 МБ; par ≤ 7; очередь 1; идёт 7 (считают тики 7): rec r40_rec_mir m3 1364 МБ / 6 проц. [тик 87680, 0 с назад], rec r40_rec_mir m7 1261 МБ / 6 проц. [тик 42880, 2 с назад], rec r40_rec_mir m11 1286 МБ / 6 проц. [тик 46080, 4 с назад], rec r40_rec_mir m13 1207 МБ / 6 проц. [тик 37120, 0 с назад], rec r40_rec_mir m17 1251 МБ / 6 проц. [тик 42880, 2 с назад], rec r40_rec_mir m19 1226 МБ / 6 проц. [тик 40960, 0 с назад], rec r40_rec_mir m23 1146 МБ / 6 проц. [тик 23680, 2 с назад]
+mem: свободно 3019 / 15977 МБ; par ≤ 7; очередь 1; идёт 7 (считают тики 7): rec r40_rec_mir m3 1332 МБ / 6 проц. [тик 94720, 2 с назад], rec r40_rec_mir m7 1279 МБ / 6 проц. [тик 48640, 0 с назад], rec r40_rec_mir m11 1324 МБ / 6 проц. [тик 51840, 0 с назад], rec r40_rec_mir m13 1232 МБ / 6 проц. [тик 46720, 0 с назад], rec r40_rec_mir m17 1304 МБ / 6 проц. [тик 51840, 2 с назад], rec r40_rec_mir m19 1300 МБ / 6 проц. [тик 49920, 0 с назад], rec r40_rec_mir m23 1216 МБ / 6 проц. [тик 33920, 2 с назад]
+mem: свободно 2761 / 15977 МБ; par ≤ 7; очередь 1; идёт 7 (считают тики 7): rec r40_rec_mir m3 1418 МБ / 6 проц. [тик 104320, 2 с назад], rec r40_rec_mir m7 1288 МБ / 6 проц. [тик 56320, 2 с назад], rec r40_rec_mir m11 1341 МБ / 6 проц. [тик 60800, 0 с назад], rec r40_rec_mir m13 1326 МБ / 6 проц. [тик 58240, 0 с назад], rec r40_rec_mir m17 1305 МБ / 6 проц. [тик 58880, 0 с назад], rec r40_rec_mir m19 1303 МБ / 6 проц. [тик 57600, 0 с назад], rec r40_rec_mir m23 1240 МБ / 6 проц. [тик 42880, 0 с назад]
+mem: свободно 2625 / 15977 МБ; par ≤ 7; очередь 1; идёт 7 (считают тики 7): rec r40_rec_mir m3 1447 МБ / 6 проц. [тик 110720, 2 с назад], rec r40_rec_mir m7 1334 МБ / 6 проц. [тик 64000, 0 с назад], rec r40_rec_mir m11 1329 МБ / 6 проц. [тик 70400, 2 с назад], rec r40_rec_mir m13 1303 МБ / 6 проц. [тик 64640, 0 с назад], rec r40_rec_mir m17 1312 МБ / 6 проц. [тик 65920, 0 с назад], rec r40_rec_mir m19 1334 МБ / 6 проц. [тик 66560, 0 с назад], rec r40_rec_mir m23 1311 МБ / 6 проц. [тик 55040, 0 с назад]
+mem: свободно 2648 / 15977 МБ; par ≤ 7; очередь 1; идёт 7 (считают тики 7): rec r40_rec_mir m3 1434 МБ / 6 проц. [тик 118400, 0 с назад], rec r40_rec_mir m7 1313 МБ / 6 проц. [тик 74240, 0 с назад], rec r40_rec_mir m11 1338 МБ / 6 проц. [тик 74880, 0 с назад], rec r40_rec_mir m13 1347 МБ / 6 проц. [тик 76800, 2 с назад], rec r40_rec_mir m17 1300 МБ / 6 проц. [тик 76800, 5 с назад], rec r40_rec_mir m19 1300 МБ / 6 проц. [тик 78080, 0 с назад], rec r40_rec_mir m23 1312 МБ / 6 проц. [тик 60800, 0 с назад]
+mem: свободно 2639 / 15977 МБ; par ≤ 7; очередь 1; идёт 7 (считают тики 7): rec r40_rec_mir m3 1418 МБ / 6 проц. [тик 128640, 0 с назад], rec r40_rec_mir m7 1318 МБ / 6 проц. [тик 81920, 0 с назад], rec r40_rec_mir m11 1372 МБ / 6 проц. [тик 87040, 0 с назад], rec r40_rec_mir m13 1334 МБ / 6 проц. [тик 85120, 2 с назад], rec r40_rec_mir m17 1314 МБ / 6 проц. [тик 83200, 0 с назад], rec r40_rec_mir m19 1303 МБ / 6 проц. [тик 88320, 0 с назад], rec r40_rec_mir m23 1285 МБ / 6 проц. [тик 66560, 2 с назад]
+end rec r40_rec_mir m3: код 0, 471 с, пик 1461 МБ, процессов до 6
+guard: недопуск rec r40_rec_mir m29 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:mirage): новое дерево +1381 МБ, резерв для идущих +0 МБ, свободно 3593 МБ, запас 3195 МБ → остаток 2212 МБ
+mem: свободно 3548 / 15977 МБ; par ≤ 7; очередь 1; идёт 6 (считают тики 6): rec r40_rec_mir m7 1410 МБ / 6 проц. [тик 94720, 0 с назад], rec r40_rec_mir m11 1352 МБ / 6 проц. [тик 92800, 0 с назад], rec r40_rec_mir m13 1308 МБ / 6 проц. [тик 90240, 2 с назад], rec r40_rec_mir m17 1411 МБ / 6 проц. [тик 94080, 4 с назад], rec r40_rec_mir m19 1307 МБ / 6 проц. [тик 88320, 30 с назад], rec r40_rec_mir m23 1330 МБ / 6 проц. [тик 72960, 2 с назад]
+guard: недопуск rec r40_rec_mir m29 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:mirage): новое дерево +1386 МБ, резерв для идущих +0 МБ, свободно 4151 МБ, запас 3195 МБ → остаток 2765 МБ
+mem: свободно 4226 / 15977 МБ; par ≤ 7; очередь 1; идёт 6 (считают тики 6): rec r40_rec_mir m7 1363 МБ / 6 проц. [тик 103040, 0 с назад], rec r40_rec_mir m11 1389 МБ / 6 проц. [тик 103680, 2 с назад], rec r40_rec_mir m13 1365 МБ / 6 проц. [тик 101120, 0 с назад], rec r40_rec_mir m17 1376 МБ / 6 проц. [тик 103680, 0 с назад], rec r40_rec_mir m19 1387 МБ / 6 проц. [тик 97280, 0 с назад], rec r40_rec_mir m23 1299 МБ / 6 проц. [тик 82560, 2 с назад]
+guard: недопуск rec r40_rec_mir m29 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:mirage): новое дерево +1386 МБ, резерв для идущих +0 МБ, свободно 4113 МБ, запас 3195 МБ → остаток 2727 МБ
+mem: свободно 4037 / 15977 МБ; par ≤ 7; очередь 1; идёт 6 (считают тики 6): rec r40_rec_mir m7 1437 МБ / 6 проц. [тик 113280, 2 с назад], rec r40_rec_mir m11 1383 МБ / 6 проц. [тик 112000, 0 с назад], rec r40_rec_mir m13 1377 МБ / 6 проц. [тик 111360, 0 с назад], rec r40_rec_mir m17 1380 МБ / 6 проц. [тик 110720, 0 с назад], rec r40_rec_mir m19 1395 МБ / 6 проц. [тик 103040, 0 с назад], rec r40_rec_mir m23 1349 МБ / 6 проц. [тик 94080, 0 с назад]
+guard: недопуск rec r40_rec_mir m29 — RAM: после допуска осталось бы меньше запаса; фактическая память (chromium:mirage): новое дерево +1408 МБ, резерв для идущих +0 МБ, свободно 4016 МБ, запас 3195 МБ → остаток 2608 МБ
+end rec r40_rec_mir m17: код 0, 428 с, пик 1411 МБ, процессов до 6
+guard: параллельность 7 → 8 (память позволяет: свободно 4893 МБ, резерв идущих +0)
+start rec r40_rec_mir m29 (идёт 6, свободно 4893 МБ)
+mem: свободно 4262 / 15977 МБ; par ≤ 8; очередь 0; идёт 6 (считают тики 6): rec r40_rec_mir m7 1411 МБ / 6 проц. [тик 125440, 4 с назад], rec r40_rec_mir m11 1425 МБ / 6 проц. [тик 122880, 2 с назад], rec r40_rec_mir m13 1400 МБ / 6 проц. [тик 120320, 0 с назад], rec r40_rec_mir m19 1430 МБ / 6 проц. [тик 109440, 2 с назад], rec r40_rec_mir m23 1393 МБ / 6 проц. [тик 102400, 0 с назад], rec r40_rec_mir m29 910 МБ / 6 проц. [тик 1920, 0 с назад]
+end rec r40_rec_mir m13: код 0, 462 с, пик 1438 МБ, процессов до 6
+mem: свободно 5012 / 15977 МБ; par ≤ 8; очередь 0; идёт 5 (считают тики 5): rec r40_rec_mir m7 1398 МБ / 6 проц. [тик 139520, 0 с назад], rec r40_rec_mir m11 1437 МБ / 6 проц. [тик 131200, 0 с назад], rec r40_rec_mir m19 1410 МБ / 6 проц. [тик 117760, 0 с назад], rec r40_rec_mir m23 1414 МБ / 6 проц. [тик 112000, 2 с назад], rec r40_rec_mir m29 1076 МБ / 6 проц. [тик 10880, 0 с назад]
+end rec r40_rec_mir m23: код 0, 429 с, пик 1415 МБ, процессов до 6
+end rec r40_rec_mir m11: код 0, 496 с, пик 1437 МБ, процессов до 6
+mem: свободно 6815 / 15977 МБ; par ≤ 8; очередь 0; идёт 3 (считают тики 3): rec r40_rec_mir m7 1430 МБ / 6 проц. [тик 147200, 2 с назад], rec r40_rec_mir m19 1383 МБ / 6 проц. [тик 129280, 2 с назад], rec r40_rec_mir m29 1186 МБ / 6 проц. [тик 20480, 0 с назад]
+mem: свободно 6725 / 15977 МБ; par ≤ 8; очередь 0; идёт 3 (считают тики 3): rec r40_rec_mir m7 1447 МБ / 6 проц. [тик 156160, 0 с назад], rec r40_rec_mir m19 1451 МБ / 6 проц. [тик 0, 0 с назад], rec r40_rec_mir m29 1239 МБ / 6 проц. [тик 33280, 0 с назад]
+end rec r40_rec_mir m19: код 0, 531 с, пик 1451 МБ, процессов до 6
+end rec r40_rec_mir m7: код 0, 548 с, пик 1466 МБ, процессов до 6
+mem: свободно 8644 / 15977 МБ; par ≤ 8; очередь 0; идёт 1 (считают тики 1): rec r40_rec_mir m29 1288 МБ / 6 проц. [тик 44800, 0 с назад]
+mem: свободно 8664 / 15977 МБ; par ≤ 8; очередь 0; идёт 1 (считают тики 1): rec r40_rec_mir m29 1328 МБ / 6 проц. [тик 59520, 0 с назад]
+mem: свободно 8618 / 15977 МБ; par ≤ 8; очередь 0; идёт 1 (считают тики 1): rec r40_rec_mir m29 1360 МБ / 6 проц. [тик 69760, 0 с назад]
+mem: свободно 8547 / 15977 МБ; par ≤ 8; очередь 0; идёт 1 (считают тики 1): rec r40_rec_mir m29 1305 МБ / 6 проц. [тик 82560, 0 с назад]
+mem: свободно 8577 / 15977 МБ; par ≤ 8; очередь 0; идёт 1 (считают тики 1): rec r40_rec_mir m29 1403 МБ / 6 проц. [тик 96000, 0 с назад]
+mem: свободно 8579 / 15977 МБ; par ≤ 8; очередь 0; идёт 1 (считают тики 1): rec r40_rec_mir m29 1369 МБ / 6 проц. [тик 111360, 0 с назад]
+mem: свободно 8544 / 15977 МБ; par ≤ 8; очередь 0; идёт 1 (считают тики 1): rec r40_rec_mir m29 1437 МБ / 6 проц. [тик 122880, 2 с назад]
+mem: свободно 8502 / 15977 МБ; par ≤ 8; очередь 0; идёт 1 (считают тики 1): rec r40_rec_mir m29 1428 МБ / 6 проц. [тик 135040, 0 с назад]
+mem: свободно 8467 / 15977 МБ; par ≤ 8; очередь 0; идёт 1 (считают тики 1): rec r40_rec_mir m29 1418 МБ / 6 проц. [тик 145920, 2 с назад]
+mem: свободно 8411 / 15977 МБ; par ≤ 8; очередь 0; идёт 1 (считают тики 1): rec r40_rec_mir m29 1490 МБ / 6 проц. [тик 158080, 0 с назад]
+mem: свободно 8385 / 15977 МБ; par ≤ 8; очередь 0; идёт 1 (считают тики 1): rec r40_rec_mir m29 1490 МБ / 6 проц. [тик 166400, 0 с назад]
+end rec r40_rec_mir m29: код 0, 466 с, пик 1491 МБ, процессов до 6
+guard: повтор остановленных или упавших матчей: 4 (по одному)
+start rec r40_rec_anc m29 (идёт 1, свободно 9591 МБ)
+guard: недопуск rec r40_rec_anc m23 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1000 МБ, резерв для идущих +1000 МБ, свободно 9591 МБ, запас 3195 МБ → остаток 7591 МБ
+mem: свободно 8886 / 15977 МБ; par ≤ 8; очередь 3; идёт 1 (считают тики 1): rec r40_rec_anc m29 641 МБ / 6 проц. [тик 2560, 0 с назад]
+guard: недопуск rec r40_rec_anc m23 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1013 МБ, резерв для идущих +0 МБ, свободно 8676 МБ, запас 3195 МБ → остаток 7663 МБ
+mem: свободно 8674 / 15977 МБ; par ≤ 8; очередь 3; идёт 1 (считают тики 1): rec r40_rec_anc m29 1051 МБ / 6 проц. [тик 14720, 0 с назад]
+guard: недопуск rec r40_rec_anc m23 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1208 МБ, резерв для идущих +0 МБ, свободно 8486 МБ, запас 3195 МБ → остаток 7278 МБ
+mem: свободно 8472 / 15977 МБ; par ≤ 8; очередь 3; идёт 1 (считают тики 1): rec r40_rec_anc m29 1280 МБ / 6 проц. [тик 29440, 0 с назад]
+guard: недопуск rec r40_rec_anc m23 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1373 МБ, резерв для идущих +0 МБ, свободно 8362 МБ, запас 3195 МБ → остаток 6989 МБ
+mem: свободно 8235 / 15977 МБ; par ≤ 8; очередь 3; идёт 1 (считают тики 1): rec r40_rec_anc m29 1494 МБ / 6 проц. [тик 42880, 0 с назад]
+guard: недопуск rec r40_rec_anc m23 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1497 МБ, резерв для идущих +0 МБ, свободно 8154 МБ, запас 3195 МБ → остаток 6657 МБ
+mem: свободно 8159 / 15977 МБ; par ≤ 8; очередь 3; идёт 1 (считают тики 1): rec r40_rec_anc m29 1590 МБ / 6 проц. [тик 57600, 0 с назад]
+guard: недопуск rec r40_rec_anc m23 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1628 МБ, резерв для идущих +0 МБ, свободно 7973 МБ, запас 3195 МБ → остаток 6345 МБ
+mem: свободно 8007 / 15977 МБ; par ≤ 8; очередь 3; идёт 1 (считают тики 1): rec r40_rec_anc m29 1733 МБ / 6 проц. [тик 71040, 0 с назад]
+guard: недопуск rec r40_rec_anc m23 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1820 МБ, резерв для идущих +0 МБ, свободно 7926 МБ, запас 3195 МБ → остаток 6106 МБ
+mem: свободно 7929 / 15977 МБ; par ≤ 8; очередь 3; идёт 1 (считают тики 1): rec r40_rec_anc m29 1817 МБ / 6 проц. [тик 84480, 0 с назад]
+guard: недопуск rec r40_rec_anc m23 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1929 МБ, резерв для идущих +0 МБ, свободно 7809 МБ, запас 3195 МБ → остаток 5880 МБ
+mem: свободно 7759 / 15977 МБ; par ≤ 8; очередь 3; идёт 1 (считают тики 1): rec r40_rec_anc m29 1932 МБ / 6 проц. [тик 99200, 0 с назад]
+guard: недопуск rec r40_rec_anc m23 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1983 МБ, резерв для идущих +0 МБ, свободно 7678 МБ, запас 3195 МБ → остаток 5695 МБ
+mem: свободно 7689 / 15977 МБ; par ≤ 8; очередь 3; идёт 1 (считают тики 1): rec r40_rec_anc m29 2033 МБ / 6 проц. [тик 113280, 2 с назад]
+guard: недопуск rec r40_rec_anc m23 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +2135 МБ, резерв для идущих +0 МБ, свободно 7579 МБ, запас 3195 МБ → остаток 5444 МБ
+mem: свободно 7582 / 15977 МБ; par ≤ 8; очередь 3; идёт 1 (считают тики 1): rec r40_rec_anc m29 2136 МБ / 6 проц. [тик 126080, 2 с назад]
+guard: недопуск rec r40_rec_anc m23 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +2141 МБ, резерв для идущих +0 МБ, свободно 7571 МБ, запас 3195 МБ → остаток 5430 МБ
+mem: свободно 7549 / 15977 МБ; par ≤ 8; очередь 3; идёт 1 (считают тики 1): rec r40_rec_anc m29 2144 МБ / 6 проц. [тик 140160, 0 с назад]
+guard: недопуск rec r40_rec_anc m23 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +2171 МБ, резерв для идущих +0 МБ, свободно 7527 МБ, запас 3195 МБ → остаток 5356 МБ
+mem: свободно 7459 / 15977 МБ; par ≤ 8; очередь 3; идёт 1 (считают тики 1): rec r40_rec_anc m29 2187 МБ / 6 проц. [тик 154240, 0 с назад]
+end rec r40_rec_anc m29: код 0, 356 с, пик 2279 МБ, процессов до 6
+start rec r40_rec_anc m23 (идёт 1, свободно 9584 МБ)
+guard: недопуск rec r40_rec_anc m19 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1000 МБ, резерв для идущих +1000 МБ, свободно 9584 МБ, запас 3195 МБ → остаток 7584 МБ
+mem: свободно 8615 / 15977 МБ; par ≤ 8; очередь 2; идёт 1 (считают тики 1): rec r40_rec_anc m23 1109 МБ / 6 проц. [тик 9600, 0 с назад]
+guard: недопуск rec r40_rec_anc m19 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1109 МБ, резерв для идущих +0 МБ, свободно 8607 МБ, запас 3195 МБ → остаток 7498 МБ
+mem: свободно 8362 / 15977 МБ; par ≤ 8; очередь 2; идёт 1 (считают тики 1): rec r40_rec_anc m23 1350 МБ / 6 проц. [тик 25600, 0 с назад]
+guard: недопуск rec r40_rec_anc m19 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1350 МБ, резерв для идущих +0 МБ, свободно 8363 МБ, запас 3195 МБ → остаток 7013 МБ
+mem: свободно 8241 / 15977 МБ; par ≤ 8; очередь 2; идёт 1 (считают тики 1): rec r40_rec_anc m23 1470 МБ / 6 проц. [тик 37120, 0 с назад]
+guard: недопуск rec r40_rec_anc m19 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1470 МБ, резерв для идущих +0 МБ, свободно 8235 МБ, запас 3195 МБ → остаток 6765 МБ
+mem: свободно 8124 / 15977 МБ; par ≤ 8; очередь 2; идёт 1 (считают тики 1): rec r40_rec_anc m23 1607 МБ / 6 проц. [тик 48640, 2 с назад]
+guard: недопуск rec r40_rec_anc m19 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1607 МБ, резерв для идущих +0 МБ, свободно 8120 МБ, запас 3195 МБ → остаток 6513 МБ
+mem: свободно 7941 / 15977 МБ; par ≤ 8; очередь 2; идёт 1 (считают тики 1): rec r40_rec_anc m23 1747 МБ / 6 проц. [тик 64640, 0 с назад]
+guard: недопуск rec r40_rec_anc m19 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1747 МБ, резерв для идущих +0 МБ, свободно 7892 МБ, запас 3195 МБ → остаток 6145 МБ
+mem: свободно 7762 / 15977 МБ; par ≤ 8; очередь 2; идёт 1 (считают тики 1): rec r40_rec_anc m23 1863 МБ / 6 проц. [тик 76160, 0 с назад]
+guard: недопуск rec r40_rec_anc m19 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1863 МБ, резерв для идущих +0 МБ, свободно 7760 МБ, запас 3195 МБ → остаток 5897 МБ
+mem: свободно 7700 / 15977 МБ; par ≤ 8; очередь 2; идёт 1 (считают тики 1): rec r40_rec_anc m23 2025 МБ / 6 проц. [тик 91520, 0 с назад]
+guard: недопуск rec r40_rec_anc m19 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +2025 МБ, резерв для идущих +0 МБ, свободно 7711 МБ, запас 3195 МБ → остаток 5686 МБ
+end rec r40_rec_anc m23: код 0, 227 с, пик 2025 МБ, процессов до 6
+start rec r40_rec_anc m19 (идёт 1, свободно 9589 МБ)
+guard: недопуск rec r40_rec_anc m17 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1000 МБ, резерв для идущих +1000 МБ, свободно 9589 МБ, запас 3195 МБ → остаток 7589 МБ
+mem: свободно 8871 / 15977 МБ; par ≤ 8; очередь 1; идёт 1 (считают тики 1): rec r40_rec_anc m19 906 МБ / 6 проц. [тик 7040, 0 с назад]
+guard: недопуск rec r40_rec_anc m17 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1000 МБ, резерв для идущих +0 МБ, свободно 8722 МБ, запас 3195 МБ → остаток 7722 МБ
+mem: свободно 8639 / 15977 МБ; par ≤ 8; очередь 1; идёт 1 (считают тики 1): rec r40_rec_anc m19 1114 МБ / 6 проц. [тик 19200, 0 с назад]
+guard: недопуск rec r40_rec_anc m17 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1195 МБ, резерв для идущих +0 МБ, свободно 8465 МБ, запас 3195 МБ → остаток 7270 МБ
+mem: свободно 8453 / 15977 МБ; par ≤ 8; очередь 1; идёт 1 (считают тики 1): rec r40_rec_anc m19 1335 МБ / 6 проц. [тик 32000, 0 с назад]
+guard: недопуск rec r40_rec_anc m17 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1359 МБ, резерв для идущих +0 МБ, свободно 8397 МБ, запас 3195 МБ → остаток 7038 МБ
+mem: свободно 8269 / 15977 МБ; par ≤ 8; очередь 1; идёт 1 (считают тики 1): rec r40_rec_anc m19 1512 МБ / 6 проц. [тик 41600, 0 с назад]
+guard: недопуск rec r40_rec_anc m17 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1617 МБ, резерв для идущих +0 МБ, свободно 8178 МБ, запас 3195 МБ → остаток 6561 МБ
+mem: свободно 8112 / 15977 МБ; par ≤ 8; очередь 1; идёт 1 (считают тики 1): rec r40_rec_anc m19 1694 МБ / 6 проц. [тик 55040, 0 с назад]
+guard: недопуск rec r40_rec_anc m17 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1667 МБ, резерв для идущих +0 МБ, свободно 8094 МБ, запас 3195 МБ → остаток 6427 МБ
+mem: свободно 8099 / 15977 МБ; par ≤ 8; очередь 1; идёт 1 (считают тики 1): rec r40_rec_anc m19 1703 МБ / 6 проц. [тик 70400, 2 с назад]
+guard: недопуск rec r40_rec_anc m17 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1814 МБ, резерв для идущих +0 МБ, свободно 7997 МБ, запас 3195 МБ → остаток 6183 МБ
+mem: свободно 7949 / 15977 МБ; par ≤ 8; очередь 1; идёт 1 (считают тики 1): rec r40_rec_anc m19 1849 МБ / 6 проц. [тик 85120, 0 с назад]
+guard: недопуск rec r40_rec_anc m17 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1855 МБ, резерв для идущих +0 МБ, свободно 7941 МБ, запас 3195 МБ → остаток 6086 МБ
+mem: свободно 7792 / 15977 МБ; par ≤ 8; очередь 1; идёт 1 (считают тики 1): rec r40_rec_anc m19 1904 МБ / 6 проц. [тик 100480, 0 с назад]
+guard: недопуск rec r40_rec_anc m17 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1967 МБ, резерв для идущих +0 МБ, свободно 7798 МБ, запас 3195 МБ → остаток 5831 МБ
+mem: свободно 7783 / 15977 МБ; par ≤ 8; очередь 1; идёт 1 (считают тики 1): rec r40_rec_anc m19 1999 МБ / 6 проц. [тик 112640, 0 с назад]
+guard: недопуск rec r40_rec_anc m17 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +1984 МБ, резерв для идущих +0 МБ, свободно 7734 МБ, запас 3195 МБ → остаток 5750 МБ
+mem: свободно 7728 / 15977 МБ; par ≤ 8; очередь 1; идёт 1 (считают тики 1): rec r40_rec_anc m19 2034 МБ / 6 проц. [тик 129280, 0 с назад]
+guard: недопуск rec r40_rec_anc m17 — повтор снятого — идёт один; фактическая память (chromium:ancient): новое дерево +2035 МБ, резерв для идущих +0 МБ, свободно 7600 МБ, запас 3195 МБ → остаток 5565 МБ
+end rec r40_rec_anc m19: код 0, 315 с, пик 2167 МБ, процессов до 6
+start rec r40_rec_anc m17 (идёт 1, свободно 9623 МБ)
+mem: свободно 8894 / 15977 МБ; par ≤ 8; очередь 0; идёт 1 (считают тики 1): rec r40_rec_anc m17 817 МБ / 6 проц. [тик 3840, 0 с назад]
+mem: свободно 8719 / 15977 МБ; par ≤ 8; очередь 0; идёт 1 (считают тики 1): rec r40_rec_anc m17 1056 МБ / 6 проц. [тик 20480, 0 с назад]
+mem: свободно 8491 / 15977 МБ; par ≤ 8; очередь 0; идёт 1 (считают тики 1): rec r40_rec_anc m17 1277 МБ / 6 проц. [тик 37120, 0 с назад]
+mem: свободно 8309 / 15977 МБ; par ≤ 8; очередь 0; идёт 1 (считают тики 1): rec r40_rec_anc m17 1446 МБ / 6 проц. [тик 48000, 2 с назад]
+mem: свободно 8041 / 15977 МБ; par ≤ 8; очередь 0; идёт 1 (считают тики 1): rec r40_rec_anc m17 1721 МБ / 6 проц. [тик 60800, 0 с назад]
+mem: свободно 7975 / 15977 МБ; par ≤ 8; очередь 0; идёт 1 (считают тики 1): rec r40_rec_anc m17 1778 МБ / 6 проц. [тик 76800, 0 с назад]
+mem: свободно 7879 / 15977 МБ; par ≤ 8; очередь 0; идёт 1 (считают тики 1): rec r40_rec_anc m17 1875 МБ / 6 проц. [тик 93440, 0 с назад]
+mem: свободно 7798 / 15977 МБ; par ≤ 8; очередь 0; идёт 1 (считают тики 1): rec r40_rec_anc m17 1955 МБ / 6 проц. [тик 107520, 0 с назад]
+mem: свободно 7633 / 15977 МБ; par ≤ 8; очередь 0; идёт 1 (считают тики 1): rec r40_rec_anc m17 2084 МБ / 6 проц. [тик 123520, 0 с назад]
+end rec r40_rec_anc m17: код 0, 283 с, пик 2194 МБ, процессов до 6
+tick_0: код 0
+frame_0: код 0
+tick_1: код 0
+frame_1: код 0
+tick_2: код 0
+frame_2: код 0
+memory: код 0
+tick_0: код 0
+frame_0: код 0
+tick_1: код 0
+frame_1: код 0
+tick_2: код 0
+frame_2: код 0
+memory: код 0
+install: код 0
+xb_chromium: код 0
+xb_firefox: код 0
+xb_webkit: код 0
+install: код 0
+xb_chromium: код 0
+xb_firefox: код 0
+xb_webkit: код 0
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_ydggdhvo 94b5a3959d3bbcc63a53e5dad209262fa25f1410
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_ydggdhvo\src\build.py --map mirage --worker C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\r40_wkm_mir_wk.html
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+модули: task.js, intel.js, events.js, turn.ts, smoke.js, plan.js, exec-sync.js, levels.js, throw.js, flight.js, lineups.js, damage.js, self.js, decide.js, fight.js, assist.js, shoot.js, fight-state.js, engagements.js, move.js, tick.js, tick-jump.js, tick-keys.js, tick-step.js — ядро отдаёт 303 имён, берёт 736
+Единственный писатель: полей 107, записей в обход 0
+пометок 1734 | полей facing:7 walking:4 curSpeed:5 post:3 _task:4 _reposUntil:1 _waitPopUntil:1 _avoidPeekUntil:1 _tradeUntil:2 _tradeLock:1 state:2 nadeTask:8 holding:4 crouching:1 path:7 phase:1 lookReason:2 _lookLvl:1 heardSound:2 lastIntel:1 planting:3 defusing:3 _route:4 _routeDone:2 baseX:11 baseY:11 pathIdx:8 _aimFix:1 _ammoFor:1 _area:1 _blind:1 _blindBy:1 _boost:1 _climb:1 _contact:1 _covLog:1 _covT:1 _detour:1 _dmgBy:1 _drawUntil:1 _egC:1 _fall:1 _fc:1 _fillLock:1 _fireExit:1 _fireExitFire:1 _fireIn:1 _flee:1 _heDone:2 _hold:1 _holdLog:1 _huntArrive:1 _huntIdx:1 _jc:1 _jump:1 _knife:1 _landAt:1 _lkC:1 _lkPt:1 _lkTop:1 _lkZ:1 _lurkArr:1 _lurkIdx:1 _lurkPh:1 _mistakes:1 _nadeNo:1 _nadeT:1 _nearestEnemyBot:1 _offNav:1 _onPistol:1 _prevOffX:1 _prevOffY:1 _probe:1 _probeLock:1 _reloading:1 _roamSoundHandled:1 _roamSoundLockUntil:1 _saveSpot:1 _sawEnemy:1 _secAmmo:1 _stabT:1 _stageInfo:1 _stopPlantUntil:1 _stopWhy:1 _tagUntil:1 _ts:1 _unstickT:1 alive:4 ammo:1 armor:1 armorHp:1 atPost:1 blindUntil:1 burstCount:1 contactStreak:1 deaths:1 decisionTick:1 forcedRetreat:1 heading:1 helmet:2 holdSinceTick:1 hp:1 kills:1 kit:2 lastShotTick:1 lastStepTick:1 lookTarget:1 money:1 nadeQueue:1 nades:1 nextShotTick:1 onStairs:1 pickTick:1 primary:1 reloadUntil:1 retakeRole:1 roamCheckStart:1 roamCheckUntil:1 roamChecking:1 roamIdx:1 roamLookPt:1 roamPrevPt:1 roamTarget:1 roundDmg:1 roundKills:1 secondary:1 setupLook:1 stateSince:1 stuckTicks:1 throwUntil:1 weapon:1 x:1 y:1 z:2 | функций 1475
+общих переменных 987 из чужих файлов пишут 85
+реестр состояния: строк 1475, не размечено 0
+карточки механик: файлов 101, расхождений 0
+чтения истины врага (решения): мест 55, новых 0; известных нарушений «истина» 13 (BEHAVIOR_BACKLOG, после Р8)
+ответ хозяина не прочитан (Р-7): мест 124
+виды задач (TaskKind): 79 литералом, мест с тегом из данных 20, расхождений 0
+писатели полей бота: полей 455, писателей 600, новых 0
+правила сборки Р-1…Р-17: известных мест Р-1 6, Р-3а 77, Р-3б 15, Р-4 46, Р-5 57, Р-16 0, Р-17 68; новых 0
+режим Worker: ядро 6785 КБ внутри страницы
+install: код 0
+wkm_chromium: код 0
+wkm_firefox: код 0
+wkm_webkit: код 0
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_1qiv4xmt 94b5a3959d3bbcc63a53e5dad209262fa25f1410
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_1qiv4xmt\tools\node\core_build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\r40_mass_anc.core.js
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+модули: task.js, intel.js, events.js, turn.ts, smoke.js, plan.js, exec-sync.js, levels.js, throw.js, flight.js, lineups.js, damage.js, self.js, decide.js, fight.js, assist.js, shoot.js, fight-state.js, engagements.js, move.js, tick.js, tick-jump.js, tick-keys.js, tick-step.js — ядро отдаёт 298 имён, берёт 717
+C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\r40_mass_anc.core.js: 12761 КБ, файлов ядра 73 (показ и разметка не входят)
+mass: код 0
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_irj0ujsr 94b5a3959d3bbcc63a53e5dad209262fa25f1410
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_irj0ujsr\tools\node\core_build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\r40_mass_mir.core.js
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+модули: task.js, intel.js, events.js, turn.ts, smoke.js, plan.js, exec-sync.js, levels.js, throw.js, flight.js, lineups.js, damage.js, self.js, decide.js, fight.js, assist.js, shoot.js, fight-state.js, engagements.js, move.js, tick.js, tick-jump.js, tick-keys.js, tick-step.js — ядро отдаёт 298 имён, берёт 717
+C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\r40_mass_mir.core.js: 6785 КБ, файлов ядра 73 (показ и разметка не входят)
+mass: код 0
+npm_rebuild: код 0
+inv_3: код 0
+inv_special: код 0
+inv_3: код 0
+inv_special: код 0
+all done

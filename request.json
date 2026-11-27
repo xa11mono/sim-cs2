@@ -1,0 +1,148 @@
+{
+  "par": 8,
+  "resume": true,
+  "fp": [
+    {
+      "label": "r40_off_anc",
+      "ref": "94b5a3959d3bbcc63a53e5dad209262fa25f1410",
+      "map": "ancient",
+      "matches": [
+        3,
+        7,
+        11,
+        13,
+        17,
+        19,
+        23,
+        29
+      ],
+      "trace": false
+    },
+    {
+      "label": "r40_off_mir",
+      "ref": "94b5a3959d3bbcc63a53e5dad209262fa25f1410",
+      "map": "mirage",
+      "matches": [
+        3,
+        7,
+        11,
+        13,
+        17,
+        19,
+        23,
+        29
+      ],
+      "trace": false
+    }
+  ],
+  "rec": [
+    {
+      "label": "r40_rec_anc",
+      "ref": "94b5a3959d3bbcc63a53e5dad209262fa25f1410",
+      "map": "ancient",
+      "matches": [
+        3,
+        7,
+        11,
+        13,
+        17,
+        19,
+        23,
+        29
+      ],
+      "complete": true,
+      "fingerprint": true
+    },
+    {
+      "label": "r40_rec_mir",
+      "ref": "94b5a3959d3bbcc63a53e5dad209262fa25f1410",
+      "map": "mirage",
+      "matches": [
+        3,
+        7,
+        11,
+        13,
+        17,
+        19,
+        23,
+        29
+      ],
+      "complete": true,
+      "fingerprint": true
+    }
+  ],
+  "prof": [
+    {
+      "label": "r40_prof_anc",
+      "ref": "94b5a3959d3bbcc63a53e5dad209262fa25f1410",
+      "map": "ancient"
+    },
+    {
+      "label": "r40_prof_mir",
+      "ref": "94b5a3959d3bbcc63a53e5dad209262fa25f1410",
+      "map": "mirage"
+    }
+  ],
+  "xb": [
+    {
+      "label": "r40_xb_anc",
+      "ref": "94b5a3959d3bbcc63a53e5dad209262fa25f1410",
+      "map": "ancient"
+    },
+    {
+      "label": "r40_xb_mir",
+      "ref": "94b5a3959d3bbcc63a53e5dad209262fa25f1410",
+      "map": "mirage"
+    }
+  ],
+  "wkm": [
+    {
+      "label": "r40_wkm_mir",
+      "ref": "94b5a3959d3bbcc63a53e5dad209262fa25f1410",
+      "map": "mirage",
+      "sec": 30
+    }
+  ],
+  "mass": [
+    {
+      "label": "r40_mass_anc",
+      "ref": "94b5a3959d3bbcc63a53e5dad209262fa25f1410",
+      "map": "ancient",
+      "threads": 4
+    },
+    {
+      "label": "r40_mass_mir",
+      "ref": "94b5a3959d3bbcc63a53e5dad209262fa25f1410",
+      "map": "mirage",
+      "threads": 4
+    }
+  ],
+  "inv": [
+    {
+      "label": "r40_inv_anc",
+      "ref": "94b5a3959d3bbcc63a53e5dad209262fa25f1410",
+      "map": "ancient",
+      "matches": [
+        3
+      ],
+      "special": true
+    },
+    {
+      "label": "r40_inv_mir",
+      "ref": "94b5a3959d3bbcc63a53e5dad209262fa25f1410",
+      "map": "mirage",
+      "matches": [
+        3
+      ],
+      "special": true
+    }
+  ],
+  "require_runtime": {
+    "platform": "win32",
+    "arch": "x64",
+    "node": "v24.21.0",
+    "node_v8": "13.6.233.17-node.53",
+    "playwright": "1.63.0",
+    "chromium": "153.0.8010.12"
+  }
+}
