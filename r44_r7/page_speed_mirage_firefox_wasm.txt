@@ -1,0 +1,3 @@
+код 0
+{"sim":"r44_r7_mirage.html","engine":"firefox","backend":"wasm","mode":"speed","match":3,"ticks":6000,"ms_mean":2.0716,"ms_min":2.0572,"ms_max":2.0855,"hash":[2663964698],"kern":{"backend":"wasm","mode":"speed","cast":{"n":1916689,"kern":1916689,"js":0,"bad":0,"firstBad":null},"path":{"n":19257,"kern":19257,"js":0,"bad":0,"firstBad":null},"upload_ms":98,"nade":{"n":2602965,"kern":2602965,"js":0,"bad":0,"firstBad":null}}}
+
