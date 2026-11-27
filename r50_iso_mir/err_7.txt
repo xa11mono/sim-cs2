@@ -1,0 +1,21 @@
+[q] браузер отключился
+[q] ошибка: page.evaluate: Target page, context or browser has been closed
+Browser logs:
+
+<launching> C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright\chromium_headless_shell-1243\chrome-headless-shell-win64\chrome-headless-shell.exe --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-edgeupdater --disable-extensions --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,BlockOriginHeaderModificationOnRedirect,Translate,AutoDeElevate,OptimizationHints,msForceBrowserSignIn,msEdgeUpdateLaunchServicesPreferredVersion --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --disable-updater-scheduler --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --disable-infobars --disable-search-engine-choice-screen --disable-sync --enable-unsafe-swiftshader --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --user-data-dir=C:\Windows\TEMP\playwright_chromiumdev_profile-9NZ69X --remote-debugging-pipe --no-startup-window
+<launched> pid=1700
+[pid=1700][err] [1127/224455.644:INFO:CONSOLE:59112] "снимок: не копируются, убраны из снимка — cv, ctx, wrap, showNavmesh, showPortals, showWalls, showZones, showPoints, showDanger, showLos, showTracers, showCalls, showWhy, showSound, chkAlign, alignPanel, inNavDx, inNavDy, inNavScale, btnNavReset, chkNavWarp, navWarpPanel, navWarpHint, navWarpCountEl, btnNavWarpUndo, btnNavWarpClear, chkZoneEdit, zoneEditPanel, zoneEditHint, zoneKindSelect, zoneNameInput, btnZoneFinish, chkZoneVertexEdit, zoneEditCountEl, btnZoneDelete, chkZoneAlign, zoneAlignPanel, inZlDx, inZlDy, inZlScale, chkLineups, lineupPanel, zoneNamePanel, zoneNameInput2, chkLookDbg, lookDbgEl, chkTeamDbg, teamDbgEl, D3, D3_NULLGRAD, D3_NULLCTX", source: file:///C:/actions-runner/_work/sim-cs2/sim-cs2/tools/measure/runs/_sims/r50_iso_mir.html (59112)
+[pid=1700] <gracefully close start>
+    at p.evaluate (C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\progress.js:25:14)
+    at C:\actions-runner\_work\sim-cs2\sim-cs2\src\q.js:18:22
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "C:\Users\Mono\AppData\Local\Programs\Python\Python310\lib\subprocess.py", line 347, in call
+    return p.wait(timeout=timeout)
+  File "C:\Users\Mono\AppData\Local\Programs\Python\Python310\lib\subprocess.py", line 1207, in wait
+    return self._wait(timeout=timeout)
+  File "C:\Users\Mono\AppData\Local\Programs\Python\Python310\lib\subprocess.py", line 1488, in _wait
+    result = _winapi.WaitForSingleObject(self._handle,
+KeyboardInterrupt
+
+[guard] {"name": "fp r50_iso_mir.html m7", "engine": "chromium", "rc": 3221225786, "ok": false, "secs": 75.10899999999674, "t_start": 1795805094.2871242, "t_end": 1795805169.401162, "peak_mb": 1014, "procs_max": 6, "stopped": "раннер завершается", "orphans_killed": 0, "job": true, "par_cap": 8, "running_with": 1, "mem_total_mb": 15977, "mem_avail_mb_after": 8886, "retry": false, "par_req": 8, "par_seen_max": 6, "par_seen_avg": 5.982731763170972, "group_limit_mb": 0, "stop_kind": "раннер", "tick_last": 35840, "progress_reports": 56, "tick_gap_max_s": 4.2, "cpu_s": 78.6, "page_state": "disconnected", "attempt": 1}

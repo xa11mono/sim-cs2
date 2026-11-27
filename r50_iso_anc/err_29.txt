@@ -1,0 +1,14 @@
+[q] ошибка: page.evaluate: Target page, context or browser has been closed
+    at p.evaluate (C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\progress.js:25:14)
+    at C:\actions-runner\_work\sim-cs2\sim-cs2\src\q.js:18:22
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "C:\Users\Mono\AppData\Local\Programs\Python\Python310\lib\subprocess.py", line 347, in call
+    return p.wait(timeout=timeout)
+  File "C:\Users\Mono\AppData\Local\Programs\Python\Python310\lib\subprocess.py", line 1207, in wait
+    return self._wait(timeout=timeout)
+  File "C:\Users\Mono\AppData\Local\Programs\Python\Python310\lib\subprocess.py", line 1488, in _wait
+    result = _winapi.WaitForSingleObject(self._handle,
+KeyboardInterrupt
+
+[guard] {"name": "fp r50_iso_anc.html m29", "engine": "chromium", "rc": 3221225786, "ok": false, "secs": 99.125, "t_start": 1795805070.2714453, "t_end": 1795805169.401162, "peak_mb": 1291, "procs_max": 6, "stopped": "раннер завершается", "orphans_killed": 0, "job": true, "par_cap": 8, "running_with": 3, "mem_total_mb": 15977, "mem_avail_mb_after": 8894, "retry": false, "par_req": 8, "par_seen_max": 6, "par_seen_avg": 5.888867591425229, "group_limit_mb": 0, "stop_kind": "раннер", "tick_last": 46720, "progress_reports": 73, "tick_gap_max_s": 4.4, "cpu_s": 102.5, "page_state": "closing", "attempt": 1}
