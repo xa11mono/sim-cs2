@@ -1,0 +1,81 @@
+> C:\Program Files\nodejs\npm.CMD install --prefix C:\Windows\system32\config\systemprofile\.simcs2_node playwright@1.56.0
+
+changed 2 packages, and audited 3 packages in 4s
+
+found 0 vulnerabilities
+> C:\Windows\system32\config\systemprofile\.simcs2_node\node_modules\.bin\playwright.cmd install chromium
+Removing unused browser at C:\Windows\system32\config\systemprofile\AppData\Local\ms-playwright\chromium-1243
+Removing unused browser at C:\Windows\system32\config\systemprofile\AppData\Local\ms-playwright\chromium_headless_shell-1243
+Downloading Chromium 141.0.7390.37 (playwright build v1194)[2m from https://cdn.playwright.dev/dbazure/download/playwright/builds/chromium/1194/chromium-win64.zip[22m
+|                                                                                |   0% of 148.9 MiB
+|■■■■■■■■                                                                        |  10% of 148.9 MiB
+|■■■■■■■■■■■■■■■■                                                                |  20% of 148.9 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 148.9 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 148.9 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 148.9 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 148.9 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 148.9 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 148.9 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 148.9 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 148.9 MiB
+Chromium 141.0.7390.37 (playwright build v1194) downloaded to C:\Windows\system32\config\systemprofile\AppData\Local\ms-playwright\chromium-1194
+Downloading Chromium Headless Shell 141.0.7390.37 (playwright build v1194)[2m from https://cdn.playwright.dev/dbazure/download/playwright/builds/chromium/1194/chromium-headless-shell-win64.zip[22m
+|                                                                                |   0% of 91 MiB
+|■■■■■■■■                                                                        |  10% of 91 MiB
+|■■■■■■■■■■■■■■■■                                                                |  20% of 91 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 91 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 91 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 91 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 91 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 91 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 91 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 91 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 91 MiB
+Chromium Headless Shell 141.0.7390.37 (playwright build v1194) downloaded to C:\Windows\system32\config\systemprofile\AppData\Local\ms-playwright\chromium_headless_shell-1194
+> C:\Windows\system32\config\systemprofile\.simcs2_node\node_modules\.bin\playwright.cmd install chromium
+Removing unused browser at C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright\chromium-1243
+Removing unused browser at C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright\chromium_headless_shell-1243
+Removing unused browser at C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright\firefox-1543
+Removing unused browser at C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright\webkit-2359
+Downloading Chromium 141.0.7390.37 (playwright build v1194)[2m from https://cdn.playwright.dev/dbazure/download/playwright/builds/chromium/1194/chromium-win64.zip[22m
+|                                                                                |   0% of 148.9 MiB
+|■■■■■■■■                                                                        |  10% of 148.9 MiB
+|■■■■■■■■■■■■■■■■                                                                |  20% of 148.9 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 148.9 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 148.9 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 148.9 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 148.9 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 148.9 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 148.9 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 148.9 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 148.9 MiB
+Chromium 141.0.7390.37 (playwright build v1194) downloaded to C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright\chromium-1194
+Downloading Chromium Headless Shell 141.0.7390.37 (playwright build v1194)[2m from https://cdn.playwright.dev/dbazure/download/playwright/builds/chromium/1194/chromium-headless-shell-win64.zip[22m
+|                                                                                |   0% of 91 MiB
+|■■■■■■■■                                                                        |  10% of 91 MiB
+|■■■■■■■■■■■■■■■■                                                                |  20% of 91 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 91 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 91 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 91 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 91 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 91 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 91 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 91 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 91 MiB
+Chromium Headless Shell 141.0.7390.37 (playwright build v1194) downloaded to C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright\chromium_headless_shell-1194
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin d71ba75743497183374dc3762db1de5484583fbc
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_0cg0t1xb FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_0cg0t1xb\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\b2_mir_a5.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=b2_mir_a5,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\b2_mir_a5.html --matches=3,7,11,13,17,19,23,29 --par=8
+матчей в очереди: 8, одновременно: 8
+b2_mir_a5 match 19 rc 0 4953187 — готово 1/8, 5 мин
+b2_mir_a5 match 11 rc 0 5392456 — готово 2/8, 5 мин
+b2_mir_a5 match 13 rc 0 5290851 — готово 3/8, 5 мин
+b2_mir_a5 match 29 rc 0 5545526 — готово 4/8, 5 мин
+b2_mir_a5 match 7 rc 0 6658200 — готово 5/8, 6 мин
+b2_mir_a5 match 3 rc 0 6578130 — готово 6/8, 6 мин
+b2_mir_a5 match 23 rc 0 7420137 — готово 7/8, 6 мин
+b2_mir_a5 match 17 rc 0 8195849 — готово 8/8, 7 мин
+done
+all done
