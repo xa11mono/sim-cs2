@@ -101,7 +101,9 @@ function rpWorldDraw(E, P, I, S, ox0, oy0, W, H){
   var keep = {tick: tick, simTime: simTime, roundNum: roundNum, roundState: roundState, accumulator: accumulator, smokes: smokes, fires: fires, nadesInAir: nadesInAir,
     nadeFx: nadeFx, bomb: bomb, tracers: tracers, soundPings: soundPings, groundWeapons: groundWeapons, groundItems: groundItems, teamTac: teamTac,
     FREEZE_FX: FREEZE_FX, SIDE_TEAM: SIDE_TEAM, NICKS: NICKS, cv: cv, ctx: ctx, view: {scale: view.scale, panX: view.panX, panY: view.panY}};
-  var saved = bots.map(function(o){ var c = {px: o.px, py: o.py, pfacing: o.pfacing, path: o.path, _trail: o._trail}; RP_BF.forEach(function(k){ c[k] = o[k]; }); return c; });
+  // (Р5, 27.11) поле, которого у бота не было, после кадра повтора удаляется (было: появлялось со значением undefined — форма объекта игры менялась
+  // от рисования повтора; tools/page/ui_state_check.js: plantUntil / defuseUntil / _killHow после повтора клатча)
+  var saved = bots.map(function(o){ var c = {px: o.px, py: o.py, pfacing: o.pfacing, path: o.path, _trail: o._trail, __has: {}}; RP_BF.forEach(function(k){ c[k] = o[k]; c.__has[k] = Object.prototype.hasOwnProperty.call(o, k); }); return c; });
   var gw = null, gi = null; for(var j = R.s.indexOf(I.A); j >= 0; j--){ var w = R.s[j].w; if(w && w.gw){ gw = w.gw; gi = w.gi; break; } }
   try{
     clockSet(A.tick); simTime = tick*TICK_MS/1000; roundNum = R.round; roundState = "live"; clockAcc(f*TICK_MS);
@@ -120,7 +122,7 @@ function rpWorldDraw(E, P, I, S, ox0, oy0, W, H){
   } catch(e){ /* кадр повтора не нарисовался — дальше игра не страдает: всё возвращается ниже */ }
   finally {
     draw.noHud = false;
-    bots.forEach(function(o, i){ var c = saved[i]; RP_BF.forEach(function(k){ rpSetBotField(o, k, c[k]); }); o.px = c.px; o.py = c.py; o.pfacing = c.pfacing; movePath(o, c.path, "replay"); o._trail = c._trail; });
+    bots.forEach(function(o, i){ var c = saved[i]; RP_BF.forEach(function(k){ if(c.__has[k]) rpSetBotField(o, k, c[k]); else delete o[k]; }); o.px = c.px; o.py = c.py; o.pfacing = c.pfacing; movePath(o, c.path, "replay"); o._trail = c._trail; });
     clockSet(keep.tick); simTime = keep.simTime; roundNum = keep.roundNum; roundState = keep.roundState; clockAcc(keep.accumulator);
     nadeWorldSet(keep.smokes, keep.fires, keep.nadesInAir, keep.nadeFx); bomb = keep.bomb; tracers = keep.tracers; soundPings = keep.soundPings;
     groundWeapons = keep.groundWeapons; groundItems = keep.groundItems; teamTac = keep.teamTac; FREEZE_FX = keep.FREEZE_FX; SIDE_TEAM = keep.SIDE_TEAM; NICKS = keep.NICKS;
