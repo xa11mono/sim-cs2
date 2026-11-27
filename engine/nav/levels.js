@@ -1,4 +1,4 @@
-// [хозяева: floorCover, floorViewTick, inFire, ladderTick, laddersBuild, navAtLevel, navOnFloor, navSetArea, navSetClimb, navSetFall, navSetLandAt, navSetZ]
+// [хозяева: floorCover, floorViewReset, floorViewTick, inFire, ladderTick, laddersBuild, navAtLevel, navOnFloor, navSetArea, navSetClimb, navSetFall, navSetLandAt, navSetZ]
 function fireDamageFor(sec){ var n = Math.floor(sec/FIRE_HIT_SEC), d = 0; for(var k=1;k<=n;k++) d += Math.min(FIRE_HIT_MAX, k); return d; }
 // (v438) загорелся молотов — у кого оставшийся путь проходит через огонь (точка пути или отрезок ближе радиуса огня), путь строится
 // заново (buildWaypointPath обходит огонь, FIRE_DETOUR, 050): раньше путь, построенный до огня, вёл прямо в него
@@ -501,6 +501,8 @@ function floorCover(x, y, z){
   return {under: nu/9, over: no/9};
 }
 // плавная смена на экране: доля «под этажом / над этажом» тянется к посчитанной за ~0,25 с (проектное число), без скачков
+// (Р3.2, 27.11) сброс сглаживания этажа (новое место бота) — у хозяина полей _underV / _overV
+function floorViewReset(b){ b._underV = null; b._overV = null; }
 function floorViewTick(b){
   var c = floorCover(b.x, b.y, b.z), k = 0.25;
   // (отметка владельца 18.11, м5 р1, лестница с Balcony: «стал серым, как будто под этажом») лестница в данных — в 4–5 ед. внутри контура пола

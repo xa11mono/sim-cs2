@@ -1,4 +1,4 @@
-// [хозяева: moveSetHeading, moveSetHold, moveSetLastStepTick, moveSetOffNav, moveSetOnStairs, moveSetPrevOffX, moveSetPrevOffY, moveSetStuckTicks, moveSetUnstickT, stepBot, stepTick] ── ЭТАПЫ ТИКА (перестройка, фаза 2, 15.11; порядок — как был, только названы; «Устройство» — docs/ARCHITECTURE.md §2) ──
+// [хозяева: botPrevFace, botPrevX, botPrevY, botTrail, moveSetHeading, moveSetHold, moveSetLastStepTick, moveSetOffNav, moveSetOnStairs, moveSetPrevOffX, moveSetPrevOffY, moveSetStuckTicks, moveSetUnstickT, stepBot, stepTick] ── ЭТАПЫ ТИКА (перестройка, фаза 2, 15.11; порядок — как был, только названы; «Устройство» — docs/ARCHITECTURE.md §2) ──
 // 0 часы → 1 раунд (конец, фриз) → 2 особые режимы → 3 после раунда → 4 решения команд и гранат → 5 каждый бот (место, ход, пики,
 // цикл перестрелки, физика шага) → 6 перестрелки (видимость, взгляд, выстрел) → 7 восприятие → знание → 8 конец раунда, наблюдение.
 // Знания (этап 7) обновляются в конце тика: решения этапов 4–6 опираются на знание прошлого тика. Переставить под слои
@@ -78,9 +78,15 @@ function stepTick(){
 }
 // (Р4.4, 26.11) шаг одного бота в тике — тело обхода bots.forEach из stepTick, перенесено дословно (return — к следующему боту, как было);
 // числа тика (dtSec, maxDelta, радиусы, поворот, порог ступенек) — параметрами с теми же именами, тело их только читает
+// (Р3.2, 27.11) хозяева полей «прошлый тик» (px, py, pfacing — для показа между тиками) и следа (_trail): одна точка записи; запись
+// возвращает значение — цепочки присваиваний в вызывающих (moveSetX(b, b.baseX = botPrevX(b, x))) остаются в прежнем порядке
+function botPrevX(b, x){ b.px = x; return x; }
+function botPrevY(b, y){ b.py = y; return y; }
+function botPrevFace(b, a){ b.pfacing = a; return a; }
+function botTrail(b, v){ b._trail = v; return v; }
 function stepBot(bot, dtSec, maxDelta, ARRIVE_RADIUS, BRAKE_RADIUS, TURN_RATE, STAIRS_SLOPE_THRESHOLD){
     if(!bot.alive) return;
-    bot.px = bot.x; bot.py = bot.y; bot.pfacing = bot.facing;
+    botPrevX(bot, bot.x); botPrevY(bot, bot.y); botPrevFace(bot, bot.facing);
     if(bot._sbOff && !bot._sbGo && !bot._climb){ bot.curSpeed = 0; return; }   // (v543) начатый подъём / прыжок доводится до конца   // (v536) песочница: ИИ выключен — стоит; (v538) но идёт по приказу владельца, ИИ при этом не включается (sandbox)   // (v414, М154) взгляд на начало тика — только для рисования (сглаживание, draw)
     updatePost(bot);
     updateReload(bot);
@@ -105,7 +111,7 @@ function stepBot(bot, dtSec, maxDelta, ARRIVE_RADIUS, BRAKE_RADIUS, TURN_RATE, S
     // за укрытие и выглянуть снова — fightCycleTick (по данным про).
     moveSpeedTick(bot, runSpeed, BRAKE_RADIUS, maxDelta); runSpeed = MOVE.run;   // стоять / идти / огонь / торможение — одно место (move)
     var burn = MOVE.burn;
-    if(tick % 16 === 0){ var TR = bot._trail || (bot._trail = []); TR.push({x:bot.baseX, y:bot.baseY}); if(TR.length > 8) TR.shift(); }
+    if(tick % 16 === 0){ var TR = bot._trail || botTrail(bot, []); TR.push({x:bot.baseX, y:bot.baseY}); if(TR.length > 8) TR.shift(); }
     // перестрелка по данным: уйти с линии за укрытие и выглянуть снова
     fightCycleTick(bot, dtSec, bot.planting || bot.defusing || burn || tick < (bot.blindUntil||0) || ambushHoldFire(bot));   // (К1) в засаде не выглядывает
     if(bot._fc && bot._fc.ph !== "line" && !fcSwingGo(bot)){ bot.curSpeed = bot._fc.moving ? (bot._fc.mv || 0) : 0; moveSetStopWhy(bot, bot._fc.moving ? "перестрелка — идёт за укрытие / на линию" : "перестрелка — стоит за укрытием"); }
@@ -297,7 +303,7 @@ function stepBot(bot, dtSec, maxDelta, ARRIVE_RADIUS, BRAKE_RADIUS, TURN_RATE, S
         var actuallyMoved = DM.hypot(bot.baseX-startX, bot.baseY-startY);
         // (v403) высота бота — одно место navFollowFloor (levels): после шага здесь и после любого другого движения за тик (конец цикла)
         if(actuallyMoved > 0) navFollowFloor(bot);
-        if(fireWait){ moveSetStuckTicks(bot, 0); bot._np = null; bot._netStuck = 0; bot._progTick = tick; bot._progBest = Infinity; bot._idleT = tick; bot._trail = []; }
+        if(fireWait){ moveSetStuckTicks(bot, 0); bot._np = null; bot._netStuck = 0; bot._progTick = tick; bot._progBest = Infinity; bot._idleT = tick; botTrail(bot, []); }
         else {
         // "топчется": каждый тик куда-то сдвигается (веер проб у угла туда-сюда),
         // но за 1.5с никуда не ушёл — раньше это не считалось застреванием
@@ -381,7 +387,7 @@ function stepBot(bot, dtSec, maxDelta, ARRIVE_RADIUS, BRAKE_RADIUS, TURN_RATE, S
           var pe = bot.path[bot.path.length-1], fr = buildWaypointPath(bot.baseX, bot.baseY, bot.z, pe[0], pe[1], pe[2], bot.team, botLane(bot), bot.walking), p0 = fr && fr[0];
           if(p0 && p0[2] != null && p0[2] <= bot.z + 18 && DM.hypot(p0[0]-bot.baseX, p0[1]-bot.baseY) <= 40 && DM.hypot(p0[0]-bot.baseX, p0[1]-bot.baseY) > 2 && !crossesWall(bot.baseX, bot.baseY, p0[0], p0[1])){
             bot.baseX = moveSetX(bot, p0[0]); bot.baseY = moveSetY(bot, p0[1]); navSetZ(bot, p0[2]); var a0 = navAt(p0[0], p0[1], p0[2]); if(a0) navSetArea(bot, a0.id);
-            bot.path = fr; bot.pathIdx = 1; bot._trail = [];
+            bot.path = fr; bot.pathIdx = 1; botTrail(bot, []);
             logEvent(bot.id+": не может сойти с уступа по пути — спрыгнул на начало пути (заплатка)"); }
         }
         // (v333) вне навмеша с путём дольше 0,5 с — на ближайший пол (заплатка, navSnap)

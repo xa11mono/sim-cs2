@@ -62,5 +62,6 @@ declare function lookArbiter(b: Bot): P2 | null;                                
 interface LookAnswer { pt: P2 | null; lvl: number; kind: string | null; C: unknown[] | null }
 declare function lookApply(b: Bot, R: LookAnswer): P2 | null;                       // 270 — запись причины и уровня (одно место)
 declare function lookFilter(b: Bot, look: P2 | null, LD: LookDebug | null): { look: P2 | null; urgent: number };   // 270:690; urgent — lookUrgent (270:316): 0 / 1 / 2
+declare function botPrevFace(b: Bot, a: number | undefined): number | undefined;                      // tick-step — хозяин pfacing (Р3.2, 27.11)
 declare function _angOff(a: number, ref: number): number;                          // 260:187 — |разность углов|, приведённая
 declare function hashRand(seed: number): number;                                   // 060:112 — [0, 1)

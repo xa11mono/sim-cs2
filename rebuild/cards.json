@@ -83,6 +83,7 @@
   "rosters.js": {
    "mech": "профили игроков, команды LINEUP, SIDE_TEAM, seatPlayers",
    "owns": [
+    "roleSetT",
     "seatPlayers"
    ],
    "src": "таблица «Где что»"
@@ -408,6 +409,7 @@
    "mech": "навмеш и пути: rebuildNav, zoneDijkstra, funnel, buildWaypointPath; связи выше прыжка navCutTall / перепад navEdgeDz (v533); уровни/лестницы/подъёмы navAtLevel, laddersBuild, ladderTick (подъём через промежуточный ящик — mid, v533); под / над этажом floorCover / floorViewTick (v535); «на полу» — одн",
    "owns": [
     "floorCover",
+    "floorViewReset",
     "floorViewTick",
     "inFire",
     "ladderTick",
@@ -956,6 +958,10 @@
   "tick-step.js": {
    "mech": "шаг движка: stepTick (порядок тика) и stepBot (ход одного бота); было одним файлом engine/core/tick.js (Р4.4, 26.11)",
    "owns": [
+    "botPrevFace",
+    "botPrevX",
+    "botPrevY",
+    "botTrail",
     "moveSetHeading",
     "moveSetHold",
     "moveSetLastStepTick",

@@ -1,4 +1,4 @@
-// [хозяева: seatPlayers] ======================= РАЗДЕЛ 13 (п.6–7): ПРОФИЛИ ИГРОКОВ =======================
+// [хозяева: roleSetT, seatPlayers] ======================= РАЗДЕЛ 13 (п.6–7): ПРОФИЛИ ИГРОКОВ =======================
 // Личный стиль поверх роли (0…1): aggr — агрессия (первым лезет в дуэли, широкие
 // пики), disc — дисциплина (держит угол, не суетится, реже ошибается), risk —
 // склонность к риску (не отходит на низком HP), util — гранаты (точность
@@ -31,6 +31,8 @@ var LINEUP = {
 };
 var SIDE_TEAM = {T:"sp", CT:"fa"};   // кто сейчас на какой стороне; в начале матча Spirit — T
 var TEAM_NAME = {T:"", CT:""}, TEAM_LOGO = {T:null, CT:null};
+// (Р3.2, 27.11) роль игрока в команде (tRole) — одна точка записи: рассадка (seatPlayers), роли CT на половину (ctSeatRoles), начальные (tuning)
+function roleSetT(b, r){ b.tRole = r; return r; }
 function seatPlayers(){
   bots.forEach(function(b){
     var P = LINEUP[SIDE_TEAM[b.team]].players[+b.id.replace(/\D/g, "")];
@@ -41,11 +43,11 @@ function seatPlayers(){
   var PR = MAP.tactics.playerRoles;
   ["T","CT"].forEach(function(s){
     var team = bots.filter(function(b){ return b.team === s; }), used = {};
-    team.forEach(function(b){ b.tRole = TEAM_ROLES[s][+b.id.replace(/\D/g, "")]; });
+    team.forEach(function(b){ roleSetT(b, TEAM_ROLES[s][+b.id.replace(/\D/g, "")]); });
     if(!PR) return;
-    team.forEach(function(b){ var r = PR[NICKS[b.id]] && PR[NICKS[b.id]][s]; if(r && TEAM_ROLES[s].indexOf(r) >= 0 && !used[r]){ b.tRole = r; used[r] = b; } });
+    team.forEach(function(b){ var r = PR[NICKS[b.id]] && PR[NICKS[b.id]][s]; if(r && TEAM_ROLES[s].indexOf(r) >= 0 && !used[r]){ roleSetT(b, r); used[r] = b; } });
     var free = TEAM_ROLES[s].filter(function(r){ return !used[r]; });
-    team.forEach(function(b){ if(used[b.tRole] !== b){ var r = free.indexOf(b.tRole) >= 0 ? b.tRole : free[0]; b.tRole = r; used[r] = b; free.splice(free.indexOf(r), 1); } });
+    team.forEach(function(b){ if(used[b.tRole] !== b){ var r = free.indexOf(b.tRole) >= 0 ? b.tRole : free[0]; roleSetT(b, r); used[r] = b; free.splice(free.indexOf(r), 1); } });
   });
   ["T","CT"].forEach(function(s){ TEAM_NAME[s] = LINEUP[SIDE_TEAM[s]].name; TEAM_LOGO[s] = LINEUP[SIDE_TEAM[s]].logo; });
 }

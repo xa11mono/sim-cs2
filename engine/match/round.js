@@ -210,15 +210,15 @@ function resetRound(){
     // прошлого раунда, продолжался после спавна — бота тянуло обратно туда, где он лез. Всё движение прошлого раунда — сброс
     navSetClimb(b, null); moveSetFireExit(b, null); moveSetFireExitFire(b, null); moveSetUnstickT(b, null); placeResetTask(b); moveSetHold(b, null);
     // (v353, владелец: «тусклость кружка сохраняется после окончания раунда») этаж для рисования — сразу по спавну, а не через 16 тиков движения
-    b._underV = null; b._overV = null; navSetFall(b, null); floorViewTick(b);   // (v535) этаж — заново с нового места
+    floorViewReset(b); navSetFall(b, null); floorViewTick(b);   // (v535) этаж — заново с нового места
     b.baseX = b.x; b.baseY = b.y;
-    b.px = b.x; b.py = b.y;
+    botPrevX(b, b.x); botPrevY(b, b.y);
     movePath(b, [], "reset", 0); damageSetAlive(b, true); damageSetHp(b, 100);
     engagementSetPickTick(b, -999); engagementSetContactStreak(b, 0); engagementSetTs(b, {}); shotSetNextShotTick(b, 0);
     fightReset(b); engagementSetDecisionTick(b, -999); engagementSetForcedRetreat(b, false);
     lookReset(b); moveSetHeading(b, undefined); moveSpeed(b, 0, "reset"); placeStance(b, false, "reset"); engagementSetHoldSinceTick(b, -999); moveSetOnStairs(b, false);
     knowIntel(b, null); moveWalk(b, false, "reset"); moveSetLastStepTick(b, -999); knowSound(b, null);
-    shotSetBurstCount(b, 0); shotSetLastShotTick(b, -999); reloadSetAmmoFor(b, null); reloadSetReloading(b, false); soundSetOnPistol(b, null); equipmentSetSecAmmo(b, null); soundSetBlind(b, null); fightSetFc(b, null); b._trail = []; shotSetTagUntil(b, 0); equipmentSetKnife(b, false); equipmentSetDrawUntil(b, 0); moveSetStuckTicks(b, 0);
+    shotSetBurstCount(b, 0); shotSetLastShotTick(b, -999); reloadSetAmmoFor(b, null); reloadSetReloading(b, false); soundSetOnPistol(b, null); equipmentSetSecAmmo(b, null); soundSetBlind(b, null); fightSetFc(b, null); botTrail(b, []); shotSetTagUntil(b, 0); equipmentSetKnife(b, false); equipmentSetDrawUntil(b, 0); moveSetStuckTicks(b, 0);
     moveSetPrevOffX(b, 0); moveSetPrevOffY(b, 0); lookSetLookTarget(b, null); lookReasonSet(b, null);
     initRoam(b);
   });

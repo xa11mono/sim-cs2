@@ -155,12 +155,12 @@
 - **хозяин** `moveWalk · move` — 1 (стр. 29)
 - **хозяин** `moveWalkTick · move` — 1 (стр. 114)
 - **хозяин** `moveSpeedTick · move` — 1 (стр. 178)
-- **хозяин** `stepBot · tick-step` — 1 (стр. 251)
+- **хозяин** `stepBot · tick-step` — 1 (стр. 257)
 
 ## `curSpeed`
 
 - **хозяин** `moveSpeedTick · move` — 5 (стр. 198, 200, 201, 202, 203)
-- **хозяин** `stepBot · tick-step` — 5 (стр. 84, 111, 234, 249, 251)
+- **хозяин** `stepBot · tick-step` — 5 (стр. 90, 117, 240, 255, 257)
 - **хозяин** `jumpFaceWait · levels` — 1 (стр. 111)
 - **хозяин** `ladderTick · levels` — 1 (стр. 217)
 - **хозяин** `moveSpeed · move` — 1 (стр. 28)
@@ -236,7 +236,7 @@
 
 ## `path`
 
-- **хозяин** `stepBot · tick-step` — 5 (стр. 249, 323, 362, 384, 399)
+- **хозяин** `stepBot · tick-step` — 5 (стр. 255, 329, 368, 390, 405)
 - **хозяин** `navFollowFloor · levels` — 2 (стр. 385, 424)
 - **хозяин** `moveSpeedTick · move` — 2 (стр. 170, 177)
 - **хозяин** `fireRepath · levels` — 1 (стр. 30)
@@ -294,7 +294,7 @@
 
 ## `baseX`
 
-- **хозяин** `stepBot · tick-step` — 7 (стр. 253, 254, 272, 286, 320, 383, 436)
+- **хозяин** `stepBot · tick-step` — 7 (стр. 259, 260, 278, 292, 326, 389, 442)
 - **хозяин** `ladderTick · levels` — 3 (стр. 208, 212, 216)
 - **хозяин** `jumpCheckTick · tick-jump` — 2 (стр. 90, 109)
 - **хозяин** `warmTick · modes` — 2 (стр. 96, 99)
@@ -308,7 +308,7 @@
 
 ## `baseY`
 
-- **хозяин** `stepBot · tick-step` — 7 (стр. 253, 254, 276, 286, 320, 383, 436)
+- **хозяин** `stepBot · tick-step` — 7 (стр. 259, 260, 282, 292, 326, 389, 442)
 - **хозяин** `ladderTick · levels` — 3 (стр. 208, 212, 216)
 - **хозяин** `jumpCheckTick · tick-jump` — 2 (стр. 90, 109)
 - **хозяин** `warmTick · modes` — 2 (стр. 96, 99)
@@ -322,7 +322,7 @@
 
 ## `pathIdx`
 
-- **хозяин** `stepBot · tick-step` — 8 (стр. 174, 249, 254, 321, 323, 362, 384, 399)
+- **хозяин** `stepBot · tick-step` — 8 (стр. 180, 255, 260, 327, 329, 368, 390, 405)
 - **хозяин** `ladderTick · levels` — 4 (стр. 218, 233, 241, 276)
 - **хозяин** `navFollowFloor · levels` — 2 (стр. 385, 424)
 - **хозяин** `moveSpeedTick · move` — 2 (стр. 170, 177)
@@ -341,7 +341,7 @@
 
 ## `_area`
 
-- **хозяин** `navSetArea · levels` — 1 (стр. 581)
+- **хозяин** `navSetArea · levels` — 1 (стр. 583)
 
 ## `_blind`
 
@@ -357,7 +357,7 @@
 
 ## `_climb`
 
-- **хозяин** `navSetClimb · levels` — 1 (стр. 582)
+- **хозяин** `navSetClimb · levels` — 1 (стр. 584)
 
 ## `_contact`
 
@@ -389,7 +389,7 @@
 
 ## `_fall`
 
-- **хозяин** `navSetFall · levels` — 1 (стр. 583)
+- **хозяин** `navSetFall · levels` — 1 (стр. 585)
 
 ## `_fc`
 
@@ -422,7 +422,7 @@
 
 ## `_hold`
 
-- **хозяин** `moveSetHold · tick-step` — 1 (стр. 453)
+- **хозяин** `moveSetHold · tick-step` — 1 (стр. 459)
 
 ## `_holdLog`
 
@@ -450,7 +450,7 @@
 
 ## `_landAt`
 
-- **хозяин** `navSetLandAt · levels` — 1 (стр. 584)
+- **хозяин** `navSetLandAt · levels` — 1 (стр. 586)
 
 ## `_lkC`
 
@@ -498,7 +498,7 @@
 
 ## `_offNav`
 
-- **хозяин** `moveSetOffNav · tick-step` — 1 (стр. 454)
+- **хозяин** `moveSetOffNav · tick-step` — 1 (стр. 460)
 
 ## `_onPistol`
 
@@ -506,11 +506,11 @@
 
 ## `_prevOffX`
 
-- **хозяин** `moveSetPrevOffX · tick-step` — 1 (стр. 455)
+- **хозяин** `moveSetPrevOffX · tick-step` — 1 (стр. 461)
 
 ## `_prevOffY`
 
-- **хозяин** `moveSetPrevOffY · tick-step` — 1 (стр. 456)
+- **хозяин** `moveSetPrevOffY · tick-step` — 1 (стр. 462)
 
 ## `_probe`
 
@@ -570,7 +570,7 @@
 
 ## `_unstickT`
 
-- **хозяин** `moveSetUnstickT · tick-step` — 1 (стр. 457)
+- **хозяин** `moveSetUnstickT · tick-step` — 1 (стр. 463)
 
 ## `alive`
 
@@ -621,7 +621,7 @@
 
 ## `heading`
 
-- **хозяин** `moveSetHeading · tick-step` — 1 (стр. 458)
+- **хозяин** `moveSetHeading · tick-step` — 1 (стр. 464)
 
 ## `helmet`
 
@@ -653,7 +653,7 @@
 
 ## `lastStepTick`
 
-- **хозяин** `moveSetLastStepTick · tick-step` — 1 (стр. 459)
+- **хозяин** `moveSetLastStepTick · tick-step` — 1 (стр. 465)
 
 ## `lookTarget`
 
@@ -677,7 +677,7 @@
 
 ## `onStairs`
 
-- **хозяин** `moveSetOnStairs · tick-step` — 1 (стр. 460)
+- **хозяин** `moveSetOnStairs · tick-step` — 1 (стр. 466)
 
 ## `pickTick`
 
@@ -745,7 +745,7 @@
 
 ## `stuckTicks`
 
-- **хозяин** `moveSetStuckTicks · tick-step` — 1 (стр. 461)
+- **хозяин** `moveSetStuckTicks · tick-step` — 1 (стр. 467)
 
 ## `throwUntil`
 
@@ -770,6 +770,6 @@
 ## `z`
 
 - `hearReal · knowledge` — 1 (стр. 67)
-- **хозяин** `navSetZ · levels` — 1 (стр. 585)
+- **хозяин** `navSetZ · levels` — 1 (стр. 587)
 
 не бот (то же имя у другого объекта — в проверку владения не идёт): `applyNavTransform · zones` (241 q), `bombTick · bomb` (237 bomb), `hurtReactTick · contact` (369 q), `teamNadePlan · plan` (90 w), `nadesTick · damage` (214 n)

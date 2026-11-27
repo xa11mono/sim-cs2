@@ -2173,7 +2173,7 @@
    "snap": true
   },
   "FIRE_BODY": {
-   "decl": "levels.js:563",
+   "decl": "levels.js:565",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -2193,7 +2193,7 @@
    "snap": true
   },
   "FIRE_DZ": {
-   "decl": "levels.js:567",
+   "decl": "levels.js:569",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -5481,7 +5481,7 @@
    "snap": true
   },
   "NAV_UNLINKED": {
-   "decl": "levels.js:516",
+   "decl": "levels.js:518",
    "init": "ArrayExpression",
    "w": {},
    "m": {
@@ -7962,7 +7962,7 @@
    "snap": true
   },
   "STEP_BODY_Z": {
-   "decl": "levels.js:534",
+   "decl": "levels.js:536",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -7972,7 +7972,7 @@
    "snap": true
   },
   "STEP_UP_Z": {
-   "decl": "levels.js:534",
+   "decl": "levels.js:536",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -12881,7 +12881,7 @@
   },
   "_area": {
    "w": [
-    "levels.js:581 navSetArea"
+    "levels.js:583 navSetArea"
    ],
    "lit": [],
    "r": 14
@@ -12996,7 +12996,7 @@
   },
   "_climb": {
    "w": [
-    "levels.js:582 navSetClimb"
+    "levels.js:584 navSetClimb"
    ],
    "lit": [],
    "r": 14
@@ -13335,7 +13335,7 @@
   },
   "_fall": {
    "w": [
-    "levels.js:583 navSetFall"
+    "levels.js:585 navSetFall"
    ],
    "lit": [],
    "r": 2
@@ -13486,14 +13486,14 @@
   },
   "_fireRp": {
    "w": [
-    "tick-step.js:249 stepBot"
+    "tick-step.js:255 stepBot"
    ],
    "lit": [],
    "r": 2
   },
   "_fireWaitT": {
    "w": [
-    "tick-step.js:251 stepBot"
+    "tick-step.js:257 stepBot"
    ],
    "lit": [],
    "r": 3
@@ -13691,7 +13691,7 @@
   },
   "_hold": {
    "w": [
-    "tick-step.js:453 moveSetHold"
+    "tick-step.js:459 moveSetHold"
    ],
    "lit": [],
    "r": 2
@@ -13798,8 +13798,8 @@
   },
   "_idleT": {
    "w": [
-    "tick-step.js:300 stepBot",
-    "tick-step.js:409 stepBot"
+    "tick-step.js:306 stepBot",
+    "tick-step.js:415 stepBot"
    ],
    "lit": [],
    "r": 3
@@ -13924,7 +13924,7 @@
   },
   "_landAt": {
    "w": [
-    "levels.js:584 navSetLandAt"
+    "levels.js:586 navSetLandAt"
    ],
    "lit": [],
    "r": 3
@@ -14240,10 +14240,10 @@
   },
   "_netStuck": {
    "w": [
-    "tick-step.js:300 stepBot",
-    "tick-step.js:307 stepBot",
-    "tick-step.js:322 stepBot",
-    "tick-step.js:409 stepBot"
+    "tick-step.js:306 stepBot",
+    "tick-step.js:313 stepBot",
+    "tick-step.js:328 stepBot",
+    "tick-step.js:415 stepBot"
    ],
    "lit": [],
    "r": 6
@@ -14267,7 +14267,7 @@
   },
   "_noisyT": {
    "w": [
-    "tick-step.js:142 stepBot"
+    "tick-step.js:148 stepBot"
    ],
    "lit": [],
    "r": 3
@@ -14281,10 +14281,10 @@
   },
   "_np": {
    "w": [
-    "tick-step.js:300 stepBot",
-    "tick-step.js:305 stepBot",
-    "tick-step.js:324 stepBot",
-    "tick-step.js:409 stepBot"
+    "tick-step.js:306 stepBot",
+    "tick-step.js:311 stepBot",
+    "tick-step.js:330 stepBot",
+    "tick-step.js:415 stepBot"
    ],
    "lit": [],
    "r": 8
@@ -14343,7 +14343,7 @@
   },
   "_offNav": {
    "w": [
-    "tick-step.js:454 moveSetOffNav"
+    "tick-step.js:460 moveSetOffNav"
    ],
    "lit": [],
    "r": 2
@@ -14373,12 +14373,11 @@
   },
   "_overV": {
    "w": [
-    "levels.js:510 floorViewTick",
-    "modes.js:131 sbPlace",
-    "round.js:213 resetRound"
+    "levels.js:505 floorViewReset",
+    "levels.js:512 floorViewTick"
    ],
    "lit": [],
-   "r": 6
+   "r": 5
   },
   "_passTried": {
    "w": [
@@ -14610,14 +14609,14 @@
   },
   "_prevOffX": {
    "w": [
-    "tick-step.js:455 moveSetPrevOffX"
+    "tick-step.js:461 moveSetPrevOffX"
    ],
    "lit": [],
    "r": 5
   },
   "_prevOffY": {
    "w": [
-    "tick-step.js:456 moveSetPrevOffY"
+    "tick-step.js:462 moveSetPrevOffY"
    ],
    "lit": [],
    "r": 5
@@ -14652,34 +14651,34 @@
   },
   "_progBest": {
    "w": [
-    "tick-step.js:300 stepBot",
-    "tick-step.js:372 stepBot",
-    "tick-step.js:396 stepBot",
-    "tick-step.js:409 stepBot"
+    "tick-step.js:306 stepBot",
+    "tick-step.js:378 stepBot",
+    "tick-step.js:402 stepBot",
+    "tick-step.js:415 stepBot"
    ],
    "lit": [],
    "r": 5
   },
   "_progIdx": {
    "w": [
-    "tick-step.js:371 stepBot"
+    "tick-step.js:377 stepBot"
    ],
    "lit": [],
    "r": 2
   },
   "_progPath": {
    "w": [
-    "tick-step.js:371 stepBot"
+    "tick-step.js:377 stepBot"
    ],
    "lit": [],
    "r": 2
   },
   "_progTick": {
    "w": [
-    "tick-step.js:300 stepBot",
-    "tick-step.js:372 stepBot",
-    "tick-step.js:396 stepBot",
-    "tick-step.js:409 stepBot"
+    "tick-step.js:306 stepBot",
+    "tick-step.js:378 stepBot",
+    "tick-step.js:402 stepBot",
+    "tick-step.js:415 stepBot"
    ],
    "lit": [],
    "r": 5
@@ -15100,16 +15099,16 @@
   },
   "_stepDist": {
    "w": [
-    "tick-step.js:134 stepBot",
-    "tick-step.js:136 stepBot",
-    "tick-step.js:136 stepBot"
+    "tick-step.js:140 stepBot",
+    "tick-step.js:142 stepBot",
+    "tick-step.js:142 stepBot"
    ],
    "lit": [],
    "r": 6
   },
   "_stepP": {
    "w": [
-    "tick-step.js:134 stepBot"
+    "tick-step.js:140 stepBot"
    ],
    "lit": [],
    "r": 7
@@ -15137,9 +15136,9 @@
   },
   "_stuckResets": {
    "w": [
-    "tick-step.js:346 stepBot",
-    "tick-step.js:354 stepBot",
-    "tick-step.js:356 stepBot"
+    "tick-step.js:352 stepBot",
+    "tick-step.js:360 stepBot",
+    "tick-step.js:362 stepBot"
    ],
    "lit": [],
    "r": 6
@@ -15228,16 +15227,10 @@
   },
   "_trail": {
    "w": [
-    "modes.js:130 sbPlace",
-    "modes.js:256 rpWorldWith",
-    "modes.js:260 rpWorldWith",
-    "round.js:221 resetRound",
-    "tick-step.js:108 stepBot",
-    "tick-step.js:300 stepBot",
-    "tick-step.js:384 stepBot"
+    "tick-step.js:86 botTrail"
    ],
    "lit": [],
-   "r": 10
+   "r": 6
   },
   "_ts": {
    "w": [
@@ -15248,16 +15241,15 @@
   },
   "_underV": {
    "w": [
-    "levels.js:509 floorViewTick",
-    "modes.js:131 sbPlace",
-    "round.js:213 resetRound"
+    "levels.js:505 floorViewReset",
+    "levels.js:511 floorViewTick"
    ],
    "lit": [],
-   "r": 6
+   "r": 5
   },
   "_unstickT": {
    "w": [
-    "tick-step.js:457 moveSetUnstickT"
+    "tick-step.js:463 moveSetUnstickT"
    ],
    "lit": [],
    "r": 2
@@ -15430,13 +15422,13 @@
     "tick-jump.js:109 jumpCheckTick",
     "tick-jump.js:90 jumpCheckTick",
     "tick-keys.js:53 strafeKeysTick",
-    "tick-step.js:253 stepBot",
-    "tick-step.js:254 stepBot",
-    "tick-step.js:272 stepBot",
-    "tick-step.js:286 stepBot",
-    "tick-step.js:320 stepBot",
-    "tick-step.js:383 stepBot",
-    "tick-step.js:436 stepBot",
+    "tick-step.js:259 stepBot",
+    "tick-step.js:260 stepBot",
+    "tick-step.js:278 stepBot",
+    "tick-step.js:292 stepBot",
+    "tick-step.js:326 stepBot",
+    "tick-step.js:389 stepBot",
+    "tick-step.js:442 stepBot",
     "tick.js:66 navSnap"
    ],
    "lit": [
@@ -15459,13 +15451,13 @@
     "tick-jump.js:109 jumpCheckTick",
     "tick-jump.js:90 jumpCheckTick",
     "tick-keys.js:53 strafeKeysTick",
-    "tick-step.js:253 stepBot",
-    "tick-step.js:254 stepBot",
-    "tick-step.js:276 stepBot",
-    "tick-step.js:286 stepBot",
-    "tick-step.js:320 stepBot",
-    "tick-step.js:383 stepBot",
-    "tick-step.js:436 stepBot",
+    "tick-step.js:259 stepBot",
+    "tick-step.js:260 stepBot",
+    "tick-step.js:282 stepBot",
+    "tick-step.js:292 stepBot",
+    "tick-step.js:326 stepBot",
+    "tick-step.js:389 stepBot",
+    "tick-step.js:442 stepBot",
     "tick.js:66 navSnap"
    ],
    "lit": [
@@ -15541,11 +15533,11 @@
     "move.js:202 moveSpeedTick",
     "move.js:203 moveSpeedTick",
     "move.js:28 moveSpeed",
-    "tick-step.js:111 stepBot",
-    "tick-step.js:234 stepBot",
-    "tick-step.js:249 stepBot",
-    "tick-step.js:251 stepBot",
-    "tick-step.js:84 stepBot"
+    "tick-step.js:117 stepBot",
+    "tick-step.js:240 stepBot",
+    "tick-step.js:255 stepBot",
+    "tick-step.js:257 stepBot",
+    "tick-step.js:90 stepBot"
    ],
    "lit": [
     "weapons-bots.js:82"
@@ -15729,7 +15721,7 @@
   },
   "heading": {
    "w": [
-    "tick-step.js:458 moveSetHeading"
+    "tick-step.js:464 moveSetHeading"
    ],
    "lit": [],
    "r": 27
@@ -15846,7 +15838,7 @@
   },
   "lastStepTick": {
    "w": [
-    "tick-step.js:459 moveSetLastStepTick"
+    "tick-step.js:465 moveSetLastStepTick"
    ],
    "lit": [
     "weapons-bots.js:82"
@@ -15961,7 +15953,7 @@
   },
   "onStairs": {
    "w": [
-    "tick-step.js:460 moveSetOnStairs"
+    "tick-step.js:466 moveSetOnStairs"
    ],
    "lit": [
     "weapons-bots.js:82"
@@ -15977,11 +15969,11 @@
     "move.js:170 moveSpeedTick",
     "move.js:177 moveSpeedTick",
     "move.js:26 movePath",
-    "tick-step.js:249 stepBot",
-    "tick-step.js:323 stepBot",
-    "tick-step.js:362 stepBot",
-    "tick-step.js:384 stepBot",
-    "tick-step.js:399 stepBot",
+    "tick-step.js:255 stepBot",
+    "tick-step.js:329 stepBot",
+    "tick-step.js:368 stepBot",
+    "tick-step.js:390 stepBot",
+    "tick-step.js:405 stepBot",
     "tick.js:66 navSnap"
    ],
    "lit": [
@@ -16002,14 +15994,14 @@
     "move.js:177 moveSpeedTick",
     "move.js:26 movePath",
     "move.js:27 movePathIdx",
-    "tick-step.js:174 stepBot",
-    "tick-step.js:249 stepBot",
-    "tick-step.js:254 stepBot",
-    "tick-step.js:321 stepBot",
-    "tick-step.js:323 stepBot",
-    "tick-step.js:362 stepBot",
-    "tick-step.js:384 stepBot",
-    "tick-step.js:399 stepBot",
+    "tick-step.js:180 stepBot",
+    "tick-step.js:255 stepBot",
+    "tick-step.js:260 stepBot",
+    "tick-step.js:327 stepBot",
+    "tick-step.js:329 stepBot",
+    "tick-step.js:368 stepBot",
+    "tick-step.js:390 stepBot",
+    "tick-step.js:405 stepBot",
     "tick.js:66 navSnap"
    ],
    "lit": [
@@ -16026,13 +16018,10 @@
   },
   "pfacing": {
    "w": [
-    "modes.js:256 rpWorldWith",
-    "modes.js:260 rpWorldWith",
-    "tick-step.js:83 stepBot",
-    "turn.ts:164 freezeLookTick"
+    "tick-step.js:85 botPrevFace"
    ],
    "lit": [],
-   "r": 2
+   "r": 1
   },
   "pickTick": {
    "w": [
@@ -16117,46 +16106,32 @@
   },
   "prof": {
    "w": [
-    "rosters.js:37 seatPlayers"
+    "rosters.js:39 seatPlayers"
    ],
    "lit": [],
    "r": 12
   },
   "px": {
    "w": [
-    "modes.js:128 sbPlace",
-    "modes.js:182 dvPlace",
-    "modes.js:256 rpWorldWith",
-    "modes.js:260 rpWorldWith",
-    "modes.js:28 warmSpawn",
-    "modes.js:63 warmTick",
-    "round.js:215 resetRound",
-    "tick-step.js:83 stepBot"
+    "tick-step.js:83 botPrevX"
    ],
    "lit": [
     "weapons-bots.js:82"
    ],
-   "r": 11
+   "r": 7
   },
   "py": {
    "w": [
-    "modes.js:128 sbPlace",
-    "modes.js:182 dvPlace",
-    "modes.js:256 rpWorldWith",
-    "modes.js:260 rpWorldWith",
-    "modes.js:28 warmSpawn",
-    "modes.js:63 warmTick",
-    "round.js:215 resetRound",
-    "tick-step.js:83 stepBot"
+    "tick-step.js:84 botPrevY"
    ],
    "lit": [
     "weapons-bots.js:82"
    ],
-   "r": 11
+   "r": 7
   },
   "reactionTicks": {
    "w": [
-    "rosters.js:37 seatPlayers"
+    "rosters.js:39 seatPlayers"
    ],
    "lit": [
     "weapons-bots.js:82"
@@ -16288,7 +16263,7 @@
   },
   "skill": {
    "w": [
-    "rosters.js:37 seatPlayers"
+    "rosters.js:39 seatPlayers"
    ],
    "lit": [
     "weapons-bots.js:82"
@@ -16343,7 +16318,7 @@
   },
   "stuckTicks": {
    "w": [
-    "tick-step.js:461 moveSetStuckTicks"
+    "tick-step.js:467 moveSetStuckTicks"
    ],
    "lit": [],
    "r": 3
@@ -16359,15 +16334,10 @@
   },
   "tRole": {
    "w": [
-    "ct-setup.js:163 ctSeatRoles",
-    "ct-setup.js:181 ctSeatRoles",
-    "rosters.js:44 seatPlayers",
-    "rosters.js:46 seatPlayers",
-    "rosters.js:48 seatPlayers",
-    "tuning.js:59 (верх файла)"
+    "rosters.js:35 roleSetT"
    ],
    "lit": [],
-   "r": 145
+   "r": 140
   },
   "tag": {
    "w": [
@@ -16451,7 +16421,7 @@
     "move.js:114 moveWalkTick",
     "move.js:178 moveSpeedTick",
     "move.js:29 moveWalk",
-    "tick-step.js:251 stepBot"
+    "tick-step.js:257 stepBot"
    ],
    "lit": [
     "weapons-bots.js:82"
@@ -16503,7 +16473,7 @@
   "z": {
    "w": [
     "knowledge.js:67 hearReal",
-    "levels.js:585 navSetZ"
+    "levels.js:587 navSetZ"
    ],
    "lit": [
     "weapons-bots.js:82"

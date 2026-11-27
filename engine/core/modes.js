@@ -25,7 +25,7 @@ function warmSpawn(b, rnd){
   // (v311, владелец 14.10: «как в CS2 — возрождаются на спавне») на спавне своей стороны, с разбросом точек спавна
   var sp = b.team === "T" ? T_SPAWN : CT_SPAWN, a0 = rnd()*Math.PI*2, r0 = 20 + rnd()*60;
   var q = walk({x: sp.x + DM.cos(a0)*r0, y: sp.y + DM.sin(a0)*r0}) || sp;
-  b.baseX = moveSetX(b, b.px = q.x); b.baseY = moveSetY(b, b.py = q.y); damageSetAlive(b, true); damageSetHp(b, 100); b._wPath = null; engagementSetSawEnemy(b, false); b._wRespawn = 0;
+  b.baseX = moveSetX(b, botPrevX(b, q.x)); b.baseY = moveSetY(b, botPrevY(b, q.y)); damageSetAlive(b, true); damageSetHp(b, 100); b._wPath = null; engagementSetSawEnemy(b, false); b._wRespawn = 0;
   equipmentSetPrimary(b, b.team === "T" ? "AK" : "M4"); equipmentSetWeapon(b, WEAPONS[b.primary] || b.weapon); shotSetAmmo(b, b.weapon.mag); reloadSetReloading(b, false); reloadSetAmmoFor(b, b.weapon.key);
   damageSetArmor(b, true); damageSetHelmet(b, true); damageSetArmorHp(b, 100); engagementSetTs(b, {}); engagementSetContactStreak(b, 0); damageSetBlindUntil(b, 0); shotSetNextShotTick(b, 0); bombActReset(b);
 }
@@ -60,7 +60,7 @@ function warmTick(dt, rnd, foeOf){
   WARM.left -= dt; if(WARM.left <= 0) return warmEnd();   // (Р5, 27.11) true — разминка кончилась
   clockSet(tick + 1);
   bots.forEach(function(b){
-    b.px = b.x; b.py = b.y;
+    botPrevX(b, b.x); botPrevY(b, b.y);
     if(!b.alive){ if(!b._wRespawn) b._wRespawn = tick + 2*TICK_HZ; if(tick >= b._wRespawn) warmSpawn(b, rnd); return; }
     // враг в поле зрения — стоп и стрельба
     // (Р5, 27.11) цель разминки выбирает страница (foeOf — view/warmup.js warmFoe, тот же поиск в том же месте тика): режим страницы
@@ -125,10 +125,10 @@ function sbOrderPoint(x, y){
 // поставить бота в точку (x, y): пол — ближайший участок навмеша, всё движение и задачи — заново
 function sbPlace(b, x, y){
   var w = snapToWalkable(x, y), a = navFloorNear(w.x, w.y, 40, null) || navAt(w.x, w.y, b.z || 0);
-  moveSetX(b, b.baseX = b.px = w.x); moveSetY(b, b.baseY = b.py = w.y);
+  moveSetX(b, b.baseX = botPrevX(b, w.x)); moveSetY(b, b.baseY = botPrevY(b, w.y));
   if(a){ navSetZ(b, navFloorZ(a, w.x, w.y)); navSetArea(b, a.id); }
-  movePath(b, [], "sandbox", 0); navSetClimb(b, null); fightSetFc(b, null); moveSetHold(b, null); b._trail = []; moveSpeed(b, 0, "sandbox");
-  b._underV = null; b._overV = null; navSetFall(b, null); floorViewTick(b);
+  movePath(b, [], "sandbox", 0); navSetClimb(b, null); fightSetFc(b, null); moveSetHold(b, null); botTrail(b, []); moveSpeed(b, 0, "sandbox");
+  floorViewReset(b); navSetFall(b, null); floorViewTick(b);
 }
 function sbRevive(b, x, y){
   damageSetAlive(b, true); damageSetHp(b, 100); fightReset(b); clearPost(b); contactSetContact(b, null);
@@ -179,7 +179,7 @@ function dvTick(){
 }
 function dvPlace(){ var t = tick - DEMOV.t0;
   Object.keys(DEMOV.BOT).forEach(function(s){ var x = DEMOV.BOT[s]; if(!x.alive) return; var q = dvAt(s, t), q1 = dvAt(s, t - 8);
-    moveSetX(x, x.baseX = x.px = q[1]); moveSetY(x, x.baseY = x.py = q[2]); lookFace(x, q[4], "demo"); moveSpeed(x, DM.hypot(q[1]-q1[1], q[2]-q1[2]) / (8/TICK_HZ), "demo"); if(q[6] > 0) damageSetHp(x, q[6]); }); }
+    moveSetX(x, x.baseX = botPrevX(x, q[1])); moveSetY(x, x.baseY = botPrevY(x, q[2])); lookFace(x, q[4], "demo"); moveSpeed(x, DM.hypot(q[1]-q1[1], q[2]-q1[2]) / (8/TICK_HZ), "demo"); if(q[6] > 0) damageSetHp(x, q[6]); }); }
 // выстрел демки слышат враги — как в игре (shoot: слышимость по прямой / сквозь стены, место — с ошибкой hearPos)
 function dvHearShot(sh){ bots.forEach(function(o){ if(!o.alive || o.team === sh.team) return; var dG = DM.hypot(o.x-sh.x, o.y-sh.y);
   var hearR = hasLOS(o.x, o.y, sh.x, sh.y, o.z, sh.z) ? GUN_HEAR_OPEN : GUN_HEAR_WALL; if(dG >= hearR) return;
@@ -253,11 +253,11 @@ function rpWorldWith(R, A, B, f, gw, gi, tl, pf, show){
     tracers = tl; soundPings = []; teamTac = {T: null, CT: keep.teamTac && keep.teamTac.CT}; FREEZE_FX = [];
     if(R.side){ SIDE_TEAM = R.side; } if(R.NK){ NICKS = R.NK; }
     bots.forEach(function(o, i){ var a = A.b[i], b2 = B.b[i]; RP_BF.forEach(function(k){ rpSetBotField(o, k, b2[k]); });
-      o.px = a.x; o.py = a.y; o.pfacing = pf[i]; movePath(o, null, "replay"); o._trail = []; });
+      botPrevX(o, a.x); botPrevY(o, a.y); botPrevFace(o, pf[i]); movePath(o, null, "replay"); botTrail(o, []); });
     show();
   } catch(e){ /* кадр повтора не нарисовался — дальше игра не страдает: всё возвращается ниже */ }
   finally {
-    bots.forEach(function(o, i){ var c = saved[i]; RP_BF.forEach(function(k){ if(c.__has[k]) rpSetBotField(o, k, c[k]); else delete o[k]; }); o.px = c.px; o.py = c.py; o.pfacing = c.pfacing; movePath(o, c.path, "replay"); o._trail = c._trail; });
+    bots.forEach(function(o, i){ var c = saved[i]; RP_BF.forEach(function(k){ if(c.__has[k]) rpSetBotField(o, k, c[k]); else delete o[k]; }); botPrevX(o, c.px); botPrevY(o, c.py); botPrevFace(o, c.pfacing); movePath(o, c.path, "replay"); botTrail(o, c._trail); });
     clockSet(keep.tick); simTime = keep.simTime; roundNum = keep.roundNum; roundState = keep.roundState; clockAcc(keep.accumulator);
     nadeWorldSet(keep.smokes, keep.fires, keep.nadesInAir, keep.nadeFx); bomb = keep.bomb; tracers = keep.tracers; soundPings = keep.soundPings;
     groundWeapons = keep.groundWeapons; groundItems = keep.groundItems; teamTac = keep.teamTac; FREEZE_FX = keep.FREEZE_FX; SIDE_TEAM = keep.SIDE_TEAM; NICKS = keep.NICKS;

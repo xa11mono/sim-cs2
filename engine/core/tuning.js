@@ -56,5 +56,5 @@ var TEAM_ROLES = {
 };
 bots.forEach(function(b){
   var idx = parseInt(b.id.replace(/\D/g,""),10);
-  b.tRole = TEAM_ROLES[b.team][idx];
+  roleSetT(b, TEAM_ROLES[b.team][idx]);
 });

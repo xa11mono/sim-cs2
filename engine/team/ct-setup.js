@@ -160,7 +160,7 @@ function ctSeatRoles(S){
   if(team.length !== 5 || roles.length !== 5) return;
   var key = matchNum+':'+SIDE_TEAM.CT+':'+(roundNum > HALF_ROUNDS ? 2 : 1);
   if(team.every(function(b){ return b._seatSide === key && b._seatRole && roles.indexOf(b._seatRole) >= 0; })){
-    team.forEach(function(b){ b.tRole = b._seatRole; }); return; }
+    team.forEach(function(b){ roleSetT(b, b._seatRole); }); return; }
   // (v409, владелец 22.10: «почему TeSeS опорник?») мера — доля времени игрока в демках на позициях этой роли (сумма, без оружия): кто там
   // чаще стоит, тот и играет
   var NP = {}, share = function(who, q){ if(NP[who] == null){ NP[who] = 0; KNOW_POSITIONS.points.forEach(function(p){ if(p.side === "CT") NP[who] += (p.byP && p.byP[who]) || 0; }); }
@@ -178,7 +178,7 @@ function ctSeatRoles(S){
   (function perm(arr, k){ if(k === arr.length){ var sm = 0; for(var i=0;i<arr.length;i++) sm += A[i][arr[i]]; if(sm > bestSum){ bestSum = sm; bestP = arr.slice(); } return; }
     for(var i=k;i<arr.length;i++){ var t = arr[k]; arr[k] = arr[i]; arr[i] = t; perm(arr, k+1); t = arr[k]; arr[k] = arr[i]; arr[i] = t; } })([0,1,2,3,4], 0);
   if(!bestP) return;
-  team.forEach(function(b, i){ var r = roles[bestP[i]]; b._seatRole = r; b._seatSide = key; if(b.tRole !== r){ logEvent("CT: "+nick(b.id)+" в этой половине — "+r+" (по своим позициям)"); b.tRole = r; } });
+  team.forEach(function(b, i){ var r = roles[bestP[i]]; b._seatRole = r; b._seatSide = key; if(b.tRole !== r){ logEvent("CT: "+nick(b.id)+" в этой половине — "+r+" (по своим позициям)"); roleSetT(b, r); } });
 }
 // роль CT по расстановке: позиция по названию зоны (из нескольких — по раунду)
 var CT_ZONE_RES = {k:null, z:{}};   // (v518c) зоны мест CT, занятые в этом раунде: имя зоны → id бота

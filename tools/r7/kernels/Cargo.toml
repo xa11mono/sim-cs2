@@ -1,0 +1,25 @@
+[package]
+name = "sim_r7_kernels"
+version = "0.1.0"
+edition = "2021"
+
+# (Р7, 27.11) полноценные вычислительные ядра игры: луч m3Cast (engine/map/geometry3d.js) и поиск пути zoneDijkstra (engine/nav/path-search.js).
+# Один исходник: WASM (cdylib, wasm32-unknown-unknown, без внешних пакетов) и нативно — Node N-API (особенность "napi").
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+napi = ["dep:napi", "dep:napi-derive", "dep:napi-build"]
+
+[dependencies]
+napi = { version = "2", default-features = false, features = ["napi4"], optional = true }
+napi-derive = { version = "2", optional = true }
+
+[build-dependencies]
+napi-build = { version = "2", optional = true }
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"

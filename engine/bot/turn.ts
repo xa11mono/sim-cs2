@@ -161,7 +161,7 @@ function freezeLookTick(): void{
     // (v430, М167, владелец: «на закупке крутятся, троятся; на мини-карте нормально») взгляд на начало тика — для сглаживания
     // рисования (draw), как в живом раунде (строка «bot.pfacing» ниже): на закупке не запоминался, и большой радар каждый
     // тик заново проводил взгляд от угла прошлого раунда до нынешнего
-    b.pfacing = b.facing;
+    botPrevFace(b, b.facing);
     var F = b._fz;
     if(!F || F.round !== roundNum){ F = b._fz = {round: roundNum, until: tick, target: b.facing!}; }   // тип: взгляд задан строкой 160
     if(tick >= F.until){

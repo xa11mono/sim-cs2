@@ -676,9 +676,8 @@
    "sound · soundSetOnPistol"
   ],
   "_overV": [
-   "levels · floorViewTick",
-   "modes · sbPlace",
-   "round · resetRound"
+   "levels · floorViewReset",
+   "levels · floorViewTick"
   ],
   "_passTried": [
    "sound · bombPassTick"
@@ -1015,18 +1014,14 @@
    "intel · tradeEnd"
   ],
   "_trail": [
-   "modes · rpWorldWith",
-   "modes · sbPlace",
-   "round · resetRound",
-   "tick-step · stepBot"
+   "tick-step · botTrail"
   ],
   "_ts": [
    "engagements · engagementSetTs"
   ],
   "_underV": [
-   "levels · floorViewTick",
-   "modes · sbPlace",
-   "round · resetRound"
+   "levels · floorViewReset",
+   "levels · floorViewTick"
   ],
   "_unstickT": [
    "tick-step · moveSetUnstickT"
@@ -1331,9 +1326,7 @@
    "voice · teamDeath"
   ],
   "pfacing": [
-   "modes · rpWorldWith",
-   "tick-step · stepBot",
-   "turn · freezeLookTick"
+   "tick-step · botPrevFace"
   ],
   "pickTick": [
    "engagements · engagementSetPickTick"
@@ -1370,22 +1363,10 @@
    "rosters · seatPlayers"
   ],
   "px": [
-   "modes · dvPlace",
-   "modes · rpWorldWith",
-   "modes · sbPlace",
-   "modes · warmSpawn",
-   "modes · warmTick",
-   "round · resetRound",
-   "tick-step · stepBot"
+   "tick-step · botPrevX"
   ],
   "py": [
-   "modes · dvPlace",
-   "modes · rpWorldWith",
-   "modes · sbPlace",
-   "modes · warmSpawn",
-   "modes · warmTick",
-   "round · resetRound",
-   "tick-step · stepBot"
+   "tick-step · botPrevY"
   ],
   "reactionTicks": [
    "rosters · seatPlayers"
@@ -1454,9 +1435,7 @@
    "task · setPostDo"
   ],
   "tRole": [
-   "ct-setup · ctSeatRoles",
-   "rosters · seatPlayers",
-   "tuning · (верх файла)"
+   "rosters · roleSetT"
   ],
   "tag": [
    "task · setPostDo"

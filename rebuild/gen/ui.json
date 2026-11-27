@@ -4477,7 +4477,7 @@
     "shoot.js:306",
     "shoot.js:359",
     "tick-jump.js:10",
-    "tick-step.js:139",
+    "tick-step.js:145",
     "src/snapshot.js:174",
     "src/snapshot.js:174"
    ]
@@ -4495,9 +4495,9 @@
    "read_by_core": [
     "round.js:103",
     "tick-jump.js:10",
-    "tick-step.js:139",
-    "tick-step.js:143",
-    "tick-step.js:143",
+    "tick-step.js:145",
+    "tick-step.js:149",
+    "tick-step.js:149",
     "modes.js:244",
     "src/snapshot.js:172",
     "src/snapshot.js:172"
@@ -4770,9 +4770,9 @@
    "field": "_overV",
    "class": "показ",
    "read_by_core": [
-    "levels.js:510",
-    "levels.js:510",
-    "levels.js:510"
+    "levels.js:512",
+    "levels.js:512",
+    "levels.js:512"
    ]
   },
   {
@@ -4807,9 +4807,9 @@
    "field": "_underV",
    "class": "показ",
    "read_by_core": [
-    "levels.js:509",
-    "levels.js:509",
-    "levels.js:509"
+    "levels.js:511",
+    "levels.js:511",
+    "levels.js:511"
    ]
   },
   {
