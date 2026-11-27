@@ -29,9 +29,12 @@ for d in os.listdir(TMPROOT):
 tmp = tempfile.mkdtemp(prefix='pcres_')
 try:
     n = 0
-    for j in req.get('jobs', []) + req.get('shots', []) + req.get('fp', []) + req.get('rec', []) + req.get('cov', []) + req.get('prof', []) + req.get('xb', []) + req.get('inv', []) + req.get('rust', []) + req.get('div', []) + req.get('dmath', []):
+    # (27.11, прогон 339: виды wkm и mass не попали в публикацию — их не было в перечне) все виды задания с меткой, а не перечень
+    labels = [j for k, L in req.items() if isinstance(L, list) for j in L if isinstance(j, dict) and j.get('label')]
+    missing = []
+    for j in labels:
         src = os.path.join(HERE, 'runs', j['label'])
-        if not os.path.isdir(src): continue
+        if not os.path.isdir(src): missing.append(j['label']); continue
         os.makedirs(os.path.join(tmp, j['label']))
         for f in sorted(os.listdir(src)):
             if f.endswith('.png') or f.endswith('.txt'):   # (v459) снимки экрана — как есть
@@ -42,6 +45,10 @@ try:
                     except Exception: continue
                 with open(os.path.join(src, f), 'rb') as a, gzip.open(os.path.join(tmp, j['label'], f + '.gz'), 'wb') as b: shutil.copyfileobj(a, b); n += 1
     shutil.copy(os.path.join(HERE, 'request.json'), tmp)
+    # проверка публикации: метка задания без папки результатов — в отчёт публикации (файл missing.txt и вывод), а не молча
+    with open(os.path.join(tmp, 'published.txt'), 'w', encoding='utf-8') as fo:
+        fo.write('меток в задании %d, опубликовано %d, без результатов %d%s\n' % (len(labels), len(labels) - len(missing), len(missing), (': ' + ', '.join(missing)) if missing else ''))
+    print('публикация: меток %d, без результатов %d %s' % (len(labels), len(missing), ' '.join(missing)))
     L = os.path.join(os.path.expanduser('~'), 'simcs2_run.log')
     if os.path.exists(L): shutil.copy(L, os.path.join(tmp, 'run.log'))
     g = lambda *a: subprocess.run(['git'] + list(a), cwd=tmp, check=True)
