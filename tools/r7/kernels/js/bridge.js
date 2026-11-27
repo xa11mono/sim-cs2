@@ -4,9 +4,10 @@
 //  speed — отвечает только ядро (геометрия и граф — один раз; запрос — числа; ответ — общий буфер), счётчик M.bStamp ведётся как в JS.
 // Запросы, которые ядро не берёт (вид луча не sight / nade / sky, поиск с огнём), считает JS — их доля в отчёте.
 'use strict';
-const fs = require('fs'), path = require('path');
-const KDIR = path.join(__dirname, '..');
-function loadBackend(kind) {
+const HAS_NODE = typeof require === 'function' && typeof process !== 'undefined' && !!(process.versions && process.versions.node);
+const fs = HAS_NODE ? require('fs') : null, path = HAS_NODE ? require('path') : null;
+const KDIR = HAS_NODE ? path.join(__dirname, '..') : '';
+function loadBackend(kind, wasmBytes) {
   if (kind === 'napi') {
     const f = ['libsim_r7_kernels.so', 'sim_r7_kernels.dll', 'libsim_r7_kernels.dylib'].map(n => path.join(KDIR, 'target-napi/release', n)).find(fs.existsSync);
     const m = { exports: {} }; process.dlopen(m, f); const N = m.exports, out = new Float64Array(7), pout = new Float64Array(4096);
@@ -14,7 +15,7 @@ function loadBackend(kind) {
       cast: (k, ax, ay, az, bx, by, bz, f) => { N.castN(k, ax, ay, az, bx, by, bz, f, out); return out; },
       pathGraph: v => N.pathGraphN(v), pathQuery: q => { const n = N.pathQueryN(q, pout); return pout.subarray(0, n); } };
   }
-  const wasm = fs.readFileSync(path.join(KDIR, 'target/wasm32-unknown-unknown/release/sim_r7_kernels.wasm'));
+  const wasm = wasmBytes || fs.readFileSync(path.join(KDIR, 'target/wasm32-unknown-unknown/release/sim_r7_kernels.wasm'));
   const I = new WebAssembly.Instance(new WebAssembly.Module(wasm), {}).exports;
   const put = u8 => { const p = I.r7_alloc(u8.byteLength); new Uint8Array(I.memory.buffer, p, u8.byteLength).set(u8); return p; };
   let outV = null;
@@ -30,7 +31,7 @@ const u8of = a => new Uint8Array(a.buffer, a.byteOffset, a.byteLength);
 function flatLists(L) { const off = new Uint32Array(L.length + 1); let n = 0; L.forEach((x, i) => { off[i] = n; n += x.length; }); off[L.length] = n;
   const v = new Uint32Array(n); let o = 0; L.forEach(x => { for (const k of x) v[o++] = k; }); return [off, v]; }
 function attach(EV, opt) {
-  const B = loadBackend(opt.backend || 'wasm'), mode = opt.mode || 'shadow', st = { backend: B.name, mode, cast: { n: 0, kern: 0, js: 0, bad: 0, firstBad: null }, path: { n: 0, kern: 0, js: 0, bad: 0, firstBad: null }, upload_ms: 0 };
+  const B = loadBackend(opt.backend || 'wasm', opt.wasmBytes), mode = opt.mode || 'shadow', st = { backend: B.name, mode, cast: { n: 0, kern: 0, js: 0, bad: 0, firstBad: null }, path: { n: 0, kern: 0, js: 0, bad: 0, firstBad: null }, upload_ms: 0 };
   const t0 = performance.now();
   if (opt.cast !== false) {
     EV('m3Col(m3(), "nade"); m3Col(m3(), "sky"); if(!m3().fill && typeof m3SolidFill === "function") m3SolidFill(m3()); 1');
@@ -75,21 +76,22 @@ function attach(EV, opt) {
 function __r7up(){ var keys = Object.keys(zoneGraph), ix = new Map(), ids = [], vals = [], side = zoneSideMap();
   function add(id){ var k = String(id), i = ix.get(k); if(i === undefined){ i = ids.length; ix.set(k, i); ids.push(k); vals.push(id); } return i; }
   keys.forEach(function(k){ add(isNaN(+k) ? k : +k); (zoneGraph[k] || []).forEach(function(e){ add(e.to); }); });
-  var f = [ids.length, ROUTE_PORTAL, ROUTE_SIDE_LINE, ROUTE_ENEMY_SIDE, KNOWN_PATH_R, KNOWN_DETOUR, KNOWN_CLOSE_K];
+  var f = [ids.length, ROUTE_PORTAL, ROUTE_SIDE_LINE, ROUTE_ENEMY_SIDE, KNOWN_PATH_R, KNOWN_DETOUR, KNOWN_CLOSE_K, FIRE_DZ, FIRE_DETOUR];
   ids.forEach(function(k){ var z = zonesById[k], c = z ? zoneCentroid(z) : null, num = /^(0|[1-9][0-9]*)$/.test(k) && +k < 4294967295 ? +k : -1, sd = side[k];
     var EL = zoneGraph[k] || []; f.push(c ? c.x : 0, c ? c.y : 0, c ? 1 : 0, num, sd === undefined ? NaN : sd === null ? 0 : +sd, EL.length);
-    EL.forEach(function(e){ f.push(add(e.to), e.mid.x, e.mid.y, navJumpCost(z, e, true), navJumpCost(z, e, false)); }); });
+    EL.forEach(function(e){ f.push(add(e.to), e.mid.x, e.mid.y, e.z == null ? NaN : e.z, navJumpCost(z, e, true), navJumpCost(z, e, false)); }); });
   __r7g = zoneGraph; __r7ix = ix; __R7graph(f, ids, vals); }
 zoneDijkstra = function(fromId, toId, team, ctx){
   if(fromId === toId) return [fromId];
   if(zoneGraph !== __r7g) __r7up();
   var c = ctx || {}, fi = __r7ix.get(String(fromId)), ti = __r7ix.get(String(toId));
   var fireOn = !!(c.fire && fires.length);
-  if(fi === undefined || ti === undefined || fi === ti || fireOn) return __R7path(__r7z0, fromId, toId, team, ctx, null);
+  if(fi === undefined || ti === undefined || fi === ti) return __R7path(__r7z0, fromId, toId, team, ctx, null);
   var tp0 = c.toPt, KP = c.fire && team ? knownPathSpots(team).filter(function(q){ return !tp0 || DM.hypot(q.x-tp0.x, q.y-tp0.y) > KNOWN_PATH_R; }) : [];
-  var q = new Float64Array(12 + KP.length*3), fx = c.from;
+  var nf = fireOn ? fires.length : 0, q = new Float64Array(13 + KP.length*3 + nf*4), fx = c.from, fo = 12 + KP.length*3;
   q[0] = tick; q[1] = matchNum; q[2] = fi; q[3] = ti; q[4] = team === "CT" ? 1 : 0; q[5] = c.quiet ? 1 : 0; q[6] = fx ? 1 : 0; q[7] = fx ? fx.x : 0; q[8] = fx ? fx.y : 0;
-  q[9] = c.nearest ? 1 : 0; q[10] = 0; q[11] = KP.length; for(var i = 0; i < KP.length; i++){ q[12+i*3] = KP[i].x; q[13+i*3] = KP[i].y; q[14+i*3] = KP[i].w; }
+  q[9] = c.nearest ? 1 : 0; q[10] = fireOn ? 1 : 0; q[11] = KP.length; for(var i = 0; i < KP.length; i++){ q[12+i*3] = KP[i].x; q[13+i*3] = KP[i].y; q[14+i*3] = KP[i].w; }
+  q[fo] = nf; for(var j = 0; j < nf; j++){ var F = fires[j]; q[fo+1+j*4] = F.x; q[fo+2+j*4] = F.y; q[fo+3+j*4] = F.z == null ? NaN : F.z; q[fo+4+j*4] = fireRadiusNow(F) + FIRE_BODY; }
   return __R7path(__r7z0, fromId, toId, team, ctx, q);
 }; 1`);
   }
@@ -102,4 +104,4 @@ function same(a, b) {
   const ka = Object.keys(a), kb = Object.keys(b); if (ka.length !== kb.length || ka.some((k, i) => k !== kb[i])) return false;
   return ka.every(k => same(a[k], b[k]));
 }
-module.exports = { attach };
+if (typeof module !== 'undefined' && module.exports) module.exports = { attach }; else globalThis.R7attach = attach;
