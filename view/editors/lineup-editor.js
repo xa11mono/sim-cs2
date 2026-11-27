@@ -427,30 +427,18 @@ btnNavReset.addEventListener("click", function(){
   rebuildNav();
 });
 
-// warn banner: unreachable zones / missing portal geometry, computed once at load
-(function(){
-  var connected = {};
-  ZONEMAP.portals.forEach(function(p){ connected[p.a]=true; connected[p.b]=true; });
-  var orphans = ZONEMAP.zones.filter(function(z){ return !connected[z.id]; });
-  // Раньше тут писалось "N порталов пересчитаны приближённо" — это угловые
-  // стыки треугольников навмеша (~10%, так устроен сам .nav), на ходьбу они не
-  // влияют, и надпись только пугала. Теперь — реальная проверка: соседние по
-  // карте зоны, между которыми навмеш НЕ ведёт напрямую (как было с Dark)
-  var broken = [];
-  try{
-    ZONEMAP.portals.forEach(function(pp){
-      var a = ZONE_CENTROIDS[pp.a], c = ZONE_CENTROIDS[pp.b]; if(!a || !c) return;
-      var A = walk(a), C = walk(c), st = Math.hypot(A.x-C.x, A.y-C.y), L = polyLen(pathPts(A.x, A.y, C.x, C.y));
-      if(L > Math.max(2.2*st, st + 400)) broken.push((zoneUserName(pp.a) || pp.a) + " ↔ " + (zoneUserName(pp.b) || pp.b));
-    });
-  }catch(e){}
-  if(orphans.length || broken.length){
+// warn banner: unreachable zones / missing portal geometry — (Р8, 27.11) расчёт в ядре (navLinkCheck, при загрузке), здесь только показ;
+// зовётся после coreLoadEnd (view/app.js)
+function navWarnShow(){
+  var R = NAV_LINK_CHECK; if(!R) return;
+  var broken = R.broken.map(function(p){ return (zoneUserName(p[0]) || p[0]) + " ↔ " + (zoneUserName(p[1]) || p[1]); });
+  if(R.orphans.length || broken.length){
     var msg = [];
-    if(orphans.length) msg.push(orphans.length+" зон(а) без портала — бот не сможет туда дойти ("+orphans.map(function(z){return z.id;}).join(", ")+")");
+    if(R.orphans.length) msg.push(R.orphans.length+" зон(а) без портала — бот не сможет туда дойти ("+R.orphans.join(", ")+")");
     if(broken.length) msg.push("навмеш не связывает напрямую: "+broken.join(", ")+" — проверь калибровку навмеша/стены в этом месте");
     var el = document.getElementById("warn");
     el.textContent = msg.join(" · ");
     el.style.display = "block";
   }
-})();
+}
 

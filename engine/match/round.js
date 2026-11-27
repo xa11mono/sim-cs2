@@ -250,6 +250,7 @@ function freezeFxReset(){ FREEZE_FX = []; }
 // начальные поля ботов (BOT_INIT — для freshMatch) и состояние после загрузки (MK_LOAD — для чистого старта следующих матчей, Т-2)
 var BOT_INIT = null;
 function coreLoadEnd(){
+  navLinkCheck();   // (Р8, 27.11) связность навмеша — в ядре (была в показе и меняла память путей только на странице)
   r7Start();   // (Р7, 27.11) ядра Rust — после расчётов загрузки (engine/map/geometry3d.js)
   BOT_INIT = bots.map(function(b){ var o = {keys:{}, vals:{}}; for(var k in b){ o.keys[k] = 1; var v = b[k]; if(v === null || (typeof v !== "object" && typeof v !== "function")) o.vals[k] = v; } return o; });
   // (Т-2) состояние после загрузки — для чистого старта следующих матчей в этой странице (530 matchBegin → mkMatchClean); до разминки

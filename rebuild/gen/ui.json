@@ -3586,7 +3586,7 @@
   },
   {
    "file": "app.js",
-   "line": 386,
+   "line": 387,
    "what": "requestAnimationFrame",
    "el": "—",
    "ev": "requestAnimationFrame",
@@ -3632,7 +3632,7 @@
   },
   {
    "file": "app.js",
-   "line": 391,
+   "line": 392,
    "what": "событие",
    "el": "d",
    "ev": "toggle",
@@ -3648,7 +3648,7 @@
   },
   {
    "file": "app.js",
-   "line": 392,
+   "line": 393,
    "what": "событие",
    "el": "document",
    "ev": "mousedown",
@@ -3664,7 +3664,7 @@
   },
   {
    "file": "app.js",
-   "line": 393,
+   "line": 394,
    "what": "событие",
    "el": "document",
    "ev": "keydown",
@@ -3682,7 +3682,7 @@
   },
   {
    "file": "app.js",
-   "line": 395,
+   "line": 396,
    "what": "событие",
    "el": "#btnPause",
    "ev": "click",
@@ -3698,7 +3698,7 @@
   },
   {
    "file": "app.js",
-   "line": 401,
+   "line": 402,
    "what": "событие",
    "el": "#btnExportProject",
    "ev": "click",
@@ -3714,7 +3714,7 @@
   },
   {
    "file": "app.js",
-   "line": 424,
+   "line": 425,
    "what": "событие",
    "el": "#btnRestartRound",
    "ev": "click",
@@ -4245,7 +4245,7 @@
    "var": "DLOG",
    "class": "диагностика",
    "read_by_core": [
-    "sites-spots.js:216",
+    "sites-spots.js:234",
     "knowledge.js:84",
     "knowledge.js:86",
     "look-arbiter.js:184",
@@ -4367,7 +4367,7 @@
    "var": "RUN_MATCH_SUB",
    "class": "диагностика",
    "read_by_core": [
-    "round.js:264"
+    "round.js:265"
    ]
   },
   {

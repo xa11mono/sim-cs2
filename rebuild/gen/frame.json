@@ -298,6 +298,12 @@
     "nav-zones"
    ]
   },
+  "NAV_LINK_CHECK": {
+   "from": "sites-spots.js",
+   "by": [
+    "lineup-editor"
+   ]
+  },
   "NICKS": {
    "from": "tuning.js",
    "by": [
@@ -665,12 +671,6 @@
     "nav-zones",
     "timeout",
     "view3d"
-   ]
-  },
-  "ZONE_CENTROIDS": {
-   "from": "zone-danger.js",
-   "by": [
-    "lineup-editor"
    ]
   },
   "ZONE_DANGER": {
@@ -2413,12 +2413,6 @@
     "killfeed"
    ]
   },
-  "pathPts": {
-   "from": "sites-spots.js",
-   "by": [
-    "lineup-editor"
-   ]
-  },
   "plantBlock": {
    "from": "bomb.js",
    "by": [
@@ -2443,12 +2437,6 @@
     "map-heights",
     "map-walls",
     "nav-zones"
-   ]
-  },
-  "polyLen": {
-   "from": "sites-spots.js",
-   "by": [
-    "lineup-editor"
    ]
   },
   "rebuildNav": {
@@ -2664,12 +2652,6 @@
    "from": "vision.js",
    "by": [
     "look-debug"
-   ]
-  },
-  "walk": {
-   "from": "sites-spots.js",
-   "by": [
-    "lineup-editor"
    ]
   },
   "wallBoxes": {

@@ -380,6 +380,7 @@ setInterval(function(){ var el = document.getElementById("matchTick"); if(el) el
 if(/[?&]worker=1/.test(location.search)) wkStart();   // (Р5.2) режим Worker — по адресу страницы
 else if(/[?&]local=1/.test(location.search)) wkLocal();   // (Р5.4) локальный режим — симуляция в процессе Node
 coreLoadEnd();   // (Р5, 26.11) конец загрузки ядра — на прежнем месте (после настроек страницы, до разминки): BOT_INIT, MK_LOAD (engine/match/round.js)
+navWarnShow();   // (Р8, 27.11) баннер связности навмеша — по расчёту ядра (navLinkCheck в coreLoadEnd)
 window.__ev=function(src){return eval(src);};
 /*@@WARM_AUTO@@*/
 requestAnimationFrame(frame);

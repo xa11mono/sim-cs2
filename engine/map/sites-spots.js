@@ -36,6 +36,24 @@ function pointAtDist(pts, d){ // точка на ломаной на расст�
 function pointFromEnd(pts, d){ return pointAtDist(pts, Math.max(0, polyLen(pts)-d)); }
 function pointAtFrac(pts, f){ return pointAtDist(pts, polyLen(pts)*f); }
 function walk(p){ return snapToWalkable(p.x, p.y); }
+// (Р8, 27.11) проверка связности навмеша при загрузке: соседние по карте зоны, между которыми навмеш не ведёт напрямую (путь длиннее
+// 2,2 × прямой и прямой + 400), и зоны без портала. Была в показе (view/editors/lineup-editor.js, баннер) и наполняла память путей игры
+// PATHQ только на странице: снимок загрузки MK_LOAD у страницы и у Node различался, и матчи начинались с разной памятью (ПК 347: Mirage 17 / 29,
+// Node ≠ страница). Расчёт — в ядре, в начале coreLoadEnd (до ядер Rust и снимка MK_LOAD, тот же путь, что был); показ читает NAV_LINK_CHECK
+var NAV_LINK_CHECK = null;
+function navLinkCheck(){
+  var connected = {}, broken = [];
+  ZONEMAP.portals.forEach(function(p){ connected[p.a] = true; connected[p.b] = true; });
+  var orphans = ZONEMAP.zones.filter(function(z){ return !connected[z.id]; }).map(function(z){ return z.id; });
+  try{
+    ZONEMAP.portals.forEach(function(pp){
+      var a = ZONE_CENTROIDS[pp.a], c = ZONE_CENTROIDS[pp.b]; if(!a || !c) return;
+      var A = walk(a), C = walk(c), st = DM.hypot(A.x-C.x, A.y-C.y), L = polyLen(pathPts(A.x, A.y, C.x, C.y));
+      if(L > Math.max(2.2*st, st + 400)) broken.push([pp.a, pp.b]);
+    });
+  }catch(e){}
+  NAV_LINK_CHECK = {orphans: orphans, broken: broken};
+}
 
 function buildSites(){
   ["A","B"].forEach(function(k){

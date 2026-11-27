@@ -1827,7 +1827,7 @@
     "save-retake": 44,
     "self": 41,
     "shoot": 31,
-    "sites-spots": 16,
+    "sites-spots": 17,
     "smoke": 7,
     "smoke-react": 26,
     "sound": 28,
@@ -1893,7 +1893,7 @@
    "snap": true
   },
   "ED_CACHE": {
-   "decl": "sites-spots.js:181",
+   "decl": "sites-spots.js:199",
    "init": "ObjectExpression",
    "w": {
     "buildSites · sites-spots": 1
@@ -1992,7 +1992,7 @@
    "snap": true
   },
   "EXP_CACHE": {
-   "decl": "sites-spots.js:181",
+   "decl": "sites-spots.js:199",
    "init": "ObjectExpression",
    "w": {
     "buildSites · sites-spots": 1
@@ -5424,6 +5424,18 @@
    },
    "snap": true
   },
+  "NAV_LINK_CHECK": {
+   "decl": "sites-spots.js:43",
+   "init": "Literal",
+   "w": {
+    "navLinkCheck · sites-spots": 1
+   },
+   "m": {},
+   "r": {
+    "lineup-editor": 1
+   },
+   "snap": true
+  },
   "NAV_LINK_KNEE": {
    "decl": "paths.js:8",
    "init": "Literal",
@@ -5941,7 +5953,7 @@
    "snap": true
   },
   "PLANT_CELL": {
-   "decl": "sites-spots.js:143",
+   "decl": "sites-spots.js:161",
    "init": "Literal",
    "w": {},
    "m": {},
@@ -6748,7 +6760,7 @@
     "geometry3d": 29,
     "path-search": 4
    },
-   "snap": true
+   "snap": "нет: STATIC"
   },
   "R7P": {
    "decl": "path-search.js:336",
@@ -6761,7 +6773,7 @@
    "r": {
     "path-search": 23
    },
-   "snap": true
+   "snap": "нет: STATIC"
   },
   "R7_KIND": {
    "decl": "geometry3d.js:456",
@@ -6771,7 +6783,7 @@
    "r": {
     "geometry3d": 1
    },
-   "snap": true
+   "snap": "нет: STATIC"
   },
   "R7_WASM": {
    "decl": "geometry3d.js:454",
@@ -6781,7 +6793,7 @@
    "r": {
     "geometry3d": 2
    },
-   "snap": true
+   "snap": "нет: STATIC"
   },
   "RC_HALF": {
    "decl": "modes.js:11",
@@ -7303,7 +7315,7 @@
    "snap": true
   },
   "RUN_MATCH": {
-   "decl": "round.js:260",
+   "decl": "round.js:261",
    "init": "Literal",
    "w": {
     "runMatch · round": 2
@@ -7317,7 +7329,7 @@
    "snap": "нет: STATIC"
   },
   "RUN_MATCH_SUB": {
-   "decl": "round.js:261",
+   "decl": "round.js:262",
    "init": "Literal",
    "w": {
     "runMatch · round": 1
@@ -9497,12 +9509,12 @@
     "fight": 1,
     "intel": 7,
     "knowledge": 4,
-    "lineup-editor": 5,
+    "lineup-editor": 2,
     "look-threat": 2,
     "nav-zones": 3,
     "pro-positions": 1,
     "reach": 4,
-    "sites-spots": 1,
+    "sites-spots": 4,
     "timeout": 1,
     "view3d": 1,
     "weapons-bots": 1,
@@ -9541,8 +9553,8 @@
     "applyZoneLayer · zone-danger": 1
    },
    "r": {
-    "lineup-editor": 2,
     "reach": 1,
+    "sites-spots": 2,
     "weapons-bots": 1,
     "zone-danger": 2
    },
@@ -12002,7 +12014,7 @@
    "snap": true
   },
   "spotCache": {
-   "decl": "sites-spots.js:177",
+   "decl": "sites-spots.js:195",
    "init": "ObjectExpression",
    "w": {
     "buildSites · sites-spots": 1,
