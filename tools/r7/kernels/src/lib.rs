@@ -24,7 +24,7 @@ pub fn geo_set(field: u32, bytes: &[u8]) {
         3 => g.btri_off = u32s(bytes), 4 => g.btri = u32s(bytes), 5 => g.bhull_off = u32s(bytes), 6 => g.bhull = u32s(bytes),
         7 => g.hull_p = f32s(bytes), 8 => g.hull_off = u32s(bytes), 9 => g.hull_flag = bytes.to_vec(),
         // столбики: 10 + 3·вид + (0 st, 1 lo, 2 hi)
-        10..=18 => { let k = ((field - 10) / 3) as usize, p = (field - 10) % 3;
+        10..=18 => { let k = ((field - 10) / 3) as usize; let p = (field - 10) % 3;
             let c = g.cols[k].get_or_insert(Cols { st: vec![], lo: vec![], hi: vec![] });
             match p { 0 => c.st = u32s(bytes), 1 => c.lo = i16s(bytes), _ => c.hi = i16s(bytes) } }
         _ => {}

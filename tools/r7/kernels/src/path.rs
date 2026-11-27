@@ -1,13 +1,13 @@
 // (Р7, 27.11) ядро поиска пути — перенос engine/nav/path-search.js zoneDijkstra (цена перехода, сторона CT, места врагов по знанию
-// с knownSegCost, куча makeHeap — та же последовательность вставок и правило «строго меньше», продолжение поиска в том же тике по тому же
+// с knownSegCost, огонь (fireTouches: высота и круг), куча makeHeap — та же последовательность вставок и правило «строго меньше», продолжение поиска в том же тике по тому же
 // ключу, ближайший достижимый участок при недостижимой цели — в порядке ключей объекта JS). Огонь (inFire) — не перенесён: запрос с огнём
 // ядро не принимает (ответ −1), его считает JS.
 use crate::cast::hypot2;
 use std::collections::HashMap;
 
-pub struct Edge { to: usize, mx: f64, my: f64, jq: f64, jf: f64 }
+pub struct Edge { to: usize, mx: f64, my: f64, z: f64, jq: f64, jf: f64 }
 pub struct Node { cx: f64, cy: f64, has_c: bool, num_key: f64, side: f64, e0: usize, e1: usize }
-pub struct Graph { nodes: Vec<Node>, edges: Vec<Edge>, portal: f64, side_line: f64, enemy_side: f64, kr: f64, kdet: f64, kclose: f64 }
+pub struct Graph { nodes: Vec<Node>, edges: Vec<Edge>, portal: f64, side_line: f64, enemy_side: f64, kr: f64, kdet: f64, kclose: f64, fire_dz: f64, fire_detour: f64 }
 
 struct Heap { h: Vec<(usize, f64)> }
 impl Heap {
@@ -27,11 +27,11 @@ static mut OUTP: Vec<f64> = Vec::new();
 // граф: [N, portal, side_line, enemy_side, KNOWN_PATH_R, KNOWN_DETOUR, KNOWN_CLOSE_K, затем на участок: cx, cy, есть центр, числовой ключ (−1 — нет),
 // сторона (NaN — нет), число рёбер, рёбра: (to, mid.x, mid.y, цена прыжка тихо, цена прыжка обычно)]
 pub fn graph_set(v: &[f64]) {
-    let n = v[0] as usize; let mut o = 7; let mut nodes = Vec::with_capacity(n); let mut edges = vec![];
+    let n = v[0] as usize; let mut o = 9; let mut nodes = Vec::with_capacity(n); let mut edges = vec![];
     for _ in 0..n { let ne = v[o+5] as usize; let e0 = edges.len();
         nodes.push(Node { cx: v[o], cy: v[o+1], has_c: v[o+2] != 0.0, num_key: v[o+3], side: v[o+4], e0, e1: e0 + ne }); o += 6;
-        for _ in 0..ne { edges.push(Edge { to: v[o] as usize, mx: v[o+1], my: v[o+2], jq: v[o+3], jf: v[o+4] }); o += 5; } }
-    unsafe { G = Some(Graph { nodes, edges, portal: v[1], side_line: v[2], enemy_side: v[3], kr: v[4], kdet: v[5], kclose: v[6] }); CACHE = None; }
+        for _ in 0..ne { edges.push(Edge { to: v[o] as usize, mx: v[o+1], my: v[o+2], z: v[o+3], jq: v[o+4], jf: v[o+5] }); o += 6; } }
+    unsafe { G = Some(Graph { nodes, edges, portal: v[1], side_line: v[2], enemy_side: v[3], kr: v[4], kdet: v[5], kclose: v[6], fire_dz: v[7], fire_detour: v[8] }); CACHE = None; }
 }
 // knownSegCost (engine/nav/paths.js) дословно
 fn known_seg_cost(g: &Graph, ax: f64, ay: f64, bx: f64, by: f64, qx: f64, qy: f64, qw: f64) -> f64 {
@@ -53,13 +53,15 @@ fn known_seg_cost(g: &Graph, ax: f64, ay: f64, bx: f64, by: f64, qx: f64, qy: f6
 pub fn query(q: &[f64]) -> usize {
     let g = unsafe { G.as_ref().expect("граф не задан") };
     let out = unsafe { &mut OUTP }; out.clear();
-    if q[10] != 0.0 { out.push(-1.0); return 1 }
     let (from, to) = (q[2] as usize, q[3] as usize); let ct = q[4] != 0.0; let quiet = q[5] != 0.0; let fx = if q[6] != 0.0 { Some((q[7], q[8])) } else { None };
     let nkp = q[11] as usize; let kp = &q[12..12 + nkp*3];
+    // огонь: число, затем (x, y, z или NaN, радиус сейчас + тело) — радиус считает JS (fireRadiusNow + FIRE_BODY), проверка — fireTouches
+    let fo = 12 + nkp*3; let nf = if q.len() > fo { q[fo] as usize } else { 0 }; let fr = if nf > 0 { &q[fo+1..fo+1+nf*4] } else { &q[0..0] }; let fire_on = q[10] != 0.0 && nf > 0;
     if from == to { out.push(1.0); out.push(1.0); out.push(from as f64); return 3 }
-    // ключ — то же, что ключ ZDJ в JS: начало, сторона, тихо, точка старта, места врагов (огонь — не здесь); тик и матч — сброс памяти
+    // ключ — то же, что ключ ZDJ в JS: начало, сторона, тихо, точка старта, места врагов, огонь; тик и матч — сброс памяти
     let mut key: Vec<u64> = vec![from as u64, ct as u64, quiet as u64, fx.is_some() as u64]; if let Some((x, y)) = fx { key.push(x.to_bits()); key.push(y.to_bits()); }
     for v in kp { key.push(v.to_bits()); }
+    if fire_on { key.push(u64::MAX); for v in fr { key.push(v.to_bits()); } }
     let stamp = q[0] * 1e6 + q[1];
     let cache = unsafe { if CACHE.as_ref().map_or(true, |c| c.0 != stamp) { CACHE = Some((stamp, HashMap::new())); } &mut CACHE.as_mut().unwrap().1 };
     let n = g.nodes.len();
@@ -72,6 +74,9 @@ pub fn query(q: &[f64]) -> usize {
             if s.vis[e.to] { continue }
             let mut w = hypot2(fcx - e.mx, fcy - e.my) + g.portal + if quiet { e.jq } else { e.jf };
             if ct { let sd = g.nodes[e.to].side; if !sd.is_nan() && sd < g.side_line { w *= g.enemy_side; } }
+            if fire_on { for f in 0..nf { let (fx, fy, fz, frr) = (fr[f*4], fr[f*4+1], fr[f*4+2], fr[f*4+3]);
+                    if !e.z.is_nan() && !fz.is_nan() && (e.z - fz).abs() > g.fire_dz { continue }
+                    if hypot2(e.mx - fx, e.my - fy) < frr { w += g.fire_detour; break } } }
             if nkp > 0 { let (sax, say, sbx, sby) = (fcx, fcy, e.mx, e.my);
                 let (mnx, mxx) = if sax < sbx { (sax, sbx) } else { (sbx, sax) }; let (mny, mxy) = if say < sby { (say, sby) } else { (sby, say) };
                 for k in 0..nkp { let (qx, qy, qw) = (kp[k*3], kp[k*3+1], kp[k*3+2]);
