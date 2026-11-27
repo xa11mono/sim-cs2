@@ -1,0 +1,68 @@
+{
+ "par": 8,
+ "resume": true,
+ "fp": [
+  {
+   "label": "r41_off_anc",
+   "ref": "4206f3d492a6409224f521d3337ed81e492c9dfd",
+   "map": "ancient",
+   "matches": [
+    3,
+    7,
+    11,
+    13,
+    17,
+    19,
+    23,
+    29
+   ],
+   "trace": false
+  },
+  {
+   "label": "r41_off_mir",
+   "ref": "4206f3d492a6409224f521d3337ed81e492c9dfd",
+   "map": "mirage",
+   "matches": [
+    3,
+    7,
+    11,
+    13,
+    17,
+    19,
+    23,
+    29
+   ],
+   "trace": false
+  }
+ ],
+ "wkm": [
+  {
+   "label": "r41_wkm_mir",
+   "ref": "4206f3d492a6409224f521d3337ed81e492c9dfd",
+   "map": "mirage",
+   "sec": 30
+  }
+ ],
+ "mass": [
+  {
+   "label": "r41_mass_anc",
+   "ref": "4206f3d492a6409224f521d3337ed81e492c9dfd",
+   "map": "ancient",
+   "threads": 4
+  },
+  {
+   "label": "r41_mass_mir",
+   "ref": "4206f3d492a6409224f521d3337ed81e492c9dfd",
+   "map": "mirage",
+   "threads": 4
+  }
+ ],
+ "require_runtime": {
+  "platform": "win32",
+  "arch": "x64",
+  "node": "v24.21.0",
+  "node_v8": "13.6.233.17-node.53",
+  "playwright": "1.63.0",
+  "chromium": "153.0.8010.12"
+ }
+}
