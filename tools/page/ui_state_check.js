@@ -164,6 +164,20 @@ async function cacheKeys(p, names) {   // для различающихся кэ
       const fa = JSON.parse(await a.page.evaluate(x => __ev(x), BFS)), fb = JSON.parse(await b.page.evaluate(x => __ev(x), BFS)), F = new Set();
       fa.forEach((x, i) => { const y = fb[i] || {}; Object.keys(Object.assign({}, x, y)).forEach(f => { if (x[f] !== y[f]) F.add(f); }); });
       c.game.splice(c.game.indexOf('bots'), 1); [...F].forEach(f => (gameField(f) ? c.game : c.diag).push('bots.' + f)); }
+    // остальные игровые переменные — заново в каноническом виде: ссылка на бота — @id (боты сравнены по полям выше), номера ссылок дерева DV не участвуют
+    const other = c.game.filter(k => !/^bots\./.test(k) && !/ \(кэш/.test(k));
+    if (other.length) { const CV = `(function(N){ var ids = new Map(); bots.forEach(function(b){ ids.set(b, b.id); });
+        function enc(v, seen){ if(v === undefined) return {u: 1}; if(typeof v === 'number') return v !== v ? 'NaN' : (v === 0 && 1/v < 0) ? '-0' : v === Infinity ? 'I' : v === -Infinity ? '-I' : v;
+          if(typeof v === 'function') return {f: v.name || 1}; if(v === null || typeof v !== 'object') return v; if(ids.has(v)) return '@' + ids.get(v);
+          if(seen.indexOf(v) >= 0) return '^'; seen = seen.concat([v]);
+          if(Array.isArray(v) || ArrayBuffer.isView(v)) return Array.prototype.map.call(v, function(x){ return enc(x, seen); });
+          if(v instanceof Map){ var m = []; v.forEach(function(x, k){ m.push([enc(k, seen), enc(x, seen)]); }); return {m: m}; }
+          if(v instanceof Set){ var q = []; v.forEach(function(x){ q.push(enc(x, seen)); }); return {s: q}; }
+          var o = {}; Object.keys(v).forEach(function(k){ if(!DV.skipf.test(k)) o[k] = enc(v[k], seen); }); return o; }
+        var L = mkSnapList(), o = {}; N.forEach(function(n){ L.forEach(function(e){ if(e[0] === n) o[n] = JSON.stringify(enc(e[1](), [])); }); }); return JSON.stringify(o); })`;
+      const va = JSON.parse(await a.page.evaluate(([s, N]) => __ev(s + '(' + JSON.stringify(N) + ')'), [CV, other])), vb = JSON.parse(await b.page.evaluate(([s, N]) => __ev(s + '(' + JSON.stringify(N) + ')'), [CV, other]));
+      const refEq = []; other.forEach(k => { if (va[k] === vb[k]) { c.game.splice(c.game.indexOf(k), 1); refEq.push(k); } });
+      if (refEq.length) cacheNote += '; равны по существу (ссылки на ботов — @id, боты сравнены по полям): ' + refEq.join(', '); }
     if (c.diag.length) cacheNote += '; диагностика (не игра по реестру): ' + c.diag.join(', ');
     if (A.detail) for (const k of [...c.game, ...c.diag, ...c.cacheDiff].map(x => x.split(' ')[0].split('.')[0]).filter((x, i, L) => L.indexOf(x) === i).slice(0, 6)) {   // --detail: где первое различие
       const x = await a.page.evaluate(k => DV.last[k] || '', k), y = await b.page.evaluate(k => DV.last[k] || '', k); let i = 0; while (i < x.length && x[i] === y[i]) i++;

@@ -101,9 +101,16 @@ var FIRE_LONG = 80, FIRE_STILL = 48;   // (v583a) тики: в огне доль
       if(t && (!s.task || s.task.o !== t)){ s.task = {o:t, type:t.type, until:t.until, reached:false}; inc(W.nade.intent, rtOf(b)+"|"+t.type); }
       if(s.task && !s.task.reached && t && t.from && Math.hypot(t.from.x-b.x, t.from.y-b.y) < 40){ s.task.reached = true; inc(W.nade.reached, rtOf(b)+"|"+t.type); }
     });
-    // опасность: зона взрыва за 2 с до взрыва (раз на бота за раунд)
+    // опасность: зона взрыва за 2 с до взрыва (раз на бота за раунд). (27.11) урон — без следа в кэше игры: bombDamageAt дописывает в bomb._pathC
+    // длину пути на момент вопроса, игра потом читала значение, посчитанное сторожем (локатор: первое расхождение — bomb._pathC, тик 8979, Mirage м11;
+    // отпечаток записи со сторожами ≠ без них в 9 из 16 матчей прогона 337)
+    // и кэш путей PATHQ (ключ — округлённые точки, срок 32 тика, очистка при > 6000 записей — порядок вопросов меняет ответы игре): вопрос сторожа —
+    // во временных копиях, после — прежние объекты
+    var watchBombDmg = function(x, y){ var had = Object.prototype.hasOwnProperty.call(bomb, "_pathC"), C = bomb._pathC, Q = PATHQ, QN = PATHQ_N;
+      bomb._pathC = C ? Object.assign({}, C) : {}; PATHQ = Object.assign({}, Q);
+      try{ return bombDamageAt(x, y); } finally { if(had) bomb._pathC = C; else delete bomb._pathC; PATHQ = Q; PATHQ_N = QN; } };
     if(bomb.state === "planted" && bombTimeLeftTicks() <= 2*64) bots.forEach(function(b){ var s = S[b.id];
-      if(b.alive && !s.boom && bombDamageAt(b.x, b.y) >= b.hp){ s.boom = 1; W.n.danger++; inc(W.dangerBy, "взрыв"); all("danger", [tick, b.id, "в зоне взрыва", b.post ? b.post.tag : "-"]); } });
+      if(b.alive && !s.boom && watchBombDmg(b.x, b.y) >= b.hp){ s.boom = 1; W.n.danger++; inc(W.dangerBy, "взрыв"); all("danger", [tick, b.id, "в зоне взрыва", b.post ? b.post.tag : "-"]); } });
     // флешки: через 1,5 с — повернулся к бросавшему или ушёл
     FL = FL.filter(function(f){ if(tick - f.t < 96){ if(tick < (f.b.blindUntil || 0)) f.blind = true; return true; } if(!f.b.alive) return false;
       var a = Math.atan2(f.ty-f.b.y, f.tx-f.b.x), d = Math.abs(Math.atan2(Math.sin(a-(f.b.facing||0)), Math.cos(a-(f.b.facing||0))));
