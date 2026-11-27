@@ -63,9 +63,9 @@ def resolve_ref(ref):
     return REFS[ref]
 
 
-def build(ref, mapname, out, core=False):
+def build(ref, mapname, out, core=False, worker=False):   # (Р5.2) worker — страница со встроенным ядром для режима Worker (src/build.py --worker)
     sha = resolve_ref(ref)
-    key = (sha, mapname, core)
+    key = (sha, mapname, core, worker)
     cached = BUILT.get(key)
     if cached and os.path.isfile(cached):
         if os.path.abspath(cached) != os.path.abspath(out):
@@ -75,7 +75,7 @@ def build(ref, mapname, out, core=False):
     try:
         sh(['git', '-c', 'core.autocrlf=false', 'worktree', 'add', '--quiet', '--detach', '--force', tmp, sha], cwd=ROOT)
         builder = ('tools', 'node', 'core_build.py') if core else ('src', 'build.py')
-        sh([PY, os.path.join(tmp, *builder), '--map', mapname, out], cwd=tmp)
+        sh([PY, os.path.join(tmp, *builder), '--map', mapname] + (['--worker'] if worker else []) + [out], cwd=tmp)
     finally:
         subprocess.run(['git', 'worktree', 'remove', '--force', tmp], cwd=ROOT)
     BUILT[key] = out
@@ -276,6 +276,20 @@ def main():
         engines = j.get('engines', ['chromium', 'firefox', 'webkit'])
         r0sh([npx, 'install'] + [e for e in engines if e != 'chromium'], out, 'install', cwd=home)
         for e in engines: r0sh(['node', os.path.join(R0, 'xb_smoke.js'), sim, e, os.path.join(out, 'xb_%s.json' % e), str(j.get('match', 3)), str(j.get('ticks', 2000))], out, 'xb_' + e)
+    # (Р5.2 / Р8, 27.11) передача кадров Worker → страница: {"wkm": [{"label","ref","map","match"?,"sec"?,"engines"?}]} → runs/<label>/wkm_<движок>.json
+    # (tools/page/worker_check.js --measure: байт и мс на кадр, длинные задачи по вине передачи) — по одному, без других нагрузок
+    for j in req.get('wkm', []):
+        out = r0out(j); sim = os.path.join(sims, j['label'] + '_wk.html'); build(j['ref'], j.get('map', 'ancient'), sim, worker=True)
+        home = os.path.join(os.path.expanduser('~'), '.simcs2_node'); npx = os.path.join(home, 'node_modules', '.bin', 'playwright.cmd' if os.name == 'nt' else 'playwright')
+        engines = j.get('engines', ['chromium', 'firefox', 'webkit']); r0sh([npx, 'install'] + [e for e in engines if e != 'chromium'], out, 'install', cwd=home)
+        for e in engines: r0sh(['node', os.path.join(ROOT, 'tools', 'page', 'worker_check.js'), sim, '--measure=%d' % j.get('sec', 30), '--browser=' + e, '--match=%d' % j.get('match', 3),
+                                '--out=' + os.path.join(out, 'wkm_%s.json' % e)], out, 'wkm_' + e)
+    # (Р5.8 / Р8, 27.11) массовая симуляция в Node: {"mass": [{"label","ref","map","matches"?,"threads"?}]} → runs/<label>/mass.json
+    # (tools/node/mass_run.js: время, матчей в час, пик памяти процесса, куча на матч; --check — параллельно = по одному)
+    for j in req.get('mass', []):
+        out = r0out(j); core = os.path.join(sims, j['label'] + '.core.js'); build(j['ref'], j.get('map', 'ancient'), core, True)
+        r0sh(['node', os.path.join(ROOT, 'tools', 'node', 'mass_run.js'), core, '--matches=' + ','.join(str(m) for m in j.get('matches', [3, 7, 11, 13, 17, 19, 23, 29])),
+              '--threads=%d' % j.get('threads', 4), '--out=' + os.path.join(out, 'mass.json')] + (['--check'] if j.get('check') else []), out, 'mass')
     # Р0.6 инварианты: {"inv": [{"label","ref","map","matches"?,"ticks"?,"special"?}]}
     # Р2.2 / Р2.6 dmath в движках: {"dmath": [{"label","engines"?}]} → runs/<label>/page_<движок>.json (хэши dmath страницы и Node этой машины)
     for j in req.get('dmath', []):
