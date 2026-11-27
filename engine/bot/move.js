@@ -23,7 +23,16 @@ var MOVE = {run: 0, burn: null};   // выход moveSpeedTick: скорость
 function movePlace(b, x, y, vis){ b.baseX = x; b.baseY = y; if(vis){ moveSetX(b, x); moveSetY(b, y); } }
 function moveWaitPop(b, until, key, why){ b._waitPopUntil = until; if(key !== undefined) b._waitPopKey = key; b._moveWhy = why; }
 // (Р3.2 ход ш.2) idx — и номер точки пути (было: movePath(…); b.pathIdx = 0 у вызывающих). Порядок записей прежний: путь, причина, номер
-function movePath(b, p, why, idx){ b.path = p; b._moveWhy = why; if(idx !== undefined) b.pathIdx = idx; }
+function movePath(b, p, why, idx){ if(DLOG.on) moveTrace(b, p, why); b.path = p; b._moveWhy = why; if(idx !== undefined) b.pathIdx = idx; }
+// (Р3.3, 27.11) след хода у хозяина: заявка (кто ставит путь и почему), исполнение (путь из N точек / снят), перезапись (чей путь заменён).
+// Только при включённом следе и только смена причины или пути; игру не меняет (DLOG вне состояния)
+function moveTrace(b, p, why){
+  var B = dlogBot(b), was = B.mvPrev, n = p ? p.length : 0;
+  if(was && was.why === why && was.n === n) return;
+  dlog(b, "ход", (why || "—") + ": " + (n ? "путь " + n + " т." : "путь снят") + (was && was.why !== why ? " (вместо: " + (was.why || "—") + ")" : ""), "_dlogM",
+    {why: why || null, points: n, replaced: was ? was.why || null : null});
+  B.mvPrev = {why: why, n: n};
+}
 function movePathIdx(b, i){ b.pathIdx = i; }   // номер точки прежнего пути (путь не меняется)
 function moveSpeed(b, v, why){ b.curSpeed = v; b._moveWhy = why; }
 function moveWalk(b, w, why){ b.walking = w; b._moveWhy = why; }

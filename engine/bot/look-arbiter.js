@@ -181,7 +181,18 @@ function lookReasonSet(b, kind){ b.lookReason = kind; }
 function lookApply(b, R){
   b._lookLvl = R.lvl; b.lookReason = R.kind;
   if(LOOKDBG.on) b._ldArb = R.C ? R.C.map(function(c){ return {lvl: c.lvl, kind: c.kind, sc: c.sc, pt: c.pt}; }) : null;
+  if(DLOG.on) lookTrace(b, R);
   return R.pt;
+}
+// (Р3.3, 27.11) след взгляда у хозяина: варианты (вид, уровень, вес), отсев (почему не выбран: уровень ниже / вес меньше / нет точки), выбор,
+// перезапись (какой взгляд сменён). Только при включённом следе и только при смене выбора; игру не меняет (DLOG вне состояния)
+function lookTrace(b, R){
+  var B = dlogBot(b), was = B.lkPrev; if(was && was.kind === R.kind && was.lvl === R.lvl) return;
+  var C = R.C || [], cand = C.map(function(c){ return {kind: c.kind, lvl: c.lvl, sc: c.sc === undefined ? null : c.sc,
+    out: c.kind === R.kind && c.lvl === R.lvl ? null : !c.pt ? "нет точки" : c.lvl < R.lvl ? "уровень ниже" : "вес меньше"}; });
+  dlog(b, "взгляд", (R.kind || "по ходу") + " ур." + R.lvl + (was ? " вместо " + (was.kind || "по ходу") : "") + "; варианты: " +
+    (cand.map(function(c){ return c.kind + ":" + c.lvl + (c.out ? " (" + c.out + ")" : ""); }).join(", ") || "нет"), "_dlogL", {chose: R.kind || null, lvl: R.lvl, replaced: was ? was.kind || null : null, cand: cand});
+  B.lkPrev = {kind: R.kind, lvl: R.lvl};
 }
 function lookArbiterR(b){
   var moving = b.curSpeed > 60*SPD_K && b.heading !== undefined;
