@@ -66,6 +66,7 @@ def resolve_ref(ref):
 def build(ref, mapname, out, core=False, worker=False, variant=None):   # (Р5.2) worker — страница со встроенным ядром для режима Worker (src/build.py --worker)
     # (Р5.5 / Р5.6, 27.11) variant: pack — ядро без карты (core_build.py --pack) + пакет карты рядом (<имя>.simmap, tools/map-pack/pack.mjs);
     # all-maps — автономный HTML всех карт; variant-b — папка out: движок + пакеты файлами (src/build_variants.py)
+    out = str(out)   # (ПК 345) задания отпечатков дают pathlib.Path — срез имени (pack) требует строки
     sha = resolve_ref(ref)
     key = (sha, mapname, core, worker, variant)
     cached = BUILT.get(key)
