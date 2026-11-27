@@ -390,7 +390,7 @@ var STATE_LABEL = {patrol:"патруль", hold:"держит угол", engage
 // смерти своего (tools/map/trade_bake.py → src/data/trades.json, 92 демки). Одно число на «есть ли кому разменять»
 var TRADE_R = 272;
 function duelContext(bot, enemiesSeen, alliesNear){
-  var o = {trade:0, up:false, forced:false, hurtFoe:false, awpLine:false, flashed:false};
+  var o = {trade:0, up:false, forced:false, hurtFoe:false, awpLine:false, flashedP:0};
   bots.forEach(function(m){ if(m !== bot && m.alive && m.team === bot.team && nearP(m.x, m.y, m.z, bot.x, bot.y, bot.z, TRADE_R)) o.trade++; });
   var my = aliveCount(bot.team), their = aliveCount(bot.team === "CT" ? "T" : "CT");
   o.up = my > their;
@@ -404,12 +404,13 @@ function duelContext(bot, enemiesSeen, alliesNear){
   var e = bot._nearestEnemyBot;
   if(e){
     var HT = teamIntel[bot.team] && teamIntel[bot.team].hurt, hk = HT && HT[e.id];
-    // (изоляция, F-A) «ранен» — по попаданиям команды (teamIntel.hurt — оценка, не настоящее HP); «ослеплён» — по своей флешке, хлопнувшей
-    // на глазах у команды (teamIntel.flashed — оценка по видимому взгляду и расстоянию, damage.js), а не по настоящему остатку ослепления
+    // (изоляция, F-A) «ранен» — по попаданиям команды (teamIntel.hurt: 100 − свои попадания — верхняя граница HP: падение, чужие гранаты и
+    // износ брони её только понижают); «вероятно ослеплён» — гипотеза с вероятностью по своей флешке, хлопнувшей на глазах у команды
+    // (teamIntel.flashed, damage.js), а не настоящий остаток ослепления
     var FL = teamIntel[bot.team] && teamIntel[bot.team].flashed;
     o.hurtFoe = !!(hk && hk.hp <= 40 && tick - hk.tick < 8*TICK_HZ);
     o.awpLine = !!(e.weapon && e.weapon.key === "AWP");
-    o.flashed = !!(FL && tick < (FL[e.id] || 0));
+    var fe = FL && FL[e.id]; o.flashedP = fe && tick < fe.until ? fe.p : 0;   // гипотеза с вероятностью, не факт
   }
   return o;
 }

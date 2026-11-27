@@ -424,11 +424,13 @@ function teamAgent(team){
   A._t = tick; return A;
 }
 // (изоляция, аудит Codex I-A, 27.11) оружие на полу известно команде: своё (уронил / погиб свой — радар и войс), выпавшее у врага, которого
-// убил свой (убийца видел, где тот упал, — оружие там), или видел кто-то из команды (know.items, датчик knowTeamLook). Одно правило для сейва
-// CT (ctBrainSave) и подбора (weaponPickupTick); оружие, о котором команда ничего не знает, — не цель
+// свой убил, видя его в момент смерти (кадр зрения убийцы: видит или видел ≤ 0,125 с назад — seenRecently; через дым и стену убийца не видел,
+// где тот упал, — места оружия не знает), или видел кто-то из команды (know.items, датчик knowTeamLook). Одно правило для сейва CT
+// (ctBrainSave) и подбора (weaponPickupTick); оружие, о котором команда ничего не знает, — не цель
 function itemKnown(team, G){ var IT = teamAgent(team).know.items || {};
   return !!IT[G.from + "@" + G.t] || bots.some(function(o){ return o.id === G.from && (o.team === team ||
-    (!o.alive && o._killer && bots.some(function(k){ return k.id === o._killer && k.team === team; }))); }); }
+    (!o.alive && o._killer && bots.some(function(k){ var s = k._seenAt && k._seenAt[o.id];
+      return k.id === o._killer && k.team === team && s != null && G.t - s >= 0 && G.t - s <= 8; }))); }); }
 function teamAgents(){ return roundState === "live" ? [teamAgent("CT"), teamAgent("T")] : []; }
 function knowTeamLook(A){
   var K = A.know, mates = bots.filter(function(m){ return m.alive && m.team === A.team && tick >= (m.blindUntil||0); });

@@ -4211,8 +4211,8 @@
    "read_by_core": [
     "bomb.js:270",
     "bomb.js:355",
-    "damage.js:141",
-    "damage.js:141",
+    "damage.js:145",
+    "damage.js:145",
     "shoot.js:68",
     "round.js:158",
     "tick-step.js:30",
@@ -4250,8 +4250,8 @@
    "class": "диагностика",
    "read_by_core": [
     "sites-spots.js:234",
-    "knowledge.js:86",
-    "knowledge.js:88",
+    "knowledge.js:93",
+    "knowledge.js:95",
     "look-arbiter.js:184",
     "look-arbiter.js:184",
     "lineups.js:252",
@@ -4278,15 +4278,15 @@
    "var": "KNOW_LOG",
    "class": "диагностика",
    "read_by_core": [
-    "knowledge.js:254"
+    "knowledge.js:261"
    ]
   },
   {
    "var": "KNOW_TRACE",
    "class": "диагностика",
    "read_by_core": [
-    "knowledge.js:252",
-    "knowledge.js:252"
+    "knowledge.js:259",
+    "knowledge.js:259"
    ]
   },
   {
@@ -4463,11 +4463,11 @@
    "var": "nadeFx",
    "class": "показ",
    "read_by_core": [
-    "damage.js:111",
-    "damage.js:226",
-    "damage.js:245",
-    "damage.js:245",
-    "damage.js:245",
+    "damage.js:114",
+    "damage.js:230",
+    "damage.js:249",
+    "damage.js:249",
+    "damage.js:249",
     "decide.js:260",
     "round.js:103",
     "modes.js:244"

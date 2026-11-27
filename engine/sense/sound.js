@@ -116,7 +116,7 @@ function finishPush(b){
   setPost(b, sp, {x:tgt.x, y:tgt.y}, true, "repos:finish");
   if(!b.post || b.post.tag !== "repos:finish") return;
   b._finId = tid; taskKeep(b, tick + 3*TICK_HZ, "sound"); knowIntel(b, {x:tgt.x, y:tgt.y, tick:tick, src:"call"});
-  voiceLog(b.team, "fin"+tid+b.id, b.id, tid+" лоу, "+HT[tid].hp+" — добиваю");
+  voiceLog(b.team, "fin"+tid+b.id, b.id, tid+" лоу, не больше "+HT[tid].hp+" — добиваю");
 }
 // ---- (S7) смок уходит — готовность к выходу из-за него ----
 function smokeFadeTick(){

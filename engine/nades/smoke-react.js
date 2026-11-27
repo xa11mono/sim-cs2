@@ -80,9 +80,15 @@ function blindBullet(b, pt){
   var sv = bulletLineHit(b, cl.x, cl.y, null, tick*37 + b.id.charCodeAt(1)*11, b._spam && b._spam.blind ? "вслепую" : "сквозь дым");   // (Г1) пуля сквозь дым попадает в того, кто на линии
   if(sv) cl = {x:sv.x, y:sv.y};
   tracers.push({wc:tracerClass(b.weapon), wk:b.weapon && b.weapon.key, sil:!!(b.weapon && b.weapon.silenced), x1:b.x, y1:b.y, x2:cl.x, y2:cl.y, team:b.team, born:nowTs, hit:!!sv, miss:!sv}); if(tracers.length > 60) tracers.shift(); soundEv("sndShot", b.weapon, b.x, b.y);
+  // (изоляция, F-C, 27.11) кто у линии пули (в пределах 0,12 рад от неё до точки, где она упёрлась, — та же мерка, что прежний поиск цели на
+  // линии; или в кого попала) — слышит, что стреляют по нему (свист и попадания пуль рядом), и откуда: законный сигнал физики пули, как у
+  // цели tryShoot. Остальные в радиусе слышимости — выстрелы
+  var cL = DM.hypot(cl.x-b.x, cl.y-b.y);
   bots.forEach(function(o){ if(!o.alive || o.team === b.team) return;
+    var dO = DM.hypot(o.x-b.x, o.y-b.y), near = o === sv || (dO <= cL + BODY_HALF && _angOff(DM.atan2(o.y-b.y, o.x-b.x), a) <= 0.12 && hasLOS(b.x, b.y, o.x, o.y, b.z));
+    if(near){ knowHear(o, {x:b.x, y:b.y, tick:tick, team:b.team, src:b.id, kind:"hit"}); return; }
     var hr = (hasLOS(o.x, o.y, b.x, b.y, o.z, b.z) ? GUN_HEAR_OPEN : GUN_HEAR_WALL) * (w.silenced ? 0.55 : 1);
-    if(DM.hypot(o.x-b.x, o.y-b.y) < hr) knowHear(o, {x:b.x, y:b.y, tick:tick, team:b.team, src:b.id, kind:"shots"}); });
+    if(dO < hr) knowHear(o, {x:b.x, y:b.y, tick:tick, team:b.team, src:b.id, kind:"shots"}); });
   return true;
 }
 function smokeSpamTick(){

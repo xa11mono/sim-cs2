@@ -31,8 +31,15 @@ var KNOW = {
   sameSource:  1.5,   // с: тот же звук из того же места — тот же источник
   memSec:      20,    // с: сколько бот помнит услышанное сам
   srcApart:    150,   // px: звуки ближе — один источник (knowSources; проектное число переделки)
-  srcSec:      3      // с: за сколько считать источники (проектное число переделки)
+  srcSec:      3,     // с: за сколько считать источники (проектное число переделки)
+  // (изоляция, 27.11) видно ли на модели врага то, что у него на спине: убранное основное оружие и C4 носителя. В CS:GO — да (IMFDB, bo3.gg);
+  // в CS2 — заметки к обновлению 09.2023 «обновлены позиции оружия в кобуре» (Steam), модели AFK-игроков с C4 на спине (Dot Esports).
+  // Своими глазами в CS2 не проверено — rebuild/after_r8/ISOLATION.md, проверка владельца; false — видно только оружие в руках
+  seeOnBack:   true
 };
+// оружие врага, которое видно, когда его видят: в руках; основное — и убранное, если видно на спине (KNOW.seeOnBack)
+function seenPrimary(e){ var h = e.weapon && WEAPONS[e.weapon.key];
+  return h && h.slot === "primary" ? e.weapon.key : (KNOW.seeOnBack && e.primary && WEAPONS[e.primary] ? e.primary : null); }
 var KNOW_SAY = {steps:"шаги", water:"всплески в воде", shots:"стрельбу", hit:"что стреляют по мне", reload:"перезарядку", nade:"бросок гранаты", plant:"плант", defuse:"дефуз"};
 // позиции про из 88 демок Ancient (tools/map/positions_bake.py в ветке rebuild-v238; поля: сторона, тип, x, y,
 // доля раундов, spread, варианты места [x, y, доля]); n / byP / byW — в скольких раундах там стояли все / каждый
@@ -308,7 +315,7 @@ function knowVision(b){
     B.last = last; B.visible = true; B.mine = !!own[e.id];
     // (изоляция, аудит Codex F-B, 27.11) снимок увиденного: место, высота (радар), ствол (свой глаз / колл); поза — только своими глазами. Его читает
     // перестрелка после потери зрения (duelFoe, fight.js) вместо живого объекта врага
-    B.seen = {x: e.x, y: e.y, z: e.z, weapon: e.weapon && e.weapon.key, crouching: own[e.id] ? !!e.crouching : !!(B.seen && B.seen.crouching), tick: tick};   // (v432) visible — видит команда (радар), mine — сам (колл «вижу» — только своё)
+    B.seen = {x: e.x, y: e.y, z: e.z, weapon: e.weapon && e.weapon.key, primary: seenPrimary(e), crouching: own[e.id] ? !!e.crouching : !!(B.seen && B.seen.crouching), tick: tick};   // (v432) visible — видит команда (радар), mine — сам (колл «вижу» — только своё)
     B.hyps = [{type: "held", zone: last.zone, x: last.x, y: last.y, weight: 1}];
     if(mineE && e.planting && !K.planted) K.plantSeen = knowNearestSite(e.x, e.y);
     if(!was) knowTrace(b, e.id, "увидел (" + knowZoneName(last.zone) + ")");

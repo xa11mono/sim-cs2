@@ -107,8 +107,8 @@ function ecoKnowReset(){ ECO_KNOW = {CT:{}, T:{}}; }
 function ecoKnowRow(team, id){ var K = ECO_KNOW[team]; return K[id] || (K[id] = {m: START_MONEY, gun: null, carry: null}); }
 function ecoKnowSeeTick(){
   bots.forEach(function(b){ if(!b.alive || !b._visible) return;
-    // (изоляция, P-C) видно оружие в руках, а не скрытый слот: основное в руках — запомнили
-    b._visible.forEach(function(e){ var k = e.weapon && e.weapon.key, W = k && WEAPONS[k]; if(!W || W.slot !== "primary") return; var R = ecoKnowRow(b.team, e.id);
+    // (изоляция, P-C) видимое основное (seenPrimary), а не скрытый слот
+    b._visible.forEach(function(e){ var k = seenPrimary(e), W = k && WEAPONS[k]; if(!W) return; var R = ecoKnowRow(b.team, e.id);
       if(!R.gun || W.price > WEAPONS[R.gun].price) R.gun = k; }); });
 }
 function ecoKnowKill(killer, reward){ if(!killer) return; var R = ecoKnowRow(killer.team === "CT" ? "T" : "CT", killer.id); R.m = Math.min(MAX_MONEY, R.m + reward); }

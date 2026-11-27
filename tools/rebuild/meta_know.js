@@ -29,7 +29,8 @@ EV(`globalThis.MK_SIG = function(obs){
   var K = {team: SR.dig(teamIntel[obs], false), agent: (typeof TEAMK !== 'undefined' && TEAMK[obs] && TEAMK[obs].know) ? SR.dig(TEAMK[obs].know, false) : 0, b: {}};
   var D = {b: {}};
   own.forEach(function(b){
-    P.b[b.id] = [b.hp, b.alive, (b._visible || []).map(function(e){ return [e.id, e.x, e.y, e.z, e.crouching, e.alive, e.weapon && e.weapon.key]; }),
+    P.b[b.id] = [b.hp, b.alive, (b._visible || []).map(function(e){ return [e.id, e.x, e.y, e.z, e.crouching, e.alive, e.weapon && e.weapon.key,
+      typeof seenPrimary === 'function' ? seenPrimary(e) : null, KNOW.seeOnBack !== false && bomb && bomb.carrier === e]; }),
       b.heardSound ? [b.heardSound.kind, b.heardSound.x, b.heardSound.y, b.heardSound.tick] : null,
       // лежащая / заложенная бомба в поле зрения этого бота (то же зрение, что у датчика knowTeamLook)
       bomb && (bomb.state === 'dropped' || bomb.state === 'planted') && b.alive && tick >= (b.blindUntil||0) && DM.hypot(bomb.x-b.x, bomb.y-b.y) <= KNOW.lookRange && inFov(b, bomb.x, bomb.y) && hasVision(b.x, b.y, bomb.x, bomb.y) ? [bomb.x, bomb.y] : null];
@@ -85,7 +86,7 @@ const FAMILIES = {
     return 'команда попала по ' + E.map(function(o){ return o.id; }).join(' ') + ' на 80'; })()`,
   // своя флешка хлопнула на глазах у команды: враги ослеплены по оценке ещё 2 с (teamIntel.flashed)
   flashknown: `(function(){ var E = bots.filter(function(o){ return o.alive && o.team !== '${OBS}'; }); if(!E.length) return null;
-    var TF = teamIntel['${OBS}'].flashed || (teamIntel['${OBS}'].flashed = {}); E.forEach(function(o){ TF[o.id] = tick + 2*TICK_HZ; });
+    var TF = teamIntel['${OBS}'].flashed || (teamIntel['${OBS}'].flashed = {}); E.forEach(function(o){ TF[o.id] = {until: tick + 2*TICK_HZ, p: 0.7}; });
     return 'видели, как флешка ослепила ' + E.map(function(o){ return o.id; }).join(' '); })()`,
   // в снимке увиденного у бота другой ствол врага перестрелки (видел AWP / AK)
   seenwpn: `(function(){ var r = []; bots.forEach(function(b){ var F = b._fc; if(!b.alive || b.team !== '${OBS}' || !F || !F.e || (b._visible || []).indexOf(F.e) >= 0) return;
@@ -101,6 +102,11 @@ const FAMILIES = {
     var seen = function(q){ return cts.some(function(o){ return hasVision(o.x, o.y, q.x, q.y) && DM.hypot(o.x-q.x, o.y-q.y) < 1500; }); };
     for(var i = 0; i < cts.length; i++) for(var k = 0; k < 16; k++){ var a = k*Math.PI/8, q = {x: cts[i].x + Math.cos(a)*120, y: cts[i].y + Math.sin(a)*120};
       if(!insideSolidWall(q.x, q.y) && !seen(q)){ groundWeapons.push({key: 'AK', x: q.x, y: q.y, t: tick, from: 'MK'}); return 'АК на полу у ' + cts[i].id + ' (не на виду)'; } }
+    return null; })()`,
+  // положительная: АК на полу на виду у CT с пистолетом / ПП (≤ 300 ед., видно глазами) — законный вход; подбор обязан стать возможным
+  gunseen: `(function(){ var cts = bots.filter(function(o){ return o.alive && o.team === 'CT' && !(o.primary && WEAPONS[o.primary].tier >= 5); }); if(!cts.length) return null;
+    for(var i = 0; i < cts.length; i++){ var c = cts[i]; for(var k = -2; k <= 2; k++){ var a = (c.facing || 0) + k*0.2, q = {x: c.x + Math.cos(a)*90, y: c.y + Math.sin(a)*90};
+      if(!insideSolidWall(q.x, q.y) && hasVision(c.x, c.y, q.x, q.y) && inFov(c, q.x, q.y)){ groundWeapons.push({key: 'AK', x: q.x, y: q.y, t: tick, from: 'MK'}); return 'АК на виду у ' + c.id; } } }
     return null; })()`,
   // скрытый основной слот у врага с пистолетом в руках (видимо только оружие в руках)
   slot: `(function(){ var E = bots.filter(function(o){ return o.alive && o.team !== '${OBS}' && o.weapon && o.weapon.key !== o.primary; }); if(!E.length) return null;
