@@ -9,7 +9,7 @@ const root = fileURLToPath(new URL('../../', import.meta.url));
 export function readLegacyMap(name) {
   // Same field selection and stale-bake policy as the HTML and Node builders.
   const py = 'import sys; sys.path.insert(0, "src"); from mapset import map_js; print(map_js(sys.argv[1])[0])';
-  const source = execFileSync(process.env.PYTHON || 'python3', ['-c', py, name], {
+  const source = execFileSync(process.env.PYTHON || (process.platform === 'win32' ? 'python' : 'python3'), ['-c', py, name], {
     cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024,
   });
   return JSON.parse(source);

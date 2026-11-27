@@ -79,9 +79,9 @@ def build(ref, mapname, out, core=False, worker=False, variant=None):   # (Р5.2
         sh(['git', '-c', 'core.autocrlf=false', 'worktree', 'add', '--quiet', '--detach', '--force', tmp, sha], cwd=ROOT)
         if variant == 'pack':
             sh([PY, os.path.join(tmp, 'tools', 'node', 'core_build.py'), '--pack', '--map', mapname, out], cwd=tmp)
-            sh(['node', os.path.join(tmp, 'tools', 'map-pack', 'pack.mjs'), mapname, out[:-len('.core.js')] + '.simmap'], cwd=tmp)
+            sh(['node', os.path.join(tmp, 'tools', 'map-pack', 'pack.mjs'), mapname, out[:-len('.core.js')] + '.simmap'], cwd=tmp, env=dict(os.environ, PYTHON=PY))   # (ПК 346) на Windows нет python3
         elif variant in ('all-maps', 'variant-b'):
-            sh([PY, os.path.join(tmp, 'src', 'build_variants.py'), '--' + variant, out], cwd=tmp)
+            sh([PY, os.path.join(tmp, 'src', 'build_variants.py'), '--' + variant, out], cwd=tmp, env=dict(os.environ, PYTHON=PY))
         else:
             builder = ('tools', 'node', 'core_build.py') if core else ('src', 'build.py')
             sh([PY, os.path.join(tmp, *builder), '--map', mapname] + (['--worker'] if worker else []) + [out], cwd=tmp)

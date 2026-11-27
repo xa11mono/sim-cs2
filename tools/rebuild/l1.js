@@ -35,7 +35,7 @@ function save(status) { const sec = Math.round((Date.now() - t0) / 1000);
   const maps = ['mirage', 'ancient'], bad = [];
   try {
     const B = await pool([].concat(...['p', 'c'].map(k => maps.map(m => async () => { const f = path.join(tmp, k + '-' + m + '.html'); sim[k + m] = f;
-      const r = await run('python3', [path.join(wt[k], 'src', 'build.py'), '--map', m, f], { cwd: wt[k] }); return [k + m, r.code, r.err.slice(-300)]; }))), 2);
+      const r = await run(process.env.PYTHON || (process.platform === 'win32' ? 'python' : 'python3'), [path.join(wt[k], 'src', 'build.py'), '--map', m, f], { cwd: wt[k] }); return [k + m, r.code, r.err.slice(-300)]; }))), 2);
     B.filter(b => b[1]).forEach(b => bad.push('сборка ' + b[0] + ': ' + b[2]));
     if (bad.length) { L.push('', '## Сборка', ...bad.map(x => '- ' + x)); return save('сборка упала'); }
     // 2) короткий отпечаток
