@@ -11,9 +11,10 @@ from mapset import map_js
 MAPS = sorted(d for d in os.listdir(os.path.join(ROOT, 'data', 'maps')) if os.path.exists(os.path.join(ROOT, 'data', 'maps', d, 'map.json')))
 
 
+WORKER_DEF = False   # (Р8, 27.11) all_maps включает: страницы карт автономного HTML — Worker по умолчанию
 def single(name):   # обычная сборка одной карты — как есть
     out = os.path.join(tempfile.mkdtemp(), name + '.html')
-    subprocess.run([sys.executable, os.path.join(HERE, 'build.py'), '--map', name, out], check=True, stdout=subprocess.DEVNULL)
+    subprocess.run([sys.executable, os.path.join(HERE, 'build.py'), '--map', name, out] + (['--worker-default'] if WORKER_DEF else []), check=True, stdout=subprocess.DEVNULL)
     return open(out, encoding='utf-8').read()
 
 
@@ -21,6 +22,7 @@ def esc(t): assert '@@SIMCS2_' not in t; return t.replace('</script', '</scr@@SI
 
 
 def all_maps(out):
+    global WORKER_DEF; WORKER_DEF = True
     blocks = ''.join('<script type="text/plain" id="page-%s">%s</script>\n' % (m, esc(single(m))) for m in MAPS)
     names = {m: map_js(m)[1].get('name', m) for m in MAPS}
     html = ('<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><title>sim-cs2 — все карты</title></head><body>\n'

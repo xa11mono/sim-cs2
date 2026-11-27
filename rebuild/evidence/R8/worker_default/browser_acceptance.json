@@ -1,0 +1,131 @@
+{
+  "playwright": "1.63.0",
+  "results": [
+    {
+      "engine": "chromium",
+      "version": "158.0.8127.36",
+      "build": "single-map",
+      "map": "mirage",
+      "checks": {
+        "interface": {
+          "status": "passed"
+        },
+        "hud": {
+          "status": "passed"
+        },
+        "radar2d": {
+          "status": "passed"
+        },
+        "view3d": {
+          "status": "passed"
+        },
+        "sound": {
+          "status": "passed"
+        },
+        "marks": {
+          "status": "fallback",
+          "reason": "Standalone marks use the session-local list"
+        },
+        "markSnapshot": {
+          "status": "passed"
+        },
+        "editors": {
+          "status": "passed"
+        },
+        "sandbox": {
+          "status": "passed"
+        },
+        "replay": {
+          "status": "passed"
+        }
+      },
+      "screenshots": {
+        "hud": {
+          "filename": "chromium-single-map-mirage-hud.png",
+          "sha256": "bbc590f106a4e0a9e6f01071a9f4d8a76f28745af0cc6c940b6599418ed0515a"
+        },
+        "radar": {
+          "filename": "chromium-single-map-mirage-radar.png",
+          "sha256": "cb64afaad79c96e1f40ea7bbb0af8d85cb2c6dcbf178e2aa2af8c932ed87a2e4"
+        },
+        "webgl": {
+          "filename": "chromium-single-map-mirage-webgl.png",
+          "sha256": "e57b7ec785795a8159653e24128866d95eea154a410fa1f998ef037b8838abce"
+        }
+      },
+      "pageErrors": [],
+      "blockedOrigins": [
+        "https://cdnjs.cloudflare.com"
+      ],
+      "failed": false
+    },
+    {
+      "engine": "chromium",
+      "version": "158.0.8127.36",
+      "build": "single-map",
+      "map": "ancient",
+      "checks": {
+        "interface": {
+          "status": "passed"
+        },
+        "hud": {
+          "status": "passed"
+        },
+        "radar2d": {
+          "status": "passed"
+        },
+        "view3d": {
+          "status": "passed"
+        },
+        "sound": {
+          "status": "passed"
+        },
+        "marks": {
+          "status": "fallback",
+          "reason": "Standalone marks use the session-local list"
+        },
+        "markSnapshot": {
+          "status": "passed"
+        },
+        "editors": {
+          "status": "passed"
+        },
+        "sandbox": {
+          "status": "passed"
+        },
+        "replay": {
+          "status": "passed"
+        }
+      },
+      "screenshots": {
+        "hud": {
+          "filename": "chromium-single-map-ancient-hud.png",
+          "sha256": "6a61f3cb33c6dae18841fefb7ddf51ef9a877fd57a164f7f014798cb124664b8"
+        },
+        "radar": {
+          "filename": "chromium-single-map-ancient-radar.png",
+          "sha256": "0725b821ce8b853cb91d1d8266255f823da9fa3bfb0967c14871f6e782407353"
+        },
+        "webgl": {
+          "filename": "chromium-single-map-ancient-webgl.png",
+          "sha256": "dbf84cca19f0be7c70a733f219207136914e041ff352d2af29abab298a8a6453"
+        }
+      },
+      "pageErrors": [],
+      "blockedOrigins": [
+        "https://cdnjs.cloudflare.com"
+      ],
+      "failed": false
+    },
+    {
+      "engine": "firefox",
+      "launch": "Error: browserType.launch: Executable doesn't exist at /opt/pw-browsers/firefox-1543/firefox/firefox\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     npx playwright install                                 ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
+      "failed": true
+    },
+    {
+      "engine": "webkit",
+      "launch": "Error: browserType.launch: Executable doesn't exist at /opt/pw-browsers/webkit-2359/pw_run.sh\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     npx playwright install                                 ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
+      "failed": true
+    }
+  ]
+}

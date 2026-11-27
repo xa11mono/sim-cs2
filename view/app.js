@@ -377,8 +377,12 @@ function frameBody(ts){
 })();
 document.getElementById("btnFreshMatch").addEventListener("click", function(){ var n = Math.max(1, parseInt(document.getElementById("inpMatchNum").value, 10) || 1); var sel = document.getElementById("selSeries"), bo = sel ? +sel.value : 3; if(bo !== SERIES.bo || seriesDone()) seriesNew(bo); var cw = document.getElementById("chkWarm"); if(cw && !cw.checked) freshMatch(n); else { warmStart(n, Math.random); warmShow(true); } clockPause(false); var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); } logEvent("Матч №"+n+" с чистого листа (воспроизводимый)", true); });
 setInterval(function(){ var el = document.getElementById("matchTick"); if(el) el.textContent = "матч "+matchNum+" · тик "+tick; }, 250);
-if(/[?&]worker=1/.test(location.search)) wkStart();   // (Р5.2) режим Worker — по адресу страницы
-else if(/[?&]local=1/.test(location.search)) wkLocal();   // (Р5.4) локальный режим — симуляция в процессе Node
+// (Р5.2; Р8-решение владельца 27.11) режим симуляции: ?worker=1 — Worker; ?local=1 — процесс Node (Р5.4); ?worker=0 — главный поток; без
+// параметра — Worker, если страница собрана с ним по умолчанию (simCore data-default, страницы для игроков); Worker недоступен — главный поток
+(function(){ var q = /[?&]worker=([01])/.exec(location.search), el = document.getElementById("simCore");   // без общих переменных: снимок не меняется
+  if(q && q[1] === "1") wkStart();
+  else if(/[?&]local=1/.test(location.search)) wkLocal();
+  else if(!q && el && el.getAttribute("data-default") === "1") wkStart(); })();
 coreLoadEnd();   // (Р5, 26.11) конец загрузки ядра — на прежнем месте (после настроек страницы, до разминки): BOT_INIT, MK_LOAD (engine/match/round.js)
 navWarnShow();   // (Р8, 27.11) баннер связности навмеша — по расчёту ядра (navLinkCheck в coreLoadEnd)
 window.__ev=function(src){return eval(src);};

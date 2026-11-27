@@ -35,6 +35,8 @@ export const scenarios = {
     assert.equal(await ev(page, 'tick'), tick, 'Pause must stop simulation');
     await page.locator('#inpMatchNum').fill('3');
     await page.locator('#btnFreshMatch').click();
+    // (Р8, 27.11) в режиме Worker состояние страницы приходит кадром — ждать, а не читать сразу (в главном потоке — то же сразу)
+    await page.waitForFunction(() => window.__ev('matchNum') === 3, null, { timeout: 12000 });
     assert.equal(await ev(page, 'matchNum'), 3);
     if (!(await ev(page, 'paused'))) await page.locator('#btnPause').click();
     await ev(page, 'freshMatch(3); clockPause(true); draw();');

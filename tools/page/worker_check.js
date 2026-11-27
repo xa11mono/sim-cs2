@@ -1,7 +1,7 @@
 // (Р5.2, 26.11; --local — Р5.4) режим Worker / локальный режим (процесс Node) равен обычному: страница сборки `src/build.py --worker`, открытая с ?worker=1, ведёт матч в Worker (ядро из
 // #simCore через Blob-URL) и рисует по кадру; та же страница без флага ведёт матч сама. На одних тиках рисунки равны попиксельно (часы и кадры
 // закреплены, как в tools/page/frame_hash.js). Запуск: node tools/page/worker_check.js <sim-worker.html> [--match=3] [--ticks=3000,9000] [--layers=1] [--modes]
-// | --measure=20 [--browser=…]
+// | --measure=20 [--browser=…]; --default — сторона Worker открывается без параметра (src/build.py --worker-default, страницы для игроков)
 'use strict';
 const pw = require('playwright'), url = require('url');
 const SIM = require('path').resolve(process.argv[2]);
@@ -44,7 +44,8 @@ async function measure() {
 (async () => {
   if (A.measure) return measure();
   // --local=<адрес> (Р5.4): страница B — с локального сервера tools/node/local_server.js (симуляция — процесс Node), иначе — режим Worker
-  const br = await pw.chromium.launch(); const a = await page(br, ''), b = A.local ? await page(br, '/?local=1', A.local) : await page(br, '?worker=1'); let bad = 0;
+  const br = await pw.chromium.launch(); const a = await page(br, '?worker=0'), b = A.local ? await page(br, '/?local=1', A.local) : await page(br, A.default ? '' : '?worker=1');   // (Р8, 27.11) обычный — явно главный поток; --default — Worker без параметра (сборка с Worker по умолчанию)
+  if (!A.local && !(await b.evaluate(() => __ev('WK.on')))) throw new Error('режим Worker не включился' + (A.default ? ' по умолчанию' : '')); let bad = 0;
   if (!(await b.evaluate(() => __ev('WK.on')))) throw new Error('режим Worker не включился (нет #simCore? сборка без --worker)');
   // часы и случайность Worker — закрепить так же, как у страниц (закрепление страницы на Worker не действует): Worker запускается заново
   if (!A.local) await b.evaluate(() => __ev(`WK.w.terminate(); wkStart("(function(){ var t = 1000, s = 1; Math.random = function(){ s = Math.imul(s ^ (s >>> 15), 1 | s) + 0x6D2B79F5 >>> 0; return (s >>> 8) / 16777216; }; performance.now = function(){ return t; }; Date.now = function(){ return 1.7e12; }; })();\\n"); 1`));

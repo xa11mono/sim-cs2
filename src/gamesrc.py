@@ -127,3 +127,17 @@ if __name__ == '__main__':
     s = game_source()
     if len(sys.argv) > 1: open(sys.argv[1], 'w', encoding='utf-8', newline='').write(s)
     else: sys.stdout.write(s)
+
+
+def embed_core(out, name, default=False):
+    """(Р5.2; Р8-решение владельца 27.11) ядро той же карты (tools/node/core_build.py) — текстом в странице (<script id="simCore">);
+    default=True — страница запускает симуляцию в Worker по умолчанию (data-default="1"); без пометки — только по ?worker=1.
+    Резерв — главный поток: ?worker=0, нет Worker в браузере или нет встроенного ядра (view/app.js)."""
+    import sys, tempfile, subprocess
+    core = os.path.join(tempfile.mkdtemp(), 'core.js')
+    subprocess.run([sys.executable, os.path.join(ROOT, 'tools', 'node', 'core_build.py'), '--map', name, core], check=True, capture_output=True)
+    txt = open(core, encoding='utf-8').read().replace('</script', '<\\/script')
+    s = open(out, encoding='utf-8').read(); i = s.index('<script')
+    tag = '<script type="text/plain" id="simCore"%s>' % (' data-default="1"' if default else '')
+    open(out, 'w', encoding='utf-8').write(s[:i] + tag + txt + '</script>\n' + s[i:])
+    return len(txt)
