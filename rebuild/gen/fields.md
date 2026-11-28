@@ -16,7 +16,7 @@
 | `_tradeUntil` | 2 | 2 | `tradeAlertSet · intel`, `tradeEnd · intel` |
 | `_tradeLock` | 1 | 1 | `tradeEnd · intel` |
 | `state` | 2 | 2 | `fightStateDo · fight-state`, `fightReset · fight-state` |
-| `nadeTask` | 12 | 8 | `(верх файла) · smoke`, `nadeAskFlash · plan`, `exuReassign · exec-sync`, `lineupTick · lineups`, `nadeTaskEnd · decide`, `resetNades · decide` |
+| `nadeTask` | 12 | 8 | `(верх файла) · smoke`, `nadeAskFlash · plan`, `exuReassign · exec-sync`, `assignNadeDo · throw-checks`, `nadeQueueNext · throw-checks`, `lineupTick · lineups`, `nadeTaskEnd · decide`, `resetNades · decide` |
 | `holding` | 5 | 4 | `fightReset · fight-state`, `fightHoldOff · fight-state`, `leaveHold · fight-state`, `engDecide · engagements` |
 | `crouching` | 1 | 1 | `placeStance · task` |
 | `path` | 13 | 7 | `fireRepath · levels`, `ladderTick · levels`, `navFollowFloor · levels`, `movePath · move`, `moveSpeedTick · move`, `navSnap · tick`, `stepBot · tick-step` |
@@ -213,11 +213,11 @@
 ## `nadeTask`
 
 - **хозяин** `exuReassign · exec-sync` — 3 (стр. 128, 131, 132)
-- `nadeQueueNext · throw-checks` — 2 (стр. 104, 106)
+- **хозяин** `nadeQueueNext · throw-checks` — 2 (стр. 104, 106)
 - **хозяин** `lineupTick · lineups` — 2 (стр. 202, 266)
 - **хозяин** `(верх файла) · smoke` — 1 (стр. 37)
 - **хозяин** `nadeAskFlash · plan` — 1 (стр. 235)
-- `assignNadeDo · throw-checks` — 1 (стр. 62)
+- **хозяин** `assignNadeDo · throw-checks` — 1 (стр. 62)
 - **хозяин** `nadeTaskEnd · decide` — 1 (стр. 257)
 - **хозяин** `resetNades · decide` — 1 (стр. 265)
 
