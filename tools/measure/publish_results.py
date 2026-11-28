@@ -4,6 +4,8 @@
 Забрать: git fetch origin pc-results/<N> && git archive FETCH_HEAD | tar -x -C <папка>; файлы — <метка>/rec_<m>.json.gz"""
 import os, sys, json, gzip, shutil, subprocess, tempfile
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(os.path.dirname(HERE))
+if os.environ.get('SIMCS2_SKIP'):   # (28.11, H-20) задание не запускалось (request.json не менялся в пуше) — публиковать нечего
+    print('публикация: задание пропущено (request.json не менялся в пуше)'); sys.exit(0)
 req = json.load(open(os.path.join(HERE, 'request.json'), encoding='utf-8'))
 run_no = os.environ.get('GITHUB_RUN_NUMBER', 'local'); repo = os.environ.get('GITHUB_REPOSITORY', 'xa11mono/sim-cs2')
 # (05.11, ранний стоп) --part=<имя>: промежуточная выкладка во время прогона (engine/walk_run.py, половина матчей) — в pc-results/<N>-<имя>;

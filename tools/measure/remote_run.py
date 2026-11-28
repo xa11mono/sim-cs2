@@ -147,6 +147,11 @@ def record_fingerprint(rec, fingerprint):
 def main():
     BUILT.clear(); REFS.clear()
     open(LOG, 'w', encoding='utf-8').close()
+    import request_guard   # (28.11, H-20) пуш без правки задания — не запускать старое задание из истории
+    go, why = request_guard.should_run()
+    log('задание: ' + why)
+    if not go:
+        request_guard.mark_skipped(); return
     req = json.load(open(sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, 'request.json'), encoding='utf-8'))
     ensure_playwright()
     # (Р0.1, 24.11) среда рядом с каждым результатом: runs/<label>/env.json (Playwright, Chromium, Node, ОС)

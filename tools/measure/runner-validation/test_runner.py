@@ -37,7 +37,7 @@ class FakeHost:
         self.age = 100
         self.next_pid = 1
         self.children = {}
-        self.history, self.job_limits, self.samples, self.jobs = [], [], [], []
+        self.history, self.job_limits, self.samples, self.jobs, self.timed = [], [], [], [], []
         self.denied = 0
         self.epoch = lambda: 1700000000 + self.age
 
@@ -49,7 +49,7 @@ class FakeHost:
 
     def memory(self):
         avail = self.total - self.base - sum(self.used(p) for p in self.children.values())
-        self.samples.append(avail)
+        self.samples.append(avail); self.timed.append((self.age, avail))
         return self.total, avail
 
     def processes(self):
@@ -68,7 +68,9 @@ class FakeHost:
             for p in self.children.values():
                 if job in p.jobs:
                     want = self.used(p)
-                    if committed + want > job.limit:
+                    # (28.11) лимит 0 — как у procguard.Job на Windows (_set_limit: флаг JOB_MEMORY только при limit_mb > 0): без лимита
+                    # commit; так создаётся общий объект Chromium / Node после ПК 335 (dgroup = Job(0))
+                    if job.limit and committed + want > job.limit:
                         self.denied += 1
                         self.exit(p, 1)
                     else:
@@ -216,12 +218,14 @@ class Tests(Sandbox):
                     ok, info = pool._admit(task('next', key, 0, 23), available)
                     self.assertEqual(ok, engine in guard.DYNAMIC_ENGINES, info)
                     if ok:
+                        # (28.11) после ПК 335 Chromium / Node — в общем объекте без лимита commit (dgroup = Job(0)): лимит общего
+                        # commit строгих движков их не останавливает (прежний отказ при свободной RAM ронял страницы); защита —
+                        # допуск по фактической памяти (need 0), лимит дерева и снятие при нехватке RAM (test_simultaneous_growth_…)
                         self.assertEqual(info['need'], 0)
-                        self.assertEqual(info['commit_current'], 2990)
+                        self.assertNotIn('commit_used', info)
                         pool.group_limit = 4000
-                        denied, info = pool._admit(task('next', key, 0, 23), available)
-                        self.assertFalse(denied)
-                        self.assertIn('Job Object', info['why'])
+                        again, info = pool._admit(task('next', key, 0, 23), available)
+                        self.assertTrue(again, info)
 
     def test_dynamic_launches_multiple_trees_before_first_match_finishes(self):
         for engine in ('chromium', 'node'):
@@ -235,11 +239,13 @@ class Tests(Sandbox):
                 self.assertEqual(host.denied, 0)
 
     def test_unknown_group_usage_falls_back_to_peak_budget(self):
+        # (28.11) общий потолок commit после ПК 335 — только у строгих движков (Firefox / WebKit); Chromium / Node — без него
+        # (test_dynamic_engines_share_unlimited_group). Проверка механизма потолка сохранена — на Firefox.
         with FakeHost(self.folder, total=12000, max_commit=7800, protected=True, job_usage=False).install():
-            pool = self.pool(est_mb={'node:mirage': 1500})
-            pool._learn(task('old', 'node:mirage', 1500, 0), 1500, complete=True)
+            pool = self.pool(est_mb={'firefox:mirage': 1500})
+            pool._learn(task('old', 'firefox:mirage', 1500, 0), 1500, complete=True)
             for i in range(4):
-                pool.add(task('fallback', 'node:mirage', 1500, i + 1))
+                pool.add(task('fallback', 'firefox:mirage', 1500, i + 1))
             pool.wait_all()
             self.assertEqual(max(a['par_seen_max'] for a in pool.attempts), 3)
 
@@ -264,11 +270,13 @@ class Tests(Sandbox):
             self.assertEqual(max(a['par_seen_max'] for a in pool.attempts[offset:]), 8)
 
     def test_windows_assigns_both_jobs_before_launch_and_caps_the_group(self):
+        # (28.11) общий потолок commit после ПК 335 — только у строгих движков (Firefox / WebKit); Chromium / Node — без него
+        # (test_dynamic_engines_share_unlimited_group). Проверка механизма потолка сохранена — на Firefox.
         with FakeHost(self.folder, total=12000, max_commit=7800, protected=True).install() as host:
-            pool = self.pool(est_mb={'node:mirage': 1500})
-            pool._learn(task('old', 'node:mirage', 1500, 0), 1500, complete=True)
+            pool = self.pool(est_mb={'firefox:mirage': 1500})
+            pool._learn(task('old', 'firefox:mirage', 1500, 0), 1500, complete=True)
             for i in range(4):
-                pool.add(task('protected', 'node:mirage', 1500, i + 1))
+                pool.add(task('protected', 'firefox:mirage', 1500, i + 1))
             pool.wait_all()
             self.assertEqual(host.job_limits[0], 4800)
             self.assertEqual(max(a['par_seen_max'] for a in pool.attempts), 3)
@@ -276,25 +284,52 @@ class Tests(Sandbox):
             self.assertGreater(8 * CFG['match_mem_mb'], host.job_limits[0])
 
     def test_simultaneous_growth_hits_aggregate_ceiling_in_fake_os(self):
-        # Each tree's demand is below the old per-match limit.
+        # (28.11) одновременный рост недооценённых деревьев Chromium / Node (каждое ниже лимита дерева). Дизайн после ПК 335: потолка
+        # commit у них нет, защита — снятие самого нового при свободной памяти ниже критической critical_polls опросов подряд и его
+        # повтор отдельно. Ожидание: все матчи готовы, ни один не потерян; снятий — не больше одного на рост; свободная память ниже
+        # критической — не дольше времени обнаружения (critical_polls опросов) — провал ниже — только в пределах опросов.
         with FakeHost(self.folder, total=12000, max_commit=7800, protected=True).install() as host:
             pool = self.pool(est_mb={'node:mirage': 1000})
             pool._learn(task('underestimated', 'node:mirage', 1000, 0), 1000, complete=True)
             for i in range(4):
                 pool.add(task('burst', 'node:mirage', 2200, i + 1, GROW='3'))
             pool.wait_all()
-            self.assertEqual(host.denied, 2)
+            self.assertEqual(host.denied, 0)
             self.assertEqual(max(a['par_seen_max'] for a in pool.attempts), 4)
-            self.assertEqual(sum(a['ok'] for a in pool.attempts), 4)
-            self.assertEqual([a['par_seen_max'] for a in pool.attempts if a['retry']], [1, 1])
-            self.assertGreaterEqual(min(host.samples), 3000)
+            done = {a['name'] for a in pool.attempts if a['ok']}
+            self.assertEqual(len(done), 4)
+            retries = [a for a in pool.attempts if a['retry']]
+            self.assertLessEqual(len(retries), 1)
+            self.assertTrue(all(a['par_seen_max'] == 1 and a['ok'] for a in retries))
+            # время (часы модели) ниже критической: обнаружение — critical_polls опросов, снятие — на следующем опросе
+            start, worst = None, 0
+            for age, v in host.timed:
+                if v < CFG['critical_mb']: start = age if start is None else start; worst = max(worst, age - start)
+                else: start = None
+            self.assertLessEqual(worst, (CFG['critical_polls'] + 1) * CFG['poll_s'])
+            self.assertGreater(min(host.samples), 0)
+
+    def test_dynamic_engines_share_unlimited_group(self):
+        # (28.11) решение ПК 335: Chromium / Node — в общем объекте без лимита commit (Job(0): только снятие всего при закрытии),
+        # каждое дерево — в своём объекте с лимитом match_mem_mb
+        with FakeHost(self.folder, total=16000, protected=True).install() as host:
+            pool = self.pool(est_mb={'chromium:mirage': 1000})
+            pool._learn(task('old', 'chromium:mirage', 1000, 0), 1000, complete=True)
+            for i in range(3):
+                pool.add(task('dyn', 'chromium:mirage', 1000, i + 1))
+            pool.wait_all()
+            self.assertIn(0, host.job_limits)
+            self.assertIn(CFG['match_mem_mb'], host.job_limits)
+            self.assertTrue(all(a['ok'] for a in pool.attempts))
 
     def test_windows_group_grows_after_external_memory_release(self):
+        # (28.11) общий потолок commit после ПК 335 — только у строгих движков (Firefox / WebKit); Chromium / Node — без него
+        # (test_dynamic_engines_share_unlimited_group). Проверка механизма потолка сохранена — на Firefox.
         with FakeHost(self.folder, total=16000, base=10500, protected=True).install() as host:
-            pool = self.pool(est_mb={'node:mirage': 1200})
-            pool._learn(task('old', 'node:mirage', 1200, 0), 1200, complete=True)
+            pool = self.pool(est_mb={'firefox:mirage': 1200})
+            pool._learn(task('old', 'firefox:mirage', 1200, 0), 1200, complete=True)
             for i in range(8):
-                pool.add(task('recover', 'node:mirage', 1200, i + 1, GROW='4'))
+                pool.add(task('recover', 'firefox:mirage', 1200, i + 1, GROW='4'))
             advance = host.advance
 
             def free_when_running(dt):
