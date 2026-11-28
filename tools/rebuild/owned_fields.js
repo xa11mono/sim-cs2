@@ -108,17 +108,9 @@ function check({ asts, tops, owners, collisions, fileAt, lineAt }){
           if(key !== undefined) record(key,depth,direct);
           else if(looksLikeBot(resolve(tgt.object))){
             // Старт чистого матча удаляет неприсутствующие в BOT_INIT ключи до живого тика.
-            // Повтор подставляет поля показа только в явно перечисленных ветках switch.
             const reset = source === "round.js" && fn === "matchBegin"
               && (expression === "delete b[k]" || expression === "b[k] = I.vals[k]");
-            const sw = anc.at(-4);
-            const replay = source === "modes.js" && fn === "rpSetBotField" && expression === "bot[field] = value"
-              && sw?.type === "SwitchStatement" && sw.discriminant.name === "field"
-              && sw.cases.at(-2) === anc.at(-3) && sw.cases.at(-1)?.test === null
-              && sw.cases.at(-1).consequent.length === 0
-              && sw.cases.slice(0,-1).every(c => typeof literalKey(c.test) === "string"
-                && (!Object.hasOwn(fields,literalKey(c.test)) || c.consequent[0]?.type === "ReturnStatement"));
-            if(!reset && !replay) invalid("поле игрока через вычисляемый ключ");
+            if(!reset) invalid("поле игрока через вычисляемый ключ");
           }
           target(tgt.object,depth+1,false);
         } else if(tgt.type === "ObjectPattern"){

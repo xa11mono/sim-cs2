@@ -79,7 +79,7 @@ function blindBullet(b, pt){
   smokeHoleFlight(b, pt, cl);
   var sv = bulletLineHit(b, cl.x, cl.y, null, tick*37 + b.id.charCodeAt(1)*11, b._spam && b._spam.blind ? "вслепую" : "сквозь дым");   // (Г1) пуля сквозь дым попадает в того, кто на линии
   if(sv) cl = {x:sv.x, y:sv.y};
-  tracers.push({wc:tracerClass(b.weapon), wk:b.weapon && b.weapon.key, sil:!!(b.weapon && b.weapon.silenced), x1:b.x, y1:b.y, x2:cl.x, y2:cl.y, team:b.team, born:nowTs, hit:!!sv, miss:!sv}); if(tracers.length > 60) tracers.shift(); soundEv("sndShot", b.weapon, b.x, b.y);
+  tracers.push(showStamp({wc:tracerClass(b.weapon), wk:b.weapon && b.weapon.key, sil:!!(b.weapon && b.weapon.silenced), x1:b.x, y1:b.y, x2:cl.x, y2:cl.y, team:b.team, born:nowTs, hit:!!sv, miss:!sv}, tracers[tracers.length - 1])); if(tracers.length > 60) tracers.shift(); soundEv("sndShot", b.weapon, b.x, b.y);
   // (изоляция, F-C, 27.11) в кого пуля попала — знает, что стреляют по нему (урон и индикатор стороны урона в CS2); откуда — так же
   // приблизительно, как звук выстрела (hearPos: погрешность направления и дальности, за стеной больше), а не точное место стрелка. Свист пули
   // рядом без попадания не моделируется: радиуса в источниках нет. Остальные в радиусе слышимости — выстрелы (тоже hearPos)

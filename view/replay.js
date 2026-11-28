@@ -25,7 +25,7 @@ var RP_K = {
   live: 10,           // (v518d, владелец А-40: «до 10 секунд ещё можно забрать у раунда») повтор идёт и в начале нового раунда, пока боты бегут на места
   tracer: 0.22        // след выстрела в повторе, с игры
 };
-var RP = {on: false, rec: null, last: null, P: null, enabled: true, mode: "auto", prevRs: null, kfSeen: null, lastTs: 0, holding: false};
+var RP = {on: false, rec: null, last: null, P: null, enabled: true, mode: "auto", prevRs: null, lastTs: 0, holding: false};
 try{ RP.enabled = localStorage.getItem("sim-rp") !== "0"; RP.mode = localStorage.getItem("sim-rp-mode") || "auto"; }catch(e){}
 // (владелец 28.10) как на трансляции, показ бывает разный: клип + реакция, только клип (фраги с замедлением), только реакция.
 // «авто» — выбор по раунду (доли — проектные числа); фрагов и дефуза у клатчера нет — показывать в клипе нечего, только реакция
@@ -58,18 +58,18 @@ function rpNum(v){ return typeof v === "number" && isFinite(v) ? v : NaN; }
 function rpNewRec(){
   var nk = {}; bots.forEach(function(b){ nk[b.id] = nick(b.id); });
   var NK = {}; for(var k in NICKS) NK[k] = NICKS[k];
-  return {m: matchNum, round: roundNum, t0: tick, s: [], kills: [], tr: [], ev: [], vo: [], nick: nk, NK: NK, side: {CT: SIDE_TEAM.CT, T: SIDE_TEAM.T}, team: {CT: TEAM_NAME.CT, T: TEAM_NAME.T},
+  return {m: matchNum, round: roundNum, t0: tick, s: [], kills: [], tr: [], ev: [], vo: [], seen: {tr: new Set(), vo: new Set(), kf: new Set()}, nick: nk, NK: NK, side: {CT: SIDE_TEAM.CT, T: SIDE_TEAM.T}, team: {CT: TEAM_NAME.CT, T: TEAM_NAME.T},
           logo: {CT: TEAM_LOGO.CT, T: TEAM_LOGO.T}, score0: {CT: score.CT, T: score.T}, solo: {}, lastBomb: bomb ? bomb.state : null};
 }
 function rpSample(R){
   var n = bots.length, B = new Float32Array(n*RP_NB);
   bots.forEach(function(b, i){ var o = i*RP_NB;
-    var vf = b._visFacing !== undefined ? b._visFacing : b.facing;
     var act = 0;
     if(b.planting) act = Math.max(0.01, Math.min(1, 1 - (b.plantUntil - tick)/PLANT_TICKS));
     else if(b.defusing){ var tot = b.kit ? DEFUSE_KIT_TICKS : DEFUSE_TICKS; act = -Math.max(0.01, Math.min(1, 1 - (b.defuseUntil - tick)/tot)); }
-    B[o] = b.x; B[o+1] = b.y; B[o+2] = rpNum(vf); B[o+3] = b.alive ? 1 : 0; B[o+4] = b.hp; B[o+5] = b.crouching ? 1 : 0;
-    B[o+6] = (b._overV||0) > 0.5 ? 1 : (b._underV||0) > 0.5 ? -1 : 0;   // (v535) этаж — по 3D (floorViewTick) B[o+7] = act; B[o+8] = tick < (b.blindUntil||0) ? 1 : 0;
+    B[o] = b.x; B[o+1] = b.y; B[o+2] = rpNum(b.facing); B[o+3] = b.alive ? 1 : 0; B[o+4] = b.hp; B[o+5] = b.crouching ? 1 : 0;
+    B[o+6] = (b._overV||0) > 0.5 ? 1 : (b._underV||0) > 0.5 ? -1 : 0;   // (v535) этаж — по 3D (floorViewTick)
+    B[o+7] = act; B[o+8] = tick < (b.blindUntil||0) ? 1 : 0;
   });
   var sm = [], fi = [], nd = [];
   smokes.forEach(function(s){ var r = smokeRadiusNow(s); if(r > 2) sm.push(s.x, s.y, r); });
@@ -79,13 +79,24 @@ function rpSample(R){
   return {t: tick, b: B, sm: sm, fi: fi, nd: nd, bomb: bs ? {st: bs, x: bomb.x, y: bomb.y, c: ci} : null, w: rpWorld()};
 }
 function rpWorld(){
-  var W = {tick: tick, b: bots.map(function(o){ var c = {}; RP_BF.forEach(function(k){ c[k] = o[k]; }); return c; }),
+  var W = {tick: tick, b: bots.map(function(o){
+    var c = {_climb: o._climb && {jump: o._climb.jump, air: o._climb.air},
+      _visible: (o._visible || []).map(function(b){ return b.id; })};
+    RP_BF.forEach(function(k){ c[k] = o[k]; });
+    return c;
+  }),
     sm: smokes.map(rpCl), fi: fires.map(rpCl), nd: nadesInAir.map(rpCl), fx: nadeFx.map(rpCl),
     bomb: bomb ? rpCl(bomb) : null, bc: bomb && bomb.carrier ? bots.indexOf(bomb.carrier) : -1};
   if(tick % 8 === 0){ W.gw = groundWeapons.map(rpCl); W.gi = groundItems.map(rpCl); }
   return W;
 }
 function rpIdByNick(nm){ for(var id in NICKS) if(NICKS[id] === nm) return id; return null; }
+function rpNewEvent(seen, e){
+  var key = showEventKey(e);
+  if(seen.has(key)) return false;
+  seen.add(key);
+  return true;
+}
 // после тиков кадра (app): записать, что изменилось; конец раунда — проверить клатч
 function rpRecord(){
   var rs = roundState;
@@ -99,9 +110,6 @@ function rpRecord(){
     if(S && tick < S.t){ R = RP.rec = rpNewRec(); S = null; }   // перемотка назад (отметки) — запись раунда заново
     if(!S || S.t !== tick){
       R.s.push(rpSample(R));
-      // новые выстрелы (по самим записям, а не по времени кадра)
-      if(!RP.trSeen || RP.trSeen.r !== R) RP.trSeen = {r: R, set: new WeakSet()};
-      tracers.forEach(function(q){ if(RP.trSeen.set.has(q)) return; RP.trSeen.set.add(q); var c = rpCl(q); c.t = tick; R.tr.push(c); });
       // кто остался один в команде — с какого тика (для «клип с первого фрага клатча»)
       ["CT","T"].forEach(function(s){ var al = bots.filter(function(b){ return b.team === s && b.alive; }); if(al.length === 1 && !R.solo[al[0].id]) R.solo[al[0].id] = tick; });
       // плант / дефуз — моменты
@@ -113,25 +121,29 @@ function rpRecord(){
     }
   }
   RP.lastTs = nowTs;
-  // (владелец 28.10) войс раунда со временем — в повторе слышно, что говорили в эфире (новые фразы — сверху списка)
-  if(RP.rec && (rs === "live" || rs === "ending" || rs === "matchover")){
-    if(!RP.voSeen || RP.voSeen.r !== RP.rec) RP.voSeen = {r: RP.rec, set: new WeakSet()};
-    for(var vi = voiceLines.length - 1; vi >= 0; vi--){ var v = voiceLines[vi]; if(RP.voSeen.set.has(v)) continue; RP.voSeen.set.add(v);
-      RP.rec.vo.push({t: tick, who: v.who, team: v.team, text: v.text, kind: v.kind}); }
-  }
-  // киллфид раунда — новые строки
-  if(RP.rec && (rs === "live" || rs === "ending" || rs === "matchover")){
-    if(!RP.kfSeen || RP.kfSeen.r !== RP.rec) RP.kfSeen = {r: RP.rec, set: typeof WeakSet !== "undefined" ? new WeakSet() : null, n: 0};
-    var KS = RP.kfSeen;
-    for(var j = killfeed.length - 1; j >= 0; j--){ var k = killfeed[j]; if(KS.set ? KS.set.has(k) : k._rp) continue; if(KS.set) KS.set.add(k); else k._rp = 1;
+  if(R){
+    tracers.forEach(function(q){
+      var t = q.rt ?? q.tk ?? tick;
+      if(t < R.t0 || !rpNewEvent(R.seen.tr, q)) return;
+      var c = rpCl(q); c.t = t; R.tr.push(c);
+    });
+    // Войс и киллфид хранят новые записи в начале. Кадр Worker может включать несколько тиков.
+    for(var vi = voiceLines.length - 1; vi >= 0; vi--){
+      var v = voiceLines[vi], vt = v.rt ?? tick;
+      if(vt < R.t0 || !rpNewEvent(R.seen.vo, v)) continue;
+      R.vo.push({t: vt, who: v.who, team: v.team, text: v.text, kind: v.kind});
+    }
+    for(var j = killfeed.length - 1; j >= 0; j--){
+      var k = killfeed[j];
+      if(!rpNewEvent(R.seen.kf, k)) continue;
       if(k.kind !== "kill") continue;
       // (п.18/22/34 владельца 29.10) после перемотки запись раунда начинается заново, а киллфид — весь раунд: фраги до начала записи
       // в клип не попадут (кадров нет) — это не моменты этой записи (раньше давали мультикилл с пустым клипом → экран «клатч 1v2»)
-      var kt = Math.round((k.at||simTime)*TICK_HZ); if(kt < RP.rec.t0) continue;
+      var kt = k.rt ?? Math.round((k.at ?? simTime)*TICK_HZ); if(kt < R.t0) continue;
       // (v569, В116) показал ли обсервер этот фраг вживую: и убийца, и жертва — в кадре (иначе — кандидат на повтор «пропущено в эфире»)
       var kA = teamBot(rpIdByNick(k.att)), kV = teamBot(rpIdByNick(k.vic)), kLive = !!(OBS.on && kA && kV && obsShows(kA.x, kA.y) && obsShows(kV.x, kV.y));
       if(OBS.on && kA){ if(OBS_ST.m !== matchNum) OBS_ST = {m: matchNum, kills: 0, live: 0, sw: 0, late: 0}; OBS_ST.kills++; if(kLive) OBS_ST.live++; }
-      RP.rec.kills.push({t: Math.round((k.at||simTime)*TICK_HZ), att: rpIdByNick(k.att), vic: rpIdByNick(k.vic), attTeam: k.attTeam, vicTeam: k.vicTeam,
+      R.kills.push({t: kt, att: rpIdByNick(k.att), vic: rpIdByNick(k.vic), attTeam: k.attTeam, vicTeam: k.vicTeam,
         w: k.w, hs: k.hs, smoke: k.smoke, wall: k.wall, noscope: k.noscope, blind: k.blind, attN: k.att, vicN: k.vic, live: kLive}); }
   }
   // конец раунда

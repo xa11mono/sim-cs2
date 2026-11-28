@@ -72,6 +72,11 @@ var PREFIRE_RADIUS = 140; // px — насколько близко цель д�
 var SOUND_RADIUS_RUN = 380, SOUND_RADIUS_WALK = 130; // v118: слышно дальше (было 250/90) — бег ≈950 юнитов CS2; // бег 250px по фидбеку; тихий шаг в той же пропорции (~0.36 от бега) // px — без учёта затухания через стены (упрощение v1, см. план §13)
 var FOOTSTEP_INTERVAL_RUN = 19, FOOTSTEP_INTERVAL_WALK = 26;   // (v333, М52) шаг раз в 0,3 с бегом и 0,4 с шагом на полной скорости — как в движке Source (CBasePlayer::UpdateStepSound: 300 / 400 мс); было 14 / 20 тиков (0,22 с — «слишком часто»). // тиков между шагами на полной скорости (v332: шаги — по пути, это задаёт длину шага)
 var bots = [];
+function botsWithReplay(actors, show){
+  var live = bots;
+  bots = actors;
+  try{ show(); } finally { bots = live; }
+}
 var START_MONEY = 800, MAX_MONEY = 16000;
 function makeTeam(team, spawnPt, count, weapon){
   for(var i=0;i<count;i++){

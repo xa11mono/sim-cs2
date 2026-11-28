@@ -4,12 +4,12 @@
 
 | файл:строка | элемент | событие / клавиши | класс | команды ядра | прямо пишет в игру | проверка |
 |---|---|---|---|---|---|---|
-| app.js:222 | window | error | меняет игру | showFatal |  | нет автотеста |
-| app.js:276 | WK.w | error | меняет игру | showFatal |  | нет автотеста |
-| app.js:340 | — | requestAnimationFrame | меняет игру | frame |  | автотест |
-| app.js:379 | #btnFreshMatch | click | меняет игру | freshMatch, logEvent, seriesNew, warmStart |  | автотест |
-| app.js:391 | — | requestAnimationFrame | меняет игру | frame |  | автотест |
-| app.js:429 | #btnRestartRound | click | меняет игру | draw, logEvent, resetRound |  | автотест |
+| app.js:227 | window | error | меняет игру | showFatal |  | нет автотеста |
+| app.js:281 | WK.w | error | меняет игру | showFatal |  | нет автотеста |
+| app.js:354 | — | requestAnimationFrame | меняет игру | frame |  | автотест |
+| app.js:393 | #btnFreshMatch | click | меняет игру | freshMatch, logEvent, seriesNew, warmStart |  | автотест |
+| app.js:405 | — | requestAnimationFrame | меняет игру | frame |  | автотест |
+| app.js:443 | #btnRestartRound | click | меняет игру | draw, logEvent, resetRound |  | автотест |
 | demo.js:37 | DV_PANEL_EL | click | меняет игру | dvRender, dvStart, dvStop |  | нет автотеста |
 | demo.js:57 | — | setInterval | меняет игру | dvRender |  | нет автотеста |
 | demo.js:58 | #btnDemoView | click | меняет игру | dvToggle |  | автотест |
@@ -72,7 +72,7 @@
 | observer.js:346 | #btnWarmSkip | click | меняет игру | warmEnd |  | автотест |
 | observer.js:350 | #chkWarm | change | меняет игру | warmEnd |  | автотест |
 | observer.js:351 | #selSeries | change | меняет игру | seriesNew |  | автотест |
-| replay-play.js:309 | — | setTimeout | меняет игру | rpGoto |  | нет автотеста |
+| replay-play.js:308 | — | setTimeout | меняет игру | rpGoto |  | нет автотеста |
 | sandbox.js:22 | el | click | меняет игру | draw, sbAi, sbRemove, sbRender, sbWalkNext |  | нет автотеста |
 | sandbox.js:81 | cv | mousedown | меняет игру | draw, logEvent, sbOrder, sbRender, sbRevive |  | нет автотеста |
 | sandbox.js:89 | window | mousemove | меняет игру | draw, sbPlace |  | нет автотеста |
@@ -86,30 +86,30 @@
 | timeout.js:241 | #btnToTake | click | меняет игру | timeoutForce |  | автотест |
 | timeout.js:243 | #btnRpGo | click | меняет игру | rpJump |  | нет автотеста |
 | timeout.js:244 | #btnToGo | click | меняет игру | rpJump |  | нет автотеста |
-| view3d-frame.js:289 | #btn3d | click | меняет игру | d3Toggle |  | автотест |
-| view3d-frame.js:295 | #cv3 | pointermove | меняет игру |  | .x, .y | нет автотеста |
-| view3d-frame.js:302 | #cv3 | pointerup | меняет игру | playersUpdate |  | нет автотеста |
-| app.js:193 | #sndVol | input | настройки / данные карты |  |  | автотест |
-| app.js:195 | #btnSnd | click | настройки / данные карты |  |  | автотест |
-| app.js:275 | WK.w | message | настройки / данные карты |  |  | нет автотеста |
-| app.js:287 | L | message | настройки / данные карты |  |  | нет автотеста |
-| app.js:377 | #hlP | input | настройки / данные карты |  |  | автотест |
-| killfeed.js:107 | #econ | pointerdown | настройки / данные карты |  |  | нет автотеста |
-| killfeed.js:109 | #econ | keydown Enter   | настройки / данные карты |  |  | нет автотеста |
+| view3d-frame.js:294 | #btn3d | click | меняет игру | d3Toggle |  | автотест |
+| view3d-frame.js:300 | #cv3 | pointermove | меняет игру |  | .x, .y | нет автотеста |
+| view3d-frame.js:307 | #cv3 | pointerup | меняет игру | playersUpdate |  | нет автотеста |
+| app.js:198 | #sndVol | input | настройки / данные карты |  |  | автотест |
+| app.js:200 | #btnSnd | click | настройки / данные карты |  |  | автотест |
+| app.js:280 | WK.w | message | настройки / данные карты |  |  | нет автотеста |
+| app.js:292 | L | message | настройки / данные карты |  |  | нет автотеста |
+| app.js:391 | #hlP | input | настройки / данные карты |  |  | автотест |
+| killfeed.js:110 | #econ | pointerdown | настройки / данные карты |  |  | нет автотеста |
+| killfeed.js:112 | #econ | keydown Enter   | настройки / данные карты |  |  | нет автотеста |
 | lineup-editor.js:112 | window | mouseup | настройки / данные карты |  |  | нет автотеста |
 | observer.js:356 | #btnObsMap | click | настройки / данные карты |  |  | автотест |
-| replay-play.js:306 | #chkRp | change | настройки / данные карты |  |  | автотест |
-| replay-play.js:307 | #selRp | change | настройки / данные карты |  |  | автотест |
-| app.js:187 | document | ev | только показ |  |  | нет автотеста |
-| app.js:202 | — | setTimeout | только показ |  |  | нет автотеста |
-| app.js:380 | — | setInterval | только показ |  |  | нет автотеста |
-| app.js:396 | d | toggle | только показ |  |  | нет автотеста |
-| app.js:397 | document | mousedown | только показ |  |  | нет автотеста |
-| app.js:398 | document | keydown Escape | только показ |  |  | нет автотеста |
-| app.js:400 | #btnPause | click | только показ |  |  | автотест |
-| app.js:406 | #btnExportProject | click | только показ |  |  | нет автотеста |
+| replay-play.js:305 | #chkRp | change | настройки / данные карты |  |  | автотест |
+| replay-play.js:306 | #selRp | change | настройки / данные карты |  |  | автотест |
+| app.js:192 | document | ev | только показ |  |  | нет автотеста |
+| app.js:207 | — | setTimeout | только показ |  |  | нет автотеста |
+| app.js:394 | — | setInterval | только показ |  |  | нет автотеста |
+| app.js:410 | d | toggle | только показ |  |  | нет автотеста |
+| app.js:411 | document | mousedown | только показ |  |  | нет автотеста |
+| app.js:412 | document | keydown Escape | только показ |  |  | нет автотеста |
+| app.js:414 | #btnPause | click | только показ |  |  | автотест |
+| app.js:420 | #btnExportProject | click | только показ |  |  | нет автотеста |
 | fx.js:16 | window | resize | только показ |  |  | автотест |
-| killfeed.js:77 | — | setTimeout | только показ |  |  | нет автотеста |
+| killfeed.js:80 | — | setTimeout | только показ |  |  | нет автотеста |
 | lineup-editor.js:64 | #warn | keydown | только показ |  |  | нет автотеста |
 | lineup-editor.js:91 | #luBuiltinDet | toggle | только показ |  |  | нет автотеста |
 | lineup-editor.js:200 | — | setTimeout | только показ |  |  | нет автотеста |
@@ -147,10 +147,10 @@
 | observer.js:368 | cv | mousedown | только показ |  |  | нет автотеста |
 | observer.js:369 | cv | mouseup | только показ |  |  | нет автотеста |
 | observer.js:374 | window | keydown o O щ Щ | только показ |  |  | автотест |
-| replay-play.js:300 | — | setTimeout | только показ |  |  | нет автотеста |
-| replay-play.js:308 | #btnRpLast | click | только показ |  |  | автотест |
-| replay.js:228 | RP_EL.skip | click | только показ |  |  | нет автотеста |
-| replay.js:229 | window | keydown Escape Space | только показ |  |  | нет автотеста |
+| replay-play.js:299 | — | setTimeout | только показ |  |  | нет автотеста |
+| replay-play.js:307 | #btnRpLast | click | только показ |  |  | автотест |
+| replay.js:240 | RP_EL.skip | click | только показ |  |  | нет автотеста |
+| replay.js:241 | window | keydown Escape Space | только показ |  |  | нет автотеста |
 | sandbox.js:96 | window | mouseup | только показ |  |  | нет автотеста |
 | scoreboard.js:237 | el | pointerdown | только показ |  |  | нет автотеста |
 | scoreboard.js:238 | el | keydown Enter   | только показ |  |  | нет автотеста |
@@ -175,10 +175,10 @@
 | team.js:8 | chkTeamDbg | change | только показ |  |  | нет автотеста |
 | timeout.js:30 | TS.el.skip | click | только показ |  |  | нет автотеста |
 | timeout.js:240 | #btnToLast | click | только показ |  |  | автотест |
-| view3d-frame.js:292 | #cv3 | contextmenu | только показ |  |  | нет автотеста |
-| view3d-frame.js:293 | #cv3 | wheel | только показ |  |  | нет автотеста |
-| view3d-frame.js:294 | #cv3 | pointerdown | только показ |  |  | нет автотеста |
-| view3d-frame.js:308 | el | click | только показ |  |  | нет автотеста |
-| voice-console.js:20 | window | keydown Backquote | только показ |  |  | нет автотеста |
+| view3d-frame.js:297 | #cv3 | contextmenu | только показ |  |  | нет автотеста |
+| view3d-frame.js:298 | #cv3 | wheel | только показ |  |  | нет автотеста |
+| view3d-frame.js:299 | #cv3 | pointerdown | только показ |  |  | нет автотеста |
+| view3d-frame.js:313 | el | click | только показ |  |  | нет автотеста |
+| voice-console.js:27 | window | keydown Backquote | только показ |  |  | нет автотеста |
 
 Итого: обработчиков 176, с автотестом 43. Прямых записей показа в игру (функции и обработчики): 23.

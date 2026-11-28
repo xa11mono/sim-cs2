@@ -3,7 +3,7 @@
  "handlers": [
   {
    "file": "voice-console.js",
-   "line": 20,
+   "line": 27,
    "what": "событие",
    "el": "window",
    "ev": "keydown",
@@ -2168,7 +2168,7 @@
   },
   {
    "file": "view3d-frame.js",
-   "line": 289,
+   "line": 294,
    "what": "событие",
    "el": "#btn3d",
    "ev": "click",
@@ -2188,7 +2188,7 @@
   },
   {
    "file": "view3d-frame.js",
-   "line": 292,
+   "line": 297,
    "what": "событие",
    "el": "#cv3",
    "ev": "contextmenu",
@@ -2204,7 +2204,7 @@
   },
   {
    "file": "view3d-frame.js",
-   "line": 293,
+   "line": 298,
    "what": "событие",
    "el": "#cv3",
    "ev": "wheel",
@@ -2220,7 +2220,7 @@
   },
   {
    "file": "view3d-frame.js",
-   "line": 294,
+   "line": 299,
    "what": "событие",
    "el": "#cv3",
    "ev": "pointerdown",
@@ -2236,7 +2236,7 @@
   },
   {
    "file": "view3d-frame.js",
-   "line": 295,
+   "line": 300,
    "what": "событие",
    "el": "#cv3",
    "ev": "pointermove",
@@ -2255,7 +2255,7 @@
   },
   {
    "file": "view3d-frame.js",
-   "line": 302,
+   "line": 307,
    "what": "событие",
    "el": "#cv3",
    "ev": "pointerup",
@@ -2276,7 +2276,7 @@
   },
   {
    "file": "view3d-frame.js",
-   "line": 308,
+   "line": 313,
    "what": "событие",
    "el": "el",
    "ev": "click",
@@ -2292,7 +2292,7 @@
   },
   {
    "file": "killfeed.js",
-   "line": 77,
+   "line": 80,
    "what": "setTimeout",
    "el": "—",
    "ev": "setTimeout",
@@ -2308,7 +2308,7 @@
   },
   {
    "file": "killfeed.js",
-   "line": 107,
+   "line": 110,
    "what": "событие",
    "el": "#econ",
    "ev": "pointerdown",
@@ -2324,7 +2324,7 @@
   },
   {
    "file": "killfeed.js",
-   "line": 109,
+   "line": 112,
    "what": "событие",
    "el": "#econ",
    "ev": "keydown",
@@ -2702,7 +2702,7 @@
   },
   {
    "file": "replay.js",
-   "line": 228,
+   "line": 240,
    "what": "событие",
    "el": "RP_EL.skip",
    "ev": "click",
@@ -2718,7 +2718,7 @@
   },
   {
    "file": "replay.js",
-   "line": 229,
+   "line": 241,
    "what": "событие",
    "el": "window",
    "ev": "keydown",
@@ -2737,7 +2737,7 @@
   },
   {
    "file": "replay-play.js",
-   "line": 300,
+   "line": 299,
    "what": "setTimeout",
    "el": "—",
    "ev": "setTimeout",
@@ -2753,7 +2753,7 @@
   },
   {
    "file": "replay-play.js",
-   "line": 306,
+   "line": 305,
    "what": "событие",
    "el": "#chkRp",
    "ev": "change",
@@ -2769,7 +2769,7 @@
   },
   {
    "file": "replay-play.js",
-   "line": 307,
+   "line": 306,
    "what": "событие",
    "el": "#selRp",
    "ev": "change",
@@ -2785,7 +2785,7 @@
   },
   {
    "file": "replay-play.js",
-   "line": 308,
+   "line": 307,
    "what": "событие",
    "el": "#btnRpLast",
    "ev": "click",
@@ -2801,7 +2801,7 @@
   },
   {
    "file": "replay-play.js",
-   "line": 309,
+   "line": 308,
    "what": "setTimeout",
    "el": "—",
    "ev": "setTimeout",
@@ -3328,7 +3328,7 @@
   },
   {
    "file": "app.js",
-   "line": 187,
+   "line": 192,
    "what": "событие",
    "el": "document",
    "ev": "ev",
@@ -3344,7 +3344,7 @@
   },
   {
    "file": "app.js",
-   "line": 193,
+   "line": 198,
    "what": "событие",
    "el": "#sndVol",
    "ev": "input",
@@ -3360,7 +3360,7 @@
   },
   {
    "file": "app.js",
-   "line": 202,
+   "line": 207,
    "what": "setTimeout",
    "el": "—",
    "ev": "setTimeout",
@@ -3376,7 +3376,7 @@
   },
   {
    "file": "app.js",
-   "line": 195,
+   "line": 200,
    "what": "событие",
    "el": "#btnSnd",
    "ev": "click",
@@ -3392,7 +3392,7 @@
   },
   {
    "file": "app.js",
-   "line": 222,
+   "line": 227,
    "what": "событие",
    "el": "window",
    "ev": "error",
@@ -3412,7 +3412,7 @@
   },
   {
    "file": "app.js",
-   "line": 275,
+   "line": 280,
    "what": "событие",
    "el": "WK.w",
    "ev": "message",
@@ -3428,7 +3428,7 @@
   },
   {
    "file": "app.js",
-   "line": 276,
+   "line": 281,
    "what": "событие",
    "el": "WK.w",
    "ev": "error",
@@ -3448,7 +3448,7 @@
   },
   {
    "file": "app.js",
-   "line": 287,
+   "line": 292,
    "what": "событие",
    "el": "L",
    "ev": "message",
@@ -3464,7 +3464,7 @@
   },
   {
    "file": "app.js",
-   "line": 340,
+   "line": 354,
    "what": "requestAnimationFrame",
    "el": "—",
    "ev": "requestAnimationFrame",
@@ -3510,7 +3510,7 @@
   },
   {
    "file": "app.js",
-   "line": 377,
+   "line": 391,
    "what": "событие",
    "el": "#hlP",
    "ev": "input",
@@ -3528,7 +3528,7 @@
   },
   {
    "file": "app.js",
-   "line": 379,
+   "line": 393,
    "what": "событие",
    "el": "#btnFreshMatch",
    "ev": "click",
@@ -3570,7 +3570,7 @@
   },
   {
    "file": "app.js",
-   "line": 380,
+   "line": 394,
    "what": "setInterval",
    "el": "—",
    "ev": "setInterval",
@@ -3586,7 +3586,7 @@
   },
   {
    "file": "app.js",
-   "line": 391,
+   "line": 405,
    "what": "requestAnimationFrame",
    "el": "—",
    "ev": "requestAnimationFrame",
@@ -3632,7 +3632,7 @@
   },
   {
    "file": "app.js",
-   "line": 396,
+   "line": 410,
    "what": "событие",
    "el": "d",
    "ev": "toggle",
@@ -3648,7 +3648,7 @@
   },
   {
    "file": "app.js",
-   "line": 397,
+   "line": 411,
    "what": "событие",
    "el": "document",
    "ev": "mousedown",
@@ -3664,7 +3664,7 @@
   },
   {
    "file": "app.js",
-   "line": 398,
+   "line": 412,
    "what": "событие",
    "el": "document",
    "ev": "keydown",
@@ -3682,7 +3682,7 @@
   },
   {
    "file": "app.js",
-   "line": 400,
+   "line": 414,
    "what": "событие",
    "el": "#btnPause",
    "ev": "click",
@@ -3698,7 +3698,7 @@
   },
   {
    "file": "app.js",
-   "line": 406,
+   "line": 420,
    "what": "событие",
    "el": "#btnExportProject",
    "ev": "click",
@@ -3714,7 +3714,7 @@
   },
   {
    "file": "app.js",
-   "line": 429,
+   "line": 443,
    "what": "событие",
    "el": "#btnRestartRound",
    "ev": "click",
@@ -4181,14 +4181,14 @@
    "var": "BEEP_FINAL",
    "class": "показ",
    "read_by_core": [
-    "journal.js:153"
+    "journal.js:159"
    ]
   },
   {
    "var": "BEEP_NEXT",
    "class": "показ",
    "read_by_core": [
-    "journal.js:154"
+    "journal.js:160"
    ]
   },
   {
@@ -4395,7 +4395,8 @@
    "read_by_core": [
     "journal.js:8",
     "journal.js:8",
-    "journal.js:8"
+    "journal.js:8",
+    "src/snapshot.js:168"
    ]
   },
   {
@@ -4407,12 +4408,12 @@
    "var": "TEAM_LOG",
    "class": "диагностика",
    "read_by_core": [
-    "journal.js:52",
-    "journal.js:52",
-    "journal.js:52",
-    "journal.js:53",
-    "journal.js:53",
-    "journal.js:53"
+    "journal.js:58",
+    "journal.js:58",
+    "journal.js:58",
+    "journal.js:59",
+    "journal.js:59",
+    "journal.js:59"
    ]
   },
   {
@@ -4436,15 +4437,15 @@
     "modes.js:150",
     "modes.js:196",
     "modes.js:196",
-    "src/snapshot.js:237",
-    "src/snapshot.js:237"
+    "src/snapshot.js:245",
+    "src/snapshot.js:245"
    ]
   },
   {
    "var": "accumulator",
    "class": "показ",
    "read_by_core": [
-    "modes.js:243"
+    "modes.js:218"
    ]
   },
   {
@@ -4466,7 +4467,7 @@
     "damage.js:248",
     "decide.js:263",
     "round.js:104",
-    "modes.js:244"
+    "modes.js:219"
    ]
   },
   {
@@ -4474,23 +4475,23 @@
    "class": "показ",
    "read_by_core": [
     "smoke-react.js:82",
-    "journal.js:96",
-    "journal.js:110",
-    "journal.js:115",
+    "journal.js:102",
+    "journal.js:116",
+    "journal.js:121",
     "items.js:53",
     "shoot.js:303",
     "shoot.js:367",
     "tick-jump.js:10",
     "tick-step.js:145",
-    "src/snapshot.js:174",
-    "src/snapshot.js:174"
+    "src/snapshot.js:182",
+    "src/snapshot.js:182"
    ]
   },
   {
    "var": "paused",
    "class": "показ",
    "read_by_core": [
-    "src/snapshot.js:254"
+    "src/snapshot.js:262"
    ]
   },
   {
@@ -4502,9 +4503,9 @@
     "tick-step.js:145",
     "tick-step.js:149",
     "tick-step.js:149",
-    "modes.js:244",
-    "src/snapshot.js:172",
-    "src/snapshot.js:172"
+    "modes.js:219",
+    "src/snapshot.js:180",
+    "src/snapshot.js:180"
    ]
   },
   {
@@ -4514,14 +4515,18 @@
     "smoke-react.js:82",
     "smoke-react.js:82",
     "smoke-react.js:82",
+    "smoke-react.js:82",
+    "smoke-react.js:82",
     "shoot.js:367",
+    "shoot.js:369",
+    "shoot.js:369",
     "shoot.js:387",
     "shoot.js:387",
     "round.js:104",
     "round.js:226",
-    "modes.js:244",
-    "src/snapshot.js:172",
-    "src/snapshot.js:172"
+    "modes.js:219",
+    "src/snapshot.js:180",
+    "src/snapshot.js:180"
    ]
   }
  ],

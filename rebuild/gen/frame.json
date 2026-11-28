@@ -216,7 +216,8 @@
   "KF_DIRTY": {
    "from": "journal.js",
    "by": [
-    "app"
+    "app",
+    "killfeed"
    ]
   },
   "LOG_DIRTY": {
@@ -840,7 +841,9 @@
     "observer",
     "replay",
     "replay-play",
-    "scoreboard"
+    "scoreboard",
+    "view3d-frame",
+    "voice-console"
    ]
   },
   "nadeFx": {
@@ -919,7 +922,8 @@
     "scoreboard",
     "team",
     "timeout",
-    "view3d"
+    "view3d",
+    "view3d-frame"
    ]
   },
   "roundStartTick": {
@@ -2858,7 +2862,8 @@
    "by": [
     "replay",
     "replay-play",
-    "timeout"
+    "timeout",
+    "view3d"
    ]
   },
   "SANDBOX": {

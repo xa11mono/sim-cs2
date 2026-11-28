@@ -132,6 +132,19 @@ function d3FloorBelow(x, y, z){
   return d3FloorNear(x, y, z);
 }
 // (Д8) путь игрока по тикам: [x, y, высота сцены], 4 с
+function d3ReplayFrame(P, W, H){
+  var live = D3;
+  if(!P.d3 || P.d3Segment !== P.si){
+    P.d3 = Object.assign({}, live, {corpse: {}, hist: {}, tagEls: {}, tz: null, timeline: null});
+    P.d3Segment = P.si;
+  }
+  try{
+    D3 = P.d3;
+    d3Frame({w: W, h: H, noTags: true, focus: bots[P.ci] && bots[P.ci].id});
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.drawImage(D3.gl.canvas, 0, 0, W, H);
+  } finally { D3 = live; }
+}
 function d3Hist(b, x, y, z){
   var H = D3.hist[b.id] || (D3.hist[b.id] = []);
   if(!b.alive){ if(H.length) H.length = 0; return; }
@@ -154,14 +167,14 @@ function d3FpBot(){
 // (владелец 13.11: «моделька после смерти остаётся, голова и туловище получают физику и скатываются») тело: корпус падает вокруг
 // ступней в сторону от убийцы (или назад от взгляда), у пола — отскок и трение; голова отрывается при ударе и катится; стены — лучом
 // по геометрии (m3Line). Только показ, своё время — по тикам игры (пауза — стоит), до нового раунда.
-function d3Corpse(b, draw, col, sz){
+function d3Corpse(b, draw, col, z){
   var C = D3.corpse[b.id], H = D3.hist[b.id], M = m3();
   if(!C){
-    var last = H && H.length ? H[H.length-1] : [b.x, b.y, (b.z || 0)*D3_KZ, tick], ang = (b._visFacing !== undefined ? b._visFacing : (b.facing || 0)) + Math.PI;
+    var ang = (b._visFacing !== undefined ? b._visFacing : (b.facing || 0)) + Math.PI;
     var kb = b._killedBy && b._killedBy.x != null ? b._killedBy : null; if(kb) ang = Math.atan2(b.y - kb.y, b.x - kb.x);
     ang += (d3R(tick*0.37 + b.x) - 0.5)*0.8;
     var h = 27*1.15;   // размер тела — как у фигуры вблизи (не по удалению камеры)
-    C = D3.corpse[b.id] = {t: tick, dx: Math.cos(ang), dz: Math.sin(ang), th: 0.05, w: 0, x: last[0], y: last[2], zz: last[1], h: h, landed: false,
+    C = D3.corpse[b.id] = {t: tick, dx: Math.cos(ang), dz: Math.sin(ang), th: 0.05, w: 0, x: b.x, y: z, zz: b.y, h: h, landed: false,
       head: null, v: [Math.cos(ang)*18, 0, Math.sin(ang)*18]};
     if(H) H.length = 0;
   }

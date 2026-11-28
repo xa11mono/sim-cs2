@@ -7,6 +7,12 @@
 var SHOW_Q = [], SHOW_Q_MAX = 256, KF_DIRTY = false;
 function showEv(){ SHOW_Q.push(Array.prototype.slice.call(arguments)); if(SHOW_Q.length > SHOW_Q_MAX) SHOW_Q.shift(); }
 function soundEv(){ showEv.apply(null, ["snd"].concat(Array.prototype.slice.call(arguments))); }
+// Идентификатор строки в своём журнале сохраняется при копировании кадра и снимка.
+function showStamp(entry, prev){
+  entry.rt = tick;
+  entry.seq = prev && prev.rt === tick ? prev.seq + 1 : 0;
+  return entry;
+}
 var SERIES = {bo:3, maps:{}};
 function seriesNew(bo){ SERIES = {bo:bo, maps:{}}; }   // (Р5, 27.11) новая серия — команда показа (выбор Bo, «новый матч»)
 var TEAM_LOG = {round: -1, log: []};   // (v566) решения команд за раунд — журнал; рисует «Разбор команды» (team)
@@ -39,8 +45,8 @@ function voiceFeed(team, who, text, kind){ var _ev = simEvIn("voiceFeed", argume
   if(!SIM_SHOW) return simEvOut(_ev);   // (Р5.2) строки войса — только если их кто-то показывает (страница, Worker страницы); в Node — нет
   var sec = roundState === "live" ? Math.max(0, ROUND_TIME_SEC - (simTime - roundStartTime)) : ROUND_TIME_SEC;   // как таймер табло
   var planted = typeof bomb !== "undefined" && bomb && bomb.state === "planted";
-  voiceLines.unshift({t: planted ? "💣" : Math.floor(sec/60)+":"+("0"+Math.floor(sec%60)).slice(-2), team: team,
-                      who: who && who !== team ? nick(who) : "колл", text: nickify(text), kind: kind});
+  voiceLines.unshift(showStamp({t: planted ? "💣" : Math.floor(sec/60)+":"+("0"+Math.floor(sec%60)).slice(-2), team: team,
+                      who: who && who !== team ? nick(who) : "колл", text: nickify(text), kind: kind}, voiceLines[0]));
   if(voiceLines.length > 60) voiceLines.length = 60;
   VOICE_DIRTY = true;   // (15.11, перестройка: показ отдельно от симуляции) рисует кадр (app), не симуляция
  simEvOut(_ev);}
@@ -92,8 +98,8 @@ function feedKill(att, vic, wkey, hs, mods){ var _ev = simEvIn("feedKill", argum
   teamDeath(att, vic);   // до киллфида в знании: видел убийцу — успевает сказать, откуда
   knowKill(att, vic);
   var as = killAssist(att, vic); if(as){ var ab = teamBot(as.id); if(ab) ab.assists = (ab.assists||0) + 1; }   // (v518d) ассист — в счёт
-  killfeed.unshift({kind:"kill", att:att?nick(att.id):"?", attTeam:att?att.team:"", as:as?nick(as.id):null, asFlash:as&&as.flash, asTeam:as?as.team:"",
-    vic:nick(vic.id), vicTeam:vic.team, w:wkey, hs:hs, smoke:!!mods.smoke, wall:!!mods.wall, noscope:!!mods.noscope, blind:!!mods.blind, tk:!!mods.tk, t:nowTs, at:simTime});
+  killfeed.unshift(showStamp({kind:"kill", att:att?nick(att.id):"?", attTeam:att?att.team:"", as:as?nick(as.id):null, asFlash:as&&as.flash, asTeam:as?as.team:"",
+    vic:nick(vic.id), vicTeam:vic.team, w:wkey, hs:hs, smoke:!!mods.smoke, wall:!!mods.wall, noscope:!!mods.noscope, blind:!!mods.blind, tk:!!mods.tk, t:nowTs, at:simTime}, killfeed[0]));
   if(killfeed.length > 8) killfeed.length = 8;
   KF_DIRTY = true;   // (17.11) киллфид рисует кадр (app)
   // мультикилл-баннер
@@ -107,12 +113,12 @@ function feedKill(att, vic, wkey, hs, mods){ var _ev = simEvIn("feedKill", argum
 // (v288) смерть от взрыва бомбы — строка киллфида без убийцы (как в CS2): иконка C4 и жертва. Только показ —
 // знание и войс бомбовой смерти идут как раньше (feedKill не зовётся)
 function feedBombKill(vic){
-  killfeed.unshift({kind:"kill", att:null, attTeam:"", as:null, vic:nick(vic.id), vicTeam:vic.team, w:"C4", t:nowTs, at:simTime});
+  killfeed.unshift(showStamp({kind:"kill", att:null, attTeam:"", as:null, vic:nick(vic.id), vicTeam:vic.team, w:"C4", t:nowTs, at:simTime}, killfeed[0]));
   if(killfeed.length > 8) killfeed.length = 8;
   KF_DIRTY = true;
 }
 function feedEvent(kind, text){
-  killfeed.unshift({kind:kind, text:nickify(text), t:nowTs, at:simTime});
+  killfeed.unshift(showStamp({kind:kind, text:nickify(text), t:nowTs, at:simTime}, killfeed[0]));
   if(killfeed.length > 8) killfeed.length = 8;
   KF_DIRTY = true;
 }

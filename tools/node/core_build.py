@@ -42,7 +42,7 @@ glue = ('\n// (Р5) конец загрузки ядра без показа: т
         '  else if(m.cmd === "set"){ Object.keys(m.v).forEach(function(k){ eval(k + " = m.v[k]"); }); }\n'
         '  else if(m.cmd === "restore"){ mkRestore(m.S); if(m.cp){ MK.cps = m.cp.cps; MK.cpMatch = m.cp.m; MK.lastCpTick = m.cp.t; } if(m.dlog) DLOG.by = m.dlog; }\n'
         '  if(m.cmd === "snap") return {tick: tick, S: mkSnapshot(), cp: m.cp ? {cps: MK.cps, m: MK.cpMatch, t: MK.lastCpTick} : null, dlog: DLOG.by};\n'
-        '  return {tick: tick, F: frameMake()}; }\n'
+        '  return {tick: tick, F: SIM_SHOW ? frameTake() : frameMake()}; }\n'
         # (Р5.2) кадр Worker'а — переносимым ArrayBuffer (текст mkPack в UTF-8: без копии при передаче); enc — мс на упаковку (замер передачи)
         'if(typeof document === "undefined" && typeof importScripts === "function"){ SIM_SHOW = true; self.onmessage = function(e){ var r = coreCmd(e.data);\n'
         '  if(!r.F){ postMessage(r); return; } var t0 = performance.now(), u = new TextEncoder().encode(mkPack(r.F));\n'

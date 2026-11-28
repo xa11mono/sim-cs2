@@ -78,15 +78,14 @@ function rpWorldDraw(E, P, I, S, ox0, oy0, W, H){
   var t0 = rpTrFrom(R, P.rt - 0.5*TICK_HZ), tl = [];
   for(var q = t0; q < R.tr.length && R.tr[q].t <= P.rt; q++){ var c = rpCl(R.tr[q]); c.born = nowTs - (P.rt - c.t)*TICK_MS; c.tk = null; tl.push(c); }
   // (Р5, 27.11) мир записи кладёт и возвращает ядро (engine/core/modes.js rpWorldWith); здесь — только холст, камера и рисунок
-  var pf = A.b.map(function(a){ return a._visFacing !== undefined ? a._visFacing : a.facing; });
-  rpWorldWith(R, A, B, f, gw, gi, tl, pf, function(){
-    var keep = {cv: cv, ctx: ctx, view: {scale: view.scale, panX: view.panX, panY: view.panY}};
+  rpWorldWith(R, A, B, f, gw, gi, tl, function(){
+    var keep = {cv: cv, ctx: ctx, noHud: draw.noHud, view: {scale: view.scale, panX: view.panX, panY: view.panY}};
     try{
       cv = E.cv; ctx = E.ctx; view.scale = S; view.panX = ox0; view.panY = oy0;
       draw.noHud = true; draw();
       // (v573, Д6) включён 3D-вид — кадр повтора в 3D: тот же записанный мир, камера повтора; кадр копируется в холст повтора
-      if(typeof D3 !== "undefined" && D3.on && D3.gl){ d3Frame({w: W, h: H, noTags: true, focus: bots[P.ci] && bots[P.ci].id}); ctx.setTransform(1,0,0,1,0,0); ctx.drawImage(D3.gl.canvas, 0, 0, W, H); }
-    } finally { draw.noHud = false; cv = keep.cv; ctx = keep.ctx; view.scale = keep.view.scale; view.panX = keep.view.panX; view.panY = keep.view.panY; }
+      if(typeof D3 !== "undefined" && D3.on && D3.gl) d3ReplayFrame(P, W, H);
+    } finally { draw.noHud = keep.noHud; cv = keep.cv; ctx = keep.ctx; view.scale = keep.view.scale; view.panX = keep.view.panX; view.panY = keep.view.panY; }
   });
 }
 function rpTrFrom(R, t){ var lo = 0, hi = R.tr.length; while(lo < hi){ var mid = (lo + hi) >> 1; if(R.tr[mid].t < t) lo = mid + 1; else hi = mid; } return lo; }
