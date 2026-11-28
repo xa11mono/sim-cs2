@@ -55,5 +55,6 @@ function setupCode(SKIP, SKIPF) {
 }
 // кадр страницы (680 frame) между шагами идёт по часам страницы: тики при снятой паузе, рисование и показ пишут поля в объекты игры.
 // Остановить: игру ведут только шаги инструмента (прогон 319: WebKit «расходился сам с собой» на тике 1)
-async function stopFrames(p) { await p.evaluate(() => __ev('window.requestAnimationFrame = function(){ return 0; }; clockPause(true); 1')); await p.waitForTimeout(150); }
+// (вопрос 17, 28.11) старые сборки (до 05.11) без clockPause — кадры останавливает подмена requestAnimationFrame (ПК 351: все записи эко-плана упали)
+async function stopFrames(p) { await p.evaluate(() => __ev('window.requestAnimationFrame = function(){ return 0; }; if(typeof clockPause === "function") clockPause(true); 1')); await p.waitForTimeout(150); }
 module.exports = { skipDefault, SKIPF_DEFAULT, setupCode, stopFrames };
