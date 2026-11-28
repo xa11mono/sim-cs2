@@ -239,30 +239,11 @@ def main():
     R0 = os.path.join(ROOT, 'tools', 'measure')
     def r0out(j): d = os.path.join(R0, 'runs', j['label']); os.makedirs(d, exist_ok=True); return d
     def r0sh(args, out, name, **kw):   # шаг с записью кода выхода и хвоста вывода в <name>.txt (публикуется)
-        p = subprocess.run(args, cwd=kw.get('cwd', ROOT), capture_output=True, text=True, env=kw.get('env'))
+        p = subprocess.run(args, cwd=kw.get('cwd', ROOT), capture_output=True, text=True, env=kw.get('env'), creationflags=kw.get('flags', 0))
         open(os.path.join(out, name + '.txt'), 'w', encoding='utf-8').write('код %s\n%s\n%s' % (p.returncode, p.stdout[-6000:], p.stderr[-6000:]))
         log('%s: код %s' % (name, p.returncode)); return p.returncode
     # Р0.13 Rust нативно и WASM на этой машине: {"rust": [{"label"}]} — набор Rust ставится в свою папку ~/.simcs2_rust (как Playwright —
     # в ~/.simcs2_node), PATH системы не трогается; хост x86_64-pc-windows-gnu — свой компоновщик, без Visual Studio
-    # (28.11, система проверок H-3) тесты системы проверок на ПК (Windows): {"selftest": [{"label", "tests": [имя, …], "l1": "<SHA>"?}]} —
-    # только из списка ниже (произвольные команды задание не запускает); каждый — <имя>.txt (код и хвост вывода); "l1" — проверка L1
-    # коммита этой машиной (git worktree, сборка, сцены в Chromium): совместимость Windows и время
-    SELFTEST = {'runner_model': [PY, 'tools/measure/runner-validation/test_runner.py', '-v'], 'procguard': [PY, 'tools/measure/procguard_test.py'],
-                'request_guard': [PY, 'tools/measure/request_guard_test.py'], 'build_batch': [PY, 'tools/tests/build_batch_test.py'],
-                'scene_batch': ['node', '--test', 'tools/tests/scene_batch.test.js'], 'l0': ['node', 'tools/rebuild/l0.js']}
-    if req.get('selftest'):
-        r0sh([shutil.which('npm') or shutil.which('npm.cmd') or 'npm', 'install', '--prefix', os.path.join(ROOT, 'tools', 'rebuild')], r0out(req['selftest'][0]), 'npm_rebuild')
-    for j in req.get('selftest', []):
-        out = r0out(j); envt = dict(os.environ, NODE_PATH=os.pathsep.join(filter(None, [os.environ.get('NODE_PATH'), os.path.join(ROOT, 'tools', 'rebuild', 'node_modules'),
-                                                                              os.path.join(os.path.expanduser('~'), '.simcs2_node', 'node_modules')])))
-        for name in j.get('tests', []):
-            if name not in SELFTEST: log('selftest: нет теста ' + name); continue
-            t = time.time(); r0sh([SELFTEST[name][0]] + [os.path.join(ROOT, x) if x.startswith('tools/') else x for x in SELFTEST[name][1:]], out, name, env=envt)
-            log('selftest %s: %.0f с' % (name, time.time() - t))
-        if j.get('l1'):
-            sha = resolve_ref(j['l1']); t = time.time()
-            r0sh(['node', os.path.join(ROOT, 'tools', 'rebuild', 'l1.js'), sha, '--out=' + os.path.join(out, 'l1.md')], out, 'l1', env=envt)
-            log('selftest l1 %s: %.0f с' % (sha[:8], time.time() - t))
     for j in req.get('rust', []):
         out = r0out(j); home = os.path.join(os.path.expanduser('~'), '.simcs2_rust'); env = dict(os.environ)
         env['RUSTUP_HOME'] = os.path.join(home, 'rustup'); env['CARGO_HOME'] = os.path.join(home, 'cargo')
@@ -391,6 +372,28 @@ def main():
         for m in j.get('matches', [3, 7, 11, 13, 17, 19, 23, 29]):
             r0sh(['node', os.path.join(R0, 'inv_run.js'), sim, '--match=%d' % m, '--ticks=%d' % j.get('ticks', 20000), '--out=' + os.path.join(out, 'inv_%d.json' % m)], out, 'inv_%d' % m)
         if j.get('special'): r0sh(['node', os.path.join(R0, 'inv_run.js'), sim, '--special', '--out=' + os.path.join(out, 'inv_special.json')], out, 'inv_special')
+    # (28.11, система проверок H-3; ПК 355 — в конце задания: сбой теста не отменяет остальное) тесты системы проверок на ПК (Windows): {"selftest": [{"label", "tests": [имя, …], "l1": "<SHA>"?}]} —
+    # только из списка ниже (произвольные команды задание не запускает); каждый — <имя>.txt (код и хвост вывода); "l1" — проверка L1
+    # коммита этой машиной (git worktree, сборка, сцены в Chromium): совместимость Windows и время
+    NEWGRP = getattr(subprocess, 'CREATE_NEW_PROCESS_GROUP', 0)
+    SELFTEST = {'runner_model': [PY, 'tools/measure/runner-validation/test_runner.py', '-v'], 'procguard': [PY, 'tools/measure/procguard_test.py'],
+                'request_guard': [PY, 'tools/measure/request_guard_test.py'], 'build_batch': [PY, 'tools/tests/build_batch_test.py'],
+                'scene_batch': ['node', '--test', 'tools/tests/scene_batch.test.js'], 'l0': ['node', 'tools/rebuild/l0.js']}
+    if req.get('selftest'):
+        r0sh([shutil.which('npm') or shutil.which('npm.cmd') or 'npm', 'install', '--prefix', os.path.join(ROOT, 'tools', 'rebuild')], r0out(req['selftest'][0]), 'npm_rebuild')
+    for j in req.get('selftest', []):
+        out = r0out(j); envt = dict(os.environ, NODE_PATH=os.pathsep.join(filter(None, [os.environ.get('NODE_PATH'), os.path.join(ROOT, 'tools', 'rebuild', 'node_modules'),
+                                                                              os.path.join(os.path.expanduser('~'), '.simcs2_node', 'node_modules')])))
+        for name in j.get('tests', []):
+            if name not in SELFTEST: log('selftest: нет теста ' + name); continue
+            if name == 'procguard' and os.name == 'nt': log('selftest procguard: только Linux / macOS (процессы sleep) — пропущен'); continue   # (ПК 355: на Windows оборвал раннер Ctrl+C)
+            # своя группа процессов (Windows): Ctrl+C / Ctrl+Break из теста не доходит до раннера (ПК 355 оборвался так)
+            t = time.time(); r0sh([SELFTEST[name][0]] + [os.path.join(ROOT, x) if x.startswith('tools/') else x for x in SELFTEST[name][1:]], out, name, env=envt, flags=NEWGRP)
+            log('selftest %s: %.0f с' % (name, time.time() - t))
+        if j.get('l1'):
+            sha = resolve_ref(j['l1']); t = time.time()
+            r0sh(['node', os.path.join(ROOT, 'tools', 'rebuild', 'l1.js'), sha, '--out=' + os.path.join(out, 'l1.md')], out, 'l1', env=envt, flags=NEWGRP)
+            log('selftest l1 %s: %.0f с' % (sha[:8], time.time() - t))
     for j in req.get('jobs', []):
         sim = os.path.join(sims, j['label'] + '.html')
         build(j['ref'], j.get('map', 'ancient'), sim); jobargs.append('--job=%s,%s' % (j['label'], sim))

@@ -428,18 +428,22 @@ class Tests(Sandbox):
 
     @unittest.skipUnless(os.name == 'nt', 'requires native Windows Job Objects')
     def test_native_windows_job_gate_with_small_process(self):
-        with patch.object(guard, 'STATE', str(self.folder / 'state.json')), \
-             patch.object(guard, 'mem_mb', return_value=(16000, 14000)):
-            pool = self.pool(poll_s=0.1)
-            output = self.folder / 'gate.txt'
-            pool.add({'name': 'sandbox', 'cmd': [sys.executable, '-c', 'print("released")'],
-                      'engine': 'node', 'out': output})
-            pool.wait_all()
-        row = pool.attempts[0]
-        self.assertTrue(row['ok'])
-        self.assertTrue(row['job'])
-        self.assertGreater(row['group_limit_mb'], 0)
-        self.assertEqual(output.read_text().strip(), 'released')
+        # (28.11, ПК 355 — настоящий Windows) Chromium / Node — общий объект без лимита commit (решение ПК 335: group_limit_mb 0),
+        # строгий движок (Firefox) — общий объект с лимитом; у обоих дерево назначено в объекты до запуска (вывод «released»)
+        for engine, limited in (('node', False), ('firefox', True)):
+            with self.subTest(engine=engine), patch.object(guard, 'STATE', str(self.folder / 'state.json')), \
+                 patch.object(guard, 'mem_mb', return_value=(16000, 14000)):
+                pool = self.pool(poll_s=0.1)
+                output = self.folder / ('gate_%s.txt' % engine)
+                pool.add({'name': 'sandbox', 'cmd': [sys.executable, '-c', 'print("released")'],
+                          'engine': engine, 'out': output})
+                pool.wait_all()
+                row = pool.attempts[0]
+                self.assertTrue(row['ok'])
+                self.assertTrue(row['job'])
+                if limited: self.assertGreater(row['group_limit_mb'], 0)
+                else: self.assertEqual(row['group_limit_mb'] or 0, 0)
+                self.assertEqual(output.read_text().strip(), 'released')
 
     def test_build_cache_pins_ref_and_separates_map_and_kind(self):
         remote_run.BUILT.clear()
