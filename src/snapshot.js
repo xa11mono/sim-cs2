@@ -162,6 +162,14 @@ function frameList(){ return mkSnapList().filter(function(e){ return FRAME_VARS.
 // (MK_STATIC_FIELDS: _dz, _jcf, _jcq, _npz на графе зон — запомненный ответ от неизменяемой геометрии): страница считает их сама, как в
 // обычном режиме; кадр — ~0,3 МБ вместо ~17 МБ (замер передачи — rebuild/R5_1_FRAME.md)
 function frameMake(){ var o = {__frame: 1}; frameList().forEach(function(e){ o[e[0]] = e[1](); }); o.__refs = mkSnapRefs(o); return structuredClone(o); }
+// Кадр для удалённого показа забирает одноразовые события после копирования. Журналы остаются в ядре.
+function frameTake(){
+  var F = frameMake();
+  SHOW_Q.length = 0;
+  VOICE_DIRTY = KF_DIRTY = LOG_DIRTY = false;
+  RC_HALF = null;
+  return F;
+}
 function frameApply(F){ var c = structuredClone(F), L = frameList(), Lp = NAV_UNLINKED.slice(); L.forEach(function(e){ if(e[0] in c) e[2](c[e[0]]); });
   if("NAV_UNLINKED" in c) mkGraphTo(Lp);
   if(c.__refs) mkRefsApply(c.__refs, function(n, v){ L.forEach(function(e){ if(e[0] === n) e[2](v); }); }); }

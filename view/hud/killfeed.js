@@ -20,6 +20,7 @@ function kfImg(key){
   var im = new Image(); im.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="'+ic.vb+'">'+ic.svg+'</svg>');
   return (KF_IMG[key] = im);
 }
+var HUD_KF_SHOWN = new Set();
 // (v437, владелец 27.10: «иконки гранат, когда летят, — настоящие, с гитхаба») силуэты гранат для радара — из HUD Lexogrine
 // (github.com/lexogrine/cs2-react-hud, src/assets/weapons, MIT, © 2021 Lexogrine): флешка, HE, молотов (T), зажигательная (CT), смок.
 // Цвет — заливкой всего силуэта (как у кругов гранат раньше); рисует 620 (nadeIcon)
@@ -37,8 +38,6 @@ function kfSvg(key, cls, title){
   return '<svg class="'+cls+'" viewBox="'+ic.vb+'" width="'+wpx+'" height="'+hpx+'" aria-label="'+title+'"><title>'+title+'</title>'+ic.svg+'</svg>';
 }
 // (v430) строка, которую ещё не показывали, въезжает справа (класс in); уже показанные при перестройке стоят на месте
-var HUD_KF_SHOWN = typeof WeakSet !== "undefined" ? new WeakSet() : null;
-function kfIn(k){ if(!HUD_KF_SHOWN || HUD_KF_SHOWN.has(k)) return ""; HUD_KF_SHOWN.add(k); return " in"; }
 // (v437, владелец 27.10) строка киллфида гаснет через KF_LIFE с игрового времени (пауза — стоит), последние KF_FADE с — затухает.
 // Только показ: массив killfeed и знание ботов не трогаются. 8 с — проектное число
 var KF_LIFE = 8, KF_FADE = 0.6;
@@ -46,12 +45,15 @@ function kfStage(k){ var a = simTime - (k.at != null ? k.at : simTime); return a
 // раз в кадр (draw): у какой-то строки сменилась стадия — перерисовать
 function kfExpireTick(){
   var sig = killfeed.map(kfStage).join("");
-  if(sig !== kfExpireTick._s){ kfExpireTick._s = sig; renderFeed(); }
+  if(!KF_DIRTY && sig !== kfExpireTick._s) renderFeed();
 }
 function renderFeed(){
   var el = document.getElementById("killfeed"); if(!el) return;
+  kfExpireTick._s = killfeed.map(kfStage).join("");
+  var shown = HUD_KF_SHOWN, keys = new Set();
   el.innerHTML = killfeed.filter(function(k){ return kfStage(k) < 2; }).map(function(k){
-    var old = kfStage(k) === 1 ? " old" : "";
+    var key = showEventKey(k), enter = shown.has(key) ? "" : " in", old = kfStage(k) === 1 ? " old" : "";
+    keys.add(key);
     if(k.kind === "kill"){
       var W = WEAPONS[k.w], wn = W ? W.name : (k.w === "MOLOTOV" ? "молотов" : k.w === "KNIFE" ? "нож" : k.w === "C4" ? "бомба" : k.w);
       var wkey = k.w === "KNIFE" && k.attTeam === "T" ? "KNIFE_T" : k.w;
@@ -59,10 +61,11 @@ function renderFeed(){
       if(k.as) h += (k.asFlash ? kfSvg("flash", "md fl", KF_MOD_T.flash) : '<span class="pl">+</span>')+'<span class="'+(k.asTeam || k.attTeam).toLowerCase()+' as">'+esc(k.as)+'</span>';
       h += kfSvg(wkey, "wp", wn) || '<span class="w">'+esc(wn)+'</span>';
       ["smoke","wall","hs","noscope","blind"].forEach(function(m){ if(k[m]) h += kfSvg(m, "md", KF_MOD_T[m]); });
-      return '<div class="kf'+kfIn(k)+old+(k.tk ? ' tk" title="убил своего' : '')+'">'+h+'<span class="'+k.vicTeam.toLowerCase()+'">'+esc(k.vic)+'</span></div>';
+      return '<div class="kf'+enter+old+(k.tk ? ' tk" title="убил своего' : '')+'">'+h+'<span class="'+k.vicTeam.toLowerCase()+'">'+esc(k.vic)+'</span></div>';
     }
-    return '<div class="kf ev '+k.kind+kfIn(k)+old+'">'+esc(k.text)+'</div>';
+    return '<div class="kf ev '+k.kind+enter+old+'">'+esc(k.text)+'</div>';
   }).join("");
+  HUD_KF_SHOWN = keys;
 }
 var bannerTimer = null;
 function showBanner(text, team, ms){

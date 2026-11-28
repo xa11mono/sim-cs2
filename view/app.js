@@ -121,12 +121,17 @@ function sndFireTick(){
   if(!SND || !SND.ctx) return;
   var M = SND.fireMap || (SND.fireMap = new Map());
   // (v530, владелец 10.11: «звук молотова при паузе цикличен») на паузе треск огня замолкает, после паузы — снова
-  M.forEach(function(v, f){ if(!SND.on || paused || fires.indexOf(f) < 0){ try{ v.stop(); }catch(e){} M.delete(f); } });
-  if(!SND.on || paused || !SND.buf.n_fireloop) return;
-  fires.forEach(function(f){
-    if(M.has(f)) return; var g = sndGain(f.x, f.y, SND_R.nade, "fire"); if(!g) return;
+  var active = new Map();
+  if(SND.on && !paused && !RP.on && SND.buf.n_fireloop){
+    fires.forEach(function(f){
+      active.set([matchNum, f.born, f.x, f.y, f.z, f.thrower && f.thrower.id].join(":"), f);
+    });
+  }
+  M.forEach(function(v, key){ if(!active.has(key)){ try{ v.stop(); }catch(e){} M.delete(key); } });
+  active.forEach(function(f, key){
+    if(M.has(key)) return; var g = sndGain(f.x, f.y, SND_R.nade, "fire"); if(!g) return;
     var c = SND.ctx, src = c.createBufferSource(); src.buffer = SND.buf.n_fireloop; src.loop = true;
-    var gn = c.createGain(); gn.gain.value = 0.35*g; src.connect(gn); gn.connect(SND.master); src.start(); M.set(f, src);
+    var gn = c.createGain(); gn.gain.value = 0.35*g; src.connect(gn); gn.connect(SND.master); src.start(); M.set(key, src);
   });
 }
 // (v327, владелец: «выстрелы громкие, нужно похоже на CS») выстрел — три слоя, как устроен звук выстрела: щелчок (2–3 мс,
@@ -226,7 +231,7 @@ function showSync(){
   if(KF_DIRTY){ KF_DIRTY = false; renderFeed(); }
   for(var qi = 0; qi < SHOW_Q.length; qi++){ var E = SHOW_Q[qi];
     try{
-      if(E[0] === "snd"){ if(SND && SND.on){ var F = {sndBomb: sndBomb, sndNade: sndNade, sndBody: sndBody, sndShot: sndShot, sndPickup: sndPickup, sndStep: sndStep, sndLadder: sndLadder}[E[1]]; if(F) F.apply(null, E.slice(2)); } }
+      if(E[0] === "snd"){ if(SND && SND.on && !RP.on){ var F = {sndBomb: sndBomb, sndNade: sndNade, sndBody: sndBody, sndShot: sndShot, sndPickup: sndPickup, sndStep: sndStep, sndLadder: sndLadder}[E[1]]; if(F) F.apply(null, E.slice(2)); } }
       else if(E[0] === "banner") showBanner(E[1], E[2], E[3]);
       else if(E[0] === "sideSwap"){ plSelected = null; showBanner(E[1], null, 3000); }
       else if(E[0] === "roundCard") showRoundCard(E[1], E[2], E[3]);
@@ -287,9 +292,15 @@ function wkLocal(){
   WK.busy = true; L.postMessage({cmd: "init", ls: wkLs(), now: nowTs}); return true;
 }
 function wkSend(m){ WK.busy = true; WK.w.postMessage(m); }
+function wkApplyFrame(){
+  if(!WK.F) return false;
+  var t0 = performance.now();
+  frameApply(WK.F); WK.F = null; wkStatApply(performance.now() - t0);
+  return true;
+}
 function wkFrame(ms){
   if(WK.hand) return;
-  if(WK.F){ var t0 = performance.now(); frameApply(WK.F); WK.F = null; wkStatApply(performance.now() - t0); }
+  wkApplyFrame();
   WK.pend += ms; if(!WK.busy && WK.pend > 0){ WK.fresh = false; wkSend({cmd: "adv", ms: WK.pend, now: nowTs}); WK.pend = 0; }
 }
 // симуляция — на страницу: снимок Worker (и снимки перемотки) → страница; then — когда страница уже ведёт игру
@@ -298,7 +309,10 @@ function wkToPage(then, why){
   if(why) WK.stay = why;
   if(WK.hand){ if(then) WK.after.push(then); return; }
   WK.hand = true; WK.after = then ? [then] : [];
-  WK.cb = function(d){ mkRestore(d.S); if(d.cp){ MK.cps = d.cp.cps; MK.cpMatch = d.cp.m; MK.lastCpTick = d.cp.t; } if(d.dlog) DLOG.by = d.dlog;   // журнал решений — вне снимка, с переходом
+  WK.cb = function(d){
+    // Кадр, который был в пути при передаче управления, уже забрал события у Worker.
+    if(wkApplyFrame()){ rpRecord(); showSync(); }
+    mkRestore(d.S); if(d.cp){ MK.cps = d.cp.cps; MK.cpMatch = d.cp.m; MK.lastCpTick = d.cp.t; } if(d.dlog) DLOG.by = d.dlog;   // журнал решений — вне снимка, с переходом
     WK.on = false; WK.hand = false; WK.F = null; WK.pend = 0; WK.idle = 0; clockAcc(0);
     var A = WK.after; WK.after = []; A.forEach(function(f){ f(); }); };
   WK.w.postMessage({cmd: "snap", cp: !WK.local, now: nowTs});
@@ -341,7 +355,6 @@ function frame(ts){
 function frameBody(ts){
   nowTs = ts; frameWrapR = null; wrapRect();
   if(typeof zoneDangerSync === "function") zoneDangerSync();   // (Р3.4) правка карты при остановленной игре — таблица для рисования
-  if(SND && SND.ctx) sndFireTick();   // (v333) треск огня — и останавливается, когда огонь погас / раунд кончился / звук выключен
   var dt = clockFrameDt(ts);
   if(WK.on && !WK.hand && wkMode()){ if(!WK.fresh) wkToPage(); else if(!WK.busy) WK.on = false; }   // (Р5.2) режим без кнопки (разминка при загрузке): Worker ещё не играл — состояние то же, снимок не нужен
   if(WK.on){ wkFrame(paused || rpHold() ? 0 : Math.min(dt, FRAME_CATCHUP_MS)); }   // (Р5.2) симуляция в Worker: время — туда, кадр — оттуда (повтор клатча ждёт — как ниже)
@@ -356,7 +369,6 @@ function frameBody(ts){
     while(accumulator >= TICK_MS){ stepTick(); clockAcc(accumulator - TICK_MS); }
     mkAfterTicks();
   }
-  if(!WK.on) wkPageFrame(dt);   // (Р5.2) симуляция на странице — назад в Worker, когда режимов нет
   rpRecord();   // (v459) запись для повтора клатча — только читает
   if(!rpFrame(ts) && !tsFrame(ts)){   // идёт повтор клатча или сцена паузы — они рисуют экран сами
     obsFrame(ts);
@@ -365,7 +377,9 @@ function frameBody(ts){
     else { draw(); obsOverlay(); }
     miniDraw();
   }
+  sndFireTick();   // (v333) после применения кадра: петля огня живёт до его исчезновения
   showSync();   // (15.11, перестройка) показ того, что симуляция отметила: войс, консоль, карточка, кнопка разминки
+  if(!WK.on) wkPageFrame(dt);   // в снимок при возврате не попадают уже показанные события
   frameWrapR = null;   // вне кадра (клики, перемотка) — читать заново
 }
 // (15.11, перестройка: показ отдельно) перенесено из highlights — кнопки и ползунки живут в показе

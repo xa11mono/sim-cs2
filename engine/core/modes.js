@@ -210,54 +210,32 @@ function sbWalkNext(b){ b._sbWalk = b._sbWalk == null ? "walk" : b._sbWalk === "
 function sbOrder(b, g){ b._sbGo = g; }
 // ---- повтор клатча (перенесено из view/replay.js, view/replay-play.js, Р5 27.11)
 // (v463) мир тика для кадра повтора: то, что читает draw (draw) — поля игроков, дым, огонь, гранаты, эффекты, бомба, вещи на земле
-var RP_BF = ["x","y","z","alive","hp","crouching","facing","_visFacing","_reloading","reloadUntil","weapon","_underV","_overV","_jump","blindUntil","state","tRole",
-  "_knife","planting","defusing","plantUntil","defuseUntil","kit","onStairs","walking","_killHow","_sawEnemy","curSpeed","_idle","_idlePhase","holding","atPost"];
+var RP_BF = ["team","x","y","z","alive","hp","crouching","facing","_reloading","reloadUntil","weapon","_underV","_overV","_jump","blindUntil","state","tRole",
+  "_knife","planting","defusing","plantUntil","defuseUntil","kit","onStairs","walking","_killHow","_sawEnemy","curSpeed","holding","atPost","roamChecking"];
 function rpCl(o){ var c = {}; for(var k in o){ var v = o[k]; c[k] = Array.isArray(v) ? v.slice() : v; } return c; }
-function rpSetBotField(bot, field, value){
-  switch(field){
-    case "x": return moveSetX(bot, value);
-    case "y": return moveSetY(bot, value);
-    case "z": return navSetZ(bot, value);
-    case "alive": return damageSetAlive(bot, value);
-    case "hp": return damageSetHp(bot, value);
-    case "_reloading": return reloadSetReloading(bot, value);
-    case "reloadUntil": return reloadSetReloadUntil(bot, value);
-    case "weapon": return equipmentSetWeapon(bot, value);
-    case "_jump": return jumpSetJump(bot, value);
-    case "blindUntil": return damageSetBlindUntil(bot, value);
-    case "_knife": return equipmentSetKnife(bot, value);
-    case "kit": return equipmentSetKit(bot, value);
-    case "onStairs": return moveSetOnStairs(bot, value);
-    case "_sawEnemy": return engagementSetSawEnemy(bot, value);
-    case "atPost": return taskSetAtPost(bot, value);
-    case "crouching": case "facing": case "_visFacing": case "_underV": case "_overV": case "state": case "tRole":
-    case "planting": case "defusing": case "plantUntil": case "defuseUntil": case "walking": case "_killHow":
-    case "curSpeed": case "_idle": case "_idlePhase": case "holding": bot[field] = value;
-    default:
-  }
-}
-// ---- повтор клатча: кадр записанного мира (Р5, 27.11; было — прямые записи в view/replay-play.js rpWorldDraw). Мир записи кладётся в
-// игру на время show() и возвращается целиком (поле, которого у бота не было, удаляется), даже если рисунок упал. A, B — кадры записи
-// (B — для полей RP_BF), f — доля тика, gw / gi — предметы на земле записи, tl — трассеры, pf — взгляд игроков записи для рисунка (как его видит показ)
-function rpWorldWith(R, A, B, f, gw, gi, tl, pf, show){
+// Дискретные состояния берём из A. Координаты и взгляд рисуются между A и B тем же интерполятором, что в прямом эфире.
+function rpWorldWith(R, A, B, f, gw, gi, tl, show){
   var keep = {tick: tick, simTime: simTime, roundNum: roundNum, roundState: roundState, accumulator: accumulator, smokes: smokes, fires: fires, nadesInAir: nadesInAir,
     nadeFx: nadeFx, bomb: bomb, tracers: tracers, soundPings: soundPings, groundWeapons: groundWeapons, groundItems: groundItems, teamTac: teamTac,
     FREEZE_FX: FREEZE_FX, SIDE_TEAM: SIDE_TEAM, NICKS: NICKS};
-  // (Р5, 27.11) поле, которого у бота не было, после кадра повтора удаляется (было: появлялось со значением undefined — форма объекта игры менялась
-  // от рисования повтора; tools/page/ui_state_check.js: plantUntil / defuseUntil / _killHow после повтора клатча)
-  var saved = bots.map(function(o){ var c = {px: o.px, py: o.py, pfacing: o.pfacing, path: o.path, _trail: o._trail, __has: {}}; RP_BF.forEach(function(k){ c[k] = o[k]; c.__has[k] = Object.prototype.hasOwnProperty.call(o, k); }); return c; });
+  // Рисунок пишет интерполяцию и анимацию в копии игроков. Ссылки симуляции, путь и журнал причин не затрагиваются.
+  var actors = bots.map(function(o, i){
+    var a = A.b[i], b = B.b[i];
+    return Object.assign({}, o, a, {px: a.x, py: a.y, pfacing: a.facing,
+      x: a.alive ? b.x : a.x, y: a.alive ? b.y : a.y, facing: a.alive ? b.facing : a.facing,
+      z: a.alive && Number.isFinite(a.z) && Number.isFinite(b.z) ? a.z + (b.z - a.z)*f : a.z,
+      _visFacing: a.facing, path: null, _trail: []});
+  });
+  var byId = new Map(actors.map(function(o){ return [o.id, o]; }));
+  actors.forEach(function(o){ o._visible = o._visible.map(function(id){ return byId.get(id); }).filter(Boolean); });
   try{
     clockSet(A.tick); simTime = tick*TICK_MS/1000; roundNum = R.round; roundState = "live"; clockAcc(f*TICK_MS);
     nadeWorldSet(A.sm, A.fi, A.nd, A.fx); groundWeapons = gw || []; groundItems = gi || [];
-    bomb = A.bomb ? rpCl(A.bomb) : null; if(bomb) bomb.carrier = A.bc >= 0 ? bots[A.bc] : null;
-    tracers = tl; soundPings = []; teamTac = {T: null, CT: keep.teamTac && keep.teamTac.CT}; FREEZE_FX = [];
+    bomb = A.bomb ? rpCl(A.bomb) : null; if(bomb) bomb.carrier = A.bc >= 0 ? actors[A.bc] : null;
+    tracers = tl; soundPings = []; teamTac = {T: null, CT: null}; FREEZE_FX = [];
     if(R.side){ SIDE_TEAM = R.side; } if(R.NK){ NICKS = R.NK; }
-    bots.forEach(function(o, i){ var a = A.b[i], b2 = B.b[i]; RP_BF.forEach(function(k){ rpSetBotField(o, k, b2[k]); });
-      botPrevX(o, a.x); botPrevY(o, a.y); botPrevFace(o, pf[i]); movePath(o, null, "replay"); botTrail(o, []); });
-    show();
-  } catch(e){ /* кадр повтора не нарисовался — дальше игра не страдает: всё возвращается ниже */ }
-  finally {
-    bots.forEach(function(o, i){ var c = saved[i]; RP_BF.forEach(function(k){ if(c.__has[k]) rpSetBotField(o, k, c[k]); else delete o[k]; }); botPrevX(o, c.px); botPrevY(o, c.py); botPrevFace(o, c.pfacing); movePath(o, c.path, "replay"); botTrail(o, c._trail); });
+    botsWithReplay(actors, show);
+  } finally {
     clockSet(keep.tick); simTime = keep.simTime; roundNum = keep.roundNum; roundState = keep.roundState; clockAcc(keep.accumulator);
     nadeWorldSet(keep.smokes, keep.fires, keep.nadesInAir, keep.nadeFx); bomb = keep.bomb; tracers = keep.tracers; soundPings = keep.soundPings;
     groundWeapons = keep.groundWeapons; groundItems = keep.groundItems; teamTac = keep.teamTac; FREEZE_FX = keep.FREEZE_FX; SIDE_TEAM = keep.SIDE_TEAM; NICKS = keep.NICKS;

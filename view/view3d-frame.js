@@ -3,6 +3,11 @@
 function d3Frame(opt){
   if(!D3.on || !D3.gl) return;
   opt = opt || {};
+  var prev = D3.timeline;
+  if(!prev || prev.match !== matchNum || prev.round !== roundNum || tick < prev.tick){
+    D3.hist = {}; D3.corpse = {};
+  }
+  D3.timeline = {match: matchNum, round: roundNum, tick: tick};
   var gl = D3.gl, c = gl.canvas, r = c.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
   var cw = opt.w || r.width, ch = opt.h || r.height;
   var Wc = Math.max(1, Math.round(cw*dpr)), Hc = Math.max(1, Math.round(ch*dpr));
@@ -151,7 +156,7 @@ function d3Frame(opt){
     var x = b.px + (b.x - b.px)*al, y = b.py + (b.y - b.py)*al, z = (b.z != null ? b.z : d3FloorNear(x, y, null))*D3_KZ, col = b.team === "CT" ? D3.cCT : D3.cT;
     var CL = b._climb, air = CL && CL.jump ? 4*(CL.air || 0)*(1 - (CL.air || 0)) : 0; z += air*18;
     d3Hist(b, x, y, z); if(b.alive && D3.corpse[b.id]) delete D3.corpse[b.id];
-    if(!b.alive){ d3Corpse(b, draw, col, sz); return; }   // павший — тело падает и катится (d3Corpse)
+    if(!b.alive){ d3Corpse(b, draw, col, z); return; }   // павший — тело падает и катится (d3Corpse)
     if(b.id === D3.fpId) return;   // от первого лица — себя не видно
     var h = (b.crouching ? 20 : 27)*sz;
     var blind = tick < b.blindUntil ? Math.min(1, (b.blindUntil - tick)/64*0.5)*0.75 : 0;
