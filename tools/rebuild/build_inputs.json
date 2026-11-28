@@ -1,0 +1,27 @@
+{
+  "_": "(28.11, система проверок H-3) Ключ кэша сборок L1 (tools/rebuild/l1.js): хэш дерева коммита БЕЗ путей ниже — сборка их не читает (проверка strace на обеих картах: tools/tests/build_inputs_test.sh). Ошибка в списке ведёт только к лишней сборке, если путь лишний в «exclude» — к ложному переиспользованию: добавлять сюда путь можно только после той проверки. html_inputs — пути, правка которых может изменить страницу вне функций игры (данные карт, разметка, сборщик): если страница изменилась и в коммите есть правка не из функций игры и не из check_only — L1 проверяет ВСЕ сцены, а не только задетые по анализу влияния. check_only — читаются только проверками сборки (gen_maps --check и т. п.), страницу не меняют.",
+  "version": 1,
+  "exclude": [
+    "\\.md$",
+    "^docs/",
+    "^rebuild/evidence/",
+    "^rebuild/diagnostics-audit/",
+    "^rebuild/after_r8/",
+    "^rebuild/preparation/",
+    "^rebuild/archive/",
+    "^data/pro/",
+    "^data/demos/",
+    "^tools/measure/results/",
+    "^\\.github/",
+    "^\\.githooks/",
+    "^graphify-out/"
+  ],
+  "check_only": [
+    "^rebuild/(?!files\\.json$|modules\\.json$|state_classes\\.json$)[^/]+\\.json$",
+    "^rebuild/gen/(?!frame\\.json$)",
+    "^tools/rebuild/(?!mod_build\\.js$|game_src\\.js$|package(-lock)?\\.json$)",
+    "^tools/measure/",
+    "^tools/tests/",
+    "^tools/marks/(?!snaps/)"
+  ]
+}

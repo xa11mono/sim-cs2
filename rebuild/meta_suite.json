@@ -1,0 +1,782 @@
+{
+ "_": "(28.11, система проверок L2) Метаморфный набор знания (tools/rebuild/meta_know.js) — пары набора изоляции на 0cd71f28 (rebuild/evidence/ISO/final/suite_0cd71f28; итог — ISOLATION.md). Восстановлены по именам файлов результатов: m<матч>_a<N> — --at=plant --after=<N>; m<матч> — --at=defuse; <сторона>_<тик>[probe][positive][want<цель>] — матч 3. L2 (tools/rebuild/l2.js) гоняет каждую пару на ядре коммита и сводит meta_suite_sum.py: «провалена» — нарушение; пара, которая была «пройдена», стала «непригодна» — показать.",
+ "reference": "rebuild/evidence/ISO/final/suite_0cd71f28",
+ "pairs": [
+  {
+   "id": "ancient_blind_CT_1700",
+   "map": "ancient",
+   "family": "blind",
+   "observer": "CT",
+   "at": 1700,
+   "match": 3,
+   "ticks": 900
+  },
+  {
+   "id": "ancient_blindvis_CT_1700probewantnearest",
+   "map": "ancient",
+   "family": "blindvis",
+   "observer": "CT",
+   "at": 1700,
+   "match": 3,
+   "probe": true,
+   "want": "nearest"
+  },
+  {
+   "id": "ancient_blindvis_CT_5600probewantnearest",
+   "map": "ancient",
+   "family": "blindvis",
+   "observer": "CT",
+   "at": 5600,
+   "match": 3,
+   "probe": true,
+   "want": "nearest"
+  },
+  {
+   "id": "ancient_c4move_m11_a400",
+   "map": "ancient",
+   "family": "c4move",
+   "match": 11,
+   "at": "plant",
+   "after": 400,
+   "ticks": 900
+  },
+  {
+   "id": "ancient_c4move_m11_a64",
+   "map": "ancient",
+   "family": "c4move",
+   "match": 11,
+   "at": "plant",
+   "after": 64,
+   "ticks": 900
+  },
+  {
+   "id": "ancient_c4move_m13_a400",
+   "map": "ancient",
+   "family": "c4move",
+   "match": 13,
+   "at": "plant",
+   "after": 400,
+   "ticks": 197
+  },
+  {
+   "id": "ancient_c4move_m13_a64",
+   "map": "ancient",
+   "family": "c4move",
+   "match": 13,
+   "at": "plant",
+   "after": 64,
+   "ticks": 533
+  },
+  {
+   "id": "ancient_c4move_m3_a400",
+   "map": "ancient",
+   "family": "c4move",
+   "match": 3,
+   "at": "plant",
+   "after": 400,
+   "ticks": 900
+  },
+  {
+   "id": "ancient_c4move_m3_a64",
+   "map": "ancient",
+   "family": "c4move",
+   "match": 3,
+   "at": "plant",
+   "after": 64,
+   "ticks": 900
+  },
+  {
+   "id": "ancient_c4move_m7_a400",
+   "map": "ancient",
+   "family": "c4move",
+   "match": 7,
+   "at": "plant",
+   "after": 400,
+   "ticks": 546
+  },
+  {
+   "id": "ancient_c4move_m7_a64",
+   "map": "ancient",
+   "family": "c4move",
+   "match": 7,
+   "at": "plant",
+   "after": 64,
+   "ticks": 882
+  },
+  {
+   "id": "ancient_c4show_m11_a400",
+   "map": "ancient",
+   "family": "c4show",
+   "match": 11,
+   "at": "plant",
+   "after": 400,
+   "ticks": 900
+  },
+  {
+   "id": "ancient_c4show_m11_a64",
+   "map": "ancient",
+   "family": "c4show",
+   "match": 11,
+   "at": "plant",
+   "after": 64,
+   "ticks": 900
+  },
+  {
+   "id": "ancient_c4show_m13_a400",
+   "map": "ancient",
+   "family": "c4show",
+   "match": 13,
+   "at": "plant",
+   "after": 400,
+   "ticks": 197
+  },
+  {
+   "id": "ancient_c4show_m13_a64",
+   "map": "ancient",
+   "family": "c4show",
+   "match": 13,
+   "at": "plant",
+   "after": 64,
+   "ticks": 533
+  },
+  {
+   "id": "ancient_c4show_m3_a400",
+   "map": "ancient",
+   "family": "c4show",
+   "match": 3,
+   "at": "plant",
+   "after": 400,
+   "ticks": 900
+  },
+  {
+   "id": "ancient_c4show_m3_a64",
+   "map": "ancient",
+   "family": "c4show",
+   "match": 3,
+   "at": "plant",
+   "after": 64,
+   "ticks": 900
+  },
+  {
+   "id": "ancient_c4show_m7_a400",
+   "map": "ancient",
+   "family": "c4show",
+   "match": 7,
+   "at": "plant",
+   "after": 400,
+   "ticks": 546
+  },
+  {
+   "id": "ancient_c4show_m7_a64",
+   "map": "ancient",
+   "family": "c4show",
+   "match": 7,
+   "at": "plant",
+   "after": 64,
+   "ticks": 882
+  },
+  {
+   "id": "ancient_defrem_m11",
+   "map": "ancient",
+   "family": "defrem",
+   "match": 11,
+   "at": "defuse",
+   "ticks": 636,
+   "observer": "T"
+  },
+  {
+   "id": "ancient_defrem_m13",
+   "map": "ancient",
+   "family": "defrem",
+   "match": 13,
+   "at": "defuse",
+   "ticks": 185,
+   "observer": "T"
+  },
+  {
+   "id": "ancient_defrem_m3",
+   "map": "ancient",
+   "family": "defrem",
+   "match": 3,
+   "at": "defuse"
+  },
+  {
+   "id": "ancient_defrem_m7",
+   "map": "ancient",
+   "family": "defrem",
+   "match": 7,
+   "at": "defuse",
+   "ticks": 515,
+   "observer": "T"
+  },
+  {
+   "id": "ancient_defsilent_m11",
+   "map": "ancient",
+   "family": "defsilent",
+   "match": 11,
+   "at": "defuse",
+   "ticks": 636,
+   "observer": "T"
+  },
+  {
+   "id": "ancient_defsilent_m13",
+   "map": "ancient",
+   "family": "defsilent",
+   "match": 13,
+   "at": "defuse",
+   "ticks": 185,
+   "observer": "T"
+  },
+  {
+   "id": "ancient_defsilent_m3",
+   "map": "ancient",
+   "family": "defsilent",
+   "match": 3,
+   "at": "defuse"
+  },
+  {
+   "id": "ancient_defsilent_m7",
+   "map": "ancient",
+   "family": "defsilent",
+   "match": 7,
+   "at": "defuse",
+   "ticks": 515,
+   "observer": "T"
+  },
+  {
+   "id": "ancient_flashknown_CT_1700probepositivewantnearest",
+   "map": "ancient",
+   "family": "flashknown",
+   "observer": "CT",
+   "at": 1700,
+   "match": 3,
+   "probe": true,
+   "positive": true,
+   "want": "nearest"
+  },
+  {
+   "id": "ancient_gunhide_CT_1700",
+   "map": "ancient",
+   "family": "gunhide",
+   "observer": "CT",
+   "at": 1700,
+   "match": 3,
+   "ticks": 900
+  },
+  {
+   "id": "ancient_gunhide_CT_3000",
+   "map": "ancient",
+   "family": "gunhide",
+   "observer": "CT",
+   "at": 3000,
+   "match": 3,
+   "ticks": 900
+  },
+  {
+   "id": "ancient_gunseen_CT_1700positive",
+   "map": "ancient",
+   "family": "gunseen",
+   "observer": "CT",
+   "at": 1700,
+   "match": 3,
+   "positive": true,
+   "ticks": 900
+  },
+  {
+   "id": "ancient_gunseen_CT_3000positive",
+   "map": "ancient",
+   "family": "gunseen",
+   "observer": "CT",
+   "at": 3000,
+   "match": 3,
+   "positive": true,
+   "ticks": 900
+  },
+  {
+   "id": "ancient_hidattr_CT_1700",
+   "map": "ancient",
+   "family": "hidattr",
+   "observer": "CT",
+   "at": 1700,
+   "match": 3,
+   "ticks": 900
+  },
+  {
+   "id": "ancient_hidattr_CT_1700probewantfclost",
+   "map": "ancient",
+   "family": "hidattr",
+   "observer": "CT",
+   "at": 1700,
+   "match": 3,
+   "probe": true,
+   "want": "fclost"
+  },
+  {
+   "id": "ancient_hidattr_CT_5600probewantfclost",
+   "map": "ancient",
+   "family": "hidattr",
+   "observer": "CT",
+   "at": 5600,
+   "match": 3,
+   "probe": true,
+   "want": "fclost"
+  },
+  {
+   "id": "ancient_hp_CT_1400",
+   "map": "ancient",
+   "family": "hp",
+   "observer": "CT",
+   "at": 1400,
+   "match": 3,
+   "ticks": 900
+  },
+  {
+   "id": "ancient_hp_CT_1700probewantnearest",
+   "map": "ancient",
+   "family": "hp",
+   "observer": "CT",
+   "at": 1700,
+   "match": 3,
+   "probe": true,
+   "want": "nearest"
+  },
+  {
+   "id": "ancient_hp_CT_5600probewantnearest",
+   "map": "ancient",
+   "family": "hp",
+   "observer": "CT",
+   "at": 5600,
+   "match": 3,
+   "probe": true,
+   "want": "nearest"
+  },
+  {
+   "id": "ancient_hurtknown_CT_1700probepositivewantnearest",
+   "map": "ancient",
+   "family": "hurtknown",
+   "observer": "CT",
+   "at": 1700,
+   "match": 3,
+   "probe": true,
+   "positive": true,
+   "want": "nearest"
+  },
+  {
+   "id": "ancient_seenwpn_CT_1700probepositivewantfclost",
+   "map": "ancient",
+   "family": "seenwpn",
+   "observer": "CT",
+   "at": 1700,
+   "match": 3,
+   "probe": true,
+   "positive": true,
+   "want": "fclost"
+  },
+  {
+   "id": "ancient_slot_CT_1700",
+   "map": "ancient",
+   "family": "slot",
+   "observer": "CT",
+   "at": 1700,
+   "match": 3,
+   "ticks": 900
+  },
+  {
+   "id": "ancient_slot_T_1700",
+   "map": "ancient",
+   "family": "slot",
+   "observer": "T",
+   "at": 1700,
+   "match": 3,
+   "ticks": 900
+  },
+  {
+   "id": "mirage_blind_CT_1700",
+   "map": "mirage",
+   "family": "blind",
+   "observer": "CT",
+   "at": 1700,
+   "match": 3,
+   "ticks": 900
+  },
+  {
+   "id": "mirage_blindvis_CT_1700probewantnearest",
+   "map": "mirage",
+   "family": "blindvis",
+   "observer": "CT",
+   "at": 1700,
+   "match": 3,
+   "probe": true,
+   "want": "nearest"
+  },
+  {
+   "id": "mirage_blindvis_CT_5600probewantnearest",
+   "map": "mirage",
+   "family": "blindvis",
+   "observer": "CT",
+   "at": 5600,
+   "match": 3,
+   "probe": true,
+   "want": "nearest"
+  },
+  {
+   "id": "mirage_c4move_m11_a400",
+   "map": "mirage",
+   "family": "c4move",
+   "match": 11,
+   "at": "plant",
+   "after": 400,
+   "ticks": 900
+  },
+  {
+   "id": "mirage_c4move_m11_a64",
+   "map": "mirage",
+   "family": "c4move",
+   "match": 11,
+   "at": "plant",
+   "after": 64,
+   "ticks": 900
+  },
+  {
+   "id": "mirage_c4move_m13_a400",
+   "map": "mirage",
+   "family": "c4move",
+   "match": 13,
+   "at": "plant",
+   "after": 400,
+   "ticks": 900
+  },
+  {
+   "id": "mirage_c4move_m13_a64",
+   "map": "mirage",
+   "family": "c4move",
+   "match": 13,
+   "at": "plant",
+   "after": 64,
+   "ticks": 900
+  },
+  {
+   "id": "mirage_c4move_m3_a400",
+   "map": "mirage",
+   "family": "c4move",
+   "match": 3,
+   "at": "plant",
+   "after": 400,
+   "ticks": 900
+  },
+  {
+   "id": "mirage_c4move_m3_a64",
+   "map": "mirage",
+   "family": "c4move",
+   "match": 3,
+   "at": "plant",
+   "after": 64,
+   "ticks": 900
+  },
+  {
+   "id": "mirage_c4move_m7_a400",
+   "map": "mirage",
+   "family": "c4move",
+   "match": 7,
+   "at": "plant",
+   "after": 400,
+   "ticks": 900
+  },
+  {
+   "id": "mirage_c4move_m7_a64",
+   "map": "mirage",
+   "family": "c4move",
+   "match": 7,
+   "at": "plant",
+   "after": 64,
+   "ticks": 900
+  },
+  {
+   "id": "mirage_c4show_m11_a400",
+   "map": "mirage",
+   "family": "c4show",
+   "match": 11,
+   "at": "plant",
+   "after": 400,
+   "ticks": 900
+  },
+  {
+   "id": "mirage_c4show_m11_a64",
+   "map": "mirage",
+   "family": "c4show",
+   "match": 11,
+   "at": "plant",
+   "after": 64,
+   "ticks": 900
+  },
+  {
+   "id": "mirage_c4show_m13_a400",
+   "map": "mirage",
+   "family": "c4show",
+   "match": 13,
+   "at": "plant",
+   "after": 400,
+   "ticks": 900
+  },
+  {
+   "id": "mirage_c4show_m13_a64",
+   "map": "mirage",
+   "family": "c4show",
+   "match": 13,
+   "at": "plant",
+   "after": 64,
+   "ticks": 900
+  },
+  {
+   "id": "mirage_c4show_m3_a400",
+   "map": "mirage",
+   "family": "c4show",
+   "match": 3,
+   "at": "plant",
+   "after": 400,
+   "ticks": 900
+  },
+  {
+   "id": "mirage_c4show_m3_a64",
+   "map": "mirage",
+   "family": "c4show",
+   "match": 3,
+   "at": "plant",
+   "after": 64,
+   "ticks": 900
+  },
+  {
+   "id": "mirage_c4show_m7_a400",
+   "map": "mirage",
+   "family": "c4show",
+   "match": 7,
+   "at": "plant",
+   "after": 400,
+   "ticks": 900
+  },
+  {
+   "id": "mirage_c4show_m7_a64",
+   "map": "mirage",
+   "family": "c4show",
+   "match": 7,
+   "at": "plant",
+   "after": 64,
+   "ticks": 900
+  },
+  {
+   "id": "mirage_defrem_m11",
+   "map": "mirage",
+   "family": "defrem",
+   "match": 11,
+   "at": "defuse"
+  },
+  {
+   "id": "mirage_defrem_m13",
+   "map": "mirage",
+   "family": "defrem",
+   "match": 13,
+   "at": "defuse",
+   "ticks": 900,
+   "observer": "T"
+  },
+  {
+   "id": "mirage_defrem_m3",
+   "map": "mirage",
+   "family": "defrem",
+   "match": 3,
+   "at": "defuse",
+   "ticks": 636,
+   "observer": "T"
+  },
+  {
+   "id": "mirage_defrem_m7",
+   "map": "mirage",
+   "family": "defrem",
+   "match": 7,
+   "at": "defuse",
+   "ticks": 900,
+   "observer": "T"
+  },
+  {
+   "id": "mirage_defsilent_m11",
+   "map": "mirage",
+   "family": "defsilent",
+   "match": 11,
+   "at": "defuse"
+  },
+  {
+   "id": "mirage_defsilent_m13",
+   "map": "mirage",
+   "family": "defsilent",
+   "match": 13,
+   "at": "defuse",
+   "ticks": 900,
+   "observer": "T"
+  },
+  {
+   "id": "mirage_defsilent_m3",
+   "map": "mirage",
+   "family": "defsilent",
+   "match": 3,
+   "at": "defuse",
+   "ticks": 636,
+   "observer": "T"
+  },
+  {
+   "id": "mirage_defsilent_m7",
+   "map": "mirage",
+   "family": "defsilent",
+   "match": 7,
+   "at": "defuse",
+   "ticks": 900,
+   "observer": "T"
+  },
+  {
+   "id": "mirage_flashknown_CT_1700probepositivewantnearest",
+   "map": "mirage",
+   "family": "flashknown",
+   "observer": "CT",
+   "at": 1700,
+   "match": 3,
+   "probe": true,
+   "positive": true,
+   "want": "nearest"
+  },
+  {
+   "id": "mirage_gunhide_CT_1700",
+   "map": "mirage",
+   "family": "gunhide",
+   "observer": "CT",
+   "at": 1700,
+   "match": 3,
+   "ticks": 900
+  },
+  {
+   "id": "mirage_gunhide_CT_3000",
+   "map": "mirage",
+   "family": "gunhide",
+   "observer": "CT",
+   "at": 3000,
+   "match": 3,
+   "ticks": 900
+  },
+  {
+   "id": "mirage_gunseen_CT_1700positive",
+   "map": "mirage",
+   "family": "gunseen",
+   "observer": "CT",
+   "at": 1700,
+   "match": 3,
+   "positive": true,
+   "ticks": 900
+  },
+  {
+   "id": "mirage_gunseen_CT_3000positive",
+   "map": "mirage",
+   "family": "gunseen",
+   "observer": "CT",
+   "at": 3000,
+   "match": 3,
+   "positive": true,
+   "ticks": 900
+  },
+  {
+   "id": "mirage_hidattr_CT_1700",
+   "map": "mirage",
+   "family": "hidattr",
+   "observer": "CT",
+   "at": 1700,
+   "match": 3,
+   "ticks": 900
+  },
+  {
+   "id": "mirage_hidattr_CT_1700probewantfclost",
+   "map": "mirage",
+   "family": "hidattr",
+   "observer": "CT",
+   "at": 1700,
+   "match": 3,
+   "probe": true,
+   "want": "fclost"
+  },
+  {
+   "id": "mirage_hidattr_CT_5600probewantfclost",
+   "map": "mirage",
+   "family": "hidattr",
+   "observer": "CT",
+   "at": 5600,
+   "match": 3,
+   "probe": true,
+   "want": "fclost"
+  },
+  {
+   "id": "mirage_hp_CT_1400",
+   "map": "mirage",
+   "family": "hp",
+   "observer": "CT",
+   "at": 1400,
+   "match": 3,
+   "ticks": 900
+  },
+  {
+   "id": "mirage_hp_CT_1700probewantnearest",
+   "map": "mirage",
+   "family": "hp",
+   "observer": "CT",
+   "at": 1700,
+   "match": 3,
+   "probe": true,
+   "want": "nearest"
+  },
+  {
+   "id": "mirage_hp_CT_5600probewantnearest",
+   "map": "mirage",
+   "family": "hp",
+   "observer": "CT",
+   "at": 5600,
+   "match": 3,
+   "probe": true,
+   "want": "nearest"
+  },
+  {
+   "id": "mirage_hurtknown_CT_1700probepositivewantnearest",
+   "map": "mirage",
+   "family": "hurtknown",
+   "observer": "CT",
+   "at": 1700,
+   "match": 3,
+   "probe": true,
+   "positive": true,
+   "want": "nearest"
+  },
+  {
+   "id": "mirage_seenwpn_CT_1700probepositivewantfclost",
+   "map": "mirage",
+   "family": "seenwpn",
+   "observer": "CT",
+   "at": 1700,
+   "match": 3,
+   "probe": true,
+   "positive": true,
+   "want": "fclost"
+  },
+  {
+   "id": "mirage_slot_CT_1700",
+   "map": "mirage",
+   "family": "slot",
+   "observer": "CT",
+   "at": 1700,
+   "match": 3,
+   "ticks": 900
+  },
+  {
+   "id": "mirage_slot_T_1700",
+   "map": "mirage",
+   "family": "slot",
+   "observer": "T",
+   "at": 1700,
+   "match": 3,
+   "ticks": 900
+  }
+ ]
+}
