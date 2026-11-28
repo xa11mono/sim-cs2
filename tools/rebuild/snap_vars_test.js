@@ -6,7 +6,7 @@
 'use strict';
 const path = require('path'), cp = require('child_process');
 const ROOT = path.resolve(__dirname, '..', '..'), G = require('./game_src.js'), acorn = require('acorn');
-const py = code => JSON.parse(cp.execFileSync('python3', ['-c', 'import sys, json; sys.path.insert(0, "src"); import marks_build, gamesrc\n' + code], { cwd: ROOT, encoding: 'utf8', maxBuffer: 1 << 26 }));
+const py = code => JSON.parse(cp.execFileSync(process.env.PYTHON || (process.platform === 'win32' ? 'python' : 'python3'), ['-c', 'import sys, json; sys.path.insert(0, "src"); import marks_build, gamesrc\n' + code], { cwd: ROOT, encoding: 'utf8', maxBuffer: 1 << 26 }));
 let bad = 0; const fail = m => { bad++; console.error('  ✗ ' + m); };
 // (1) синтетика
 const syn = py('print(json.dumps(marks_build.top_vars("/* [хозяева: a] */ var ZA = 1;\\nvar ZB = 2; var ZC = 3;\\nfunction f(){\\n  var NO = 1;\\n}\\n/* a */ /* b */ var ZD = [1,\\n 2];\\n")))');

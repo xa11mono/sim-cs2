@@ -95,7 +95,7 @@ async function buildAll(maps, tmp, revs) {   // revs { p: родитель, c: �
   if (R.p) for (const m of [...need.c]) if (R.c[m].key === R.p[m].key) { need.c = need.c.filter(x => x !== m); R.c[m].same = true; }
   const bad = [];
   await Promise.all(K.filter(k => need[k].length).map(async k => {
-    const rev = revs[k], w = wt[k] = path.join(tmp, 'wt-' + k); git(['worktree', 'add', '--quiet', '--detach', w, rev]);
+    const rev = revs[k], w = wt[k] = path.join(tmp, 'wt-' + k); git(['-c', 'core.autocrlf=false', 'worktree', 'add', '--quiet', '--detach', w, rev]);   // LF, как в git: на Windows с CRLF сборка не находит меток (ПК 356; так же remote_run build)
     // node_modules сборки — из основной копии (в части коммитов в git лежала ссылка на чужую папку — заменить)
     const nm = path.join(w, 'tools', 'rebuild', 'node_modules'); try { if (fs.lstatSync(nm).isSymbolicLink()) fs.unlinkSync(nm); } catch (e) {}
     try { fs.symlinkSync(path.join(ROOT, 'tools', 'rebuild', 'node_modules'), nm, 'junction'); } catch (e) {}

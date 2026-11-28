@@ -379,21 +379,27 @@ def main():
     SELFTEST = {'runner_model': [PY, 'tools/measure/runner-validation/test_runner.py', '-v'], 'procguard': [PY, 'tools/measure/procguard_test.py'],
                 'request_guard': [PY, 'tools/measure/request_guard_test.py'], 'build_batch': [PY, 'tools/tests/build_batch_test.py'],
                 'scene_batch': ['node', '--test', 'tools/tests/scene_batch.test.js'], 'l0': ['node', 'tools/rebuild/l0.js']}
-    if req.get('selftest'):
-        r0sh([shutil.which('npm') or shutil.which('npm.cmd') or 'npm', 'install', '--prefix', os.path.join(ROOT, 'tools', 'rebuild')], r0out(req['selftest'][0]), 'npm_rebuild')
+    # (ПК 356) тесты — в чистой рабочей копии этого коммита с LF (git -c core.autocrlf=false, как build()): checkout раннера на Windows —
+    # CRLF, и сборка в нём не находит меток (@@BUILD@@ с \n), gen_maps --check — записанных строк
     for j in req.get('selftest', []):
-        out = r0out(j); envt = dict(os.environ, NODE_PATH=os.pathsep.join(filter(None, [os.environ.get('NODE_PATH'), os.path.join(ROOT, 'tools', 'rebuild', 'node_modules'),
-                                                                              os.path.join(os.path.expanduser('~'), '.simcs2_node', 'node_modules')])))
-        for name in j.get('tests', []):
-            if name not in SELFTEST: log('selftest: нет теста ' + name); continue
-            if name == 'procguard' and os.name == 'nt': log('selftest procguard: только Linux / macOS (процессы sleep) — пропущен'); continue   # (ПК 355: на Windows оборвал раннер Ctrl+C)
-            # своя группа процессов (Windows): Ctrl+C / Ctrl+Break из теста не доходит до раннера (ПК 355 оборвался так)
-            t = time.time(); r0sh([SELFTEST[name][0]] + [os.path.join(ROOT, x) if x.startswith('tools/') else x for x in SELFTEST[name][1:]], out, name, env=envt, flags=NEWGRP)
-            log('selftest %s: %.0f с' % (name, time.time() - t))
-        if j.get('l1'):
-            sha = resolve_ref(j['l1']); t = time.time()
-            r0sh(['node', os.path.join(ROOT, 'tools', 'rebuild', 'l1.js'), sha, '--out=' + os.path.join(out, 'l1.md')], out, 'l1', env=envt, flags=NEWGRP)
-            log('selftest l1 %s: %.0f с' % (sha[:8], time.time() - t))
+        out = r0out(j); W = tempfile.mkdtemp(prefix='simbuild_self_')
+        try:
+            sh(['git', '-c', 'core.autocrlf=false', 'worktree', 'add', '--quiet', '--detach', '--force', W, 'HEAD'], cwd=ROOT)
+            r0sh([shutil.which('npm') or shutil.which('npm.cmd') or 'npm', 'install', '--no-audit', '--no-fund', '--prefix', os.path.join(W, 'tools', 'rebuild')], out, 'npm_rebuild')
+            envt = dict(os.environ, NODE_PATH=os.pathsep.join(filter(None, [os.environ.get('NODE_PATH'), os.path.join(W, 'tools', 'rebuild', 'node_modules'),
+                                                                                  os.path.join(os.path.expanduser('~'), '.simcs2_node', 'node_modules')])))
+            for name in j.get('tests', []):
+                if name not in SELFTEST: log('selftest: нет теста ' + name); continue
+                if name == 'procguard' and os.name == 'nt': log('selftest procguard: только Linux / macOS (процессы sleep) — пропущен'); continue   # (ПК 355: на Windows оборвал раннер Ctrl+C)
+                # своя группа процессов (Windows): Ctrl+C / Ctrl+Break из теста не доходит до раннера (ПК 355 оборвался так)
+                t = time.time(); r0sh([SELFTEST[name][0]] + [os.path.join(W, x) if x.startswith('tools/') else x for x in SELFTEST[name][1:]], out, name, env=envt, flags=NEWGRP, cwd=W)
+                log('selftest %s: %.0f с' % (name, time.time() - t))
+            if j.get('l1'):
+                sha = resolve_ref(j['l1']); t = time.time()
+                r0sh(['node', os.path.join(W, 'tools', 'rebuild', 'l1.js'), sha, '--out=' + os.path.join(out, 'l1.md')], out, 'l1', env=envt, flags=NEWGRP, cwd=W)
+                log('selftest l1 %s: %.0f с' % (sha[:8], time.time() - t))
+        finally:
+            subprocess.run(['git', 'worktree', 'remove', '--force', W], cwd=ROOT)
     for j in req.get('jobs', []):
         sim = os.path.join(sims, j['label'] + '.html')
         build(j['ref'], j.get('map', 'ancient'), sim); jobargs.append('--job=%s,%s' % (j['label'], sim))

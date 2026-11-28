@@ -34,7 +34,7 @@ async function buildCores(tmp) {
   const R = {}, need = [];
   for (const m of MAPS) { const f = path.join(C.CACHE, 'build', C.inputKey(SHA, m) + '-' + m + '.core.js'); R[m] = { file: f }; if (C.NOCACHE || !fs.existsSync(f)) need.push(m); }
   if (need.length) {
-    const w = path.join(tmp, 'wt-core'); git(['worktree', 'add', '--quiet', '--detach', w, SHA]);
+    const w = path.join(tmp, 'wt-core'); git(['-c', 'core.autocrlf=false', 'worktree', 'add', '--quiet', '--detach', w, SHA]);
     const nm = path.join(w, 'tools', 'rebuild', 'node_modules'); try { if (fs.lstatSync(nm).isSymbolicLink()) fs.unlinkSync(nm); } catch (e) {}
     try { fs.symlinkSync(path.join(ROOT, 'tools', 'rebuild', 'node_modules'), nm, 'junction'); } catch (e) {}
     try { for (const m of need) { const o = path.join(tmp, m + '.core.js'), t = Date.now(), r = await run(PY, [path.join(w, 'tools', 'node', 'core_build.py'), '--map', m, o], { cwd: w });
