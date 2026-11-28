@@ -42,7 +42,7 @@ function bots(state, subject) {
 }
 
 function report(result) {
-  const { mark, decodedSnapshots, snapshotPositions, compatibility, notes, diagnostics } = result;
+  const { mark, decodedSnapshots, snapshotPositions, compatibility, notes, diagnostics, traceRows } = result;
   const identity = mark.identity;
   const labels = {
     gameVersion: 'Версия игры', buildHash: 'SHA-256 сборки', legacySourceHash: 'Короткий отпечаток исходника',
@@ -98,6 +98,16 @@ function report(result) {
       const alive = bot.alive == null ? undefined : (bot.alive ? 'да' : 'нет');
       lines.push('| ' + [bot.id, ...xyz, bot.hp, alive, bot.task, bot.lookReason].map(text).join(' | ') + ' |');
     }
+  }
+  if (traceRows) {
+    lines.push('', '## Причинный след решений', '');
+    if (traceRows.length) {
+      lines.push('| Тик | Участник | Вид | Запись хозяина |', '|---|---|---|---|');
+      for (const row of traceRows) {
+        const detail = row.data == null ? '' : ' · ' + JSON.stringify(row.data);
+        lines.push('| ' + [row.tick,row.actor,row.kind + ' (' + row.channel + ')',row.message + detail].map(text).join(' | ') + ' |');
+      }
+    } else lines.push('В сохранённом окне нет записей.');
   }
   if (diagnostics) {
     lines.push('', '## Диагностический журнал', '', 'Записей — ' + diagnostics.events + ', потеряно — ' + diagnostics.dropped +

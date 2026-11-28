@@ -288,3 +288,21 @@ test('project checkpoints and R2.1 evidence convert with the original boundaries
   assert.equal(Object.keys(mark.summary.data).length, 648);
   assert.match(ok('open', out), /содержит хэши полей состояния/);
 });
+
+test('report renders verified R3.3 events with actor, tick, channel and owner data', t => {
+  const dir = scratch(t);
+  const mark = fixture(dir);
+  const trace = { fromTick: 80, toTick: 100, on: true, by: {
+    CT0: { _dlogA: [[94,'арбитр','отказ заявки',{why:'уровень выше'}]],
+      _dlogK: [[90,'знание','слышал шаги']], _dlog2: [[99,'ход','держит угол']] }
+  } };
+  mark.trace = { fromTick:80, toTick:100, asset:attach(dir,'trace.json',Buffer.from(stringify(trace)),'sim-cs2/dlog') };
+  write(dir,'mark.json',mark);
+  const md = ok('open',dir);
+  assert.match(md,/Причинный след решений/);
+  assert.match(md,/90.*CT0.*знание.*слышал шаги[\s\S]*94.*CT0.*арбитр.*уровень выше[\s\S]*99.*держит угол/);
+  trace.by.CT0._dlogA[0][0] = 110;
+  mark.trace.asset = attach(dir,'trace.json',Buffer.from(stringify(trace)),'sim-cs2/dlog');
+  write(dir,'mark.json',mark);
+  assert.equal(run('check',dir).status,1);
+});

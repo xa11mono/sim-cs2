@@ -1,155 +1,208 @@
-var FIRE_LONG = 80, FIRE_STILL = 48;   // (v583a) тики: в огне дольше 1,25 с или стоит в огне 0,75 с (не выходит) — проектные
-// Сторож устройства (v373, этап 1 плана владельца 16.10). Не список ситуаций, а проверки того, КАК бот решает — ловят и то,
-// чего ещё не видели. Подключается в замер матча (rec2.js → REC.watch) и в прогон снимков отметок (watch_snaps.py).
-// Использование: eval(этот файл); WATCH.tick() — после каждого stepTick(); WATCH.report() — итог (JSON-объект).
-// Классы (каждый — общий, не под одну ситуацию):
-//   stall, tug, nav — (v407) из PROB игры (engine/debug/problem-watch.js): застрял (хочет и пытается идти к одной задаче 5 с,
-//            сдвинулся < 25 px — с причиной), перенос (видимая позиция за тик дальше шага), перетягивание (A → B → A за 2 с, кроме
-//            «кинул гранату и вернулся»); старый счёт (повторы при сдвиге точки, «стоял до задачи») — удалён
-//   wait     — ожидание без выхода: стоит на посту ожидания (сбор, ждёт гранат/смока/бомбы…) > 8 с; с раскладом
-//              «наших здоровых рядом ≥ живых врагов» — помечается «мог играть»
-//   flip     — метание: одна и та же фраза в войсе ≥ 3 раз за 5 с
-//   danger   — действие против своего знания: живой в зоне взрыва за 2 с до взрыва; стоит в своём/чужом огне > 0,5 с;
-//              вражеская флешка хлопнула в 600 px на виду — через 1,5 с не повернулся к бросавшему (±60°) и не ушёл (> 60 px)
-//   empty    — пустое чтение: правило перебирает LKP команды, а там пусто, хотя у команды есть свежее (≤ 2 с, не «проверено — пусто») знание
-//              в beliefLast; пишется, какая функция читала
-//   nav      — «вне навмеша — перенесён» и застревание (stuckTicks)
-//   nade     — цепочка гранат: на руках на старте раунда → задач → дошёл до точки → брошено; задача пропала без броска —
-//              по причине (погиб / срок / отказ броска: причина / снята)
+// Сторож записи матча. Все итоги выводятся из журнала; WATCH не меняет объекты игры.
 (function(){
-  var W = {n:{stall:0, wait:0, waitCould:0, tug:0, flip:0, danger:0, empty:0, nav:0}, ev:{stall:[], wait:[], tug:[], flip:[], danger:[], empty:[], nav:[]}, all:{},
-           emptyBy:{}, dangerBy:{}, nade:{rounds:0, hands:{}, intent:{}, reached:{}, thrown:{}, lost:{}, lostWhy:{}}};
-  var EVMAX = 40, S = {}, VO = [], LR = null, FL = [], lkpWrapped = null, thrownNow = {}, failNow = {};
-  // (Р3.6, владелец 26.11: причины ВСЕХ увеличений счётчиков, не выборка) каждое событие — в полный журнал W.all[вид]; W.ev — первые EVMAX
-  // (как раньше, для старых отчётов)
-  var all = function(k, row){ (W.all[k] = W.all[k] || []).push(row); if((W.ev[k] = W.ev[k] || []).length < EVMAX) W.ev[k].push(row); };
-  var ev = function(k, row){ W.n[k]++; all(k, row); };
-  var base = function(tag){ return String(tag || "-").replace(/[:|].*$/, "").replace(/\d+$/, ""); };
-  var WAIT_RE = /^(gather|bombWait|utilWait|utilHold|smokeWait|retakeCover|rotateHold|waitPop|stage|exec:wait)/;
-  var inc = function(o, k, v){ o[k] = (o[k] || 0) + (v == null ? 1 : v); };
-  // броски и отказы — для цепочки гранат
-  var TN = throwNade;
-  throwNade = function(b, type){ var r = TN.apply(this, arguments); if(r) thrownNow[b.id] = {type:type, t:tick}; else failNow[b.id] = {why:String(NADE_FAIL || "?"), t:tick}; return r; };
-  // войс: одна фраза ≥ 3 раз за 5 с
-  var VL = voiceLog;
-  voiceLog = function(team, key, who, text){
-    var k = who + "|" + text; VO.push({k:k, t:tick}); VO = VO.filter(function(v){ return tick - v.t <= 5*64; });
-    if(VO.filter(function(v){ return v.k === k; }).length === 3) ev("flip", [tick, who, String(text).slice(0, 60)]);
-    return VL.apply(this, arguments); };
-  // навмеш
-  var LE = logEvent;
-  logEvent = function(msg){ return LE.apply(this, arguments); };   // (v407) «вне навмеша» — теперь в PROB (перенос)
-  // (v375, владелец: «как будто видят сквозь смоки») убийство, когда линия стрелок → жертва проходит через дым: у про —
-  // убийств на Mirage — 8,6 % (демки, player_death.thrusmoke)
-  var FK = feedKill;
-  feedKill = function(att, vic){ if(att && vic && roundState === "live"){ W.n.kills = (W.n.kills||0) + 1; all("kills", [tick, att.id, vic.id]); if(typeof smokeBlocks === "function" && smokeBlocks(att.x, att.y, vic.x, vic.y)){ W.n.smokeKill = (W.n.smokeKill||0) + 1; all("smoke", [tick, att.id, vic.id, Math.round(Math.hypot(att.x-vic.x, att.y-vic.y))]); } } return FK.apply(this, arguments); };
-  // флешки: кто должен был отреагировать
-  var DT = detonate;
-  detonate = function(n){
-    if(roundState === "live" && n.type === "flash" && n.thrower) bots.forEach(function(o){
-      if(!o.alive || o.team === n.team || Math.hypot(o.x-n.x, o.y-n.y) > 600 || !hasLOS(o.x, o.y, n.x, n.y)) return;
-      var hs = o.heardSound, knew = (o._visible && o._visible.indexOf(n.thrower) >= 0) || !!(hs && hs.src === n.thrower.id && tick - hs.tick <= 96);
-      FL.push({b:o, t:tick, x:o.x, y:o.y, tx:n.ox, ty:n.oy, by:n.thrower.id, knew:knew, blind:false}); });
-    return DT.apply(this, arguments); };
-  // пустое чтение LKP: перебор ключей пустого LKP команды при свежем знании в beliefLast
-  function wrapLKP(){
-    if(typeof LKP === "undefined" || LKP === lkpWrapped) return;
-    ["CT", "T"].forEach(function(team){ var tgt = LKP[team]; LKP[team] = new Proxy(tgt, {ownKeys:function(t){ var ks = Reflect.ownKeys(t);
-      if(!ks.length && roundState === "live"){ var bl = (beliefLast && beliefLast[team]) || {};
-        // свежее (≤ 2 с) и место не «проверено — пусто» (CLEARZ): иначе LKP пуст законно — враг ушёл, свои проверили
-        var fresh = Object.keys(bl).some(function(e){ var q = bl[e]; if(!q || tick - q.tick > 2*64 || !bots.some(function(x){ return x.id === e && x.alive; })) return false;
-          var zi = typeof zoneIdAt === "function" ? zoneIdAt(q.x, q.y) : null; return !(zi && CLEARZ[team] && CLEARZ[team][zi] && CLEARZ[team][zi].tick >= q.tick); });
-        if(fresh){ var st = String(new Error().stack).split("\n"), fn = "?";
-          for(var i = 2; i < st.length; i++){ var m = /at ([\w$.]+) /.exec(st[i]); if(m && !/Proxy|Reflect|Object\.keys|Array/.test(m[1])){ fn = m[1]; break; } }
-          if(/^lkp/.test(fn)) return ks;   // обслуживание самого LKP (срок, сброс) — не правило
-          W.n.empty++; inc(W.emptyBy, fn); all("empty", [tick, team, fn]); } }
-      return ks; }}); });
-    lkpWrapped = LKP;
+  var W = {tick: observeTick, report: report};
+  var match = matchNum, rs, siteChange, S = {}, all = {}, tasks = new WeakMap(), launches = new WeakMap();
+  var errorStart = typeof simEvIn !== "undefined" ? (simEvIn.errs || []).length : 0;
+  var next = 0, WAIT_RE = /^(gather|bombWait|utilWait|utilHold|smokeWait|retakeCover|rotateHold|waitPop|stage|exec:wait)/;
+  var supported = typeof simEvOn === "function" && typeof nadeTaskObserved === "function";
+  var live = function(){ return roundState === "live" && matchNum === match; };
+  function point(b){ return [b.x,b.y,b.z]; }
+  function state(b){ return S[b.id] || (S[b.id] = {}); }
+  function eco(b){ return b.team+"|"+((teamEco[b.team] || {}).roundType || "unknown"); }
+  function entry(k, actor, reason, facts){
+    var row = [tick, actor, reason, roundNum, facts, next++];
+    (all[k] || (all[k] = [])).push(row);
+    return row;
   }
-  function roundStart(){
-    W.nade.rounds++;
-    bots.forEach(function(b){ if(!b.nades) return; ["smoke", "flash", "he", "molly"].forEach(function(t){ inc(W.nade.hands, b.team+"|"+(teamEco[b.team]||{}).roundType+"|"+t, b.nades[t]||0); }); });
+  function nadeRow(b, stage, type, task, reason, facts, delta, group){
+    return entry("nade", b ? b.id : null, reason, {stage:stage, key:group || (b && type ? eco(b)+"|"+type : null),
+      type:type, task:task, delta:delta, evidence:facts});
   }
-  // кто снимает задачу на гранату: свойство nadeTask у бота — с записью вызвавшей функции, когда ставят null
-  var clrBy = {};
-  function hookTask(b){
-    if(b.__wt) return; var v = b.nadeTask; b.__wt = 1;
-    Object.defineProperty(b, "nadeTask", {configurable:true, enumerable:true, get:function(){ return v; }, set:function(x){
-      if(x == null && v != null){ var st = String(new Error().stack).split("\n"), fn = "?";
-        for(var i = 2; i < st.length; i++){ var m = /at ([\w$.]+) /.exec(st[i]); if(m && !/^(set|Object|Array)/.test(m[1])){ fn = m[1]; break; } }
-        clrBy[b.id] = {fn:fn, t:tick}; }
-      v = x; }}); }
-  W.tick = function(){
-    bots.forEach(hookTask);
-    if(roundState !== LR){ if(roundState === "live") roundStart(); LR = roundState; S = {}; FL = []; }
-    if(roundState !== "live") return;
-    wrapLKP();
-    var rtOf = function(b){ return b.team+"|"+(teamEco[b.team]||{}).roundType; };
-    // цепочка гранат — каждый тик (задачи живут коротко)
+  function taskStart(b, o, source){
+    var known = tasks.get(o);
+    if(known && !known.end) return known;
+    var row = nadeRow(b,"intent",o.type,next,source,{start:o.start, until:o.until, target:[o.x,o.y], from:o.from ? point(o.from) : null,
+      lineup:o.luId || null, why:o.why, share:o.exu || null, resumedFrom:known ? known.id : null},1);
+    var t = {id:row[5], start:o.start, type:o.type, group:row[4].key, thrown:false, reached:false, end:false};
+    tasks.set(o,t);
+    return t;
+  }
+  function taskEnd(b,o,why,missing){
+    var t = tasks.get(o) || taskStart(b,o,"owner-end-or-restored");
+    if(t.end) return;
+    t.end = true;
+    var stage = missing || t.thrown ? "ended" : "lost";
+    nadeRow(b,stage,t.type,t.id,why,{position:point(b), post:b.post ? b.post.tag : null, alive:b.alive,
+      completed:t.thrown, censored:missing, lastAttempt:t.attempt == null ? null : t.attempt},stage === "lost" ? 1 : 0,t.group);
+  }
+  function closeSpan(row, why){
+    if(row && row[4].toTick == null){ row[4].toTick = tick; row[4].end = why; }
+  }
+  function closeRound(why){
     bots.forEach(function(b){
-      var s = S[b.id] || (S[b.id] = {pos:[], tags:[], waitT:0, fireT:0, task:null});
-      var t = b.nadeTask;
-      if(s.task && s.task.o !== t){
-        var k = rtOf(b)+"|"+s.task.type;
-        if(thrownNow[b.id] && tick - thrownNow[b.id].t <= 1) inc(W.nade.thrown, k);
-        else { inc(W.nade.lost, k); var why = !b.alive ? "погиб" : (tick > s.task.until ? "срок" : (failNow[b.id] && tick - failNow[b.id].t <= 1 ? "отказ: "+failNow[b.id].why : "снята: "+(clrBy[b.id] && tick - clrBy[b.id].t <= 1 ? clrBy[b.id].fn : "?")));
-          if(why === "срок"){ var tk = s.task.o, dT = Math.hypot(tk.x-b.x, tk.y-b.y);   // почему не успел: далеко / не видно / не дошёл до точки броска / бой
-            why += tk.from ? (Math.hypot(tk.from.x-b.x, tk.from.y-b.y) > 40 ? " — не дошёл до точки броска ("+(b.post ? String(b.post.tag).replace(/[:|].*$/, "") : "-")+")" : " — на точке, не кинул") :
-              (b._sawEnemy || b.state === "engage" ? " — бой" : (dT > (tk.range || 600)*0.85 ? " — далеко" : (!hasLOS(b.x, b.y, tk.x, tk.y) ? " — не видно цель" : " — видно, не кинул"))); }
-          inc(W.nade.lostWhy, s.task.type+"|"+why); }
-        s.task = null; }
-      if(t && (!s.task || s.task.o !== t)){ s.task = {o:t, type:t.type, until:t.until, reached:false}; inc(W.nade.intent, rtOf(b)+"|"+t.type); }
-      if(s.task && !s.task.reached && t && t.from && Math.hypot(t.from.x-b.x, t.from.y-b.y) < 40){ s.task.reached = true; inc(W.nade.reached, rtOf(b)+"|"+t.type); }
+      var s = S[b.id];
+      if(!s) return;
+      closeSpan(s.wait,why);
+      closeSpan(s.fire,why);
+      if(s.task) taskEnd(b,s.task,why,true);
     });
-    // опасность: зона взрыва за 2 с до взрыва (раз на бота за раунд). (27.11) урон — без следа в кэше игры: bombDamageAt дописывает в bomb._pathC
-    // длину пути на момент вопроса, игра потом читала значение, посчитанное сторожем (локатор: первое расхождение — bomb._pathC, тик 8979, Mirage м11;
-    // отпечаток записи со сторожами ≠ без них в 9 из 16 матчей прогона 337)
-    // и кэш путей PATHQ (ключ — округлённые точки, срок 32 тика, очистка при > 6000 записей — порядок вопросов меняет ответы игре): вопрос сторожа —
-    // во временных копиях, после — прежние объекты
-    var watchBombDmg = function(x, y){ var had = Object.prototype.hasOwnProperty.call(bomb, "_pathC"), C = bomb._pathC, Q = PATHQ, QN = PATHQ_N;
-      bomb._pathC = C ? Object.assign({}, C) : {}; PATHQ = Object.assign({}, Q);
-      try{ return bombDamageAt(x, y); } finally { if(had) bomb._pathC = C; else delete bomb._pathC; PATHQ = Q; PATHQ_N = QN; } };
-    if(bomb.state === "planted" && bombTimeLeftTicks() <= 2*64) bots.forEach(function(b){ var s = S[b.id];
-      if(b.alive && !s.boom && watchBombDmg(b.x, b.y) >= b.hp){ s.boom = 1; W.n.danger++; inc(W.dangerBy, "взрыв"); all("danger", [tick, b.id, "в зоне взрыва", b.post ? b.post.tag : "-"]); } });
-    // флешки: через 1,5 с — повернулся к бросавшему или ушёл
-    FL = FL.filter(function(f){ if(tick - f.t < 96){ if(tick < (f.b.blindUntil || 0)) f.blind = true; return true; } if(!f.b.alive) return false;
-      var a = Math.atan2(f.ty-f.b.y, f.tx-f.b.x), d = Math.abs(Math.atan2(Math.sin(a-(f.b.facing||0)), Math.cos(a-(f.b.facing||0))));
-      // (Р3.6, аудит Codex D) флешка без реакции — по знанию: старый счёт (поворот к месту броска) остаётся для сравнения; новый
-      // danger.flashKnown — только если бот знал источник (видел бросавшего или слышал его ≤ 1,5 с до взрыва), не был ослеплён и не в бою
-      if(d > Math.PI/3 && Math.hypot(f.b.x-f.x, f.b.y-f.y) < 60 && f.knew && !f.blind && !f.b._sawEnemy && !f.b._fc){ W.n["danger.flashKnown"] = (W.n["danger.flashKnown"] || 0) + 1;
-        all("flashKnown", [tick, f.b.id, "флешка "+f.by+" — знал, откуда, не повернулся", f.b.post ? f.b.post.tag : "-"]); }
-      if(d > Math.PI/3 && Math.hypot(f.b.x-f.x, f.b.y-f.y) < 60){ W.n.danger++; inc(W.dangerBy, "флешка без реакции"); all("danger", [tick, f.b.id, "флешка "+f.by+" — не повернулся", f.b.post ? f.b.post.tag : "-"]); }
-      return false; });
-    if(tick % 16) return;
+    siteChange = null; S = {};
+  }
+  function syncTask(b,o,source){
+    var s = state(b), previous = s.task;
+    if(previous && previous !== o){
+      var queued = b.nadeQueue && b.nadeQueue.indexOf(previous) >= 0;
+      taskEnd(b,previous,queued ? "queued" : "replacement-or-reset",true);
+    }
+    s.task = o || null;
+    return o ? taskStart(b,o,source) : null;
+  }
+  if(supported){
+    simEvOn("endRound",function(ph,A,r,wasLive){
+      if(ph === "in") return live();
+      if(wasLive && !live()) closeRound("round-end:"+A[1]);
+    });
+    simEvOn("tSetSite",function(ph,A,r,from){
+      if(ph === "in") return live() && A[0] && A[0].site;
+      if(!live() || !from || !A[1] || from === A[1]) return;
+      var newSite = {from:from,to:A[1],tick:tick,phase:A[0].phase};
+      if(siteChange && siteChange.to === from && siteChange.from === A[1] && tick-siteChange.tick <= 5*TICK_HZ){
+        entry("flip","T","site-reversal",{first:siteChange, second:newSite});
+        siteChange = null;
+      } else siteChange = newSite;
+    });
+    simEvOn("nadeTaskObserved",function(ph,A){
+      if(ph === "out" && live()) syncTask(A[0],A[0].nadeTask,"owner-open");
+    });
+    simEvOn("nadeTaskEnd",function(ph,A,r,o){
+      if(ph === "in") return live() && A[0].nadeTask;
+      if(o && live()){
+        taskEnd(A[0],o,A[1],false);
+        var s = state(A[0]);
+        if(s.task === o) s.task = null;
+      }
+    });
+    simEvOn("nadeLaunch",function(ph,A){ if(ph === "in" && live()) launches.set(A[0].thrower,A[0]); });
+    simEvOn("throwNade",function(ph,A,r,s){
+      var b = A[0], type = A[1], o = A[7];
+      if(ph === "in"){
+        if(!b || !live()) return null;
+        var task = o && o === b.nadeTask && type === o.type ? taskStart(b,o,"owner-attempt") : null;
+        launches.delete(b);
+        return {task:task, origin:point(b)};
+      }
+      if(!s) return;
+      var t = s.task;
+      var row = nadeRow(b,"attempt",type,t ? t.id : null,r === true ? "released" : (NADE_FC || "cause-unavailable"),
+        {ok:r === true, aim:[A[2],A[3]], origin:s.origin, label:A[5], detail:NADE_FAIL},0,t && t.group);
+      if(t) t.attempt = row[5];
+      if(r === true){
+        var n = launches.get(b), assigned = t && !t.thrown;
+        if(assigned) t.thrown = true;
+        var released = nadeRow(b,assigned ? "thrown" : "unassigned",type,assigned ? t.id : null,
+          assigned || !t ? "released" : "additional-release",{attempt:row[5], launch:n ? point(n) : null, task:t ? t.id : null},1,assigned && t.group);
+        if(n) launches.set(n,released[5]);
+      }
+    });
+    simEvOn("applyDamage",function(ph,A,r,hp){
+      if(ph === "in") return live() && A[1].alive ? A[1].hp : null;
+      if(hp == null) return;
+      var b = A[1], dmg = hp-Math.max(0,b.hp);
+      if(dmg <= 0) return;
+      var src = A[3], s = state(b), at = A[4] && A[4].from;
+      if(src === "C4"){
+        entry("danger",b.id,"C4.damage",{hp:dmg, point:point(b), site:bomb.site, planted:bomb.plantTick, lethal:!b.alive});
+      } else if(src === "молотов"){
+        var f = b._fireIn, fire = f && f.f, key = fire ? [fire.born,fire.x,fire.y,fire.z].join("|") : null;
+        if(s.fire && s.fire[4].source !== key){ closeSpan(s.fire,"source-changed"); s.fire = null; }
+        if(!s.fire) s.fire = entry("danger",b.id,"fire.damage",{fromTick:f ? f.t : tick,toTick:null,source:key,
+          origin:at ? point(at) : null, attacker:A[0] ? A[0].id : null, hits:[]});
+        s.fire[4].hits.push([tick,dmg,b.x,b.y,b.z,!!b._burning,!b.alive]);
+        if(!b.alive){ closeSpan(s.fire,"death"); s.fire = null; }
+      }
+    });
+    simEvOn("detonate",function(ph,A){
+      if(ph !== "in" || !live()) return;
+      var n = A[0], release = launches.get(n);
+      nadeRow(n.thrower,"detonated",n.type,null,"detonated",{release:release == null ? null : release, point:point(n)},1);
+    });
+    simEvOn("flashExposure",function(ph,A,r,prior){
+      if(ph === "in") return live() ? A[1].blindUntil || 0 : null;
+      if(prior == null) return;
+      var n = A[0], b = A[1], release = launches.get(n), known = A[4] || !!(n.aware && n.aware[b.id]);
+      entry("danger",b.id,known ? "flash.known" : "flash.unwarned",{until:b.blindUntil, prior:prior,
+        seconds:A[2], direction:A[3], source:point(n), point:point(b), release:release == null ? null : release,
+        thrower:n.thrower ? n.thrower.id : null, thrown:n.born, warned:A[4], team:n.team});
+    });
+    simEvOn("feedKill",function(ph,A){
+      if(ph !== "in" || !live() || !A[0] || !A[1] || A[0].team === A[1].team) return;
+      var a = A[0], b = A[1], m = A[4];
+      entry("kills",b.id,"opponent-kill",{attacker:a.id,weapon:A[2]});
+      if(m && m.smoke) entry("smokeProjected",b.id,"engine-smoke-flag",{attacker:a.id,weapon:A[2],from:point(a),to:point(b)});
+    });
+  }
+  function observeTick(){
+    if(!supported || matchNum !== match) return;
+    if(!live()){ if(rs === roundNum){ closeRound("round-inactive"); rs = null; } return; }
+    if(rs !== roundNum){
+      if(rs != null) closeRound("round-changed");
+      rs = roundNum;
+      nadeRow(null,"rounds",null,null,"live-observed",{firstTick:tick},1);
+      bots.forEach(function(b){
+        if(b.nades) ["smoke","flash","he","molly"].forEach(function(t){
+          if(b.nades[t] > 0) nadeRow(b,"hands",t,null,"inventory-at-first-live-tick",null,b.nades[t]);
+        });
+      });
+    }
     bots.forEach(function(b){
-      var s = S[b.id]; if(!b.alive) return;
-      s.pos.push([b.x, b.y, tick]); if(s.pos.length > 21) s.pos.shift();
-      // огонь
-      // (v583a, владелец 18.11: «почини счётчик огня») огонь — с высотой, как урон в игре (inFire(x, y, z): этажом выше / ниже — не в огне); «стоит в
-      // огне» — в огне дольше FIRE_LONG тиков подряд, кроме выхода из огня, который идёт (выбегает и сдвинулся за 0,25 с больше 3 px). Было: огонь без
-      // высоты и «< 10 px за 0,5 с» — бот этажом ниже и бот, разгоняющийся из только что упавшего молотова, считались «стоит»
-      var inF = !!inFire(b.x, b.y, b.z), pp = s.pos.length >= 2 ? s.pos[s.pos.length-2] : null;
-      var escaping = b._burning && pp && Math.hypot(b.x-pp[0], b.y-pp[1]) > 3;
-      s.fireT = inF ? s.fireT + 16 : 0; s.fireStill = inF && !escaping ? (s.fireStill || 0) + 16 : 0;
-      if(!inF) s.fireCnt = 0;
-      if(inF && !s.fireCnt && (s.fireT >= FIRE_LONG || s.fireStill >= FIRE_STILL)){ s.fireCnt = 1; W.n.danger++; inc(W.dangerBy, "стоит в огне"); all("danger", [tick, b.id, "стоит в огне", b.post ? b.post.tag : "-"]); }
-      // (v407) перетягивание, застой, перенос — одно место в игре: PROB (engine/debug/problem-watch.js); здесь только отчёт
-      // ожидание без выхода
-      if(b.post && b.atPost && WAIT_RE.test(b.post.tag)){ s.waitT += 16;
-        if(s.waitT === 8*64){ var foe = b.team === "T" ? "CT" : "T", nE = aliveCount(foe);
-          var near = bots.filter(function(o){ return o.alive && o.team === b.team && o.hp > (typeof LOW_HP !== "undefined" ? LOW_HP : 30) && Math.hypot(o.x-b.x, o.y-b.y) < 600; }).length;
-          var could = near >= nE; W.n.wait++; if(could) W.n.waitCould++;   // причина — в событии wait (поле «мог играть»)
-          all("wait", [tick, b.id, b.post.tag, "наших рядом "+near+", их живых "+nE, could ? "мог играть" : ""]); } }
-      else s.waitT = 0;
+      var s = state(b), o = b.nadeTask, p = b.post;
+      if(s.task !== o) syncTask(b,o,"sampled-active");
+      if(o){
+        var t = tasks.get(o);
+        if(!t.reached && o.from && b.atPost && p && p.tag === "lineup" && p.src && p.src.x === o.from.x && p.src.y === o.from.y){
+          t.reached = true;
+          nadeRow(b,"reached",o.type,t.id,"lineup-arrival-by-owner",{point:point(b),post:[p.x,p.y,p.z]},1,t.group);
+        }
+      }
+      if(s.fire && (!b.alive || !b._fireIn || !fires.includes(b._fireIn.f))){
+        closeSpan(s.fire,b.alive ? "left-or-extinguished" : "death");
+        s.fire = null;
+      }
+      var key = b.alive && p && b.atPost && WAIT_RE.test(p.tag) ? p.id+"|"+p.tag+"|"+p.x+"|"+p.y+"|"+p.z : null;
+      if(s.waitKey !== key){ closeSpan(s.wait,"post-or-eligibility-changed"); s.wait = null; s.waitKey = key; s.waitFrom = tick; }
+      if(key && !s.wait && tick-s.waitFrom >= 8*TICK_HZ){
+        s.wait = entry("wait",b.id,p.tag,{fromTick:s.waitFrom,toTick:null, post:[p.x,p.y,p.z,p.id],
+          phase:(teamTac[b.team] || {}).phase, task:b._task ? b._task.tag : null, blind:tick < (b.blindUntil || 0),
+          visible:(b._visible || []).map(function(x){ return x.id; })});
+      }
     });
-  };
-  W.report = function(){
-    // (v407) застой / перетягивание / перенос — из PROB игры (один счёт со слоем «ошибки движения» на странице)
-    if(typeof PROB !== "undefined" && PROB.sub) Object.keys(PROB.sub).forEach(function(k){ W.n[k] = PROB.sub[k]; });   // (Р3.6) stall по причинам — рядом
-    if(typeof PROB !== "undefined" && PROB.ep != null) W.n["stall.ep"] = PROB.ep;   // (Р3.6, P05) эпизоды стояния без двойного счёта — рядом со старым stall
-    if(typeof PROB !== "undefined"){ ["stall", "tug", "nav"].forEach(function(k){ W.n[k] = PROB.n[k];
-      W.all[k] = (PROB.all || PROB.ev).filter(function(e){ return e.kind === k; }).map(function(e){ return [e.tick, e.id, e.text, e.x, e.y, e.round, e.sub || null, e.why || null, e.ep || null]; });
-      W.ev[k] = PROB.ev.filter(function(e){ return e.kind === k; }).slice(0, EVMAX).map(function(e){ return [e.tick, e.id, e.text, e.x, e.y, e.round]; }); }); }
-    return {n:W.n, ev:W.ev, all:W.all, emptyBy:W.emptyBy, dangerBy:W.dangerBy, nade:W.nade}; };
+  }
+  function inc(o,k,delta){ o[k] = (o[k] || 0) + delta; }
+  function report(externalProb){
+    var n = {}, ev = {}, dangerBy = {}, rows = Object.assign({},all);
+    var nade = {rounds:0,hands:{},intent:{},reached:{},thrown:{},lost:{},lostWhy:{},unassigned:{},detonated:{}};
+    var movement = typeof PROB !== "undefined" && PROB.revision === 2 ? PROB.all : [];
+    ["stall","nav","tug","wait","flip","danger","kills","smokeProjected"].forEach(function(k){
+      n[k] = (rows[k] || []).length;
+      ev[k] = (rows[k] || []).slice(0,40);
+    });
+    movement.forEach(function(e){
+      inc(n,e.kind,1); inc(n,e.sub,1);
+      if(e.kind === "stall") inc(n,"stall.ep",1);
+      if(ev[e.kind].length < 40) ev[e.kind].push([e.tick,e.id,e.text,e.x,e.y,e.round,e.seq]);
+    });
+    if(!externalProb) rows.movement = movement;
+    (rows.danger || []).forEach(function(r){ inc(dangerBy,r[2],1); });
+    (rows.nade || []).forEach(function(r){
+      var e = r[4];
+      if(e.stage === "rounds") nade.rounds += e.delta;
+      else if(e.delta) inc(nade[e.stage],e.key,e.delta);
+      if(e.stage === "lost") inc(nade.lostWhy,e.type+"|"+r[2],e.delta);
+    });
+    var errors = supported ? (simEvIn.errs || []).slice(errorStart) : ["missing-owner-events"];
+    return {revision:2, match:match, toTick:tick, complete:supported && errors.length === 0 && matchNum === match,
+      errors:errors, counts:{watch:next,movement:movement.length}, movementSource:externalProb ? "REC.prob" : "WATCH.all.movement",
+      n:n, ev:ev, all:rows, emptyBy:{}, dangerBy:dangerBy, nade:nade};
+  }
   (typeof window !== "undefined" ? window : globalThis).WATCH = W;
 })();

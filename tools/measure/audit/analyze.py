@@ -152,10 +152,20 @@ def analyze(label):
     S['7 ослеплено своей флешкой >0,35 с: тиммейтов / себя / врагов'] = [sum(1 for b in BL if b[2] == 'mate'), sum(1 for b in BL if b[2] == 'self'), sum(1 for b in BL if b[2] == 'enemy')]
     FF = [x for d in D for x in d['ff']]
     S['7 урон по своим: случаев по источнику'] = Counter(x[3] for x in FF).most_common()
-    inc = defaultdict(lambda: [0, 0])
+    # Объект источника связывает урон одного HE/огня даже на границе тикового окна.
+    # Старые записи содержат HP, но у них нет идентификатора эпизода.
+    hp, ids, missing = Counter(), defaultdict(set), Counter()
     for i, d in enumerate(D):
-        for x in d['ff']: k = (i, x[1], x[2], x[3], x[0]//640); inc[k][0] += 1; inc[k][1] += x[4]
-    S['7 урон по своим: эпизодов / HP по источнику'] = {s: [sum(1 for k in inc if k[3] == s), sum(v[1] for k, v in inc.items() if k[3] == s)] for s in sorted(set(k[3] for k in inc))}
+        for x in d['ff']:
+            source = x[3]
+            hp[source] += x[4]
+            if len(x) > 6 and x[6] is not None:
+                ids[source].add((i,x[1],x[2],x[6]))
+            else:
+                missing[source] += 1
+    S['7 урон по своим: эпизодов с ID / HP / событий без ID по источнику'] = {
+        source: [len(ids[source]),hp[source],missing[source]] for source in sorted(hp)
+    }
     # ---------- 8. коммуникация ----------
     V = [v for d in D for v in d['voice']]
     S['8 фраз договорено на раунд'] = round(len(V)/rounds, 1) if rounds else None

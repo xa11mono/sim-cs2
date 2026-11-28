@@ -77,7 +77,9 @@ function detonate(n){ var _ev = simEvIn("detonate", arguments);
       if(warned) secs *= (b === n.thrower ? 0.05 : 0.18);
       if(secs > 0.35){
         var lkBefore = b.lastIntel || (b._nearestEnemyBot ? {x:b._nearestEnemyBot.x, y:b._nearestEnemyBot.y, tick:tick} : null);
+        var blindEvent = simEvIn("flashExposure", [n,b,secs,dirK,warned]);
         damageSetBlindUntil(b, Math.max(b.blindUntil, tick + Math.round(secs*TICK_HZ))); if(n.thrower && n.thrower.team !== b.team) damageSetBlindBy(b, n.thrower.id);
+        simEvOut(blindEvent);
         engagementSetContactStreak(b, 0); engagementSetTs(b, {}); knowIntel(b, null);
         if(secs > 1.2) logEvent(b.id+" ослеплён"+(b.team===n.team?" своей флешкой":"")+" ("+secs.toFixed(1)+"с)");
         if(b.team !== n.team && secs > 0.8) onBlind(b, lkBefore || {x:n.x, y:n.y});
@@ -99,7 +101,7 @@ function detonate(n){ var _ev = simEvIn("detonate", arguments);
       if(d > NADE.he.radius) return;
       if(n.z != null ? !(visMarch(n.x, n.y, nz + 4, b.x, b.y, bf + 36) || visMarch(n.x, n.y, nz + 4, b.x, b.y, bf + VIS_EYE.stand)) : !hasLOS(n.x, n.y, b.x, b.y, null, b.z)) return;
       var dmg = NADE.he.dmg * (1 - d/NADE.he.radius);
-      applyDamage(n.thrower, b, dmg, "HE", {armorRatio: b.armor ? NADE.he.armorK : null, from:{x:n.x, y:n.y, z:n.z}});
+      applyDamage(n.thrower, b, dmg, "HE", {armorRatio: b.armor ? NADE.he.armorK : null, source:n, from:{x:n.x, y:n.y, z:n.z}});
     });
   }
   nadeFx.push({type:T, x:n.x, y:n.y, born:tick});
@@ -232,7 +234,7 @@ function nadesTick(){
         // (v323, М35) урон за удар растёт 1 → 8, удар раз в 0,2 с — чем дольше в огне, тем сильнее (fireDamageFor)
         if(!b._fireIn || b._fireIn.f !== fr){ damageSetFireIn(b, {f:fr, t:tick, hits:0}); }
         var hitsNow = Math.floor((tick - b._fireIn.t)/TICK_HZ/FIRE_HIT_SEC);
-        while(b._fireIn.hits < hitsNow && b.alive){ nadeCountFireHit(b._fireIn); if(b._fireIn.hits % 3 === 1) soundEv("sndBody", "burn", b.x, b.y); applyDamage(fr.thrower, b, Math.min(FIRE_HIT_MAX, b._fireIn.hits), "молотов", {from:{x:fr.x, y:fr.y}}); }
+        while(b._fireIn.hits < hitsNow && b.alive){ nadeCountFireHit(b._fireIn); if(b._fireIn.hits % 3 === 1) soundEv("sndBody", "burn", b.x, b.y); applyDamage(fr.thrower, b, Math.min(FIRE_HIT_MAX, b._fireIn.hits), "молотов", {source:fr, from:{x:fr.x, y:fr.y}}); }
       } else if(b._fireIn && b._fireIn.f === fr){ damageSetFireIn(b, null); }
     });
   }

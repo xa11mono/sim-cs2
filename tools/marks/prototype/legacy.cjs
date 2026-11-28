@@ -105,10 +105,11 @@ async function convert(input, out, options = {}) {
     const zlib = require('node:zlib'), D = options.diag, rows = D.rows || [];
     need(uint(D.match) && Array.isArray(rows) && rows.every((r, i) => uint(r.seq) && (i === 0 || r.seq === rows[i - 1].seq + 1)), 'Вклады метрик: нужны подряд идущие записи журнала матча');
     const metrics = {}, summary = {}, segments = [], ids = ['stall', 'nav', 'tug'];
-    ids.forEach(id => { metrics[id] = { revision: 'problem-watch PROB.all v1', unit: 'событие' }; summary[id] = { counted: 0, eligible: 0, excluded: 0, censored: 0 }; });
+    const revision = rows.some(r => r.e && r.e.seq != null) ? 'v2' : 'v1';
+    ids.forEach(id => { metrics[id] = { revision: 'problem-watch PROB.all ' + revision, unit: id === 'stall' && revision === 'v2' ? 'эпизод' : 'событие' }; summary[id] = { counted: 0, eligible: 0, excluded: 0, censored: 0 }; });
     const conv = r => { const e = r.e || {}; summary[e.kind] && summary[e.kind].counted++;
-      return { seq: r.seq, tick: e.tick, phase: 'live', episode: e.kind === 'stall' && e.ep ? 'stall#' + e.ep : e.kind + '@' + e.tick + ':' + e.id, metric: e.kind, outcome: 'counted', delta: 1,
-        reason: e.sub || e.kind, sourceEvent: 'PROB.all#' + r.seq, actor: e.id == null ? null : String(e.id), facts: { ref: 'PROB.all#' + r.seq, domain: 'world' }, text: e.text, why: e.why }; };
+      return { seq: r.seq, tick: e.tick, phase: 'live', episode: e.kind === 'stall' && e.ep ? 'stall#' + e.ep : e.kind + '#' + r.seq, metric: e.kind, outcome: 'counted', delta: 1,
+        reason: e.sub || e.kind, sourceEvent: 'PROB.all#' + r.seq, actor: e.id == null ? null : String(e.id), facts: { ref: 'PROB.all#' + r.seq, domain: 'world', detail: e.facts || null }, text: e.text, why: e.why }; };
     for (let i = 0; i < rows.length;) { const rd = rows[i].e.round; let j = i; while (j < rows.length && rows[j].e.round === rd) j++;
       const part = rows.slice(i, j).map(conv), buf = zlib.gzipSync(Buffer.from(part.map(x => JSON.stringify(x)).join('\n') + '\n'));
       segments.push({ kind: 'chunk', fromSeq: rows[i].seq, toSeq: rows[j - 1].seq + 1, round: rd, fromTick: part[0].tick, toTick: part[part.length - 1].tick, asset: add('diag-r' + rd + '-' + rows[i].seq + '.jsonl.gz', buf, 'jsonl+gzip') });

@@ -77,13 +77,15 @@ function hearReal(o, s){
 // owners.json, enforce); запись — в след решений (канал «знание», ключ _dlogK: общий журнал _dlog читает сторож PROB — его не трогать). knowHear — звук, дошедший сам (ears + приоритет ближнего, hearReal);
 // knowSound — звук / колл из чужого знания (тиммейт сказал, попадание) и сброс; knowIntel — последнее место врага (колл, контакт) и сброс
 function knowHear(o, s, label){
-  knowSound(o, hearReal(o, s));
+  knowSound(o, hearReal(o, s), "hearing");
   if(o.heardSound && /^приземление/.test(label || "")) o.heardSound.land = true;   // (v343) метка звука для ctLandPunish
 }
-function knowSound(o, s){ var was = o.heardSound; o.heardSound = s;
-  if(DLOG.on && s && s !== was) dlog(o, "знание", "звук «" + (s.kind || "?") + "»" + (s.src ? " от " + s.src : ""), "_dlogK"); }
-function knowIntel(o, I){ o.lastIntel = I;
-  if(DLOG.on && I) dlog(o, "знание", "последнее место врага" + (I.src ? " (" + I.src + ")" : I.id ? " (видел " + I.id + ")" : ""), "_dlogK"); }
+function knowSound(o, s, origin){ var _ev = simEvIn("knowSound", arguments), was = o.heardSound; o.heardSound = s;
+  if(DLOG.on && s && s !== was) dlog(o, "знание", "звук «" + (s.kind || "?") + "»" + (s.src ? " от " + s.src : ""), "_dlogK");
+  simEvOut(_ev); }
+function knowIntel(o, I, origin){ var _ev = simEvIn("knowIntel", arguments); o.lastIntel = I;
+  if(DLOG.on && I) dlog(o, "знание", "последнее место врага" + (I.src ? " (" + I.src + ")" : I.id ? " (видел " + I.id + ")" : ""), "_dlogK");
+  simEvOut(_ev); }
 
 // ---------- граф зон-коллаутов ----------
 var KG = null;

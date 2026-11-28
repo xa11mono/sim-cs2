@@ -183,7 +183,7 @@ function endRound(winner, reason){ var _ev = simEvIn("endRound", arguments);
   }
  simEvOut(_ev);}
 
-function resetRound(){
+function resetRound(){ var _ev = simEvIn("resetRound", arguments);
   voiceLines = []; VOICE_DIRTY = true;   // (v264) войс — только этого раунда
   roundNum++;
   if(sideSwapNow(roundNum)) swapSides();
@@ -240,6 +240,7 @@ function resetRound(){
   buyPhase();   // (v428) выбор тактики — внутри, до закупа
   resetBomb();
   logEvent("Раунд "+roundNum+" начался");
+  simEvOut(_ev);
 }
 // (17.11, перестройка — модули) время и состояние раунда двигает главный цикл (tick, модуль) — через хозяина раунда
 function roundSetState(s){ roundState = s; }

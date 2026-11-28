@@ -58,9 +58,9 @@ evOn('applyDamage', function(ph,A,r,h0){ var att=A[0],b=A[1],dmg=A[2],src=A[3]; 
 // recall — смена сайта T [тик, с, на, кто вызвал (функция)]; pick — подбор оружия [тик, текст]; he — урон HE [тик, жертва, 3D-линия от точки разрыва 1/0];
 // blind — ослепление [тик, кто, секунд, чья флешка]
 // refuse — арбитр задач отказал [тик, бот, какую задачу хотели поставить, какая держит, её уровень, идёт отклонение (вид)] — чья механика кому не дала
-REC.refuse=[]; var RFP={};
+REC.refuse=[];
 if(typeof setPost==='function'){ evOn('setPost', function(ph,A,r){ if(ph!=='out') return; var b=A[0],tag=A[4];
-  if(r===false&&roundState==='live'&&b&&REC.refuse.length<60000){ var k=b.id+'|'+tag; if(!RFP[k]||tick-RFP[k]>=32){ RFP[k]=tick; var T=b._task; REC.refuse.push([tick, b.id, String(tag), T?String(T.tag):'', T?T.lv:0, b._detour&&tick<b._detour.until?b._detour.kind:'']); } }
+  if(r===false&&roundState==='live'&&b){ var T=b._task; REC.refuse.push([tick, b.id, String(tag), T?String(T.tag):'', T?T.lv:0, b._detour&&tick<b._detour.until?'detour':'post']); }
   }); }
 REC.jump=[]; REC.arrive=[]; REC.defst=[]; REC.recall=[]; REC.pick=[]; REC.he=[]; REC.blind=[]; var ATP={}, DFP={}, BLP={};
 if(typeof tSetSite==='function'){ evOn('tSetSite', function(ph,A){ if(ph!=='in') return; var tt=A[0],site=A[1]; var old=tt&&tt.site; if(roundState==='live'&&old&&site&&old!==site){ var fr=String(new Error().stack||'').split('\n'), fi=-1; fr.forEach(function(l,i){ if(/at (?:\S+\.)?tSetSite\b/.test(l)) fi=i; }); var st=fr[fi+1]||'';   // кто вызвал tSetSite: строка после кадра tSetSite (подписка или обёртка — одинаково)
@@ -84,8 +84,12 @@ for(var t=0;t<__T__ && roundState!=='matchover';t++){ var _t0=performance.now();
   bots.forEach(function(b){ if(b.team!=='CT') return; var r=RX[b.id]||(RX[b.id]={cur:null, seen:{}});
    if(!b.alive||pl){ r.cur=null; return; }
    var c=(ct.rot&&ct.rot[b.id]&&ct.call)?ct.call.site:null; if(c===r.cur) return;
-   if(c){ REC.rotx.n++; if(r.cur&&r.cur!==c){ REC.rotx.rev++; if(REC.rotx.ev.length<60) REC.rotx.ev.push([tick,b.id,r.cur,c]); } else if(!r.cur&&r.seen[c]){ REC.rotx.back++; if(REC.rotx.ev.length<60) REC.rotx.ev.push([tick,b.id,'-',c]); } r.seen[c]=1; }
-   else REC.rotx.drop++;
+   if(c){
+     REC.rotx.n++; var kind=r.cur?'rev':r.seen[c]?'back':'start';
+     if(kind!=='start') REC.rotx[kind]++;
+     REC.rotx.ev.push([tick,b.id,r.cur||'-',c,kind,roundNum]);
+     r.seen[c]=1;
+   } else { REC.rotx.drop++; REC.rotx.ev.push([tick,b.id,r.cur,null,'drop',roundNum]); }
    r.cur=c; });
   var dd=bomb.state==='dropped'&&bots.some(function(o){ return o.team==='T'&&!o.alive&&Math.hypot(o.x-bomb.x,o.y-bomb.y)<20; });
   if(dd&&!BD){ BD={t0:tick, r:roundNum, x:Math.round(bomb.x), y:Math.round(bomb.y), place:String(calloutName(bomb.x,bomb.y)||''), call0:ct.call?ct.call.site:null}; REC.bd.push(BD); }
@@ -116,14 +120,19 @@ for(var t=0;t<__T__ && roundState!=='matchover';t++){ var _t0=performance.now();
  bots.forEach(function(b){ if(!b.alive){ delete H[b.id]; return; } REC.jit.alive++;
   var h=H[b.id]||(H[b.id]={p:[],f:[]}); h.p.push([b.x,b.y]); h.f.push(b.facing||0); if(h.p.length>12){h.p.shift();h.f.shift();} if(h.p.length<12) return;
   var a=h.p[0],m=h.p[5],c=h.p[11], v1x=m[0]-a[0],v1y=m[1]-a[1],v2x=c[0]-m[0],v2y=c[1]-m[1], l1=Math.hypot(v1x,v1y),l2=Math.hypot(v2x,v2y);
-  if(l1>5&&l2>5&&(v1x*v2x+v1y*v2y)/(l1*l2)<-0.6){ if(b._sawEnemy) REC.jit.moveEng++; else if(!b.post) { REC.jit.moveIdle++; REC.jit.ev.push(['idle',tick,b.id,Math.round(b.x),Math.round(b.y)]); } else REC.jit.moveOther++; h.p=[]; h.f=[]; return; }
+  if(l1>5&&l2>5&&(v1x*v2x+v1y*v2y)/(l1*l2)<-0.6){
+    var group=b._sawEnemy?'Eng':!b.post?'Idle':'Other';
+    REC.jit['move'+group]++;
+    REC.jit.ev.push([group.toLowerCase(),tick,b.id,Math.round(b.x),Math.round(b.y),b.post?b.post.tag:'']);
+    h.p=[]; h.f=[]; return;
+  }
   var d1=h.f[5]-h.f[0], d2=h.f[11]-h.f[5]; d1=Math.atan2(Math.sin(d1),Math.cos(d1)); d2=Math.atan2(Math.sin(d2),Math.cos(d2));
   if(!b._sawEnemy&&Math.abs(d1)>0.87&&Math.abs(d2)>0.87&&d1*d2<0){ REC.jit.look++; REC.jit.ev.push(['look',tick,b.id,Math.round(b.x),Math.round(b.y),b.post?b.post.tag:'']); h.p=[]; h.f=[]; }
  });
 }
-if(typeof WATCH!=='undefined') REC.watch=WATCH.report();
+if(typeof WATCH!=='undefined') REC.watch=WATCH.report(true);
 // (Р3.6, владелец 26.11) причины всех увеличений счётчиков ошибок движения — полный журнал матча (событие, причина stall.*, след решения)
-if(typeof PROB!=='undefined' && PROB.all) REC.prob=PROB.all.map(function(e){ return [e.tick, e.id, e.kind, e.sub||null, e.text, e.x, e.y, e.round, e.why||null]; });
+if(typeof PROB!=='undefined' && PROB.all) REC.prob=PROB.all.map(function(e){ return [e.tick, e.id, e.kind, e.sub||null, e.text, e.x, e.y, e.round, e.why||null, e.seq == null ? null : e.seq, e.ep||null, e.facts||null]; });
 REC.match=M0; REC.ticks=tick; REC.finished=matchNum===M0 && roundState==='matchover'; if(typeof VOICE_STATS!=='undefined') REC.voice=VOICE_STATS;
 /*@@FP_FINISH@@*/
 JSON.stringify(REC)

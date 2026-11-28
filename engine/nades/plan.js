@@ -232,7 +232,7 @@ function nadeAskFlash(b, pt, why, type, forC){   // (22.11, Ж23) forC — за�
   // с места — бросает сразу (не долетает отсюда — просьба следующему); с лайнапа — идёт на точку броска (срок — FLASH_ASK_WAIT)
   var got = null;
   for(var i = 0; i < C.length && !got; i++){ var c = C[i], o = c.o;
-    if(c.L){ o.nadeTask = {type:type, x:c.L.to.x, y:c.L.to.y, from:{x:c.L.from.x, y:c.L.from.y}, until: tick + FLASH_ASK_WAIT*TICK_HZ, why:why, start:tick, lob:true, range:4000, now:true, lineup:true, npm:npMomentNow(o), forC: forC || null}; got = c; }
+    if(c.L){ o.nadeTask = {type:type, x:c.L.to.x, y:c.L.to.y, from:{x:c.L.from.x, y:c.L.from.y}, until: tick + FLASH_ASK_WAIT*TICK_HZ, why:why, start:tick, lob:true, range:4000, now:true, lineup:true, npm:npMomentNow(o), forC: forC || null}; nadeTaskObserved(o); got = c; }
     else if(throwNade(o, type, pt.x, pt.y, true, why)) got = c;
   }
   if(!got) return null;

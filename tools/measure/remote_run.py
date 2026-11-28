@@ -205,16 +205,19 @@ def main():
     if req.get('rec'):
         tpl = open(os.path.join(HERE, 'rec2.js'), encoding='utf-8').read(); E = os.path.join(HERE, 'engine')
         watch = '\n'.join(open(f, encoding='utf-8').read() for f in (os.path.join(HERE, 'audit', 'watch.js'), os.path.join(E, 'walk_watch.js'), os.path.join(E, 'know_watch.js'), os.path.join(E, 'g_watch.js')))
-        A = "if(typeof WATCH!=='undefined') WATCH.tick();"; B = "if(typeof WATCH!=='undefined') REC.watch=WATCH.report();"
+        A = "if(typeof WATCH!=='undefined') WATCH.tick();"; B = "if(typeof WATCH!=='undefined') REC.watch=WATCH.report(true);"
         tpl = tpl.replace(A, A + " WALK.tick(); KNOWW.tick(); GWATCH.tick();").replace(B, B + " REC.walk=WALK.report(); REC.know=KNOWW.report(); REC.gw=GWATCH.report();")
-        def rec_ok(path, complete=False, fingerprint=False):
+        from audit.watch_validate import watch_revision
+        def rec_ok(path, complete=False, fingerprint=False, diagnostic_revision=None):
             try:
                 with open(path, encoding='utf-8') as f:
                     row = json.load(f)
+                if diagnostic_revision is not None and watch_revision(row) != diagnostic_revision:
+                    return False
                 return ('watch' in row and (not complete or
                         (row.get('finished') is True and isinstance(row.get('prob'), list))) and
                         (not fingerprint or fingerprint_jobs.valid_fp(row.get('fingerprint'), row.get('match'))))
-            except (OSError, ValueError, TypeError):
+            except (OSError, ValueError, TypeError, KeyError):
                 return False
         for j in req['rec']:
             code = tpl
@@ -228,7 +231,7 @@ def main():
                 pool.add({'name': 'rec %s m%d' % (j['label'], m), 'cmd': ['node', os.path.join(ROOT, 'src', 'q.js'), sim, '@' + js], 'cwd': ROOT, 'engine': 'chromium',
                           'est_key': 'chromium:' + j.get('map', 'ancient'), 'out': os.path.join(out, 'rec_%d.json' % m), 'err': os.path.join(out, 'err_%d.txt' % m),
                           'guard': os.path.join(out, 'guard_%d.json' % m),
-                          'valid': lambda path, complete=j.get('complete', False), fp=j.get('fingerprint', False): rec_ok(path, complete, fp)})
+                          'valid': lambda path, complete=j.get('complete', False), fp=j.get('fingerprint', False), revision=j.get('diagnostic_revision'): rec_ok(path, complete, fp, revision)})
     if pool.q or pool.run or pool.retry: pool.wait_all()
     # ---- (Р0.6, Р0.11, Р0.13, Р0.14, 24.11) задания перестройки: каждое пишет в runs/<label>/; ошибка задания не валит остальные ----
     R0 = os.path.join(ROOT, 'tools', 'measure')

@@ -61,25 +61,27 @@
     R.fov_second_enemy_behind = {ok: !seesBack, seesBehind: seesBack, lineOpen: !!(vb.head || vb.body), seesFront: (c._visible || []).indexOf(a) >= 0};
   } catch(e){ R.fov_second_enemy_behind = {ok: false, err: String(e).slice(0, 200)}; }
 
-  // 3. Утечка: гипотеза «слышал здесь», которую бот не сказал, не попадает в общую точку команды (LKP); сказанная в войс — попадает
-  //    (память/коммуникация 2.1/2.8). Гипотеза кладётся так, как её кладёт knowApply (heard, htick; voice — откуда)
+  // 3. Частный слух и договорённый колл идут в разные представления знания.
   try {
-    var one = function(viaVoice){
-      setup(); var h = bot("CT2"), e = bot("T2"); knowTick();
-      while(tick % 16 !== 0) stepTick();
-      var B = h.know.enemies[e.id], pt = {x: h.x + 200, y: h.y + 40};
-      B.hyps = [{type: "held", zone: B.last.zone, x: B.last.x, y: B.last.y, weight: 0.3},
-                {type: "moved", zone: knowZoneAt(pt.x, pt.y), x: pt.x, y: pt.y, route: [knowZoneAt(pt.x, pt.y)], windows: [], weight: 0.6, heard: true, htick: tick, voice: viaVoice},
-                {type: "moved_unknown", zone: null, weight: 0.1}];
-      bots.forEach(function(o){ if(o !== h && o.team === "CT" && o.know && o.know.enemies[e.id]) o.know.enemies[e.id].hyps.forEach(function(q){ q.heard = false; }); });
-      // сборка этапа 2: сказанное в войс попадает и в знание команды (teamAgent) — кладём туда же, как это делает knowCall
-      if(viaVoice && typeof teamAgent === "function"){ var TA = teamAgent("CT"); knowTick(); TA.know.enemies[e.id].hyps = B.hyps.map(function(q){ var c = {}; for(var k in q) c[k] = q[k]; return c; }); }
-      LKP.CT = {}; beliefTick();
-      var L = LKP.CT[e.id]; return !!(L && Math.hypot(L.x-pt.x, L.y-pt.y) < 5);
-    };
-    var ear = one(false), voice = one(true);
-    R.team_lkp_without_voice = {ok: !ear && voice, earReachesTeam: ear, voiceReachesTeam: voice};
-  } catch(e){ R.team_lkp_without_voice = {ok: false, err: String(e).slice(0, 200)}; }
+    setup();
+    var listener = bot("CT2"), other = bot("T2");
+    var team = teamOf("CT"), agent = teamAgent("CT"), zone = knowZoneAt(other.x, other.y);
+    if(!zone) throw new Error("нет зоны для проверки слуха");
+    var point = knowGraph().c[zone], before = JSON.stringify(agent.know.enemies);
+    knowHear(listener,{x:point.x,y:point.y,tick:tick,team:"T",src:other.id,kind:"steps"});
+    knowHearing(listener);
+    var privateHeard = listener.heardSound && listener.heardSound.src === other.id;
+    var sharedEarly = before !== JSON.stringify(agent.know.enemies);
+    teamPropose(listener,{kind:"hear",zone:zone,sound:"steps",count:1});
+    var beforeDelivery = before === JSON.stringify(agent.know.enemies), deadline = tick+6*TICK_HZ;
+    while(tick < deadline && before === JSON.stringify(agent.know.enemies)){
+      tick++;
+      teamChannel(team);
+    }
+    var sharedAfter = before !== JSON.stringify(agent.know.enemies);
+    R.team_lkp_without_voice = {ok:!!privateHeard && !sharedEarly && beforeDelivery && sharedAfter,
+      privateHeard:!!privateHeard, earReachesTeam:sharedEarly, sharedBeforeDelivery:!beforeDelivery, voiceReachesTeam:sharedAfter};
+  } catch(e){ R.team_lkp_without_voice = {ok:false,err:String(e).slice(0,200)}; }
 
   // 4. Дребезг задач: «сейв» перебил лайнап — лайнап не возвращается на следующем тике (позиция/гранаты 2.3/2.7)
   try {

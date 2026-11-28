@@ -395,7 +395,7 @@ function intelCallLog(team, key, text, who, kind){
 }
 // (17.11, перестройка, дубль 8) окно размена — одно место: «иду менять» (_tradeLock: до, где убили, kp) и «тревога после смерти своего»
 // (_tradeUntil); было — писали 110, 120, 180, 190, читали 150, 170 ×3, 270, 350, 500, 535 сами
-function tradeStart(o, at, kp){ o._tradeLock = {until: tick + Math.round(3.5*TICK_HZ), at: at, kp: kp}; o._tradeUntil = tick + Math.round(3.5*TICK_HZ); }
+function tradeStart(o, at, kp){ simEvIn("tradeStart", arguments); o._tradeLock = {until: tick + Math.round(3.5*TICK_HZ), at: at, kp: kp}; o._tradeUntil = tick + Math.round(3.5*TICK_HZ); }
 function tradeAlertSet(b, ticks){ b._tradeUntil = tick + ticks; }
 function tradeGoing(b){ return !!(b._tradeLock && b._tradeLock.until > tick); }
 function tradeAlert(b){ return tick < (b._tradeUntil || 0); }

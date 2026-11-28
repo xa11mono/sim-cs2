@@ -542,12 +542,12 @@ function stepWall(x1, y1, x2, y2, b){
   if(!navFloorNear(x2, y2, NAV_GAP_TOL, function(a){ return a.z < b.z - 18; })) return true;   // внизу рядом (щель) пола нет — не сход
   return !m3Line(M, x1, y1, b.z + STEP_UP_Z, x2, y2, b.z + STEP_UP_Z, "nade") || !m3Line(M, x1, y1, b.z + STEP_BODY_Z, x2, y2, b.z + STEP_BODY_Z, "nade");
 }
-function stepBlocked(x1,y1,x2,y2,b){
-  if(stepWall(x1, y1, x2, y2, b)) return true;
-  if(heightBlocked(x1, y1, x2, y2, b)) return true;
-  if(b && b.baseX != null && offNavStep(x1, y1, x2, y2, b)) return true;   // (v336) с пола навмеша — в стену/ящик нельзя
+function stepBlocked(x1,y1,x2,y2,b, explain){
+  if(stepWall(x1, y1, x2, y2, b)) return explain ? "wall" : true;
+  if(heightBlocked(x1, y1, x2, y2, b)) return explain ? "ledge" : true;
+  if(b && b.baseX != null && offNavStep(x1, y1, x2, y2, b)) return explain ? "off-nav" : true;   // (v336) с пола навмеша — в стену/ящик нельзя
   var fz = b && b.z != null ? b.z : null;
-  if(!inFire(x1,y1,fz) && inFire(x2,y2,fz)) return !fireCommit(b);
+  if(!inFire(x1,y1,fz) && inFire(x2,y2,fz) && !fireCommit(b)) return explain ? "fire" : true;
   return false;
 }
 // точка поста в огне → ждём у края огня (с той же стороны), а не лезем внутрь

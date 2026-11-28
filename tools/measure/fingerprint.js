@@ -1,6 +1,6 @@
 // «Отпечаток» матча: проверка, что правка не изменила поведение.
 // Каждый тик складывает в хэш точные координаты, взгляд, HP, оружие всех ботов;
-// по раундам — итог, фраги, броски гранат. Два прогона совпадают один в один,
+// по раундам — итог, фраги, попытки броска гранат (включая отказ). Два прогона совпадают один в один,
 // только если боты сделали ровно то же самое.
 // Запуск: node src/q.js sim.html "$(sed s/__M__/3/ tools/measure/fingerprint.js)"
 freshMatch(__M__);
@@ -11,6 +11,7 @@ function mixS(s){ s = String(s == null ? "" : s); for(var i = 0; i < s.length; i
 // (Р0.4, 24.11) подписка на события симуляции (435 simEvOn) вместо подмены функций; старые сборки без simEvOn — та же подписка через обёртку
 function evOn(name, fn){ if(typeof simEvOn === 'function') return simEvOn(name, fn); var o = eval(name); eval(name + ' = function(){ var s = fn("in", arguments), r = o.apply(this, arguments); fn("out", arguments, r, s); return r; }'); }
 evOn('feedKill', function(ph, A){ if(ph === 'in') FP.kills.push([tick, A[0] ? A[0].id : null, A[1].id, String(A[2]), A[3] ? 1 : 0]); });
+// FP.nades — исторический поток входов, часть контракта Э1. Фактический выпуск хранит REC.nades.
 evOn('throwNade', function(ph, A){ if(ph === 'in') FP.nades.push([tick, A[0].id, A[1]]); });
 evOn('endRound', function(ph, A){ if(ph === 'in') FP.rounds.push([roundNum, tick, A[0], A[1], bomb && bomb.state, h]); });
 var T1 = tick;   // (Т-2, 25.11) последний тик матча: штатный переход к следующему матчу теперь обнуляет часы — длина матча = T1 + 1

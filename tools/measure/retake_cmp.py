@@ -3,7 +3,7 @@
 python3 tools/measure/retake_cmp.py <папка с rec_*.json> [--map mirage]
 По каждому планту: расклад CT против T в момент планта, ближайший CT до бомбы при планте, через сколько секунд первый CT ближе 250 px
 к бомбе (или не дошёл), скорость подхода (расстояние / время). Про — по демкам карты (tools/demos.py), боты — по записям rec2.js."""
-import sys, os, math, json, glob, statistics as st, collections
+import sys, os, math, json, glob, gzip, statistics as st, collections
 sys.path[:0] = [os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))]
 import mapdir  # noqa: E402
 import demos as D  # noqa: E402
@@ -28,28 +28,30 @@ def pro_rows():
 def bot_rows(folder):
     out = []
     for fn in sorted(glob.glob(os.path.join(folder, 'rec_*.json*'))):
-        d = json.load(open(fn)); K = d['kills']
+        with (gzip.open(fn, 'rt', encoding='utf-8') if fn.endswith('.gz') else open(fn, encoding='utf-8')) as stream:
+            d = json.load(stream)
+        K = d['kills']
         for r in d['rounds']:
-            if not r.get('plant'): continue
+            if not r.get('plant') or r.get('t1') is None: continue
             tp, t1 = r['plant'], r['t1']; P = [p for p in d['plants'] if abs(p[0] - tp) < 5]
             if not P: continue
             bx, by = P[0][2], P[0][3]; dead = {k[5] for k in K if r['t0'] <= k[0] < tp}
             nct = 5 - len([x for x in dead if x.startswith('CT')]); nt = 5 - len([x for x in dead if x.startswith('T')])
-            at = [p for p in d['pos'] if abs(p[0] - tp) <= 16 and p[1].startswith('CT') and p[5]]
+            at = [p for p in d['pos'] if 0 <= tp - p[0] <= 16 and p[1].startswith('CT') and p[5] and p[1] not in dead]
             if not at: continue
             d0 = min(math.hypot(p[3] - bx, p[4] - by) for p in at); f = None
             for p in d['pos']:
-                if tp <= p[0] <= t1 and p[1].startswith('CT') and p[5] and math.hypot(p[3] - bx, p[4] - by) < 250: f = (p[0] - tp) / 64; break
+                if tp <= p[0] < t1 and p[1].startswith('CT') and p[5] and math.hypot(p[3] - bx, p[4] - by) < 250: f = (p[0] - tp) / 64; break
             out.append((nct, nt, d0, f))
     return out
 
 def show(name, rows):
-    print(name)
+    print(name + ' · наблюдаемое сближение по XY, порог 250 ед. радара')
     for k in [(1, 1), (2, 1), (3, 2), (2, 2), (3, 3), (1, 2), (2, 3), (1, 3)]:
         S = [x for x in rows if (x[0], x[1]) == k]
         if not S: continue
         fr = [x[3] for x in S if x[3] is not None]
-        print('  CT %d против T %d: %3d плантов; до бомбы при планте %4.0f ед.; первый у бомбы %s с; не дошли %.0f%%' % (k[0], k[1], len(S), st.median([x[2] for x in S]) * 2.5,
+        print('  CT %d против T %d: %3d плантов; до бомбы при планте %4.0f ед.; первый у бомбы %s с; до конца записи нет сэмпла у бомбы %.0f%%' % (k[0], k[1], len(S), st.median([x[2] for x in S]) * 2.5,
               ('%.1f' % st.median(fr)) if fr else '-', 100 * (len(S) - len(fr)) / len(S)))
 
 a = [x for x in sys.argv[1:] if not x.startswith('--')]

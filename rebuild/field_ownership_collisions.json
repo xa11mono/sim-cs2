@@ -345,20 +345,6 @@
    "count": 1
   },
   {
-   "file": "problem-watch.js",
-   "function": "probTick",
-   "field": "x",
-   "expression": "s.x = b.x",
-   "count": 2
-  },
-  {
-   "file": "problem-watch.js",
-   "function": "probTick",
-   "field": "y",
-   "expression": "s.y = b.y",
-   "count": 2
-  },
-  {
    "file": "replay-play.js",
    "function": "rpDraw",
    "field": "x",

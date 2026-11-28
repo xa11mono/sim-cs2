@@ -124,6 +124,7 @@ detonate = function(n){
   }
   return r;
 };
+var ffSources = new WeakMap(), ffSourceSeq = 0;
 var o_ad = applyDamage;
 applyDamage = function(att, b, dmg, src, o){
   var hp0 = b.hp, al = b.alive;
@@ -133,7 +134,15 @@ applyDamage = function(att, b, dmg, src, o){
       var how = null;
       if(src === "молотов"){ var f0 = inFire(b.x, b.y); how = f0 && f0._id && MENT[b.id + "@" + f0._id] ? MENT[b.id + "@" + f0._id] : !f0 ? "?" : (!f0._ign || f0._ign[b.id]) ? "стоял при поджоге" :
         ("зашёл: " + (fireCommit(b) ? "по делу (fireCommit)" : b.holding ? "держит угол" : "иное") + " | " + (b.post ? String(b.post.tag).split(":")[0] : "-") + " | " + (b._fc && b._fc.ph !== "line" ? "fc" : "") + (b._burning ? " выходит" : "")); }
-      A.ff.push([tick, att.id, b.id, src, Math.round(hp0 - (b.alive ? b.hp : 0)), how]);
+      var loss = hp0 - (b.alive ? b.hp : 0);
+      if(loss > 0){
+        var source = o && o.source, sid = null;
+        if(source){
+          if(!ffSources.has(source)) ffSources.set(source,++ffSourceSeq);
+          sid = ffSources.get(source);
+        } else if(src === "bullet") sid = ++ffSourceSeq;
+        A.ff.push([tick, att.id, b.id, src, loss, how, sid]);
+      }
     }
     // (этап 4) урон себе своей гранатой (бросивший в своём огне / своё HE)
     if(att && att === b && src !== "bullet"){ (A.ffSelf || (A.ffSelf = [])).push([tick, b.id, src, Math.round(hp0 - (b.alive ? b.hp : 0)), b.post ? String(b.post.tag).split(":")[0] : "-"]); }

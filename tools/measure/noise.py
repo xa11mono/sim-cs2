@@ -4,17 +4,27 @@
 сколько матчей нужно на версию, чтобы разница в 10 % была настоящей (≈ 95 %: n = 2·(2·σ / (0,1·среднее))², σ — между матчами).
 Цифры на матч: сторож на 100 раундов, гранат за раунд по сторонам, доля раундов T, доля раундов с плантом."""
 import sys, os, json, glob, math
+from audit.watch_validate import watch_revision
 HERE = os.path.dirname(os.path.abspath(__file__))
 run = sys.argv[1]
 rows = []
+revisions = set()
 for f in sorted(glob.glob(os.path.join(HERE, 'runs', run, 'rec_*.json'))):
     try: d = json.load(open(f))
     except ValueError: continue   # матч ещё играется
+    try:
+        revision = watch_revision(d)
+    except (ValueError, KeyError) as e:
+        sys.exit(f"{f}: {e}")
+    revisions.add(revision)
+    if len(revisions) > 1:
+        sys.exit("смешаны ревизии диагностики")
     R = d.get('rounds') or []
     if not R: continue
     nr = len(R); w = (d.get('watch') or {}).get('n', {})
     row = {'матч': os.path.basename(f)[4:-5]}
-    for k in ('stall', 'nav', 'tug', 'flip', 'danger', 'wait', 'smokeKill'):
+    smoke = 'smokeProjected' if revision == 2 else 'smokeKill'
+    for k in ('stall', 'nav', 'tug', 'flip', 'danger', 'wait', smoke):
         row[k + ' /100 р'] = w.get(k, 0) * 100.0 / nr
     for side in ('CT', 'T'):
         row['гранат за раунд ' + side] = sum(1 for n in d.get('nades', []) if n[1] == side) / nr

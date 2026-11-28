@@ -6,6 +6,8 @@
 (на раунд), фрагов (на раунд). «Красное» — сдвиг больше шума 8 матчей (CLAUDE.md §8: stall ≈ 15 %, nav / tug / danger ≈ 20 %,
 гранаты ≈ 10 %, планты и раунды T ≈ 20 %) в сторону «хуже»; меньше шума — серое, решений по нему не принимать."""
 import json, os, sys, glob, statistics
+from audit.watch_validate import watch_revision
+
 R = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'runs')
 opt = {a.split('=')[0][2:]: (a.split('=', 1)[1] if '=' in a else '1') for a in sys.argv[1:] if a.startswith('--')}
 args = [a for a in sys.argv[1:] if not a.startswith('--')]
@@ -18,9 +20,15 @@ SPEC = [('застревания (stall), на 100 р.', .15, 1), ('перено
 def count(label):
     fs = sorted(glob.glob(os.path.join(R, label, 'rec_*.json')))
     if not fs: sys.exit('нет записей: ' + os.path.join(R, label))
+    revisions = set()
     W = {'stall': 0, 'nav': 0, 'tug': 0, 'danger': 0}; nr = 0; early = 0; lens = []; plants = 0; twins = 0; nades = 0; kills = 0
     for f in fs:
         d = json.load(open(f)); rs = d['rounds']; nr += len(rs)
+        try:
+            revisions.add(watch_revision(d))
+        except (ValueError, KeyError) as e:
+            sys.exit(f"{f}: {e}")
+        if len(revisions) > 1: sys.exit("смешаны ревизии диагностики")
         for k in W: W[k] += (d.get('watch') or {}).get('n', {}).get(k, 0)
         for r in rs:
             if r.get('t1') and r.get('t0') is not None: lens.append((r['t1'] - r['t0']) / 64)
@@ -32,19 +40,28 @@ def count(label):
     p = 100.0 / max(1, nr)
     vals = [W['stall'] * p, W['nav'] * p, W['tug'] * p, W['danger'] * p, early / max(1, nr), statistics.median(lens) if lens else 0,
             plants / max(1, nr), twins / max(1, nr), nades / max(1, nr), kills / max(1, nr)]
-    return vals, nr, len(fs)
+    return vals, nr, len(fs), revisions.pop()
 
 
 def fmt(v): return ('%.2f' % v) if abs(v) < 10 else ('%.0f' % v)
 
 
-lab = args[0]; new, nr, nm = count(lab)
+lab = args[0]; new, nr, nm, new_revision = count(lab)
 rows = []
 if 'base' in opt:
-    old, onr, onm = count(opt['base'])
+    old, onr, onm, old_revision = count(opt['base'])
     rows.append('| счётчик | было (%s, %d матчей, %d р.) | стало (%s, %d матчей, %d р.) | сдвиг | |' % (opt['base'], onm, onr, lab, nm, nr))
     rows.append('|---|---|---|---|---|')
-    for (name, noise, worse), a, b in zip(SPEC, old, new):
+    for i, ((name, noise, worse), a, b) in enumerate(zip(SPEC, old, new)):
+        if i < 4 and old_revision != new_revision:
+            rows.append('| %s | %s | %s | — | разные ревизии |' % (name, fmt(a), fmt(b)))
+            continue
+        if i < 4:
+            rows.append('| %s | %s | %s | %+0.2f | описательный показатель |' % (name, fmt(a), fmt(b), b - a))
+            continue
+        if not a and b:
+            rows.append('| %s | %s | %s | %+0.2f | исходное значение 0 |' % (name, fmt(a), fmt(b), b - a))
+            continue
         ch = (b - a) / a if a else 0
         mark = '⚪ шум' if abs(ch) <= noise else ('🔴 хуже' if worse and ch * worse > 0 else ('🟢 лучше' if worse else '🟡 сдвиг'))
         rows.append('| %s | %s | %s | %+.0f %% | %s |' % (name, fmt(a), fmt(b), ch * 100, mark))

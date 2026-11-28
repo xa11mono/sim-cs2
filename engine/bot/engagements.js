@@ -226,7 +226,7 @@ function escapeWallLine(bot){
       // из новой точки должно быть можно куда-то идти
       var free = 0;
       for(var q=0;q<8;q++){ var qa=q*Math.PI/4; if(!crossesWall(nx,ny,nx+DM.cos(qa)*4,ny+DM.sin(qa)*4)) free++; }
-      if(free >= 5){ movePlace(bot, nx, ny, true); movePath(bot, [], "fight", 0); return true; }
+      if(free >= 5){ var before = [bot.baseX,bot.baseY,bot.z,bot._area]; movePlace(bot, nx, ny, true); movePath(bot, [], "fight", 0); probNav(bot, "escapeWallLine", before); return true; }
     }
   }
   return false;

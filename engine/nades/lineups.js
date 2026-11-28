@@ -200,6 +200,7 @@ function lineupTick(){
           var sP = Math.max(7, Math.ceil(pathLenTo(solo, L.from.x, L.from.y)/SPEED + LU_REACH_PAD));
           var sNB = tt.phase === "setup" && !preExecNow(tt) ? tt.execTick - 4*TICK_HZ : 0; if(sNB) sP = Math.max(sP, Math.ceil((sNB - tick)/TICK_HZ) + LU_REACH_PAD);   // (Д27)
           solo.nadeTask = {notBefore: sNB,type:L.type, x:L.to.x, y:L.to.y, from:{x:L.from.x, y:L.from.y}, until: tick + sP*TICK_HZ, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»", start:tick, lob:true, range:4000, now:true, lineup:true, exec:L.type === "smoke", npm:luM};
+          nadeTaskObserved(solo);
           logEvent(solo.id+": раскид — идёт на «"+(L.name||LU_TYPE[L.type])+"»");
         } else {
           nadeAppendQueued(nadeSetNadeQueue(solo, solo.nadeQueue || []), {type:L.type, x:L.to.x, y:L.to.y, from:{x:L.from.x, y:L.from.y}, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»", lineup:true, exec:true, npm:luM});
@@ -265,6 +266,7 @@ function lineupTick(){
     if(luNB) luSec = Math.max(luSec, Math.ceil((luNB - tick)/TICK_HZ) + LU_REACH_PAD);
     cand.nadeTask = {notBefore: luNB,type:L.type, x:LS.to.x, y:LS.to.y, from:{x:LS.from.x, y:LS.from.y}, until: tick + luSec*TICK_HZ, why:"лайнап «"+(LS.name||LU_TYPE[L.type])+"»",
                      start:tick, lob:true, range:4000, now:true, lineup:true, exec:execT && L.type === "smoke", npm:luM, luL: L.pro && L.grp ? L : null, luId: LS.id};
+    nadeTaskObserved(cand);
     // (п.14) флешка CT на тайминг — под конкретного выглядывающего (не бросающего): он выйдет на хлопок (throw)
     if(L.pro && L.team === "CT" && L.trigger === "timed" && L.type === "flash"){ var pkr = npPeekReady("CT", L.to, cand); if(pkr) cand.nadeTask.peekFor = pkr.id; }
     logEvent(cand.id+": идёт на лайнап «"+(LS.name||LU_TYPE[L.type])+"»");

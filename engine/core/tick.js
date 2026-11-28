@@ -63,5 +63,5 @@ function navSnap(bot){
       var t = Math.max(0, Math.min(1, ((bot.baseX-p.x)*ex + (bot.baseY-p.y)*ey)/L2)), px = p.x+ex*t, py = p.y+ey*t, d = DM.hypot(px-bot.baseX, py-bot.baseY);
       if(d < nbd){ var cx = 0, cy = 0; a.points.forEach(function(r){ cx += r.x; cy += r.y; }); cx /= a.points.length; cy /= a.points.length;
         nbd = d; nb = {x: px + (cx-px)*0.15, y: py + (cy-py)*0.15, a: a}; } }); });
-  if(nb){ bot.baseX = moveSetX(bot, nb.x); bot.baseY = moveSetY(bot, nb.y); navSetZ(bot, nb.a.z); navSetArea(bot, nb.a.id); bot.path = []; bot.pathIdx = 0; moveSetOffNav(bot, 0); logEvent(bot.id+": вне навмеша — перенесён на ближайший пол (заплатка)"); }
+  if(nb){ var before = [bot.baseX,bot.baseY,bot.z,bot._area]; bot.baseX = moveSetX(bot, nb.x); bot.baseY = moveSetY(bot, nb.y); navSetZ(bot, nb.a.z); navSetArea(bot, nb.a.id); bot.path = []; bot.pathIdx = 0; moveSetOffNav(bot, 0); probNav(bot, "navSnap", before); logEvent(bot.id+": вне навмеша — перенесён на ближайший пол (заплатка)"); }
 }

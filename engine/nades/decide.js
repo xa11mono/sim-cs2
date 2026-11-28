@@ -250,10 +250,13 @@ function retakeCutUseful(){
 // остальные — через интерфейс nadeCancel(b, причина): смена сайта IGL (igl), смерть (applyDamage, damage). Причина — b._nadeWhy.
 // (Р3.2 гранаты ш.2, Р-6) конец задания гранаты — только здесь: причина (в след решений), связанный пост — post: 0 не трогать, 1 — снять
 // пост «лайнап», 2 — снять любой; queue — и очередь гранат. Порядок записей — прежний (задание, очередь, пост)
+function nadeTaskObserved(b){ simEvOut(simEvIn("nadeTaskObserved", arguments)); }
 function nadeTaskEnd(b, why, post, queue){
+  var _ev = simEvIn("nadeTaskEnd", arguments);
   b.nadeTask = null; if(queue) nadeSetNadeQueue(b, null);
   dlog(b, "граната", "задание снято: " + why, "_dlogG");   // свой ключ следа: общий _dlog читает сторож PROB
   if(post === 2 || (post === 1 && b.post && b.post.tag === "lineup")) clearPost(b);
+  simEvOut(_ev);
 }
 function nadeCancel(b, why){ nadeTaskEnd(b, why, 0, true); b._nadeWhy = why; }
 function resetNades(){

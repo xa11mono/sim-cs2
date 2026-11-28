@@ -21,8 +21,8 @@
   "steps": 640,
   "ask": "CT1 и CT3 проходят от Window дальше без застревания (за 10 с после момента отметки — нет «застрял» и ушли больше чем на 200 px)?",
   "when": "['CT1','CT3'].every(function(id){ var b = bots.find(function(x){ return x.id === id; }); return b && b.alive; })",
-  "each": "if(tick === SCN.t0){ SCN.p = {}; SCN.n0 = PROB.ev.length; bots.forEach(function(b){ if(b.id === 'CT1' || b.id === 'CT3') SCN.p[b.id] = [b.x, b.y]; }); }",
-  "check": "PROB.ev.slice(SCN.n0 || 0).every(function(e){ return !(e.kind === 'stall' && (e.id === 'CT1' || e.id === 'CT3')); }) && ['CT1','CT3'].every(function(id){ var b = bots.find(function(x){ return x.id === id; }), p = SCN.p && SCN.p[id]; return b && p && (!b.alive || Math.hypot(b.x - p[0], b.y - p[1]) > 200); })",
+  "each": "if(!SCN.p && tick >= SCN.t0){ SCN.p = {}; SCN.n0 = (PROB.all || PROB.ev).length; bots.forEach(function(b){ if(b.id === 'CT1' || b.id === 'CT3') SCN.p[b.id] = [b.x, b.y]; }); }",
+  "check": "(PROB.all || PROB.ev).slice(SCN.n0 || 0).every(function(e){ return !(e.kind === 'stall' && (e.id === 'CT1' || e.id === 'CT3')); }) && ['CT1','CT3'].every(function(id){ var b = bots.find(function(x){ return x.id === id; }), p = SCN.p && SCN.p[id]; return b && p && (!b.alive || Math.hypot(b.x - p[0], b.y - p[1]) > 200); })",
   "note": "200 px и 10 с — проектные числа; снимок формата 1 с _info до 18.11 — открывается переходником MK_SNAP_UP[1] (src/marks.js, вопрос 13): АДАПТИРОВАННОЕ открытие старой ситуации текущим кодом, не воспроизведение старой сборкой (с 26.11)"
  }
 ]

@@ -242,7 +242,7 @@ function stepBot(bot, dtSec, maxDelta, ARRIVE_RADIUS, BRAKE_RADIUS, TURN_RATE, S
           moveY = DM.sin(bot.heading) * step;
         }
         var nx = bot.baseX+moveX, ny = bot.baseY+moveY;
-        var startX = bot.baseX, startY = bot.baseY;
+        var startX = bot.baseX, startY = bot.baseY, stepBlock = false;
         // walls are a physical obstacle for movement (not just LOS) — a
         // straight zone-to-portal-to-zone line can still clip a wall corner
         // on a hand-drawn map, so check before committing the step.
@@ -255,7 +255,7 @@ function stepBot(bot, dtSec, maxDelta, ARRIVE_RADIUS, BRAKE_RADIUS, TURN_RATE, S
         if(fwF && bot._fireRp !== fwF){ bot._fireRp = fwF; bot.path = []; bot.pathIdx = 0; fireWait = false; fwSkip = true; bot.curSpeed = 0; }
         if(fwSkip){}
         else if(fireWait){ bot.curSpeed = 0; bot.walking = false; bot._fireWaitT = tick; }
-        else if(!stepBlocked(bot.baseX,bot.baseY,nx,ny,bot)){ // стены + в огонь без причины не заходим
+        else if(!(stepBlock = stepBlocked(bot.baseX,bot.baseY,nx,ny,bot,true))){ // стены + в огонь без причины не заходим
           bot.baseX = nx; bot.baseY = ny;
           if(isLastLeg && dist <= step){ bot.baseX = target[0]; bot.baseY = target[1]; bot.pathIdx++; }   // (v323) высота — только по навмешу (ниже), не по точке пути
         } else {
@@ -301,6 +301,7 @@ function stepBot(bot, dtSec, maxDelta, ARRIVE_RADIUS, BRAKE_RADIUS, TURN_RATE, S
         // otherwise the bot "moves" by fractions of a pixel forever instead
         // of ever giving up on a bad straight-line path.
         var actuallyMoved = DM.hypot(bot.baseX-startX, bot.baseY-startY);
+        if(!fwSkip && !fireWait) probStep(bot, actuallyMoved <= step*0.15 ? stepBlock : false, actuallyMoved > step*0.15, target);
         // (v403) высота бота — одно место navFollowFloor (levels): после шага здесь и после любого другого движения за тик (конец цикла)
         if(actuallyMoved > 0) navFollowFloor(bot);
         if(fireWait){ moveSetStuckTicks(bot, 0); bot._np = null; bot._netStuck = 0; bot._progTick = tick; bot._progBest = Infinity; bot._idleT = tick; botTrail(bot, []); }
@@ -323,7 +324,7 @@ function stepBot(bot, dtSec, maxDelta, ARRIVE_RADIUS, BRAKE_RADIUS, TURN_RATE, S
             // (v341, отметка владельца: TeSeS «застрял и его тпшнуло» — на 380 ед.) snapToWalkable из стены ставит в центр ближайшего
             // участка, иногда далеко; рывок — не дальше 12 ед. (проектное число), иначе нет
             if(toward && DM.hypot(toward.x-bot.baseX, toward.y-bot.baseY) > 12) toward = null;
-            if(toward && DM.hypot(toward.x-bot.baseX, toward.y-bot.baseY) > 4){ bot.baseX = toward.x; bot.baseY = toward.y; moveSetX(bot, toward.x); moveSetY(bot, toward.y); }
+            if(toward && DM.hypot(toward.x-bot.baseX, toward.y-bot.baseY) > 4){ var nudgeFrom = [bot.baseX,bot.baseY,bot.z,bot._area]; bot.baseX = toward.x; bot.baseY = toward.y; moveSetX(bot, toward.x); moveSetY(bot, toward.y); probNav(bot, "stuckNudge", nudgeFrom); }
             if(bot.pathIdx < bot.path.length-1) bot.pathIdx++;
             bot._netStuck = 0;
           } else { escapeWallLine(bot); bot.path = []; bot.pathIdx = 0; }
@@ -386,8 +387,10 @@ function stepBot(bot, dtSec, maxDelta, ARRIVE_RADIUS, BRAKE_RADIUS, TURN_RATE, S
           moveSetUnstickT(bot, tick);
           var pe = bot.path[bot.path.length-1], fr = buildWaypointPath(bot.baseX, bot.baseY, bot.z, pe[0], pe[1], pe[2], bot.team, botLane(bot), bot.walking), p0 = fr && fr[0];
           if(p0 && p0[2] != null && p0[2] <= bot.z + 18 && DM.hypot(p0[0]-bot.baseX, p0[1]-bot.baseY) <= 40 && DM.hypot(p0[0]-bot.baseX, p0[1]-bot.baseY) > 2 && !crossesWall(bot.baseX, bot.baseY, p0[0], p0[1])){
+            var dropFrom = [bot.baseX,bot.baseY,bot.z,bot._area];
             bot.baseX = moveSetX(bot, p0[0]); bot.baseY = moveSetY(bot, p0[1]); navSetZ(bot, p0[2]); var a0 = navAt(p0[0], p0[1], p0[2]); if(a0) navSetArea(bot, a0.id);
             bot.path = fr; bot.pathIdx = 1; botTrail(bot, []);
+            probNav(bot, "pathHeadDrop", dropFrom);
             logEvent(bot.id+": не может сойти с уступа по пути — спрыгнул на начало пути (заплатка)"); }
         }
         // (v333) вне навмеша с путём дольше 0,5 с — на ближайший пол (заплатка, navSnap)

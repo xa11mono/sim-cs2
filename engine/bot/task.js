@@ -499,7 +499,7 @@ function setPost(b, pt, look, hold, tag){ var _ev = simEvIn("setPost", arguments
     dlog(b, "место", "отказ «" + tag + "»: занят «" + busy + "»" + cur, undefined, /^[^»]+$/.test(String(tag)) && /^[^»]+$/.test(busy) ? {ask: String(tag), busy: busy} : null); }
   // (Р3.3) ответ арбитра на заявку — отдельный ключ следа (_dlogA): тексты _dlog читает счёт ошибок движения (problem-watch), их не трогать
   if(!r || tag !== was) dlog(b, "арбитр", "заявка «" + tag + "» ур. " + R.lv + ": " + (r ? "да" : "нет") + " — " + (R.why || "?"), "_dlogA");
-  simEvOut(_ev, r); return R;
+  simEvOut(_ev, r); simEvOut(simEvIn("setPostResult", [b,tag,R])); return R;
 }
 // (5) после временной задачи (ответ владельца 04.11, `docs/tasks/OWNER_ANSWERS_2026-11-04.md`): не «вернуться на пост», а оценить. Ушёл
 // по бою (контакт, перестановка в бою — уровни 9 и 6), задача кончилась, роль зовёт на пост: если враг, известный команде (за SITE_SEEN_SEC),

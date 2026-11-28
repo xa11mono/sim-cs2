@@ -5,8 +5,8 @@
   сторона; фаза (до планта / после); сколько живых своих и врагов (перевес: меньше / поровну / +1 / +2 и больше; один ли он);
   время (до планта — секунда раунда; после — сколько до взрыва); HP; расстояние до цели (до планта — ближайший сайт,
   после — бомба)
-Что делает (по следующим секундам): двигается (за 1 с сдвинулся > 25 px радара); идёт к цели (за 3 с ближе к цели на > 30 px);
-бросил гранату за 5 с (у про — разрыв через 1–6 с); погиб за 5 с.
+Что делает (по следующим секундам): двигается (за 1 с сдвинулся > 25 px радара); сближается по XY с ближайшим сайтом или бомбой (за 3 с на > 30 px);
+детонация его гранаты в следующие 5 с; погиб за 5 с.
 Отчёт: строки, где доля у ботов отличается от про больше порога (при n про ≥ MIN_PRO и n ботов ≥ MIN_BOT), с моментами ботов
 (матч, тик, бот) для проверки.
 Взгляд (v381, шаг 4 — арбитр взгляда), у про и у ботов одинаково, по моментам раз в 0,25 с:
@@ -50,17 +50,22 @@ def bucket(side, planted, own, enemy, tsec, bleft, hp, dist):
     return (side, 'после планта' if planted else 'до планта', adv, solo, tb, hb, db)
 
 
-def behave(xs, ys, ts, alive_until, gx, gy, nade_ticks, death_tick):
-    """по траектории одного игрока за раунд (шаг STEP): для каждого момента — двигается, идёт к цели, граната, гибель"""
-    n = len(ts); out = []
-    for i in range(n):
-        j1 = i + 4; j3 = i + 12
-        mv = np.hypot(xs[j1]-xs[i], ys[j1]-ys[i]) > 25 if j1 < n else None
+def behave(xs, ys, ts, until, gx, gy, nade_ticks, death_tick):
+    """Движение и сближение по XY, детонация и гибель в окнах по тикам."""
+    n = len(ts)
+    out = []
+    for i, tick in enumerate(ts):
+        j1 = int(np.searchsorted(ts, tick + 64))
+        j3 = int(np.searchsorted(ts, tick + 3*64))
+        mv = np.hypot(xs[j1]-xs[i], ys[j1]-ys[i]) > 25 if j1 < n and ts[j1] <= tick + 64 + STEP else None
         ap = None
-        if j3 < n:
-            d0 = np.hypot(xs[i]-gx[i], ys[i]-gy[i]); d3 = np.hypot(xs[j3]-gx[i], ys[j3]-gy[i]); ap = d0 - d3 > 30
-        nd = any(ts[i] < t <= ts[i] + 5*64 for t in nade_ticks)
-        dd = death_tick is not None and ts[i] < death_tick <= ts[i] + 5*64
+        if j3 < n and ts[j3] <= tick + 3*64 + STEP and gx[j3] == gx[i] and gy[j3] == gy[i]:
+            d0 = np.hypot(xs[i]-gx[i], ys[i]-gy[i])
+            d3 = np.hypot(xs[j3]-gx[i], ys[j3]-gy[i])
+            ap = d0 - d3 > 30
+        end = tick + 5*64
+        nd = True if any(tick < t <= end for t in nade_ticks) else False if end <= until else None
+        dd = True if death_tick is not None and tick < death_tick <= end else False if end <= until else None
         out.append((mv, ap, nd, dd))
     return out
 
@@ -76,7 +81,7 @@ def collect(samples, side_of, rnd, traj, nades, deaths, hp_of, examples_key=None
         gx = np.where(planted, bxy[0] if bxy else 0, 0.0); gy = np.where(planted, bxy[1] if bxy else 0, 0.0)
         near = np.argmin((xs[:, None]-SX[None, :])**2 + (ys[:, None]-SY[None, :])**2, axis=1)
         gx = np.where(planted, gx, SX[near]); gy = np.where(planted, gy, SY[near])
-        beh = behave(xs, ys, ts, None, gx, gy, nades.get(pid, []), deaths.get(pid))
+        beh = behave(xs, ys, ts, rnd["t1"], gx, gy, nades.get(pid, []), deaths.get(pid))
         sd = side_of[pid]
         for i, t in enumerate(ts):
             own = sum(1 for q, (a, b) in alive.items() if side_of[q] == sd and a <= t <= b)
@@ -197,7 +202,7 @@ def pro_samples():
             e = ev[(ev.tick >= r['t0']) & (ev.tick < r['t1'] + 64)]
             nades = collections.defaultdict(list)
             for tk, sid in zip(e.tick, e.user_steamid):
-                if pd.notna(sid): nades[int(sid)].append(int(tk) - 64)   # разрыв ≈ бросок + 1 с: окно «бросил за 5 с»
+                if pd.notna(sid): nades[int(sid)].append(int(tk))
             d = de[(de.tick >= r['t0']) & (de.tick < r['t1'])]
             deaths = {int(s): int(tk) for tk, s in zip(d.tick, d.user_steamid) if pd.notna(s)}
             collect(S, side_of, r, traj, nades, deaths, lambda p, tk: hp.get(p, {}).get(tk, 100))
@@ -226,13 +231,13 @@ def bot_samples():
         hp = {}
         for h in d.get('hp', []): hp[(h[1], h[0])] = h[2]
         for i, r in enumerate(R):
-            t1 = r.get('t1') or (R[i+1]['t0'] if i+1 < len(R) else 1e12)
+            t1 = r.get('t1') or (R[i+1]['t0'] if i+1 < len(R) else d['ticks'])
             pl = next((p for p in d['plants'] if r['t0'] <= p[0] < t1), None)
-            rnd = {'t0': r['t0'], 'tplant': pl[0] if pl else None, 'plantXY': (pl[2], pl[3]) if pl else None}
+            rnd = {'t0': r['t0'], 't1': t1, 'tplant': pl[0] if pl else None, 'plantXY': (pl[2], pl[3]) if pl else None}
             traj = {pid: [q for q in v if r['t0'] <= q[0] < t1 and q[0] % STEP == 0] for pid, v in pos.items()}
             nades = collections.defaultdict(list)
-            for n in d['nades']:
-                if r['t0'] <= n[0] < t1: nades[n[3]].append(n[0])
+            for n in d.get('det', []):
+                if n[6] and r['t0'] <= n[0] < t1: nades[n[6]].append(n[0])
             deaths = {k[5]: k[0] for k in d['kills'] if r['t0'] <= k[0] < t1}
             collect(S, side_of, rnd, traj, nades, deaths, lambda p, tk: hp.get((p, tk), 100), examples_key=m)
             look = {}
@@ -251,7 +256,7 @@ def share(rows, k):
 
 
 P = pro_samples(); B = bot_samples()
-NAMES = ['двигается', 'идёт к цели', 'граната за 5 с', 'гибнет за 5 с']
+NAMES = ['двигается', 'сближается по XY', 'граната за 5 с', 'гибнет за 5 с']
 rows = []
 for key, pr in P.items():
     br = B.get(key, [])

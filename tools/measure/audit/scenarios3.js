@@ -118,9 +118,9 @@
   // бомба лежит там) / мид (цель почти на равном расстоянии от сайтов, <100 px разницы) / граната до смены / граната после смены /
   // НЕ объяснено ролью (не лёркер, не бомба, не мид — цель ближе к старому сайту). ok — «не объяснено» нет ни у кого.
   try {
-    var rows = [], cnt = {}, unexpl = [];
+    var rows = [], cnt = {}, unexpl = [], coverage = [];
     [3, 7].forEach(function(mn){
-      freshMatch(mn); var done = {}, nRounds = 0;
+      freshMatch(mn); var done = {}, nRounds = 0, observed = 0;
       for(var i = 0; i < 400000 && matchNum === mn && nRounds < 4; i++){
         stepTick();
         var tt = teamTac.T;
@@ -130,6 +130,7 @@
         tSetSite(tt, nw);
         for(var k = 0; k < 5*TICK_HZ && roundState === "live"; k++) stepTick();
         if(roundState !== "live") continue;
+        observed++;
         var dS = function(p, s){ return Math.hypot(p.x-SITES[s].x, p.y-SITES[s].y); };
         bots.forEach(function(b){
           if(b.team !== "T" || !b.alive) return;
@@ -153,8 +154,10 @@
           });
         });
       }
+      coverage.push({match:mn,switched:nRounds,observed:observed});
     });
-    R.switch_residual_classified = {ok: unexpl.length === 0, valid: rows.length >= 0, classes: cnt, unexplained: unexpl, rows: rows.slice(0, 40)};
+    var valid = coverage.every(function(c){ return c.observed > 0; });
+    R.switch_residual_classified = {ok:valid && unexpl.length === 0,valid:valid,coverage:coverage,classes:cnt,unexplained:unexpl,rows:rows};
   } catch(e){ R.switch_residual_classified = {ok: false, err: String(e).slice(0, 200)}; }
 
   // P2-1: взгляд на угол при переминании. Держащий позицию (atPost, точка взгляда поста не видна напрямую) сдвигается поперёк

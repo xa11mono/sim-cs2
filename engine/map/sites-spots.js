@@ -221,6 +221,7 @@ function spotExposure(team, x, y){
   return n;
 }
 function pickSpots(key, center, count, o){
+  simEvIn("pickSpots", arguments);
   // сторона — только явная (Р3.2, место ш.2б: SPOT_TEAM убран; вызовы мозгов T / CT передают team, остальные — без стороны)
   var expT = (o && o.team) || null;
   var ppTeam = expT, ppL = ppTeam ? ppLayer(ppTeam) : null;

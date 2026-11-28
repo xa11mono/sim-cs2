@@ -47,10 +47,9 @@
   {
    "id": "team_lkp_without_voice",
    "file": "tools/measure/audit/scenarios.js",
-   "ok": false,
-   "status": "unexplored",
-   "ok_without_height": false,
-   "note": "сцена устарела: обращается к удалённой переменной LKP (ReferenceError) — переписать под знание KNOW"
+   "ok": true,
+   "status": "preserve",
+   "note": "Ancient: частное восприятие звука и доставленный колл проверяются через knowHear / teamChannel"
   },
   {
    "id": "belief_heard_not_said",
@@ -184,7 +183,7 @@
    "ok": false,
    "status": "unexplored",
    "ok_without_height": true,
-   "note": "сцена уровня матча (матчи 3 и 7 в той же странице после других сцен); результат зависит от предыдущих сцен — состояние протекает через freshMatch (класс У-2, шаг Т-2); до Т-2 не трактовать"
+   "note": "На изолированной странице требуется хотя бы один наблюдаемый перекол в каждом из матчей 3 и 7. Сохраняется весь список остаточных назначений"
   },
   {
    "id": "cornerlook_stale_point_at_feet",
@@ -267,8 +266,9 @@
   {
    "id": "mir_stuck_window",
    "file": "rebuild/scenarios.json",
-   "status": "unexplored",
-   "note": "tools/marks/scenarios.js — ошибка выполнения сцены «Cannot read properties of undefined (reading 'CT1')» (24.11): SCN.p не создан — условие when / тик старта; разобрать сцену"
+   "ok": true,
+   "status": "preserve",
+   "note": "Адаптированный снимок Mirage. Проверена инициализация начала окна и прохождение обоих ботов"
   }
  ]
 }

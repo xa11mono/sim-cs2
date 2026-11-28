@@ -4207,8 +4207,8 @@
    "read_by_core": [
     "bomb.js:248",
     "bomb.js:333",
-    "damage.js:135",
-    "damage.js:135",
+    "damage.js:137",
+    "damage.js:137",
     "shoot.js:68",
     "round.js:158",
     "tick-step.js:30",
@@ -4245,13 +4245,13 @@
    "var": "DLOG",
    "class": "диагностика",
    "read_by_core": [
-    "sites-spots.js:234",
+    "sites-spots.js:235",
     "knowledge.js:84",
-    "knowledge.js:86",
+    "knowledge.js:87",
     "look-arbiter.js:184",
     "look-arbiter.js:184",
-    "lineups.js:252",
-    "lineups.js:260",
+    "lineups.js:253",
+    "lineups.js:261",
     "move.js:26",
     "move.js:26",
     "trace.js:9",
@@ -4274,15 +4274,15 @@
    "var": "KNOW_LOG",
    "class": "диагностика",
    "read_by_core": [
-    "knowledge.js:252"
+    "knowledge.js:254"
    ]
   },
   {
    "var": "KNOW_TRACE",
    "class": "диагностика",
    "read_by_core": [
-    "knowledge.js:250",
-    "knowledge.js:250"
+    "knowledge.js:252",
+    "knowledge.js:252"
    ]
   },
   {
@@ -4314,41 +4314,37 @@
    "var": "PROB",
    "class": "диагностика",
    "read_by_core": [
+    "problem-watch.js:6",
+    "problem-watch.js:6",
+    "problem-watch.js:6",
+    "problem-watch.js:6",
+    "problem-watch.js:6",
+    "problem-watch.js:7",
+    "problem-watch.js:7",
+    "problem-watch.js:7",
+    "problem-watch.js:7",
+    "problem-watch.js:15",
+    "problem-watch.js:15",
+    "problem-watch.js:15",
+    "problem-watch.js:18",
     "problem-watch.js:20",
-    "problem-watch.js:20",
-    "problem-watch.js:20",
-    "problem-watch.js:20",
-    "problem-watch.js:20",
-    "problem-watch.js:20",
-    "problem-watch.js:20",
-    "problem-watch.js:20",
-    "problem-watch.js:32",
-    "problem-watch.js:37",
-    "problem-watch.js:37",
-    "problem-watch.js:38",
-    "problem-watch.js:38",
-    "problem-watch.js:38",
-    "problem-watch.js:40",
-    "problem-watch.js:40",
-    "problem-watch.js:40",
-    "problem-watch.js:40",
-    "problem-watch.js:41",
-    "problem-watch.js:44",
-    "problem-watch.js:44",
-    "problem-watch.js:44",
-    "problem-watch.js:44",
-    "problem-watch.js:45",
-    "problem-watch.js:45",
-    "problem-watch.js:61",
-    "problem-watch.js:61",
-    "problem-watch.js:62",
-    "problem-watch.js:62",
-    "problem-watch.js:62",
-    "problem-watch.js:62",
-    "problem-watch.js:62",
-    "problem-watch.js:65",
-    "problem-watch.js:66",
-    "problem-watch.js:66"
+    "problem-watch.js:21",
+    "problem-watch.js:21",
+    "problem-watch.js:22",
+    "problem-watch.js:22",
+    "problem-watch.js:23",
+    "problem-watch.js:24",
+    "problem-watch.js:24",
+    "problem-watch.js:27",
+    "problem-watch.js:27",
+    "problem-watch.js:33",
+    "problem-watch.js:49",
+    "problem-watch.js:76",
+    "problem-watch.js:77",
+    "problem-watch.js:78",
+    "problem-watch.js:79",
+    "problem-watch.js:81",
+    "problem-watch.js:86"
    ]
   },
   {
@@ -4367,7 +4363,7 @@
    "var": "RUN_MATCH_SUB",
    "class": "диагностика",
    "read_by_core": [
-    "round.js:265"
+    "round.js:266"
    ]
   },
   {
@@ -4459,12 +4455,12 @@
    "var": "nadeFx",
    "class": "показ",
    "read_by_core": [
-    "damage.js:105",
-    "damage.js:220",
-    "damage.js:239",
-    "damage.js:239",
-    "damage.js:239",
-    "decide.js:260",
+    "damage.js:107",
+    "damage.js:222",
+    "damage.js:241",
+    "damage.js:241",
+    "damage.js:241",
+    "decide.js:263",
     "round.js:103",
     "modes.js:244"
    ]
@@ -4801,8 +4797,7 @@
    "field": "_stopWhy",
    "class": "диагностика",
    "read_by_core": [
-    "problem-watch.js:28",
-    "problem-watch.js:58",
+    "problem-watch.js:11",
     "trace.js:38",
     "trace.js:38"
    ]
@@ -4825,7 +4820,7 @@
    "field": "_walkWhy",
    "class": "диагностика",
    "read_by_core": [
-    "problem-watch.js:28",
+    "problem-watch.js:11",
     "trace.js:38"
    ]
   },

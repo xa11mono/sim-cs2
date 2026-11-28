@@ -150,13 +150,33 @@ async function inspect(mark, dir, expected, select) {
       notes.add('Сводка сохранена как данные источника: ' + summary.codec);
     }
   }
+  let traceRows;
   if (mark.trace == null) notes.add('Отсутствует причинный след Р3');
   else {
     need(obj(mark.trace) && uint(mark.trace.fromTick) && uint(mark.trace.toTick) && mark.trace.fromTick <= mark.trace.toTick,
       'Некорректное окно причинного следа');
     if (identity.tick != null) need(mark.trace.fromTick <= identity.tick && mark.trace.toTick >= identity.tick, 'Окно следа не содержит тик отметки');
-    load(mark.trace.asset);
-    notes.add('След Р3 сохранён как непрозрачное вложение: нет адаптера ' + mark.trace.asset.codec + '/' + mark.trace.asset.version);
+    const bytes = load(mark.trace.asset);
+    if (mark.trace.asset.codec === 'sim-cs2/dlog' && mark.trace.asset.version === 1) {
+      const trace = json(bytes);
+      need(obj(trace) && obj(trace.by) && trace.fromTick === mark.trace.fromTick && trace.toTick === mark.trace.toTick, 'Некорректный след Р3.3');
+      traceRows = [];
+      for (const [actor, channels] of Object.entries(trace.by)) {
+        need(obj(channels), 'Некорректные каналы следа Р3.3');
+        for (const [channel, rows] of Object.entries(channels)) {
+          need(Array.isArray(rows), 'Некорректный журнал канала следа Р3.3');
+          for (const row of rows) {
+            need(Array.isArray(row) && uint(row[0]) && row[0] >= trace.fromTick && row[0] <= trace.toTick &&
+              typeof row[1] === 'string' && typeof row[2] === 'string', 'Некорректная запись следа Р3.3');
+            traceRows.push({ actor, channel, tick: row[0], kind: row[1], message: row[2], data: row[3] });
+          }
+        }
+      }
+      traceRows.sort((a,b) => a.tick-b.tick);
+      if (!trace.on) notes.add('На момент экспорта полный след решений был выключен');
+    } else {
+      notes.add('След Р3 сохранён как непрозрачное вложение: нет адаптера ' + mark.trace.asset.codec + '/' + mark.trace.asset.version);
+    }
   }
 
   if (mark.image == null) notes.add('Отсутствует кадр');
@@ -178,7 +198,7 @@ async function inspect(mark, dir, expected, select) {
     if (diagnostics.missingFacts > 0) notes.add('У части диагностических событий отсутствуют факты');
   }
   const compatibility = compareTarget(mark, expected, notes);
-  return { mark, assets, decodedSnapshots, snapshotPositions, diagnostics, compatibility, notes: [...notes] };
+  return { mark, assets, decodedSnapshots, snapshotPositions, diagnostics, traceRows, compatibility, notes: [...notes] };
 }
 
 function location(input) {
