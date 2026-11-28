@@ -181,9 +181,8 @@
    "id": "switch_residual_classified",
    "file": "tools/measure/audit/scenarios3.js",
    "ok": false,
-   "status": "unexplored",
-   "ok_without_height": true,
-   "note": "На изолированной странице требуется хотя бы один наблюдаемый перекол в каждом из матчей 3 и 7. Сохраняется весь список остаточных назначений"
+   "status": "known",
+   "note": "На изолированной странице требуется хотя бы один наблюдаемый перекол в каждом из матчей 3 и 7. Ancient: в обоих матчах проверено по четыре перекола. Два остатка в матче 7: T2 repos:hurt в раунде 1 и T3 repos:back в раунде 7"
   },
   {
    "id": "cornerlook_stale_point_at_feet",
