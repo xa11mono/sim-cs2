@@ -1,0 +1,20 @@
+{
+ "branch": "measure/v645a-r354",
+ "_": "ПК 357 (28.11, v645a): тесты системы проверок и L1 91191538 на Windows — повтор selftest ПК 356 (там checkout с CRLF ломал сборку); I-22 / особые инварианты и фризы получены в ПК 356, Э1 — в ПК 355",
+ "par": 8,
+ "resume": true,
+ "selftest": [
+  {
+   "label": "r354_self",
+   "tests": [
+    "runner_model",
+    "procguard",
+    "request_guard",
+    "build_batch",
+    "scene_batch",
+    "l0"
+   ],
+   "l1": "91191538422c6d90536eb6b46cd604ce42586204"
+  }
+ ]
+}

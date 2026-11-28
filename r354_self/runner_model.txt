@@ -1,0 +1,24 @@
+код 0
+
+test_332_actual_archive_plan_and_saved_files (__main__.ArchiveTests) ... skipped 'requires --archive and the pinned Git objects'
+test_build_cache_pins_ref_and_separates_map_and_kind (__main__.Tests) ... ok
+test_dynamic_admission_replays_334_ancient_memory_sample (__main__.Tests) ... ok
+test_dynamic_engines_share_unlimited_group (__main__.Tests) ... ok
+test_dynamic_launches_multiple_trees_before_first_match_finishes (__main__.Tests) ... ok
+test_low_memory_blocks_first_match_too (__main__.Tests) ... ok
+test_native_windows_job_gate_with_small_process (__main__.Tests) ... ok
+test_per_pair_and_cold_start (__main__.Tests) ... ok
+test_phase_counts_retry_work_but_not_restored_or_failed_ticks (__main__.Tests) ... ok
+test_real_process_exit_before_next_poll (__main__.Tests) ... ok
+test_recovery_and_retries_do_not_leak_into_next_phase (__main__.Tests) ... ok
+test_resume_rejects_corrupt_or_mismatched_cache_and_copies_nothing (__main__.Tests) ... ok
+test_simultaneous_growth_hits_aggregate_ceiling_in_fake_os (__main__.Tests) ... ok
+test_unknown_group_usage_falls_back_to_peak_budget (__main__.Tests) ... ok
+test_windows_assignment_failure_keeps_gate_closed (__main__.Tests) ... ok
+test_windows_assigns_both_jobs_before_launch_and_caps_the_group (__main__.Tests) ... ok
+test_windows_group_grows_after_external_memory_release (__main__.Tests) ... ok
+
+----------------------------------------------------------------------
+Ran 17 tests in 0.830s
+
+OK (skipped=1)

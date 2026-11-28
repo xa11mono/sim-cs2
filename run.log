@@ -1,0 +1,20 @@
+задание: задание для этой ветки (branch = measure/v645a-r354)
+playwright 1.63.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\r354_self\env.json
+guard: память 15977 МБ, свободно 8871; запас 3195, критично 1536; на матч ≤ 6144 МБ, ≤ 90 мин; par ≤ 8; объект задания: да; продолжение: да
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_self_kyn6n0e2 HEAD
+npm_rebuild: код 0
+runner_model: код 0
+selftest runner_model: 1 с
+selftest procguard: только Linux / macOS (процессы sleep) — пропущен
+request_guard: код 0
+selftest request_guard: 0 с
+build_batch: код 0
+selftest build_batch: 23 с
+scene_batch: код 0
+selftest scene_batch: 4 с
+l0: код 1
+selftest l0: 10 с
+l1: код 1
+selftest l1 91191538: 1263 с
+all done
