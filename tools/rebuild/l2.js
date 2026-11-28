@@ -100,7 +100,9 @@ function request() {
     // модель допуска раннера (procguard_test)
     if (!opt('no-tool-tests')) { L.push('', '## Тесты системы проверок');
       for (const [n, a] of [['сборка пачкой = по одной, повтор тот же', [path.join(ROOT, 'tools', 'tests', 'build_batch_test.py')]], ['ключ кэша сборок полон', [path.join(ROOT, 'tools', 'tests', 'build_inputs_test.py')]],
-        ['допуск раннера (procguard_test)', [path.join(ROOT, 'tools', 'measure', 'procguard_test.py')]]]) {
+        ['допуск раннера (procguard_test)', [path.join(ROOT, 'tools', 'measure', 'procguard_test.py')]],
+        // (28.11) вариант B (движок + пакеты файлами): регрессия после переноса сборки в main() прошла незамеченной — теперь собирается здесь
+        ['сборка варианта B', [path.join(ROOT, 'src', 'build_variants.py'), '--variant-b', path.join(tmp, 'variant-b')]]]) {
         const s = Date.now(), r = await run(PY, a); timings.push([n, Date.now() - s]); if (r.code) bad.push('тест: ' + n);
         L.push('- ' + n + ': ' + (r.code ? '**упал**' : 'да') + ' — ' + C.lastLine(r)); } }
     if (opt('request')) L.push('', '## Задание ПК', '- ' + path.relative(ROOT, request()) + ': Э1 8 + 8 страницы, I-22 / особые инварианты, окна фризов — пушить веткой measure/<имя> (docs/rules/runs.md); после — fp_cmp.py против базы отпечатков');
