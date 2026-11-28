@@ -85,7 +85,9 @@ M.forEach(m => { const mk = "/*@@MODINIT " + m.f + "@@*/"; if (core.indexOf(mk) 
 let coreHead = ""; M.forEach(m => { if (coreImp[m.f].length) coreHead += "import { " + coreImp[m.f].join(", ") + " } from \"" + js(m.f) + "\";\n"; });
 fs.writeFileSync(path.join(tmp, "__core.js"), coreHead + core + "\nexport { " + [...coreExp].join(", ") + " };\n");
 fs.writeFileSync(path.join(tmp, "__entry.js"), "import \"./__core.js\";\n");
-const r = esbuild.buildSync({ entryPoints: [path.join(tmp, "__entry.js")], bundle: true, format: "esm", write: false, target: "esnext",
+// (28.11, H-8) absWorkingDir — папка сборки: в комментариях esbuild «// decide.js» вместо «// ../../../tmp/modb_XXXX/decide.js» (случайное имя
+// временной папки делало страницу разной байт в байт при одном исходнике; кэш сборок L1 сравнивает страницы по байтам)
+const r = esbuild.buildSync({ entryPoints: [path.join(tmp, "__entry.js")], absWorkingDir: tmp, bundle: true, format: "esm", write: false, target: "esnext",
   logLevel: "silent", legalComments: "none", charset: "utf8", minifyWhitespace: COMPACT });
 (r.warnings || []).filter(w => !/direct eval/i.test(w.text)).forEach(w => console.warn("esbuild:", w.text));
 let out = r.outputFiles[0].text;

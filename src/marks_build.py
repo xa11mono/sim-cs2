@@ -56,7 +56,10 @@ def snap_vars(s):
     состояния (tools/rebuild/state_gen.js — графа «в снимке сейчас»). Склейка s + каналы-модули (rebuild/modules.json)."""
     from gamesrc import module_source
     P = snap_policy()
-    return [v for v in top_vars(s) + [x for x in top_vars(module_source()) if x not in top_vars(s)] if not P.get(v, 'да').startswith('нет') and not v.startswith('__') and not v.startswith('MK') and not v.startswith('mk')]
+    # (28.11, система проверок H-3) разбор склейки — один раз: раньше top_vars(s) пересчитывался для каждой переменной модулей (33 из 42 с
+    # сборки); порядок и состав — те же (проверка: страница байт в байт до / после)
+    main = top_vars(s); seen = set(main)
+    return [v for v in main + [x for x in top_vars(module_source()) if x not in seen] if not P.get(v, 'да').startswith('нет') and not v.startswith('__') and not v.startswith('MK') and not v.startswith('mk')]
 
 
 def snapshot_src():
