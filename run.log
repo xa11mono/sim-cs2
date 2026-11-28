@@ -1,0 +1,70 @@
+задание: задание для этой ветки (branch = measure/v645a-r354)
+playwright 1.63.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\r354_self\env.json
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\r354_inv_mir\env.json
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\r354_inv_anc\env.json
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\r354_prof_mir\env.json
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\env.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\r354_prof_anc\env.json
+guard: память 15977 МБ, свободно 9761; запас 3195, критично 1536; на матч ≤ 6144 МБ, ≤ 90 мин; par ≤ 8; объект задания: да; продолжение: да
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_w5tnobdz c6a77fc17e0699fd969b5256fa05b290dd1727ee
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_w5tnobdz\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\r354_prof_mir.html
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+модули: task.js, intel.js, events.js, turn.ts, smoke.js, plan.js, exec-sync.js, levels.js, throw.js, flight.js, lineups.js, damage.js, self.js, decide.js, fight.js, assist.js, shoot.js, fight-state.js, engagements.js, move.js, tick.js, tick-jump.js, tick-keys.js, tick-step.js — ядро отдаёт 322 имён, берёт 720
+Единственный писатель: полей 107, записей в обход 0
+пометок 1735 | полей facing:7 walking:4 curSpeed:5 post:3 _task:4 _reposUntil:1 _waitPopUntil:1 _avoidPeekUntil:1 _tradeUntil:2 _tradeLock:1 state:2 nadeTask:8 holding:4 crouching:1 path:7 phase:1 lookReason:2 _lookLvl:1 heardSound:2 lastIntel:1 planting:3 defusing:3 _route:4 _routeDone:2 baseX:11 baseY:11 pathIdx:8 _aimFix:1 _ammoFor:1 _area:1 _blind:1 _blindBy:1 _boost:1 _climb:1 _contact:1 _covLog:1 _covT:1 _detour:1 _dmgBy:1 _drawUntil:1 _egC:1 _fall:1 _fc:1 _fillLock:1 _fireExit:1 _fireExitFire:1 _fireIn:1 _flee:1 _heDone:2 _hold:1 _holdLog:1 _huntArrive:1 _huntIdx:1 _jc:1 _jump:1 _knife:1 _landAt:1 _lkC:1 _lkPt:1 _lkTop:1 _lkZ:1 _lurkArr:1 _lurkIdx:1 _lurkPh:1 _mistakes:1 _nadeNo:1 _nadeT:1 _nearestEnemyBot:1 _offNav:1 _onPistol:1 _prevOffX:1 _prevOffY:1 _probe:1 _probeLock:1 _reloading:1 _roamSoundHandled:1 _roamSoundLockUntil:1 _saveSpot:1 _sawEnemy:1 _secAmmo:1 _stabT:1 _stageInfo:1 _stopPlantUntil:1 _stopWhy:1 _tagUntil:1 _ts:1 _unstickT:1 alive:4 ammo:1 armor:1 armorHp:1 atPost:1 blindUntil:1 burstCount:1 contactStreak:1 deaths:1 decisionTick:1 forcedRetreat:1 heading:1 helmet:2 holdSinceTick:1 hp:1 kills:1 kit:2 lastShotTick:1 lastStepTick:1 lookTarget:1 money:1 nadeQueue:1 nades:1 nextShotTick:1 onStairs:1 pickTick:1 primary:1 reloadUntil:1 retakeRole:1 roamCheckStart:1 roamCheckUntil:1 roamChecking:1 roamIdx:1 roamLookPt:1 roamPrevPt:1 roamTarget:1 roundDmg:1 roundKills:1 secondary:1 setupLook:1 stateSince:1 stuckTicks:1 throwUntil:1 weapon:1 x:1 y:1 z:1 | функций 1524
+общих переменных 993 из чужих файлов пишут 83
+реестр состояния: строк 1481, не размечено 0
+карточки механик: файлов 102, расхождений 0
+чтения истины врага (решения): мест 74, новых 0; известных нарушений «истина» 0 (BEHAVIOR_BACKLOG, после Р8)
+ответ хозяина не прочитан (Р-7): мест 99
+виды задач (TaskKind): 79 литералом, мест с тегом из данных 21, расхождений 0
+писатели полей бота: полей 454, писателей 579, новых 0
+правила сборки Р-1…Р-17: известных мест Р-1 5, Р-3а 74, Р-3б 9, Р-4 6, Р-5 55, Р-16 0, Р-17 68; новых 0
+tick_0: код 0
+frame_0: код 0
+tick_1: код 0
+frame_1: код 0
+tick_2: код 0
+frame_2: код 0
+memory: код 0
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_6ey3ybiw c6a77fc17e0699fd969b5256fa05b290dd1727ee
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_6ey3ybiw\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\r354_prof_anc.html
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+модули: task.js, intel.js, events.js, turn.ts, smoke.js, plan.js, exec-sync.js, levels.js, throw.js, flight.js, lineups.js, damage.js, self.js, decide.js, fight.js, assist.js, shoot.js, fight-state.js, engagements.js, move.js, tick.js, tick-jump.js, tick-keys.js, tick-step.js — ядро отдаёт 322 имён, берёт 720
+Единственный писатель: полей 107, записей в обход 0
+пометок 1735 | полей facing:7 walking:4 curSpeed:5 post:3 _task:4 _reposUntil:1 _waitPopUntil:1 _avoidPeekUntil:1 _tradeUntil:2 _tradeLock:1 state:2 nadeTask:8 holding:4 crouching:1 path:7 phase:1 lookReason:2 _lookLvl:1 heardSound:2 lastIntel:1 planting:3 defusing:3 _route:4 _routeDone:2 baseX:11 baseY:11 pathIdx:8 _aimFix:1 _ammoFor:1 _area:1 _blind:1 _blindBy:1 _boost:1 _climb:1 _contact:1 _covLog:1 _covT:1 _detour:1 _dmgBy:1 _drawUntil:1 _egC:1 _fall:1 _fc:1 _fillLock:1 _fireExit:1 _fireExitFire:1 _fireIn:1 _flee:1 _heDone:2 _hold:1 _holdLog:1 _huntArrive:1 _huntIdx:1 _jc:1 _jump:1 _knife:1 _landAt:1 _lkC:1 _lkPt:1 _lkTop:1 _lkZ:1 _lurkArr:1 _lurkIdx:1 _lurkPh:1 _mistakes:1 _nadeNo:1 _nadeT:1 _nearestEnemyBot:1 _offNav:1 _onPistol:1 _prevOffX:1 _prevOffY:1 _probe:1 _probeLock:1 _reloading:1 _roamSoundHandled:1 _roamSoundLockUntil:1 _saveSpot:1 _sawEnemy:1 _secAmmo:1 _stabT:1 _stageInfo:1 _stopPlantUntil:1 _stopWhy:1 _tagUntil:1 _ts:1 _unstickT:1 alive:4 ammo:1 armor:1 armorHp:1 atPost:1 blindUntil:1 burstCount:1 contactStreak:1 deaths:1 decisionTick:1 forcedRetreat:1 heading:1 helmet:2 holdSinceTick:1 hp:1 kills:1 kit:2 lastShotTick:1 lastStepTick:1 lookTarget:1 money:1 nadeQueue:1 nades:1 nextShotTick:1 onStairs:1 pickTick:1 primary:1 reloadUntil:1 retakeRole:1 roamCheckStart:1 roamCheckUntil:1 roamChecking:1 roamIdx:1 roamLookPt:1 roamPrevPt:1 roamTarget:1 roundDmg:1 roundKills:1 secondary:1 setupLook:1 stateSince:1 stuckTicks:1 throwUntil:1 weapon:1 x:1 y:1 z:1 | функций 1524
+общих переменных 993 из чужих файлов пишут 83
+реестр состояния: строк 1481, не размечено 0
+карточки механик: файлов 102, расхождений 0
+чтения истины врага (решения): мест 74, новых 0; известных нарушений «истина» 0 (BEHAVIOR_BACKLOG, после Р8)
+ответ хозяина не прочитан (Р-7): мест 99
+виды задач (TaskKind): 79 литералом, мест с тегом из данных 21, расхождений 0
+писатели полей бота: полей 454, писателей 579, новых 0
+правила сборки Р-1…Р-17: известных мест Р-1 5, Р-3а 74, Р-3б 9, Р-4 6, Р-5 55, Р-16 0, Р-17 68; новых 0
+tick_0: код 0
+frame_0: код 0
+tick_1: код 0
+frame_1: код 0
+tick_2: код 0
+frame_2: код 0
+memory: код 0
+npm_rebuild: код 0
+inv_special: код 0
+inv_special: код 0
+npm_rebuild: код 0
+runner_model: код 0
+selftest runner_model: 1 с
+selftest procguard: только Linux / macOS (процессы sleep) — пропущен
+request_guard: код 0
+selftest request_guard: 0 с
+build_batch: код 1
+selftest build_batch: 1 с
+scene_batch: код 0
+selftest scene_batch: 4 с
+l0: код 1
+selftest l0: 8 с
+l1: код 1
+selftest l1 91191538: 14 с
+all done

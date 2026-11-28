@@ -1,0 +1,13 @@
+код 0
+✔ a failed scene or a previous scene cannot pollute another browser context (685.3502ms)
+✔ empty workload does not launch a browser and invalid concurrency fails closed (0.3723ms)
+✔ a hanging scene times out, its context is closed, and the next scene still runs (3112.7845ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3854.0017
+

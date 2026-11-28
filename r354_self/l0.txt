@@ -1,0 +1,20 @@
+код 1
+НЕТ  устройство, граница, типы, данные карт — 0.4 с
+ОШИБКА владения: replay.js:134 rpRecord пишет kills мимо damage.damageSetKills
+ОШИБКА владения: устарело различение одноимённой записи: ["replay.js","rpRecord","kills","RP.rec.kills.push({t: Math.round((k.at||simTime)*TICK_HZ), att: rpIdByNick(k.att), vic: rpIdByNick(k.vic), attTeam: k.attTeam, vicTeam: k.vicTeam,\n        w: k.w, hs: k.hs, smoke: k.smoke, wall: k.wall, noscope: k.noscope, blind: k.blind, attN: k.att, vicN: k.vic, live: kLive})"]
+да   физика гранат (58 проверок) — 1.2 с
+НЕТ  список снимка — 0.0 с
+  signal: null,
+  output: null,
+  pid: 0,
+  stdout: undefined,
+  stderr: undefined
+}
+
+Node.js v24.21.0
+да   пакет отметки v2 — 1.4 с
+да   исполнитель сцен (изоляция контекстов) — 3.8 с
+да   модель раннера ПК (procguard) — 0.9 с
+да   пуск задания ПК (H-20) — 0.0 с
+L0: упало 2 из 7 за 7.9 с
+

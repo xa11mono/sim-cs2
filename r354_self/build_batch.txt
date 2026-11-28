@@ -1,0 +1,8 @@
+код 1
+
+Traceback (most recent call last):
+  File "C:\actions-runner\_work\sim-cs2\sim-cs2\tools\tests\build_batch_test.py", line 12, in <module>
+    for m in maps: subprocess.run([sys.executable, B, '--map', m, one[m]], check=True, capture_output=True)
+  File "C:\Users\Mono\AppData\Local\Programs\Python\Python310\lib\subprocess.py", line 524, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['C:\\Users\\Mono\\AppData\\Local\\Programs\\Python\\Python310\\python.exe', 'C:\\actions-runner\\_work\\sim-cs2\\sim-cs2\\src\\build.py', '--map', 'mirage', 'C:\\Windows\\TEMP\\tmphz_50a_a\\one-mirage.html']' returned non-zero exit status 1.

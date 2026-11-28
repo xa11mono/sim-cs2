@@ -1,0 +1,54 @@
+{
+ "branch": "measure/v645a-r354",
+ "_": "ПК 356 (28.11, v645a): остаток ПК 355 — I-22 / особые инварианты и окна фризов вершины c6a77fc1, тесты системы проверок и L1 91191538 на Windows (Э1 8 + 8 v645a = v644a бит в бит уже получен в ПК 355 — не повторяется)",
+ "par": 8,
+ "resume": true,
+ "selftest": [
+  {
+   "label": "r354_self",
+   "tests": [
+    "runner_model",
+    "procguard",
+    "request_guard",
+    "build_batch",
+    "scene_batch",
+    "l0"
+   ],
+   "l1": "91191538422c6d90536eb6b46cd604ce42586204"
+  }
+ ],
+ "inv": [
+  {
+   "label": "r354_inv_mir",
+   "ref": "c6a77fc17e0699fd969b5256fa05b290dd1727ee",
+   "map": "mirage",
+   "matches": [],
+   "special": true
+  },
+  {
+   "label": "r354_inv_anc",
+   "ref": "c6a77fc17e0699fd969b5256fa05b290dd1727ee",
+   "map": "ancient",
+   "matches": [],
+   "special": true
+  }
+ ],
+ "prof": [
+  {
+   "label": "r354_prof_mir",
+   "ref": "c6a77fc17e0699fd969b5256fa05b290dd1727ee",
+   "map": "mirage",
+   "match": 3,
+   "ticks": 20000,
+   "repeat": 3
+  },
+  {
+   "label": "r354_prof_anc",
+   "ref": "c6a77fc17e0699fd969b5256fa05b290dd1727ee",
+   "map": "ancient",
+   "match": 3,
+   "ticks": 20000,
+   "repeat": 3
+  }
+ ]
+}

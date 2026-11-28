@@ -1,0 +1,3 @@
+код 1
+L1 91191538: сборка упала (12 с) → C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\r354_self\l1.md
+
