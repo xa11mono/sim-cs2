@@ -1,0 +1,37 @@
+{
+ "_": "ПК 353 (28.11): вопрос 17 — повтор записей эко-плана (на ПК 351 упали: в старых сборках нет clockPause; инструмент исправлен)",
+ "par": 8,
+ "resume": true,
+ "rec": [
+  {
+   "label": "q17_eco_base_mir",
+   "ref": "ac357f6f5ef25cd20734b0e8c92a35fd5d707dbe",
+   "map": "mirage"
+  },
+  {
+   "label": "q17_eco_var_mir",
+   "ref": "458f975bbf8029c8de91bb9976504fba631d66da",
+   "map": "mirage"
+  },
+  {
+   "label": "q17_eco_base_anc",
+   "ref": "ac357f6f5ef25cd20734b0e8c92a35fd5d707dbe",
+   "map": "ancient"
+  },
+  {
+   "label": "q17_eco_var_anc",
+   "ref": "458f975bbf8029c8de91bb9976504fba631d66da",
+   "map": "ancient"
+  },
+  {
+   "label": "q17_eco_ctrl_mir",
+   "ref": "7c7e648915204da4994d492914ac59ed8bf4ca4a",
+   "map": "mirage"
+  },
+  {
+   "label": "q17_eco_ctrl_anc",
+   "ref": "7c7e648915204da4994d492914ac59ed8bf4ca4a",
+   "map": "ancient"
+  }
+ ]
+}
