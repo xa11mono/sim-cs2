@@ -1,3 +1,20 @@
-{"par": 8, "jobs": [
-  {"label": "b2_mir_a5", "ref": "d71ba75743497183374dc3762db1de5484583fbc", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29]}
-]}
+{
+ "_": "ПК 354 (28.11, v645a, система проверок H-3): (1) тесты системы проверок на Windows (модель раннера с настоящим Job Object, procguard, H-20, сборка пачкой = по одной и повтор байт в байт на Windows, сцены в одном Chromium, L0) и L1 коммита 9119153 этой машиной (сверка вердиктов с облаком, время); (2) ПК-часть L2 вершины c6a77fc1: Э1 8 + 8 страницы, I-22 / особые инварианты, окна фризов; (3) Э1 8 + 8 v644a 3005476 — база: правки v645a игру не меняют (страница отличается только комментариями путей esbuild)",
+ "par": 8,
+ "resume": true,
+ "selftest": [{"label": "r354_self", "tests": ["runner_model", "procguard", "request_guard", "build_batch", "scene_batch", "l0"], "l1": "91191538422c6d90536eb6b46cd604ce42586204"}],
+ "fp": [
+  {"label": "r354_fp_mir", "ref": "c6a77fc17e0699fd969b5256fa05b290dd1727ee", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29], "trace": false, "engine": "chromium"},
+  {"label": "r354_fp_anc", "ref": "c6a77fc17e0699fd969b5256fa05b290dd1727ee", "map": "ancient", "matches": [3, 7, 11, 13, 17, 19, 23, 29], "trace": false, "engine": "chromium"},
+  {"label": "r354_base_mir", "ref": "3005476086f1d82b8ac5e327ce5e2d672dd784c1", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29], "trace": false, "engine": "chromium"},
+  {"label": "r354_base_anc", "ref": "3005476086f1d82b8ac5e327ce5e2d672dd784c1", "map": "ancient", "matches": [3, 7, 11, 13, 17, 19, 23, 29], "trace": false, "engine": "chromium"}
+ ],
+ "inv": [
+  {"label": "r354_inv_mir", "ref": "c6a77fc17e0699fd969b5256fa05b290dd1727ee", "map": "mirage", "matches": [], "special": true},
+  {"label": "r354_inv_anc", "ref": "c6a77fc17e0699fd969b5256fa05b290dd1727ee", "map": "ancient", "matches": [], "special": true}
+ ],
+ "prof": [
+  {"label": "r354_prof_mir", "ref": "c6a77fc17e0699fd969b5256fa05b290dd1727ee", "map": "mirage", "match": 3, "ticks": 20000, "repeat": 3},
+  {"label": "r354_prof_anc", "ref": "c6a77fc17e0699fd969b5256fa05b290dd1727ee", "map": "ancient", "match": 3, "ticks": 20000, "repeat": 3}
+ ]
+}
