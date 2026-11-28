@@ -1,0 +1,14 @@
+{
+ "branch": "measure/v645a-r354",
+ "_": "ПК 358 (28.11): H-26 — L0 на Windows (selftest l0 с выводом stderr упавшего шага); больше ничего",
+ "par": 8,
+ "resume": true,
+ "selftest": [
+  {
+   "label": "r358_self",
+   "tests": [
+    "l0"
+   ]
+  }
+ ]
+}
