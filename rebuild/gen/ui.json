@@ -4210,7 +4210,7 @@
     "damage.js:144",
     "damage.js:144",
     "shoot.js:68",
-    "round.js:158",
+    "round.js:159",
     "tick-step.js:30",
     "modes.js:142",
     "modes.js:149",
@@ -4367,14 +4367,14 @@
    "var": "RUN_MATCH_SUB",
    "class": "диагностика",
    "read_by_core": [
-    "round.js:265"
+    "round.js:266"
    ]
   },
   {
    "var": "SANDBOX",
    "class": "показ",
    "read_by_core": [
-    "round.js:157",
+    "round.js:158",
     "move.js:122",
     "move.js:123",
     "tick-step.js:29",
@@ -4424,8 +4424,8 @@
    "var": "WARM",
    "class": "показ",
    "read_by_core": [
-    "round.js:96",
-    "round.js:96",
+    "round.js:97",
+    "round.js:97",
     "modes.js:48",
     "modes.js:52",
     "modes.js:53",
@@ -4465,7 +4465,7 @@
     "damage.js:248",
     "damage.js:248",
     "decide.js:263",
-    "round.js:103",
+    "round.js:104",
     "modes.js:244"
    ]
   },
@@ -4497,7 +4497,7 @@
    "var": "soundPings",
    "class": "показ",
    "read_by_core": [
-    "round.js:103",
+    "round.js:104",
     "tick-jump.js:10",
     "tick-step.js:145",
     "tick-step.js:149",
@@ -4517,8 +4517,8 @@
     "shoot.js:367",
     "shoot.js:387",
     "shoot.js:387",
-    "round.js:103",
-    "round.js:225",
+    "round.js:104",
+    "round.js:226",
     "modes.js:244",
     "src/snapshot.js:172",
     "src/snapshot.js:172"

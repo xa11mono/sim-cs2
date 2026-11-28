@@ -427,15 +427,21 @@
   "throw.js": {
    "mech": "гранаты: закуп buyNades, дым и видимость smokeBlocks; бросок throwNade (подбор физикой nadeSolve); полёт — физика 3D (30.10): 385_nades_flight (nadeLaunch / nadeStep / nadeAim), луч кубиком m3NadeTrace (035), отчёт docs/reports/GRENADE_PHYSICS_IMPLEMENTATION.md; бросок смока с разбега runupTick (эта",
    "owns": [
+    "nadeSolve",
+    "throwNade"
+   ],
+   "src": "таблица «Где что»"
+  },
+  "throw-checks.js": {
+   "mech": "гранаты: проверки и учёт броска (вторая часть throw.js, деление Р4.4 — склейка та же): неудачи броска, «почему не себе», дым над точкой, ведение задания гранаты, запись счётчиков гранат",
+   "owns": [
     "nadeSetNadeNo",
     "nadeSetNadeT",
     "nadeSetNades",
     "nadeSetThrowUntil",
-    "nadeSolve",
-    "runupTick",
-    "throwNade"
+    "runupTick"
    ],
-   "src": "таблица «Где что»"
+   "src": "деление Р4.4 (28.11)"
   },
   "flight.js": {
    "mech": "гранаты: закуп buyNades, дым и видимость smokeBlocks; бросок throwNade (подбор физикой nadeSolve); полёт — физика 3D (30.10): 385_nades_flight (nadeLaunch / nadeStep / nadeAim), луч кубиком m3NadeTrace (035), отчёт docs/reports/GRENADE_PHYSICS_IMPLEMENTATION.md; бросок смока с разбега runupTick (эта",

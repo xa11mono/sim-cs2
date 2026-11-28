@@ -601,10 +601,10 @@
    "decide · resetNades"
   ],
   "_nadeNo": [
-   "throw · nadeSetNadeNo"
+   "throw-checks · nadeSetNadeNo"
   ],
   "_nadeT": [
-   "throw · nadeSetNadeT"
+   "throw-checks · nadeSetNadeT"
   ],
   "_nadeUseT": [
    "decide · nadeUseTick"
@@ -649,10 +649,10 @@
    "lineups · lineupTick"
   ],
   "_nv": [
-   "throw · nadeVelTrack"
+   "throw-checks · nadeVelTrack"
   ],
   "_nvP": [
-   "throw · nadeVelTrack"
+   "throw-checks · nadeVelTrack"
   ],
   "_odK": [
    "look-peek · openDirNear"
@@ -1081,7 +1081,8 @@
    "damage · damageSetArmorHp"
   ],
   "assists": [
-   "round · newMatch"
+   "round · newMatch",
+   "round · swapSides"
   ],
   "atPost": [
    "task · taskSetAtPost"
@@ -1288,11 +1289,11 @@
    "lineups · lineupTick",
    "plan · nadeAskFlash",
    "smoke · (верх файла)",
-   "throw · assignNadeDo",
-   "throw · nadeQueueNext"
+   "throw-checks · assignNadeDo",
+   "throw-checks · nadeQueueNext"
   ],
   "nades": [
-   "throw · nadeSetNades"
+   "throw-checks · nadeSetNades"
   ],
   "nextShotTick": [
    "shoot · shotSetNextShotTick"
@@ -1445,7 +1446,7 @@
    "map-walls · mapEdSwitch"
   ],
   "throwUntil": [
-   "throw · nadeSetThrowUntil"
+   "throw-checks · nadeSetThrowUntil"
   ],
   "title": [
    "app · (верх файла)",

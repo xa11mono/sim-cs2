@@ -41,7 +41,7 @@
   "sound · finishPush · setPost": 1,
   "sound · onBlind · setPost": 1,
   "task · routeTick · setPost": 1,
-  "throw · runupTick · setPost": 2,
-  "throw · updateNadeTask1 · setPost": 1
+  "throw-checks · runupTick · setPost": 2,
+  "throw-checks · updateNadeTask1 · setPost": 1
  }
 }

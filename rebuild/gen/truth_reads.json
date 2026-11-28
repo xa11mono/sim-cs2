@@ -782,7 +782,7 @@
   {
    "file": "round.js",
    "fn": "checkRoundEnd",
-   "line": 140,
+   "line": 141,
    "props": [
     "bomb.site,x,y"
    ],
@@ -830,9 +830,9 @@
    "perception": false
   },
   {
-   "file": "throw.js",
+   "file": "throw-checks.js",
    "fn": "nadeOwnerOk",
-   "line": 434,
+   "line": 82,
    "props": [
     "teamBot.post"
    ],

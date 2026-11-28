@@ -19,7 +19,7 @@
   - `itemPickupTick` (items) — если postRun
   - `teamBrains` (contact) — если !postRun
   - `nadeBrains` (decide) — если !postRun
-  - `updateNadeTasks` (throw) — если !postRun
+  - `updateNadeTasks` (throw-checks) — если !postRun
   - `nadesTick` (damage) — если !postRun
     - `tClearCalls` (lurker) — если roundState === "live" && tick % 16 === 0
   - `bombBeepTick` (journal) — если !postRun

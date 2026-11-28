@@ -63,6 +63,7 @@ function swapSides(){
     var kills = a.kills; damageSetKills(a, b.kills); damageSetKills(b, kills);
     var deaths = a.deaths; damageSetDeaths(a, b.deaths); damageSetDeaths(b, deaths);
     var mistakes = a._mistakes; setupSetMistakes(a, b._mistakes); setupSetMistakes(b, mistakes);
+    var assists = a.assists; a.assists = b.assists; b.assists = assists;   // (У-17) и ассисты — с игроком, а не с местом
   }
   SIDE_TEAM = {T: SIDE_TEAM.CT, CT: SIDE_TEAM.T};
   seatPlayers();

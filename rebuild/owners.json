@@ -181,6 +181,7 @@
       "plan",
       "exec-sync",
       "throw",
+      "throw-checks",
       "flight",
       "lineups",
       "damage",
@@ -684,14 +685,14 @@
   },
   "_nadeNo": {
     "channel": "гранаты",
-    "ownerFile": "throw",
+    "ownerFile": "throw-checks",
     "exclusive": true,
     "enforce": true,
     "writer": "nadeSetNadeNo"
   },
   "_nadeT": {
     "channel": "гранаты",
-    "ownerFile": "throw",
+    "ownerFile": "throw-checks",
     "exclusive": true,
     "enforce": true,
     "writer": "nadeSetNadeT"
@@ -992,7 +993,7 @@
   },
   "nades": {
     "channel": "гранаты",
-    "ownerFile": "throw",
+    "ownerFile": "throw-checks",
     "exclusive": true,
     "enforce": true,
     "writer": "nadeSetNades"
@@ -1132,7 +1133,7 @@
   },
   "throwUntil": {
     "channel": "гранаты",
-    "ownerFile": "throw",
+    "ownerFile": "throw-checks",
     "exclusive": true,
     "enforce": true,
     "writer": "nadeSetThrowUntil"

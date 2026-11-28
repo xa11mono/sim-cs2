@@ -10,7 +10,7 @@
    "m": {},
    "r": {
     "modes": 3,
-    "throw": 1,
+    "throw-checks": 1,
     "tick-step": 1
    },
    "snap": true
@@ -444,7 +444,7 @@
    "snap": true
   },
   "BOT_INIT": {
-   "decl": "round.js:251",
+   "decl": "round.js:252",
    "init": "Literal",
    "w": {
     "coreLoadEnd · round": 1
@@ -575,7 +575,7 @@
     "sites-spots": 5,
     "smoke-react": 1,
     "task": 4,
-    "throw": 2,
+    "throw-checks": 2,
     "tick-step": 2,
     "turn": 1
    },
@@ -1832,7 +1832,8 @@
     "sound": 28,
     "tactics": 1,
     "task": 31,
-    "throw": 45,
+    "throw": 12,
+    "throw-checks": 33,
     "tick": 5,
     "tick-jump": 16,
     "tick-keys": 2,
@@ -4112,13 +4113,13 @@
    "snap": true
   },
   "LU_AT": {
-   "decl": "throw.js:487",
+   "decl": "throw-checks.js:135",
    "init": "Literal",
    "w": {},
    "m": {},
    "r": {
     "task": 1,
-    "throw": 1
+    "throw-checks": 1
    },
    "snap": true
   },
@@ -4153,13 +4154,13 @@
    "snap": true
   },
   "LU_NEAR": {
-   "decl": "throw.js:488",
+   "decl": "throw-checks.js:136",
    "init": "Literal",
    "w": {},
    "m": {},
    "r": {
     "exec-sync": 1,
-    "throw": 1
+    "throw-checks": 1
    },
    "snap": true
   },
@@ -4181,7 +4182,7 @@
    "r": {
     "exec-sync": 1,
     "lineups": 4,
-    "throw": 1
+    "throw-checks": 1
    },
    "snap": true
   },
@@ -4203,7 +4204,7 @@
    "r": {
     "lineup-editor": 4,
     "lineups": 12,
-    "throw": 1
+    "throw-checks": 1
    },
    "snap": true
   },
@@ -4313,7 +4314,8 @@
     "sound": 2,
     "tactics": 2,
     "task": 1,
-    "throw": 12,
+    "throw": 11,
+    "throw-checks": 1,
     "tick-jump": 4,
     "tick-step": 1,
     "turn": 1,
@@ -4364,7 +4366,7 @@
    "snap": "нет: UI"
   },
   "MATCH_DIRTY": {
-   "decl": "round.js:88",
+   "decl": "round.js:89",
    "init": "Literal",
    "w": {
     "matchBegin · round": 1
@@ -4631,7 +4633,8 @@
     "smoke": 3,
     "smoke-react": 2,
     "sound": 3,
-    "throw": 11,
+    "throw": 10,
+    "throw-checks": 1,
     "view3d-frame": 1
    },
    "snap": true
@@ -4695,7 +4698,8 @@
    "m": {},
    "r": {
     "exec-sync": 2,
-    "throw": 4
+    "throw": 2,
+    "throw-checks": 2
    },
    "snap": "нет: STATIC"
   },
@@ -4744,22 +4748,22 @@
    "snap": "нет: STATIC"
   },
   "NADE_FOE_P": {
-   "decl": "throw.js:379",
+   "decl": "throw-checks.js:27",
    "init": "Literal",
    "w": {},
    "m": {},
    "r": {
-    "throw": 1
+    "throw-checks": 1
    },
    "snap": true
   },
   "NADE_FOE_R": {
-   "decl": "throw.js:379",
+   "decl": "throw-checks.js:27",
    "init": "Literal",
    "w": {},
    "m": {},
    "r": {
-    "throw": 1
+    "throw-checks": 1
    },
    "snap": true
   },
@@ -4806,12 +4810,12 @@
    "snap": true
   },
   "NADE_HIT_GAP": {
-   "decl": "throw.js:379",
+   "decl": "throw-checks.js:27",
    "init": "Literal",
    "w": {},
    "m": {},
    "r": {
-    "throw": 1
+    "throw-checks": 1
    },
    "snap": true
   },
@@ -4901,32 +4905,32 @@
    "snap": true
   },
   "NADE_LOW_HP": {
-   "decl": "throw.js:379",
+   "decl": "throw-checks.js:27",
    "init": "Literal",
    "w": {},
    "m": {},
    "r": {
-    "throw": 1
+    "throw-checks": 1
    },
    "snap": true
   },
   "NADE_NO_FROM": {
-   "decl": "throw.js:365",
+   "decl": "throw-checks.js:13",
    "init": "Literal",
    "w": {},
    "m": {},
    "r": {
-    "throw": 1
+    "throw-checks": 1
    },
    "snap": true
   },
   "NADE_NO_TO": {
-   "decl": "throw.js:365",
+   "decl": "throw-checks.js:13",
    "init": "Literal",
    "w": {},
    "m": {},
    "r": {
-    "throw": 1
+    "throw-checks": 1
    },
    "snap": true
   },
@@ -4995,22 +4999,22 @@
    "snap": true
   },
   "NADE_SPOT_R": {
-   "decl": "throw.js:675",
+   "decl": "throw-checks.js:323",
    "init": "Literal",
    "w": {},
    "m": {},
    "r": {
-    "throw": 3
+    "throw-checks": 3
    },
    "snap": true
   },
   "NADE_STILL_V": {
-   "decl": "throw.js:473",
+   "decl": "throw-checks.js:121",
    "init": "Literal",
    "w": {},
    "m": {},
    "r": {
-    "throw": 1
+    "throw-checks": 1
    },
    "snap": true
   },
@@ -5028,7 +5032,7 @@
     "sites-spots": 1,
     "smoke-react": 1,
     "sound": 1,
-    "throw": 1
+    "throw-checks": 1
    },
    "snap": true
   },
@@ -7286,12 +7290,12 @@
    "snap": true
   },
   "RUN_COS": {
-   "decl": "throw.js:489",
+   "decl": "throw-checks.js:137",
    "init": "Literal",
    "w": {},
    "m": {},
    "r": {
-    "throw": 1
+    "throw-checks": 1
    },
    "snap": true
   },
@@ -7307,17 +7311,17 @@
    "snap": true
   },
   "RUN_MARGIN": {
-   "decl": "throw.js:490",
+   "decl": "throw-checks.js:138",
    "init": "Literal",
    "w": {},
    "m": {},
    "r": {
-    "throw": 1
+    "throw-checks": 1
    },
    "snap": true
   },
   "RUN_MATCH": {
-   "decl": "round.js:261",
+   "decl": "round.js:262",
    "init": "Literal",
    "w": {
     "runMatch · round": 2
@@ -7331,7 +7335,7 @@
    "snap": "нет: STATIC"
   },
   "RUN_MATCH_SUB": {
-   "decl": "round.js:262",
+   "decl": "round.js:263",
    "init": "Literal",
    "w": {
     "runMatch · round": 1
@@ -7343,63 +7347,63 @@
    "snap": "нет: STATIC"
   },
   "RUN_NEAR": {
-   "decl": "throw.js:490",
+   "decl": "throw-checks.js:138",
    "init": "Literal",
    "w": {},
    "m": {},
    "r": {
     "task": 1,
-    "throw": 1
+    "throw-checks": 1
    },
    "snap": true
   },
   "RUN_OWN_A": {
-   "decl": "throw.js:500",
+   "decl": "throw-checks.js:148",
    "init": "ArrayExpression",
    "w": {},
    "m": {},
    "r": {
-    "throw": 2
+    "throw-checks": 2
    },
    "snap": true
   },
   "RUN_PAST": {
-   "decl": "throw.js:490",
+   "decl": "throw-checks.js:138",
    "init": "Literal",
    "w": {},
    "m": {},
    "r": {
-    "throw": 3
+    "throw-checks": 3
    },
    "snap": true
   },
   "RUN_SEC": {
-   "decl": "throw.js:490",
+   "decl": "throw-checks.js:138",
    "init": "Literal",
    "w": {},
    "m": {},
    "r": {
-    "throw": 2
+    "throw-checks": 2
    },
    "snap": true
   },
   "RUN_STRAIGHT": {
-   "decl": "throw.js:522",
+   "decl": "throw-checks.js:170",
    "init": "Literal",
    "w": {},
    "m": {},
    "r": {
-    "throw": 1
+    "throw-checks": 1
    },
    "snap": true
   },
   "RUN_V": {
-   "decl": "throw.js:489",
+   "decl": "throw-checks.js:137",
    "init": "Literal",
    "w": {},
    "m": {},
    "r": {
-    "throw": 1
+    "throw-checks": 1
    },
    "snap": true
   },
@@ -7634,7 +7638,7 @@
     "smoke": 2,
     "smoke-react": 3,
     "task": 2,
-    "throw": 4,
+    "throw-checks": 4,
     "timeout": 16,
     "voice": 2
    },
@@ -7939,7 +7943,7 @@
     "shoot": 4,
     "smoke-react": 1,
     "task": 3,
-    "throw": 5,
+    "throw-checks": 5,
     "tick": 1,
     "tick-keys": 1,
     "tick-step": 4,
@@ -8440,7 +8444,8 @@
     "tactics": 1,
     "task": 9,
     "team": 3,
-    "throw": 14,
+    "throw": 1,
+    "throw-checks": 13,
     "tick": 3,
     "tick-jump": 13,
     "tick-keys": 3,
@@ -10046,7 +10051,7 @@
     "sound": 9,
     "task": 14,
     "team": 4,
-    "throw": 3,
+    "throw-checks": 3,
     "tick": 2,
     "view3d-frame": 30
    },
@@ -10122,7 +10127,8 @@
     "tactics": 4,
     "task": 5,
     "team": 3,
-    "throw": 10,
+    "throw": 4,
+    "throw-checks": 6,
     "tick": 1,
     "tick-jump": 4,
     "tick-step": 3,
@@ -11185,7 +11191,8 @@
     "replay": 2,
     "round": 1,
     "self": 2,
-    "throw": 3,
+    "throw": 1,
+    "throw-checks": 2,
     "view3d": 2,
     "view3d-frame": 2
    },
@@ -11599,7 +11606,8 @@
     "tactics": 21,
     "task": 22,
     "team": 6,
-    "throw": 6,
+    "throw": 3,
+    "throw-checks": 3,
     "tick": 1,
     "tick-jump": 4,
     "timeout": 4,
@@ -11725,7 +11733,8 @@
     "self": 1,
     "task": 2,
     "team": 1,
-    "throw": 3,
+    "throw": 2,
+    "throw-checks": 1,
     "tick-jump": 4,
     "tick-keys": 2,
     "tick-step": 7,
@@ -11993,7 +12002,8 @@
     "smoke": 7,
     "smoke-react": 9,
     "sound": 1,
-    "throw": 2,
+    "throw": 1,
+    "throw-checks": 1,
     "view3d-frame": 1
    },
    "snap": true
@@ -12161,7 +12171,8 @@
     "shoot": 6,
     "smoke-react": 1,
     "sound": 2,
-    "throw": 3,
+    "throw": 1,
+    "throw-checks": 2,
     "voice": 2
    },
    "snap": true
@@ -12227,7 +12238,7 @@
     "tactics": 1,
     "task": 9,
     "team": 7,
-    "throw": 11
+    "throw-checks": 11
    },
    "snap": true
   },
@@ -12309,7 +12320,8 @@
     "tactics": 1,
     "task": 30,
     "team": 2,
-    "throw": 43,
+    "throw": 19,
+    "throw-checks": 24,
     "tick": 4,
     "tick-jump": 27,
     "tick-keys": 9,
@@ -14270,14 +14282,14 @@
   },
   "_nadeNo": {
    "w": [
-    "throw.js:696 nadeSetNadeNo"
+    "throw-checks.js:344 nadeSetNadeNo"
    ],
    "lit": [],
    "r": 5
   },
   "_nadeT": {
    "w": [
-    "throw.js:697 nadeSetNadeT"
+    "throw-checks.js:345 nadeSetNadeT"
    ],
    "lit": [],
    "r": 3
@@ -14391,14 +14403,14 @@
   },
   "_nv": {
    "w": [
-    "throw.js:468 nadeVelTrack"
+    "throw-checks.js:116 nadeVelTrack"
    ],
    "lit": [],
    "r": 2
   },
   "_nvP": {
    "w": [
-    "throw.js:468 nadeVelTrack"
+    "throw-checks.js:116 nadeVelTrack"
    ],
    "lit": [],
    "r": 2
@@ -15472,10 +15484,11 @@
   },
   "assists": {
    "w": [
-    "round.js:126 newMatch"
+    "round.js:127 newMatch",
+    "round.js:66 swapSides"
    ],
    "lit": [],
-   "r": 1
+   "r": 3
   },
   "atPost": {
    "w": [
@@ -15495,7 +15508,7 @@
     "modes.js:96 warmTick",
     "modes.js:99 warmTick",
     "move.js:23 movePlace",
-    "round.js:214 resetRound",
+    "round.js:215 resetRound",
     "tick-jump.js:109 jumpCheckTick",
     "tick-jump.js:90 jumpCheckTick",
     "tick-keys.js:53 strafeKeysTick",
@@ -15524,7 +15537,7 @@
     "modes.js:96 warmTick",
     "modes.js:99 warmTick",
     "move.js:23 movePlace",
-    "round.js:214 resetRound",
+    "round.js:215 resetRound",
     "tick-jump.js:109 jumpCheckTick",
     "tick-jump.js:90 jumpCheckTick",
     "tick-keys.js:53 strafeKeysTick",
@@ -16000,16 +16013,16 @@
     "lineups.js:266 lineupTick",
     "plan.js:235 nadeAskFlash",
     "smoke.js:37 (верх файла)",
-    "throw.js:414 assignNadeDo",
-    "throw.js:456 nadeQueueNext",
-    "throw.js:458 nadeQueueNext"
+    "throw-checks.js:104 nadeQueueNext",
+    "throw-checks.js:106 nadeQueueNext",
+    "throw-checks.js:62 assignNadeDo"
    ],
    "lit": [],
    "r": 90
   },
   "nades": {
    "w": [
-    "throw.js:698 nadeSetNades"
+    "throw-checks.js:346 nadeSetNades"
    ],
    "lit": [
     "round.js:3"
@@ -16452,7 +16465,7 @@
   },
   "throwUntil": {
    "w": [
-    "throw.js:701 nadeSetThrowUntil"
+    "throw-checks.js:349 nadeSetThrowUntil"
    ],
    "lit": [],
    "r": 10

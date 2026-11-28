@@ -35,7 +35,7 @@
 | показ | 3 | 2 | 2 |
 | боты, оружие | 2 | 1 | 1 |
 | числа BAL | 1 | 0 | 1 |
-| **всего** | **1735** | **865** | **542** |
+| **всего** | **1735** | **865** | **543** |
 
 ## Одна версия — в трёх и более системах (кандидаты: одно решение, размазанное по каналам)
 
@@ -88,11 +88,10 @@
 - `stepBot (tick-step)` — 32
 - `tBrainExecute (brain-t-phases)` — 30
 - `lineupTick (lineups)` — 27
-- `updateNadeTask1 (throw)` — 26
+- `updateNadeTask1 (throw-checks)` — 26
 - `(верх файла) (task)` — 24
 - `lookCands0 (look)` — 24
 - `tryShoot (shoot)` — 24
-- `(верх файла) (throw)` — 22
 - `obsFrame (observer)` — 19
 - `setPostDo (task)` — 18
 - `fightCycleTick (fight)` — 18
@@ -105,6 +104,7 @@
 - `intelDeath (intel)` — 14
 - `smoothLookFilter (look)` — 14
 - `endgameBrain (endgame)` — 14
+- `(верх файла) (throw)` — 14
 - `buildWaypointPath0 (path-search)` — 13
 - `tBrainPostplant (brain-t-postplant)` — 13
 - `ctBrainPlayers (brain-ct-players)` — 13

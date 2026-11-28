@@ -53,6 +53,7 @@
   "exec-sync.js",
   "levels.js",
   "throw.js",
+  "throw-checks.js",
   "flight.js",
   "lineups.js",
   "damage.js",
@@ -519,6 +520,13 @@
    "sys": "гранаты",
    "dir": "engine/nades",
    "legacy": "380"
+  },
+  {
+   "file": "throw-checks.js",
+   "id": "throw-checks",
+   "part": "decide",
+   "sys": "гранаты",
+   "dir": "engine/nades"
   },
   {
    "file": "flight.js",

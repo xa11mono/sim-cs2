@@ -457,14 +457,14 @@
    "count": 1
   },
   {
-   "file": "throw.js",
+   "file": "throw-checks.js",
    "function": "updateNadeTask1",
    "field": "x",
    "expression": "t.x = M.to.x",
    "count": 1
   },
   {
-   "file": "throw.js",
+   "file": "throw-checks.js",
    "function": "updateNadeTask1",
    "field": "y",
    "expression": "t.y = M.to.y",

@@ -156,7 +156,7 @@
    "why": "слух: источник звука сверху / снизу — высота источника (модель слуха)",
    "n": 1
   },
-  "throw:nadeOwnerOk:teamBot.post": {
+  "throw-checks:nadeOwnerOk:teamBot.post": {
    "class": "свои",
    "why": "бросающий своей команды (F.by)",
    "n": 1
