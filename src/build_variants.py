@@ -44,9 +44,8 @@ def variant_b(d):
     mapset.inject_map = lambda html, name, need=('@@MAP@@', '@@MAP_NAME@@'): html.replace('@@MAP@@', 'globalThis.__SIM_MAP', 1)
     try:
         sys.modules.pop('build', None)
-        tmp = os.path.join(tempfile.mkdtemp(), 'engine.html'); argv = sys.argv; sys.argv = ['build.py', '--map', MAPS[0], tmp]
-        try: __import__('build')
-        finally: sys.argv = argv
+        # (28.11) src/build.py собирает в main() (раньше — при импорте); импорт после подмены inject_map берёт подменённую
+        tmp = os.path.join(tempfile.mkdtemp(), 'engine.html'); __import__('build').main(['--map', MAPS[0], tmp])
     finally:
         mapset.inject_map = real
     shutil.copyfile(tmp, os.path.join(d, 'engine.html'))
