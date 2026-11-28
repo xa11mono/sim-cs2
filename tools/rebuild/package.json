@@ -5,7 +5,8 @@
   "dependencies": {
     "acorn": "8.14.0",
     "acorn-walk": "8.3.4",
-    "esbuild": "0.24.0"
+    "esbuild": "0.24.0",
+    "eslint-scope": "9.1.2"
   },
   "devDependencies": {
     "typescript": "6.0.2"
