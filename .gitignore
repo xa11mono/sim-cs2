@@ -21,7 +21,7 @@ tools/demo_events_out/
 
 # В2: итог проверки физики по броскам (tools/nades/check.js, ≈ 1 мин)
 data/maps/*/throws_check.json
-node_modules/
+node_modules
 
 # (Р0.10, 24.11) артефакты сборки, граф Graphify, временные копии, байткод (docs/audit/architecture/RECOMMENDATIONS.md §3)
 dist/
