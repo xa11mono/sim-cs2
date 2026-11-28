@@ -160,6 +160,7 @@ const CMDS = {
   // (Р8 п. 6 / 10, 27.11) уровни проверок L0 / L1, анализ влияния, включение перехватчиков git (.githooks: L0 до коммита, L1 после — в фоне)
   l0: a => run('node', [path.join(ROOT, 'tools', 'rebuild', 'l0.js')]),
   l1: a => run('node', [path.join(ROOT, 'tools', 'rebuild', 'l1.js')].concat(a)),
+  l2: a => run('node', [path.join(ROOT, 'tools', 'rebuild', 'l2.js')].concat(a)),
   impact: a => run('node', [path.join(ROOT, 'tools', 'rebuild', 'impact.js')].concat(a)),
   hooks: a => run('git', ['config', 'core.hooksPath', '.githooks']) || (console.log('перехватчики git включены: L0 до коммита, L1 после (отчёты — .git/sim-l1/)'), 0),
   tomain: a => run('node', [path.join(ROOT, 'tools', 'rebuild', 'to_main.js')].concat(a)),
@@ -185,6 +186,7 @@ const HELP = `node tools/sim.js <команда> — единая точка в�
   typecheck [--js [--list]]               типы: .ts — strict, ошибка = код 1; --js — .js игры, только предупреждения (Р1)
   l0                                      проверка L0 (секунды): check + модульные тесты чистых функций; та же — перед каждым коммитом
   l1 [коммит]                             проверка L1 (минуты): влияние, короткий отпечаток против родителя, инварианты, I-23, сцены → .git/sim-l1/
+  l2 [коммит] [--request]                 проверка L2 (перед публикацией): все сцены против реестра, инварианты, метаморфный набор, тесты проверок; --request — задание ПК
   impact [база..конец | коммит | --work]  анализ влияния правки: изменённые функции → поля → механики-читатели → сцены реестра
   hooks                                   включить перехватчики git (.githooks): L0 до коммита, L1 после коммита в фоне
   tomain [пути…] [--push] [-m сообщение]  документы в main: сначала сборка итогового дерева main, пуш — только если прошла (Р2.0)`;

@@ -5,7 +5,7 @@
 ref — ветка или коммит, чью игру играть; инструменты замера (сторож, раннер) берутся из текущей ветки measure/…
 Для каждого задания: сборка игры ref во временную папку → walk_run.py (сторож ходьбы + обычный сторож) → tools/measure/runs/<label>/.
 Папку runs исполнитель выкладывает артефактом. Запуск руками: python tools/measure/remote_run.py [путь к request.json]"""
-import sys, os, json, subprocess, shutil, tempfile
+import sys, os, json, subprocess, shutil, tempfile, time
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(os.path.dirname(HERE))
 PY = sys.executable
 sys.path.insert(0, HERE); import procguard, fingerprint_jobs   # (Р2.6) защита памяти ПК; (26.11) задания отпечатков — fingerprint_jobs.py
@@ -244,6 +244,25 @@ def main():
         log('%s: код %s' % (name, p.returncode)); return p.returncode
     # Р0.13 Rust нативно и WASM на этой машине: {"rust": [{"label"}]} — набор Rust ставится в свою папку ~/.simcs2_rust (как Playwright —
     # в ~/.simcs2_node), PATH системы не трогается; хост x86_64-pc-windows-gnu — свой компоновщик, без Visual Studio
+    # (28.11, система проверок H-3) тесты системы проверок на ПК (Windows): {"selftest": [{"label", "tests": [имя, …], "l1": "<SHA>"?}]} —
+    # только из списка ниже (произвольные команды задание не запускает); каждый — <имя>.txt (код и хвост вывода); "l1" — проверка L1
+    # коммита этой машиной (git worktree, сборка, сцены в Chromium): совместимость Windows и время
+    SELFTEST = {'runner_model': [PY, 'tools/measure/runner-validation/test_runner.py', '-v'], 'procguard': [PY, 'tools/measure/procguard_test.py'],
+                'request_guard': [PY, 'tools/measure/request_guard_test.py'], 'build_batch': [PY, 'tools/tests/build_batch_test.py'],
+                'scene_batch': ['node', '--test', 'tools/tests/scene_batch.test.js'], 'l0': ['node', 'tools/rebuild/l0.js']}
+    if req.get('selftest'):
+        r0sh([shutil.which('npm') or shutil.which('npm.cmd') or 'npm', 'install', '--prefix', os.path.join(ROOT, 'tools', 'rebuild')], r0out(req['selftest'][0]), 'npm_rebuild')
+    for j in req.get('selftest', []):
+        out = r0out(j); envt = dict(os.environ, NODE_PATH=os.pathsep.join(filter(None, [os.environ.get('NODE_PATH'), os.path.join(ROOT, 'tools', 'rebuild', 'node_modules'),
+                                                                              os.path.join(os.path.expanduser('~'), '.simcs2_node', 'node_modules')])))
+        for name in j.get('tests', []):
+            if name not in SELFTEST: log('selftest: нет теста ' + name); continue
+            t = time.time(); r0sh([SELFTEST[name][0]] + [os.path.join(ROOT, x) if x.startswith('tools/') else x for x in SELFTEST[name][1:]], out, name, env=envt)
+            log('selftest %s: %.0f с' % (name, time.time() - t))
+        if j.get('l1'):
+            sha = resolve_ref(j['l1']); t = time.time()
+            r0sh(['node', os.path.join(ROOT, 'tools', 'rebuild', 'l1.js'), sha, '--out=' + os.path.join(out, 'l1.md')], out, 'l1', env=envt)
+            log('selftest l1 %s: %.0f с' % (sha[:8], time.time() - t))
     for j in req.get('rust', []):
         out = r0out(j); home = os.path.join(os.path.expanduser('~'), '.simcs2_rust'); env = dict(os.environ)
         env['RUSTUP_HOME'] = os.path.join(home, 'rustup'); env['CARGO_HOME'] = os.path.join(home, 'cargo')
