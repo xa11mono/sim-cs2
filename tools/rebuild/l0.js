@@ -19,6 +19,6 @@ const steps = [
 const t0 = Date.now(); let bad = 0;
 for (const [name, [cmd, args]] of steps) { const t = Date.now(), r = cp.spawnSync(cmd, args, { cwd: ROOT, encoding: 'utf8' });
   const ok = r.status === 0; if (!ok) bad++;
-  console.log((ok ? 'да ' : 'НЕТ') + '  ' + name + ' — ' + ((Date.now() - t) / 1000).toFixed(1) + ' с' + (ok ? '' : '\n' + ((r.stderr || '') + (r.stdout || '')).trim().split('\n').slice(-8).join('\n'))); }
+  console.log((ok ? 'да ' : 'НЕТ') + '  ' + name + ' — ' + ((Date.now() - t) / 1000).toFixed(1) + ' с' + (ok ? '' : '\n' + [r.error ? 'не запустился: ' + r.error.message : '', (r.stdout || '').trim().split('\n').slice(-6).join('\n'), (r.stderr || '').trim() ? 'stderr:\n' + r.stderr.trim().split('\n').slice(-10).join('\n') : ''].filter(Boolean).join('\n'))); }
 console.log('L0: ' + (bad ? 'упало ' + bad + ' из ' + steps.length : 'всё прошло') + ' за ' + ((Date.now() - t0) / 1000).toFixed(1) + ' с');
 process.exit(bad ? 1 : 0);
