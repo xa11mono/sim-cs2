@@ -1,0 +1,3 @@
+код 0
+{"afterLoad":{"heapUsedMB":52.6,"heapTotalMB":106,"nodes":2663},"after20kTicks":{"heapUsedMB":95.2,"heapTotalMB":99.4,"nodes":2026},"after40kTicks":{"heapUsedMB":83.3,"heapTotalMB":88,"nodes":2293}}
+

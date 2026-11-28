@@ -1,0 +1,41 @@
+код 0
+{
+ "sim": "C:\\actions-runner\\_work\\sim-cs2\\sim-cs2\\tools\\measure\\runs\\_sims\\r359_inv_mir.html",
+ "match": 3,
+ "ticks": 20000,
+ "graph": {
+  "edges": 7862,
+  "I-15 freshMatch = загрузка": {
+   "onlyFirst": 0,
+   "onlySecond": 0,
+   "same": true
+  },
+  "I-24/I-32 rebuildNav+navCutTall = загрузка": {
+   "onlyFirst": 0,
+   "onlySecond": 0,
+   "same": true
+  },
+  "I-29 applyWalls (стены сборки, без базы владельца) = загрузка": {
+   "onlyFirst": 0,
+   "onlySecond": 0,
+   "same": true
+  }
+ },
+ "I-22": {
+  "match": 4,
+  "ticksCompared": 2000,
+  "firstDiffTickAfterStart": -1,
+  "same": true
+ },
+ "I-23": {
+  "exit": 1,
+  "out": "ПЕРВОЕ РАСХОЖДЕНИЕ: тик 3088 (матч 3); переменных: 1 — PROB |   PROB.ev[1].why.arb: \"2.4 с назад: заявка «rotate» ур. 8: да — поставлен\" → null",
+  "err": ""
+ },
+ "I-30": {
+  "exit": 1,
+  "out": "ПЕРВОЕ РАСХОЖДЕНИЕ: тик 1 (матч 3); переменных: 1 — bots |   bots[5].id: \"T0\" → \"T1\" |   bots[5].x: 1778.3 → 1746.7 |   bots[5].y: 690.5 → 748 |   bots[5].z: -162 → -162.5 |   bots[5].baseX: 1778.3 → 1746.7",
+  "err": ""
+ }
+}
+

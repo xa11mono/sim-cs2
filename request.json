@@ -1,0 +1,23 @@
+{
+ "branch": "measure/v645a-r354",
+ "_": "ПК 359 (28.11): итоговая версия v645a + spectator Codex 937c9e6 (1d7e84a9) — ПК-часть L2: Э1 8 + 8 страницы (база — ПК 355, fp_base_v645a: правка показа игру не меняет), I-22 / особые инварианты, окна фризов; L0 на Windows (H-26, eslint-scope); вопрос 17 — запись 1bdb9610 обеих карт (данные гранат = подборы на месте?)",
+ "par": 8,
+ "resume": true,
+ "fp": [
+  {"label": "r359_fp_mir", "ref": "1d7e84a987bdd6de3936885120c3500d06ae8fc3", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29], "trace": false, "engine": "chromium"},
+  {"label": "r359_fp_anc", "ref": "1d7e84a987bdd6de3936885120c3500d06ae8fc3", "map": "ancient", "matches": [3, 7, 11, 13, 17, 19, 23, 29], "trace": false, "engine": "chromium"}
+ ],
+ "rec": [
+  {"label": "q17_eco_both_mir", "ref": "1bdb9610b97052f72a53895be1924f1728ec68f4", "map": "mirage"},
+  {"label": "q17_eco_both_anc", "ref": "1bdb9610b97052f72a53895be1924f1728ec68f4", "map": "ancient"}
+ ],
+ "inv": [
+  {"label": "r359_inv_mir", "ref": "1d7e84a987bdd6de3936885120c3500d06ae8fc3", "map": "mirage", "matches": [], "special": true},
+  {"label": "r359_inv_anc", "ref": "1d7e84a987bdd6de3936885120c3500d06ae8fc3", "map": "ancient", "matches": [], "special": true}
+ ],
+ "prof": [
+  {"label": "r359_prof_mir", "ref": "1d7e84a987bdd6de3936885120c3500d06ae8fc3", "map": "mirage", "match": 3, "ticks": 20000, "repeat": 3},
+  {"label": "r359_prof_anc", "ref": "1d7e84a987bdd6de3936885120c3500d06ae8fc3", "map": "ancient", "match": 3, "ticks": 20000, "repeat": 3}
+ ],
+ "selftest": [{"label": "r359_self", "tests": ["l0"]}]
+}
